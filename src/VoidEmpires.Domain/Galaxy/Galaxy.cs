@@ -4,6 +4,11 @@ public sealed class Galaxy
 {
     private readonly List<SolarSystem> _solarSystems = [];
 
+    private Galaxy()
+    {
+        Name = string.Empty;
+    }
+
     public Galaxy(Guid id, string name)
     {
         if (id == Guid.Empty)
@@ -20,9 +25,9 @@ public sealed class Galaxy
         Name = name.Trim();
     }
 
-    public Guid Id { get; }
+    public Guid Id { get; private set; }
 
-    public string Name { get; }
+    public string Name { get; private set; }
 
     public IReadOnlyCollection<SolarSystem> SolarSystems => _solarSystems;
 
