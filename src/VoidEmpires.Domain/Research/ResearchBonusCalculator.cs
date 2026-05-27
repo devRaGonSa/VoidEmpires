@@ -22,6 +22,16 @@ public static class ResearchBonusCalculator
         return planetaryEngineeringLevel * 10;
     }
 
+    public static decimal GetConstructionSpeedMultiplier(int constructionAutomationLevel)
+    {
+        if (constructionAutomationLevel < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(constructionAutomationLevel));
+        }
+
+        return 1m + (constructionAutomationLevel * 0.05m);
+    }
+
     public static ResearchBonus GetBonus(ResearchType researchType, int level)
     {
         if (level < 0)
@@ -35,6 +45,7 @@ public static class ResearchBonusCalculator
         {
             ResearchType.ResourceExtraction => GetResourceProductionMultiplier(level),
             ResearchType.PlanetaryEngineering => GetPlanetaryEngineeringCapacityBonus(level),
+            ResearchType.ConstructionAutomation => GetConstructionSpeedMultiplier(level),
             _ => level
         };
 
