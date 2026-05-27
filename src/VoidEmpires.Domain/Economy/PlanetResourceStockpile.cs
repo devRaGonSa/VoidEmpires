@@ -53,4 +53,27 @@ public sealed class PlanetResourceStockpile
             _ => false
         };
     }
+
+    public bool CanSpend(decimal credits, decimal metal, decimal crystal, decimal gas)
+    {
+        if (credits < 0 || metal < 0 || crystal < 0 || gas < 0)
+        {
+            throw new ArgumentException("Spend values cannot be negative.");
+        }
+
+        return Credits >= credits && Metal >= metal && Crystal >= crystal && Gas >= gas;
+    }
+
+    public void Spend(decimal credits, decimal metal, decimal crystal, decimal gas)
+    {
+        if (!CanSpend(credits, metal, crystal, gas))
+        {
+            throw new InvalidOperationException("Insufficient resources.");
+        }
+
+        Credits -= credits;
+        Metal -= metal;
+        Crystal -= crystal;
+        Gas -= gas;
+    }
 }
