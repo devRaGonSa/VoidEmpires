@@ -33,6 +33,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IPlanetColonizationService, PlanetColonizationService>();
         services.AddScoped<IPlanetEconomyTickService, PlanetEconomyTickService>();
         services.AddScoped<IPlanetBuildingConstructionService, PlanetBuildingConstructionService>();
+        services.AddScoped<IPlanetBuildingUpgradeService, PlanetBuildingUpgradeService>();
 
         return services;
     }
