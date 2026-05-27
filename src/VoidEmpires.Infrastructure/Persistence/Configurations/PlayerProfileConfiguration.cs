@@ -35,6 +35,7 @@ public sealed class PlayerProfileConfiguration : IEntityTypeConfiguration<Player
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Navigation(profile => profile.Civilizations)
+            .HasField("_items")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }
