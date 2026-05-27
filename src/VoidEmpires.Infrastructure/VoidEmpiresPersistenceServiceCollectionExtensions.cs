@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Identity;
+using VoidEmpires.Application.Players;
 using VoidEmpires.Infrastructure.Identity;
 using VoidEmpires.Infrastructure.Persistence;
+using VoidEmpires.Infrastructure.Players;
 
 namespace VoidEmpires.Infrastructure;
 
@@ -21,6 +23,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         }
 
         services.AddDbContext<VoidEmpiresDbContext>(options => options.UseNpgsql(connectionString));
+        services.AddScoped<IStartingCivilizationService, StartingCivilizationService>();
 
         return services;
     }
