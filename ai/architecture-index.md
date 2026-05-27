@@ -44,10 +44,10 @@ Game-service and operations repository for `VoidEmpires`, currently in early tec
 
 The initial `.NET` solution now exists with these implemented project boundaries:
 
-- `src/VoidEmpires.Web`: minimal ASP.NET Core host with `/`, `/health`, registration, and email confirmation endpoints
-- `src/VoidEmpires.Application`: application-layer assembly boundary marker plus provider-agnostic identity and transactional email contracts
+- `src/VoidEmpires.Web`: minimal ASP.NET Core host with `/`, `/health`, registration, email confirmation, and controlled development galaxy generation endpoints
+- `src/VoidEmpires.Application`: application-layer assembly boundary marker plus provider-agnostic identity, transactional email, and galaxy generation contracts
 - `src/VoidEmpires.Domain`: domain assembly boundary marker
-- `src/VoidEmpires.Infrastructure`: infrastructure assembly boundary marker with EF Core/Npgsql persistence, ASP.NET Core Identity, initial Identity migration, and Brevo transactional email adapter
-- `tests/VoidEmpires.Tests`: baseline assembly, endpoint, persistence, identity, and email tests
+- `src/VoidEmpires.Infrastructure`: infrastructure assembly boundary marker with EF Core/Npgsql persistence, ASP.NET Core Identity, Identity and galaxy migrations, Brevo transactional email adapter, deterministic galaxy generation, and persisted galaxy generation service
+- `tests/VoidEmpires.Tests`: baseline assembly, endpoint, persistence, identity, email, and galaxy generation tests
 
 The gameplay, background job, admin, and live-ops modules remain planning targets. Future tasks should introduce those capabilities incrementally without bypassing the established project boundaries. Persistence tasks must keep real database configuration outside the repository and avoid requiring the real PostgreSQL database for CI or ordinary test runs. Brevo is the transactional email provider for account creation and confirmation flows, but provider-specific details belong in Infrastructure behind application-level email contracts.

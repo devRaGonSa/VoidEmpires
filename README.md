@@ -9,8 +9,8 @@ The repository defines the project direction, keeps the AI-assisted task workflo
 - AI Platform workflow assets are installed under `ai/`
 - repository context, roadmap, and architecture planning documents are in place
 - `VoidEmpires.sln` contains the initial Web, Application, Domain, Infrastructure, and Tests projects
-- `VoidEmpires.Web` exposes `/`, `/health`, `/api/auth/register`, and `/api/auth/confirm-email` as minimal deterministic endpoints
-- `VoidEmpires.Infrastructure` contains EF Core/Npgsql persistence, ASP.NET Core Identity, the initial Identity migration, and Brevo transactional email wiring without gameplay entities
+- `VoidEmpires.Web` exposes `/`, `/health`, `/api/auth/register`, `/api/auth/confirm-email`, and a controlled development galaxy generation endpoint
+- `VoidEmpires.Infrastructure` contains EF Core/Npgsql persistence, ASP.NET Core Identity, Identity and galaxy migrations, Brevo transactional email wiring, deterministic galaxy generation, and a persisted galaxy generation service
 
 ## Development
 
@@ -41,6 +41,19 @@ The initial runtime checks are:
 - `GET /health` returns service status plus `persistence.configured` and `persistence.provider` metadata without exposing connection string values.
 - `POST /api/auth/register` accepts an email and password, creates a user through the registration service, and sends confirmation email through the transactional email abstraction.
 - `GET /api/auth/confirm-email` accepts `userId` and `token` query parameters and delegates confirmation to the email confirmation service.
+- `POST /api/dev/galaxies/generate` is available only in Development, or when `VoidEmpires:DevEndpoints:Enabled` is explicitly set to `true`, and requires configured persistence.
+
+Example development galaxy generation request:
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:5000/api/dev/galaxies/generate" `
+  -ContentType "application/json" `
+  -Body '{"name":"Void Prime","seed":"alpha-001","solarSystemCount":12,"minPlanetsPerSystem":2,"maxPlanetsPerSystem":5}'
+```
+
+Do not enable development endpoints against production data. Use a local or disposable development database for generated test galaxies.
 
 ### Database Configuration
 
