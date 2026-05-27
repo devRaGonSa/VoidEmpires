@@ -5,4 +5,5 @@ public sealed record GenerateAndPersistGalaxyRequest(
     string Seed,
     int SolarSystemCount,
     int MinPlanetsPerSystem,
-    int MaxPlanetsPerSystem);
+    int MaxPlanetsPerSystem,
+    bool OverwriteExisting = false);
