@@ -4,9 +4,9 @@
 
 VoidEmpires is the future home of the `VoidEmpires` game and its supporting services.
 
-At this stage the repository is still in Phase 0. It contains AI Platform workflow assets and project-planning documentation, but no production application code yet.
+At this stage the repository is in Phase 1 technical foundation work. It contains AI Platform workflow assets, project-planning documentation, and the initial buildable `.NET` solution.
 
-The current purpose of the repository is to define the product direction, architecture direction, and delivery workflow before the first .NET solution bootstrap task begins.
+The current purpose of the repository is to preserve the product direction, architecture direction, and delivery workflow while incrementally building the first service foundation.
 
 ## Product Direction
 
@@ -23,7 +23,13 @@ These pillars are planning assumptions for repository setup. They should be refi
 
 ## Technical Direction
 
-The initial implementation direction is a .NET-based solution named `VoidEmpires`.
+The initial implementation direction is a .NET-based solution named `VoidEmpires`. The solution currently includes:
+
+- `VoidEmpires.Web` as the first ASP.NET Core host
+- `VoidEmpires.Application` for future use-case orchestration
+- `VoidEmpires.Domain` for future domain rules
+- `VoidEmpires.Infrastructure` for future adapters and infrastructure concerns
+- `VoidEmpires.Tests` for baseline unit and smoke coverage
 
 The early technical bias is:
 
@@ -33,7 +39,7 @@ The early technical bias is:
 - prefer API-first and service-oriented seams so additional clients or tools can be added later
 - document architecture decisions before introducing heavy dependencies
 
-No production solution, projects, databases, or deployment assets exist yet. Those should be introduced only through explicit follow-up tasks.
+No databases, deployment assets, authentication, background processing, or gameplay systems exist yet. Those should be introduced only through explicit follow-up tasks.
 
 ## Workflow Expectations
 
@@ -57,7 +63,7 @@ The documented team model under `ai/teams/` is used for planning and review guid
 
 Current practical expectations:
 
-- Platform owns repository scaffolding, workflow conventions, and bootstrap planning
+- Platform owns repository scaffolding, workflow conventions, and technical foundation tasks
 - Product and Docs clarify game direction and durable repository knowledge
 - Backend, Frontend, Database, DevOps, QA, and Security guidance become active once real application work starts
 
@@ -67,18 +73,17 @@ There is no automated team routing yet. Task metadata and human review still pro
 
 Current constraints for repository work:
 
-- the repository is still in documentation and bootstrap planning mode
-- no application source code should be added until the bootstrap task explicitly requires it
-- no `.NET` solution should be created before the planned bootstrap task
+- the repository has a minimal service foundation but no gameplay implementation
+- application behavior should be added only through explicit tasks
 - workflow scripts should remain stable unless a task explicitly targets them
 - repository context documents should stay deterministic, concise, and easy for future agents to reuse
 
 ## Immediate Priorities
 
-The next planning milestones are:
+The next milestones are:
 
-1. replace generic template documentation with VoidEmpires-specific planning documents
-2. define the initial roadmap and architecture index
-3. prepare the first implementation plan for creating the `VoidEmpires` solution
+1. keep the .NET validation path reliable
+2. evolve domain and application boundaries through small explicit tasks
+3. defer persistence, authentication, deployment, and gameplay complexity until the foundation is ready
 
-Until those are complete, future tasks should avoid speculative implementation and focus on aligning repository guidance with the intended product direction.
+Future tasks should avoid speculative implementation and keep repository guidance aligned with the intended product direction.

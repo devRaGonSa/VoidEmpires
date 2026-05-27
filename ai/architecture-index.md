@@ -1,12 +1,12 @@
 # Architecture Index
 
-This file describes the intended high-level architecture for VoidEmpires before the first application projects are created.
+This file describes the high-level architecture direction for VoidEmpires after the first application projects have been created.
 
-The boundaries below are planning targets for the initial solution bootstrap and early implementation tasks.
+The boundaries below are planning targets for the current modular service foundation and early implementation tasks.
 
 ## Repository Type
 
-Game-service and operations repository for `VoidEmpires`, currently still in planning and bootstrap mode.
+Game-service and operations repository for `VoidEmpires`, currently in early technical foundation mode.
 
 ## Planned Core Modules
 
@@ -41,6 +41,12 @@ Game-service and operations repository for `VoidEmpires`, currently still in pla
 
 ## Current Reality
 
-None of the modules above exist as code yet.
+The initial `.NET` solution now exists with these implemented project boundaries:
 
-Until the bootstrap task is executed, this file should be used as an architecture target rather than a description of implemented components.
+- `src/VoidEmpires.Web`: minimal ASP.NET Core host with `/` and `/health`
+- `src/VoidEmpires.Application`: application-layer assembly boundary marker
+- `src/VoidEmpires.Domain`: domain assembly boundary marker
+- `src/VoidEmpires.Infrastructure`: infrastructure assembly boundary marker
+- `tests/VoidEmpires.Tests`: baseline assembly and endpoint smoke tests
+
+The gameplay, persistence, background job, identity, admin, and live-ops modules remain planning targets. Future tasks should introduce those capabilities incrementally without bypassing the established project boundaries.
