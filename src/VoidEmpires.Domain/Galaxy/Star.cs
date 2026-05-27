@@ -2,6 +2,11 @@ namespace VoidEmpires.Domain.Galaxy;
 
 public sealed class Star
 {
+    private Star()
+    {
+        Name = string.Empty;
+    }
+
     public Star(Guid id, Guid solarSystemId, string name, StarType starType)
     {
         if (id == Guid.Empty)
@@ -25,13 +30,13 @@ public sealed class Star
         StarType = starType;
     }
 
-    public Guid Id { get; }
+    public Guid Id { get; private set; }
 
-    public Guid SolarSystemId { get; }
+    public Guid SolarSystemId { get; private set; }
 
-    public string Name { get; }
+    public string Name { get; private set; }
 
-    public StarType StarType { get; }
+    public StarType StarType { get; private set; }
 
     public static Star Create(Guid solarSystemId, string name, StarType starType) =>
         new(Guid.NewGuid(), solarSystemId, name, starType);
