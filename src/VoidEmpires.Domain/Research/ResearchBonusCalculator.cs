@@ -21,4 +21,23 @@ public static class ResearchBonusCalculator
 
         return planetaryEngineeringLevel * 10;
     }
+
+    public static ResearchBonus GetBonus(ResearchType researchType, int level)
+    {
+        if (level < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(level));
+        }
+
+        var definition = ResearchCatalog.Get(researchType);
+
+        var value = researchType switch
+        {
+            ResearchType.ResourceExtraction => GetResourceProductionMultiplier(level),
+            ResearchType.PlanetaryEngineering => GetPlanetaryEngineeringCapacityBonus(level),
+            _ => level
+        };
+
+        return new ResearchBonus(researchType, level, definition.BonusKey, value);
+    }
 }
