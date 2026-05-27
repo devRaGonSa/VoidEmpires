@@ -2,6 +2,11 @@ namespace VoidEmpires.Domain.Galaxy;
 
 public sealed class Planet
 {
+    private Planet()
+    {
+        Name = string.Empty;
+    }
+
     public Planet(
         Guid id,
         Guid solarSystemId,
@@ -45,19 +50,19 @@ public sealed class Planet
         ColonizationStatus = colonizationStatus;
     }
 
-    public Guid Id { get; }
+    public Guid Id { get; private set; }
 
-    public Guid SolarSystemId { get; }
+    public Guid SolarSystemId { get; private set; }
 
-    public string Name { get; }
+    public string Name { get; private set; }
 
-    public int OrbitalSlot { get; }
+    public int OrbitalSlot { get; private set; }
 
-    public PlanetType PlanetType { get; }
+    public PlanetType PlanetType { get; private set; }
 
-    public int Size { get; }
+    public int Size { get; private set; }
 
-    public PlanetColonizationStatus ColonizationStatus { get; }
+    public PlanetColonizationStatus ColonizationStatus { get; private set; }
 
     public static Planet Create(
         Guid solarSystemId,
