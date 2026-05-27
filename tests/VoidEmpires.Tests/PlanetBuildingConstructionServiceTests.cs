@@ -14,6 +14,7 @@ public class PlanetBuildingConstructionServiceTests
     {
         await using var db = CreateDb();
         var planetId = Guid.NewGuid();
+        var civilizationId = Guid.NewGuid();
 
         db.PlanetBuildingCapacities.Add(PlanetBuildingCapacity.Create(planetId, 100));
         var stockpile = PlanetResourceStockpile.Create(planetId);
@@ -25,7 +26,7 @@ public class PlanetBuildingConstructionServiceTests
         var service = new PlanetBuildingConstructionService(db);
 
         var result = await service.ConstructAsync(
-            new ConstructBuildingRequest(planetId, BuildingType.MetalMine));
+            new ConstructBuildingRequest(planetId, civilizationId, BuildingType.MetalMine));
 
         Assert.True(result.Succeeded);
         Assert.Single(db.PlanetBuildings);
@@ -38,6 +39,7 @@ public class PlanetBuildingConstructionServiceTests
     {
         await using var db = CreateDb();
         var planetId = Guid.NewGuid();
+        var civilizationId = Guid.NewGuid();
 
         db.PlanetBuildingCapacities.Add(PlanetBuildingCapacity.Create(planetId, 10));
         db.PlanetBuildings.Add(PlanetBuilding.Create(planetId, BuildingType.CommandCenter, 1, 10));
@@ -50,7 +52,7 @@ public class PlanetBuildingConstructionServiceTests
         var service = new PlanetBuildingConstructionService(db);
 
         var result = await service.ConstructAsync(
-            new ConstructBuildingRequest(planetId, BuildingType.MetalMine));
+            new ConstructBuildingRequest(planetId, civilizationId, BuildingType.MetalMine));
 
         Assert.False(result.Succeeded);
         Assert.Equal(["Planet building capacity would be exceeded."], result.Errors);
@@ -61,6 +63,7 @@ public class PlanetBuildingConstructionServiceTests
     {
         await using var db = CreateDb();
         var planetId = Guid.NewGuid();
+        var civilizationId = Guid.NewGuid();
 
         db.PlanetBuildingCapacities.Add(PlanetBuildingCapacity.Create(planetId, 100));
         db.PlanetResourceStockpiles.Add(PlanetResourceStockpile.Create(planetId));
@@ -69,7 +72,7 @@ public class PlanetBuildingConstructionServiceTests
         var service = new PlanetBuildingConstructionService(db);
 
         var result = await service.ConstructAsync(
-            new ConstructBuildingRequest(planetId, BuildingType.MetalMine));
+            new ConstructBuildingRequest(planetId, civilizationId, BuildingType.MetalMine));
 
         Assert.False(result.Succeeded);
         Assert.Equal(["Insufficient resources."], result.Errors);
