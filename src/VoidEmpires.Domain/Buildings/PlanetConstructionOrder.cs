@@ -77,4 +77,14 @@ public sealed class PlanetConstructionOrder
         DateTime endsAtUtc,
         ConstructionQueueItemStatus status)
         => new(planetId, action, buildingType, targetLevel, sequence, startsAtUtc, endsAtUtc, status);
+
+    public void MarkCompleted()
+    {
+        if (!IsOpen)
+        {
+            throw new InvalidOperationException("Only open construction orders can be completed.");
+        }
+
+        Status = ConstructionQueueItemStatus.Completed;
+    }
 }
