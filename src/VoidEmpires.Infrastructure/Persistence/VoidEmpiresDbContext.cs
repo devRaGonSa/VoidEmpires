@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Domain.Players;
 using VoidEmpires.Infrastructure.Identity;
@@ -32,6 +33,8 @@ namespace VoidEmpires.Infrastructure.Persistence
         public DbSet<PlayerProfile> PlayerProfiles => Set<PlayerProfile>();
 
         public DbSet<Civilization> Civilizations => Set<Civilization>();
+
+        public DbSet<PlanetOwnership> PlanetOwnerships => Set<PlanetOwnership>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
