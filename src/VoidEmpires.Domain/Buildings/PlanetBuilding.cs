@@ -44,4 +44,9 @@ public sealed class PlanetBuilding
         int level,
         int footprint)
         => new(planetId, buildingType, level, footprint);
+
+    public void Upgrade()
+    {
+        Level++;
+    }
 }
