@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Mvc;
+using VoidEmpires.Application.Identity;
 using VoidEmpires.Infrastructure;
 using VoidEmpires.Infrastructure.Email;
 
@@ -16,6 +18,37 @@ if (!string.IsNullOrWhiteSpace(defaultConnectionString))
 var app = builder.Build();
 
 app.MapGet("/", () => "VoidEmpires");
+app.MapPost("/api/auth/register", async (
+    RegisterApiRequest request,
+    [FromServices] IUserRegistrationService registrationService) =>
+{
+    if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+    {
+        return Results.BadRequest(new AuthApiResponse(false, null, ["Email and password are required."]));
+    }
+
+    var result = await registrationService.RegisterAsync(new RegisterUserRequest(request.Email, request.Password));
+
+    return result.Succeeded
+        ? Results.Created("/api/auth/register", new AuthApiResponse(true, result.UserId, []))
+        : Results.BadRequest(new AuthApiResponse(false, null, result.Errors));
+});
+app.MapGet("/api/auth/confirm-email", async (
+    string? userId,
+    string? token,
+    [FromServices] IEmailConfirmationService confirmationService) =>
+{
+    if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(token))
+    {
+        return Results.BadRequest(new AuthApiResponse(false, null, ["User id and token are required."]));
+    }
+
+    var result = await confirmationService.ConfirmEmailAsync(new ConfirmEmailRequest(userId, token));
+
+    return result.Succeeded
+        ? Results.Ok(new AuthApiResponse(true, userId, []))
+        : Results.BadRequest(new AuthApiResponse(false, null, result.Errors));
+});
 app.MapGet("/health", () =>
 {
     var persistenceConnectionString = app.Configuration.GetConnectionString("DefaultConnection");
@@ -37,3 +70,7 @@ app.Run();
 public partial class Program
 {
 }
+
+internal sealed record RegisterApiRequest(string? Email, string? Password);
+
+internal sealed record AuthApiResponse(bool Succeeded, string? UserId, IReadOnlyList<string> Errors);
