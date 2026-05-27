@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is in `Phase 3A - Planet economy foundation` while retaining the AI Platform workflow assets from Phase 0.
+The repository is in `Phase 3B - Planet buildings foundation` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
@@ -41,7 +41,7 @@ The repository now has:
 - EF Core with Npgsql package references in `VoidEmpires.Infrastructure`.
 - An empty `ConnectionStrings:DefaultConnection` placeholder in web appsettings files.
 - A `VoidEmpiresDbContext` in the Infrastructure persistence boundary using ASP.NET Core Identity tables.
-- EF Core migrations for Identity, initial galaxy model, player/civilization model, planet ownership model, and planet economy model. Migrations exist in source but are not automatically applied to the real database.
+- EF Core migrations for Identity, initial galaxy model, player/civilization model, planet ownership model, planet economy model, and planet building model. Migrations exist in source but are not automatically applied to the real database.
 - Infrastructure service registration that enables PostgreSQL only when a non-empty connection string is configured.
 - ASP.NET Core Identity registration with unique-email and confirmed-email defaults.
 - Application contracts for user registration, email confirmation, and transactional email.
@@ -57,27 +57,29 @@ The repository now has:
 - Planet colonization/control creation through `IPlanetColonizationService`.
 - Planet economy domain through `ResourceType`, `PlanetResourceStockpile`, `PlanetProductionProfile`, and `ResourceProductionService`.
 - Persisted planet economy tick through `IPlanetEconomyTickService`.
+- Planet building model through `BuildingType`, `PlanetBuilding`, `PlanetBuildingCapacity`, `BuildingDefinition`, `BuildingCatalog`, and `ConstructionCost`.
+- Building construction through `IPlanetBuildingConstructionService`, including capacity checks and resource spending.
+- Building upgrades through `IPlanetBuildingUpgradeService`, including resource spending and level increment.
 
 Current gameplay foundation supports this backend chain:
 
 ```text
-Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> ProductionProfile -> Stockpile
+Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Building upgrades
 ```
 
 ## Building Capacity Design Note
 
-Before introducing buildings, the project has accepted this rule:
+The project has accepted this rule:
 
-- each planet will have a finite building capacity
-- each building will consume a configurable amount of that capacity
-- some buildings may consume more capacity than others
-- civilization archetype may affect usable building capacity or building footprint
-- future technologies may increase available construction capacity or reduce building footprint
-- this rule must be included in the Phase 3B building model instead of treating buildings as unlimited per planet
+- each planet has a finite building capacity
+- each building consumes a configurable amount of that capacity
+- some buildings consume more capacity than others
+- civilization archetype may affect usable building capacity or building footprint later
+- future technologies may increase available construction capacity or reduce building footprint later
+- buildings must not be treated as unlimited per planet
 
 Current intentional exclusions:
 
-- no buildings yet
 - no construction queues yet
 - no fleets
 - no combat
@@ -117,6 +119,7 @@ The repository has established:
 - player/civilization foundation
 - planet ownership and colonization foundation
 - planet economy foundation
+- planet buildings foundation
 
 ## Validation Status
 
@@ -130,9 +133,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validation baseline: `89` passing tests.
+Current validation baseline: `111` passing tests.
 
-Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
+Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, planet building domain tests, building catalog tests, persisted building construction tests, persisted building upgrade tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
@@ -143,5 +146,5 @@ Current constraints remain:
 - do not add gameplay behavior unless a task explicitly requires it
 - do not treat template documentation as authoritative if it conflicts with VoidEmpires-specific planning docs
 - do not apply migrations automatically to the real database
-- avoid login/session endpoints, deployment, buildings, construction queues, fleets, combat, alliances, espionage, research, and UI complexity until explicit tasks introduce them
+- avoid login/session endpoints, deployment, construction queues, fleets, combat, alliances, espionage, research, and UI complexity until explicit tasks introduce them
 - never commit real database secrets, Brevo secrets, private hostnames, VPN details, NAS connection information, or production email configuration
