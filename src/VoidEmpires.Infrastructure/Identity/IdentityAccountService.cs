@@ -20,6 +20,11 @@ public sealed class IdentityAccountService(
             return RegisterUserResult.Failure("Email and password are required.");
         }
 
+        if (!TryBuildConfirmationUrl("configuration-check", "configuration-check", out _, out var configurationError))
+        {
+            return RegisterUserResult.Failure(configurationError);
+        }
+
         var user = new VoidEmpiresUser
         {
             UserName = request.Email,
@@ -33,7 +38,11 @@ public sealed class IdentityAccountService(
         }
 
         var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
-        var confirmationUrl = BuildConfirmationUrl(user.Id, confirmationToken);
+        if (!TryBuildConfirmationUrl(user.Id, confirmationToken, out var confirmationUrl, out var urlError))
+        {
+            return RegisterUserResult.Failure(urlError);
+        }
+
         var emailResult = await emailSender.SendAsync(
             new TransactionalEmailMessage(
                 new TransactionalEmailRecipient(request.Email),
@@ -69,14 +78,27 @@ public sealed class IdentityAccountService(
             : EmailConfirmationResult.Failure(result.Errors.Select(error => error.Description).ToArray());
     }
 
-    private Uri BuildConfirmationUrl(string userId, string token)
+    private bool TryBuildConfirmationUrl(string userId, string token, out Uri? confirmationUrl, out string error)
     {
-        var configuredBaseUrl = emailOptions.Value.ConfirmationBaseUrl;
-        var baseUrl = string.IsNullOrWhiteSpace(configuredBaseUrl)
-            ? "https://voidempires.local/api/auth/confirm-email"
-            : configuredBaseUrl;
-        var separator = baseUrl.Contains('?') ? '&' : '?';
+        confirmationUrl = null;
+        error = string.Empty;
 
-        return new Uri($"{baseUrl}{separator}userId={Uri.EscapeDataString(userId)}&token={Uri.EscapeDataString(token)}");
+        var configuredBaseUrl = emailOptions.Value.ConfirmationBaseUrl;
+        if (string.IsNullOrWhiteSpace(configuredBaseUrl))
+        {
+            error = "Email confirmation base URL is not configured.";
+            return false;
+        }
+
+        if (!Uri.TryCreate(configuredBaseUrl, UriKind.Absolute, out var baseUri))
+        {
+            error = "Email confirmation base URL is invalid.";
+            return false;
+        }
+
+        var baseUrl = baseUri.ToString();
+        var separator = baseUrl.Contains('?') ? '&' : '?';
+        confirmationUrl = new Uri($"{baseUrl}{separator}userId={Uri.EscapeDataString(userId)}&token={Uri.EscapeDataString(token)}");
+        return true;
     }
 }
