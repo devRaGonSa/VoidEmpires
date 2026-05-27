@@ -2,3 +2,7 @@ bin/
 obj/
 
 ai/worker.lock
+
+# Visual Studio local files
+.vs/
+*.csproj.user
