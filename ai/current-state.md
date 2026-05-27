@@ -2,11 +2,11 @@
 
 ## Phase
 
-The repository is in `Phase 0 - Repository and AI Platform setup`.
+The repository has moved into `Phase 1 - Technical foundation` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
-The AI Platform template has been installed and is now being adapted into a VoidEmpires-specific project workspace.
+The AI Platform template has been adapted into a VoidEmpires-specific project workspace.
 
 Current repository contents are centered on:
 
@@ -14,12 +14,24 @@ Current repository contents are centered on:
 - planning and orchestration documents under `ai/`
 - task lifecycle folders under `ai/tasks/`
 - helper scripts under `scripts/`
+- the initial `.NET` solution and projects under `src/` and `tests/`
 
 ## Application Status
 
-There is no production application code in the repository yet.
+The repository now contains `VoidEmpires.sln` with these projects:
 
-There is currently no `.NET` solution, no application projects, no persistence layer, no deployed environment definition, and no game implementation.
+- `src/VoidEmpires.Web`
+- `src/VoidEmpires.Application`
+- `src/VoidEmpires.Domain`
+- `src/VoidEmpires.Infrastructure`
+- `tests/VoidEmpires.Tests`
+
+`VoidEmpires.Web` is a minimal ASP.NET Core host. It exposes:
+
+- `GET /` for a simple product identity response
+- `GET /health` for deterministic health checks
+
+There is still no persistence layer, deployed environment definition, authentication, background processing, or gameplay implementation.
 
 ## Task Workflow Status
 
@@ -36,22 +48,27 @@ Inherited template history has been moved out of `ai/tasks/done` into `ai/tasks/
 
 ## Planning Status
 
-The repository is currently establishing:
+The repository has established:
 
 - a VoidEmpires-specific repository context
 - an initial roadmap
 - an initial architecture index
-- the first bootstrap implementation plan for the future `VoidEmpires` solution
+- the first bootstrap implementation plan
+- the initial `VoidEmpires` solution structure
 
 ## Validation Status
 
-No repository-specific build, test, or integration validation exists for application code yet because the application solution has not been created.
+Repository-specific application validation now exists through the .NET solution.
 
-For the current phase, validation is documentation- and workflow-oriented:
+Run these commands from the repository root:
 
-- verify task lifecycle rules are followed
-- verify modified files match task scope
-- verify documentation reflects the actual repository state
+```powershell
+dotnet restore
+dotnet build --no-restore
+dotnet test --no-build
+```
+
+Current tests include assembly-boundary coverage and smoke checks for `/` and `/health`.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
@@ -59,6 +76,6 @@ If a task later introduces integration boundaries before tests exist, record `No
 
 Current constraints remain:
 
-- do not create application code unless a task explicitly requires it
-- do not create the `.NET` solution before the bootstrap task
+- do not add application behavior unless a task explicitly requires it
 - do not treat template documentation as authoritative if it conflicts with VoidEmpires-specific planning docs
+- avoid database, authentication, deployment, or gameplay complexity until explicit tasks introduce them
