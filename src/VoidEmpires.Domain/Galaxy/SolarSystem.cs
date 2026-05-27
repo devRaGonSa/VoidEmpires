@@ -4,6 +4,12 @@ public sealed class SolarSystem
 {
     private readonly List<Planet> _planets = [];
 
+    private SolarSystem()
+    {
+        Name = string.Empty;
+        Star = null!;
+    }
+
     public SolarSystem(Guid id, Guid galaxyId, string name, GalaxyCoordinates coordinates, Star star)
     {
         if (id == Guid.Empty)
@@ -28,15 +34,15 @@ public sealed class SolarSystem
         Star = star ?? throw new ArgumentNullException(nameof(star));
     }
 
-    public Guid Id { get; }
+    public Guid Id { get; private set; }
 
-    public Guid GalaxyId { get; }
+    public Guid GalaxyId { get; private set; }
 
-    public string Name { get; }
+    public string Name { get; private set; }
 
-    public GalaxyCoordinates Coordinates { get; }
+    public GalaxyCoordinates Coordinates { get; private set; }
 
-    public Star Star { get; }
+    public Star Star { get; private set; }
 
     public IReadOnlyCollection<Planet> Planets => _planets;
 
