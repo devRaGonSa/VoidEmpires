@@ -9,8 +9,8 @@ The repository defines the project direction, keeps the AI-assisted task workflo
 - AI Platform workflow assets are installed under `ai/`
 - repository context, roadmap, and architecture planning documents are in place
 - `VoidEmpires.sln` contains the initial Web, Application, Domain, Infrastructure, and Tests projects
-- `VoidEmpires.Web` exposes `/` and `/health` as minimal deterministic endpoints
-- `VoidEmpires.Infrastructure` contains the initial EF Core/Npgsql persistence skeleton without gameplay entities or migrations
+- `VoidEmpires.Web` exposes `/`, `/health`, `/api/auth/register`, and `/api/auth/confirm-email` as minimal deterministic endpoints
+- `VoidEmpires.Infrastructure` contains EF Core/Npgsql persistence, ASP.NET Core Identity, the initial Identity migration, and Brevo transactional email wiring without gameplay entities
 
 ## Development
 
@@ -39,6 +39,8 @@ The initial runtime checks are:
 
 - `GET /` returns a minimal `VoidEmpires` response.
 - `GET /health` returns service status plus `persistence.configured` and `persistence.provider` metadata without exposing connection string values.
+- `POST /api/auth/register` accepts an email and password, creates a user through the registration service, and sends confirmation email through the transactional email abstraction.
+- `GET /api/auth/confirm-email` accepts `userId` and `token` query parameters and delegates confirmation to the email confirmation service.
 
 ### Database Configuration
 
@@ -58,7 +60,7 @@ dotnet user-secrets init --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<local or private PostgreSQL connection string>" --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
 ```
 
-Do not commit real passwords, NAS hostnames, VPN IPs, private infrastructure addresses, or production connection strings. The real PostgreSQL database is reachable only through private infrastructure or VPN, and normal validation and tests run without requiring access to it.
+Do not commit real passwords, NAS hostnames, VPN IPs, private infrastructure addresses, or production connection strings. The real PostgreSQL database is reachable only through private infrastructure or VPN, and normal validation and tests run without requiring access to it. Identity tests use local fakes or EF Core InMemory rather than the real database.
 
 ### Brevo Email Configuration
 
@@ -85,7 +87,7 @@ dotnet user-secrets set "Brevo:SenderEmail" "<verified sender email>" --project 
 dotnet user-secrets set "Brevo:ConfirmationBaseUrl" "<public confirmation base URL>" --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
 ```
 
-Do not commit real Brevo API keys, SMTP credentials, verified sender addresses, recipient lists, or production confirmation URLs. Automated tests and CI must not call Brevo.
+Do not commit real Brevo API keys, SMTP credentials, verified sender addresses, recipient lists, or production confirmation URLs. Automated tests and CI must not call Brevo; sender tests use fake HTTP handlers.
 
 ## Key Documents
 
@@ -108,4 +110,4 @@ AI workers should process the first pending task, keep changes scoped to that ta
 
 ## Next Step
 
-The next planned implementation milestones are to keep hardening the technical foundation before adding gameplay, authentication, deployment, or UI complexity.
+The next planned implementation milestones are to keep hardening the technical foundation before adding gameplay, login/session flows, deployment, or UI complexity.
