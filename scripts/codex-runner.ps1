@@ -76,7 +76,7 @@ function Test-WorkerProcessActive {
 
     $processes = Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe' OR Name = 'pwsh.exe'" -ErrorAction SilentlyContinue
     foreach ($process in $processes) {
-        if ($process.CommandLine -and $process.CommandLine -like "*scripts/codex-runner.ps1*" -and $process.ProcessId -ne $PID) {
+        if ($process.CommandLine -and $process.CommandLine -match "[\\/]+scripts[\\/]+codex-runner\.ps1" -and $process.ProcessId -ne $PID) {
             return $true
         }
     }
@@ -130,7 +130,9 @@ while ($true) {
                 $gitChanges = git status --porcelain
                 if ($gitChanges) {
                     Write-Host "Changes detected. Committing and pushing..."
-                    git add -A
+                    $stagedPaths = @("AGENTS.md", "README.md", "ai", "scripts", ".github", "src", "tests") |
+                        Where-Object { Test-Path $_ }
+                    git add --all -- $stagedPaths
                     git commit -m "chore: process pending tasks"
                     if ($LASTEXITCODE -eq 0) {
                         git push

@@ -32,6 +32,13 @@ jobs:
         run: |
           git config user.name "codex-worker"
           git config user.email "codex@automation.local"
-          git add .
+          paths=(AGENTS.md README.md ai scripts .github src tests)
+          existing=()
+          for path in "${paths[@]}"; do
+            if [ -e "$path" ]; then
+              existing+=("$path")
+            fi
+          done
+          git add --all -- "${existing[@]}"
           git commit -m "chore: automated task execution" || echo "No changes"
           git push
