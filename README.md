@@ -43,7 +43,7 @@ The initial runtime checks are:
 
 - `AGENTS.md`: repository workflow rules for task execution
 - `ai/repo-context.md`: project purpose, product assumptions, workflow, and constraints
-- `ai/current-state.md`: current repository reality and Phase 0 status
+- `ai/current-state.md`: current repository reality and validation status
 - `ai/roadmap.md`: high-level delivery phases for VoidEmpires
 - `ai/architecture-index.md`: intended module boundaries for the future solution
 - `ai/reports/solution-bootstrap-plan.md`: actionable plan for the first implementation task
