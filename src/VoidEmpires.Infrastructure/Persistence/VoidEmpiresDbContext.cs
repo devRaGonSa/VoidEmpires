@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Domain.Galaxy;
+using VoidEmpires.Domain.Players;
 using VoidEmpires.Infrastructure.Identity;
 
 namespace VoidEmpires.Infrastructure.Identity
@@ -27,6 +28,10 @@ namespace VoidEmpires.Infrastructure.Persistence
         public DbSet<Star> Stars => Set<Star>();
 
         public DbSet<Planet> Planets => Set<Planet>();
+
+        public DbSet<PlayerProfile> PlayerProfiles => Set<PlayerProfile>();
+
+        public DbSet<Civilization> Civilizations => Set<Civilization>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
