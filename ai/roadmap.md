@@ -1,16 +1,24 @@
-# Platform Roadmap v2
+# VoidEmpires Roadmap
 
-This is the central direction document for the AI development platform template. Planned commands listed here are not available until implemented.
+This roadmap defines the high-level delivery direction for the VoidEmpires project before production code exists.
 
-| ID | Title | Status | Goal | Expected outcome | Related future commands |
-|---|---|---|---|---|---|
-| R-001 | Roadmap foundation | done | Establish the roadmap, current-state snapshot, and project memory. | The repository has baseline direction, decisions, risks, and known gaps documented. | `roadmap-status`, `analyze`, `reconcile` |
-| R-002 | Team model | done | Define specialized agent/team roles and responsibilities. | Planning, implementation, review, documentation, and orchestration roles are described consistently. | `plan`, `implement`, `review` |
-| R-003 | Command specs | done | Specify behavior, inputs, outputs, and safety boundaries for roadmap-driven commands. | Commands can be implemented from stable specs. | `analyze`, `roadmap-status`, `plan`, `reconcile`, `implement`, `review` |
-| R-004 | Read-only analysis commands | done | Inspect repository state without modifying files. | Users can understand platform health, roadmap progress, and gaps safely. | `analyze`, `roadmap-status` |
-| R-005 | Planning commands | in-progress | Generate structured task proposals from roadmap items and repository state. | Roadmap items produce reviewable task files that follow the task template. | `plan` |
-| R-006 | Reconciliation commands | done | Compare roadmap, code, docs, and tasks to detect drift. | Mismatches between intended direction and actual implementation are visible. | `reconcile` |
-| R-007 | Implement command | in-progress | Introduce a safer task execution command to eventually replace `run`. | Task execution starts from an explicit pending task, generates an operational prompt, and stays aligned with roadmap/task state without closing directly to done. | `implement` |
-| R-008 | Review workflow | in-progress | Formalize review states before tasks are completed. | Implementation, explicit task-state movement, and read-only review are distinct before tasks are marked done. | `review` |
-| R-009 | Multi-team orchestration | planned | Coordinate specialized teams or agents while preserving reviewable task boundaries. | Complex work can be decomposed across roles without losing traceability. | `plan`, `implement`, `review`, `reconcile` |
-| R-010 | Future versioning and OpenAI/Codex improvements | in-progress | Prepare for template versioning, upgrades, and OpenAI/Codex improvements. | A conservative managed-artifact refresh exists, and isolated consumer install has an initial design note, while versioning, rollback, migration, and upgrade intelligence remain future work. | `refresh`, `analyze`, `reconcile` |
+The statuses below describe planning intent, not implementation completion.
+
+| Phase | Status | Goal | Expected outcome |
+|---|---|---|---|
+| Phase 0 - Repository and AI Platform setup | in-progress | Replace inherited template state with VoidEmpires-specific repository guidance and workflow assets. | The repository context, roadmap, architecture index, and bootstrap planning documents reflect the actual project direction. |
+| Phase 1 - Technical foundation | planned | Create the initial `.NET` solution and establish the first modular application structure. | A buildable solution exists with clear project boundaries, baseline validation, and the first composition roots. |
+| Phase 2 - Core domain foundation | planned | Model the core game concepts that describe empires, sectors, fleets, resources, and progression rules. | The domain language and application contracts are explicit enough to support iterative gameplay implementation. |
+| Phase 3 - Gameplay systems | planned | Implement the first playable strategic loops around expansion, economy, research, military posture, and conflict resolution. | The project has coherent server-side gameplay rules that represent the core VoidEmpires pillars. |
+| Phase 4 - Player experience surfaces | planned | Introduce the first user-facing application surfaces for interacting with the game and operational data. | Players and administrators have initial interfaces or APIs to create, inspect, and advance game state safely. |
+| Phase 5 - Persistence and operational workflows | planned | Add durable storage, background processing, and operational safeguards around game state changes. | The platform can persist progression, execute asynchronous work, and recover from common operational failures. |
+| Phase 6 - Multiplayer and live-state coordination | planned | Evolve the platform from isolated gameplay flows toward concurrent and potentially live multi-player interactions. | The architecture supports authoritative state transitions, concurrency control, and session or world coordination. |
+| Phase 7 - Content, balancing, and live operations | planned | Enable controlled game-content evolution, balancing support, admin tooling, and telemetry-informed iteration. | The team can adjust content and monitor game health without destabilizing the core platform. |
+| Phase 8 - Quality, security, and release readiness | planned | Harden the product through testing, observability, security controls, and deployment preparation. | The project is operationally reviewable, testable, and ready for staged releases. |
+| Phase 9 - Scalability and post-launch evolution | planned | Prepare the product for larger player populations, richer features, and long-term maintainability. | VoidEmpires can scale its services, data model, and operational practices without losing architectural clarity. |
+
+## Roadmap Notes
+
+- Earlier phases should produce durable architecture and workflow assets before later feature work expands the surface area.
+- Gameplay and product assumptions should be refined incrementally through explicit follow-up tasks rather than silent drift.
+- If future decisions materially change the target game shape, update this roadmap and `ai/repo-context.md` together.

@@ -1,136 +1,46 @@
 # Architecture Index
 
-This file provides a quick overview of the template repository architecture.
+This file describes the intended high-level architecture for VoidEmpires before the first application projects are created.
 
-AI agents should read this file before scanning the repository so they can target the right platform areas with minimal exploration.
-
----
+The boundaries below are planning targets for the initial solution bootstrap and early implementation tasks.
 
 ## Repository Type
 
-AI workflow and automation template repository.
+Game-service and operations repository for `VoidEmpires`, currently still in planning and bootstrap mode.
 
-This repository is not the source code of a single product application. Its main responsibility is to provide reusable process scaffolding for AI-assisted development.
+## Planned Core Modules
 
----
+| Module | Responsibility | Initial data ownership | Future scalability concern |
+|---|---|---|---|
+| Solution bootstrap and hosts | Provide the composition roots for the first executable applications such as an API host, worker host, or future admin host. | Host configuration, startup wiring, environment-specific settings. | Keep startup thin so new delivery surfaces can be added without duplicating business logic. |
+| Domain core | Define the canonical rules and concepts for empires, sectors, fleets, resources, research, diplomacy, and conflict. | Domain entities, value objects, invariants, and domain events. | Prevent gameplay rules from leaking into controllers, persistence models, or transport contracts. |
+| Application layer | Coordinate use cases, commands, queries, validation, and transactional workflows around the domain. | Application contracts, use-case orchestration, DTO boundaries, and authorization-aware workflows. | Support increasing use-case breadth without coupling every feature directly to infrastructure. |
+| World and empire management | Own strategic world-state operations such as empire creation, territorial expansion, ownership changes, and map-level progression. | World snapshots, sector ownership state, empire-level progression metadata. | Handle larger world sizes, partitioning, and concurrency around shared territorial state. |
+| Economy and progression | Manage resources, production, research, unlock progression, and long-term empire growth systems. | Resource ledgers, production queues, research trees, unlock state. | Maintain consistency when progression systems become more asynchronous, interdependent, or content-heavy. |
+| Military and conflict resolution | Resolve fleet state, combat preparation, engagements, loss calculation, and post-conflict outcomes. | Fleet compositions, combat inputs, battle outcomes, readiness or cooldown state. | Support deterministic resolution, replays or audits, and higher combat throughput under load. |
+| Player identity and access | Represent player accounts, sessions, authorization rules, and their relation to empires or administrative roles. | Player profiles, identity links, role assignments, access policies. | Keep authentication and authorization replaceable as external identity or platform requirements evolve. |
+| Persistence and infrastructure | Implement data access, external integrations, file or cache adapters, and other infrastructure concerns. | Persistence models, repository implementations, integration clients, infrastructure mappings. | Prevent infrastructure shortcuts from becoming the de facto domain model as data volume grows. |
+| Background jobs and world simulation | Execute scheduled ticks, asynchronous recalculations, notifications, and long-running world updates. | Job payloads, scheduling metadata, simulation checkpoints, retry state. | Coordinate idempotency, distributed execution, and observability for world-changing background work. |
+| Admin, telemetry, and live operations | Expose the operational tooling needed to inspect state, balance systems, audit changes, and monitor platform health. | Audit trails, diagnostics, moderation actions, operational dashboards, telemetry metadata. | Add live-ops capabilities without granting unsafe direct access to gameplay state. |
 
-## Core Areas
+## Cross-Cutting Principles
 
-### Root-level operating files
+- Keep domain decisions independent from transport, UI, and storage details.
+- Prefer explicit module boundaries over a single catch-all application project.
+- Introduce infrastructure only when a concrete use case needs it.
+- Preserve deterministic behavior where gameplay outcomes affect progression or conflict.
+- Treat observability, validation, and operational safety as first-class concerns once state becomes persistent.
 
-- `README.md`: human-facing documentation and usage guidance
-- `AGENTS.md`: normative workflow rules for AI task execution
-- `install-ai-platform.ps1`: bootstrap script for installing seed platform files into another repository
+## Near-Term Build Order
 
-### AI knowledge base
+1. create the solution and initial host or hosts
+2. establish the domain core and application layer boundaries
+3. add the first gameplay-focused modules for world, economy, and military behavior
+4. add persistence and background processing once the first durable workflows exist
+5. add admin and live-ops capabilities after the core game loop becomes inspectable
 
-Path:
+## Current Reality
 
-`ai/`
+None of the modules above exist as code yet.
 
-Contains:
-
-- `repo-context.md`
-- `architecture-index.md`
-- `task-template.md`
-- `system-metrics.md`
-- `prompts/`
-- `orchestrator/`
-- `tasks/`
-
-Purpose:
-
-- provide planning context
-- standardize task creation
-- guide worker and reviewer behavior
-
-### Orchestrator guidance
-
-Path:
-
-`ai/orchestrator/`
-
-Contains role-specific guidance such as:
-
-- feature planning
-- component discovery
-- dependency analysis
-- repository review
-- PR generation
-
-These files should stay generic enough to apply to different repositories while still giving concrete instructions.
-
-### Task lifecycle
-
-Path:
-
-`ai/tasks/`
-
-Folders:
-
-- `pending`
-- `in-progress`
-- `done`
-
-The worker flow processes the first pending task, moves it through the lifecycle, and records the result through normal repository changes.
-
-### Automation scripts
-
-Path:
-
-`scripts/`
-
-Current scripts include:
-
-- `codex-runner.ps1`: local polling worker loop
-- `run-integration-tests.ps1`: repository-level integration test hook that must be adapted by consumers when needed
-
-### CLI
-
-Path:
-
-`ai-platform-cli/`
-
-Purpose:
-
-- expose lightweight platform commands such as `init`, `run`, `plan`, and `doctor`
-- bootstrap a repository with platform files
-- launch the worker loop from a consistent entrypoint
-
-### CI automation
-
-Path:
-
-`.github/workflows/`
-
-Purpose:
-
-- trigger worker automation in GitHub Actions
-- install required runtime tools for automation
-- commit/push changes when the workflow is configured to do so
-
----
-
-## Dependency and Stack Notes
-
-- The template currently includes PowerShell-based automation.
-- The CLI is currently implemented in .NET.
-- Some validation guidance and examples reference common layered application patterns, but those examples are illustrative rather than mandatory for all consumer repositories.
-
-Agents should not infer that every repository using this template is ASP.NET Core MVC or EF Core based.
-
----
-
-## Change Guidance
-
-When working in this repository:
-
-- prefer updating existing platform files over creating duplicates
-- keep examples concrete but generic
-- align documentation with actual behavior
-- document limitations instead of overstating genericity
-
-When working in a consumer repository:
-
-- follow the architecture that exists there
-- inspect the repository before assuming controllers, services, database layers, or specific test tools
+Until the bootstrap task is executed, this file should be used as an architecture target rather than a description of implemented components.
