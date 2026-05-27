@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<BrevoEmailOptions>(builder.Configuration.GetSection(BrevoEmailOptions.SectionName));
 builder.Services.AddVoidEmpiresTransactionalEmail();
+builder.Services.AddVoidEmpiresGalaxyGeneration();
 
 var defaultConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddVoidEmpiresPersistence(defaultConnectionString);

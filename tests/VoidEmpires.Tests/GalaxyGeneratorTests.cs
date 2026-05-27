@@ -1,10 +1,25 @@
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Galaxy;
+using VoidEmpires.Infrastructure;
 using VoidEmpires.Infrastructure.GalaxyGeneration;
 
 namespace VoidEmpires.Tests;
 
 public class GalaxyGeneratorTests
 {
+    [Fact]
+    public void GalaxyGenerationRegistrationResolvesGenerator()
+    {
+        var services = new ServiceCollection();
+
+        services.AddVoidEmpiresGalaxyGeneration();
+
+        using var provider = services.BuildServiceProvider();
+
+        Assert.IsType<GalaxyGenerator>(provider.GetRequiredService<IGalaxyGenerator>());
+    }
+
     [Fact]
     public void SameSeedGeneratesSameUniverseSignature()
     {
@@ -77,5 +92,21 @@ public class GalaxyGeneratorTests
                     .OrderBy(planet => planet.OrbitalSlot)
                     .Select(planet => $"{planet.OrbitalSlot}:{planet.PlanetType}:{planet.Size}"))
             })));
+    }
+}
+
+public class GalaxyGenerationRegistrationTests : IClassFixture<WebApplicationFactory<Program>>
+{
+    private readonly WebApplicationFactory<Program> _factory;
+
+    public GalaxyGenerationRegistrationTests(WebApplicationFactory<Program> factory)
+    {
+        _factory = factory;
+    }
+
+    [Fact]
+    public void ApplicationServiceProviderResolvesGalaxyGenerator()
+    {
+        Assert.IsType<GalaxyGenerator>(_factory.Services.GetRequiredService<IGalaxyGenerator>());
     }
 }
