@@ -10,6 +10,7 @@ The repository defines the project direction, keeps the AI-assisted task workflo
 - repository context, roadmap, and architecture planning documents are in place
 - `VoidEmpires.sln` contains the initial Web, Application, Domain, Infrastructure, and Tests projects
 - `VoidEmpires.Web` exposes `/` and `/health` as minimal deterministic endpoints
+- `VoidEmpires.Infrastructure` contains the initial EF Core/Npgsql persistence skeleton without gameplay entities or migrations
 
 ## Development
 
@@ -37,11 +38,11 @@ dotnet run --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
 The initial runtime checks are:
 
 - `GET /` returns a minimal `VoidEmpires` response.
-- `GET /health` returns `{ "status": "ok", "service": "VoidEmpires.Web" }`.
+- `GET /health` returns service status plus `persistence.configured` and `persistence.provider` metadata without exposing connection string values.
 
 ### Database Configuration
 
-PostgreSQL 16 is the selected primary database engine for future persistence work. The repository stores only an empty placeholder at `ConnectionStrings:DefaultConnection`; real connection strings must be supplied outside source control.
+PostgreSQL 16 is the selected primary database engine. EF Core with Npgsql is the current persistence stack in `VoidEmpires.Infrastructure`. The repository stores only an empty placeholder at `ConnectionStrings:DefaultConnection`; real connection strings must be supplied outside source control.
 
 For local development, prefer one of these safe override mechanisms:
 
@@ -57,7 +58,7 @@ dotnet user-secrets init --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<local or private PostgreSQL connection string>" --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
 ```
 
-Do not commit real passwords, NAS hostnames, VPN IPs, private infrastructure addresses, or production connection strings. The real PostgreSQL database is reachable only through private infrastructure or VPN, and normal validation must not require access to it.
+Do not commit real passwords, NAS hostnames, VPN IPs, private infrastructure addresses, or production connection strings. The real PostgreSQL database is reachable only through private infrastructure or VPN, and normal validation and tests run without requiring access to it.
 
 ## Key Documents
 
@@ -80,4 +81,4 @@ AI workers should process the first pending task, keep changes scoped to that ta
 
 ## Next Step
 
-The next planned implementation milestones are to keep hardening the technical foundation before adding gameplay, persistence, authentication, or UI complexity.
+The next planned implementation milestones are to keep hardening the technical foundation before adding gameplay, authentication, deployment, or UI complexity.

@@ -29,11 +29,19 @@ The repository now contains `VoidEmpires.sln` with these projects:
 `VoidEmpires.Web` is a minimal ASP.NET Core host. It exposes:
 
 - `GET /` for a simple product identity response
-- `GET /health` for deterministic health checks
+- `GET /health` for deterministic health checks, including whether persistence is configured
 
-There is still no persistence layer, deployed environment definition, authentication, background processing, or gameplay implementation.
+Phase 1B persistence foundation work has completed its initial setup. The repository now has:
 
-PostgreSQL 16 is the selected primary relational database engine for the future persistence layer. EF Core with Npgsql is the intended persistence stack unless a later decision changes it. Real database configuration is external to the repository and must not be committed; CI and tests must continue to run without depending on the real NAS PostgreSQL database or private network access.
+- PostgreSQL 16 selected as the primary relational database engine.
+- EF Core with Npgsql package references in `VoidEmpires.Infrastructure`.
+- An empty `ConnectionStrings:DefaultConnection` placeholder in web appsettings files.
+- A `VoidEmpiresDbContext` skeleton in the Infrastructure persistence boundary.
+- Infrastructure service registration that enables PostgreSQL only when a non-empty connection string is configured.
+
+There are still no gameplay entities, migrations, deployed environment definition, authentication, background processing, or gameplay implementation.
+
+Real database configuration is external to the repository and must not be committed. CI and tests run without requiring the real NAS PostgreSQL database or private network access.
 
 ## Task Workflow Status
 
@@ -70,7 +78,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current tests include assembly-boundary coverage and smoke checks for `/` and `/health`.
+Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, persistence registration checks, and verification that health output does not expose connection string values.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
@@ -80,5 +88,6 @@ Current constraints remain:
 
 - do not add application behavior unless a task explicitly requires it
 - do not treat template documentation as authoritative if it conflicts with VoidEmpires-specific planning docs
-- avoid database implementation, authentication, deployment, or gameplay complexity until explicit tasks introduce them
+- avoid adding persistence behavior beyond the current DbContext skeleton until explicit tasks introduce it
+- avoid authentication, deployment, or gameplay complexity until explicit tasks introduce them
 - never commit real database secrets, private hostnames, VPN details, or NAS connection information
