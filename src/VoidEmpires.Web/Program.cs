@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using VoidEmpires.Application.Galaxy;
 using VoidEmpires.Application.Identity;
+using VoidEmpires.Application.Players;
+using VoidEmpires.Domain.Players;
 using VoidEmpires.Infrastructure;
 using VoidEmpires.Infrastructure.Email;
 
@@ -105,6 +107,43 @@ if (AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration))
             ? Results.Created($"/api/dev/galaxies/{result.GalaxyId}", response)
             : Results.Conflict(response);
     });
+
+    app.MapPost("/api/dev/players/starting-civilization", async (
+        CreateStartingCivilizationApiRequest request,
+        [FromServices] IServiceProvider services,
+        [FromServices] IConfiguration configuration,
+        CancellationToken cancellationToken) =>
+    {
+        if (!IsPersistenceConfigured(configuration))
+        {
+            return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        }
+
+        var errors = Validate(request);
+        if (errors.Count > 0)
+        {
+            return Results.BadRequest(new StartingCivilizationApiResponse(false, null, null, null, errors));
+        }
+
+        var service = services.GetRequiredService<IStartingCivilizationService>();
+        var result = await service.CreateAsync(new CreateStartingCivilizationRequest(
+            request.UserId!,
+            request.DisplayName!,
+            request.CivilizationName!,
+            request.Archetype,
+            request.HomePlanetId), cancellationToken);
+
+        var response = new StartingCivilizationApiResponse(
+            result.Succeeded,
+            result.PlayerProfileId,
+            result.CivilizationId,
+            result.HomePlanetId,
+            result.Errors);
+
+        return result.Succeeded
+            ? Results.Created($"/api/dev/players/{result.PlayerProfileId}/civilizations/{result.CivilizationId}", response)
+            : Results.Conflict(response);
+    });
 }
 app.MapGet("/health", () =>
 {
@@ -167,6 +206,28 @@ static IReadOnlyList<string> Validate(GenerateGalaxyApiRequest request)
     return errors;
 }
 
+static IReadOnlyList<string> Validate(CreateStartingCivilizationApiRequest request)
+{
+    var errors = new List<string>();
+
+    if (string.IsNullOrWhiteSpace(request.UserId))
+    {
+        errors.Add("User id is required.");
+    }
+
+    if (string.IsNullOrWhiteSpace(request.DisplayName))
+    {
+        errors.Add("Display name is required.");
+    }
+
+    if (string.IsNullOrWhiteSpace(request.CivilizationName))
+    {
+        errors.Add("Civilization name is required.");
+    }
+
+    return errors;
+}
+
 public partial class Program
 {
 }
@@ -189,4 +250,18 @@ internal sealed record GalaxyGenerationApiResponse(
     string? GalaxyName,
     int SolarSystemCount,
     int PlanetCount,
+    IReadOnlyList<string> Errors);
+
+internal sealed record CreateStartingCivilizationApiRequest(
+    string? UserId,
+    string? DisplayName,
+    string? CivilizationName,
+    CivilizationArchetype Archetype,
+    Guid? HomePlanetId = null);
+
+internal sealed record StartingCivilizationApiResponse(
+    bool Succeeded,
+    Guid? PlayerProfileId,
+    Guid? CivilizationId,
+    Guid? HomePlanetId,
     IReadOnlyList<string> Errors);
