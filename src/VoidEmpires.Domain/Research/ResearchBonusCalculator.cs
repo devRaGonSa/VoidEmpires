@@ -11,4 +11,14 @@ public static class ResearchBonusCalculator
 
         return 1m + (resourceExtractionLevel * 0.05m);
     }
+
+    public static int GetPlanetaryEngineeringCapacityBonus(int planetaryEngineeringLevel)
+    {
+        if (planetaryEngineeringLevel < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(planetaryEngineeringLevel));
+        }
+
+        return planetaryEngineeringLevel * 10;
+    }
 }
