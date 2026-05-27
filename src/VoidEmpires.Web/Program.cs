@@ -4,6 +4,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 var defaultConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddVoidEmpiresPersistence(defaultConnectionString);
+if (!string.IsNullOrWhiteSpace(defaultConnectionString))
+{
+    builder.Services.AddVoidEmpiresIdentity();
+}
 
 var app = builder.Build();
 

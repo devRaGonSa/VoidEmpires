@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Infrastructure;
+using VoidEmpires.Infrastructure.Identity;
 using VoidEmpires.Infrastructure.Persistence;
 
 namespace VoidEmpires.Tests;
@@ -32,5 +34,21 @@ public class PersistenceRegistrationTests
         Assert.Contains(
             options.Extensions,
             extension => extension.GetType().FullName == "Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension");
+    }
+
+    [Fact]
+    public void IdentityRegistrationUsesVoidEmpiresDbContextWithConservativeDefaults()
+    {
+        var services = new ServiceCollection();
+
+        services.AddVoidEmpiresPersistence("Host=localhost;Database=voidempires_test");
+        services.AddVoidEmpiresIdentity();
+
+        using var provider = services.BuildServiceProvider();
+        var identityOptions = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<IdentityOptions>>().Value;
+
+        Assert.True(identityOptions.User.RequireUniqueEmail);
+        Assert.True(identityOptions.SignIn.RequireConfirmedEmail);
+        Assert.NotNull(provider.GetRequiredService<IUserStore<VoidEmpiresUser>>());
     }
 }
