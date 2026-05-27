@@ -39,7 +39,13 @@ public sealed class SolarSystemConfiguration : IEntityTypeConfiguration<SolarSys
                 .IsRequired();
         });
 
-        builder.HasIndex("galaxy_id", "coordinates_x", "coordinates_y", "coordinates_z")
+        builder.HasIndex(solarSystem => new
+            {
+                solarSystem.GalaxyId,
+                solarSystem.Coordinates.X,
+                solarSystem.Coordinates.Y,
+                solarSystem.Coordinates.Z
+            })
             .IsUnique()
             .HasDatabaseName("ux_solar_systems_galaxy_coordinates");
 
