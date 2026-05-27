@@ -9,9 +9,8 @@ builder.Services.Configure<BrevoEmailOptions>(builder.Configuration.GetSection(B
 builder.Services.AddVoidEmpiresTransactionalEmail();
 
 var defaultConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-var isPersistenceConfigured = !string.IsNullOrWhiteSpace(defaultConnectionString);
 builder.Services.AddVoidEmpiresPersistence(defaultConnectionString);
-if (isPersistenceConfigured)
+if (!string.IsNullOrWhiteSpace(defaultConnectionString))
 {
     builder.Services.AddVoidEmpiresIdentity();
 }
@@ -21,9 +20,10 @@ var app = builder.Build();
 app.MapGet("/", () => "VoidEmpires");
 app.MapPost("/api/auth/register", async (
     RegisterApiRequest request,
-    [FromServices] IServiceProvider services) =>
+    [FromServices] IServiceProvider services,
+    [FromServices] IConfiguration configuration) =>
 {
-    if (!isPersistenceConfigured)
+    if (!IsPersistenceConfigured(configuration))
     {
         return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
     }
@@ -43,9 +43,10 @@ app.MapPost("/api/auth/register", async (
 app.MapGet("/api/auth/confirm-email", async (
     string? userId,
     string? token,
-    [FromServices] IServiceProvider services) =>
+    [FromServices] IServiceProvider services,
+    [FromServices] IConfiguration configuration) =>
 {
-    if (!isPersistenceConfigured)
+    if (!IsPersistenceConfigured(configuration))
     {
         return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
     }
@@ -64,8 +65,7 @@ app.MapGet("/api/auth/confirm-email", async (
 });
 app.MapGet("/health", () =>
 {
-    var persistenceConnectionString = app.Configuration.GetConnectionString("DefaultConnection");
-    var persistenceConfigured = !string.IsNullOrWhiteSpace(persistenceConnectionString);
+    var persistenceConfigured = IsPersistenceConfigured(app.Configuration);
 
     return Results.Ok(new
     {
@@ -85,6 +85,9 @@ app.MapGet("/health", () =>
 });
 
 app.Run();
+
+static bool IsPersistenceConfigured(IConfiguration configuration) =>
+    !string.IsNullOrWhiteSpace(configuration.GetConnectionString("DefaultConnection"));
 
 public partial class Program
 {
