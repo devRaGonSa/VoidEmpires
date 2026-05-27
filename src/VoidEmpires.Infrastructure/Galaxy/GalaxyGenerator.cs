@@ -3,7 +3,7 @@ using System.Text;
 using VoidEmpires.Application.Galaxy;
 using VoidEmpires.Domain.Galaxy;
 
-namespace VoidEmpires.Infrastructure.Galaxy;
+namespace VoidEmpires.Infrastructure.GalaxyGeneration;
 
 public sealed class GalaxyGenerator : IGalaxyGenerator
 {
