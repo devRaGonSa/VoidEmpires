@@ -28,6 +28,18 @@ public class ResearchBonusCalculatorTests
         Assert.Equal(expected, bonus);
     }
 
+    [Theory]
+    [InlineData(0, 1.00)]
+    [InlineData(1, 1.05)]
+    [InlineData(2, 1.10)]
+    [InlineData(5, 1.25)]
+    public void GetConstructionSpeedMultiplierReturnsExpectedValue(int level, double expected)
+    {
+        var multiplier = ResearchBonusCalculator.GetConstructionSpeedMultiplier(level);
+
+        Assert.Equal((decimal)expected, multiplier);
+    }
+
     [Fact]
     public void GetBonusReturnsCatalogBonusKeyAndValue()
     {
@@ -37,5 +49,16 @@ public class ResearchBonusCalculatorTests
         Assert.Equal(2, bonus.Level);
         Assert.Equal("planet_capacity", bonus.BonusKey);
         Assert.Equal(20, bonus.Value);
+    }
+
+    [Fact]
+    public void GetBonusReturnsConstructionAutomationBonus()
+    {
+        var bonus = ResearchBonusCalculator.GetBonus(ResearchType.ConstructionAutomation, 2);
+
+        Assert.Equal(ResearchType.ConstructionAutomation, bonus.ResearchType);
+        Assert.Equal(2, bonus.Level);
+        Assert.Equal("build_speed", bonus.BonusKey);
+        Assert.Equal(1.10m, bonus.Value);
     }
 }
