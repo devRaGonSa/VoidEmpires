@@ -2,124 +2,83 @@
 
 ## Project Overview
 
-This repository is an AI-driven development platform template.
+VoidEmpires is the future home of the `VoidEmpires` game and its supporting services.
 
-It provides a reusable workflow for repositories that want structured AI assistance through:
+At this stage the repository is still in Phase 0. It contains AI Platform workflow assets and project-planning documentation, but no production application code yet.
 
-- planning guides
-- task files
-- a worker loop
-- repository conventions
-- optional automation helpers
+The current purpose of the repository is to define the product direction, architecture direction, and delivery workflow before the first .NET solution bootstrap task begins.
 
-The template is intentionally lightweight. It does not implement a business application by itself; instead, it supplies process and orchestration scaffolding that can be adapted inside another repository.
+## Product Direction
 
----
+VoidEmpires is being planned as a strategy game focused on building, expanding, and sustaining an empire in a hostile void setting.
 
-## Current Repository Purpose
+Until gameplay specifications are written in more detail, future tasks should treat the following as the working product pillars:
 
-This repository currently acts as both:
+- empire growth through expansion and territorial control
+- strategic decision-making around economy, technology, and military power
+- conflict between competing powers in a persistent science-fiction setting
+- systems that can later support both moment-to-moment gameplay loops and longer-term progression
 
-- the source template
-- a self-hosted example that improves the template using its own task workflow
+These pillars are planning assumptions for repository setup. They should be refined by later product and design tasks rather than treated as final game design.
 
-That means some folders contain platform code, while others contain documentation and operating instructions for AI agents.
+## Technical Direction
 
----
+The initial implementation direction is a .NET-based solution named `VoidEmpires`.
 
-## Main Areas
+The early technical bias is:
 
-### AI workflow assets
+- start with a small, modular solution rather than a monolith with premature infrastructure
+- keep domain rules isolated from delivery and infrastructure concerns
+- establish clear boundaries for gameplay/domain logic, application orchestration, infrastructure, and external interfaces
+- prefer API-first and service-oriented seams so additional clients or tools can be added later
+- document architecture decisions before introducing heavy dependencies
 
-The `ai/` directory contains:
+No production solution, projects, databases, or deployment assets exist yet. Those should be introduced only through explicit follow-up tasks.
 
-- repository context
-- architecture summary
-- task template
-- orchestrator guidance
-- task lifecycle folders
-- lightweight metrics/history files
+## Workflow Expectations
 
-These files are normative for the workflow and should stay aligned with the actual repository state.
+This repository uses the AI Platform task lifecycle under `ai/tasks/`.
 
-### Automation scripts
+Expected operating model:
 
-The `scripts/` directory contains automation entrypoints used by the worker flow.
+`Context -> Roadmap -> Task -> Implementation -> Validation -> Commit -> Push`
 
-Rules:
+Rules for future work:
 
-- Scripts should be safe by default.
-- Repository-specific assumptions should be documented explicitly.
-- Optional scripts should fail clearly when required project configuration is missing.
+- process the first pending task first
+- keep changes small and directly related to the active task
+- prefer updating existing docs or components over creating parallel structures
+- run repository-relevant validation for each task
+- record durable project knowledge in `ai/` rather than leaving it implicit in commits
 
-### CLI
+## Team Workflow
 
-The `ai-platform-cli/` directory contains a small .NET CLI used to bootstrap or run parts of the platform.
+The documented team model under `ai/teams/` is used for planning and review guidance.
 
-Rules:
+Current practical expectations:
 
-- Keep behavior simple and predictable.
-- Prefer explicit messages when an operation depends on a repository convention.
-- Avoid implying support that is not implemented.
+- Platform owns repository scaffolding, workflow conventions, and bootstrap planning
+- Product and Docs clarify game direction and durable repository knowledge
+- Backend, Frontend, Database, DevOps, QA, and Security guidance become active once real application work starts
 
-### GitHub automation
+There is no automated team routing yet. Task metadata and human review still provide coordination.
 
-The `.github/workflows/` directory contains workflow wiring for automated task execution.
+## Constraints
 
-Rules:
+Current constraints for repository work:
 
-- Treat workflows as optional platform automation.
-- Document any assumptions about credentials, remotes, or installed tools.
+- the repository is still in documentation and bootstrap planning mode
+- no application source code should be added until the bootstrap task explicitly requires it
+- no `.NET` solution should be created before the planned bootstrap task
+- workflow scripts should remain stable unless a task explicitly targets them
+- repository context documents should stay deterministic, concise, and easy for future agents to reuse
 
----
+## Immediate Priorities
 
-## Architecture Expectations
+The next planning milestones are:
 
-This template does not require one universal application architecture.
+1. replace generic template documentation with VoidEmpires-specific planning documents
+2. define the initial roadmap and architecture index
+3. prepare the first implementation plan for creating the `VoidEmpires` solution
 
-When used inside a consumer repository, agents should follow:
-
-- the architecture that actually exists in that repository
-- the dominant stack and tooling already present
-- the conventions documented in that repository's own context files
-
-If the consumer repository uses layered MVC, API services, worker processes, or another structure, tasks and validation should adapt accordingly.
-
----
-
-## Testing and Validation
-
-Validation is repository-aware.
-
-Rules:
-
-- Use the build and test commands that match the current repository.
-- Do not assume `.NET`, EF Core, Docker, or any external service unless the repository clearly uses them.
-- If integration test infrastructure is not configured, report that clearly instead of pretending it exists.
-- Prefer the smallest useful validation set for the files being changed.
-
----
-
-## Coding Guidelines
-
-- Follow existing naming conventions in the current repository.
-- Prefer small focused changes.
-- Do not modify unrelated files.
-- Keep tasks under the documented change budget when feasible.
-- Prefer extending existing workflow assets instead of duplicating them.
-
----
-
-## AI Workflow
-
-The standard operating model is:
-
-`Request -> Planning -> Tasks -> Worker execution -> Validation -> Commit/Push`
-
-Tasks are processed from:
-
-`ai/tasks/pending`
-
-Each task should follow:
-
-`ai/task-template.md`
+Until those are complete, future tasks should avoid speculative implementation and focus on aligning repository guidance with the intended product direction.
