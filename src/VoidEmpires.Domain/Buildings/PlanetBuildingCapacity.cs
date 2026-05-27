@@ -37,6 +37,9 @@ public sealed class PlanetBuildingCapacity
         => new(planetId, baseCapacity, bonusCapacity);
 
     public bool CanFit(int usedCapacity, int requestedFootprint)
+        => CanFit(usedCapacity, requestedFootprint, 0);
+
+    public bool CanFit(int usedCapacity, int requestedFootprint, int temporaryBonusCapacity)
     {
         if (usedCapacity < 0)
         {
@@ -48,6 +51,11 @@ public sealed class PlanetBuildingCapacity
             throw new ArgumentOutOfRangeException(nameof(requestedFootprint), "Requested footprint must be positive.");
         }
 
-        return usedCapacity + requestedFootprint <= TotalCapacity;
+        if (temporaryBonusCapacity < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(temporaryBonusCapacity), "Temporary bonus capacity cannot be negative.");
+        }
+
+        return usedCapacity + requestedFootprint <= TotalCapacity + temporaryBonusCapacity;
     }
 }
