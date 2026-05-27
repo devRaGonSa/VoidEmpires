@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VoidEmpires.Application.Galaxy;
 using VoidEmpires.Application.Identity;
 using VoidEmpires.Infrastructure;
 using VoidEmpires.Infrastructure.Email;
@@ -64,6 +65,47 @@ app.MapGet("/api/auth/confirm-email", async (
         ? Results.Ok(new AuthApiResponse(true, userId, []))
         : Results.BadRequest(new AuthApiResponse(false, null, result.Errors));
 });
+if (AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration))
+{
+    app.MapPost("/api/dev/galaxies/generate", async (
+        GenerateGalaxyApiRequest request,
+        [FromServices] IServiceProvider services,
+        [FromServices] IConfiguration configuration,
+        CancellationToken cancellationToken) =>
+    {
+        if (!IsPersistenceConfigured(configuration))
+        {
+            return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        }
+
+        var errors = Validate(request);
+        if (errors.Count > 0)
+        {
+            return Results.BadRequest(new GalaxyGenerationApiResponse(false, null, null, 0, 0, errors));
+        }
+
+        var generationService = services.GetRequiredService<IGalaxyGenerationService>();
+        var result = await generationService.GenerateAndPersistAsync(new GenerateAndPersistGalaxyRequest(
+            request.Name!,
+            request.Seed!,
+            request.SolarSystemCount,
+            request.MinPlanetsPerSystem,
+            request.MaxPlanetsPerSystem,
+            request.OverwriteExisting), cancellationToken);
+
+        var response = new GalaxyGenerationApiResponse(
+            result.Succeeded,
+            result.GalaxyId,
+            result.GalaxyName,
+            result.SolarSystemCount,
+            result.PlanetCount,
+            result.Errors);
+
+        return result.Succeeded
+            ? Results.Created($"/api/dev/galaxies/{result.GalaxyId}", response)
+            : Results.Conflict(response);
+    });
+}
 app.MapGet("/health", () =>
 {
     var persistenceConfigured = IsPersistenceConfigured(app.Configuration);
@@ -90,6 +132,41 @@ app.Run();
 static bool IsPersistenceConfigured(IConfiguration configuration) =>
     !string.IsNullOrWhiteSpace(configuration.GetConnectionString("DefaultConnection"));
 
+static bool AreDevelopmentEndpointsEnabled(IHostEnvironment environment, IConfiguration configuration) =>
+    environment.IsDevelopment() || configuration.GetValue<bool>("VoidEmpires:DevEndpoints:Enabled");
+
+static IReadOnlyList<string> Validate(GenerateGalaxyApiRequest request)
+{
+    var errors = new List<string>();
+
+    if (string.IsNullOrWhiteSpace(request.Name))
+    {
+        errors.Add("Galaxy name is required.");
+    }
+
+    if (string.IsNullOrWhiteSpace(request.Seed))
+    {
+        errors.Add("Galaxy seed is required.");
+    }
+
+    if (request.SolarSystemCount <= 0)
+    {
+        errors.Add("Solar system count must be positive.");
+    }
+
+    if (request.MinPlanetsPerSystem <= 0)
+    {
+        errors.Add("Minimum planets per system must be positive.");
+    }
+
+    if (request.MaxPlanetsPerSystem < request.MinPlanetsPerSystem)
+    {
+        errors.Add("Maximum planets per system must be greater than or equal to the minimum.");
+    }
+
+    return errors;
+}
+
 public partial class Program
 {
 }
@@ -97,3 +174,19 @@ public partial class Program
 internal sealed record RegisterApiRequest(string? Email, string? Password);
 
 internal sealed record AuthApiResponse(bool Succeeded, string? UserId, IReadOnlyList<string> Errors);
+
+internal sealed record GenerateGalaxyApiRequest(
+    string? Name,
+    string? Seed,
+    int SolarSystemCount,
+    int MinPlanetsPerSystem,
+    int MaxPlanetsPerSystem,
+    bool OverwriteExisting = false);
+
+internal sealed record GalaxyGenerationApiResponse(
+    bool Succeeded,
+    Guid? GalaxyId,
+    string? GalaxyName,
+    int SolarSystemCount,
+    int PlanetCount,
+    IReadOnlyList<string> Errors);
