@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Buildings;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Economy;
+using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Buildings;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -32,6 +33,32 @@ public class PlanetBuildingConstructionServiceTests
         Assert.Single(db.PlanetBuildings);
         Assert.Equal(40, stockpile.Metal);
         Assert.Equal(85, stockpile.Crystal);
+    }
+
+    [Fact]
+    public async Task ConstructAsyncAllowsCapacityFromPlanetaryEngineering()
+    {
+        await using var db = CreateDb();
+        var planetId = Guid.NewGuid();
+        var civilizationId = Guid.NewGuid();
+
+        db.PlanetBuildingCapacities.Add(PlanetBuildingCapacity.Create(planetId, 10));
+        db.PlanetBuildings.Add(PlanetBuilding.Create(planetId, BuildingType.CommandCenter, 1, 10));
+        var research = ResearchProject.Create(civilizationId, ResearchType.PlanetaryEngineering);
+        db.ResearchProjects.Add(research);
+        var stockpile = PlanetResourceStockpile.Create(planetId);
+        stockpile.Increase(ResourceType.Metal, 100);
+        stockpile.Increase(ResourceType.Crystal, 100);
+        db.PlanetResourceStockpiles.Add(stockpile);
+        await db.SaveChangesAsync();
+
+        var service = new PlanetBuildingConstructionService(db);
+
+        var result = await service.ConstructAsync(
+            new ConstructBuildingRequest(planetId, civilizationId, BuildingType.MetalMine));
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(2, db.PlanetBuildings.Count());
     }
 
     [Fact]
