@@ -24,7 +24,7 @@ public sealed class SolarSystemConfiguration : IEntityTypeConfiguration<SolarSys
             .HasMaxLength(128)
             .IsRequired();
 
-        builder.OwnsOne(solarSystem => solarSystem.Coordinates, coordinates =>
+        builder.ComplexProperty(solarSystem => solarSystem.Coordinates, coordinates =>
         {
             coordinates.Property(value => value.X)
                 .HasColumnName("coordinates_x")
