@@ -39,7 +39,9 @@ The early technical bias is:
 - prefer API-first and service-oriented seams so additional clients or tools can be added later
 - document architecture decisions before introducing heavy dependencies
 
-No databases, deployment assets, authentication, background processing, or gameplay systems exist yet. Those should be introduced only through explicit follow-up tasks.
+The selected primary relational database engine is PostgreSQL 16. The intended .NET persistence stack is EF Core with Npgsql unless a later decision supersedes it. Real database configuration must be supplied externally through safe environment-specific mechanisms such as environment variables, user secrets, deployment secrets, or private infrastructure configuration. Do not commit real connection strings, passwords, private hostnames, VPN details, or NAS addresses. CI and automated tests must not depend on the real PostgreSQL database.
+
+No database code, deployment assets, authentication, background processing, or gameplay systems exist yet. Those should be introduced only through explicit follow-up tasks.
 
 ## Workflow Expectations
 
@@ -84,6 +86,7 @@ The next milestones are:
 
 1. keep the .NET validation path reliable
 2. evolve domain and application boundaries through small explicit tasks
-3. defer persistence, authentication, deployment, and gameplay complexity until the foundation is ready
+3. introduce PostgreSQL persistence through small explicit tasks without committing secrets or requiring the real database in CI
+4. defer authentication, deployment, and gameplay complexity until the foundation is ready
 
 Future tasks should avoid speculative implementation and keep repository guidance aligned with the intended product direction.

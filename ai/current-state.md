@@ -33,6 +33,8 @@ The repository now contains `VoidEmpires.sln` with these projects:
 
 There is still no persistence layer, deployed environment definition, authentication, background processing, or gameplay implementation.
 
+PostgreSQL 16 is the selected primary relational database engine for the future persistence layer. EF Core with Npgsql is the intended persistence stack unless a later decision changes it. Real database configuration is external to the repository and must not be committed; CI and tests must continue to run without depending on the real NAS PostgreSQL database or private network access.
+
 ## Task Workflow Status
 
 The repository is actively using the AI task lifecycle:
@@ -78,4 +80,5 @@ Current constraints remain:
 
 - do not add application behavior unless a task explicitly requires it
 - do not treat template documentation as authoritative if it conflicts with VoidEmpires-specific planning docs
-- avoid database, authentication, deployment, or gameplay complexity until explicit tasks introduce them
+- avoid database implementation, authentication, deployment, or gameplay complexity until explicit tasks introduce them
+- never commit real database secrets, private hostnames, VPN details, or NAS connection information

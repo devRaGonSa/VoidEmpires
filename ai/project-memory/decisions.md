@@ -4,6 +4,10 @@ This file records decisions that should guide future platform work.
 
 ## Current decisions
 
+- Use PostgreSQL 16 as the primary relational database engine for VoidEmpires.
+- Use EF Core with Npgsql as the intended .NET persistence stack unless a future decision supersedes it.
+- Supply real database configuration externally and never commit passwords, private hostnames, VPN details, NAS addresses, or real connection strings.
+- Keep CI and tests independent from the real PostgreSQL database and private network access.
 - Use `ai-platform.json` as the minimal platform configuration file.
 - Keep configuration small until stable behavior exists.
 - Use conservative refresh behavior in the future, with dry-run as the default.
