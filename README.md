@@ -39,6 +39,26 @@ The initial runtime checks are:
 - `GET /` returns a minimal `VoidEmpires` response.
 - `GET /health` returns `{ "status": "ok", "service": "VoidEmpires.Web" }`.
 
+### Database Configuration
+
+PostgreSQL 16 is the selected primary database engine for future persistence work. The repository stores only an empty placeholder at `ConnectionStrings:DefaultConnection`; real connection strings must be supplied outside source control.
+
+For local development, prefer one of these safe override mechanisms:
+
+```powershell
+$env:ConnectionStrings__DefaultConnection = "<local or private PostgreSQL connection string>"
+dotnet run --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
+```
+
+or user secrets:
+
+```powershell
+dotnet user-secrets init --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<local or private PostgreSQL connection string>" --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
+```
+
+Do not commit real passwords, NAS hostnames, VPN IPs, private infrastructure addresses, or production connection strings. The real PostgreSQL database is reachable only through private infrastructure or VPN, and normal validation must not require access to it.
+
 ## Key Documents
 
 - `AGENTS.md`: repository workflow rules for task execution
