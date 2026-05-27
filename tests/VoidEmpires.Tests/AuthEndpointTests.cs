@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Identity;
 
@@ -18,9 +19,31 @@ public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task RegisterReturnsBadRequestForInvalidInput()
+    public async Task RegisterReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = CreateClient(new FakeRegistrationService(), new FakeConfirmationService());
+        using var client = _factory.CreateClient();
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/auth/register",
+            new { email = "player@example.test", password = "test-password" });
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ConfirmEmailReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
+    {
+        using var client = _factory.CreateClient();
+
+        using var response = await client.GetAsync("/api/auth/confirm-email?userId=user-123&token=test-token");
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task RegisterReturnsBadRequestForInvalidInputWhenPersistenceIsConfigured()
+    {
+        using var client = CreateConfiguredClient(new FakeRegistrationService(), new FakeConfirmationService());
 
         using var response = await client.PostAsJsonAsync("/api/auth/register", new { email = "", password = "" });
 
@@ -28,14 +51,14 @@ public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task RegisterInvokesRegistrationServiceForValidInput()
+    public async Task RegisterInvokesRegistrationServiceForValidInputWhenPersistenceIsConfigured()
     {
         var registration = new FakeRegistrationService();
-        using var client = CreateClient(registration, new FakeConfirmationService());
+        using var client = CreateConfiguredClient(registration, new FakeConfirmationService());
 
         using var response = await client.PostAsJsonAsync(
             "/api/auth/register",
-            new { email = "player@example.test", password = "P@ssw0rd!23" });
+            new { email = "player@example.test", password = "test-password" });
         var payload = await response.Content.ReadFromJsonAsync<AuthResponse>();
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -46,9 +69,9 @@ public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task ConfirmEmailReturnsBadRequestForMissingInput()
+    public async Task ConfirmEmailReturnsBadRequestForMissingInputWhenPersistenceIsConfigured()
     {
-        using var client = CreateClient(new FakeRegistrationService(), new FakeConfirmationService());
+        using var client = CreateConfiguredClient(new FakeRegistrationService(), new FakeConfirmationService());
 
         using var response = await client.GetAsync("/api/auth/confirm-email");
 
@@ -56,10 +79,10 @@ public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task ConfirmEmailInvokesConfirmationServiceForValidInput()
+    public async Task ConfirmEmailInvokesConfirmationServiceForValidInputWhenPersistenceIsConfigured()
     {
         var confirmation = new FakeConfirmationService();
-        using var client = CreateClient(new FakeRegistrationService(), confirmation);
+        using var client = CreateConfiguredClient(new FakeRegistrationService(), confirmation);
 
         using var response = await client.GetAsync("/api/auth/confirm-email?userId=user-123&token=test-token");
         var payload = await response.Content.ReadFromJsonAsync<AuthResponse>();
@@ -71,12 +94,20 @@ public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal("test-token", confirmation.Request?.ConfirmationToken);
     }
 
-    private HttpClient CreateClient(
+    private HttpClient CreateConfiguredClient(
         FakeRegistrationService registration,
         FakeConfirmationService confirmation)
     {
         var factory = _factory.WithWebHostBuilder(builder =>
         {
+            builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+            {
+                configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=voidempires_auth_endpoint_tests"
+                });
+            });
+
             builder.ConfigureTestServices(services =>
             {
                 services.AddSingleton<IUserRegistrationService>(registration);
