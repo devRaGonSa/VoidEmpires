@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using VoidEmpires.Application.Identity;
 using VoidEmpires.Infrastructure.Identity;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -36,6 +37,10 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
             })
             .AddEntityFrameworkStores<VoidEmpiresDbContext>()
             .AddTokenProvider<DataProtectorTokenProvider<VoidEmpiresUser>>(TokenOptions.DefaultProvider);
+
+        services.AddScoped<IdentityAccountService>();
+        services.AddScoped<IUserRegistrationService>(provider => provider.GetRequiredService<IdentityAccountService>());
+        services.AddScoped<IEmailConfirmationService>(provider => provider.GetRequiredService<IdentityAccountService>());
 
         return services;
     }
