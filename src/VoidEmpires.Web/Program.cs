@@ -80,7 +80,7 @@ if (AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration))
             return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
         }
 
-        var errors = Validate(request);
+        var errors = ValidateGalaxyGeneration(request);
         if (errors.Count > 0)
         {
             return Results.BadRequest(new GalaxyGenerationApiResponse(false, null, null, 0, 0, errors));
@@ -119,7 +119,7 @@ if (AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration))
             return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
         }
 
-        var errors = Validate(request);
+        var errors = ValidateStartingCivilization(request);
         if (errors.Count > 0)
         {
             return Results.BadRequest(new StartingCivilizationApiResponse(false, null, null, null, errors));
@@ -174,7 +174,7 @@ static bool IsPersistenceConfigured(IConfiguration configuration) =>
 static bool AreDevelopmentEndpointsEnabled(IHostEnvironment environment, IConfiguration configuration) =>
     environment.IsDevelopment() || configuration.GetValue<bool>("VoidEmpires:DevEndpoints:Enabled");
 
-static IReadOnlyList<string> Validate(GenerateGalaxyApiRequest request)
+static IReadOnlyList<string> ValidateGalaxyGeneration(GenerateGalaxyApiRequest request)
 {
     var errors = new List<string>();
 
@@ -206,7 +206,7 @@ static IReadOnlyList<string> Validate(GenerateGalaxyApiRequest request)
     return errors;
 }
 
-static IReadOnlyList<string> Validate(CreateStartingCivilizationApiRequest request)
+static IReadOnlyList<string> ValidateStartingCivilization(CreateStartingCivilizationApiRequest request)
 {
     var errors = new List<string>();
 
