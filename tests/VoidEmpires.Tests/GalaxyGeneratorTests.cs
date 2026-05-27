@@ -1,5 +1,5 @@
 using VoidEmpires.Application.Galaxy;
-using VoidEmpires.Infrastructure.Galaxy;
+using VoidEmpires.Infrastructure.GalaxyGeneration;
 
 namespace VoidEmpires.Tests;
 
