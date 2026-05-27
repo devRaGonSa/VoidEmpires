@@ -16,15 +16,7 @@ public sealed class PlanetBuildingConstructionService(VoidEmpiresDbContext dbCon
             return ConstructBuildingResult.Failure("Planet id is required.");
         }
 
-        if (request.Level <= 0)
-        {
-            return ConstructBuildingResult.Failure("Building level must be positive.");
-        }
-
-        if (request.Footprint <= 0)
-        {
-            return ConstructBuildingResult.Failure("Building footprint must be positive.");
-        }
+        var definition = BuildingCatalog.Get(request.BuildingType);
 
         var capacity = await dbContext.PlanetBuildingCapacities
             .SingleOrDefaultAsync(item => item.PlanetId == request.PlanetId, cancellationToken);
@@ -38,12 +30,17 @@ public sealed class PlanetBuildingConstructionService(VoidEmpiresDbContext dbCon
             .Where(item => item.PlanetId == request.PlanetId)
             .SumAsync(item => item.Footprint, cancellationToken);
 
-        if (!capacity.CanFit(usedCapacity, request.Footprint))
+        if (!capacity.CanFit(usedCapacity, definition.Footprint))
         {
             return ConstructBuildingResult.Failure("Planet building capacity would be exceeded.");
         }
 
-        var building = PlanetBuilding.Create(request.PlanetId, request.BuildingType, request.Level, request.Footprint);
+        var building = PlanetBuilding.Create(
+            request.PlanetId,
+            request.BuildingType,
+            definition.InitialLevel,
+            definition.Footprint);
+
         dbContext.PlanetBuildings.Add(building);
         await dbContext.SaveChangesAsync(cancellationToken);
 
