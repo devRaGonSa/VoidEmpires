@@ -9,8 +9,9 @@ builder.Services.Configure<BrevoEmailOptions>(builder.Configuration.GetSection(B
 builder.Services.AddVoidEmpiresTransactionalEmail();
 
 var defaultConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var isPersistenceConfigured = !string.IsNullOrWhiteSpace(defaultConnectionString);
 builder.Services.AddVoidEmpiresPersistence(defaultConnectionString);
-if (!string.IsNullOrWhiteSpace(defaultConnectionString))
+if (isPersistenceConfigured)
 {
     builder.Services.AddVoidEmpiresIdentity();
 }
@@ -20,13 +21,19 @@ var app = builder.Build();
 app.MapGet("/", () => "VoidEmpires");
 app.MapPost("/api/auth/register", async (
     RegisterApiRequest request,
-    [FromServices] IUserRegistrationService registrationService) =>
+    [FromServices] IServiceProvider services) =>
 {
+    if (!isPersistenceConfigured)
+    {
+        return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    }
+
     if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
     {
         return Results.BadRequest(new AuthApiResponse(false, null, ["Email and password are required."]));
     }
 
+    var registrationService = services.GetRequiredService<IUserRegistrationService>();
     var result = await registrationService.RegisterAsync(new RegisterUserRequest(request.Email, request.Password));
 
     return result.Succeeded
@@ -36,13 +43,19 @@ app.MapPost("/api/auth/register", async (
 app.MapGet("/api/auth/confirm-email", async (
     string? userId,
     string? token,
-    [FromServices] IEmailConfirmationService confirmationService) =>
+    [FromServices] IServiceProvider services) =>
 {
+    if (!isPersistenceConfigured)
+    {
+        return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    }
+
     if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(token))
     {
         return Results.BadRequest(new AuthApiResponse(false, null, ["User id and token are required."]));
     }
 
+    var confirmationService = services.GetRequiredService<IEmailConfirmationService>();
     var result = await confirmationService.ConfirmEmailAsync(new ConfirmEmailRequest(userId, token));
 
     return result.Succeeded
@@ -52,6 +65,7 @@ app.MapGet("/api/auth/confirm-email", async (
 app.MapGet("/health", () =>
 {
     var persistenceConnectionString = app.Configuration.GetConnectionString("DefaultConnection");
+    var persistenceConfigured = !string.IsNullOrWhiteSpace(persistenceConnectionString);
 
     return Results.Ok(new
     {
@@ -59,8 +73,13 @@ app.MapGet("/health", () =>
         service = "VoidEmpires.Web",
         persistence = new
         {
-            configured = !string.IsNullOrWhiteSpace(persistenceConnectionString),
-            provider = string.IsNullOrWhiteSpace(persistenceConnectionString) ? "none" : "PostgreSQL"
+            configured = persistenceConfigured,
+            provider = "PostgreSQL"
+        },
+        auth = new
+        {
+            configured = persistenceConfigured,
+            provider = "ASP.NET Core Identity"
         }
     });
 });
