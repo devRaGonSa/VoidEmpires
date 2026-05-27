@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using VoidEmpires.Application.Buildings;
 using VoidEmpires.Application.Colonization;
 using VoidEmpires.Application.Economy;
 using VoidEmpires.Application.Identity;
 using VoidEmpires.Application.Players;
+using VoidEmpires.Infrastructure.Buildings;
 using VoidEmpires.Infrastructure.Colonization;
 using VoidEmpires.Infrastructure.Economy;
 using VoidEmpires.Infrastructure.Identity;
@@ -30,6 +32,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IStartingCivilizationService, StartingCivilizationService>();
         services.AddScoped<IPlanetColonizationService, PlanetColonizationService>();
         services.AddScoped<IPlanetEconomyTickService, PlanetEconomyTickService>();
+        services.AddScoped<IPlanetBuildingConstructionService, PlanetBuildingConstructionService>();
 
         return services;
     }
