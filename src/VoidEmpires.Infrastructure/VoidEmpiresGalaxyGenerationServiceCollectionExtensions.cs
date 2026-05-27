@@ -11,6 +11,9 @@ public static class VoidEmpiresGalaxyGenerationServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.AddSingleton<IGalaxyGenerator, GalaxyGenerator>();
+        services.AddScoped<IGalaxyGenerationService>(provider => new GalaxyGenerationService(
+            provider.GetRequiredService<IGalaxyGenerator>(),
+            provider.GetRequiredService<Persistence.VoidEmpiresDbContext>()));
 
         return services;
     }
