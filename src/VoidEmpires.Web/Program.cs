@@ -17,6 +17,7 @@ builder.Services.AddVoidEmpiresPersistence(defaultConnectionString);
 if (!string.IsNullOrWhiteSpace(defaultConnectionString))
 {
     builder.Services.AddVoidEmpiresIdentity();
+    builder.Services.AddVoidEmpiresConstructionQueueWorker(builder.Configuration);
 }
 
 var app = builder.Build();
