@@ -47,6 +47,8 @@ namespace VoidEmpires.Infrastructure.Persistence
 
         public DbSet<PlanetBuildingCapacity> PlanetBuildingCapacities => Set<PlanetBuildingCapacity>();
 
+        public DbSet<PlanetConstructionOrder> PlanetConstructionOrders => Set<PlanetConstructionOrder>();
+
         public DbSet<ResearchProject> ResearchProjects => Set<ResearchProject>();
 
         protected override void OnModelCreating(ModelBuilder builder)
