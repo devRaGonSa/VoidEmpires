@@ -6,12 +6,14 @@ using VoidEmpires.Application.Colonization;
 using VoidEmpires.Application.Economy;
 using VoidEmpires.Application.Identity;
 using VoidEmpires.Application.Players;
+using VoidEmpires.Application.Research;
 using VoidEmpires.Infrastructure.Buildings;
 using VoidEmpires.Infrastructure.Colonization;
 using VoidEmpires.Infrastructure.Economy;
 using VoidEmpires.Infrastructure.Identity;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.Players;
+using VoidEmpires.Infrastructure.Research;
 
 namespace VoidEmpires.Infrastructure;
 
@@ -34,6 +36,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IPlanetEconomyTickService, PlanetEconomyTickService>();
         services.AddScoped<IPlanetBuildingConstructionService, PlanetBuildingConstructionService>();
         services.AddScoped<IPlanetBuildingUpgradeService, PlanetBuildingUpgradeService>();
+        services.AddScoped<IResearchUpgradeService, ResearchUpgradeService>();
 
         return services;
     }
