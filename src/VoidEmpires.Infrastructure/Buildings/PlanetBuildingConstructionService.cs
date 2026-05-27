@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Buildings;
 using VoidEmpires.Domain.Buildings;
+using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Persistence;
 
 namespace VoidEmpires.Infrastructure.Buildings;
@@ -14,6 +15,11 @@ public sealed class PlanetBuildingConstructionService(VoidEmpiresDbContext dbCon
         if (request.PlanetId == Guid.Empty)
         {
             return ConstructBuildingResult.Failure("Planet id is required.");
+        }
+
+        if (request.CivilizationId == Guid.Empty)
+        {
+            return ConstructBuildingResult.Failure("Civilization id is required.");
         }
 
         var definition = BuildingCatalog.Get(request.BuildingType);
@@ -47,7 +53,14 @@ public sealed class PlanetBuildingConstructionService(VoidEmpiresDbContext dbCon
             .Where(item => item.PlanetId == request.PlanetId)
             .SumAsync(item => item.Footprint, cancellationToken);
 
-        if (!capacity.CanFit(usedCapacity, definition.Footprint))
+        var planetaryEngineeringLevel = await dbContext.ResearchProjects
+            .Where(item => item.CivilizationId == request.CivilizationId && item.ResearchType == ResearchType.PlanetaryEngineering)
+            .Select(item => item.Level)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        var researchCapacityBonus = ResearchBonusCalculator.GetPlanetaryEngineeringCapacityBonus(planetaryEngineeringLevel);
+
+        if (!capacity.CanFit(usedCapacity, definition.Footprint, researchCapacityBonus))
         {
             return ConstructBuildingResult.Failure("Planet building capacity would be exceeded.");
         }
