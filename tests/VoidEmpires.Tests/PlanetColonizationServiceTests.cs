@@ -101,7 +101,7 @@ public class PlanetColonizationServiceTests
             "Void Prime System 0001",
             new GalaxyCoordinates(1, 2, 3),
             star);
-        var planet = Planet.Create(solarSystem.Id, "Void Prime I", 1, PlanetType.Terrestrial, 8000);
+        var planet = Planet.Create(solarSystem.Id, "Void Prime I", 1, PlanetType.Terran, 8000);
         solarSystem.AddPlanet(planet);
         galaxy.AddSolarSystem(solarSystem);
 
