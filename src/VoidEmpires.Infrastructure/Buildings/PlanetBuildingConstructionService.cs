@@ -26,6 +26,23 @@ public sealed class PlanetBuildingConstructionService(VoidEmpiresDbContext dbCon
             return ConstructBuildingResult.Failure("Planet building capacity was not found.");
         }
 
+        var stockpile = await dbContext.PlanetResourceStockpiles
+            .SingleOrDefaultAsync(item => item.PlanetId == request.PlanetId, cancellationToken);
+
+        if (stockpile is null)
+        {
+            return ConstructBuildingResult.Failure("Planet resource stockpile was not found.");
+        }
+
+        if (!stockpile.CanSpend(
+                definition.Cost.Credits,
+                definition.Cost.Metal,
+                definition.Cost.Crystal,
+                definition.Cost.Gas))
+        {
+            return ConstructBuildingResult.Failure("Insufficient resources.");
+        }
+
         var usedCapacity = await dbContext.PlanetBuildings
             .Where(item => item.PlanetId == request.PlanetId)
             .SumAsync(item => item.Footprint, cancellationToken);
@@ -40,6 +57,12 @@ public sealed class PlanetBuildingConstructionService(VoidEmpiresDbContext dbCon
             request.BuildingType,
             definition.InitialLevel,
             definition.Footprint);
+
+        stockpile.Spend(
+            definition.Cost.Credits,
+            definition.Cost.Metal,
+            definition.Cost.Crystal,
+            definition.Cost.Gas);
 
         dbContext.PlanetBuildings.Add(building);
         await dbContext.SaveChangesAsync(cancellationToken);
