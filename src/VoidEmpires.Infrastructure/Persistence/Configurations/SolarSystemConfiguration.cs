@@ -24,27 +24,26 @@ public sealed class SolarSystemConfiguration : IEntityTypeConfiguration<SolarSys
             .HasMaxLength(128)
             .IsRequired();
 
-        builder.ComplexProperty(solarSystem => solarSystem.Coordinates, coordinates =>
-        {
-            coordinates.Property(value => value.X)
-                .HasColumnName("coordinates_x")
-                .IsRequired();
+        builder.Property(solarSystem => solarSystem.CoordinateX)
+            .HasColumnName("coordinates_x")
+            .IsRequired();
 
-            coordinates.Property(value => value.Y)
-                .HasColumnName("coordinates_y")
-                .IsRequired();
+        builder.Property(solarSystem => solarSystem.CoordinateY)
+            .HasColumnName("coordinates_y")
+            .IsRequired();
 
-            coordinates.Property(value => value.Z)
-                .HasColumnName("coordinates_z")
-                .IsRequired();
-        });
+        builder.Property(solarSystem => solarSystem.CoordinateZ)
+            .HasColumnName("coordinates_z")
+            .IsRequired();
+
+        builder.Ignore(solarSystem => solarSystem.Coordinates);
 
         builder.HasIndex(solarSystem => new
             {
                 solarSystem.GalaxyId,
-                solarSystem.Coordinates.X,
-                solarSystem.Coordinates.Y,
-                solarSystem.Coordinates.Z
+                solarSystem.CoordinateX,
+                solarSystem.CoordinateY,
+                solarSystem.CoordinateZ
             })
             .IsUnique()
             .HasDatabaseName("ux_solar_systems_galaxy_coordinates");
