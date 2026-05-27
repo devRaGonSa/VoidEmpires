@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Economy;
 using VoidEmpires.Domain.Economy;
+using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Persistence;
 
 namespace VoidEmpires.Infrastructure.Economy;
@@ -16,6 +17,11 @@ public sealed class PlanetEconomyTickService(VoidEmpiresDbContext dbContext) : I
         if (request.PlanetId == Guid.Empty)
         {
             return ApplyPlanetProductionResult.Failure("Planet id is required.");
+        }
+
+        if (request.CivilizationId == Guid.Empty)
+        {
+            return ApplyPlanetProductionResult.Failure("Civilization id is required.");
         }
 
         if (request.Elapsed < TimeSpan.Zero)
@@ -39,7 +45,20 @@ public sealed class PlanetEconomyTickService(VoidEmpiresDbContext dbContext) : I
             return ApplyPlanetProductionResult.Failure("Planet resource stockpile was not found.");
         }
 
-        _productionService.ApplyProduction(profile, stockpile, request.Elapsed);
+        var resourceExtractionLevel = await dbContext.ResearchProjects
+            .Where(item => item.CivilizationId == request.CivilizationId && item.ResearchType == ResearchType.ResourceExtraction)
+            .Select(item => item.Level)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        var multiplier = ResearchBonusCalculator.GetResourceProductionMultiplier(resourceExtractionLevel);
+        var effectiveProfile = PlanetProductionProfile.Create(
+            profile.PlanetId,
+            profile.CreditsPerHour * multiplier,
+            profile.MetalPerHour * multiplier,
+            profile.CrystalPerHour * multiplier,
+            profile.GasPerHour * multiplier);
+
+        _productionService.ApplyProduction(effectiveProfile, stockpile, request.Elapsed);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return ApplyPlanetProductionResult.Success(request.PlanetId);
