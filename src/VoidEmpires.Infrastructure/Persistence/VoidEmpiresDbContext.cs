@@ -6,6 +6,7 @@ using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Domain.Players;
+using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Identity;
 
 namespace VoidEmpires.Infrastructure.Identity
@@ -45,6 +46,8 @@ namespace VoidEmpires.Infrastructure.Persistence
         public DbSet<PlanetBuilding> PlanetBuildings => Set<PlanetBuilding>();
 
         public DbSet<PlanetBuildingCapacity> PlanetBuildingCapacities => Set<PlanetBuildingCapacity>();
+
+        public DbSet<ResearchProject> ResearchProjects => Set<ResearchProject>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
