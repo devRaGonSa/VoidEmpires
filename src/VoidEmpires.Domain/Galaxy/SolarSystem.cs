@@ -30,7 +30,9 @@ public sealed class SolarSystem
         Id = id;
         GalaxyId = galaxyId;
         Name = name.Trim();
-        Coordinates = coordinates;
+        CoordinateX = coordinates.X;
+        CoordinateY = coordinates.Y;
+        CoordinateZ = coordinates.Z;
         Star = star ?? throw new ArgumentNullException(nameof(star));
     }
 
@@ -40,7 +42,13 @@ public sealed class SolarSystem
 
     public string Name { get; private set; }
 
-    public GalaxyCoordinates Coordinates { get; private set; }
+    public int CoordinateX { get; private set; }
+
+    public int CoordinateY { get; private set; }
+
+    public int CoordinateZ { get; private set; }
+
+    public GalaxyCoordinates Coordinates => new(CoordinateX, CoordinateY, CoordinateZ);
 
     public Star Star { get; private set; }
 
