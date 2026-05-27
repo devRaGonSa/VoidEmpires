@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Economy;
 using VoidEmpires.Domain.Economy;
+using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Economy;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -12,11 +13,13 @@ public class PlanetEconomyTickServiceTests
     public async Task ApplyProductionAsyncIncreasesPersistedStockpile()
     {
         await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
         var planetId = await SeedEconomyAsync(dbContext);
         var service = new PlanetEconomyTickService(dbContext);
 
         var result = await service.ApplyProductionAsync(new ApplyPlanetProductionRequest(
             planetId,
+            civilizationId,
             TimeSpan.FromMinutes(30)));
 
         var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(item => item.PlanetId == planetId);
@@ -31,14 +34,42 @@ public class PlanetEconomyTickServiceTests
     }
 
     [Fact]
+    public async Task ApplyProductionAsyncUsesResourceExtractionResearchBonus()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var planetId = await SeedEconomyAsync(dbContext);
+        var project = ResearchProject.Create(civilizationId, ResearchType.ResourceExtraction);
+        project.Upgrade();
+        dbContext.ResearchProjects.Add(project);
+        await dbContext.SaveChangesAsync();
+        var service = new PlanetEconomyTickService(dbContext);
+
+        var result = await service.ApplyProductionAsync(new ApplyPlanetProductionRequest(
+            planetId,
+            civilizationId,
+            TimeSpan.FromHours(1)));
+
+        var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(item => item.PlanetId == planetId);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(110, stockpile.Credits);
+        Assert.Equal(132, stockpile.Metal);
+        Assert.Equal(88, stockpile.Crystal);
+        Assert.Equal(44, stockpile.Gas);
+    }
+
+    [Fact]
     public async Task ApplyProductionAsyncAllowsZeroElapsedTime()
     {
         await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
         var planetId = await SeedEconomyAsync(dbContext);
         var service = new PlanetEconomyTickService(dbContext);
 
         var result = await service.ApplyProductionAsync(new ApplyPlanetProductionRequest(
             planetId,
+            civilizationId,
             TimeSpan.Zero));
 
         var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(item => item.PlanetId == planetId);
@@ -58,6 +89,7 @@ public class PlanetEconomyTickServiceTests
 
         var result = await service.ApplyProductionAsync(new ApplyPlanetProductionRequest(
             Guid.Empty,
+            Guid.NewGuid(),
             TimeSpan.FromMinutes(1)));
 
         Assert.False(result.Succeeded);
@@ -65,14 +97,31 @@ public class PlanetEconomyTickServiceTests
     }
 
     [Fact]
+    public async Task ApplyProductionAsyncRejectsEmptyCivilizationId()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new PlanetEconomyTickService(dbContext);
+
+        var result = await service.ApplyProductionAsync(new ApplyPlanetProductionRequest(
+            Guid.NewGuid(),
+            Guid.Empty,
+            TimeSpan.FromMinutes(1)));
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(["Civilization id is required."], result.Errors);
+    }
+
+    [Fact]
     public async Task ApplyProductionAsyncRejectsNegativeElapsedTime()
     {
         await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
         var planetId = await SeedEconomyAsync(dbContext);
         var service = new PlanetEconomyTickService(dbContext);
 
         var result = await service.ApplyProductionAsync(new ApplyPlanetProductionRequest(
             planetId,
+            civilizationId,
             TimeSpan.FromSeconds(-1)));
 
         Assert.False(result.Succeeded);
@@ -90,6 +139,7 @@ public class PlanetEconomyTickServiceTests
 
         var result = await service.ApplyProductionAsync(new ApplyPlanetProductionRequest(
             planetId,
+            Guid.NewGuid(),
             TimeSpan.FromMinutes(1)));
 
         Assert.False(result.Succeeded);
@@ -107,6 +157,7 @@ public class PlanetEconomyTickServiceTests
 
         var result = await service.ApplyProductionAsync(new ApplyPlanetProductionRequest(
             planetId,
+            Guid.NewGuid(),
             TimeSpan.FromMinutes(1)));
 
         Assert.False(result.Succeeded);
