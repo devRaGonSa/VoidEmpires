@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Galaxy;
@@ -40,6 +41,10 @@ namespace VoidEmpires.Infrastructure.Persistence
         public DbSet<PlanetResourceStockpile> PlanetResourceStockpiles => Set<PlanetResourceStockpile>();
 
         public DbSet<PlanetProductionProfile> PlanetProductionProfiles => Set<PlanetProductionProfile>();
+
+        public DbSet<PlanetBuilding> PlanetBuildings => Set<PlanetBuilding>();
+
+        public DbSet<PlanetBuildingCapacity> PlanetBuildingCapacities => Set<PlanetBuildingCapacity>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
