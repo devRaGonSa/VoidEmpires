@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is in `Phase 3B - Planet buildings foundation` while retaining the AI Platform workflow assets from Phase 0.
+The repository is in `Phase 3C - Construction queue foundation` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
@@ -41,7 +41,7 @@ The repository now has:
 - EF Core with Npgsql package references in `VoidEmpires.Infrastructure`.
 - An empty `ConnectionStrings:DefaultConnection` placeholder in web appsettings files.
 - A `VoidEmpiresDbContext` in the Infrastructure persistence boundary using ASP.NET Core Identity tables.
-- EF Core migrations for Identity, initial galaxy model, player/civilization model, planet ownership model, planet economy model, and planet building model. Migrations exist in source but are not automatically applied to the real database.
+- EF Core migrations for Identity, initial galaxy model, player/civilization model, planet ownership model, planet economy model, planet building model, research model, and construction queue model. Migrations exist in source but are not automatically applied to the real database.
 - Infrastructure service registration that enables PostgreSQL only when a non-empty connection string is configured.
 - ASP.NET Core Identity registration with unique-email and confirmed-email defaults.
 - Application contracts for user registration, email confirmation, and transactional email.
@@ -60,11 +60,13 @@ The repository now has:
 - Planet building model through `BuildingType`, `PlanetBuilding`, `PlanetBuildingCapacity`, `BuildingDefinition`, `BuildingCatalog`, and `ConstructionCost`.
 - Building construction through `IPlanetBuildingConstructionService`, including capacity checks and resource spending.
 - Building upgrades through `IPlanetBuildingUpgradeService`, including resource spending and level increment.
+- Construction queue foundation through `PlanetConstructionOrder`, `ConstructionQueueItemAction`, `ConstructionQueueItemStatus`, and `IPlanetConstructionQueueService`.
+- Construction orders can enqueue building construction or upgrade work, spend resources, store start/end timestamps, and enforce one open order per planet.
 
 Current gameplay foundation supports this backend chain:
 
 ```text
-Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Building upgrades
+Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue
 ```
 
 ## Building Capacity Design Note
@@ -78,17 +80,28 @@ The project has accepted this rule:
 - future technologies may increase available construction capacity or reduce building footprint later
 - buildings must not be treated as unlimited per planet
 
+## Construction Queue Design Note
+
+The current construction queue foundation intentionally only enqueues work. It does not yet complete queued construction automatically.
+
+Accepted current rules:
+
+- each planet can have at most one open construction order at this stage
+- enqueueing construction spends resources immediately
+- enqueueing an upgrade spends resources immediately but does not increase the building level yet
+- enqueueing a new building validates current capacity but does not create the final `PlanetBuilding` yet
+- order duration is calculated through the existing construction duration calculation model
+- future background processing should complete due orders in a separate explicit phase
+
 Current intentional exclusions:
 
-- no construction queues yet
+- no construction queue completion worker yet
 - no fleets
 - no combat
 - no alliances
 - no espionage
-- no research implementation yet
 - no login/session/JWT endpoints
 - no production deployment definition
-- no background processing
 - no UI gameplay client
 
 PostgreSQL remains the persistence target. Real database and Brevo configuration are external to the repository and must not be committed. Brevo is the transactional email provider for user creation and email confirmation, but secrets such as API keys and sender credentials must come from environment variables, user secrets, deployment secrets, or private infrastructure configuration. CI and tests run without requiring the real NAS PostgreSQL database, private network access, or Brevo network calls.
@@ -120,6 +133,7 @@ The repository has established:
 - planet ownership and colonization foundation
 - planet economy foundation
 - planet buildings foundation
+- construction queue foundation
 
 ## Validation Status
 
@@ -133,9 +147,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validation baseline: `111` passing tests.
+Current validation baseline: `140` passing tests.
 
-Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, planet building domain tests, building catalog tests, persisted building construction tests, persisted building upgrade tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
+Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, planet building domain tests, building catalog tests, persisted building construction tests, persisted building upgrade tests, construction queue service tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
@@ -146,5 +160,5 @@ Current constraints remain:
 - do not add gameplay behavior unless a task explicitly requires it
 - do not treat template documentation as authoritative if it conflicts with VoidEmpires-specific planning docs
 - do not apply migrations automatically to the real database
-- avoid login/session endpoints, deployment, construction queues, fleets, combat, alliances, espionage, research, and UI complexity until explicit tasks introduce them
+- avoid login/session endpoints, deployment, construction queue completion workers, fleets, combat, alliances, espionage, and UI complexity until explicit tasks introduce them
 - never commit real database secrets, Brevo secrets, private hostnames, VPN details, NAS connection information, or production email configuration
