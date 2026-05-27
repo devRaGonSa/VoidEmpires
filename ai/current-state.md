@@ -38,10 +38,11 @@ Phase 1B persistence foundation work has completed its initial setup. The reposi
 - An empty `ConnectionStrings:DefaultConnection` placeholder in web appsettings files.
 - A `VoidEmpiresDbContext` skeleton in the Infrastructure persistence boundary.
 - Infrastructure service registration that enables PostgreSQL only when a non-empty connection string is configured.
+- A disabled, placeholder-only `Brevo` configuration section for future transactional email integration.
 
-There are still no gameplay entities, migrations, deployed environment definition, authentication, background processing, or gameplay implementation.
+There are still no gameplay entities, migrations, deployed environment definition, public authentication endpoints, Brevo sender implementation, background processing, or gameplay implementation.
 
-Real database configuration is external to the repository and must not be committed. CI and tests run without requiring the real NAS PostgreSQL database or private network access.
+Real database and Brevo configuration are external to the repository and must not be committed. CI and tests run without requiring the real NAS PostgreSQL database, private network access, or Brevo network calls.
 
 ## Task Workflow Status
 
@@ -78,7 +79,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, persistence registration checks, and verification that health output does not expose connection string values.
+Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, persistence and identity registration checks, application contract tests, and verification that health output does not expose connection string values.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
@@ -89,5 +90,5 @@ Current constraints remain:
 - do not add application behavior unless a task explicitly requires it
 - do not treat template documentation as authoritative if it conflicts with VoidEmpires-specific planning docs
 - avoid adding persistence behavior beyond the current DbContext skeleton until explicit tasks introduce it
-- avoid authentication, deployment, or gameplay complexity until explicit tasks introduce them
-- never commit real database secrets, private hostnames, VPN details, or NAS connection information
+- avoid public authentication endpoints, deployment, or gameplay complexity until explicit tasks introduce them
+- never commit real database secrets, Brevo secrets, private hostnames, VPN details, NAS connection information, or production email configuration

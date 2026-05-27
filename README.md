@@ -60,6 +60,33 @@ dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<local or private
 
 Do not commit real passwords, NAS hostnames, VPN IPs, private infrastructure addresses, or production connection strings. The real PostgreSQL database is reachable only through private infrastructure or VPN, and normal validation and tests run without requiring access to it.
 
+### Brevo Email Configuration
+
+Brevo is the planned transactional email provider for account creation and email confirmation flows. The committed `Brevo` configuration section is disabled and contains only safe placeholders.
+
+For local development, prefer environment variables or user secrets:
+
+```powershell
+$env:Brevo__Enabled = "true"
+$env:Brevo__ApiKey = "<Brevo API key>"
+$env:Brevo__SenderEmail = "<verified sender email>"
+$env:Brevo__SenderName = "VoidEmpires"
+$env:Brevo__ConfirmationBaseUrl = "<public confirmation base URL>"
+dotnet run --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
+```
+
+or user secrets:
+
+```powershell
+dotnet user-secrets init --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
+dotnet user-secrets set "Brevo:Enabled" "true" --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
+dotnet user-secrets set "Brevo:ApiKey" "<Brevo API key>" --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
+dotnet user-secrets set "Brevo:SenderEmail" "<verified sender email>" --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
+dotnet user-secrets set "Brevo:ConfirmationBaseUrl" "<public confirmation base URL>" --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
+```
+
+Do not commit real Brevo API keys, SMTP credentials, verified sender addresses, recipient lists, or production confirmation URLs. Automated tests and CI must not call Brevo.
+
 ## Key Documents
 
 - `AGENTS.md`: repository workflow rules for task execution
