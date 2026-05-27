@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Colonization;
+using VoidEmpires.Application.Economy;
 using VoidEmpires.Application.Identity;
 using VoidEmpires.Application.Players;
 using VoidEmpires.Infrastructure.Colonization;
+using VoidEmpires.Infrastructure.Economy;
 using VoidEmpires.Infrastructure.Identity;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.Players;
@@ -27,6 +29,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddDbContext<VoidEmpiresDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<IStartingCivilizationService, StartingCivilizationService>();
         services.AddScoped<IPlanetColonizationService, PlanetColonizationService>();
+        services.AddScoped<IPlanetEconomyTickService, PlanetEconomyTickService>();
 
         return services;
     }
