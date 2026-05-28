@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is in `Phase 4D - Asset production queue foundation` while retaining the AI Platform workflow assets from Phase 0.
+The repository is in `Phase 4E - Asset inventory foundation` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
@@ -43,7 +43,7 @@ The repository now has:
 - EF Core with Npgsql package references in `VoidEmpires.Infrastructure`.
 - An empty `ConnectionStrings:DefaultConnection` placeholder in web appsettings files.
 - A `VoidEmpiresDbContext` in the Infrastructure persistence boundary using ASP.NET Core Identity tables.
-- EF Core migrations for Identity, galaxy, player/civilization, planet ownership, planet economy, planet building, research, construction queue, research queue, planet population, and asset production order models. Migrations exist in source but are not automatically applied to the real database.
+- EF Core migrations for Identity, galaxy, player/civilization, planet ownership, planet economy, planet building, research, construction queue, research queue, planet population, asset production order, and asset stock models. Migrations exist in source but are not automatically applied to the real database.
 - Infrastructure service registration that enables PostgreSQL only when a non-empty connection string is configured.
 - ASP.NET Core Identity registration with unique-email and confirmed-email defaults.
 - Application contracts for user registration, email confirmation, and transactional email.
@@ -74,12 +74,13 @@ The repository now has:
 - Military capacity foundation through `PlanetMilitaryCapacityCalculator` for local ground recruitment and locally built ship crew capacity.
 - Asset requirement foundation through `PlanetaryAssetType`, `SpaceAssetType`, `AssetRequirement`, `PlanetaryAssetDefinition`, `OrbitalAssetDefinition`, `PlanetaryAssetCatalog`, and `OrbitalAssetCatalog`.
 - Asset production queue foundation through `AssetProductionOrder`, `AssetProductionTarget`, `AssetProductionOrderStatus`, `IAssetProductionQueueService`, and `IAssetOrderProcessor`.
-- Asset production can validate resources, required building, local population/operator capacity, enqueue a timed order, spend resources, and later mark due orders as completed.
+- Asset inventory foundation through `PlanetaryAssetStock` and `OrbitalAssetStock`.
+- Asset production can validate resources, required building, local population/operator capacity, enqueue a timed order, spend resources, and later process due orders into persistent asset stock.
 
 Current gameplay foundation supports this backend chain:
 
 ```text
-Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Research queue -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue foundation
+Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Research queue -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue foundation -> Asset inventory foundation
 ```
 
 ## Population and Military Capacity Design Note
@@ -116,9 +117,9 @@ Accepted current rules:
 - orbital definitions can include storage capacity and operating range
 - this layer is a validation foundation for later production/recruitment systems
 
-## Asset Production Queue Design Note
+## Asset Production and Inventory Design Note
 
-The asset production queue now supports timed production orders but remains intentionally limited.
+The asset production queue now supports timed production orders and persistent local stock creation.
 
 Accepted current rules:
 
@@ -129,11 +130,13 @@ Accepted current rules:
 - enqueueing validates local operator/crew capacity for orbital assets
 - enqueueing creates a timed `AssetProductionOrder`
 - due asset production orders can be processed explicitly through `IAssetOrderProcessor`
-- processing due orders marks them as completed
+- processing due planetary asset orders creates or increments `PlanetaryAssetStock`
+- processing due orbital asset orders creates or increments `OrbitalAssetStock`
+- processing due orders then marks them as completed
 
 Current intentional limitation:
 
-- completion does not yet create final persistent asset inventory because that inventory model is intentionally deferred to a later phase
+- stock is planet-local only; no fleets, transfers, movement, deployment, stationed assets, or combat behavior exists yet
 
 ## Construction Queue Design Note
 
@@ -168,8 +171,8 @@ Accepted current rules:
 
 Current intentional exclusions:
 
-- no final player-owned asset inventory
 - no fleets
+- no movement
 - no combat
 - no alliances
 - no espionage gameplay
@@ -214,6 +217,7 @@ The repository has established:
 - population and building role foundation
 - asset requirement foundation
 - asset production queue foundation
+- asset inventory foundation
 
 ## Validation Status
 
@@ -227,9 +231,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validation baseline: `176` passing tests.
+Current validation baseline: `178` passing tests.
 
-Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, development construction queue endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, planet building domain tests, building catalog tests, building category tests, asset catalog tests, asset production order tests, planet population profile tests, planet military capacity calculator tests, persisted building construction tests, persisted building upgrade tests, construction queue service tests, construction order completion service tests, construction queue worker options and registration tests, research duration tests, research queue service tests, research order completion service tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
+Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, development construction queue endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, planet building domain tests, building catalog tests, building category tests, asset catalog tests, asset production order tests, asset stock tests, planet population profile tests, planet military capacity calculator tests, persisted building construction tests, persisted building upgrade tests, construction queue service tests, construction order completion service tests, construction queue worker options and registration tests, research duration tests, research queue service tests, research order completion service tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
@@ -240,5 +244,5 @@ Current constraints remain:
 - do not add gameplay behavior unless a task explicitly requires it
 - do not treat template documentation as authoritative if it conflicts with VoidEmpires-specific planning docs
 - do not apply migrations automatically to the real database
-- avoid login/session endpoints, deployment, final asset inventory, fleets, combat, alliances, espionage gameplay, and UI complexity until explicit tasks introduce them
+- avoid login/session endpoints, deployment, fleets, movement, combat, alliances, espionage gameplay, and UI complexity until explicit tasks introduce them
 - never commit real database secrets, Brevo secrets, private hostnames, VPN details, NAS connection information, or production email configuration
