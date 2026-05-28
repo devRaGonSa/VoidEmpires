@@ -219,7 +219,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validation baseline before this branch: `178` passing tests.
+Current validation baseline: `186` passing tests.
+
+Current tests include queue worker options and registration coverage for construction, research, and asset production workers. Tests do not use the real NAS PostgreSQL database.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
