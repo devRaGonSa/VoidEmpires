@@ -50,6 +50,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IAssetOrderProcessor, AssetOrderProcessor>();
         services.AddScoped<IOrbitalGroupService, OrbitalStockGroupService>();
         services.AddScoped<IOrbitalGroupLookupService, OrbitalGroupLookupService>();
+        services.AddScoped<IOrbitalGroupTransferPlanningService, OrbitalGroupPlannerService>();
 
         return services;
     }
