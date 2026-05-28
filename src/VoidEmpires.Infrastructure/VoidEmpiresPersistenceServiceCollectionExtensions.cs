@@ -2,12 +2,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VoidEmpires.Application.Assets;
 using VoidEmpires.Application.Buildings;
 using VoidEmpires.Application.Colonization;
 using VoidEmpires.Application.Economy;
 using VoidEmpires.Application.Identity;
 using VoidEmpires.Application.Players;
 using VoidEmpires.Application.Research;
+using VoidEmpires.Infrastructure.Assets;
 using VoidEmpires.Infrastructure.Buildings;
 using VoidEmpires.Infrastructure.Colonization;
 using VoidEmpires.Infrastructure.Economy;
@@ -42,6 +44,8 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IResearchUpgradeService, ResearchUpgradeService>();
         services.AddScoped<IResearchQueueService, ResearchQueueService>();
         services.AddScoped<IResearchOrderCompletionService, ResearchOrderCompletionService>();
+        services.AddScoped<IAssetProductionQueueService, AssetProductionQueueService>();
+        services.AddScoped<IAssetOrderProcessor, AssetOrderProcessor>();
 
         return services;
     }

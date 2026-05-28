@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is in `Phase 4C - Asset requirement foundation` while retaining the AI Platform workflow assets from Phase 0.
+The repository is in `Phase 4D - Asset production queue foundation` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
@@ -43,7 +43,7 @@ The repository now has:
 - EF Core with Npgsql package references in `VoidEmpires.Infrastructure`.
 - An empty `ConnectionStrings:DefaultConnection` placeholder in web appsettings files.
 - A `VoidEmpiresDbContext` in the Infrastructure persistence boundary using ASP.NET Core Identity tables.
-- EF Core migrations for Identity, initial galaxy model, player/civilization model, planet ownership model, planet economy model, planet building model, research model, construction queue model, research queue model, and planet population model. Migrations exist in source but are not automatically applied to the real database.
+- EF Core migrations for Identity, galaxy, player/civilization, planet ownership, planet economy, planet building, research, construction queue, research queue, planet population, and asset production order models. Migrations exist in source but are not automatically applied to the real database.
 - Infrastructure service registration that enables PostgreSQL only when a non-empty connection string is configured.
 - ASP.NET Core Identity registration with unique-email and confirmed-email defaults.
 - Application contracts for user registration, email confirmation, and transactional email.
@@ -65,7 +65,6 @@ The repository now has:
 - Building role classification through `BuildingCategory` and categorized `BuildingDefinition` entries.
 - Expanded building catalog with population, military ground, military space, and logistics building types.
 - Construction queue foundation through `PlanetConstructionOrder`, `ConstructionQueueItemAction`, `ConstructionQueueItemStatus`, and `IPlanetConstructionQueueService`.
-- Construction orders can enqueue building construction or upgrade work, spend resources, store start/end timestamps, and enforce one open order per planet.
 - Construction order completion through `IConstructionOrderCompletionService`, which can explicitly complete due orders.
 - Construction queue background worker foundation through `ConstructionQueueWorker`, disabled by default and controlled by configuration.
 - Development-only construction queue endpoints for manual HTTP validation without introducing gameplay UI.
@@ -74,48 +73,14 @@ The repository now has:
 - Planet population foundation through `PlanetPopulationProfile`.
 - Military capacity foundation through `PlanetMilitaryCapacityCalculator` for local ground recruitment and locally built ship crew capacity.
 - Asset requirement foundation through `PlanetaryAssetType`, `SpaceAssetType`, `AssetRequirement`, `PlanetaryAssetDefinition`, `OrbitalAssetDefinition`, `PlanetaryAssetCatalog`, and `OrbitalAssetCatalog`.
-- Asset definitions can express local population capacity requirements, local operator capacity requirements, required building type, required building level, resource cost, storage capacity, and operating range.
+- Asset production queue foundation through `AssetProductionOrder`, `AssetProductionTarget`, `AssetProductionOrderStatus`, `IAssetProductionQueueService`, and `IAssetOrderProcessor`.
+- Asset production can validate resources, required building, local population/operator capacity, enqueue a timed order, spend resources, and later mark due orders as completed.
 
 Current gameplay foundation supports this backend chain:
 
 ```text
-Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Research queue -> Population and military capacity foundation -> Asset requirement foundation
+Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Research queue -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue foundation
 ```
-
-## Building Capacity Design Note
-
-The project has accepted this rule:
-
-- each planet has a finite building capacity
-- each building consumes a configurable amount of that capacity
-- some buildings consume more capacity than others
-- civilization archetype may affect usable building capacity or building footprint later
-- future technologies may increase available construction capacity or reduce building footprint later
-- buildings must not be treated as unlimited per planet
-
-## Building Role Design Note
-
-Buildings are now categorized by gameplay role so future systems can reason about population, economy, research, military, defense, and logistics separately.
-
-Current categories:
-
-- `Civilian`
-- `Industrial`
-- `Research`
-- `MilitaryGround`
-- `MilitarySpace`
-- `Defense`
-- `Logistics`
-
-Current expanded building types include:
-
-- `HabitationDistrict`
-- `MedicalCenter`
-- `MilitaryAcademy`
-- `Barracks`
-- `CrewAcademy`
-- `FleetCommandCenter`
-- `LogisticsHub`
 
 ## Population and Military Capacity Design Note
 
@@ -140,7 +105,7 @@ Current capacity calculator:
 
 ## Asset Requirement Design Note
 
-The asset requirement foundation intentionally defines templates only. It does not create player-owned units, ships, fleets, combat entities, movement, or training/construction queues yet.
+The asset requirement foundation intentionally defines templates only. It does not create fleets, combat entities, movement, or final deployment behavior yet.
 
 Accepted current rules:
 
@@ -151,25 +116,28 @@ Accepted current rules:
 - orbital definitions can include storage capacity and operating range
 - this layer is a validation foundation for later production/recruitment systems
 
-Current asset catalogs:
+## Asset Production Queue Design Note
 
-- `PlanetaryAssetCatalog`
-- `OrbitalAssetCatalog`
+The asset production queue now supports timed production orders but remains intentionally limited.
 
-Current asset types:
+Accepted current rules:
 
-- `PlanetaryAssetType.PatrolGroup`
-- `PlanetaryAssetType.ExpeditionGroup`
-- `PlanetaryAssetType.VehicleGroup`
-- `PlanetaryAssetType.SupportGroup`
-- `SpaceAssetType.ScoutCraft`
-- `SpaceAssetType.CargoCraft`
-- `SpaceAssetType.EscortCraft`
-- `SpaceAssetType.ColonyCraft`
+- each planet can have at most one open asset production order at this stage
+- enqueueing asset production spends resources immediately
+- enqueueing validates required building type and level
+- enqueueing validates local population capacity for planetary assets
+- enqueueing validates local operator/crew capacity for orbital assets
+- enqueueing creates a timed `AssetProductionOrder`
+- due asset production orders can be processed explicitly through `IAssetOrderProcessor`
+- processing due orders marks them as completed
+
+Current intentional limitation:
+
+- completion does not yet create final persistent asset inventory because that inventory model is intentionally deferred to a later phase
 
 ## Construction Queue Design Note
 
-The construction queue now supports explicit completion of due orders, an optional background worker that can trigger completion periodically when enabled by configuration, and development-only endpoints for controlled manual validation.
+The construction queue supports explicit completion of due orders, an optional background worker that can trigger completion periodically when enabled by configuration, and development-only endpoints for controlled manual validation.
 
 Accepted current rules:
 
@@ -177,25 +145,21 @@ Accepted current rules:
 - enqueueing construction spends resources immediately
 - enqueueing an upgrade spends resources immediately but does not increase the building level yet
 - enqueueing a new building validates current capacity but does not create the final `PlanetBuilding` yet
-- order duration is calculated through the existing construction duration calculation model
 - due orders can be completed explicitly through `IConstructionOrderCompletionService`
 - completing a construction order creates the final `PlanetBuilding`
 - completing an upgrade order raises the existing `PlanetBuilding` level to the queued target level
 - the background worker is disabled by default
-- the background worker is only registered when persistence is configured and `VoidEmpires:ConstructionQueueWorker:Enabled` is `true`
-- the background worker delegates completion to `IConstructionOrderCompletionService`
 - construction queue HTTP endpoints are development-only and guarded by the existing development endpoint switch
 
 ## Research Queue Design Note
 
-The research queue now supports time-based research progression with explicit completion.
+The research queue supports time-based research progression with explicit completion.
 
 Accepted current rules:
 
 - each civilization can have at most one open research order at this stage
 - enqueueing research spends resources immediately
 - enqueueing research does not immediately increase the `ResearchProject` level
-- order duration is calculated through `ResearchDurationCalculator`
 - due orders can be completed explicitly through `IResearchOrderCompletionService`
 - completing a research order creates `ResearchProject` if it does not exist
 - completing a research order raises the existing `ResearchProject` level to the queued target level
@@ -204,8 +168,7 @@ Accepted current rules:
 
 Current intentional exclusions:
 
-- no player-owned unit instances
-- no player-owned ship instances
+- no final player-owned asset inventory
 - no fleets
 - no combat
 - no alliances
@@ -250,6 +213,7 @@ The repository has established:
 - research queue foundation
 - population and building role foundation
 - asset requirement foundation
+- asset production queue foundation
 
 ## Validation Status
 
@@ -263,9 +227,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validation baseline: `174` passing tests.
+Current validation baseline: `176` passing tests.
 
-Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, development construction queue endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, planet building domain tests, building catalog tests, building category tests, asset catalog tests, planet population profile tests, planet military capacity calculator tests, persisted building construction tests, persisted building upgrade tests, construction queue service tests, construction order completion service tests, construction queue worker options and registration tests, research duration tests, research queue service tests, research order completion service tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
+Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, development construction queue endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, planet building domain tests, building catalog tests, building category tests, asset catalog tests, asset production order tests, planet population profile tests, planet military capacity calculator tests, persisted building construction tests, persisted building upgrade tests, construction queue service tests, construction order completion service tests, construction queue worker options and registration tests, research duration tests, research queue service tests, research order completion service tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
@@ -276,5 +240,5 @@ Current constraints remain:
 - do not add gameplay behavior unless a task explicitly requires it
 - do not treat template documentation as authoritative if it conflicts with VoidEmpires-specific planning docs
 - do not apply migrations automatically to the real database
-- avoid login/session endpoints, deployment, player-owned units, player-owned ships, fleets, combat, alliances, espionage gameplay, and UI complexity until explicit tasks introduce them
+- avoid login/session endpoints, deployment, final asset inventory, fleets, combat, alliances, espionage gameplay, and UI complexity until explicit tasks introduce them
 - never commit real database secrets, Brevo secrets, private hostnames, VPN details, NAS connection information, or production email configuration
