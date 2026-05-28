@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is in `Phase 3F - Construction queue development endpoints` while retaining the AI Platform workflow assets from Phase 0.
+The repository is in `Phase 4A - Research queue foundation` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
@@ -43,7 +43,7 @@ The repository now has:
 - EF Core with Npgsql package references in `VoidEmpires.Infrastructure`.
 - An empty `ConnectionStrings:DefaultConnection` placeholder in web appsettings files.
 - A `VoidEmpiresDbContext` in the Infrastructure persistence boundary using ASP.NET Core Identity tables.
-- EF Core migrations for Identity, initial galaxy model, player/civilization model, planet ownership model, planet economy model, planet building model, research model, and construction queue model. Migrations exist in source but are not automatically applied to the real database.
+- EF Core migrations for Identity, initial galaxy model, player/civilization model, planet ownership model, planet economy model, planet building model, research model, construction queue model, and research queue model. Migrations exist in source but are not automatically applied to the real database.
 - Infrastructure service registration that enables PostgreSQL only when a non-empty connection string is configured.
 - ASP.NET Core Identity registration with unique-email and confirmed-email defaults.
 - Application contracts for user registration, email confirmation, and transactional email.
@@ -67,11 +67,13 @@ The repository now has:
 - Construction order completion through `IConstructionOrderCompletionService`, which can explicitly complete due orders.
 - Construction queue background worker foundation through `ConstructionQueueWorker`, disabled by default and controlled by configuration.
 - Development-only construction queue endpoints for manual HTTP validation without introducing gameplay UI.
+- Research queue foundation through `ResearchOrder`, `ResearchQueueItemStatus`, `IResearchQueueService`, and `IResearchOrderCompletionService`.
+- Research orders can enqueue research upgrades, spend resources, store start/end timestamps, enforce one open research order per civilization, and complete due research explicitly.
 
 Current gameplay foundation supports this backend chain:
 
 ```text
-Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Explicit completion -> Optional worker trigger -> Development HTTP validation
+Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Research queue
 ```
 
 ## Building Capacity Design Note
@@ -104,12 +106,28 @@ Accepted current rules:
 - the background worker delegates completion to `IConstructionOrderCompletionService`
 - construction queue HTTP endpoints are development-only and guarded by the existing development endpoint switch
 
+## Research Queue Design Note
+
+The research queue now supports time-based research progression with explicit completion.
+
+Accepted current rules:
+
+- each civilization can have at most one open research order at this stage
+- enqueueing research spends resources immediately
+- enqueueing research does not immediately increase the `ResearchProject` level
+- order duration is calculated through `ResearchDurationCalculator`
+- due orders can be completed explicitly through `IResearchOrderCompletionService`
+- completing a research order creates `ResearchProject` if it does not exist
+- completing a research order raises the existing `ResearchProject` level to the queued target level
+- no research background worker exists yet
+- no research development endpoints exist yet
+
 Current intentional exclusions:
 
 - no fleets
 - no combat
 - no alliances
-- no espionage
+- no espionage gameplay
 - no login/session/JWT endpoints
 - no production deployment definition
 - no UI gameplay client
@@ -147,6 +165,7 @@ The repository has established:
 - construction queue completion foundation
 - construction queue background worker foundation
 - construction queue development endpoint foundation
+- research queue foundation
 
 ## Validation Status
 
@@ -160,9 +179,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validation baseline: `152` passing tests.
+Current validation baseline: `161` passing tests.
 
-Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, development construction queue endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, planet building domain tests, building catalog tests, persisted building construction tests, persisted building upgrade tests, construction queue service tests, construction order completion service tests, construction queue worker options and registration tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
+Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, development construction queue endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, planet building domain tests, building catalog tests, persisted building construction tests, persisted building upgrade tests, construction queue service tests, construction order completion service tests, construction queue worker options and registration tests, research duration tests, research queue service tests, research order completion service tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
@@ -173,5 +192,5 @@ Current constraints remain:
 - do not add gameplay behavior unless a task explicitly requires it
 - do not treat template documentation as authoritative if it conflicts with VoidEmpires-specific planning docs
 - do not apply migrations automatically to the real database
-- avoid login/session endpoints, deployment, fleets, combat, alliances, espionage, and UI complexity until explicit tasks introduce them
+- avoid login/session endpoints, deployment, fleets, combat, alliances, espionage gameplay, and UI complexity until explicit tasks introduce them
 - never commit real database secrets, Brevo secrets, private hostnames, VPN details, NAS connection information, or production email configuration
