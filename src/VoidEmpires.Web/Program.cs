@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VoidEmpires.Application.Assets;
 using VoidEmpires.Application.Buildings;
+using VoidEmpires.Application.Fleets;
 using VoidEmpires.Application.Galaxy;
 using VoidEmpires.Application.Identity;
 using VoidEmpires.Application.Players;
@@ -345,6 +346,41 @@ if (AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration))
             result.CompletedOrderIds,
             []));
     });
+
+    app.MapPost("/api/dev/fleets/orbital-groups/create-from-stock", async (
+        CreateOrbitalGroupApiRequest request,
+        [FromServices] IServiceProvider services,
+        [FromServices] IConfiguration configuration,
+        CancellationToken cancellationToken) =>
+    {
+        if (!IsPersistenceConfigured(configuration))
+        {
+            return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        }
+
+        var errors = ValidateCreateOrbitalGroup(request);
+        if (errors.Count > 0)
+        {
+            return Results.BadRequest(new CreateOrbitalGroupApiResponse(false, null, errors));
+        }
+
+        var service = services.GetRequiredService<IOrbitalGroupService>();
+        var result = await service.CreateFromLocalStockAsync(new CreateOrbitalGroupRequest(
+            request.CivilizationId!.Value,
+            request.OriginPlanetId!.Value,
+            request.CurrentPlanetId!.Value,
+            request.AssetType!.Value,
+            request.Quantity!.Value), cancellationToken);
+
+        var response = new CreateOrbitalGroupApiResponse(
+            result.Succeeded,
+            result.OrbitalGroupId,
+            result.Errors);
+
+        return result.Succeeded
+            ? Results.Created($"/api/dev/fleets/orbital-groups/{result.OrbitalGroupId}", response)
+            : Results.Conflict(response);
+    });
 }
 app.MapGet("/health", () =>
 {
@@ -585,6 +621,38 @@ static IReadOnlyList<string> ValidateCompleteResearchOrders(CompleteResearchOrde
     return errors;
 }
 
+static IReadOnlyList<string> ValidateCreateOrbitalGroup(CreateOrbitalGroupApiRequest request)
+{
+    var errors = new List<string>();
+
+    if (request.CivilizationId is null || request.CivilizationId == Guid.Empty)
+    {
+        errors.Add("Civilization id is required.");
+    }
+
+    if (request.OriginPlanetId is null || request.OriginPlanetId == Guid.Empty)
+    {
+        errors.Add("Origin planet id is required.");
+    }
+
+    if (request.CurrentPlanetId is null || request.CurrentPlanetId == Guid.Empty)
+    {
+        errors.Add("Current planet id is required.");
+    }
+
+    if (request.AssetType is null)
+    {
+        errors.Add("Space asset type is required.");
+    }
+
+    if (request.Quantity is null || request.Quantity <= 0)
+    {
+        errors.Add("Quantity must be positive.");
+    }
+
+    return errors;
+}
+
 public partial class Program
 {
 }
@@ -687,4 +755,16 @@ internal sealed record CompleteResearchOrdersApiResponse(
     bool Succeeded,
     int CompletedCount,
     IReadOnlyList<Guid> CompletedOrderIds,
+    IReadOnlyList<string> Errors);
+
+internal sealed record CreateOrbitalGroupApiRequest(
+    Guid? CivilizationId,
+    Guid? OriginPlanetId,
+    Guid? CurrentPlanetId,
+    SpaceAssetType? AssetType,
+    int? Quantity);
+
+internal sealed record CreateOrbitalGroupApiResponse(
+    bool Succeeded,
+    Guid? OrbitalGroupId,
     IReadOnlyList<string> Errors);
