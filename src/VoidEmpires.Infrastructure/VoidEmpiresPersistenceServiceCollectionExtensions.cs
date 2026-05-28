@@ -6,6 +6,7 @@ using VoidEmpires.Application.Assets;
 using VoidEmpires.Application.Buildings;
 using VoidEmpires.Application.Colonization;
 using VoidEmpires.Application.Economy;
+using VoidEmpires.Application.Fleets;
 using VoidEmpires.Application.Identity;
 using VoidEmpires.Application.Players;
 using VoidEmpires.Application.Research;
@@ -13,6 +14,7 @@ using VoidEmpires.Infrastructure.Assets;
 using VoidEmpires.Infrastructure.Buildings;
 using VoidEmpires.Infrastructure.Colonization;
 using VoidEmpires.Infrastructure.Economy;
+using VoidEmpires.Infrastructure.Fleets;
 using VoidEmpires.Infrastructure.Identity;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.Players;
@@ -46,6 +48,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IResearchOrderCompletionService, ResearchOrderCompletionService>();
         services.AddScoped<IAssetProductionQueueService, AssetProductionQueueService>();
         services.AddScoped<IAssetOrderProcessor, AssetOrderProcessor>();
+        services.AddScoped<IOrbitalGroupService, OrbitalStockGroupService>();
 
         return services;
     }
