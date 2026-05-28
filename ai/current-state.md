@@ -121,9 +121,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validation baseline before local validation: `191` passing tests.
+Current validation baseline: `194` passing tests.
 
-New expected coverage includes persisted orbital group allocation from local stock, insufficient stock rejection, invalid request rejection, and DI registration for `IOrbitalGroupService`.
+Current tests include persisted orbital group allocation from local stock, insufficient stock rejection, invalid request rejection, and existing origin/current-location behavior. Tests do not use the real NAS PostgreSQL database.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
