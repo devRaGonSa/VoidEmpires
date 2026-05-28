@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using VoidEmpires.Application.Assets;
 using VoidEmpires.Application.Buildings;
 using VoidEmpires.Application.Galaxy;
 using VoidEmpires.Application.Identity;
 using VoidEmpires.Application.Players;
+using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Players;
 using VoidEmpires.Infrastructure;
@@ -211,6 +213,71 @@ if (AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration))
             result.CompletedOrderIds,
             []));
     });
+
+    app.MapPost("/api/dev/assets/production/enqueue", async (
+        EnqueueAssetProductionApiRequest request,
+        [FromServices] IServiceProvider services,
+        [FromServices] IConfiguration configuration,
+        CancellationToken cancellationToken) =>
+    {
+        if (!IsPersistenceConfigured(configuration))
+        {
+            return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        }
+
+        var errors = ValidateEnqueueAssetProduction(request);
+        if (errors.Count > 0)
+        {
+            return Results.BadRequest(new EnqueueAssetProductionApiResponse(false, null, null, null, errors));
+        }
+
+        var service = services.GetRequiredService<IAssetProductionQueueService>();
+        var result = await service.EnqueueAsync(new EnqueueAssetProductionRequest(
+            request.PlanetId!.Value,
+            request.Target!.Value,
+            request.PlanetaryAssetType,
+            request.SpaceAssetType,
+            request.Quantity!.Value,
+            request.RequestedAtUtc!.Value), cancellationToken);
+
+        var response = new EnqueueAssetProductionApiResponse(
+            result.Succeeded,
+            result.OrderId,
+            result.StartsAtUtc,
+            result.EndsAtUtc,
+            result.Errors);
+
+        return result.Succeeded
+            ? Results.Created($"/api/dev/assets/production/{result.OrderId}", response)
+            : Results.Conflict(response);
+    });
+
+    app.MapPost("/api/dev/assets/production/process-due", async (
+        ProcessAssetProductionApiRequest request,
+        [FromServices] IServiceProvider services,
+        [FromServices] IConfiguration configuration,
+        CancellationToken cancellationToken) =>
+    {
+        if (!IsPersistenceConfigured(configuration))
+        {
+            return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        }
+
+        var errors = ValidateProcessAssetProduction(request);
+        if (errors.Count > 0)
+        {
+            return Results.BadRequest(new ProcessAssetProductionApiResponse(false, 0, [], errors));
+        }
+
+        var service = services.GetRequiredService<IAssetOrderProcessor>();
+        var result = await service.ProcessAsync(request.NowUtc!.Value, cancellationToken);
+
+        return Results.Ok(new ProcessAssetProductionApiResponse(
+            true,
+            result.CompletedCount,
+            result.CompletedOrderIds,
+            []));
+    });
 }
 app.MapGet("/health", () =>
 {
@@ -347,6 +414,63 @@ static IReadOnlyList<string> ValidateCompleteConstructionOrders(CompleteConstruc
     return errors;
 }
 
+static IReadOnlyList<string> ValidateEnqueueAssetProduction(EnqueueAssetProductionApiRequest request)
+{
+    var errors = new List<string>();
+
+    if (request.PlanetId is null || request.PlanetId == Guid.Empty)
+    {
+        errors.Add("Planet id is required.");
+    }
+
+    if (request.Target is null)
+    {
+        errors.Add("Asset production target is required.");
+    }
+
+    if (request.Target == AssetProductionTarget.Planetary && request.PlanetaryAssetType is null)
+    {
+        errors.Add("Planetary asset type is required.");
+    }
+
+    if (request.Target == AssetProductionTarget.Orbital && request.SpaceAssetType is null)
+    {
+        errors.Add("Space asset type is required.");
+    }
+
+    if (request.Quantity is null || request.Quantity <= 0)
+    {
+        errors.Add("Quantity must be positive.");
+    }
+
+    if (request.RequestedAtUtc is null)
+    {
+        errors.Add("Requested date is required.");
+    }
+    else if (request.RequestedAtUtc.Value.Kind != DateTimeKind.Utc)
+    {
+        errors.Add("Requested date must be UTC.");
+    }
+
+    return errors;
+}
+
+static IReadOnlyList<string> ValidateProcessAssetProduction(ProcessAssetProductionApiRequest request)
+{
+    var errors = new List<string>();
+
+    if (request.NowUtc is null)
+    {
+        errors.Add("Current date is required.");
+    }
+    else if (request.NowUtc.Value.Kind != DateTimeKind.Utc)
+    {
+        errors.Add("Current date must be UTC.");
+    }
+
+    return errors;
+}
+
 public partial class Program
 {
 }
@@ -402,6 +526,29 @@ internal sealed record EnqueueConstructionOrderApiResponse(
 internal sealed record CompleteConstructionOrdersApiRequest(DateTime? NowUtc);
 
 internal sealed record CompleteConstructionOrdersApiResponse(
+    bool Succeeded,
+    int CompletedCount,
+    IReadOnlyList<Guid> CompletedOrderIds,
+    IReadOnlyList<string> Errors);
+
+internal sealed record EnqueueAssetProductionApiRequest(
+    Guid? PlanetId,
+    AssetProductionTarget? Target,
+    PlanetaryAssetType? PlanetaryAssetType,
+    SpaceAssetType? SpaceAssetType,
+    int? Quantity,
+    DateTime? RequestedAtUtc);
+
+internal sealed record EnqueueAssetProductionApiResponse(
+    bool Succeeded,
+    Guid? OrderId,
+    DateTime? StartsAtUtc,
+    DateTime? EndsAtUtc,
+    IReadOnlyList<string> Errors);
+
+internal sealed record ProcessAssetProductionApiRequest(DateTime? NowUtc);
+
+internal sealed record ProcessAssetProductionApiResponse(
     bool Succeeded,
     int CompletedCount,
     IReadOnlyList<Guid> CompletedOrderIds,
