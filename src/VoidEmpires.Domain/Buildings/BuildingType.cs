@@ -9,5 +9,12 @@ public enum BuildingType
     SolarPlant = 5,
     ResearchLab = 6,
     Shipyard = 7,
-    DefenseGrid = 8
+    DefenseGrid = 8,
+    HabitationDistrict = 9,
+    MedicalCenter = 10,
+    MilitaryAcademy = 11,
+    Barracks = 12,
+    CrewAcademy = 13,
+    FleetCommandCenter = 14,
+    LogisticsHub = 15
 }
