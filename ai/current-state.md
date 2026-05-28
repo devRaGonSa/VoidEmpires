@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is in `Phase 4E - Asset inventory foundation` while retaining the AI Platform workflow assets from Phase 0.
+The repository is in `Phase 4F - Asset production development endpoints` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
@@ -36,6 +36,8 @@ The repository contains `VoidEmpires.sln` with these projects:
 - `POST /api/dev/players/starting-civilization` for controlled development/test player profile and starting civilization creation when development endpoints and persistence are configured
 - `POST /api/dev/buildings/construction-orders/enqueue` for controlled construction queue enqueue testing when development endpoints and persistence are configured
 - `POST /api/dev/buildings/construction-orders/complete-due` for controlled construction queue completion testing when development endpoints and persistence are configured
+- `POST /api/dev/assets/production/enqueue` for controlled asset production queue testing when development endpoints and persistence are configured
+- `POST /api/dev/assets/production/process-due` for controlled asset production processing when development endpoints and persistence are configured
 
 The repository now has:
 
@@ -75,12 +77,13 @@ The repository now has:
 - Asset requirement foundation through `PlanetaryAssetType`, `SpaceAssetType`, `AssetRequirement`, `PlanetaryAssetDefinition`, `OrbitalAssetDefinition`, `PlanetaryAssetCatalog`, and `OrbitalAssetCatalog`.
 - Asset production queue foundation through `AssetProductionOrder`, `AssetProductionTarget`, `AssetProductionOrderStatus`, `IAssetProductionQueueService`, and `IAssetOrderProcessor`.
 - Asset inventory foundation through `PlanetaryAssetStock` and `OrbitalAssetStock`.
-- Asset production can validate resources, required building, local population/operator capacity, enqueue a timed order, spend resources, and later process due orders into persistent asset stock.
+- Asset production development endpoints for HTTP validation of enqueueing and processing due asset production orders.
+- Asset production can validate resources, required building, local population/operator capacity, enqueue a timed order, spend resources, process due orders, and write persistent asset stock.
 
 Current gameplay foundation supports this backend chain:
 
 ```text
-Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Research queue -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue foundation -> Asset inventory foundation
+Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Research queue -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue foundation -> Asset inventory foundation -> Asset production HTTP validation
 ```
 
 ## Population and Military Capacity Design Note
@@ -119,7 +122,7 @@ Accepted current rules:
 
 ## Asset Production and Inventory Design Note
 
-The asset production queue now supports timed production orders and persistent local stock creation.
+The asset production queue now supports timed production orders, persistent local stock creation, and development-only HTTP validation.
 
 Accepted current rules:
 
@@ -133,6 +136,7 @@ Accepted current rules:
 - processing due planetary asset orders creates or increments `PlanetaryAssetStock`
 - processing due orbital asset orders creates or increments `OrbitalAssetStock`
 - processing due orders then marks them as completed
+- asset production HTTP endpoints are development-only and guarded by the existing development endpoint switch
 
 Current intentional limitation:
 
@@ -218,6 +222,7 @@ The repository has established:
 - asset requirement foundation
 - asset production queue foundation
 - asset inventory foundation
+- asset production development endpoint foundation
 
 ## Validation Status
 
