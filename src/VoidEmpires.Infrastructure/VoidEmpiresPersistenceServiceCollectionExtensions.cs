@@ -68,6 +68,42 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection AddVoidEmpiresResearchQueueWorker(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var section = configuration.GetSection(ResearchQueueWorkerOptions.SectionName);
+        services.Configure<ResearchQueueWorkerOptions>(section);
+
+        if (section.GetValue<bool>(nameof(ResearchQueueWorkerOptions.Enabled)))
+        {
+            services.AddHostedService<ResearchProgressWorker>();
+        }
+
+        return services;
+    }
+
+    public static IServiceCollection AddVoidEmpiresAssetProductionWorker(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var section = configuration.GetSection(AssetProductionWorkerOptions.SectionName);
+        services.Configure<AssetProductionWorkerOptions>(section);
+
+        if (section.GetValue<bool>(nameof(AssetProductionWorkerOptions.Enabled)))
+        {
+            services.AddHostedService<AssetProductionWorker>();
+        }
+
+        return services;
+    }
+
     public static IServiceCollection AddVoidEmpiresIdentity(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
