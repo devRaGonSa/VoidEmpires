@@ -318,6 +318,7 @@ internal static class DevEndpointMappings
         });
 
         app.MapDevOrbitalGroupLookupEndpoints();
+        app.MapDevOrbitalTransferCreationEndpoints();
         app.MapDevOrbitalTransferCompletionEndpoints();
     }
 
