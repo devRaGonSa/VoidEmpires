@@ -40,6 +40,8 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IPlanetConstructionQueueService, PlanetConstructionQueueService>();
         services.AddScoped<IConstructionOrderCompletionService, ConstructionOrderCompletionService>();
         services.AddScoped<IResearchUpgradeService, ResearchUpgradeService>();
+        services.AddScoped<IResearchQueueService, ResearchQueueService>();
+        services.AddScoped<IResearchOrderCompletionService, ResearchOrderCompletionService>();
 
         return services;
     }
