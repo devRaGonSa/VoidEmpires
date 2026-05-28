@@ -39,4 +39,19 @@ public sealed class OrbitalAssetStock
 
         Quantity += quantity;
     }
+
+    public void Decrease(int quantity)
+    {
+        if (quantity <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(quantity));
+        }
+
+        if (quantity > Quantity)
+        {
+            throw new InvalidOperationException("Insufficient orbital asset stock.");
+        }
+
+        Quantity -= quantity;
+    }
 }
