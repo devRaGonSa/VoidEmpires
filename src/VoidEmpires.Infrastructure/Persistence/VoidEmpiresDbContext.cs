@@ -51,6 +51,8 @@ namespace VoidEmpires.Infrastructure.Persistence
 
         public DbSet<ResearchProject> ResearchProjects => Set<ResearchProject>();
 
+        public DbSet<ResearchOrder> ResearchOrders => Set<ResearchOrder>();
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
