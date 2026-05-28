@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Economy;
+using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Domain.Players;
 using VoidEmpires.Domain.Population;
@@ -55,6 +56,8 @@ namespace VoidEmpires.Infrastructure.Persistence
         public DbSet<ResearchOrder> ResearchOrders => Set<ResearchOrder>();
 
         public DbSet<PlanetPopulationProfile> PlanetPopulationProfiles => Set<PlanetPopulationProfile>();
+
+        public DbSet<OrbitalTransfer> OrbitalTransfers => Set<OrbitalTransfer>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
