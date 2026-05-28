@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is in `Phase 4A - Research queue foundation` while retaining the AI Platform workflow assets from Phase 0.
+The repository is in `Phase 4B - Planet population and building role foundation` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
@@ -43,7 +43,7 @@ The repository now has:
 - EF Core with Npgsql package references in `VoidEmpires.Infrastructure`.
 - An empty `ConnectionStrings:DefaultConnection` placeholder in web appsettings files.
 - A `VoidEmpiresDbContext` in the Infrastructure persistence boundary using ASP.NET Core Identity tables.
-- EF Core migrations for Identity, initial galaxy model, player/civilization model, planet ownership model, planet economy model, planet building model, research model, construction queue model, and research queue model. Migrations exist in source but are not automatically applied to the real database.
+- EF Core migrations for Identity, initial galaxy model, player/civilization model, planet ownership model, planet economy model, planet building model, research model, construction queue model, research queue model, and planet population model. Migrations exist in source but are not automatically applied to the real database.
 - Infrastructure service registration that enables PostgreSQL only when a non-empty connection string is configured.
 - ASP.NET Core Identity registration with unique-email and confirmed-email defaults.
 - Application contracts for user registration, email confirmation, and transactional email.
@@ -62,6 +62,8 @@ The repository now has:
 - Planet building model through `BuildingType`, `PlanetBuilding`, `PlanetBuildingCapacity`, `BuildingDefinition`, `BuildingCatalog`, and `ConstructionCost`.
 - Building construction through `IPlanetBuildingConstructionService`, including capacity checks and resource spending.
 - Building upgrades through `IPlanetBuildingUpgradeService`, including resource spending and level increment.
+- Building role classification through `BuildingCategory` and categorized `BuildingDefinition` entries.
+- Expanded building catalog with population, military ground, military space, and logistics building types.
 - Construction queue foundation through `PlanetConstructionOrder`, `ConstructionQueueItemAction`, `ConstructionQueueItemStatus`, and `IPlanetConstructionQueueService`.
 - Construction orders can enqueue building construction or upgrade work, spend resources, store start/end timestamps, and enforce one open order per planet.
 - Construction order completion through `IConstructionOrderCompletionService`, which can explicitly complete due orders.
@@ -69,11 +71,13 @@ The repository now has:
 - Development-only construction queue endpoints for manual HTTP validation without introducing gameplay UI.
 - Research queue foundation through `ResearchOrder`, `ResearchQueueItemStatus`, `IResearchQueueService`, and `IResearchOrderCompletionService`.
 - Research orders can enqueue research upgrades, spend resources, store start/end timestamps, enforce one open research order per civilization, and complete due research explicitly.
+- Planet population foundation through `PlanetPopulationProfile`.
+- Military capacity foundation through `PlanetMilitaryCapacityCalculator` for local ground recruitment and locally built ship crew capacity.
 
 Current gameplay foundation supports this backend chain:
 
 ```text
-Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Research queue
+Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Research queue -> Population and military capacity foundation
 ```
 
 ## Building Capacity Design Note
@@ -86,6 +90,51 @@ The project has accepted this rule:
 - civilization archetype may affect usable building capacity or building footprint later
 - future technologies may increase available construction capacity or reduce building footprint later
 - buildings must not be treated as unlimited per planet
+
+## Building Role Design Note
+
+Buildings are now categorized by gameplay role so future systems can reason about population, economy, research, military, defense, and logistics separately.
+
+Current categories:
+
+- `Civilian`
+- `Industrial`
+- `Research`
+- `MilitaryGround`
+- `MilitarySpace`
+- `Defense`
+- `Logistics`
+
+Current expanded building types include:
+
+- `HabitationDistrict`
+- `MedicalCenter`
+- `MilitaryAcademy`
+- `Barracks`
+- `CrewAcademy`
+- `FleetCommandCenter`
+- `LogisticsHub`
+
+## Population and Military Capacity Design Note
+
+The project has accepted this rule:
+
+- population limits what a planet can generate, recruit, train, or crew locally
+- population does not limit what can be parked or stationed on that planet if it was produced elsewhere
+- ground force capacity represents the local ability to recruit/train ground forces
+- ship crew capacity represents the local ability to crew locally built ships
+- parked foreign or transferred ships should be handled by later fleet ownership/origin systems, not by the planet population profile itself
+
+Current population model:
+
+- `PlanetPopulationProfile.TotalPopulation`
+- `PlanetPopulationProfile.BaseRecruitablePopulation`
+- `PlanetPopulationProfile.BaseCrewCapacity`
+
+Current capacity calculator:
+
+- `PlanetMilitaryCapacityCalculator.CalculateGroundForceCapacity(...)`
+- `PlanetMilitaryCapacityCalculator.CalculateShipCrewCapacity(...)`
 
 ## Construction Queue Design Note
 
@@ -166,6 +215,7 @@ The repository has established:
 - construction queue background worker foundation
 - construction queue development endpoint foundation
 - research queue foundation
+- population and building role foundation
 
 ## Validation Status
 
@@ -179,9 +229,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validation baseline: `161` passing tests.
+Current validation baseline: `170` passing tests.
 
-Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, development construction queue endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, planet building domain tests, building catalog tests, persisted building construction tests, persisted building upgrade tests, construction queue service tests, construction order completion service tests, construction queue worker options and registration tests, research duration tests, research queue service tests, research order completion service tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
+Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, development construction queue endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, planet building domain tests, building catalog tests, building category tests, planet population profile tests, planet military capacity calculator tests, persisted building construction tests, persisted building upgrade tests, construction queue service tests, construction order completion service tests, construction queue worker options and registration tests, research duration tests, research queue service tests, research order completion service tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
