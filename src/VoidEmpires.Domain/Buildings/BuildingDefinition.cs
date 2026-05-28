@@ -4,4 +4,5 @@ public sealed record BuildingDefinition(
     BuildingType BuildingType,
     int InitialLevel,
     int Footprint,
-    ConstructionCost Cost);
+    ConstructionCost Cost,
+    BuildingCategory Category);
