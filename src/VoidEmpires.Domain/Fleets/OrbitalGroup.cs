@@ -76,4 +76,20 @@ public sealed class OrbitalGroup
 
         Status = OrbitalGroupStatus.Reserved;
     }
+
+    public void ArriveAt(Guid destinationPlanetId)
+    {
+        if (destinationPlanetId == Guid.Empty)
+        {
+            throw new ArgumentException("Destination planet id is required.", nameof(destinationPlanetId));
+        }
+
+        if (Status != OrbitalGroupStatus.Reserved)
+        {
+            throw new InvalidOperationException("Only reserved orbital groups can arrive.");
+        }
+
+        CurrentPlanetId = destinationPlanetId;
+        Status = OrbitalGroupStatus.Stationed;
+    }
 }

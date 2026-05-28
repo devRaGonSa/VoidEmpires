@@ -97,4 +97,29 @@ public sealed class OrbitalTransfer
             departureAtUtc,
             arrivalAtUtc,
             OrbitalTransferStatus.Planned);
+
+    public void Complete(DateTime completedAtUtc)
+    {
+        if (completedAtUtc.Kind != DateTimeKind.Utc)
+        {
+            throw new ArgumentException("Completion date must be UTC.", nameof(completedAtUtc));
+        }
+
+        if (completedAtUtc < ArrivalAtUtc)
+        {
+            throw new InvalidOperationException("Only arrived orbital transfers can be completed.");
+        }
+
+        if (Status == OrbitalTransferStatus.Completed)
+        {
+            return;
+        }
+
+        if (Status != OrbitalTransferStatus.Planned && Status != OrbitalTransferStatus.InTransit)
+        {
+            throw new InvalidOperationException("Only planned or in-transit orbital transfers can be completed.");
+        }
+
+        Status = OrbitalTransferStatus.Completed;
+    }
 }
