@@ -46,9 +46,11 @@ public class PlanetMilitaryCapacityCalculatorTests
         {
             PlanetBuilding.Create(profile.PlanetId, BuildingType.CrewAcademy, 1, 10)
         };
+        var buildingBonusCapacity = buildings.Sum(PlanetMilitaryCapacityCalculator.GetShipCrewCapacityBonus);
         var localCrewCapacity = PlanetMilitaryCapacityCalculator.CalculateShipCrewCapacity(profile, buildings);
 
-        Assert.True(profile.CanCrewLocallyBuiltShips(localCrewCapacity));
-        Assert.False(profile.CanCrewLocallyBuiltShips(localCrewCapacity + 1));
+        Assert.Equal(5_750, localCrewCapacity);
+        Assert.True(profile.CanCrewLocallyBuiltShips(localCrewCapacity, buildingBonusCapacity));
+        Assert.False(profile.CanCrewLocallyBuiltShips(localCrewCapacity + 1, buildingBonusCapacity));
     }
 }
