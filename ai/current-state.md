@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is in `Phase 4B - Planet population and building role foundation` while retaining the AI Platform workflow assets from Phase 0.
+The repository is in `Phase 4C - Asset requirement foundation` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
@@ -73,11 +73,13 @@ The repository now has:
 - Research orders can enqueue research upgrades, spend resources, store start/end timestamps, enforce one open research order per civilization, and complete due research explicitly.
 - Planet population foundation through `PlanetPopulationProfile`.
 - Military capacity foundation through `PlanetMilitaryCapacityCalculator` for local ground recruitment and locally built ship crew capacity.
+- Asset requirement foundation through `PlanetaryAssetType`, `SpaceAssetType`, `AssetRequirement`, `PlanetaryAssetDefinition`, `OrbitalAssetDefinition`, `PlanetaryAssetCatalog`, and `OrbitalAssetCatalog`.
+- Asset definitions can express local population capacity requirements, local operator capacity requirements, required building type, required building level, resource cost, storage capacity, and operating range.
 
 Current gameplay foundation supports this backend chain:
 
 ```text
-Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Research queue -> Population and military capacity foundation
+Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Research queue -> Population and military capacity foundation -> Asset requirement foundation
 ```
 
 ## Building Capacity Design Note
@@ -136,6 +138,35 @@ Current capacity calculator:
 - `PlanetMilitaryCapacityCalculator.CalculateGroundForceCapacity(...)`
 - `PlanetMilitaryCapacityCalculator.CalculateShipCrewCapacity(...)`
 
+## Asset Requirement Design Note
+
+The asset requirement foundation intentionally defines templates only. It does not create player-owned units, ships, fleets, combat entities, movement, or training/construction queues yet.
+
+Accepted current rules:
+
+- planetary assets use local population capacity requirements
+- orbital assets use local operator/crew capacity requirements
+- definitions can require a specific building type and minimum building level
+- definitions include resource costs
+- orbital definitions can include storage capacity and operating range
+- this layer is a validation foundation for later production/recruitment systems
+
+Current asset catalogs:
+
+- `PlanetaryAssetCatalog`
+- `OrbitalAssetCatalog`
+
+Current asset types:
+
+- `PlanetaryAssetType.PatrolGroup`
+- `PlanetaryAssetType.ExpeditionGroup`
+- `PlanetaryAssetType.VehicleGroup`
+- `PlanetaryAssetType.SupportGroup`
+- `SpaceAssetType.ScoutCraft`
+- `SpaceAssetType.CargoCraft`
+- `SpaceAssetType.EscortCraft`
+- `SpaceAssetType.ColonyCraft`
+
 ## Construction Queue Design Note
 
 The construction queue now supports explicit completion of due orders, an optional background worker that can trigger completion periodically when enabled by configuration, and development-only endpoints for controlled manual validation.
@@ -173,6 +204,8 @@ Accepted current rules:
 
 Current intentional exclusions:
 
+- no player-owned unit instances
+- no player-owned ship instances
 - no fleets
 - no combat
 - no alliances
@@ -216,6 +249,7 @@ The repository has established:
 - construction queue development endpoint foundation
 - research queue foundation
 - population and building role foundation
+- asset requirement foundation
 
 ## Validation Status
 
@@ -229,9 +263,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validation baseline: `170` passing tests.
+Current validation baseline: `174` passing tests.
 
-Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, development construction queue endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, planet building domain tests, building catalog tests, building category tests, planet population profile tests, planet military capacity calculator tests, persisted building construction tests, persisted building upgrade tests, construction queue service tests, construction order completion service tests, construction queue worker options and registration tests, research duration tests, research queue service tests, research order completion service tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
+Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, development construction queue endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, planet building domain tests, building catalog tests, building category tests, asset catalog tests, planet population profile tests, planet military capacity calculator tests, persisted building construction tests, persisted building upgrade tests, construction queue service tests, construction order completion service tests, construction queue worker options and registration tests, research duration tests, research queue service tests, research order completion service tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
@@ -242,5 +276,5 @@ Current constraints remain:
 - do not add gameplay behavior unless a task explicitly requires it
 - do not treat template documentation as authoritative if it conflicts with VoidEmpires-specific planning docs
 - do not apply migrations automatically to the real database
-- avoid login/session endpoints, deployment, fleets, combat, alliances, espionage gameplay, and UI complexity until explicit tasks introduce them
+- avoid login/session endpoints, deployment, player-owned units, player-owned ships, fleets, combat, alliances, espionage gameplay, and UI complexity until explicit tasks introduce them
 - never commit real database secrets, Brevo secrets, private hostnames, VPN details, NAS connection information, or production email configuration
