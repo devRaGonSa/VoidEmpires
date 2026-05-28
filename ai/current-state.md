@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is in `Phase 4F - Asset production development endpoints` while retaining the AI Platform workflow assets from Phase 0.
+The repository is in `Phase 4G - Research development endpoints` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
@@ -38,6 +38,8 @@ The repository contains `VoidEmpires.sln` with these projects:
 - `POST /api/dev/buildings/construction-orders/complete-due` for controlled construction queue completion testing when development endpoints and persistence are configured
 - `POST /api/dev/assets/production/enqueue` for controlled asset production queue testing when development endpoints and persistence are configured
 - `POST /api/dev/assets/production/process-due` for controlled asset production processing when development endpoints and persistence are configured
+- `POST /api/dev/research/orders/enqueue` for controlled research queue testing when development endpoints and persistence are configured
+- `POST /api/dev/research/orders/complete-due` for controlled research order completion testing when development endpoints and persistence are configured
 
 The repository now has:
 
@@ -72,6 +74,7 @@ The repository now has:
 - Development-only construction queue endpoints for manual HTTP validation without introducing gameplay UI.
 - Research queue foundation through `ResearchOrder`, `ResearchQueueItemStatus`, `IResearchQueueService`, and `IResearchOrderCompletionService`.
 - Research orders can enqueue research upgrades, spend resources, store start/end timestamps, enforce one open research order per civilization, and complete due research explicitly.
+- Research development endpoints for HTTP validation of enqueueing and completing due research orders.
 - Planet population foundation through `PlanetPopulationProfile`.
 - Military capacity foundation through `PlanetMilitaryCapacityCalculator` for local ground recruitment and locally built ship crew capacity.
 - Asset requirement foundation through `PlanetaryAssetType`, `SpaceAssetType`, `AssetRequirement`, `PlanetaryAssetDefinition`, `OrbitalAssetDefinition`, `PlanetaryAssetCatalog`, and `OrbitalAssetCatalog`.
@@ -83,7 +86,7 @@ The repository now has:
 Current gameplay foundation supports this backend chain:
 
 ```text
-Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Research queue -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue foundation -> Asset inventory foundation -> Asset production HTTP validation
+Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Research queue -> Research HTTP validation -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue foundation -> Asset inventory foundation -> Asset production HTTP validation
 ```
 
 ## Population and Military Capacity Design Note
@@ -160,7 +163,7 @@ Accepted current rules:
 
 ## Research Queue Design Note
 
-The research queue supports time-based research progression with explicit completion.
+The research queue supports time-based research progression with explicit completion and development-only HTTP validation.
 
 Accepted current rules:
 
@@ -170,8 +173,8 @@ Accepted current rules:
 - due orders can be completed explicitly through `IResearchOrderCompletionService`
 - completing a research order creates `ResearchProject` if it does not exist
 - completing a research order raises the existing `ResearchProject` level to the queued target level
+- research queue HTTP endpoints are development-only and guarded by the existing development endpoint switch
 - no research background worker exists yet
-- no research development endpoints exist yet
 
 Current intentional exclusions:
 
@@ -218,6 +221,7 @@ The repository has established:
 - construction queue background worker foundation
 - construction queue development endpoint foundation
 - research queue foundation
+- research development endpoint foundation
 - population and building role foundation
 - asset requirement foundation
 - asset production queue foundation
