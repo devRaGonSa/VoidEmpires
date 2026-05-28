@@ -4,9 +4,11 @@ using VoidEmpires.Application.Buildings;
 using VoidEmpires.Application.Galaxy;
 using VoidEmpires.Application.Identity;
 using VoidEmpires.Application.Players;
+using VoidEmpires.Application.Research;
 using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Players;
+using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure;
 using VoidEmpires.Infrastructure.Email;
 
@@ -278,6 +280,69 @@ if (AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration))
             result.CompletedOrderIds,
             []));
     });
+
+    app.MapPost("/api/dev/research/orders/enqueue", async (
+        EnqueueResearchOrderApiRequest request,
+        [FromServices] IServiceProvider services,
+        [FromServices] IConfiguration configuration,
+        CancellationToken cancellationToken) =>
+    {
+        if (!IsPersistenceConfigured(configuration))
+        {
+            return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        }
+
+        var errors = ValidateEnqueueResearchOrder(request);
+        if (errors.Count > 0)
+        {
+            return Results.BadRequest(new EnqueueResearchOrderApiResponse(false, null, null, null, errors));
+        }
+
+        var service = services.GetRequiredService<IResearchQueueService>();
+        var result = await service.EnqueueAsync(new EnqueueResearchOrderRequest(
+            request.CivilizationId!.Value,
+            request.SourcePlanetId!.Value,
+            request.ResearchType!.Value,
+            request.RequestedAtUtc!.Value), cancellationToken);
+
+        var response = new EnqueueResearchOrderApiResponse(
+            result.Succeeded,
+            result.OrderId,
+            result.StartsAtUtc,
+            result.EndsAtUtc,
+            result.Errors);
+
+        return result.Succeeded
+            ? Results.Created($"/api/dev/research/orders/{result.OrderId}", response)
+            : Results.Conflict(response);
+    });
+
+    app.MapPost("/api/dev/research/orders/complete-due", async (
+        CompleteResearchOrdersApiRequest request,
+        [FromServices] IServiceProvider services,
+        [FromServices] IConfiguration configuration,
+        CancellationToken cancellationToken) =>
+    {
+        if (!IsPersistenceConfigured(configuration))
+        {
+            return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        }
+
+        var errors = ValidateCompleteResearchOrders(request);
+        if (errors.Count > 0)
+        {
+            return Results.BadRequest(new CompleteResearchOrdersApiResponse(false, 0, [], errors));
+        }
+
+        var service = services.GetRequiredService<IResearchOrderCompletionService>();
+        var result = await service.CompleteDueOrdersAsync(request.NowUtc!.Value, cancellationToken);
+
+        return Results.Ok(new CompleteResearchOrdersApiResponse(
+            true,
+            result.CompletedCount,
+            result.CompletedOrderIds,
+            []));
+    });
 }
 app.MapGet("/health", () =>
 {
@@ -471,6 +536,53 @@ static IReadOnlyList<string> ValidateProcessAssetProduction(ProcessAssetProducti
     return errors;
 }
 
+static IReadOnlyList<string> ValidateEnqueueResearchOrder(EnqueueResearchOrderApiRequest request)
+{
+    var errors = new List<string>();
+
+    if (request.CivilizationId is null || request.CivilizationId == Guid.Empty)
+    {
+        errors.Add("Civilization id is required.");
+    }
+
+    if (request.SourcePlanetId is null || request.SourcePlanetId == Guid.Empty)
+    {
+        errors.Add("Source planet id is required.");
+    }
+
+    if (request.ResearchType is null)
+    {
+        errors.Add("Research type is required.");
+    }
+
+    if (request.RequestedAtUtc is null)
+    {
+        errors.Add("Requested date is required.");
+    }
+    else if (request.RequestedAtUtc.Value.Kind != DateTimeKind.Utc)
+    {
+        errors.Add("Requested date must be UTC.");
+    }
+
+    return errors;
+}
+
+static IReadOnlyList<string> ValidateCompleteResearchOrders(CompleteResearchOrdersApiRequest request)
+{
+    var errors = new List<string>();
+
+    if (request.NowUtc is null)
+    {
+        errors.Add("Current date is required.");
+    }
+    else if (request.NowUtc.Value.Kind != DateTimeKind.Utc)
+    {
+        errors.Add("Current date must be UTC.");
+    }
+
+    return errors;
+}
+
 public partial class Program
 {
 }
@@ -549,6 +661,27 @@ internal sealed record EnqueueAssetProductionApiResponse(
 internal sealed record ProcessAssetProductionApiRequest(DateTime? NowUtc);
 
 internal sealed record ProcessAssetProductionApiResponse(
+    bool Succeeded,
+    int CompletedCount,
+    IReadOnlyList<Guid> CompletedOrderIds,
+    IReadOnlyList<string> Errors);
+
+internal sealed record EnqueueResearchOrderApiRequest(
+    Guid? CivilizationId,
+    Guid? SourcePlanetId,
+    ResearchType? ResearchType,
+    DateTime? RequestedAtUtc);
+
+internal sealed record EnqueueResearchOrderApiResponse(
+    bool Succeeded,
+    Guid? OrderId,
+    DateTime? StartsAtUtc,
+    DateTime? EndsAtUtc,
+    IReadOnlyList<string> Errors);
+
+internal sealed record CompleteResearchOrdersApiRequest(DateTime? NowUtc);
+
+internal sealed record CompleteResearchOrdersApiResponse(
     bool Succeeded,
     int CompletedCount,
     IReadOnlyList<Guid> CompletedOrderIds,
