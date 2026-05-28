@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Assets;
 using VoidEmpires.Domain.Assets;
+using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Population;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -133,10 +134,10 @@ public sealed class AssetProductionQueueService(VoidEmpiresDbContext dbContext) 
         _ => null
     };
 
-    private static Domain.Buildings.ConstructionCost GetCost(EnqueueAssetProductionRequest request) => request.Target switch
+    private static ConstructionCost GetCost(EnqueueAssetProductionRequest request) => request.Target switch
     {
         AssetProductionTarget.Planetary => PlanetaryAssetCatalog.Get(request.PlanetaryAssetType!.Value).Cost,
         AssetProductionTarget.Orbital => OrbitalAssetCatalog.Get(request.SpaceAssetType!.Value).Cost,
-        _ => Domain.Buildings.ConstructionCost.Zero
+        _ => ConstructionCost.Zero
     };
 }
