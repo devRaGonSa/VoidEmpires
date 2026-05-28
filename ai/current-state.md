@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is in `Phase 5B - Orbital group allocation service` while retaining the AI Platform workflow assets from Phase 0.
+The repository is in `Phase 5C - Orbital group development endpoint` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
@@ -37,16 +37,17 @@ The repository now has:
 - Construction queue, research queue, asset production queue, asset inventory, optional queue workers, and fleet ownership/origin foundations.
 - Orbital group allocation service through `OrbitalStockGroupService`, registered as `IOrbitalGroupService`.
 - Orbital stock allocation from `OrbitalAssetStock` into `OrbitalGroup` with persisted stock decrease and group creation.
+- Development-only orbital group endpoint for HTTP validation of creating orbital groups from local stock.
 
 Current gameplay foundation supports this backend chain:
 
 ```text
-Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue/worker -> Research queue/dev endpoints/worker -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue/dev endpoints/worker -> Asset inventory foundation -> Orbital group ownership/origin foundation -> Orbital group allocation service
+Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue/worker -> Research queue/dev endpoints/worker -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue/dev endpoints/worker -> Asset inventory foundation -> Orbital group ownership/origin foundation -> Orbital group allocation service -> Orbital group HTTP validation
 ```
 
 ## Fleet Ownership and Origin Design Note
 
-The fleet foundation supports stationary orbital group ownership, origin tracking, and stock allocation.
+The fleet foundation supports stationary orbital group ownership, origin tracking, stock allocation, and development-only HTTP validation.
 
 Accepted current rules:
 
@@ -57,6 +58,7 @@ Accepted current rules:
 - `OrbitalGroup.IsStationedAwayFromOrigin` makes origin/current-location separation explicit.
 - `OrbitalAssetStock.Decrease(...)` allocates locally produced stock into an orbital group.
 - `IOrbitalGroupService.CreateFromLocalStockAsync(...)` validates stock and persists the resulting group.
+- `POST /api/dev/fleets/orbital-groups/create-from-stock` validates this flow through HTTP when development endpoints and persistence are configured.
 - A group stationed away from its origin does not imply population or crew consumption on the current planet.
 - Local crew/operator capacity remains validated during production, not during parking/stationing.
 
@@ -121,9 +123,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validation baseline: `194` passing tests.
+Current validation baseline before local validation: `194` passing tests.
 
-Current tests include persisted orbital group allocation from local stock, insufficient stock rejection, invalid request rejection, and existing origin/current-location behavior. Tests do not use the real NAS PostgreSQL database.
+New expected coverage includes development endpoint access control, persistence-required behavior, invalid request validation, successful orbital group creation response, and rejected service result response.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
