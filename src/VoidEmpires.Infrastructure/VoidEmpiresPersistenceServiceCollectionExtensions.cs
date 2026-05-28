@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Buildings;
 using VoidEmpires.Application.Colonization;
@@ -39,6 +40,24 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IPlanetConstructionQueueService, PlanetConstructionQueueService>();
         services.AddScoped<IConstructionOrderCompletionService, ConstructionOrderCompletionService>();
         services.AddScoped<IResearchUpgradeService, ResearchUpgradeService>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddVoidEmpiresConstructionQueueWorker(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var section = configuration.GetSection(ConstructionQueueWorkerOptions.SectionName);
+        services.Configure<ConstructionQueueWorkerOptions>(section);
+
+        if (section.GetValue<bool>(nameof(ConstructionQueueWorkerOptions.Enabled)))
+        {
+            services.AddHostedService<ConstructionQueueWorker>();
+        }
 
         return services;
     }
