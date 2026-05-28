@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is in `Phase 3E - Construction queue background worker foundation` while retaining the AI Platform workflow assets from Phase 0.
+The repository is in `Phase 3F - Construction queue development endpoints` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
@@ -34,6 +34,8 @@ The repository contains `VoidEmpires.sln` with these projects:
 - `GET /api/auth/confirm-email` for minimal email confirmation
 - `POST /api/dev/galaxies/generate` for controlled development/test galaxy generation when development endpoints and persistence are configured
 - `POST /api/dev/players/starting-civilization` for controlled development/test player profile and starting civilization creation when development endpoints and persistence are configured
+- `POST /api/dev/buildings/construction-orders/enqueue` for controlled construction queue enqueue testing when development endpoints and persistence are configured
+- `POST /api/dev/buildings/construction-orders/complete-due` for controlled construction queue completion testing when development endpoints and persistence are configured
 
 The repository now has:
 
@@ -64,11 +66,12 @@ The repository now has:
 - Construction orders can enqueue building construction or upgrade work, spend resources, store start/end timestamps, and enforce one open order per planet.
 - Construction order completion through `IConstructionOrderCompletionService`, which can explicitly complete due orders.
 - Construction queue background worker foundation through `ConstructionQueueWorker`, disabled by default and controlled by configuration.
+- Development-only construction queue endpoints for manual HTTP validation without introducing gameplay UI.
 
 Current gameplay foundation supports this backend chain:
 
 ```text
-Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Explicit completion -> Optional worker trigger
+Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue -> Explicit completion -> Optional worker trigger -> Development HTTP validation
 ```
 
 ## Building Capacity Design Note
@@ -84,7 +87,7 @@ The project has accepted this rule:
 
 ## Construction Queue Design Note
 
-The construction queue now supports explicit completion of due orders and an optional background worker that can trigger completion periodically when enabled by configuration.
+The construction queue now supports explicit completion of due orders, an optional background worker that can trigger completion periodically when enabled by configuration, and development-only endpoints for controlled manual validation.
 
 Accepted current rules:
 
@@ -99,6 +102,7 @@ Accepted current rules:
 - the background worker is disabled by default
 - the background worker is only registered when persistence is configured and `VoidEmpires:ConstructionQueueWorker:Enabled` is `true`
 - the background worker delegates completion to `IConstructionOrderCompletionService`
+- construction queue HTTP endpoints are development-only and guarded by the existing development endpoint switch
 
 Current intentional exclusions:
 
@@ -142,6 +146,7 @@ The repository has established:
 - construction queue foundation
 - construction queue completion foundation
 - construction queue background worker foundation
+- construction queue development endpoint foundation
 
 ## Validation Status
 
@@ -155,9 +160,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validation baseline: `147` passing tests.
+Current validation baseline: `152` passing tests.
 
-Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, planet building domain tests, building catalog tests, persisted building construction tests, persisted building upgrade tests, construction queue service tests, construction order completion service tests, construction queue worker options and registration tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
+Current tests include assembly-boundary coverage, smoke checks for `/` and `/health`, auth endpoint tests with fake services, development galaxy endpoint tests with fake services, development construction queue endpoint tests with fake services, persistence and identity registration checks, application contract tests, deterministic galaxy generation tests, persisted galaxy generation service tests with EF Core InMemory, player/civilization domain tests, starting civilization service tests, planet ownership domain tests, planet colonization service tests, planet economy domain tests, persisted planet economy tick tests, planet building domain tests, building catalog tests, persisted building construction tests, persisted building upgrade tests, construction queue service tests, construction order completion service tests, construction queue worker options and registration tests, registration and email confirmation service tests with EF Core InMemory, Brevo sender tests with fake HTTP handlers, and verification that health output does not expose connection string values. Tests do not use the real NAS PostgreSQL database.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 

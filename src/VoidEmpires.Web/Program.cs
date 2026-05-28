@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using VoidEmpires.Application.Buildings;
 using VoidEmpires.Application.Galaxy;
 using VoidEmpires.Application.Identity;
 using VoidEmpires.Application.Players;
+using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Players;
 using VoidEmpires.Infrastructure;
 using VoidEmpires.Infrastructure.Email;
@@ -145,6 +147,70 @@ if (AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration))
             ? Results.Created($"/api/dev/players/{result.PlayerProfileId}/civilizations/{result.CivilizationId}", response)
             : Results.Conflict(response);
     });
+
+    app.MapPost("/api/dev/buildings/construction-orders/enqueue", async (
+        EnqueueConstructionOrderApiRequest request,
+        [FromServices] IServiceProvider services,
+        [FromServices] IConfiguration configuration,
+        CancellationToken cancellationToken) =>
+    {
+        if (!IsPersistenceConfigured(configuration))
+        {
+            return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        }
+
+        var errors = ValidateEnqueueConstructionOrder(request);
+        if (errors.Count > 0)
+        {
+            return Results.BadRequest(new EnqueueConstructionOrderApiResponse(false, null, null, null, errors));
+        }
+
+        var service = services.GetRequiredService<IPlanetConstructionQueueService>();
+        var result = await service.EnqueueAsync(new EnqueueConstructionOrderRequest(
+            request.PlanetId!.Value,
+            request.CivilizationId!.Value,
+            request.Action!.Value,
+            request.BuildingType!.Value,
+            request.RequestedAtUtc!.Value), cancellationToken);
+
+        var response = new EnqueueConstructionOrderApiResponse(
+            result.Succeeded,
+            result.OrderId,
+            result.StartsAtUtc,
+            result.EndsAtUtc,
+            result.Errors);
+
+        return result.Succeeded
+            ? Results.Created($"/api/dev/buildings/construction-orders/{result.OrderId}", response)
+            : Results.Conflict(response);
+    });
+
+    app.MapPost("/api/dev/buildings/construction-orders/complete-due", async (
+        CompleteConstructionOrdersApiRequest request,
+        [FromServices] IServiceProvider services,
+        [FromServices] IConfiguration configuration,
+        CancellationToken cancellationToken) =>
+    {
+        if (!IsPersistenceConfigured(configuration))
+        {
+            return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        }
+
+        var errors = ValidateCompleteConstructionOrders(request);
+        if (errors.Count > 0)
+        {
+            return Results.BadRequest(new CompleteConstructionOrdersApiResponse(false, 0, [], errors));
+        }
+
+        var service = services.GetRequiredService<IConstructionOrderCompletionService>();
+        var result = await service.CompleteDueOrdersAsync(request.NowUtc!.Value, cancellationToken);
+
+        return Results.Ok(new CompleteConstructionOrdersApiResponse(
+            true,
+            result.CompletedCount,
+            result.CompletedOrderIds,
+            []));
+    });
 }
 app.MapGet("/health", () =>
 {
@@ -229,6 +295,58 @@ static IReadOnlyList<string> ValidateStartingCivilization(CreateStartingCiviliza
     return errors;
 }
 
+static IReadOnlyList<string> ValidateEnqueueConstructionOrder(EnqueueConstructionOrderApiRequest request)
+{
+    var errors = new List<string>();
+
+    if (request.PlanetId is null || request.PlanetId == Guid.Empty)
+    {
+        errors.Add("Planet id is required.");
+    }
+
+    if (request.CivilizationId is null || request.CivilizationId == Guid.Empty)
+    {
+        errors.Add("Civilization id is required.");
+    }
+
+    if (request.Action is null)
+    {
+        errors.Add("Construction action is required.");
+    }
+
+    if (request.BuildingType is null)
+    {
+        errors.Add("Building type is required.");
+    }
+
+    if (request.RequestedAtUtc is null)
+    {
+        errors.Add("Requested date is required.");
+    }
+    else if (request.RequestedAtUtc.Value.Kind != DateTimeKind.Utc)
+    {
+        errors.Add("Requested date must be UTC.");
+    }
+
+    return errors;
+}
+
+static IReadOnlyList<string> ValidateCompleteConstructionOrders(CompleteConstructionOrdersApiRequest request)
+{
+    var errors = new List<string>();
+
+    if (request.NowUtc is null)
+    {
+        errors.Add("Current date is required.");
+    }
+    else if (request.NowUtc.Value.Kind != DateTimeKind.Utc)
+    {
+        errors.Add("Current date must be UTC.");
+    }
+
+    return errors;
+}
+
 public partial class Program
 {
 }
@@ -265,4 +383,26 @@ internal sealed record StartingCivilizationApiResponse(
     Guid? PlayerProfileId,
     Guid? CivilizationId,
     Guid? HomePlanetId,
+    IReadOnlyList<string> Errors);
+
+internal sealed record EnqueueConstructionOrderApiRequest(
+    Guid? PlanetId,
+    Guid? CivilizationId,
+    ConstructionQueueItemAction? Action,
+    BuildingType? BuildingType,
+    DateTime? RequestedAtUtc);
+
+internal sealed record EnqueueConstructionOrderApiResponse(
+    bool Succeeded,
+    Guid? OrderId,
+    DateTime? StartsAtUtc,
+    DateTime? EndsAtUtc,
+    IReadOnlyList<string> Errors);
+
+internal sealed record CompleteConstructionOrdersApiRequest(DateTime? NowUtc);
+
+internal sealed record CompleteConstructionOrdersApiResponse(
+    bool Succeeded,
+    int CompletedCount,
+    IReadOnlyList<Guid> CompletedOrderIds,
     IReadOnlyList<string> Errors);
