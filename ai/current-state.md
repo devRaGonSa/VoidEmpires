@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is in `Phase 5C - Orbital group development endpoint` while retaining the AI Platform workflow assets from Phase 0.
+The repository is in `Phase 5D - Orbital group listing/query endpoints` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
@@ -38,16 +38,19 @@ The repository now has:
 - Orbital group allocation service through `OrbitalStockGroupService`, registered as `IOrbitalGroupService`.
 - Orbital stock allocation from `OrbitalAssetStock` into `OrbitalGroup` with persisted stock decrease and group creation.
 - Development-only orbital group endpoint for HTTP validation of creating orbital groups from local stock.
+- Orbital group lookup contracts and persistence-backed lookup service through `IOrbitalGroupLookupService`.
+- Development-only orbital group listing endpoint with optional filters for current planet, origin planet, asset type, and status.
+- Development endpoint mappings factored out of `Program.cs` to keep application composition smaller and easier to maintain.
 
 Current gameplay foundation supports this backend chain:
 
 ```text
-Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue/worker -> Research queue/dev endpoints/worker -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue/dev endpoints/worker -> Asset inventory foundation -> Orbital group ownership/origin foundation -> Orbital group allocation service -> Orbital group HTTP validation
+Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue/worker -> Research queue/dev endpoints/worker -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue/dev endpoints/worker -> Asset inventory foundation -> Orbital group ownership/origin foundation -> Orbital group allocation service -> Orbital group HTTP validation -> Orbital group listing/query HTTP validation
 ```
 
 ## Fleet Ownership and Origin Design Note
 
-The fleet foundation supports stationary orbital group ownership, origin tracking, stock allocation, and development-only HTTP validation.
+The fleet foundation supports stationary orbital group ownership, origin tracking, stock allocation, development-only HTTP validation, and query/read validation.
 
 Accepted current rules:
 
@@ -58,7 +61,9 @@ Accepted current rules:
 - `OrbitalGroup.IsStationedAwayFromOrigin` makes origin/current-location separation explicit.
 - `OrbitalAssetStock.Decrease(...)` allocates locally produced stock into an orbital group.
 - `IOrbitalGroupService.CreateFromLocalStockAsync(...)` validates stock and persists the resulting group.
-- `POST /api/dev/fleets/orbital-groups/create-from-stock` validates this flow through HTTP when development endpoints and persistence are configured.
+- `IOrbitalGroupLookupService.ListAsync(...)` reads orbital groups by civilization with optional current planet, origin planet, asset type, and status filters.
+- `POST /api/dev/fleets/orbital-groups/create-from-stock` validates group creation through HTTP when development endpoints and persistence are configured.
+- `GET /api/dev/fleets/orbital-groups` validates group listing through HTTP when development endpoints and persistence are configured.
 - A group stationed away from its origin does not imply population or crew consumption on the current planet.
 - Local crew/operator capacity remains validated during production, not during parking/stationing.
 
@@ -123,9 +128,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validation baseline before local validation: `194` passing tests.
+Current validation baseline before local validation: `199` passing tests.
 
-New expected coverage includes development endpoint access control, persistence-required behavior, invalid request validation, successful orbital group creation response, and rejected service result response.
+New expected coverage includes orbital group lookup service filtering, development endpoint access control, persistence-required behavior, missing civilization id validation, successful listing response, and optional filter propagation.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
