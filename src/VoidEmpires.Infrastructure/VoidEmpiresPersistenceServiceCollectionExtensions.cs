@@ -112,6 +112,24 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection AddVoidEmpiresOrbitalTransferWorker(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var section = configuration.GetSection(OrbitalTransferWorkerOptions.SectionName);
+        services.Configure<OrbitalTransferWorkerOptions>(section);
+
+        if (section.GetValue<bool>(nameof(OrbitalTransferWorkerOptions.Enabled)))
+        {
+            services.AddHostedService<OrbitalTransferWorker>();
+        }
+
+        return services;
+    }
+
     public static IServiceCollection AddVoidEmpiresIdentity(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
