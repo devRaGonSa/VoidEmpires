@@ -22,6 +22,8 @@ if (!string.IsNullOrWhiteSpace(defaultConnectionString))
 
 var app = builder.Build();
 
+app.UseStaticFiles();
+
 app.MapGet("/", () => "VoidEmpires");
 app.MapPost("/api/auth/register", async (
     RegisterApiRequest request,
