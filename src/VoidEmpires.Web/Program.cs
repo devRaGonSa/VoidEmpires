@@ -71,6 +71,7 @@ app.MapGet("/api/auth/confirm-email", async (
 if (AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration))
 {
     app.MapDevEndpointMappings();
+    app.MapDevSystemVisualStateEndpoints();
 }
 app.MapGet("/health", () =>
 {
