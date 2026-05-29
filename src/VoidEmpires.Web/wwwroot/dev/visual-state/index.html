@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VoidEmpires Visual State Sandbox</title>
+    <link rel="stylesheet" href="/dev/visual-state/visual-state.css">
+</head>
+<body>
+    <main class="sandbox-shell">
+        <header class="sandbox-header">
+            <div>
+                <p class="eyebrow">VoidEmpires Dev Sandbox</p>
+                <h1>Visual State Inspector</h1>
+                <p class="summary">Inspect PlanetVisualState and SystemVisualState payloads before building the 3D renderer.</p>
+            </div>
+        </header>
+
+        <section class="control-panel" aria-label="Visual state controls">
+            <label>
+                Mode
+                <select id="visual-mode">
+                    <option value="planet">Planet</option>
+                    <option value="system">Solar system</option>
+                </select>
+            </label>
+            <label>
+                Identifier
+                <input id="visual-id" type="text" placeholder="GUID">
+            </label>
+            <button id="load-visual-state" type="button">Load visual state</button>
+        </section>
+
+        <section class="status-panel" aria-live="polite">
+            <span id="visual-status">Ready.</span>
+        </section>
+
+        <section class="layout-grid">
+            <article class="card">
+                <h2>Preview</h2>
+                <div id="visual-preview" class="preview-empty">No visual state loaded.</div>
+            </article>
+
+            <article class="card">
+                <h2>Intensities</h2>
+                <div id="visual-intensities" class="intensity-list"></div>
+            </article>
+
+            <article class="card payload-card">
+                <h2>Payload</h2>
+                <pre id="visual-payload">{}</pre>
+            </article>
+        </section>
+    </main>
+
+    <script src="/dev/visual-state/visual-state.js"></script>
+</body>
+</html>
