@@ -29,7 +29,15 @@ public class DevPlanetVisualStateEndpointTests(WebApplicationFactory<Program> fa
     [Fact]
     public async Task PlanetVisualStateReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Development");
+            builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:DefaultConnection"] = string.Empty
+                }));
+        }).CreateClient();
 
         using var response = await client.GetAsync($"/api/dev/planets/{PlanetId}/visual-state");
 
@@ -77,6 +85,7 @@ public class DevPlanetVisualStateEndpointTests(WebApplicationFactory<Program> fa
     private HttpClient CreateConfiguredClient(IPlanetVisualStateService visualStateService) =>
         factory.WithWebHostBuilder(builder =>
         {
+            builder.UseEnvironment("Development");
             builder.ConfigureAppConfiguration((_, configurationBuilder) =>
                 configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
                 {
