@@ -321,6 +321,7 @@ internal static class DevEndpointMappings
         app.MapDevOrbitalTransferCreationEndpoints();
         app.MapDevOrbitalTransferCompletionEndpoints();
         app.MapDevOrbitalTransferLookupEndpoints();
+        app.MapDevPlanetVisualStateEndpoints();
     }
 
     private static bool IsPersistenceConfigured(IConfiguration configuration) =>
