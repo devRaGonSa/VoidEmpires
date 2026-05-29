@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 5L - Orbital transfer worker` while retaining the AI Platform workflow assets from Phase 0.
+The repository is consolidated through `Phase 5Q/5R - Solar system visual state backend` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
@@ -36,22 +36,41 @@ The repository now has:
 - Infrastructure service registration that enables PostgreSQL only when a non-empty connection string is configured.
 - Construction queue, research queue, asset production queue, asset inventory, optional queue workers, and fleet ownership/origin foundations.
 - Orbital group allocation service through `OrbitalStockGroupService`, registered as `IOrbitalGroupService`.
-- Orbital stock allocation from `OrbitalAssetStock` into `OrbitalGroup` with persisted stock decrease and group creation.
 - Development-only orbital group endpoint for HTTP validation of creating orbital groups from local stock.
-- Orbital group lookup contracts and persistence-backed lookup service through `IOrbitalGroupLookupService`.
-- Development-only orbital group listing endpoint with optional filters for current planet, origin planet, asset type, and status.
-- Development endpoint mappings factored out of `Program.cs` to keep application composition smaller and easier to maintain.
-- Persisted orbital transfer intents through `OrbitalTransfer`, `OrbitalTransferStatus`, EF configuration, migration, and `IOrbitalTransferPersistenceService`.
-- Orbital transfer arrival execution through `IOrbitalTransferCompletionService`, which completes due transfers and moves reserved orbital groups to their destination planet.
-- Development-only orbital transfer endpoints for creation, listing/query, and due completion.
-- Automated HTTP coverage for orbital transfer development endpoints.
-- Optional configurable `OrbitalTransferWorker`, disabled by default, registered only when persistence exists and the worker section enables it.
+- Persisted orbital transfer intents, manual dev endpoints, lookup endpoints, endpoint tests, and configurable automatic arrival worker.
+- Planet visual state contracts, deterministic intensity calculator, planet visual profile catalog, persisted planet visual state service, and development endpoint for single-planet visual state.
+- Solar system visual state contracts, persistence-backed system visual state service, and development endpoint for system-level visual state.
 
-Current gameplay foundation supports this backend chain:
+Current gameplay/backend foundation supports this chain:
 
 ```text
-Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue/worker -> Research queue/dev endpoints/worker -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue/dev endpoints/worker -> Asset inventory foundation -> Orbital group ownership/origin foundation -> Orbital group allocation service -> Orbital group HTTP validation -> Orbital group listing/query HTTP validation -> Orbital transfer persistence -> Orbital transfer create/list/complete dev endpoints -> Orbital transfer worker
+Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue/worker -> Research queue/dev endpoints/worker -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue/dev endpoints/worker -> Asset inventory foundation -> Orbital group ownership/origin foundation -> Orbital group allocation service -> Orbital group HTTP validation -> Orbital group listing/query HTTP validation -> Orbital transfer persistence -> Orbital transfer create/list/complete dev endpoints -> Orbital transfer worker -> Planet visual state -> Solar system visual state
 ```
+
+## Visual State Design Note
+
+The visual backend follows the uploaded 3D planet technical document: game data, computed visual state, and frontend render state stay separated.
+
+Accepted current rules:
+
+- `PlanetVisualStateDto` is a read contract, not a persisted gameplay entity.
+- `PlanetVisualProfileDto` describes render hints such as surface profile, light distribution, platform mode, atmosphere, cloud profile, and supported layers.
+- `PlanetVisualProfileCatalog` differentiates visual behavior by `PlanetType`.
+- `PlanetVisualIntensityCalculator` derives deterministic normalized intensities from existing game data.
+- The visual seed is deterministic from `PlanetId` so the same planet keeps a stable base pattern.
+- `PlanetVisualStateService` derives single-planet visual state from `Planet`, `PlanetOwnership`, `PlanetBuilding`, and `OrbitalGroup`.
+- `SystemVisualStateService` returns ordered planet visual states for a solar system.
+- `GET /api/dev/planets/{planetId}/visual-state` validates single-planet visual state through HTTP when development endpoints and persistence are configured.
+- `GET /api/dev/solar-systems/{systemId}/visual-state` validates system-level visual state through HTTP when development endpoints and persistence are configured.
+
+Current intentional limitation:
+
+- no UI
+- no Three.js/Babylon.js implementation
+- no meshes, shaders, textures, or binary render assets from the backend
+- no persisted visual customization model
+- no visual landmarks or hand-authored biomes
+- no gameplay terraform system yet
 
 ## Fleet Ownership and Origin Design Note
 
@@ -64,12 +83,6 @@ Accepted current rules:
 - `OrbitalGroup.OriginPlanetId` identifies where the assets were originally produced or allocated from.
 - `OrbitalGroup.CurrentPlanetId` identifies where the group is currently stationed.
 - `OrbitalGroup.IsStationedAwayFromOrigin` makes origin/current-location separation explicit.
-- `OrbitalAssetStock.Decrease(...)` allocates locally produced stock into an orbital group.
-- `IOrbitalGroupService.CreateFromLocalStockAsync(...)` validates stock and persists the resulting group.
-- `IOrbitalGroupLookupService.ListAsync(...)` reads orbital groups by civilization with optional current planet, origin planet, asset type, and status filters.
-- `POST /api/dev/fleets/orbital-groups/create-from-stock` validates group creation through HTTP when development endpoints and persistence are configured.
-- `GET /api/dev/fleets/orbital-groups` validates group listing through HTTP when development endpoints and persistence are configured.
-- A group stationed away from its origin does not imply population or crew consumption on the current planet.
 - Local crew/operator capacity remains validated during production, not during parking/stationing.
 
 ## Orbital Transfer Design Note
@@ -81,14 +94,7 @@ Accepted current rules:
 - `OrbitalTransfer` persists the transfer intent with civilization id, orbital group id, origin planet id, destination planet id, abstract distance, departure time, arrival time, and status.
 - `IOrbitalTransferPersistenceService.PersistAsync(...)` creates a planned transfer from a stationed orbital group.
 - Creating a transfer reserves the orbital group.
-- The initial travel model uses `OrbitalTravelEstimator` and abstract distance units.
-- `IOrbitalTransferCompletionService.CompleteDueAsync(...)` processes due transfers using an explicit timestamp.
 - Completing a due transfer moves the orbital group to `DestinationPlanetId` and marks the transfer as completed.
-- Completed transfers are not processed again.
-- `IOrbitalTransferLookupService.ListAsync(...)` reads transfers by civilization with optional orbital group, origin planet, destination planet, and status filters.
-- `POST /api/dev/fleets/orbital-transfers/create` validates transfer creation through HTTP when development endpoints and persistence are configured.
-- `GET /api/dev/fleets/orbital-transfers` validates transfer listing/query through HTTP when development endpoints and persistence are configured.
-- `POST /api/dev/fleets/orbital-transfers/complete-due` validates manual completion of due transfers through HTTP when development endpoints and persistence are configured.
 - `OrbitalTransferWorker` is disabled by default and only registered when `VoidEmpires:OrbitalTransferWorker:Enabled` is true and persistence exists.
 
 Current intentional limitation:
@@ -136,9 +142,7 @@ Accepted current rules:
 - enqueueing validates local operator/crew capacity for orbital assets
 - enqueueing creates a timed `AssetProductionOrder`
 - due asset production orders can be processed explicitly through `IAssetOrderProcessor`
-- processing due planetary asset orders creates or increments `PlanetaryAssetStock`
-- processing due orbital asset orders creates or increments `OrbitalAssetStock`
-- processing due orders then marks them as completed
+- processing due orders creates or increments stock and then marks orders as completed
 - stock is planet-local until explicitly allocated to an orbital group
 
 ## Validation Status
@@ -153,22 +157,20 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 5L: `246` passing tests.
+Current expected baseline after Phase 5Q/5R: `276` passing tests.
 
-Recent expected coverage includes orbital group lookup, orbital transfer persistence, orbital transfer completion, orbital transfer lookup, development endpoint access control, persistence-required behavior, invalid request validation, successful response payloads, conflict handling, optional filter propagation, and worker option interval fallback behavior.
+Recent expected coverage includes orbital group lookup, orbital transfer persistence, orbital transfer completion, orbital transfer lookup, development endpoint access control, persistence-required behavior, invalid request validation, successful response payloads, conflict handling, optional filter propagation, worker option interval fallback behavior, planet visual profile/intensity calculation, planet visual state service/endpoint, and solar system visual state service/endpoint.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
 ## Recommended Next Work
 
-Recommended next backend line before UI:
+Recommended next backend/frontend line:
 
-1. Add a route/fuel/travel-cost foundation for orbital transfers if movement should become deeper.
-2. Add fleet split/merge foundations if group manipulation is needed before combat.
-3. Add read models for solar-system tactical state if the next goal is a 3D/system map.
-4. Add `PlanetVisualState` contracts and a development endpoint if the next goal is the procedural 3D planet visual pipeline.
-
-The latest uploaded 3D planet document recommends starting visual work with backend `PlanetVisualState` contracts, an intensity calculator, and a dev endpoint before implementing a full UI/3D scene.
+1. Add a dedicated frontend development sandbox for rendering one planet from `PlanetVisualStateDto` using mock/API data.
+2. Add richer system-level visual state metadata if the 3D system map needs star information, orbital slots, transfer overlays, or orbital group markers.
+3. Add route/fuel/travel-cost foundation for orbital transfers if movement should become deeper.
+4. Add fleet split/merge foundations if group manipulation is needed before combat.
 
 ## Constraints
 
