@@ -17,6 +17,7 @@ if (!string.IsNullOrWhiteSpace(defaultConnectionString))
     builder.Services.AddVoidEmpiresConstructionQueueWorker(builder.Configuration);
     builder.Services.AddVoidEmpiresResearchQueueWorker(builder.Configuration);
     builder.Services.AddVoidEmpiresAssetProductionWorker(builder.Configuration);
+    builder.Services.AddVoidEmpiresOrbitalTransferWorker(builder.Configuration);
 }
 
 var app = builder.Build();
