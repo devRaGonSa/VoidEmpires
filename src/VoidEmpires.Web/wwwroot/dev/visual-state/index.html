@@ -18,10 +18,17 @@
 
         <section class="control-panel" aria-label="Visual state controls">
             <label>
-                Mode
+                Data mode
                 <select id="visual-mode">
                     <option value="planet">Planet</option>
                     <option value="system">Solar system</option>
+                </select>
+            </label>
+            <label>
+                Render mode
+                <select id="render-mode">
+                    <option value="pseudo3d">Pseudo-3D</option>
+                    <option value="cards">Cards</option>
                 </select>
             </label>
             <label>
@@ -36,14 +43,22 @@
         </section>
 
         <section class="layout-grid">
-            <article class="card">
-                <h2>Preview</h2>
+            <article class="card preview-card">
+                <div class="card-heading">
+                    <h2>Preview</h2>
+                    <span id="selected-planet-label" class="selected-label">No selection</span>
+                </div>
                 <div id="visual-preview" class="preview-empty">No visual state loaded.</div>
             </article>
 
             <article class="card">
                 <h2>Intensities</h2>
                 <div id="visual-intensities" class="intensity-list"></div>
+            </article>
+
+            <article class="card profile-card">
+                <h2>Profile</h2>
+                <div id="visual-profile" class="profile-grid"></div>
             </article>
 
             <article class="card payload-card">
