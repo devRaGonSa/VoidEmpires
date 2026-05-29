@@ -1,4 +1,5 @@
 using VoidEmpires.Infrastructure.Assets;
+using VoidEmpires.Infrastructure.Fleets;
 using VoidEmpires.Infrastructure.Research;
 
 namespace VoidEmpires.Tests;
@@ -48,6 +49,30 @@ public class QueueWorkerOptionsTests
         {
             Enabled = true,
             IntervalSeconds = -1
+        };
+
+        Assert.Equal(TimeSpan.FromSeconds(30), options.GetInterval());
+    }
+
+    [Fact]
+    public void OrbitalTransferWorkerIntervalUsesConfiguredPositiveSeconds()
+    {
+        var options = new OrbitalTransferWorkerOptions
+        {
+            Enabled = true,
+            IntervalSeconds = 25
+        };
+
+        Assert.Equal(TimeSpan.FromSeconds(25), options.GetInterval());
+    }
+
+    [Fact]
+    public void OrbitalTransferWorkerIntervalFallsBackWhenConfiguredSecondsAreInvalid()
+    {
+        var options = new OrbitalTransferWorkerOptions
+        {
+            Enabled = true,
+            IntervalSeconds = 0
         };
 
         Assert.Equal(TimeSpan.FromSeconds(30), options.GetInterval());
