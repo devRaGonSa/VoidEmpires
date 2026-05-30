@@ -19,6 +19,8 @@ public class VisualStateSandboxEndpointTests(WebApplicationFactory<Program> fact
         Assert.Contains("Render mode", content);
         Assert.Contains("selected-planet-label", content);
         Assert.Contains("visual-profile", content);
+        Assert.Contains("visual-overlays", content);
+        Assert.Contains("Overlays", content);
         Assert.Contains("/dev/visual-state/visual-state.css", content);
         Assert.Contains("/dev/visual-state/visual-state.js", content);
     }
@@ -37,6 +39,10 @@ public class VisualStateSandboxEndpointTests(WebApplicationFactory<Program> fact
         Assert.Contains("pseudo-planet", content);
         Assert.Contains("system-orbits", content);
         Assert.Contains("profile-grid", content);
+        Assert.Contains("overlay-list", content);
+        Assert.Contains("system-group-marker", content);
+        Assert.Contains("system-transfer-overlay", content);
+        Assert.Contains("system-transfer-progress", content);
     }
 
     [Fact]
@@ -52,6 +58,11 @@ public class VisualStateSandboxEndpointTests(WebApplicationFactory<Program> fact
         Assert.Contains("renderSystem", content);
         Assert.Contains("renderPlanet", content);
         Assert.Contains("renderProfile", content);
+        Assert.Contains("renderOverlays", content);
+        Assert.Contains("addOrbitalGroupMarker", content);
+        Assert.Contains("addTransferOverlay", content);
+        Assert.Contains("orbitalGroupMarkers", content);
+        Assert.Contains("transferOverlays", content);
         Assert.Contains("/api/dev/planets/", content);
         Assert.Contains("/api/dev/solar-systems/", content);
     }
