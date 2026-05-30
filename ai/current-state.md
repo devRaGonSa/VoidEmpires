@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 5Q/5R - Solar system visual state backend` while retaining the AI Platform workflow assets from Phase 0.
+The repository is consolidated through `Phase 5U/5V - Pseudo-3D visual sandbox` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
@@ -40,11 +40,13 @@ The repository now has:
 - Persisted orbital transfer intents, manual dev endpoints, lookup endpoints, endpoint tests, and configurable automatic arrival worker.
 - Planet visual state contracts, deterministic intensity calculator, planet visual profile catalog, persisted planet visual state service, and development endpoint for single-planet visual state.
 - Solar system visual state contracts, persistence-backed system visual state service, and development endpoint for system-level visual state.
+- Static development sandbox at `/dev/visual-state/index.html` for inspecting planet/system visual state payloads.
+- CSS-only pseudo-3D visual sandbox mode for planet and system previews, with card mode fallback, intensity bars, profile panel, and raw JSON payload view.
 
-Current gameplay/backend foundation supports this chain:
+Current gameplay/backend/frontend foundation supports this chain:
 
 ```text
-Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue/worker -> Research queue/dev endpoints/worker -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue/dev endpoints/worker -> Asset inventory foundation -> Orbital group ownership/origin foundation -> Orbital group allocation service -> Orbital group HTTP validation -> Orbital group listing/query HTTP validation -> Orbital transfer persistence -> Orbital transfer create/list/complete dev endpoints -> Orbital transfer worker -> Planet visual state -> Solar system visual state
+Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue/worker -> Research queue/dev endpoints/worker -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue/dev endpoints/worker -> Asset inventory foundation -> Orbital group ownership/origin foundation -> Orbital group allocation service -> Orbital group HTTP validation -> Orbital group listing/query HTTP validation -> Orbital transfer persistence -> Orbital transfer create/list/complete dev endpoints -> Orbital transfer worker -> Planet visual state -> Solar system visual state -> Visual state sandbox
 ```
 
 ## Visual State Design Note
@@ -62,15 +64,18 @@ Accepted current rules:
 - `SystemVisualStateService` returns ordered planet visual states for a solar system.
 - `GET /api/dev/planets/{planetId}/visual-state` validates single-planet visual state through HTTP when development endpoints and persistence are configured.
 - `GET /api/dev/solar-systems/{systemId}/visual-state` validates system-level visual state through HTTP when development endpoints and persistence are configured.
+- `/dev/visual-state/index.html` is a development-only inspection surface for visual contracts and should not be treated as the final game UI.
+- The sandbox currently supports pseudo-3D CSS rendering, card rendering, selected planet inspection, intensity bars, profile metadata, and raw payload inspection.
 
 Current intentional limitation:
 
-- no UI
 - no Three.js/Babylon.js implementation
+- no real WebGL renderer
 - no meshes, shaders, textures, or binary render assets from the backend
 - no persisted visual customization model
 - no visual landmarks or hand-authored biomes
 - no gameplay terraform system yet
+- no final game UI layout yet
 
 ## Fleet Ownership and Origin Design Note
 
@@ -104,7 +109,7 @@ Current intentional limitation:
 - no interception
 - no combat
 - no fleet splitting or merging
-- no UI
+- no final UI
 
 ## Queue Worker Alignment Design Note
 
@@ -157,9 +162,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current expected baseline after Phase 5Q/5R: `276` passing tests.
+Current validated baseline after Phase 5U/5V: `279` passing tests.
 
-Recent expected coverage includes orbital group lookup, orbital transfer persistence, orbital transfer completion, orbital transfer lookup, development endpoint access control, persistence-required behavior, invalid request validation, successful response payloads, conflict handling, optional filter propagation, worker option interval fallback behavior, planet visual profile/intensity calculation, planet visual state service/endpoint, and solar system visual state service/endpoint.
+Recent expected coverage includes orbital group lookup, orbital transfer persistence, orbital transfer completion, orbital transfer lookup, development endpoint access control, persistence-required behavior, invalid request validation, successful response payloads, conflict handling, optional filter propagation, worker option interval fallback behavior, planet visual profile/intensity calculation, planet visual state service/endpoint, solar system visual state service/endpoint, static sandbox asset serving, and pseudo-3D sandbox asset hooks.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
@@ -167,10 +172,11 @@ If a task later introduces integration boundaries before tests exist, record `No
 
 Recommended next backend/frontend line:
 
-1. Add a dedicated frontend development sandbox for rendering one planet from `PlanetVisualStateDto` using mock/API data.
-2. Add richer system-level visual state metadata if the 3D system map needs star information, orbital slots, transfer overlays, or orbital group markers.
+1. Improve system visual state metadata if the map needs star details, orbital slots, transfer overlays, or orbital group markers.
+2. Add lightweight UI route protection/configuration so development sandboxes can be disabled outside safe environments.
 3. Add route/fuel/travel-cost foundation for orbital transfers if movement should become deeper.
 4. Add fleet split/merge foundations if group manipulation is needed before combat.
+5. Start a real renderer spike only after the visual state contract remains stable.
 
 ## Constraints
 
