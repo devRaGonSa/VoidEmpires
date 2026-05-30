@@ -79,7 +79,7 @@ public sealed class SystemVisualStateService(
         StarType.YellowDwarf => "yellow_dwarf",
         StarType.BlueGiant => "blue_giant",
         StarType.WhiteDwarf => "white_dwarf",
-        StarType.Neutron => "neutron_star",
+        StarType.NeutronStar => "neutron_star",
         _ => "unknown_star"
     };
 
@@ -89,7 +89,7 @@ public sealed class SystemVisualStateService(
         StarType.YellowDwarf => 0.75f,
         StarType.BlueGiant => 1.00f,
         StarType.WhiteDwarf => 0.85f,
-        StarType.Neutron => 0.95f,
+        StarType.NeutronStar => 0.95f,
         _ => 0.65f
     };
 
