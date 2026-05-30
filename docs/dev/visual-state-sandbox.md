@@ -62,6 +62,56 @@ SystemVisualStateDto
 
 Use this mode to inspect all planets in a solar system ordered by orbital slot.
 
+The system response now includes renderer-oriented metadata:
+
+- `systemId`
+- `galaxyId`
+- `systemName`
+- `coordinateX`, `coordinateY`, `coordinateZ`
+- `star`
+- `layoutHints`
+- `planets`
+
+## System visual metadata
+
+### Star metadata
+
+`star` contains:
+
+- `starId`
+- `starName`
+- `starType`
+- `visualClass`
+- `lightIntensity`
+
+`visualClass` is intended as a stable frontend styling/rendering hint. It should not be interpreted as gameplay physics.
+
+Current classes include:
+
+- `red_dwarf`
+- `yellow_dwarf`
+- `blue_giant`
+- `white_dwarf`
+- `neutron_star`
+
+### Layout hints
+
+`layoutHints` contains one hint per planet and is ordered by orbital slot.
+
+Each hint contains:
+
+- `planetId`
+- `orbitalSlot`
+- `orbitRadius`
+- `orbitAngleDegrees`
+- `visualScale`
+
+These values are deterministic frontend hints derived from persisted orbital slot and planet size.
+
+They are not a route graph, physics simulation, combat range model, or final orbital mechanics model.
+
+A frontend renderer should treat them as default layout suggestions that can later be replaced by richer map/render contracts.
+
 ## Render modes
 
 ### Pseudo-3D
@@ -106,10 +156,10 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current baseline after Phase 5U/5V:
+Current baseline after Phase 5Y/5Z:
 
 ```text
-279 passing tests
+at least 279 passing tests
 ```
 
 ## Suggested manual flow
@@ -126,6 +176,8 @@ Current baseline after Phase 5U/5V:
    - intensity bars
    - profile panel
    - raw payload
+   - system star metadata
+   - layout hints
 
 ## Existing related endpoints
 
@@ -152,13 +204,14 @@ Use those endpoints as needed to create richer state before inspecting visual ou
 - no final game UI layout
 - no production route hardening beyond current development endpoint gating
 - no direct auth/session integration in the sandbox
+- no transfer overlays in system visual state yet
+- no orbital group markers in system visual state yet
 
 ## Next likely improvements
 
 Recommended next improvements are:
 
-1. Add star metadata to system visual state if the system map needs star-specific rendering.
-2. Add orbital slot and spatial layout metadata if the frontend should stop estimating positions.
-3. Add transfer overlays if moving fleets should appear in the system view.
-4. Add orbital group markers if stationed fleets should be visible around planets.
-5. Replace the CSS pseudo-3D preview with a real renderer once contracts are stable.
+1. Add transfer overlays if moving fleets should appear in the system view.
+2. Add orbital group markers if stationed fleets should be visible around planets.
+3. Add route/fuel/travel-cost data only when movement mechanics are ready.
+4. Replace the CSS pseudo-3D preview with a real renderer once contracts are stable.
