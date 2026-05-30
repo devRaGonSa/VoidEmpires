@@ -16,6 +16,9 @@ public class VisualStateSandboxEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("Visual State Inspector", content);
+        Assert.Contains("Render mode", content);
+        Assert.Contains("selected-planet-label", content);
+        Assert.Contains("visual-profile", content);
         Assert.Contains("/dev/visual-state/visual-state.css", content);
         Assert.Contains("/dev/visual-state/visual-state.js", content);
     }
@@ -30,6 +33,10 @@ public class VisualStateSandboxEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("sandbox-shell", content);
+        Assert.Contains("pseudo-scene", content);
+        Assert.Contains("pseudo-planet", content);
+        Assert.Contains("system-orbits", content);
+        Assert.Contains("profile-grid", content);
     }
 
     [Fact]
@@ -42,6 +49,9 @@ public class VisualStateSandboxEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("loadVisualState", content);
+        Assert.Contains("renderSystem", content);
+        Assert.Contains("renderPlanet", content);
+        Assert.Contains("renderProfile", content);
         Assert.Contains("/api/dev/planets/", content);
         Assert.Contains("/api/dev/solar-systems/", content);
     }
