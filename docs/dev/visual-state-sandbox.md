@@ -70,6 +70,8 @@ The system response now includes renderer-oriented metadata:
 - `coordinateX`, `coordinateY`, `coordinateZ`
 - `star`
 - `layoutHints`
+- `orbitalGroupMarkers`
+- `transferOverlays`
 - `planets`
 
 ## System visual metadata
@@ -111,6 +113,56 @@ These values are deterministic frontend hints derived from persisted orbital slo
 They are not a route graph, physics simulation, combat range model, or final orbital mechanics model.
 
 A frontend renderer should treat them as default layout suggestions that can later be replaced by richer map/render contracts.
+
+## System visual overlays
+
+### Orbital group markers
+
+`orbitalGroupMarkers` contains renderer-facing markers for orbital groups currently stationed on planets in the requested solar system.
+
+Each marker contains:
+
+- `orbitalGroupId`
+- `civilizationId`
+- `originPlanetId`
+- `currentPlanetId`
+- `assetType`
+- `quantity`
+- `status`
+- `markerScale`
+- `markerKind`
+
+Current marker kinds include:
+
+- `stationed_orbital_group`
+- `reserved_orbital_group`
+- `decommissioned_orbital_group`
+
+These markers are read-only projections. They must not be used as commands to move, merge, split, attack, or reserve fleets.
+
+### Transfer overlays
+
+`transferOverlays` contains renderer-facing route overlays for non-completed and non-cancelled transfers touching planets in the requested solar system.
+
+Each overlay contains:
+
+- `transferId`
+- `civilizationId`
+- `orbitalGroupId`
+- `originPlanetId`
+- `destinationPlanetId`
+- `status`
+- `departureAtUtc`
+- `arrivalAtUtc`
+- `progress`
+- `overlayKind`
+
+Current overlay kinds include:
+
+- `planned_transfer_route`
+- `active_transfer_route`
+
+`progress` is computed at read time from UTC departure/arrival timestamps. It is a visual approximation for UI rendering, not a combat timing rule, route physics model, or authoritative simulation clock.
 
 ## Render modes
 
@@ -156,10 +208,10 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current baseline after Phase 5Y/5Z:
+Current baseline after Phase 6B/6C:
 
 ```text
-at least 279 passing tests
+287 passing tests
 ```
 
 ## Suggested manual flow
@@ -178,6 +230,8 @@ at least 279 passing tests
    - raw payload
    - system star metadata
    - layout hints
+   - orbital group markers
+   - transfer overlays
 
 ## Existing related endpoints
 
@@ -204,14 +258,15 @@ Use those endpoints as needed to create richer state before inspecting visual ou
 - no final game UI layout
 - no production route hardening beyond current development endpoint gating
 - no direct auth/session integration in the sandbox
-- no transfer overlays in system visual state yet
-- no orbital group markers in system visual state yet
+- no route graph or physical trajectory model in visual state yet
+- no fuel/resource travel-cost model in visual state yet
+- no combat/interception overlay model yet
 
 ## Next likely improvements
 
 Recommended next improvements are:
 
-1. Add transfer overlays if moving fleets should appear in the system view.
-2. Add orbital group markers if stationed fleets should be visible around planets.
-3. Add route/fuel/travel-cost data only when movement mechanics are ready.
-4. Replace the CSS pseudo-3D preview with a real renderer once contracts are stable.
+1. Render `orbitalGroupMarkers` and `transferOverlays` in the sandbox preview.
+2. Add route/fuel/travel-cost data only when movement mechanics are ready.
+3. Replace the CSS pseudo-3D preview with a real renderer once contracts are stable.
+4. Review the local `XUniversePlanet Generator Variator` Python prototype when entering the renderer/prototype phase.
