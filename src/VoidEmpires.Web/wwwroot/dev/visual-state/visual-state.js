@@ -6,6 +6,7 @@ const statusOutput = document.getElementById('visual-status');
 const previewOutput = document.getElementById('visual-preview');
 const intensitiesOutput = document.getElementById('visual-intensities');
 const profileOutput = document.getElementById('visual-profile');
+const overlaysOutput = document.getElementById('visual-overlays');
 const payloadOutput = document.getElementById('visual-payload');
 const selectedPlanetLabel = document.getElementById('selected-planet-label');
 
@@ -63,12 +64,14 @@ function renderPayload(visualState, mode) {
             previewOutput.textContent = 'System has no planets.';
             renderIntensities(null);
             renderProfile(null);
+            renderOverlays(visualState);
             return;
         }
 
-        renderModeInput.value === 'pseudo3d' ? renderSystem(planets) : renderCards(planets);
+        renderModeInput.value === 'pseudo3d' ? renderSystem(visualState) : renderCards(planets);
         renderIntensities(planets[0]);
         renderProfile(planets[0]);
+        renderOverlays(visualState);
         selectedPlanetLabel.textContent = planets[0].planetName || 'Selected planet';
         return;
     }
@@ -76,6 +79,7 @@ function renderPayload(visualState, mode) {
     renderModeInput.value === 'pseudo3d' ? renderPlanet(visualState) : renderCards([visualState]);
     renderIntensities(visualState);
     renderProfile(visualState);
+    renderOverlays(null);
     selectedPlanetLabel.textContent = visualState.planetName || 'Selected planet';
 }
 
@@ -99,7 +103,13 @@ function renderPlanet(planet) {
     previewOutput.appendChild(scene);
 }
 
-function renderSystem(planets) {
+function renderSystem(systemState) {
+    const planets = systemState.planets || [];
+    const layoutHints = systemState.layoutHints || [];
+    const markers = systemState.orbitalGroupMarkers || [];
+    const overlays = systemState.transferOverlays || [];
+    const coordinates = createCoordinateLookup(layoutHints, planets.length);
+
     previewOutput.className = '';
     previewOutput.replaceChildren();
     const scene = document.createElement('div');
@@ -111,14 +121,17 @@ function renderSystem(planets) {
     star.className = 'system-star';
     orbits.appendChild(star);
 
+    overlays.forEach(overlay => addTransferOverlay(orbits, overlay, coordinates));
+
     planets.forEach((planet, index) => {
         const node = document.createElement('button');
+        const position = coordinates.get(planet.planetId) || createFallbackCoordinate(index, planets.length);
         node.type = 'button';
         node.className = 'system-planet-node';
         node.title = planet.planetName || '';
         node.style.width = Math.max(1.25, Math.min(2.5, planet.size / 52)) + 'rem';
         node.style.height = node.style.width;
-        node.style.transform = 'rotate(' + (-145 + index * 38) + 'deg) translateX(' + (4.4 + index * 2.15) + 'rem) translate(-50%, -50%)';
+        node.style.transform = 'translate(' + position.x + 'rem,' + position.y + 'rem) translate(-50%,-50%)';
         applyOrbStyle(node, planet);
         node.addEventListener('click', () => {
             renderIntensities(planet);
@@ -128,8 +141,73 @@ function renderSystem(planets) {
         orbits.appendChild(node);
     });
 
+    markers.forEach(marker => addOrbitalGroupMarker(orbits, marker, coordinates));
+
     scene.appendChild(orbits);
     previewOutput.appendChild(scene);
+}
+
+function createCoordinateLookup(layoutHints, planetCount) {
+    const map = new Map();
+    layoutHints.forEach((hint, index) => {
+        const radius = Number(hint.orbitRadius || (4.4 + index * 2.15));
+        const angle = Number(hint.orbitAngleDegrees || (-145 + index * 38)) * Math.PI / 180;
+        map.set(hint.planetId, {
+            x: Math.cos(angle) * radius,
+            y: Math.sin(angle) * radius * 0.56,
+            scale: Number(hint.visualScale || 1)
+        });
+    });
+    return map.size > 0 ? map : new Map(Array.from({ length: planetCount }, (_, index) => [String(index), createFallbackCoordinate(index, planetCount)]));
+}
+
+function createFallbackCoordinate(index, total) {
+    const angle = (-145 + (total <= 1 ? 0 : index * (290 / Math.max(total - 1, 1)))) * Math.PI / 180;
+    const radius = 4.4 + index * 2.15;
+    return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius * 0.56, scale: 1 };
+}
+
+function addOrbitalGroupMarker(container, marker, coordinates) {
+    const position = coordinates.get(marker.currentPlanetId);
+    if (!position) return;
+
+    const node = document.createElement('div');
+    node.className = 'system-group-marker ' + getMarkerClass(marker.markerKind);
+    node.title = marker.markerKind + ' · ' + marker.assetType + ' x' + marker.quantity;
+    node.style.left = 'calc(50% + ' + (position.x + 1.1) + 'rem)';
+    node.style.top = 'calc(50% + ' + (position.y - 1.1) + 'rem)';
+    node.style.scale = String(Math.max(0.8, Math.min(2.2, Number(marker.markerScale || 1))));
+    container.appendChild(node);
+}
+
+function addTransferOverlay(container, overlay, coordinates) {
+    const start = coordinates.get(overlay.originPlanetId);
+    const end = coordinates.get(overlay.destinationPlanetId);
+    if (!start || !end) return;
+
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    const line = document.createElement('div');
+    const progress = document.createElement('div');
+
+    line.className = 'system-transfer-overlay';
+    line.title = overlay.overlayKind + ' · ' + Math.round(Number(overlay.progress || 0) * 100) + '%';
+    line.style.left = 'calc(50% + ' + start.x + 'rem)';
+    line.style.top = 'calc(50% + ' + start.y + 'rem)';
+    line.style.width = length + 'rem';
+    line.style.transform = 'rotate(' + angle + 'deg)';
+    progress.className = 'system-transfer-progress';
+    progress.style.left = Math.max(0, Math.min(100, Number(overlay.progress || 0) * 100)) + '%';
+    line.appendChild(progress);
+    container.appendChild(line);
+}
+
+function getMarkerClass(markerKind) {
+    if (markerKind === 'reserved_orbital_group') return 'reserved';
+    if (markerKind === 'decommissioned_orbital_group') return 'decommissioned';
+    return '';
 }
 
 function renderCards(planets) {
@@ -195,6 +273,32 @@ function renderProfile(planetState) {
     });
 }
 
+function renderOverlays(systemState) {
+    overlaysOutput.replaceChildren();
+    const markers = systemState?.orbitalGroupMarkers || [];
+    const overlays = systemState?.transferOverlays || [];
+
+    if (markers.length === 0 && overlays.length === 0) {
+        addText(overlaysOutput, 'p', 'No system overlays.').className = 'summary';
+        return;
+    }
+
+    markers.forEach(marker => addOverlayRow('Group', marker.markerKind, marker.assetType + ' x' + marker.quantity + ' @ ' + marker.currentPlanetId));
+    overlays.forEach(overlay => addOverlayRow('Transfer', overlay.overlayKind, Math.round(Number(overlay.progress || 0) * 100) + '% · ' + overlay.originPlanetId + ' -> ' + overlay.destinationPlanetId));
+}
+
+function addOverlayRow(type, kind, value) {
+    const row = document.createElement('div');
+    const label = document.createElement('div');
+    row.className = 'overlay-row';
+    label.className = 'overlay-label';
+    addText(label, 'strong', type);
+    addText(label, 'span', kind);
+    row.appendChild(label);
+    addText(row, 'span', value).className = 'overlay-value';
+    overlaysOutput.appendChild(row);
+}
+
 function applyOrbStyle(node, planet) {
     const colors = getPalette(planet.planetType);
     node.style.background = 'radial-gradient(circle at 35% 30%, ' + colors[0] + ', ' + colors[1] + ' 25%, ' + colors[2] + ' 60%, ' + colors[3] + ')';
@@ -218,6 +322,7 @@ function renderEmpty() {
     previewOutput.textContent = 'No visual state loaded.';
     intensitiesOutput.replaceChildren();
     profileOutput.replaceChildren();
+    overlaysOutput.replaceChildren();
     selectedPlanetLabel.textContent = 'No selection';
 }
 
