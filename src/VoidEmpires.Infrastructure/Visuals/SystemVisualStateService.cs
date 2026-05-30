@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Visuals;
+using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -35,6 +36,7 @@ public sealed class SystemVisualStateService(
             .Select(x => new PlanetLayoutSource(x.Id, x.OrbitalSlot, x.Size))
             .ToListAsync(cancellationToken);
 
+        var planetIds = planets.Select(x => x.PlanetId).ToHashSet();
         var visualPlanets = new List<PlanetVisualStateDto>();
 
         foreach (var planet in planets)
@@ -49,6 +51,44 @@ public sealed class SystemVisualStateService(
             visualPlanets.Add(result.VisualState);
         }
 
+        var orbitalGroupMarkers = await dbContext.Set<OrbitalGroup>()
+            .AsNoTracking()
+            .Where(x => planetIds.Contains(x.CurrentPlanetId))
+            .OrderBy(x => x.CurrentPlanetId)
+            .ThenBy(x => x.AssetType)
+            .ThenBy(x => x.Id)
+            .Select(x => new OrbitalGroupVisualMarkerDto(
+                x.Id,
+                x.CivilizationId,
+                x.OriginPlanetId,
+                x.CurrentPlanetId,
+                x.AssetType,
+                x.Quantity,
+                x.Status,
+                CreateOrbitalGroupMarkerScale(x.Quantity),
+                CreateOrbitalGroupMarkerKind(x.Status)))
+            .ToListAsync(cancellationToken);
+
+        var transferOverlays = await dbContext.Set<OrbitalTransfer>()
+            .AsNoTracking()
+            .Where(x => x.Status != OrbitalTransferStatus.Completed &&
+                x.Status != OrbitalTransferStatus.Cancelled &&
+                (planetIds.Contains(x.OriginPlanetId) || planetIds.Contains(x.DestinationPlanetId)))
+            .OrderBy(x => x.ArrivalAtUtc)
+            .ThenBy(x => x.Id)
+            .Select(x => new OrbitalTransferVisualOverlayDto(
+                x.Id,
+                x.CivilizationId,
+                x.OrbitalGroupId,
+                x.OriginPlanetId,
+                x.DestinationPlanetId,
+                x.Status,
+                x.DepartureAtUtc,
+                x.ArrivalAtUtc,
+                CreateTransferProgress(x.DepartureAtUtc, x.ArrivalAtUtc),
+                CreateTransferOverlayKind(x.Status)))
+            .ToListAsync(cancellationToken);
+
         return GetSystemVisualStateResult.Success(new SystemVisualStateDto(
             system.Id,
             system.GalaxyId,
@@ -58,6 +98,8 @@ public sealed class SystemVisualStateService(
             system.CoordinateZ,
             CreateStarVisualState(system.Star),
             planets.Select(CreateLayoutHint).ToList(),
+            orbitalGroupMarkers,
+            transferOverlays,
             visualPlanets));
     }
 
@@ -72,6 +114,43 @@ public sealed class SystemVisualStateService(
 
         return new PlanetVisualLayoutHintDto(planet.PlanetId, planet.OrbitalSlot, orbitRadius, orbitAngle, visualScale);
     }
+
+    private static float CreateOrbitalGroupMarkerScale(int quantity) =>
+        Math.Clamp(quantity / 25f, 0.5f, 4f);
+
+    private static string CreateOrbitalGroupMarkerKind(OrbitalGroupStatus status) => status switch
+    {
+        OrbitalGroupStatus.Stationed => "stationed_orbital_group",
+        OrbitalGroupStatus.Reserved => "reserved_orbital_group",
+        OrbitalGroupStatus.Decommissioned => "decommissioned_orbital_group",
+        _ => "unknown_orbital_group"
+    };
+
+    private static float CreateTransferProgress(DateTime departureAtUtc, DateTime arrivalAtUtc)
+    {
+        var now = DateTime.UtcNow;
+
+        if (now <= departureAtUtc)
+        {
+            return 0f;
+        }
+
+        if (now >= arrivalAtUtc)
+        {
+            return 1f;
+        }
+
+        var total = arrivalAtUtc - departureAtUtc;
+        var elapsed = now - departureAtUtc;
+        return Math.Clamp((float)(elapsed.TotalSeconds / total.TotalSeconds), 0f, 1f);
+    }
+
+    private static string CreateTransferOverlayKind(OrbitalTransferStatus status) => status switch
+    {
+        OrbitalTransferStatus.Planned => "planned_transfer_route",
+        OrbitalTransferStatus.InTransit => "active_transfer_route",
+        _ => "unknown_transfer_route"
+    };
 
     private static string GetStarVisualClass(StarType starType) => starType switch
     {

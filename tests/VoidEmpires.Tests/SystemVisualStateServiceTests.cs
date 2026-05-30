@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Visuals;
+using VoidEmpires.Domain.Assets;
+using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.Visuals;
@@ -69,6 +71,8 @@ public class SystemVisualStateServiceTests
         Assert.Equal(StarType.YellowDwarf, result.VisualState.Star.StarType);
         Assert.Equal("yellow_dwarf", result.VisualState.Star.VisualClass);
         Assert.Equal(0.75f, result.VisualState.Star.LightIntensity);
+        Assert.Empty(result.VisualState.OrbitalGroupMarkers);
+        Assert.Empty(result.VisualState.TransferOverlays);
         Assert.Empty(result.Errors);
         Assert.Collection(
             result.VisualState.Planets,
@@ -113,6 +117,77 @@ public class SystemVisualStateServiceTests
                 Assert.Equal(94f, hint.OrbitAngleDegrees);
                 Assert.Equal(1.75f, hint.VisualScale);
             });
+    }
+
+    [Fact]
+    public async Task GetAsyncReturnsOrbitalGroupMarkersForGroupsStationedInSystemPlanets()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.Parse("b8d33112-74ac-4f0d-85a4-c47d1a8f9f5c");
+        var originPlanetId = Guid.Parse("2fd71c50-2a16-4a2b-ae26-3367723a56cd");
+        dbContext.Set<SolarSystem>().Add(CreateSystem());
+        dbContext.Set<Planet>().Add(new Planet(PlanetId, SystemId, "Asterion", 1, PlanetType.Terran, 100));
+        dbContext.Set<OrbitalGroup>().Add(OrbitalGroup.CreateStationed(
+            civilizationId,
+            originPlanetId,
+            PlanetId,
+            SpaceAssetType.ScoutCraft,
+            50));
+        await dbContext.SaveChangesAsync();
+        var service = new SystemVisualStateService(dbContext, new FakePlanetVisualStateService([
+            CreatePlanetState(PlanetId, "Asterion", PlanetType.Terran)
+        ]));
+
+        var result = await service.GetAsync(new(SystemId));
+
+        Assert.True(result.Succeeded);
+        Assert.NotNull(result.VisualState);
+        var marker = Assert.Single(result.VisualState.OrbitalGroupMarkers);
+        Assert.Equal(civilizationId, marker.CivilizationId);
+        Assert.Equal(originPlanetId, marker.OriginPlanetId);
+        Assert.Equal(PlanetId, marker.CurrentPlanetId);
+        Assert.Equal(SpaceAssetType.ScoutCraft, marker.AssetType);
+        Assert.Equal(50, marker.Quantity);
+        Assert.Equal(OrbitalGroupStatus.Stationed, marker.Status);
+        Assert.Equal(2f, marker.MarkerScale);
+        Assert.Equal("stationed_orbital_group", marker.MarkerKind);
+    }
+
+    [Fact]
+    public async Task GetAsyncReturnsTransferOverlaysTouchingSystemPlanets()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.Parse("b8d33112-74ac-4f0d-85a4-c47d1a8f9f5c");
+        var orbitalGroupId = Guid.Parse("49d6d9bc-48cd-4f35-b06c-d0f2df95a321");
+        var destinationPlanetId = Guid.Parse("ed7db188-8f18-4dfc-992d-1b45bf0ac571");
+        var now = DateTime.UtcNow;
+        dbContext.Set<SolarSystem>().Add(CreateSystem());
+        dbContext.Set<Planet>().Add(new Planet(PlanetId, SystemId, "Asterion", 1, PlanetType.Terran, 100));
+        dbContext.Set<OrbitalTransfer>().Add(OrbitalTransfer.CreatePlanned(
+            civilizationId,
+            orbitalGroupId,
+            PlanetId,
+            destinationPlanetId,
+            10,
+            now.AddMinutes(-5),
+            now.AddMinutes(5)));
+        await dbContext.SaveChangesAsync();
+        var service = new SystemVisualStateService(dbContext, new FakePlanetVisualStateService([
+            CreatePlanetState(PlanetId, "Asterion", PlanetType.Terran)
+        ]));
+
+        var result = await service.GetAsync(new(SystemId));
+
+        Assert.True(result.Succeeded);
+        Assert.NotNull(result.VisualState);
+        var overlay = Assert.Single(result.VisualState.TransferOverlays);
+        Assert.Equal(civilizationId, overlay.CivilizationId);
+        Assert.Equal(orbitalGroupId, overlay.OrbitalGroupId);
+        Assert.Equal(PlanetId, overlay.OriginPlanetId);
+        Assert.Equal(destinationPlanetId, overlay.DestinationPlanetId);
+        Assert.Equal(OrbitalTransferStatus.Planned, overlay.Status);
+        Assert.InRange(overlay.Progress, 0.45f, 0.55f);
+        Assert.Equal("planned_transfer_route", overlay.OverlayKind);
     }
 
     [Theory]

@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Visuals;
+using VoidEmpires.Domain.Assets;
+using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
 
 namespace VoidEmpires.Tests;
@@ -17,6 +19,9 @@ public class DevSystemVisualStateEndpointTests(WebApplicationFactory<Program> fa
     private static readonly Guid GalaxyId = Guid.Parse("ac6f0941-bbe4-4778-86fa-03eba119a5c0");
     private static readonly Guid StarId = Guid.Parse("cc31bf95-ee0c-49bd-a7f4-d3cc26f53455");
     private static readonly Guid PlanetId = Guid.Parse("aa6c3794-2fa5-4567-85a8-e71690657f98");
+    private static readonly Guid OrbitalGroupId = Guid.Parse("49d6d9bc-48cd-4f35-b06c-d0f2df95a321");
+    private static readonly Guid TransferId = Guid.Parse("92a01e5f-df69-42fe-a125-c0e49d19d7e7");
+    private static readonly Guid CivilizationId = Guid.Parse("b8d33112-74ac-4f0d-85a4-c47d1a8f9f5c");
 
     [Fact]
     public async Task SystemVisualStateReturnsNotFoundOutsideDevelopmentByDefault()
@@ -66,6 +71,12 @@ public class DevSystemVisualStateEndpointTests(WebApplicationFactory<Program> fa
         Assert.Equal("yellow_dwarf", payload.VisualState.Star.VisualClass);
         var hint = Assert.Single(payload.VisualState.LayoutHints);
         Assert.Equal(PlanetId, hint.PlanetId);
+        var marker = Assert.Single(payload.VisualState.OrbitalGroupMarkers);
+        Assert.Equal(OrbitalGroupId, marker.OrbitalGroupId);
+        Assert.Equal("stationed_orbital_group", marker.MarkerKind);
+        var overlay = Assert.Single(payload.VisualState.TransferOverlays);
+        Assert.Equal(TransferId, overlay.TransferId);
+        Assert.Equal("planned_transfer_route", overlay.OverlayKind);
         var planet = Assert.Single(payload.VisualState.Planets);
         Assert.Equal(PlanetId, planet.PlanetId);
         Assert.Equal("Asterion", planet.PlanetName);
@@ -108,6 +119,8 @@ public class DevSystemVisualStateEndpointTests(WebApplicationFactory<Program> fa
             CoordinateZ: 3,
             new StarVisualStateDto(StarId, "Helios", StarType.YellowDwarf, "yellow_dwarf", 0.75f),
             [new PlanetVisualLayoutHintDto(PlanetId, OrbitalSlot: 1, OrbitRadius: 5.75f, OrbitAngleDegrees: 47f, VisualScale: 1f)],
+            [new OrbitalGroupVisualMarkerDto(OrbitalGroupId, CivilizationId, PlanetId, PlanetId, SpaceAssetType.ScoutCraft, Quantity: 25, OrbitalGroupStatus.Stationed, MarkerScale: 1f, "stationed_orbital_group")],
+            [new OrbitalTransferVisualOverlayDto(TransferId, CivilizationId, OrbitalGroupId, PlanetId, Guid.NewGuid(), OrbitalTransferStatus.Planned, DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow.AddMinutes(10), Progress: 0.1f, "planned_transfer_route")],
             [CreatePlanetState()]);
 
     private static PlanetVisualStateDto CreatePlanetState() =>
