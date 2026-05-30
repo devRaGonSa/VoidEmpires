@@ -14,6 +14,8 @@ public class DevSystemVisualStateEndpointTests(WebApplicationFactory<Program> fa
     : IClassFixture<WebApplicationFactory<Program>>
 {
     private static readonly Guid SystemId = Guid.Parse("4cfb3562-0e91-4cf0-98bd-44309f2ff98e");
+    private static readonly Guid GalaxyId = Guid.Parse("ac6f0941-bbe4-4778-86fa-03eba119a5c0");
+    private static readonly Guid StarId = Guid.Parse("cc31bf95-ee0c-49bd-a7f4-d3cc26f53455");
     private static readonly Guid PlanetId = Guid.Parse("aa6c3794-2fa5-4567-85a8-e71690657f98");
 
     [Fact]
@@ -58,6 +60,12 @@ public class DevSystemVisualStateEndpointTests(WebApplicationFactory<Program> fa
         Assert.Empty(payload.Errors);
         Assert.NotNull(payload.VisualState);
         Assert.Equal(SystemId, payload.VisualState.SystemId);
+        Assert.Equal(GalaxyId, payload.VisualState.GalaxyId);
+        Assert.Equal("Helios Prime", payload.VisualState.SystemName);
+        Assert.Equal(StarId, payload.VisualState.Star.StarId);
+        Assert.Equal("yellow_dwarf", payload.VisualState.Star.VisualClass);
+        var hint = Assert.Single(payload.VisualState.LayoutHints);
+        Assert.Equal(PlanetId, hint.PlanetId);
         var planet = Assert.Single(payload.VisualState.Planets);
         Assert.Equal(PlanetId, planet.PlanetId);
         Assert.Equal("Asterion", planet.PlanetName);
@@ -91,7 +99,16 @@ public class DevSystemVisualStateEndpointTests(WebApplicationFactory<Program> fa
         }).CreateClient();
 
     private static SystemVisualStateDto CreateVisualState() =>
-        new(SystemId, [CreatePlanetState()]);
+        new(
+            SystemId,
+            GalaxyId,
+            "Helios Prime",
+            CoordinateX: 1,
+            CoordinateY: 2,
+            CoordinateZ: 3,
+            new StarVisualStateDto(StarId, "Helios", StarType.YellowDwarf, "yellow_dwarf", 0.75f),
+            [new PlanetVisualLayoutHintDto(PlanetId, OrbitalSlot: 1, OrbitRadius: 5.75f, OrbitAngleDegrees: 47f, VisualScale: 1f)],
+            [CreatePlanetState()]);
 
     private static PlanetVisualStateDto CreatePlanetState() =>
         new(
