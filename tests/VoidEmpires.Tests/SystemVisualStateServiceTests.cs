@@ -120,7 +120,7 @@ public class SystemVisualStateServiceTests
     [InlineData(StarType.YellowDwarf, "yellow_dwarf", 0.75f)]
     [InlineData(StarType.BlueGiant, "blue_giant", 1.00f)]
     [InlineData(StarType.WhiteDwarf, "white_dwarf", 0.85f)]
-    [InlineData(StarType.Neutron, "neutron_star", 0.95f)]
+    [InlineData(StarType.NeutronStar, "neutron_star", 0.95f)]
     public async Task GetAsyncMapsStarVisualMetadata(StarType starType, string expectedVisualClass, float expectedLightIntensity)
     {
         await using var dbContext = CreateDbContext();
