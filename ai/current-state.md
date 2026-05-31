@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 6T - Fleet operational overview read model`.
+The repository is consolidated through `Phase 6U - Fleet lifecycle smoke coverage`.
 
 ## Repository Reality
 
@@ -41,6 +41,7 @@ Current implemented foundations:
 - Persistent orbital group split foundation for stationed groups, preserving civilization, origin planet, current planet, asset type, and status while decreasing the source group quantity.
 - Persistent orbital group merge foundation for compatible stationed groups, increasing the target group quantity and removing the source group.
 - Read-only fleet operational overview for civilization-scoped orbital groups, active transfer summaries, and command availability flags.
+- High-level fleet lifecycle smoke coverage validates preview, transfer creation and resource charging, active-transfer command rejection, cancellation, split, merge, second transfer completion, and final overview state.
 - Static visual sandbox at `/dev/visual-state/index.html`.
 - CSS-only pseudo-3D visual sandbox rendering for planet/system preview, overlays, markers, and transfer routes.
 - Static sandbox assets are gated behind the same development switch as development APIs.
@@ -96,6 +97,7 @@ Accepted current rules:
 - Splitting an orbital group is available only for stationed groups owned by the requesting civilization. The split quantity must be positive and lower than the source quantity.
 - Merging orbital groups requires different stationed groups owned by the requesting civilization, sharing the same current planet and asset type. The target group quantity increases and the source group is removed.
 - Fleet operational overview is read-only. It consolidates orbital group state, active transfer timing/status, and command availability without creating transfers, cancelling transfers, completing transfers, splitting, merging, charging resources, or mutating persisted state.
+- Fleet lifecycle smoke tests are xUnit tests over EF in-memory services; the repository integration-test script remains a placeholder and reports no configured integration tests.
 - The current sandbox renders markers and transfer route lines as visual indicators only.
 
 ## Dev Surface Gating Note
@@ -119,7 +121,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 6T: `363` passing tests.
+Current validated baseline after Phase 6U: `364` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, and static sandbox gating behavior.
 

@@ -4,7 +4,7 @@
 
 id: TASK-6U
 title: Add fleet lifecycle smoke coverage
-status: pending
+status: done
 type: hardening
 team: backend
 supporting_teams:
