@@ -8,7 +8,7 @@ It is intended to validate data shape and visual interpretation before introduci
 
 ## Sandbox route
 
-When the web project is running, open:
+When the web project is running with development surfaces enabled, open:
 
 ```text
 /dev/visual-state/index.html
@@ -25,6 +25,19 @@ Current files:
 - `index.html`
 - `visual-state.css`
 - `visual-state.js`
+
+## Development surface gating
+
+The sandbox static assets are gated by the same switch as development API endpoints.
+
+They are served when either:
+
+- the web host runs in Development environment, or
+- `VoidEmpires:DevEndpoints:Enabled` is set to true
+
+They are not served in Production by default.
+
+This means `/dev/visual-state/index.html`, `/dev/visual-state/visual-state.css`, and `/dev/visual-state/visual-state.js` are development tooling, not production UI.
 
 ## Supported data modes
 
@@ -189,7 +202,7 @@ Use this mode when the pseudo-3D rendering makes debugging harder.
 
 ### Overlays panel
 
-The sandbox now includes an `Overlays` panel.
+The sandbox includes an `Overlays` panel.
 
 It lists:
 
@@ -200,12 +213,7 @@ This panel is intended for quick payload interpretation. The raw JSON payload re
 
 ## Required runtime conditions
 
-Development endpoints must be enabled.
-
-They are available when either:
-
-- the web host runs in Development environment, or
-- `VoidEmpires:DevEndpoints:Enabled` is set to true
+Development endpoints and sandbox assets require the development surface gate to be enabled.
 
 Persistence must also be configured because the visual endpoints read persisted data.
 
@@ -221,16 +229,16 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current baseline after Phase 6E/6F:
+Current baseline after Phase 6H/6I:
 
 ```text
-287 passing tests
+289 passing tests
 ```
 
 ## Suggested manual flow
 
 1. Start PostgreSQL with a valid `ConnectionStrings:DefaultConnection`.
-2. Start `VoidEmpires.Web` in Development environment.
+2. Start `VoidEmpires.Web` in Development environment, or explicitly set `VoidEmpires:DevEndpoints:Enabled=true`.
 3. Generate or reuse persisted galaxy/system/planet data.
 4. Create orbital groups and/or transfer records if overlay rendering needs to be inspected.
 5. Open `/dev/visual-state/index.html`.
@@ -271,7 +279,6 @@ Use those endpoints as needed to create richer state before inspecting visual ou
 - no WebGL
 - no persisted visual customization
 - no final game UI layout
-- no production route hardening beyond current development endpoint gating
 - no direct auth/session integration in the sandbox
 - no route graph or physical trajectory model in visual state yet
 - no fuel/resource travel-cost model in visual state yet
@@ -282,6 +289,5 @@ Use those endpoints as needed to create richer state before inspecting visual ou
 Recommended next improvements are:
 
 1. Add route/fuel/travel-cost data only when movement mechanics are ready.
-2. Add lightweight UI route protection/configuration so development sandboxes can be disabled outside safe environments.
-3. Replace the CSS pseudo-3D preview with a real renderer once contracts are stable.
-4. Review the local `XUniversePlanet Generator Variator` Python prototype when entering the renderer/prototype phase.
+2. Replace the CSS pseudo-3D preview with a real renderer once contracts are stable.
+3. Review the local `XUniversePlanet Generator Variator` Python prototype when entering the renderer/prototype phase.
