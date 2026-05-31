@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 6X - Visual sandbox docs validation baseline refresh`.
+The repository is consolidated through `Phase 6Z - Dev fleet action manifest`.
 
 ## Repository Reality
 
@@ -45,6 +45,8 @@ Current implemented foundations:
 - Developer-facing fleet API contract documentation under `docs/dev/fleet-api-contracts.md`, covering development gating, request/response payloads, status codes, read-only versus mutating behavior, resource charging/no-refund behavior, restrictions, and a compact fleet lifecycle example.
 - Fleet development endpoint response consistency review found the current status-code and response-shape conventions already aligned for safe frontend tooling use, so no endpoint behavior changes were introduced in Phase 6W.
 - Visual sandbox development documentation now reports the current Phase 6X validation baseline instead of the stale Phase 6H/6I test count.
+- Development-only fleet UI state endpoint aggregates operational group state, active transfer summaries, command availability, current-planet resource contexts, and action hints for future UI prototypes.
+- Development-only fleet action manifest exposes deterministic, machine-readable metadata for current fleet dev actions, including route, method, mutability, required fields, success status, and common error statuses.
 - Static visual sandbox at `/dev/visual-state/index.html`.
 - CSS-only pseudo-3D visual sandbox rendering for planet/system preview, overlays, markers, and transfer routes.
 - Static sandbox assets are gated behind the same development switch as development APIs.
@@ -101,6 +103,8 @@ Accepted current rules:
 - Merging orbital groups requires different stationed groups owned by the requesting civilization, sharing the same current planet and asset type. The target group quantity increases and the source group is removed.
 - Fleet operational overview is read-only. It consolidates orbital group state, active transfer timing/status, and command availability without creating transfers, cancelling transfers, completing transfers, splitting, merging, charging resources, or mutating persisted state.
 - Fleet lifecycle smoke tests are xUnit tests over EF in-memory services; the repository integration-test script remains a placeholder and reports no configured integration tests.
+- Fleet UI state is read-only development tooling for future UI prototypes. It aggregates existing overview data, resource context for group current planets, and action hints without mutating persisted state.
+- Fleet action manifest is read-only development tooling for future UI prototypes. It lists available dev fleet actions and contracts but does not replace command validation.
 - The current sandbox renders markers and transfer route lines as visual indicators only.
 
 ## Dev Surface Gating Note
@@ -126,7 +130,7 @@ dotnet test --no-build
 
 Current validated baseline after Phase 6X: `364` passing tests.
 
-Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, and static sandbox gating behavior.
+Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, and fleet action manifest service.
 
 ## Recommended Next Work
 
