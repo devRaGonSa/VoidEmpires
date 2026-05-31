@@ -33,7 +33,7 @@ Phase 6W reviewed the fleet development endpoints and kept the existing response
 | `GET` | `/api/dev/fleets/orbital-groups` | Read-only | None. Lists civilization groups. |
 | `POST` | `/api/dev/fleets/orbital-groups/split` | Mutating | Decreases source quantity and creates a new group. |
 | `POST` | `/api/dev/fleets/orbital-groups/merge` | Mutating | Adds source quantity to target and removes source. |
-| `POST` | `/api/dev/fleets/orbital-travel/estimate` | Read-only | None. Previews duration, costs, and affordability. |
+| `POST` | `/api/dev/fleets/orbital-travel/estimate` | Read-only | None. Previews duration, costs, affordability, and route profile metadata. |
 | `POST` | `/api/dev/fleets/orbital-transfers/create` | Mutating | Charges resources, reserves group, creates transfer. |
 | `GET` | `/api/dev/fleets/orbital-transfers` | Read-only | None. Lists civilization transfers. |
 | `POST` | `/api/dev/fleets/orbital-transfers/cancel` | Mutating | Cancels transfer and releases group reservation. |
@@ -92,7 +92,9 @@ Restrictions: target and source must differ, belong to the civilization, be stat
 
 Request: `civilizationId`, `orbitalGroupId`, `destinationPlanetId`.
 
-Response: `succeeded`, `orbitalGroupId`, `currentPlanetId`, `destinationPlanetId`, `abstractDistanceUnits`, `estimatedDuration`, `resourceCosts[]`, `canAfford`, `insufficientResources[]`, `errors`. Cost components contain `resourceType` and `quantity`; insufficient resources contain `resourceType`, `requiredQuantity`, and `availableQuantity`.
+Response: `succeeded`, `orbitalGroupId`, `currentPlanetId`, `destinationPlanetId`, `abstractDistanceUnits`, `estimatedDuration`, `routeProfile`, `resourceCosts[]`, `canAfford`, `insufficientResources[]`, `errors`. Cost components contain `resourceType` and `quantity`; insufficient resources contain `resourceType`, `requiredQuantity`, and `availableQuantity`.
+
+`routeProfile` contains `routeClass`, `distanceBand`, `riskBand`, `fuelMultiplier`, `complexityNotes[]`, and `isSupported`. Current deterministic distance bands are `LocalOrbit` for distance `1`, `InnerSystem` for distances `2-3`, `OuterSystem` for distances `4-6`, and `LongRange` for distances `7+`. Risk and fuel values are placeholders for future movement systems; the current fuel multiplier is `1.0` and supported route profiles are read-only metadata.
 
 Restrictions: read-only. The endpoint does not persist an estimate, reserve a group, create a transfer, charge resources, or mutate stockpiles. Groups with active transfers are rejected.
 

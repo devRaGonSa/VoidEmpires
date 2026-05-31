@@ -45,6 +45,12 @@ public class OrbitalTravelEstimateServiceTests
         Assert.Equal(destinationPlanetId, result.DestinationPlanetId);
         Assert.Equal(1, result.AbstractDistanceUnits);
         Assert.Equal(TimeSpan.FromHours(1), result.EstimatedDuration);
+        Assert.NotNull(result.RouteProfile);
+        Assert.Equal(OrbitalRouteClass.LocalOrbit, result.RouteProfile.RouteClass);
+        Assert.Equal(1, result.RouteProfile.DistanceBand);
+        Assert.Equal(OrbitalRouteRiskBand.Low, result.RouteProfile.RiskBand);
+        Assert.Equal(1m, result.RouteProfile.FuelMultiplier);
+        Assert.True(result.RouteProfile.IsSupported);
         Assert.Contains(result.ResourceCosts, x => x.ResourceType == ResourceType.Credits && x.Quantity == 7.5m);
         Assert.Contains(result.ResourceCosts, x => x.ResourceType == ResourceType.Gas && x.Quantity == 3m);
         Assert.True(result.CanAfford);
@@ -230,7 +236,7 @@ public class OrbitalTravelEstimateServiceTests
     }
 
     private static OrbitalTravelEstimateService CreateService(VoidEmpiresDbContext dbContext) =>
-        new(dbContext, new ResourceSpendService(dbContext));
+        new(dbContext, new ResourceSpendService(dbContext), new OrbitalRouteProfileService());
 
     private static OrbitalTransfer CreateTransfer(OrbitalGroup group, Guid destinationPlanetId) =>
         OrbitalTransfer.CreatePlanned(

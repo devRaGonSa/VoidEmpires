@@ -45,7 +45,10 @@ public class FleetLifecycleSmokeTests
         await dbContext.SaveChangesAsync();
 
         var resourceSpendService = new ResourceSpendService(dbContext);
-        var estimateService = new OrbitalTravelEstimateService(dbContext, resourceSpendService);
+        var estimateService = new OrbitalTravelEstimateService(
+            dbContext,
+            resourceSpendService,
+            new OrbitalRouteProfileService());
         var transferService = new OrbitalTransferPersistenceService(dbContext, resourceSpendService);
         var splitService = new OrbitalGroupSplitService(dbContext);
         var mergeService = new OrbitalGroupMergeService(dbContext);

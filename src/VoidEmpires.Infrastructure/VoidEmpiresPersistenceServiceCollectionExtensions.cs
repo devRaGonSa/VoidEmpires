@@ -56,6 +56,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IOrbitalGroupMergeService, OrbitalGroupMergeService>();
         services.AddScoped<IOrbitalGroupLookupService, OrbitalGroupLookupService>();
         services.AddScoped<IOrbitalGroupTransferPlanningService, OrbitalGroupPlannerService>();
+        services.AddScoped<IOrbitalRouteProfileService, OrbitalRouteProfileService>();
         services.AddScoped<IOrbitalTravelEstimateService, OrbitalTravelEstimateService>();
         services.AddScoped<IOrbitalTransferPersistenceService, OrbitalTransferPersistenceService>();
         services.AddScoped<IOrbitalTransferCancelService, OrbitalTransferCancelService>();

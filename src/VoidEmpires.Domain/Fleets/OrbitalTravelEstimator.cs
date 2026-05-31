@@ -69,6 +69,47 @@ public static class OrbitalTravelEstimator
             ]);
     }
 
+    public static OrbitalRouteProfile EstimateRouteProfile(int abstractDistanceUnits)
+    {
+        if (abstractDistanceUnits <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(abstractDistanceUnits));
+        }
+
+        // Distance bands are deliberately coarse placeholders until real orbital topology exists.
+        return abstractDistanceUnits switch
+        {
+            <= 1 => new OrbitalRouteProfile(
+                OrbitalRouteClass.LocalOrbit,
+                1,
+                OrbitalRouteRiskBand.Low,
+                1m,
+                ["Single-hop local orbital transfer."],
+                true),
+            <= 3 => new OrbitalRouteProfile(
+                OrbitalRouteClass.InnerSystem,
+                2,
+                OrbitalRouteRiskBand.Moderate,
+                1m,
+                ["Inner-system routing placeholder."],
+                true),
+            <= 6 => new OrbitalRouteProfile(
+                OrbitalRouteClass.OuterSystem,
+                3,
+                OrbitalRouteRiskBand.Elevated,
+                1m,
+                ["Outer-system routing placeholder."],
+                true),
+            _ => new OrbitalRouteProfile(
+                OrbitalRouteClass.LongRange,
+                4,
+                OrbitalRouteRiskBand.Severe,
+                1m,
+                ["Long-range routing placeholder."],
+                true)
+        };
+    }
+
     public static decimal GetCostMultiplier(SpaceAssetType assetType)
     {
         return assetType switch
