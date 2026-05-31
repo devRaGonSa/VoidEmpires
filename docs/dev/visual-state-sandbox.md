@@ -62,7 +62,7 @@ SystemVisualStateDto
 
 Use this mode to inspect all planets in a solar system ordered by orbital slot.
 
-The system response now includes renderer-oriented metadata:
+The system response includes renderer-oriented metadata:
 
 - `systemId`
 - `galaxyId`
@@ -178,12 +178,25 @@ It gives an early visual approximation of:
 - city/industrial light hints
 - orbital presence glow
 - system star/orbit/planet-node composition
+- orbital group markers near planets
+- transfer route lines and progress dots between planets when both endpoints exist in the viewed system
 
 ### Cards
 
 Simple inspection layout for payload sanity checks.
 
 Use this mode when the pseudo-3D rendering makes debugging harder.
+
+### Overlays panel
+
+The sandbox now includes an `Overlays` panel.
+
+It lists:
+
+- orbital group marker kind, asset type, quantity, and current planet id
+- transfer overlay kind, progress percentage, origin planet id, and destination planet id
+
+This panel is intended for quick payload interpretation. The raw JSON payload remains the authoritative inspection source.
 
 ## Required runtime conditions
 
@@ -208,7 +221,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current baseline after Phase 6B/6C:
+Current baseline after Phase 6E/6F:
 
 ```text
 287 passing tests
@@ -219,14 +232,16 @@ Current baseline after Phase 6B/6C:
 1. Start PostgreSQL with a valid `ConnectionStrings:DefaultConnection`.
 2. Start `VoidEmpires.Web` in Development environment.
 3. Generate or reuse persisted galaxy/system/planet data.
-4. Open `/dev/visual-state/index.html`.
-5. Select `Planet` or `Solar system` data mode.
-6. Paste a persisted planet id or solar system id.
-7. Load the visual state.
-8. Compare:
+4. Create orbital groups and/or transfer records if overlay rendering needs to be inspected.
+5. Open `/dev/visual-state/index.html`.
+6. Select `Solar system` data mode.
+7. Paste a persisted solar system id.
+8. Load the visual state.
+9. Compare:
    - preview
    - intensity bars
    - profile panel
+   - overlays panel
    - raw payload
    - system star metadata
    - layout hints
@@ -266,7 +281,7 @@ Use those endpoints as needed to create richer state before inspecting visual ou
 
 Recommended next improvements are:
 
-1. Render `orbitalGroupMarkers` and `transferOverlays` in the sandbox preview.
-2. Add route/fuel/travel-cost data only when movement mechanics are ready.
+1. Add route/fuel/travel-cost data only when movement mechanics are ready.
+2. Add lightweight UI route protection/configuration so development sandboxes can be disabled outside safe environments.
 3. Replace the CSS pseudo-3D preview with a real renderer once contracts are stable.
 4. Review the local `XUniversePlanet Generator Variator` Python prototype when entering the renderer/prototype phase.
