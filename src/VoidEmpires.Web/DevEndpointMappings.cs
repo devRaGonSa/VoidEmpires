@@ -325,6 +325,7 @@ internal static class DevEndpointMappings
         app.MapDevOrbitalTransferCancelEndpoints();
         app.MapDevOrbitalTransferCompletionEndpoints();
         app.MapDevOrbitalTransferLookupEndpoints();
+        app.MapDevFleetOperationalOverviewEndpoints();
         app.MapDevPlanetVisualStateEndpoints();
     }
 

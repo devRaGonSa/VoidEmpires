@@ -4,7 +4,7 @@
 
 id: TASK-6T
 title: Add fleet operational overview read model
-status: pending
+status: done
 type: feature
 team: backend
 supporting_teams:
