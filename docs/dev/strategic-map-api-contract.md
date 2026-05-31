@@ -2,13 +2,15 @@
 
 ## Scope and Gating
 
-This contract documents the current development-only strategic map read endpoint for future UI and sandbox work. It is not a production gameplay endpoint.
+This contract documents the current development-only strategic map read endpoint and action manifest for future UI and sandbox work. It is not a production gameplay endpoint.
 
 The route is mapped when the web host runs in `Development` or `VoidEmpires:DevEndpoints:Enabled=true`. If the development surface is disabled, the route returns `404 Not Found`. If the route is mapped but `ConnectionStrings:DefaultConnection` is empty, it returns `503 Service Unavailable`.
 
 JSON payloads use current .NET enum names such as `YellowDwarf`, `Terran`, `Colonized`, `ScoutCraft`, `Stationed`, `Planned`, and `PlaceholderDerived`.
 
-## Endpoint
+## Endpoints
+
+### Strategic Map Read
 
 `GET /api/dev/strategic-map?civilizationId={id}`
 
@@ -30,6 +32,29 @@ Response envelope:
 - `succeeded`: `true` on success.
 - `map`: strategic map result, or `null` on validation failure.
 - `errors[]`: validation errors.
+
+### Strategic Map Action Manifest
+
+`GET /api/dev/strategic-map/action-manifest`
+
+Responses:
+
+| Status | Meaning |
+|---|---|
+| `200 OK` | Strategic map action manifest returned. |
+| `404 Not Found` | Development route is disabled. |
+
+Response envelope:
+
+- `succeeded`: `true` on success.
+- `manifest.actions[]`: deterministic action metadata.
+- `errors[]`: empty on success.
+
+Each manifest action contains `actionKey`, `displayName`, `method`, `route`, `isReadOnly`, `requiredFields[]`, `successStatus`, `errorStatuses[]`, and `notes`.
+
+Current action keys: `strategicMap.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
+
+The manifest is read-only metadata for UI discovery. It does not require persistence and does not execute the listed actions.
 
 ## Map Result
 
@@ -86,6 +111,7 @@ The strategic map read model reuses the same underlying persisted state summariz
 - System visual state provides star, coordinate, layout, planet visual, marker, and transfer overlay concepts.
 - Fleet UI state provides group command and route/fuel readiness hints for screen-specific fleet tooling.
 - The strategic map endpoint consolidates map-level system, planet, fleet presence, transfer overlay, and route/fuel capability summaries.
+- The strategic map action manifest lists these related read actions so future prototypes can discover routes and required fields without hardcoding every contract.
 
 Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` when they need destination-specific route class, risk, placeholder fuel readiness, travel costs, and affordability.
 

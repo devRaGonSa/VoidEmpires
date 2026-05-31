@@ -4,7 +4,7 @@
 
 id: TASK-7G
 title: Add strategic map action manifest
-status: pending
+status: done
 type: feature
 team: backend
 supporting_teams:

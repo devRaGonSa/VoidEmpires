@@ -192,3 +192,4 @@ Restrictions: read-only and deterministic. This endpoint is a dev metadata surfa
 
 See `docs/dev/visual-state-sandbox.md` for related visual-state endpoints and the current rendering of fleet markers and transfer overlays.
 See `docs/dev/strategic-map-api-contract.md` for the map-level read model that consolidates system, planet, fleet presence, transfer overlay, and route/fuel capability summaries for future UI work.
+The strategic map contract also exposes `GET /api/dev/strategic-map/action-manifest`, which cross-links map, visual-state, fleet UI state, and fleet action manifest read actions.
