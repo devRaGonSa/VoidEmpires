@@ -21,6 +21,10 @@ JSON payloads use current .NET enum names such as `ScoutCraft`, `Stationed`, `Re
 
 Error payloads include `succeeded: false` and `errors[]` except for unmapped routes and persistence-gating responses.
 
+## Consistency Review Notes
+
+Phase 6W reviewed the fleet development endpoints and kept the existing response behavior unchanged. The current surface already uses the expected lightweight conventions for frontend tooling: validation failures return `400`, missing persistence returns `503`, disabled development routes return `404`, canceling a missing transfer returns `404`, state or invariant conflicts return `409`, successful reads return `200`, and successful mutating commands retain their nearby endpoint conventions of `200` or `201`.
+
 ## Endpoint Summary
 
 | Method | Route | Mode | Main side effect |

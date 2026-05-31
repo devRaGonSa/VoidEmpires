@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 6V - Dev fleet API contract documentation`.
+The repository is consolidated through `Phase 6W - Dev endpoint response consistency review`.
 
 ## Repository Reality
 
@@ -43,6 +43,7 @@ Current implemented foundations:
 - Read-only fleet operational overview for civilization-scoped orbital groups, active transfer summaries, and command availability flags.
 - High-level fleet lifecycle smoke coverage validates preview, transfer creation and resource charging, active-transfer command rejection, cancellation, split, merge, second transfer completion, and final overview state.
 - Developer-facing fleet API contract documentation under `docs/dev/fleet-api-contracts.md`, covering development gating, request/response payloads, status codes, read-only versus mutating behavior, resource charging/no-refund behavior, restrictions, and a compact fleet lifecycle example.
+- Fleet development endpoint response consistency review found the current status-code and response-shape conventions already aligned for safe frontend tooling use, so no endpoint behavior changes were introduced in Phase 6W.
 - Static visual sandbox at `/dev/visual-state/index.html`.
 - CSS-only pseudo-3D visual sandbox rendering for planet/system preview, overlays, markers, and transfer routes.
 - Static sandbox assets are gated behind the same development switch as development APIs.
@@ -122,7 +123,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 6V: `364` passing tests.
+Current validated baseline after Phase 6W: `364` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, and static sandbox gating behavior.
 
