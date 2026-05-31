@@ -90,7 +90,7 @@ Current intentional limitations:
 - no real WebGL renderer
 - no meshes, shaders, textures, or binary render assets from the backend
 - no persisted visual customization model
-- no route graph or fuel/resource travel-cost model
+- no route graph/pathfinding model or persisted fuel inventory/refueling model
 - no combat/interception overlay model
 - no final game UI layout
 
@@ -150,8 +150,8 @@ Recent expected coverage includes orbital groups, orbital transfers, workers, vi
 
 ## Recommended Next Work
 
-1. Add route/fuel/travel-cost foundation for orbital transfers if movement should become deeper.
-2. Add fleet split/merge foundations if group manipulation is needed before combat.
+1. Deepen movement only after deciding whether route graphs, pathfinding, persisted fuel inventory, or refueling are required.
+2. Add combat/interception foundations only after fleet movement and visibility contracts stabilize.
 3. Start a real renderer spike only after the visual state contract remains stable.
 4. Keep `XUniversePlanet Generator Variator` as an external/local prototype reference until the renderer/prototype phase needs it.
 
