@@ -77,6 +77,33 @@ public sealed class OrbitalGroup
         Status = OrbitalGroupStatus.Reserved;
     }
 
+    public OrbitalGroup SplitOff(int quantity)
+    {
+        if (quantity <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(quantity));
+        }
+
+        if (quantity >= Quantity)
+        {
+            throw new InvalidOperationException("Split quantity must be lower than source quantity.");
+        }
+
+        if (Status != OrbitalGroupStatus.Stationed)
+        {
+            throw new InvalidOperationException("Only stationed orbital groups can be split.");
+        }
+
+        Quantity -= quantity;
+
+        return CreateStationed(
+            CivilizationId,
+            OriginPlanetId,
+            CurrentPlanetId,
+            AssetType,
+            quantity);
+    }
+
     public void ArriveAt(Guid destinationPlanetId)
     {
         if (destinationPlanetId == Guid.Empty)
