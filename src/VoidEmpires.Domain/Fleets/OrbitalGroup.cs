@@ -77,6 +77,65 @@ public sealed class OrbitalGroup
         Status = OrbitalGroupStatus.Reserved;
     }
 
+    public OrbitalGroup SplitOff(int quantity)
+    {
+        if (quantity <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(quantity));
+        }
+
+        if (quantity >= Quantity)
+        {
+            throw new InvalidOperationException("Split quantity must be lower than source quantity.");
+        }
+
+        if (Status != OrbitalGroupStatus.Stationed)
+        {
+            throw new InvalidOperationException("Only stationed orbital groups can be split.");
+        }
+
+        Quantity -= quantity;
+
+        return CreateStationed(
+            CivilizationId,
+            OriginPlanetId,
+            CurrentPlanetId,
+            AssetType,
+            quantity);
+    }
+
+    public void MergeFrom(OrbitalGroup source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        if (Id == source.Id)
+        {
+            throw new InvalidOperationException("Target and source orbital groups must be different.");
+        }
+
+        if (CivilizationId != source.CivilizationId)
+        {
+            throw new InvalidOperationException("Orbital groups must belong to the same civilization.");
+        }
+
+        if (CurrentPlanetId != source.CurrentPlanetId)
+        {
+            throw new InvalidOperationException("Orbital groups must be at the same current planet.");
+        }
+
+        if (AssetType != source.AssetType)
+        {
+            throw new InvalidOperationException("Orbital groups must have the same asset type.");
+        }
+
+        if (Status != OrbitalGroupStatus.Stationed || source.Status != OrbitalGroupStatus.Stationed)
+        {
+            throw new InvalidOperationException("Only stationed orbital groups can be merged.");
+        }
+
+        Quantity += source.Quantity;
+    }
+
     public void ArriveAt(Guid destinationPlanetId)
     {
         if (destinationPlanetId == Guid.Empty)

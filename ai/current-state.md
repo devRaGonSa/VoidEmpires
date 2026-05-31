@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 6L - Orbital travel estimate preview`.
+The repository is consolidated through `Phase 6N - Orbital group merge foundation`.
 
 ## Repository Reality
 
@@ -36,6 +36,8 @@ Current implemented foundations:
 - System visual metadata for renderer preparation: star metadata, coordinates, orbital slots, orbit radii, orbit angles, and scale hints.
 - Read-only system visual overlays: stationed orbital group markers and planned/active transfer route overlays.
 - Read-only orbital travel estimate previews through the application, infrastructure, and development API layers.
+- Persistent orbital group split foundation for stationed groups, preserving civilization, origin planet, current planet, asset type, and status while decreasing the source group quantity.
+- Persistent orbital group merge foundation for compatible stationed groups, increasing the target group quantity and removing the source group.
 - Static visual sandbox at `/dev/visual-state/index.html`.
 - CSS-only pseudo-3D visual sandbox rendering for planet/system preview, overlays, markers, and transfer routes.
 - Static sandbox assets are gated behind the same development switch as development APIs.
@@ -84,6 +86,8 @@ Accepted current rules:
 - Creating a transfer reserves the orbital group.
 - Completing a due transfer moves the group to the destination and marks the transfer completed.
 - Orbital travel estimates are preview-only read models. They calculate distance, duration, and estimated resource costs without creating transfers, reserving groups, charging resources, mutating stockpiles, or persisting estimates.
+- Splitting an orbital group is available only for stationed groups owned by the requesting civilization. The split quantity must be positive and lower than the source quantity.
+- Merging orbital groups requires different stationed groups owned by the requesting civilization, sharing the same current planet and asset type. The target group quantity increases and the source group is removed.
 - The current sandbox renders markers and transfer route lines as visual indicators only.
 
 ## Dev Surface Gating Note
@@ -107,7 +111,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 6L: `307` passing tests.
+Current validated baseline after Phase 6N: `331` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, and static sandbox gating behavior.
 
