@@ -30,6 +30,14 @@ public sealed class OrbitalGroupSplitService(VoidEmpiresDbContext dbContext) : I
             return SplitOrbitalGroupResult.Failure("Source orbital group does not belong to the civilization.");
         }
 
+        if (await OrbitalTransferActivityQueries.HasActiveTransferAsync(
+            dbContext.Set<OrbitalTransfer>(),
+            source.Id,
+            cancellationToken))
+        {
+            return SplitOrbitalGroupResult.Failure("Source orbital group already has an active transfer.");
+        }
+
         if (source.Status != OrbitalGroupStatus.Stationed)
         {
             return SplitOrbitalGroupResult.Failure("Only stationed orbital groups can be split.");

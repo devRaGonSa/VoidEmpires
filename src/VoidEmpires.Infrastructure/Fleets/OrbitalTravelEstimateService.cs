@@ -39,6 +39,19 @@ public sealed class OrbitalTravelEstimateService(
             return EstimateOrbitalTravelResult.Failure("Orbital group current planet is required.");
         }
 
+        if (await OrbitalTransferActivityQueries.HasActiveTransferAsync(
+            dbContext.Set<OrbitalTransfer>(),
+            group.Id,
+            cancellationToken))
+        {
+            return EstimateOrbitalTravelResult.Failure("Orbital group already has an active transfer.");
+        }
+
+        if (group.Status != OrbitalGroupStatus.Stationed)
+        {
+            return EstimateOrbitalTravelResult.Failure("Only stationed orbital groups can be estimated for travel.");
+        }
+
         var destinationExists = await dbContext.Set<Planet>()
             .AsNoTracking()
             .AnyAsync(x => x.Id == request.DestinationPlanetId, cancellationToken);

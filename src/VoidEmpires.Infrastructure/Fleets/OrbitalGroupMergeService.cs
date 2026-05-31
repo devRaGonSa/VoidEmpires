@@ -33,7 +33,28 @@ public sealed class OrbitalGroupMergeService(VoidEmpiresDbContext dbContext) : I
             return MergeOrbitalGroupsResult.Failure("Source orbital group was not found.");
         }
 
-        var compatibilityError = ValidateCompatibility(request.CivilizationId, target, source);
+        var ownershipError = ValidateOwnership(request.CivilizationId, target, source);
+        if (ownershipError is not null)
+        {
+            return MergeOrbitalGroupsResult.Failure(ownershipError);
+        }
+
+        var activeTransferGroupIds = await OrbitalTransferActivityQueries.GetActiveTransferGroupIdsAsync(
+            dbContext.Set<OrbitalTransfer>(),
+            [target.Id, source.Id],
+            cancellationToken);
+
+        if (activeTransferGroupIds.Contains(target.Id))
+        {
+            return MergeOrbitalGroupsResult.Failure("Target orbital group already has an active transfer.");
+        }
+
+        if (activeTransferGroupIds.Contains(source.Id))
+        {
+            return MergeOrbitalGroupsResult.Failure("Source orbital group already has an active transfer.");
+        }
+
+        var compatibilityError = ValidateCompatibility(target, source);
         if (compatibilityError is not null)
         {
             return MergeOrbitalGroupsResult.Failure(compatibilityError);
@@ -56,13 +77,18 @@ public sealed class OrbitalGroupMergeService(VoidEmpiresDbContext dbContext) : I
         return errors;
     }
 
-    private static string? ValidateCompatibility(Guid civilizationId, OrbitalGroup target, OrbitalGroup source)
+    private static string? ValidateOwnership(Guid civilizationId, OrbitalGroup target, OrbitalGroup source)
     {
         if (target.CivilizationId != civilizationId || source.CivilizationId != civilizationId)
         {
             return "Both orbital groups must belong to the civilization.";
         }
 
+        return null;
+    }
+
+    private static string? ValidateCompatibility(OrbitalGroup target, OrbitalGroup source)
+    {
         if (target.CurrentPlanetId != source.CurrentPlanetId)
         {
             return "Orbital groups must be at the same current planet.";

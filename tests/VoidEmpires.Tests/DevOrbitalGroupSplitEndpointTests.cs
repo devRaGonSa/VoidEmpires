@@ -73,7 +73,7 @@ public class DevOrbitalGroupSplitEndpointTests(WebApplicationFactory<Program> fa
     [Fact]
     public async Task SplitOrbitalGroupReturnsConflictWhenServiceRejectsRequest()
     {
-        using var client = CreateConfiguredClient(SplitOrbitalGroupResult.Failure("Only stationed orbital groups can be split."));
+        using var client = CreateConfiguredClient(SplitOrbitalGroupResult.Failure("Source orbital group already has an active transfer."));
 
         using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-groups/split", ValidRequest());
         var payload = await response.Content.ReadFromJsonAsync<SplitOrbitalGroupResponse>();
@@ -81,7 +81,7 @@ public class DevOrbitalGroupSplitEndpointTests(WebApplicationFactory<Program> fa
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.NotNull(payload);
         Assert.False(payload.Succeeded);
-        Assert.Contains("Only stationed orbital groups can be split.", payload.Errors);
+        Assert.Contains("Source orbital group already has an active transfer.", payload.Errors);
     }
 
     private HttpClient CreateConfiguredClient(SplitOrbitalGroupResult result) =>

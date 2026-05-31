@@ -124,6 +124,46 @@ public class OrbitalGroupMergeServiceTests
     }
 
     [Fact]
+    public async Task MergeAsyncRejectsActiveTransferSourceGroup()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var planetId = Guid.NewGuid();
+        var target = OrbitalGroup.CreateStationed(civilizationId, Guid.NewGuid(), planetId, SpaceAssetType.ScoutCraft, 1);
+        var source = OrbitalGroup.CreateStationed(civilizationId, Guid.NewGuid(), planetId, SpaceAssetType.ScoutCraft, 1);
+        source.Reserve();
+        dbContext.Set<OrbitalGroup>().AddRange(target, source);
+        dbContext.Set<OrbitalTransfer>().Add(CreateTransfer(source, Guid.NewGuid()));
+        await dbContext.SaveChangesAsync();
+        var service = new OrbitalGroupMergeService(dbContext);
+
+        var result = await service.MergeAsync(new MergeOrbitalGroupsRequest(civilizationId, target.Id, source.Id));
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Source orbital group already has an active transfer.", result.Errors);
+    }
+
+    [Fact]
+    public async Task MergeAsyncRejectsActiveTransferTargetGroup()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var planetId = Guid.NewGuid();
+        var target = OrbitalGroup.CreateStationed(civilizationId, Guid.NewGuid(), planetId, SpaceAssetType.ScoutCraft, 1);
+        var source = OrbitalGroup.CreateStationed(civilizationId, Guid.NewGuid(), planetId, SpaceAssetType.ScoutCraft, 1);
+        target.Reserve();
+        dbContext.Set<OrbitalGroup>().AddRange(target, source);
+        dbContext.Set<OrbitalTransfer>().Add(CreateTransfer(target, Guid.NewGuid()));
+        await dbContext.SaveChangesAsync();
+        var service = new OrbitalGroupMergeService(dbContext);
+
+        var result = await service.MergeAsync(new MergeOrbitalGroupsRequest(civilizationId, target.Id, source.Id));
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Target orbital group already has an active transfer.", result.Errors);
+    }
+
+    [Fact]
     public async Task MergeAsyncIncreasesTargetQuantityAndRemovesSource()
     {
         await using var dbContext = CreateDbContext();
@@ -155,4 +195,14 @@ public class OrbitalGroupMergeServiceTests
 
         return new VoidEmpiresDbContext(options);
     }
+
+    private static OrbitalTransfer CreateTransfer(OrbitalGroup group, Guid destinationPlanetId) =>
+        OrbitalTransfer.CreatePlanned(
+            group.CivilizationId,
+            group.Id,
+            group.CurrentPlanetId,
+            destinationPlanetId,
+            1,
+            new DateTime(2026, 5, 30, 12, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 5, 30, 13, 0, 0, DateTimeKind.Utc));
 }

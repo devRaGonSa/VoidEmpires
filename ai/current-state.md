@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 6Q - Charge orbital transfer costs on create`.
+The repository is consolidated through `Phase 6S - Orbital group transfer invariant hardening`.
 
 ## Repository Reality
 
@@ -90,6 +90,8 @@ Accepted current rules:
 - Orbital travel estimates are preview-only read models. They calculate distance, duration, and estimated resource costs without creating transfers, reserving groups, charging resources, mutating stockpiles, or persisting estimates.
 - Orbital travel estimates report whether the current planet stockpile can afford estimated costs and identify insufficient resources without spending balances.
 - Creating an orbital transfer charges the estimated travel costs from the current planet stockpile before reserving the orbital group and creating the transfer.
+- Cancelling an orbital transfer is explicit, persistent, and only available before completion. Phase 6R cancellation marks the transfer cancelled, releases the reserved orbital group back to stationed status at its current persisted planet, and does not refund charged resources.
+- An orbital group with an active transfer cannot be split, merged as a source or target, assigned a second transfer, or used for a new travel estimate preview. Active transfer means a transfer that is neither completed nor cancelled. Completion and cancellation remain the valid lifecycle operations for the active transfer itself.
 - Splitting an orbital group is available only for stationed groups owned by the requesting civilization. The split quantity must be positive and lower than the source quantity.
 - Merging orbital groups requires different stationed groups owned by the requesting civilization, sharing the same current planet and asset type. The target group quantity increases and the source group is removed.
 - The current sandbox renders markers and transfer route lines as visual indicators only.
@@ -115,7 +117,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 6Q: `339` passing tests.
+Current validated baseline after Phase 6S: `355` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, and static sandbox gating behavior.
 

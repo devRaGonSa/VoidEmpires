@@ -188,6 +188,35 @@ public class OrbitalTravelEstimateServiceTests
         Assert.Contains("Destination planet must be different from the current planet.", result.Errors);
     }
 
+    [Fact]
+    public async Task EstimateAsyncRejectsGroupWithActiveTransfer()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var currentPlanetId = Guid.NewGuid();
+        var destinationPlanetId = Guid.NewGuid();
+        var group = OrbitalGroup.CreateStationed(
+            civilizationId,
+            Guid.NewGuid(),
+            currentPlanetId,
+            SpaceAssetType.ScoutCraft,
+            1);
+        group.Reserve();
+        dbContext.Set<OrbitalGroup>().Add(group);
+        dbContext.Set<OrbitalTransfer>().Add(CreateTransfer(group, destinationPlanetId));
+        dbContext.Set<Planet>().Add(CreatePlanet(destinationPlanetId));
+        await dbContext.SaveChangesAsync();
+        var service = CreateService(dbContext);
+
+        var result = await service.EstimateAsync(new EstimateOrbitalTravelRequest(
+            civilizationId,
+            group.Id,
+            destinationPlanetId));
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Orbital group already has an active transfer.", result.Errors);
+    }
+
     private static Planet CreatePlanet(Guid planetId) =>
         new(planetId, Guid.NewGuid(), "Asterion", 1, PlanetType.Terran, 100);
 
@@ -202,4 +231,14 @@ public class OrbitalTravelEstimateServiceTests
 
     private static OrbitalTravelEstimateService CreateService(VoidEmpiresDbContext dbContext) =>
         new(dbContext, new ResourceSpendService(dbContext));
+
+    private static OrbitalTransfer CreateTransfer(OrbitalGroup group, Guid destinationPlanetId) =>
+        OrbitalTransfer.CreatePlanned(
+            group.CivilizationId,
+            group.Id,
+            group.CurrentPlanetId,
+            destinationPlanetId,
+            1,
+            new DateTime(2026, 5, 30, 12, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 5, 30, 13, 0, 0, DateTimeKind.Utc));
 }
