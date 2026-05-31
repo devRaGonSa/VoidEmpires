@@ -77,6 +77,11 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
         Assert.Equal(OrbitalRouteRiskBand.Low, payload.RouteProfile.RiskBand);
         Assert.Equal(1m, payload.RouteProfile.FuelMultiplier);
         Assert.True(payload.RouteProfile.IsSupported);
+        Assert.NotNull(payload.FuelReadiness);
+        Assert.Equal(1m, payload.FuelReadiness.EstimatedFuelUnitsRequired);
+        Assert.Equal(6, payload.FuelReadiness.EstimatedRangeUnitsAvailable);
+        Assert.True(payload.FuelReadiness.IsFuelReady);
+        Assert.Null(payload.FuelReadiness.NotReadyReason);
         Assert.Contains(payload.ResourceCosts, x => x.ResourceType == ResourceType.Credits && x.Quantity == 5m);
         Assert.Contains(payload.ResourceCosts, x => x.ResourceType == ResourceType.Gas && x.Quantity == 2m);
         Assert.True(payload.CanAfford);
@@ -127,6 +132,7 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
                 1m,
                 ["Single-hop local orbital transfer."],
                 true),
+            new OrbitalFuelReadinessDto(1m, 6, true, null, OrbitalFuelReadinessPolicy.PlaceholderDerived),
             [
                 new OrbitalTravelCostComponentDto(ResourceType.Credits, 5m),
                 new OrbitalTravelCostComponentDto(ResourceType.Gas, 2m)
@@ -158,6 +164,7 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
         int AbstractDistanceUnits,
         TimeSpan? EstimatedDuration,
         OrbitalRouteProfileResponse? RouteProfile,
+        OrbitalFuelReadinessResponse? FuelReadiness,
         OrbitalTravelCostComponentResponse[] ResourceCosts,
         bool CanAfford,
         OrbitalTravelInsufficientResourceResponse[] InsufficientResources,
@@ -170,6 +177,13 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
         decimal FuelMultiplier,
         string[] ComplexityNotes,
         bool IsSupported);
+
+    private sealed record OrbitalFuelReadinessResponse(
+        decimal EstimatedFuelUnitsRequired,
+        int EstimatedRangeUnitsAvailable,
+        bool IsFuelReady,
+        string? NotReadyReason,
+        OrbitalFuelReadinessPolicy Policy);
 
     private sealed record OrbitalTravelCostComponentResponse(ResourceType ResourceType, decimal Quantity);
 

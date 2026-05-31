@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 7A - Orbital route profile foundation`.
+The repository is consolidated through `Phase 7B - Orbital fuel readiness preview`.
 
 ## Repository Reality
 
@@ -37,6 +37,7 @@ Current implemented foundations:
 - Read-only system visual overlays: stationed orbital group markers and planned/active transfer route overlays.
 - Read-only orbital travel estimate previews through the application, infrastructure, and development API layers, including affordability and insufficient-resource details.
 - Read-only orbital route profile metadata for travel estimates, classifying abstract distances into deterministic `LocalOrbit`, `InnerSystem`, `OuterSystem`, and `LongRange` bands with placeholder risk and fuel metadata.
+- Read-only placeholder orbital fuel readiness previews for travel estimates, deriving estimated fuel units, estimated range, readiness, and not-ready reasons without adding fuel inventory or fuel charging.
 - Reusable resource affordability and spend service for persisted planet stockpiles, with atomic multi-resource validation and spending.
 - Orbital transfer creation charges estimated travel costs from persisted planet stockpiles before reserving groups and creating transfers.
 - Persistent orbital group split foundation for stationed groups, preserving civilization, origin planet, current planet, asset type, and status while decreasing the source group quantity.
@@ -98,6 +99,7 @@ Accepted current rules:
 - Orbital travel estimates are preview-only read models. They calculate distance, duration, and estimated resource costs without creating transfers, reserving groups, charging resources, mutating stockpiles, or persisting estimates.
 - Orbital travel estimates report whether the current planet stockpile can afford estimated costs and identify insufficient resources without spending balances.
 - Orbital route profiles are read-only metadata derived from abstract distance units. Current bands are intentionally coarse placeholders: distance `1` is `LocalOrbit`, `2-3` is `InnerSystem`, `4-6` is `OuterSystem`, and `7+` is `LongRange`. Current profiles are supported and use a placeholder fuel multiplier of `1.0`; they do not introduce pathfinding, route graphs, fuel inventory, combat, interception, alliances, or espionage.
+- Orbital fuel readiness is a placeholder read model derived from asset type, group quantity, abstract distance, and route profile. It reports estimated fuel units required, estimated range units available, readiness, and not-ready reasons, but it does not add persisted fuel state, refueling, spending, or transfer-creation behavior.
 - Creating an orbital transfer charges the estimated travel costs from the current planet stockpile before reserving the orbital group and creating the transfer.
 - Cancelling an orbital transfer is explicit, persistent, and only available before completion. Phase 6R cancellation marks the transfer cancelled, releases the reserved orbital group back to stationed status at its current persisted planet, and does not refund charged resources.
 - An orbital group with an active transfer cannot be split, merged as a source or target, assigned a second transfer, or used for a new travel estimate preview. Active transfer means a transfer that is neither completed nor cancelled. Completion and cancellation remain the valid lifecycle operations for the active transfer itself.
@@ -130,7 +132,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 7A: pending validation.
+Current validated baseline after Phase 7B: pending validation.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, and fleet action manifest service.
 

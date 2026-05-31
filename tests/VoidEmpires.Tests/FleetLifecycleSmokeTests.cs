@@ -48,7 +48,8 @@ public class FleetLifecycleSmokeTests
         var estimateService = new OrbitalTravelEstimateService(
             dbContext,
             resourceSpendService,
-            new OrbitalRouteProfileService());
+            new OrbitalRouteProfileService(),
+            new OrbitalFuelReadinessService());
         var transferService = new OrbitalTransferPersistenceService(dbContext, resourceSpendService);
         var splitService = new OrbitalGroupSplitService(dbContext);
         var mergeService = new OrbitalGroupMergeService(dbContext);
