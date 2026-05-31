@@ -4,7 +4,7 @@
 
 id: TASK-7H
 title: Add strategic map readiness smoke coverage
-status: pending
+status: done
 type: hardening
 team: backend
 supporting_teams:
