@@ -1,3 +1,5 @@
+using VoidEmpires.Domain.Assets;
+using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
 
 namespace VoidEmpires.Tests;
@@ -55,5 +57,33 @@ public class OrbitalTravelEstimatorTests
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             OrbitalTravelEstimator.EstimateTravelDuration(0));
+    }
+
+    [Theory]
+    [InlineData(SpaceAssetType.ScoutCraft, 1)]
+    [InlineData(SpaceAssetType.CargoCraft, 2)]
+    [InlineData(SpaceAssetType.EscortCraft, 3)]
+    [InlineData(SpaceAssetType.ColonyCraft, 4)]
+    public void EstimateTravelCostUsesAssetMultiplier(SpaceAssetType assetType, int expectedMultiplier)
+    {
+        var result = OrbitalTravelEstimator.EstimateTravelCost(assetType, quantity: 3, abstractDistanceUnits: 2);
+
+        var component = Assert.Single(result.Components);
+        Assert.Equal(ResourceType.Gas, component.ResourceType);
+        Assert.Equal(OrbitalTravelEstimator.BaseGasCostPerDistanceUnit * expectedMultiplier * 3 * 2, component.Amount);
+    }
+
+    [Fact]
+    public void EstimateTravelCostRequiresPositiveQuantity()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            OrbitalTravelEstimator.EstimateTravelCost(SpaceAssetType.ScoutCraft, 0, 1));
+    }
+
+    [Fact]
+    public void EstimateTravelCostRequiresPositiveDistance()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            OrbitalTravelEstimator.EstimateTravelCost(SpaceAssetType.ScoutCraft, 1, 0));
     }
 }
