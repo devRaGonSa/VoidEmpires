@@ -4,7 +4,7 @@
 
 id: TASK-7L
 title: Add visibility and command readiness smoke coverage
-status: pending
+status: done
 type: hardening
 team: backend
 supporting_teams:
