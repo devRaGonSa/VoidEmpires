@@ -122,4 +122,19 @@ public sealed class OrbitalTransfer
 
         Status = OrbitalTransferStatus.Completed;
     }
+
+    public void Cancel()
+    {
+        if (Status == OrbitalTransferStatus.Completed)
+        {
+            throw new InvalidOperationException("Completed orbital transfers cannot be cancelled.");
+        }
+
+        if (Status == OrbitalTransferStatus.Cancelled)
+        {
+            throw new InvalidOperationException("Orbital transfer is already cancelled.");
+        }
+
+        Status = OrbitalTransferStatus.Cancelled;
+    }
 }

@@ -151,4 +151,14 @@ public sealed class OrbitalGroup
         CurrentPlanetId = destinationPlanetId;
         Status = OrbitalGroupStatus.Stationed;
     }
+
+    public void ReleaseReservation()
+    {
+        if (Status != OrbitalGroupStatus.Reserved)
+        {
+            throw new InvalidOperationException("Only reserved orbital groups can be released.");
+        }
+
+        Status = OrbitalGroupStatus.Stationed;
+    }
 }

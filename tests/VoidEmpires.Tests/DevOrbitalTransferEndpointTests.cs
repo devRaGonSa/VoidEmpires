@@ -216,10 +216,88 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
         Assert.Empty(payload.Errors);
     }
 
+    [Fact]
+    public async Task CancelOrbitalTransferReturnsNotFoundOutsideDevelopmentByDefault()
+    {
+        using var client = factory.WithWebHostBuilder(builder => builder.UseEnvironment("Production")).CreateClient();
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/cancel", ValidCancelRequest());
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CancelOrbitalTransferReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
+    {
+        using var client = factory.CreateClient();
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/cancel", ValidCancelRequest());
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CancelOrbitalTransferReturnsBadRequestForInvalidRequest()
+    {
+        using var client = CreateConfiguredClient(cancelService: new FakeOrbitalTransferCancelService(SuccessfulCancelResult()));
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/cancel", new { });
+        var payload = await response.Content.ReadFromJsonAsync<CancelOrbitalTransferResponse>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload.Succeeded);
+        Assert.Contains("Civilization id is required.", payload.Errors);
+        Assert.Contains("Orbital transfer id is required.", payload.Errors);
+    }
+
+    [Fact]
+    public async Task CancelOrbitalTransferReturnsOkForSuccessfulRequest()
+    {
+        using var client = CreateConfiguredClient(cancelService: new FakeOrbitalTransferCancelService(SuccessfulCancelResult()));
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/cancel", ValidCancelRequest());
+        var payload = await response.Content.ReadFromJsonAsync<CancelOrbitalTransferResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.True(payload.Succeeded);
+        Assert.Equal(TransferId, payload.OrbitalTransferId);
+        Assert.Equal(OrbitalGroupId, payload.OrbitalGroupId);
+        Assert.Empty(payload.Errors);
+    }
+
+    [Fact]
+    public async Task CancelOrbitalTransferReturnsNotFoundWhenServiceReportsMissingTransfer()
+    {
+        using var client = CreateConfiguredClient(
+            cancelService: new FakeOrbitalTransferCancelService(CancelOrbitalTransferResult.NotFound("Orbital transfer was not found.")));
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/cancel", ValidCancelRequest());
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CancelOrbitalTransferReturnsConflictWhenServiceRejectsRequest()
+    {
+        using var client = CreateConfiguredClient(
+            cancelService: new FakeOrbitalTransferCancelService(CancelOrbitalTransferResult.Conflict("Completed orbital transfers cannot be cancelled.")));
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/cancel", ValidCancelRequest());
+        var payload = await response.Content.ReadFromJsonAsync<CancelOrbitalTransferResponse>();
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload.Succeeded);
+        Assert.Contains("Completed orbital transfers cannot be cancelled.", payload.Errors);
+    }
+
     private HttpClient CreateConfiguredClient(
         IOrbitalTransferPersistenceService? persistenceService = null,
         IOrbitalTransferLookupService? lookupService = null,
-        IOrbitalTransferCompletionService? completionService = null) =>
+        IOrbitalTransferCompletionService? completionService = null,
+        IOrbitalTransferCancelService? cancelService = null) =>
         factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureAppConfiguration((_, configurationBuilder) =>
@@ -243,6 +321,11 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
                 {
                     services.AddSingleton(completionService);
                 }
+
+                if (cancelService is not null)
+                {
+                    services.AddSingleton(cancelService);
+                }
             });
         }).CreateClient();
 
@@ -259,6 +342,9 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
     private static CompleteOrbitalTransfersResult SuccessfulCompletionResult() =>
         new(1, [TransferId], [OrbitalGroupId]);
 
+    private static CancelOrbitalTransferResult SuccessfulCancelResult() =>
+        CancelOrbitalTransferResult.Success(TransferId, OrbitalGroupId);
+
     private static object ValidCreateRequest() => new
     {
         civilizationId = CivilizationId,
@@ -270,6 +356,12 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
     private static object ValidCompleteRequest() => new
     {
         nowUtc = ArrivalAtUtc
+    };
+
+    private static object ValidCancelRequest() => new
+    {
+        civilizationId = CivilizationId,
+        orbitalTransferId = TransferId
     };
 
     private sealed class FakeOrbitalTransferPersistenceService(PersistOrbitalTransferResult result) : IOrbitalTransferPersistenceService
@@ -297,6 +389,14 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
     {
         public Task<CompleteOrbitalTransfersResult> CompleteDueAsync(
             DateTime nowUtc,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(result);
+    }
+
+    private sealed class FakeOrbitalTransferCancelService(CancelOrbitalTransferResult result) : IOrbitalTransferCancelService
+    {
+        public Task<CancelOrbitalTransferResult> CancelAsync(
+            CancelOrbitalTransferRequest request,
             CancellationToken cancellationToken = default) =>
             Task.FromResult(result);
     }
@@ -333,5 +433,11 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
         int CompletedCount,
         Guid[] CompletedTransferIds,
         Guid[] CompletedOrbitalGroupIds,
+        string[] Errors);
+
+    private sealed record CancelOrbitalTransferResponse(
+        bool Succeeded,
+        Guid? OrbitalTransferId,
+        Guid? OrbitalGroupId,
         string[] Errors);
 }

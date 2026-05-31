@@ -4,7 +4,7 @@
 
 id: TASK-6R
 title: Add orbital transfer cancellation foundation
-status: pending
+status: done
 type: feature
 team: backend
 supporting_teams:
