@@ -62,6 +62,8 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IOrbitalTransferCompletionService, OrbitalTransferCompletionService>();
         services.AddScoped<IOrbitalTransferLookupService, OrbitalTransferLookupService>();
         services.AddScoped<IFleetOperationalOverviewService, FleetOperationalOverviewService>();
+        services.AddScoped<IDevFleetActionManifestService, DevFleetActionManifestService>();
+        services.AddScoped<IDevFleetUiStateService, DevFleetUiStateService>();
         services.AddScoped<IPlanetVisualStateService, PlanetVisualStateService>();
         services.AddScoped<ISystemVisualStateService, SystemVisualStateService>();
 
