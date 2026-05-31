@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 7C - Route and fuel visibility in fleet UI state`.
+The repository is consolidated through `Phase 7D - Route/fuel lifecycle smoke coverage`.
 
 ## Repository Reality
 
@@ -44,6 +44,7 @@ Current implemented foundations:
 - Persistent orbital group merge foundation for compatible stationed groups, increasing the target group quantity and removing the source group.
 - Read-only fleet operational overview for civilization-scoped orbital groups, active transfer summaries, and command availability flags.
 - High-level fleet lifecycle smoke coverage validates preview, transfer creation and resource charging, active-transfer command rejection, cancellation, split, merge, second transfer completion, and final overview state.
+- Route/fuel lifecycle smoke coverage validates that travel estimates include route profile and placeholder fuel readiness, remain read-only, do not require fuel inventory or route graph persistence, and stay coherent with fleet UI state hints through transfer completion.
 - Developer-facing fleet API contract documentation under `docs/dev/fleet-api-contracts.md`, covering development gating, request/response payloads, status codes, read-only versus mutating behavior, resource charging/no-refund behavior, restrictions, and a compact fleet lifecycle example.
 - Fleet development endpoint response consistency review found the current status-code and response-shape conventions already aligned for safe frontend tooling use, so no endpoint behavior changes were introduced in Phase 6W.
 - Visual sandbox development documentation now reports the current Phase 6X validation baseline instead of the stale Phase 6H/6I test count.
@@ -134,7 +135,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 7C: `381` passing tests.
+Current validated baseline after Phase 7D: `381` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, and fleet action manifest service.
 
