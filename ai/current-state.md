@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 6U - Fleet lifecycle smoke coverage`.
+The repository is consolidated through `Phase 6V - Dev fleet API contract documentation`.
 
 ## Repository Reality
 
@@ -42,6 +42,7 @@ Current implemented foundations:
 - Persistent orbital group merge foundation for compatible stationed groups, increasing the target group quantity and removing the source group.
 - Read-only fleet operational overview for civilization-scoped orbital groups, active transfer summaries, and command availability flags.
 - High-level fleet lifecycle smoke coverage validates preview, transfer creation and resource charging, active-transfer command rejection, cancellation, split, merge, second transfer completion, and final overview state.
+- Developer-facing fleet API contract documentation under `docs/dev/fleet-api-contracts.md`, covering development gating, request/response payloads, status codes, read-only versus mutating behavior, resource charging/no-refund behavior, restrictions, and a compact fleet lifecycle example.
 - Static visual sandbox at `/dev/visual-state/index.html`.
 - CSS-only pseudo-3D visual sandbox rendering for planet/system preview, overlays, markers, and transfer routes.
 - Static sandbox assets are gated behind the same development switch as development APIs.
@@ -121,7 +122,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 6U: `364` passing tests.
+Current validated baseline after Phase 6V: `364` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, and static sandbox gating behavior.
 
