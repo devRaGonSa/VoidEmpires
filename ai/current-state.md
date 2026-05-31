@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 6B/6C - System visual overlays` while retaining the AI Platform workflow assets from Phase 0.
+The repository is consolidated through `Phase 6E/6F - Visual overlay sandbox rendering` while retaining the AI Platform workflow assets from Phase 0.
 
 ## Repository Reality
 
@@ -43,12 +43,13 @@ The repository now has:
 - System visual metadata for real renderer preparation: galaxy id, system name, coordinates, star visual state, planet orbital slots, orbit radii, orbit angles, and visual scale hints.
 - Read-only system visual overlays for real renderer preparation: stationed orbital group markers and planned/active transfer route overlays.
 - Static development sandbox at `/dev/visual-state/index.html` for inspecting planet/system visual state payloads.
-- CSS-only pseudo-3D visual sandbox mode for planet and system previews, with card mode fallback, intensity bars, profile panel, and raw JSON payload view.
+- CSS-only pseudo-3D visual sandbox mode for planet and system previews, with card mode fallback, intensity bars, profile panel, raw JSON payload view, and overlay inspection panel.
+- Sandbox rendering for `orbitalGroupMarkers` and `transferOverlays` in the system pseudo-3D preview.
 
 Current gameplay/backend/frontend foundation supports this chain:
 
 ```text
-Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue/worker -> Research queue/dev endpoints/worker -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue/dev endpoints/worker -> Asset inventory foundation -> Orbital group ownership/origin foundation -> Orbital group allocation service -> Orbital group HTTP validation -> Orbital group listing/query HTTP validation -> Orbital transfer persistence -> Orbital transfer create/list/complete dev endpoints -> Orbital transfer worker -> Planet visual state -> Solar system visual state -> System visual layout metadata -> System visual overlays -> Visual state sandbox
+Identity user id -> PlayerProfile -> Civilization -> PlanetOwnership -> Planet -> Economy -> Buildings -> Construction queue/worker -> Research queue/dev endpoints/worker -> Population and military capacity foundation -> Asset requirement foundation -> Asset production queue/dev endpoints/worker -> Asset inventory foundation -> Orbital group ownership/origin foundation -> Orbital group allocation service -> Orbital group HTTP validation -> Orbital group listing/query HTTP validation -> Orbital transfer persistence -> Orbital transfer create/list/complete dev endpoints -> Orbital transfer worker -> Planet visual state -> Solar system visual state -> System visual layout metadata -> System visual overlays -> Visual state sandbox -> Overlay sandbox rendering
 ```
 
 ## Visual State Design Note
@@ -76,7 +77,7 @@ Accepted current rules:
 - `GET /api/dev/planets/{planetId}/visual-state` validates single-planet visual state through HTTP when development endpoints and persistence are configured.
 - `GET /api/dev/solar-systems/{systemId}/visual-state` validates system-level visual state through HTTP when development endpoints and persistence are configured.
 - `/dev/visual-state/index.html` is a development-only inspection surface for visual contracts and should not be treated as the final game UI.
-- The sandbox currently supports pseudo-3D CSS rendering, card rendering, selected planet inspection, intensity bars, profile metadata, and raw payload inspection.
+- The sandbox currently supports pseudo-3D CSS rendering, card rendering, selected planet inspection, intensity bars, profile metadata, raw payload inspection, overlay listing, orbital group marker rendering, and transfer route rendering.
 
 Current intentional limitation:
 
@@ -104,6 +105,7 @@ Accepted current rules:
 - `OrbitalGroup.IsStationedAwayFromOrigin` makes origin/current-location separation explicit.
 - Local crew/operator capacity remains validated during production, not during parking/stationing.
 - `OrbitalGroupVisualMarkerDto` is a renderer-facing read projection, not a command model.
+- The current sandbox renders orbital group markers as visual indicators only.
 
 ## Orbital Transfer Design Note
 
@@ -117,6 +119,7 @@ Accepted current rules:
 - Completing a due transfer moves the orbital group to `DestinationPlanetId` and marks the transfer as completed.
 - `OrbitalTransferWorker` is disabled by default and only registered when `VoidEmpires:OrbitalTransferWorker:Enabled` is true and persistence exists.
 - `OrbitalTransferVisualOverlayDto` is a renderer-facing read projection, not a movement command model.
+- The current sandbox renders transfer overlays as visual route lines with approximate progress indicators only.
 
 Current intentional limitation:
 
@@ -178,9 +181,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 6B/6C: `287` passing tests.
+Current validated baseline after Phase 6E/6F: `287` passing tests.
 
-Recent expected coverage includes orbital group lookup, orbital transfer persistence, orbital transfer completion, orbital transfer lookup, development endpoint access control, persistence-required behavior, invalid request validation, successful response payloads, conflict handling, optional filter propagation, worker option interval fallback behavior, planet visual profile/intensity calculation, planet visual state service/endpoint, solar system visual state service/endpoint, system visual metadata/layout hints, system visual orbital group markers, system visual transfer overlays, static sandbox asset serving, and pseudo-3D sandbox asset hooks.
+Recent expected coverage includes orbital group lookup, orbital transfer persistence, orbital transfer completion, orbital transfer lookup, development endpoint access control, persistence-required behavior, invalid request validation, successful response payloads, conflict handling, optional filter propagation, worker option interval fallback behavior, planet visual profile/intensity calculation, planet visual state service/endpoint, solar system visual state service/endpoint, system visual metadata/layout hints, system visual orbital group markers, system visual transfer overlays, static sandbox asset serving, pseudo-3D sandbox asset hooks, and overlay sandbox asset hooks.
 
 If a task later introduces integration boundaries before tests exist, record `No integration tests configured.`
 
@@ -188,12 +191,11 @@ If a task later introduces integration boundaries before tests exist, record `No
 
 Recommended next backend/frontend line:
 
-1. Update the visual sandbox to render orbital group markers and transfer overlays from `SystemVisualStateDto`.
-2. Add lightweight UI route protection/configuration so development sandboxes can be disabled outside safe environments.
-3. Add route/fuel/travel-cost foundation for orbital transfers if movement should become deeper.
-4. Add fleet split/merge foundations if group manipulation is needed before combat.
-5. Start a real renderer spike only after the visual state contract remains stable.
-6. Keep `XUniversePlanet Generator Variator` as an external/local prototype reference until the renderer/prototype phase needs it.
+1. Add lightweight UI route protection/configuration so development sandboxes can be disabled outside safe environments.
+2. Add route/fuel/travel-cost foundation for orbital transfers if movement should become deeper.
+3. Add fleet split/merge foundations if group manipulation is needed before combat.
+4. Start a real renderer spike only after the visual state contract remains stable.
+5. Keep `XUniversePlanet Generator Variator` as an external/local prototype reference until the renderer/prototype phase needs it.
 
 ## Constraints
 
