@@ -229,10 +229,10 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current baseline after Phase 6H/6I:
+Current baseline after Phase 6X:
 
 ```text
-289 passing tests
+364 passing tests
 ```
 
 ## Suggested manual flow
