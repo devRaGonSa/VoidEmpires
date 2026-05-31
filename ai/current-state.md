@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 7D - Route/fuel lifecycle smoke coverage`.
+The repository is consolidated through `Phase 7E - Strategic map read model`.
 
 ## Repository Reality
 
@@ -51,6 +51,7 @@ Current implemented foundations:
 - Development-only fleet UI state endpoint aggregates operational group state, active transfer summaries, command availability, current-planet resource contexts, and action hints for future UI prototypes.
 - Development-only fleet UI state endpoint exposes route/fuel readiness capability hints for each group, while leaving concrete route profile and fuel readiness previews null until a destination-specific travel estimate is requested.
 - Development-only fleet action manifest exposes deterministic, machine-readable metadata for current fleet dev actions, including route, method, mutability, required fields, success status, common error statuses, and notes for route/fuel preview flows.
+- Read-only strategic map service consolidates civilization-scoped relevant systems, planet visual/layout summaries, owned ownership markers, fleet presence, active transfer overlays, and route/fuel capability notes without adding gameplay behavior or production UI endpoints.
 - Static visual sandbox at `/dev/visual-state/index.html`.
 - CSS-only pseudo-3D visual sandbox rendering for planet/system preview, overlays, markers, and transfer routes.
 - Static sandbox assets are gated behind the same development switch as development APIs.
@@ -113,6 +114,7 @@ Accepted current rules:
 - Fleet UI state route/fuel readiness hints intentionally do not invent a destination. The travel estimate endpoint remains the source of concrete route profile and fuel readiness previews because it requires `destinationPlanetId`.
 - Fleet action manifest is read-only development tooling for future UI prototypes. It lists available dev fleet actions and contracts, including route/fuel preview guidance, but does not replace command validation.
 - The current sandbox renders markers and transfer route lines as visual indicators only.
+- Strategic map read model is read-only backend preparation for future map UI. Phase 7E scopes relevance to owned planets and active transfer origin/destination planets for the requesting civilization; no separate known/visibility model exists yet. Ownership and fleet details from other civilizations are not exposed by this read model.
 
 ## Dev Surface Gating Note
 
@@ -135,9 +137,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 7D: `381` passing tests.
+Current validated baseline after Phase 7E: `386` passing tests.
 
-Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, and fleet action manifest service.
+Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, and the strategic map read model.
 
 ## Recommended Next Work
 
