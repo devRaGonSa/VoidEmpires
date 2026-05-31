@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 6N - Orbital group merge foundation`.
+The repository is consolidated through `Phase 6O - Resource affordability and spend foundation`.
 
 ## Repository Reality
 
@@ -36,6 +36,7 @@ Current implemented foundations:
 - System visual metadata for renderer preparation: star metadata, coordinates, orbital slots, orbit radii, orbit angles, and scale hints.
 - Read-only system visual overlays: stationed orbital group markers and planned/active transfer route overlays.
 - Read-only orbital travel estimate previews through the application, infrastructure, and development API layers.
+- Reusable resource affordability and spend service for persisted planet stockpiles, with atomic multi-resource validation and spending.
 - Persistent orbital group split foundation for stationed groups, preserving civilization, origin planet, current planet, asset type, and status while decreasing the source group quantity.
 - Persistent orbital group merge foundation for compatible stationed groups, increasing the target group quantity and removing the source group.
 - Static visual sandbox at `/dev/visual-state/index.html`.
@@ -72,6 +73,7 @@ Current intentional limitations:
 - no meshes, shaders, textures, or binary render assets from the backend
 - no persisted visual customization model
 - no route graph or fuel/resource travel-cost model
+- no orbital transfer resource charging behavior yet
 - no combat/interception overlay model
 - no final game UI layout
 
@@ -111,7 +113,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 6N: `331` passing tests.
+Current validated baseline after Phase 6O: `337` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, and static sandbox gating behavior.
 

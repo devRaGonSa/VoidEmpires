@@ -41,6 +41,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IStartingCivilizationService, StartingCivilizationService>();
         services.AddScoped<IPlanetColonizationService, PlanetColonizationService>();
         services.AddScoped<IPlanetEconomyTickService, PlanetEconomyTickService>();
+        services.AddScoped<IResourceSpendService, ResourceSpendService>();
         services.AddScoped<IPlanetBuildingConstructionService, PlanetBuildingConstructionService>();
         services.AddScoped<IPlanetBuildingUpgradeService, PlanetBuildingUpgradeService>();
         services.AddScoped<IPlanetConstructionQueueService, PlanetConstructionQueueService>();
