@@ -28,13 +28,15 @@ public sealed class DevFleetUiStateService(
             .Distinct()
             .ToArray();
 
-        var stockpiles = planetIds.Length == 0
-            ? []
-            : await dbContext.PlanetResourceStockpiles
+        List<PlanetResourceStockpile> stockpiles = [];
+        if (planetIds.Length > 0)
+        {
+            stockpiles = await dbContext.PlanetResourceStockpiles
                 .AsNoTracking()
                 .Where(x => planetIds.Contains(x.PlanetId))
                 .OrderBy(x => x.PlanetId)
                 .ToListAsync(cancellationToken);
+        }
 
         var resourceContexts = stockpiles
             .Select(x => new DevFleetUiResourceContextDto(
