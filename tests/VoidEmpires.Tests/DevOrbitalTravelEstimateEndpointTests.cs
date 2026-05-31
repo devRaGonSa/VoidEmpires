@@ -75,6 +75,21 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
         Assert.Empty(payload.Errors);
     }
 
+    [Fact]
+    public async Task EstimateOrbitalTravelReturnsConflictWhenServiceRejectsRequest()
+    {
+        using var client = CreateConfiguredClient(
+            EstimateOrbitalTravelResult.Failure("Destination planet must be different from the current planet."));
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-travel/estimate", ValidRequest());
+        var payload = await response.Content.ReadFromJsonAsync<EstimateOrbitalTravelResponse>();
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload.Succeeded);
+        Assert.Contains("Destination planet must be different from the current planet.", payload.Errors);
+    }
+
     private HttpClient CreateConfiguredClient(EstimateOrbitalTravelResult result) =>
         factory.WithWebHostBuilder(builder =>
         {
