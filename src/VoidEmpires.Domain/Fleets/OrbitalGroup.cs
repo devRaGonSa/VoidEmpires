@@ -104,6 +104,38 @@ public sealed class OrbitalGroup
             quantity);
     }
 
+    public void MergeFrom(OrbitalGroup source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        if (Id == source.Id)
+        {
+            throw new InvalidOperationException("Target and source orbital groups must be different.");
+        }
+
+        if (CivilizationId != source.CivilizationId)
+        {
+            throw new InvalidOperationException("Orbital groups must belong to the same civilization.");
+        }
+
+        if (CurrentPlanetId != source.CurrentPlanetId)
+        {
+            throw new InvalidOperationException("Orbital groups must be at the same current planet.");
+        }
+
+        if (AssetType != source.AssetType)
+        {
+            throw new InvalidOperationException("Orbital groups must have the same asset type.");
+        }
+
+        if (Status != OrbitalGroupStatus.Stationed || source.Status != OrbitalGroupStatus.Stationed)
+        {
+            throw new InvalidOperationException("Only stationed orbital groups can be merged.");
+        }
+
+        Quantity += source.Quantity;
+    }
+
     public void ArriveAt(Guid destinationPlanetId)
     {
         if (destinationPlanetId == Guid.Empty)
