@@ -81,6 +81,7 @@ public class DevStrategicMapEndpointTests(WebApplicationFactory<Program> factory
         var system = Assert.Single(payload.Map.Systems);
         Assert.Equal(MapVisibilityLevel.Visible, system.VisibilityLevel);
         Assert.True(system.IsVisible);
+        Assert.Contains(system.Commands, x => x.ActionKey == "strategicMap.system.view" && x.IsAvailable);
         Assert.Contains(system.Planets, x => x.VisibilityLevel == MapVisibilityLevel.Owned && x.IsVisible);
     }
 
@@ -134,9 +135,10 @@ public class DevStrategicMapEndpointTests(WebApplicationFactory<Program> factory
                     MapVisibilityReason.SystemContainsOwnedPlanet,
                     true,
                     true,
+                    [new StrategicMapCommandAvailabilityDto("strategicMap.system.view", true, StrategicMapCommandBlockReason.None, "Visible.")],
                     [
-                        new StrategicMapPlanetDto(ownedPlanetId, "Owned", PlanetType.Terran, 100, PlanetColonizationStatus.Colonized, true, MapVisibilityLevel.Owned, MapVisibilityReason.OwnedPlanet, true, CivilizationId, 1, 5.75f, 47f, 1f, 0.3f, 0.1f, 0.2f, 0f, 0f),
-                        new StrategicMapPlanetDto(otherPlanetId, "Known", PlanetType.Desert, 90, PlanetColonizationStatus.Colonized, false, MapVisibilityLevel.Visible, MapVisibilityReason.SystemContainsOwnedPlanet, true, null, 2, 7.5f, 94f, 0.9f, 0.2f, 0f, 0f, 0f, 0f)
+                        new StrategicMapPlanetDto(ownedPlanetId, "Owned", PlanetType.Terran, 100, PlanetColonizationStatus.Colonized, true, MapVisibilityLevel.Owned, MapVisibilityReason.OwnedPlanet, true, [new StrategicMapCommandAvailabilityDto("strategicMap.planet.viewDetail", true, StrategicMapCommandBlockReason.None, "Visible.")], CivilizationId, 1, 5.75f, 47f, 1f, 0.3f, 0.1f, 0.2f, 0f, 0f),
+                        new StrategicMapPlanetDto(otherPlanetId, "Known", PlanetType.Desert, 90, PlanetColonizationStatus.Colonized, false, MapVisibilityLevel.Visible, MapVisibilityReason.SystemContainsOwnedPlanet, true, [new StrategicMapCommandAvailabilityDto("strategicMap.planet.viewDetail", true, StrategicMapCommandBlockReason.None, "Visible.")], null, 2, 7.5f, 94f, 0.9f, 0.2f, 0f, 0f, 0f, 0f)
                     ],
                     [],
                     [])

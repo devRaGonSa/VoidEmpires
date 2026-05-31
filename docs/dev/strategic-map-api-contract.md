@@ -76,6 +76,7 @@ Each `systems[]` item contains:
 - `visibilityLevel`, `visibilityReason`
 - `isVisible`
 - `isOwnedByRequestingCivilization`: currently true when the derived visibility model finds an owned planet in the system.
+- `commands[]`: read-only system-level command availability metadata.
 - `planets[]`
 - `fleetPresence[]`
 - `transferOverlays[]`
@@ -86,6 +87,7 @@ Each `planets[]` item contains identity and summary fields:
 - `isOwnedByRequestingCivilization`
 - `visibilityLevel`, `visibilityReason`
 - `isVisible`
+- `commands[]`: read-only planet-level command availability metadata.
 - `civilizationId`: populated only when owned by the requesting civilization.
 - `orbitalSlot`, `orbitRadius`, `orbitAngleDegrees`, `visualScale`
 - `colonizationIntensity`, `urbanIntensity`, `industrialIntensity`, `militaryIntensity`, `orbitalPresenceIntensity`
@@ -107,9 +109,18 @@ Each `routeFuelNotes[]` item contains:
 - `fuelReadinessPolicy`: currently `PlaceholderDerived`
 - `note`
 
+Each `commands[]` item contains:
+
+- `actionKey`: current examples include `strategicMap.system.view`, `strategicMap.planet.viewDetail`, `fleet.travel.estimate`, and `fleet.transfer.create`.
+- `isAvailable`: whether the current read model can show the action as available.
+- `blockReason`: `None`, `Unknown`, `NotVisible`, or `NoFleetContext`.
+- `note`: short UI-facing guidance. Fleet actions are capability hints only and must still use the existing fleet command endpoints and validation.
+
 ## Side Effects
 
 None. This endpoint is read-only. It does not create transfers, reserve fleets, complete transfers, charge resources, mutate stockpiles, persist route estimates, or write map state.
+
+Command availability is UI metadata, not authorization and not command execution. It does not bypass fleet command validation.
 
 ## Relationship to Other Dev Contracts
 

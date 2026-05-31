@@ -4,7 +4,7 @@
 
 id: TASK-7K
 title: Add strategic map command availability
-status: pending
+status: done
 type: feature
 team: backend
 supporting_teams:

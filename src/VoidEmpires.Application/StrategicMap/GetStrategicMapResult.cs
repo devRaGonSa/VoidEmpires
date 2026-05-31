@@ -22,6 +22,7 @@ public sealed record StrategicMapSystemDto(
     MapVisibilityReason VisibilityReason,
     bool IsVisible,
     bool IsOwnedByRequestingCivilization,
+    IReadOnlyList<StrategicMapCommandAvailabilityDto> Commands,
     IReadOnlyList<StrategicMapPlanetDto> Planets,
     IReadOnlyList<StrategicMapFleetPresenceDto> FleetPresence,
     IReadOnlyList<StrategicMapTransferOverlayDto> TransferOverlays);
@@ -36,6 +37,7 @@ public sealed record StrategicMapPlanetDto(
     MapVisibilityLevel VisibilityLevel,
     MapVisibilityReason VisibilityReason,
     bool IsVisible,
+    IReadOnlyList<StrategicMapCommandAvailabilityDto> Commands,
     Guid? CivilizationId,
     int OrbitalSlot,
     float OrbitRadius,
@@ -72,3 +74,17 @@ public sealed record StrategicMapRouteFuelNoteDto(
     bool RequiresDestination,
     OrbitalFuelReadinessPolicy FuelReadinessPolicy,
     string Note);
+
+public sealed record StrategicMapCommandAvailabilityDto(
+    string ActionKey,
+    bool IsAvailable,
+    StrategicMapCommandBlockReason BlockReason,
+    string Note);
+
+public enum StrategicMapCommandBlockReason
+{
+    None = 0,
+    Unknown = 1,
+    NotVisible = 2,
+    NoFleetContext = 3
+}

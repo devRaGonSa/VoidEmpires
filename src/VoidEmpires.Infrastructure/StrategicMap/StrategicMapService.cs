@@ -86,6 +86,17 @@ public sealed class StrategicMapService(
         var layoutByPlanetId = visualState.LayoutHints.ToDictionary(x => x.PlanetId);
         var transfersById = activeTransfers.ToDictionary(x => x.Id);
         var visibilityByPlanetId = visibility?.Planets.ToDictionary(x => x.PlanetId) ?? [];
+        var fleetPresence = visualState.OrbitalGroupMarkers
+            .Where(x => x.CivilizationId == civilizationId)
+            .Select(x => new StrategicMapFleetPresenceDto(
+                x.OrbitalGroupId,
+                x.CurrentPlanetId,
+                x.AssetType,
+                x.Quantity,
+                x.Status,
+                x.MarkerKind))
+            .ToArray();
+        var hasFleetContext = fleetPresence.Length > 0;
 
         return new StrategicMapSystemDto(
             visualState.SystemId,
@@ -99,21 +110,13 @@ public sealed class StrategicMapService(
             visibility?.VisibilityReason ?? MapVisibilityReason.NoKnownVisibilitySource,
             visibility?.IsVisible ?? false,
             visibility?.IsOwnedByRequestingCivilization ?? false,
+            CreateSystemCommands(visibility),
             visualState.Planets.Select(x =>
             {
                 visibilityByPlanetId.TryGetValue(x.PlanetId, out var planetVisibility);
-                return CreatePlanet(x, civilizationId, layoutByPlanetId, planetVisibility);
+                return CreatePlanet(x, civilizationId, layoutByPlanetId, planetVisibility, hasFleetContext);
             }).ToArray(),
-            visualState.OrbitalGroupMarkers
-                .Where(x => x.CivilizationId == civilizationId)
-                .Select(x => new StrategicMapFleetPresenceDto(
-                    x.OrbitalGroupId,
-                    x.CurrentPlanetId,
-                    x.AssetType,
-                    x.Quantity,
-                    x.Status,
-                    x.MarkerKind))
-                .ToArray(),
+            fleetPresence,
             visualState.TransferOverlays
                 .Where(x => x.CivilizationId == civilizationId)
                 .Select(x =>
@@ -138,7 +141,8 @@ public sealed class StrategicMapService(
         PlanetVisualStateDto visualState,
         Guid civilizationId,
         IReadOnlyDictionary<Guid, PlanetVisualLayoutHintDto> layoutByPlanetId,
-        MapPlanetVisibilityDto? visibility)
+        MapPlanetVisibilityDto? visibility,
+        bool hasFleetContext)
     {
         layoutByPlanetId.TryGetValue(visualState.PlanetId, out var layout);
         var isOwnedByRequester = visualState.CivilizationId == civilizationId;
@@ -154,6 +158,7 @@ public sealed class StrategicMapService(
             visibility?.VisibilityLevel ?? MapVisibilityLevel.Unknown,
             visibility?.VisibilityReason ?? MapVisibilityReason.NoKnownVisibilitySource,
             visibility?.IsVisible ?? false,
+            CreatePlanetCommands(visibility, hasFleetContext),
             isOwnedByRequester ? civilizationId : null,
             layout?.OrbitalSlot ?? 0,
             layout?.OrbitRadius ?? 0f,
@@ -165,6 +170,71 @@ public sealed class StrategicMapService(
             exposeVisualDetail ? visualState.MilitaryIntensity : 0f,
             exposeVisualDetail ? visualState.OrbitalPresenceIntensity : 0f);
     }
+
+    private static IReadOnlyList<StrategicMapCommandAvailabilityDto> CreateSystemCommands(
+        MapSystemVisibilityDto? visibility)
+    {
+        var isVisible = visibility?.IsVisible == true;
+        return
+        [
+            Command(
+                "strategicMap.system.view",
+                isVisible,
+                isVisible ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.NotVisible,
+                isVisible ? "System can be viewed from the current visibility projection." : "System is not visible to the requesting civilization.")
+        ];
+    }
+
+    private static IReadOnlyList<StrategicMapCommandAvailabilityDto> CreatePlanetCommands(
+        MapPlanetVisibilityDto? visibility,
+        bool hasFleetContext)
+    {
+        var isVisible = visibility?.IsVisible == true;
+        var visibilityBlockReason = visibility?.VisibilityLevel == MapVisibilityLevel.Unknown
+            ? StrategicMapCommandBlockReason.Unknown
+            : StrategicMapCommandBlockReason.NotVisible;
+        var travelAvailable = isVisible && hasFleetContext;
+
+        return
+        [
+            Command(
+                "strategicMap.planet.viewDetail",
+                isVisible,
+                isVisible ? StrategicMapCommandBlockReason.None : visibilityBlockReason,
+                isVisible ? "Planet detail can be viewed from the current visibility projection." : "Planet is unknown or not visible."),
+            Command(
+                "fleet.travel.estimate",
+                travelAvailable,
+                GetFleetBlockReason(isVisible, hasFleetContext, visibilityBlockReason),
+                travelAvailable ? "Capability hint only; destination-specific estimate validation still applies." : "Requires a visible destination and a requesting-civilization fleet context."),
+            Command(
+                "fleet.transfer.create",
+                travelAvailable,
+                travelAvailable ? StrategicMapCommandBlockReason.None : GetFleetBlockReason(isVisible, hasFleetContext, visibilityBlockReason),
+                travelAvailable ? "Capability hint only; transfer creation must use the existing fleet command path." : "Requires a visible destination and a requesting-civilization fleet context.")
+        ];
+    }
+
+    private static StrategicMapCommandBlockReason GetFleetBlockReason(
+        bool isVisible,
+        bool hasFleetContext,
+        StrategicMapCommandBlockReason visibilityBlockReason)
+    {
+        if (!isVisible)
+        {
+            return visibilityBlockReason;
+        }
+
+        return hasFleetContext
+            ? StrategicMapCommandBlockReason.None
+            : StrategicMapCommandBlockReason.NoFleetContext;
+    }
+
+    private static StrategicMapCommandAvailabilityDto Command(
+        string actionKey,
+        bool isAvailable,
+        StrategicMapCommandBlockReason blockReason,
+        string note) => new(actionKey, isAvailable, blockReason, note);
 
     private static IReadOnlyList<StrategicMapRouteFuelNoteDto> CreateRouteFuelNotes() =>
         [
