@@ -21,7 +21,8 @@ public sealed record DevFleetUiGroupDto(
     bool IsStationedAwayFromOrigin,
     bool HasActiveTransfer,
     DevFleetUiTransferDto? ActiveTransfer,
-    DevFleetUiCommandAvailabilityDto Commands);
+    DevFleetUiCommandAvailabilityDto Commands,
+    DevFleetUiRouteFuelReadinessHintDto RouteFuelReadiness);
 
 public sealed record DevFleetUiTransferDto(
     Guid Id,
@@ -50,4 +51,15 @@ public sealed record DevFleetUiActionHintDto(
     string DisplayName,
     bool IsReadOnly,
     string Method,
-    string Route);
+    string Route,
+    string Notes);
+
+public sealed record DevFleetUiRouteFuelReadinessHintDto(
+    bool CanRequestTravelEstimate,
+    bool RequiresDestination,
+    string EstimateActionKey,
+    string EstimateRoute,
+    OrbitalFuelReadinessPolicy FuelReadinessPolicy,
+    OrbitalRouteProfileDto? RouteProfile,
+    OrbitalFuelReadinessDto? FuelReadiness,
+    IReadOnlyList<string> Notes);

@@ -38,5 +38,12 @@ public class DevFleetActionManifestServiceTests
         Assert.Equal("GET", uiState.Method);
         Assert.True(uiState.IsReadOnly);
         Assert.Equal(200, uiState.SuccessStatus);
+
+        var estimate = result.Actions.Single(x => x.ActionKey == "fleet.travel.estimate");
+        Assert.True(estimate.IsReadOnly);
+        Assert.Contains(estimate.RequiredFields, x => x.Name == "destinationPlanetId" && x.IsRequired);
+        Assert.Contains(409, estimate.ErrorStatuses);
+        Assert.Contains("route profile", estimate.Notes, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("fuel readiness", estimate.Notes, StringComparison.OrdinalIgnoreCase);
     }
 }

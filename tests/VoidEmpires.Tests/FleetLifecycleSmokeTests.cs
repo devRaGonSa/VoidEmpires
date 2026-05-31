@@ -63,8 +63,29 @@ public class FleetLifecycleSmokeTests
             firstDestinationPlanetId));
         Assert.True(estimate.Succeeded);
         Assert.True(estimate.CanAfford);
+        Assert.NotNull(estimate.RouteProfile);
+        Assert.True(estimate.RouteProfile.IsSupported);
+        Assert.NotEmpty(estimate.RouteProfile.ComplexityNotes);
+        Assert.NotNull(estimate.FuelReadiness);
+        Assert.True(estimate.FuelReadiness.IsFuelReady);
+        Assert.Equal(OrbitalFuelReadinessPolicy.PlaceholderDerived, estimate.FuelReadiness.Policy);
         Assert.Contains(estimate.ResourceCosts, x => x.ResourceType == ResourceType.Credits && x.Quantity == 5m);
         Assert.Contains(estimate.ResourceCosts, x => x.ResourceType == ResourceType.Gas && x.Quantity == 2m);
+        Assert.Equal(20, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Credits);
+        Assert.Equal(8, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Gas);
+        Assert.Empty(await dbContext.Set<OrbitalTransfer>().ToListAsync());
+        AssertNoRouteFuelPersistence(dbContext);
+
+        var uiStateBeforeTransfer = await new DevFleetUiStateService(
+                dbContext,
+                overviewService,
+                new DevFleetActionManifestService())
+            .GetAsync(new GetDevFleetUiStateRequest(civilizationId));
+        var uiGroupBeforeTransfer = uiStateBeforeTransfer.Groups.Single(x => x.Id == group.Id);
+        Assert.True(uiGroupBeforeTransfer.RouteFuelReadiness.CanRequestTravelEstimate);
+        Assert.Equal(estimate.FuelReadiness.Policy, uiGroupBeforeTransfer.RouteFuelReadiness.FuelReadinessPolicy);
+        Assert.Null(uiGroupBeforeTransfer.RouteFuelReadiness.RouteProfile);
+        Assert.Null(uiGroupBeforeTransfer.RouteFuelReadiness.FuelReadiness);
 
         var firstTransfer = await transferService.PersistAsync(new PersistOrbitalTransferRequest(
             civilizationId,
@@ -91,6 +112,9 @@ public class FleetLifecycleSmokeTests
             firstTransfer.OrbitalTransferId!.Value));
         Assert.True(cancel.Succeeded);
         Assert.Equal(OrbitalGroupStatus.Stationed, (await dbContext.Set<OrbitalGroup>().SingleAsync(x => x.Id == group.Id)).Status);
+        Assert.Equal(15, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Credits);
+        Assert.Equal(6, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Gas);
+        AssertNoRouteFuelPersistence(dbContext);
 
         var split = await splitService.SplitAsync(new SplitOrbitalGroupRequest(civilizationId, group.Id, 2));
         Assert.True(split.Succeeded);
@@ -124,6 +148,17 @@ public class FleetLifecycleSmokeTests
         Assert.True(finalGroup.Commands.CanCreateTransfer);
         Assert.True(finalGroup.Commands.CanSplit);
         Assert.False(finalGroup.Commands.CanCancelTransfer);
+
+        var uiStateAfterCompletion = await new DevFleetUiStateService(
+                dbContext,
+                overviewService,
+                new DevFleetActionManifestService())
+            .GetAsync(new GetDevFleetUiStateRequest(civilizationId));
+        var finalUiGroup = uiStateAfterCompletion.Groups.Single(x => x.Id == group.Id);
+        Assert.Equal(finalDestinationPlanetId, finalUiGroup.CurrentPlanetId);
+        Assert.True(finalUiGroup.RouteFuelReadiness.CanRequestTravelEstimate);
+        Assert.Null(finalUiGroup.RouteFuelReadiness.RouteProfile);
+        Assert.Null(finalUiGroup.RouteFuelReadiness.FuelReadiness);
     }
 
     private static Planet CreatePlanet(Guid id) =>
@@ -133,4 +168,11 @@ public class FleetLifecycleSmokeTests
         new(new DbContextOptionsBuilder<VoidEmpiresDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options);
+
+    private static void AssertNoRouteFuelPersistence(VoidEmpiresDbContext dbContext)
+    {
+        Assert.DoesNotContain(dbContext.Model.GetEntityTypes(), x => x.ClrType.Name.Contains("Fuel", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(dbContext.Model.GetEntityTypes(), x => x.ClrType.Name.Contains("RouteGraph", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(dbContext.Model.GetEntityTypes(), x => x.ClrType.Name.Contains("Pathfinding", StringComparison.OrdinalIgnoreCase));
+    }
 }

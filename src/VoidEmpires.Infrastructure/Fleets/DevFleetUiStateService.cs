@@ -73,7 +73,8 @@ public sealed class DevFleetUiStateService(
                     x.Commands.CanCreateTransfer,
                     x.Commands.CanSplit,
                     x.Commands.CanMerge,
-                    x.Commands.CanCancelTransfer)))
+                    x.Commands.CanCancelTransfer),
+                CreateRouteFuelReadinessHint(x.Commands.CanCreateTransfer)))
             .ToArray();
 
         return new GetDevFleetUiStateResult(
@@ -89,6 +90,26 @@ public sealed class DevFleetUiStateService(
             x.DisplayName,
             x.IsReadOnly,
             x.Method,
-            x.Route))
+            x.Route,
+            x.Notes))
         .ToArray();
+
+    private static DevFleetUiRouteFuelReadinessHintDto CreateRouteFuelReadinessHint(bool canCreateTransfer) =>
+        new(
+            canCreateTransfer,
+            true,
+            "fleet.travel.estimate",
+            "/api/dev/fleets/orbital-travel/estimate",
+            OrbitalFuelReadinessPolicy.PlaceholderDerived,
+            null,
+            null,
+            canCreateTransfer
+                ? [
+                    "Concrete route profile and fuel readiness require a destinationPlanetId.",
+                    "Use fleet.travel.estimate to preview route class, risk, fuel readiness, travel costs, and affordability."
+                ]
+                : [
+                    "Travel estimates are only available for stationed groups without an active transfer.",
+                    "No destination-specific route profile or fuel readiness is included in UI state."
+                ]);
 }
