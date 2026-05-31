@@ -22,8 +22,6 @@ if (!string.IsNullOrWhiteSpace(defaultConnectionString))
 
 var app = builder.Build();
 
-app.UseStaticFiles();
-
 app.MapGet("/", () => "VoidEmpires");
 app.MapPost("/api/auth/register", async (
     RegisterApiRequest request,
@@ -72,6 +70,7 @@ app.MapGet("/api/auth/confirm-email", async (
 });
 if (AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration))
 {
+    app.UseStaticFiles();
     app.MapDevEndpointMappings();
     app.MapDevSystemVisualStateEndpoints();
 }

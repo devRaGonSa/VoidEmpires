@@ -1,5 +1,7 @@
 using System.Net;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 
 namespace VoidEmpires.Tests;
 
@@ -7,9 +9,9 @@ public class VisualStateSandboxEndpointTests(WebApplicationFactory<Program> fact
     : IClassFixture<WebApplicationFactory<Program>>
 {
     [Fact]
-    public async Task VisualStateSandboxHtmlIsServed()
+    public async Task VisualStateSandboxHtmlIsServedInDevelopment()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.WithWebHostBuilder(builder => builder.UseEnvironment("Development")).CreateClient();
 
         using var response = await client.GetAsync("/dev/visual-state/index.html");
         var content = await response.Content.ReadAsStringAsync();
@@ -26,9 +28,39 @@ public class VisualStateSandboxEndpointTests(WebApplicationFactory<Program> fact
     }
 
     [Fact]
-    public async Task VisualStateSandboxCssIsServed()
+    public async Task VisualStateSandboxHtmlIsNotServedOutsideDevelopmentByDefault()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.WithWebHostBuilder(builder => builder.UseEnvironment("Production")).CreateClient();
+
+        using var response = await client.GetAsync("/dev/visual-state/index.html");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task VisualStateSandboxHtmlIsServedOutsideDevelopmentWhenDevEndpointsAreEnabled()
+    {
+        using var client = factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Production");
+            builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["VoidEmpires:DevEndpoints:Enabled"] = "true"
+                }));
+        }).CreateClient();
+
+        using var response = await client.GetAsync("/dev/visual-state/index.html");
+        var content = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("Visual State Inspector", content);
+    }
+
+    [Fact]
+    public async Task VisualStateSandboxCssIsServedInDevelopment()
+    {
+        using var client = factory.WithWebHostBuilder(builder => builder.UseEnvironment("Development")).CreateClient();
 
         using var response = await client.GetAsync("/dev/visual-state/visual-state.css");
         var content = await response.Content.ReadAsStringAsync();
@@ -46,9 +78,9 @@ public class VisualStateSandboxEndpointTests(WebApplicationFactory<Program> fact
     }
 
     [Fact]
-    public async Task VisualStateSandboxScriptIsServed()
+    public async Task VisualStateSandboxScriptIsServedInDevelopment()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.WithWebHostBuilder(builder => builder.UseEnvironment("Development")).CreateClient();
 
         using var response = await client.GetAsync("/dev/visual-state/visual-state.js");
         var content = await response.Content.ReadAsStringAsync();
