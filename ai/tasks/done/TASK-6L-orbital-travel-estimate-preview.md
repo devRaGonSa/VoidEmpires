@@ -3,7 +3,7 @@
 ---
 id: TASK-6L
 title: Add read-only orbital travel estimate preview service and dev endpoint
-status: in-progress
+status: done
 type: feature
 team: backend
 supporting_teams:
