@@ -71,6 +71,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IPlanetVisualStateService, PlanetVisualStateService>();
         services.AddScoped<ISystemVisualStateService, SystemVisualStateService>();
         services.AddScoped<IStrategicMapService, StrategicMapService>();
+        services.AddScoped<IMapVisibilityService, MapVisibilityService>();
 
         return services;
     }

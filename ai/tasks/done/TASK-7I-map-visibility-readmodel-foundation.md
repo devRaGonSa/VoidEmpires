@@ -4,7 +4,7 @@
 
 id: TASK-7I
 title: Add map visibility read model foundation
-status: pending
+status: done
 type: feature
 team: backend
 supporting_teams:
