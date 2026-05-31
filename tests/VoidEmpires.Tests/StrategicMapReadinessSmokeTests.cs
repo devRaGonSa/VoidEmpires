@@ -47,7 +47,7 @@ public class StrategicMapReadinessSmokeTests
 
         var planetVisualService = new PlanetVisualStateService(dbContext);
         var systemVisualService = new SystemVisualStateService(dbContext, planetVisualService);
-        var strategicMap = await new StrategicMapService(dbContext, systemVisualService)
+        var strategicMap = await new StrategicMapService(dbContext, systemVisualService, new MapVisibilityService(dbContext))
             .GetAsync(new GetStrategicMapRequest(civilizationId));
         var systemVisual = await systemVisualService.GetAsync(new GetSystemVisualStateRequest(system.Id));
         var fleetUiState = await new DevFleetUiStateService(
@@ -59,6 +59,8 @@ public class StrategicMapReadinessSmokeTests
 
         var mapSystem = Assert.Single(strategicMap.Systems);
         Assert.Equal(system.Id, mapSystem.SystemId);
+        Assert.Equal(MapVisibilityLevel.Visible, mapSystem.VisibilityLevel);
+        Assert.True(mapSystem.IsVisible);
         Assert.Contains(mapSystem.Planets, x => x.PlanetId == origin.Id && x.IsOwnedByRequestingCivilization);
         Assert.Contains(mapSystem.Planets, x => x.PlanetId == destination.Id);
         Assert.Equal(group.Id, Assert.Single(mapSystem.FleetPresence).OrbitalGroupId);

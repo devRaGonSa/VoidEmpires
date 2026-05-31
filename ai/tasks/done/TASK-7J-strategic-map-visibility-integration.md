@@ -4,7 +4,7 @@
 
 id: TASK-7J
 title: Integrate visibility into strategic map
-status: pending
+status: done
 type: feature
 team: backend
 supporting_teams:

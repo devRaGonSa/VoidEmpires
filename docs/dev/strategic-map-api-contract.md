@@ -66,11 +66,16 @@ The manifest is read-only metadata for UI discovery. It does not require persist
 
 Current relevance is inherited from the Phase 7E service: systems are included when they contain owned planets or active transfer origin/destination planets for the requesting civilization. There is no separate known-system, sensor, alliance, or espionage visibility model yet.
 
+Visibility fields are inherited from the Phase 7I derived map visibility service. They are read-only annotations and do not represent persisted fog-of-war. Current levels are `Owned`, `Visible`, and `Unknown`; current reasons are `OwnedPlanet`, `SystemContainsOwnedPlanet`, and `NoKnownVisibilitySource`.
+
 Each `systems[]` item contains:
 
 - `systemId`, `galaxyId`, `systemName`
 - `coordinateX`, `coordinateY`, `coordinateZ`
 - `starType`
+- `visibilityLevel`, `visibilityReason`
+- `isVisible`
+- `isOwnedByRequestingCivilization`: currently true when the derived visibility model finds an owned planet in the system.
 - `planets[]`
 - `fleetPresence[]`
 - `transferOverlays[]`
@@ -79,6 +84,8 @@ Each `planets[]` item contains identity and summary fields:
 
 - `planetId`, `planetName`, `planetType`, `size`, `colonizationStatus`
 - `isOwnedByRequestingCivilization`
+- `visibilityLevel`, `visibilityReason`
+- `isVisible`
 - `civilizationId`: populated only when owned by the requesting civilization.
 - `orbitalSlot`, `orbitRadius`, `orbitAngleDegrees`, `visualScale`
 - `colonizationIntensity`, `urbanIntensity`, `industrialIntensity`, `militaryIntensity`, `orbitalPresenceIntensity`
@@ -122,6 +129,7 @@ Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` w
 - No route graph or pathfinding.
 - No combat or interception.
 - No alliances, diplomacy, sensors, or espionage visibility model.
+- Unknown visibility can appear for strategic-map nodes that are relevant for another reason, such as an active transfer destination, but the strategic map endpoint does not return every persisted unknown system.
 - No fuel inventory, refueling, or fuel spending.
 - No meshes, textures, binary assets, shader data, or heavy render payloads.
 - Transfer progress remains a read-time visual approximation.

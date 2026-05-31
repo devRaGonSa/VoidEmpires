@@ -11,7 +11,8 @@ namespace VoidEmpires.Infrastructure.StrategicMap;
 
 public sealed class StrategicMapService(
     VoidEmpiresDbContext dbContext,
-    ISystemVisualStateService systemVisualStateService) : IStrategicMapService
+    ISystemVisualStateService systemVisualStateService,
+    IMapVisibilityService mapVisibilityService) : IStrategicMapService
 {
     public async Task<GetStrategicMapResult> GetAsync(
         GetStrategicMapRequest request,
@@ -53,6 +54,9 @@ public sealed class StrategicMapService(
             .Select(x => x.SolarSystemId)
             .Distinct()
             .ToListAsync(cancellationToken);
+        var visibility = await mapVisibilityService
+            .GetAsync(new GetMapVisibilityRequest(request.CivilizationId), cancellationToken);
+        var visibilityBySystemId = visibility.Systems.ToDictionary(x => x.SystemId);
 
         var systems = new List<StrategicMapSystemDto>();
         foreach (var systemId in systemIds)
@@ -63,7 +67,8 @@ public sealed class StrategicMapService(
                 continue;
             }
 
-            systems.Add(CreateSystem(visualResult.VisualState, request.CivilizationId, activeTransfers));
+            visibilityBySystemId.TryGetValue(systemId, out var systemVisibility);
+            systems.Add(CreateSystem(visualResult.VisualState, request.CivilizationId, activeTransfers, systemVisibility));
         }
 
         return new GetStrategicMapResult(
@@ -75,10 +80,12 @@ public sealed class StrategicMapService(
     private static StrategicMapSystemDto CreateSystem(
         SystemVisualStateDto visualState,
         Guid civilizationId,
-        IReadOnlyCollection<OrbitalTransfer> activeTransfers)
+        IReadOnlyCollection<OrbitalTransfer> activeTransfers,
+        MapSystemVisibilityDto? visibility)
     {
         var layoutByPlanetId = visualState.LayoutHints.ToDictionary(x => x.PlanetId);
         var transfersById = activeTransfers.ToDictionary(x => x.Id);
+        var visibilityByPlanetId = visibility?.Planets.ToDictionary(x => x.PlanetId) ?? [];
 
         return new StrategicMapSystemDto(
             visualState.SystemId,
@@ -88,7 +95,15 @@ public sealed class StrategicMapService(
             visualState.CoordinateY,
             visualState.CoordinateZ,
             visualState.Star.StarType,
-            visualState.Planets.Select(x => CreatePlanet(x, civilizationId, layoutByPlanetId)).ToArray(),
+            visibility?.VisibilityLevel ?? MapVisibilityLevel.Unknown,
+            visibility?.VisibilityReason ?? MapVisibilityReason.NoKnownVisibilitySource,
+            visibility?.IsVisible ?? false,
+            visibility?.IsOwnedByRequestingCivilization ?? false,
+            visualState.Planets.Select(x =>
+            {
+                visibilityByPlanetId.TryGetValue(x.PlanetId, out var planetVisibility);
+                return CreatePlanet(x, civilizationId, layoutByPlanetId, planetVisibility);
+            }).ToArray(),
             visualState.OrbitalGroupMarkers
                 .Where(x => x.CivilizationId == civilizationId)
                 .Select(x => new StrategicMapFleetPresenceDto(
@@ -122,7 +137,8 @@ public sealed class StrategicMapService(
     private static StrategicMapPlanetDto CreatePlanet(
         PlanetVisualStateDto visualState,
         Guid civilizationId,
-        IReadOnlyDictionary<Guid, PlanetVisualLayoutHintDto> layoutByPlanetId)
+        IReadOnlyDictionary<Guid, PlanetVisualLayoutHintDto> layoutByPlanetId,
+        MapPlanetVisibilityDto? visibility)
     {
         layoutByPlanetId.TryGetValue(visualState.PlanetId, out var layout);
         var isOwnedByRequester = visualState.CivilizationId == civilizationId;
@@ -135,6 +151,9 @@ public sealed class StrategicMapService(
             visualState.Size,
             visualState.ColonizationStatus,
             isOwnedByRequester,
+            visibility?.VisibilityLevel ?? MapVisibilityLevel.Unknown,
+            visibility?.VisibilityReason ?? MapVisibilityReason.NoKnownVisibilitySource,
+            visibility?.IsVisible ?? false,
             isOwnedByRequester ? civilizationId : null,
             layout?.OrbitalSlot ?? 0,
             layout?.OrbitRadius ?? 0f,
