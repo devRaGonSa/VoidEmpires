@@ -12,7 +12,7 @@ JSON payloads use current .NET enum names such as `ScoutCraft`, `Stationed`, `Re
 
 | Status | Meaning |
 |---|---|
-| `200 OK` | Successful read, merge, cancel, or complete operation. |
+| `200 OK` | Successful read, merge, cancel, complete, UI-state, or manifest operation. |
 | `201 Created` | Successful group creation, split, or transfer creation. |
 | `400 Bad Request` | Missing, empty, non-positive, or non-UTC required data. |
 | `404 Not Found` | Development route is disabled, or cancel targets a missing transfer. |
@@ -39,6 +39,8 @@ Phase 6W reviewed the fleet development endpoints and kept the existing response
 | `POST` | `/api/dev/fleets/orbital-transfers/cancel` | Mutating | Cancels transfer and releases group reservation. |
 | `POST` | `/api/dev/fleets/orbital-transfers/complete-due` | Mutating | Completes all due transfers and moves groups. |
 | `GET` | `/api/dev/fleets/overview` | Read-only | None. Returns group state and command availability. |
+| `GET` | `/api/dev/fleets/ui-state` | Read-only | None. Returns fleet screen state for dev UI prototypes. |
+| `GET` | `/api/dev/fleets/action-manifest` | Read-only | None. Returns machine-readable fleet action metadata. |
 
 ## Orbital Group Contracts
 
@@ -134,7 +136,9 @@ Response: `succeeded`, `completedCount`, `completedTransferIds[]`, `completedOrb
 
 Restrictions and side effects: `nowUtc` must be UTC. This batch operation is not scoped by civilization. It completes due transfers, moves their groups to their destinations, and returns completed transfer/group ids.
 
-## Fleet Overview
+## Fleet Overview and UI Readiness
+
+### Fleet Overview
 
 `GET /api/dev/fleets/overview`
 
@@ -144,16 +148,38 @@ Response: `succeeded`, `overview`, `errors`. `overview` contains `civilizationId
 
 Restrictions: read-only. Command availability is a UI planning hint derived from current group state and active transfers; it is not a replacement for command validation.
 
+### Fleet UI State
+
+`GET /api/dev/fleets/ui-state`
+
+Query: required `civilizationId`.
+
+Response: `succeeded`, `uiState`, `errors`. `uiState` contains `civilizationId`, `groups[]`, `resourceContexts[]`, and `actionHints[]`. Groups mirror the operational overview shape and include command availability. Resource contexts include current-planet stockpile balances for `Credits`, `Metal`, `Crystal`, and `Gas` when a stockpile exists for a group's current planet. Action hints include action key, display name, route, method, and read-only flag.
+
+Restrictions: read-only. This endpoint aggregates existing read models for dev UI prototypes; it does not create, cancel, complete, split, merge, estimate, charge, or mutate persisted state.
+
+### Fleet Action Manifest
+
+`GET /api/dev/fleets/action-manifest`
+
+Response: `succeeded`, `manifest`, `errors`. `manifest.actions[]` includes `actionKey`, `displayName`, `method`, `route`, `isReadOnly`, `requiredFields[]`, `successStatus`, `errorStatuses[]`, and `notes`.
+
+Current action keys: `fleet.overview.read`, `fleet.uiState.read`, `fleet.travel.estimate`, `fleet.transfer.create`, `fleet.transfer.cancel`, `fleet.transfer.complete`, `fleet.group.split`, and `fleet.group.merge`.
+
+Restrictions: read-only and deterministic. This endpoint is a dev metadata surface for frontend tooling and does not require persistence beyond development-route gating.
+
 ## Lifecycle Example
 
-1. Preview travel with `POST /api/dev/fleets/orbital-travel/estimate`.
-2. Create a transfer with `POST /api/dev/fleets/orbital-transfers/create`; this charges resources and reserves the group.
-3. Inspect state with `GET /api/dev/fleets/overview`.
-4. Cancel with `POST /api/dev/fleets/orbital-transfers/cancel`; the group is released and resources are not refunded.
-5. Split a stationed group with `POST /api/dev/fleets/orbital-groups/split`.
-6. Merge compatible stationed groups with `POST /api/dev/fleets/orbital-groups/merge`.
-7. Create another transfer with `POST /api/dev/fleets/orbital-transfers/create`.
-8. Complete due transfers with `POST /api/dev/fleets/orbital-transfers/complete-due`.
-9. Inspect final state with `GET /api/dev/fleets/overview`.
+1. Inspect available actions with `GET /api/dev/fleets/action-manifest`.
+2. Load screen state with `GET /api/dev/fleets/ui-state`.
+3. Preview travel with `POST /api/dev/fleets/orbital-travel/estimate`.
+4. Create a transfer with `POST /api/dev/fleets/orbital-transfers/create`; this charges resources and reserves the group.
+5. Inspect state with `GET /api/dev/fleets/overview` or `GET /api/dev/fleets/ui-state`.
+6. Cancel with `POST /api/dev/fleets/orbital-transfers/cancel`; the group is released and resources are not refunded.
+7. Split a stationed group with `POST /api/dev/fleets/orbital-groups/split`.
+8. Merge compatible stationed groups with `POST /api/dev/fleets/orbital-groups/merge`.
+9. Create another transfer with `POST /api/dev/fleets/orbital-transfers/create`.
+10. Complete due transfers with `POST /api/dev/fleets/orbital-transfers/complete-due`.
+11. Inspect final state with `GET /api/dev/fleets/overview` or `GET /api/dev/fleets/ui-state`.
 
 See `docs/dev/visual-state-sandbox.md` for related visual-state endpoints and the current rendering of fleet markers and transfer overlays.
