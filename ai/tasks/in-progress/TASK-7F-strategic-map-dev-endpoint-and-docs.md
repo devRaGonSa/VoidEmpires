@@ -4,7 +4,7 @@
 
 id: TASK-7F
 title: Add strategic map dev endpoint and documentation
-status: pending
+status: in-progress
 type: feature
 team: backend
 supporting_teams:

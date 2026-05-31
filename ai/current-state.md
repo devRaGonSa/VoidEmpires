@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 7E - Strategic map read model`.
+The repository is consolidated through `Phase 7F - Strategic map dev endpoint and docs`.
 
 ## Repository Reality
 
@@ -52,6 +52,8 @@ Current implemented foundations:
 - Development-only fleet UI state endpoint exposes route/fuel readiness capability hints for each group, while leaving concrete route profile and fuel readiness previews null until a destination-specific travel estimate is requested.
 - Development-only fleet action manifest exposes deterministic, machine-readable metadata for current fleet dev actions, including route, method, mutability, required fields, success status, common error statuses, and notes for route/fuel preview flows.
 - Read-only strategic map service consolidates civilization-scoped relevant systems, planet visual/layout summaries, owned ownership markers, fleet presence, active transfer overlays, and route/fuel capability notes without adding gameplay behavior or production UI endpoints.
+- Development-only strategic map endpoint at `GET /api/dev/strategic-map?civilizationId={id}` exposes the Phase 7E read model behind existing development gating and persistence checks.
+- Strategic map development contract documentation under `docs/dev/strategic-map-api-contract.md` describes request/response fields, gating behavior, side effects, limitations, and relationship to visual/fleet read models.
 - Static visual sandbox at `/dev/visual-state/index.html`.
 - CSS-only pseudo-3D visual sandbox rendering for planet/system preview, overlays, markers, and transfer routes.
 - Static sandbox assets are gated behind the same development switch as development APIs.
@@ -124,7 +126,7 @@ Accepted current rules:
 
 - Development environment serves dev APIs and `/dev/visual-state/*` static files.
 - Production environment does not serve `/dev/visual-state/*` by default.
-- Production serves those files only when `VoidEmpires:DevEndpoints:Enabled=true`.
+- Production serves those files and development API routes only when `VoidEmpires:DevEndpoints:Enabled=true`.
 - The visual sandbox and assets remain development tooling.
 
 ## Validation Status
@@ -137,9 +139,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 7E: `386` passing tests.
+Current validated baseline after Phase 7F: `392` passing tests.
 
-Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, and the strategic map read model.
+Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, and the strategic map development endpoint.
 
 ## Recommended Next Work
 
