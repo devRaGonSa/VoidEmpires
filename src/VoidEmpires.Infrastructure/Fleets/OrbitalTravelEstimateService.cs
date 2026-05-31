@@ -10,7 +10,9 @@ namespace VoidEmpires.Infrastructure.Fleets;
 
 public sealed class OrbitalTravelEstimateService(
     VoidEmpiresDbContext dbContext,
-    IResourceSpendService resourceSpendService) : IOrbitalTravelEstimateService
+    IResourceSpendService resourceSpendService,
+    IOrbitalRouteProfileService routeProfileService,
+    IOrbitalFuelReadinessService fuelReadinessService) : IOrbitalTravelEstimateService
 {
     public async Task<EstimateOrbitalTravelResult> EstimateAsync(
         EstimateOrbitalTravelRequest request,
@@ -70,6 +72,12 @@ public sealed class OrbitalTravelEstimateService(
             group.CurrentPlanetId,
             request.DestinationPlanetId,
             group.AssetType);
+        var routeProfile = routeProfileService.GetProfile(estimate.AbstractDistanceUnits);
+        var fuelReadiness = fuelReadinessService.GetReadiness(
+            group.AssetType,
+            group.Quantity,
+            estimate.AbstractDistanceUnits,
+            routeProfile);
 
         var costs = estimate.ResourceCosts
             .Select(x => new OrbitalTravelCostComponentDto(x.ResourceType, x.Quantity))
@@ -89,6 +97,8 @@ public sealed class OrbitalTravelEstimateService(
             request.DestinationPlanetId,
             estimate.AbstractDistanceUnits,
             estimate.EstimatedDuration,
+            routeProfile,
+            fuelReadiness,
             costs,
             affordability.Succeeded,
             insufficientResources);

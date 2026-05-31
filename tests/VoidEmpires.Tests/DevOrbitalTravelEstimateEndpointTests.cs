@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Fleets;
 using VoidEmpires.Domain.Economy;
+using VoidEmpires.Domain.Fleets;
 
 namespace VoidEmpires.Tests;
 
@@ -70,6 +71,17 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
         Assert.Equal(DestinationPlanetId, payload.DestinationPlanetId);
         Assert.Equal(1, payload.AbstractDistanceUnits);
         Assert.Equal(TimeSpan.FromHours(1), payload.EstimatedDuration);
+        Assert.NotNull(payload.RouteProfile);
+        Assert.Equal(OrbitalRouteClass.LocalOrbit, payload.RouteProfile.RouteClass);
+        Assert.Equal(1, payload.RouteProfile.DistanceBand);
+        Assert.Equal(OrbitalRouteRiskBand.Low, payload.RouteProfile.RiskBand);
+        Assert.Equal(1m, payload.RouteProfile.FuelMultiplier);
+        Assert.True(payload.RouteProfile.IsSupported);
+        Assert.NotNull(payload.FuelReadiness);
+        Assert.Equal(1m, payload.FuelReadiness.EstimatedFuelUnitsRequired);
+        Assert.Equal(6, payload.FuelReadiness.EstimatedRangeUnitsAvailable);
+        Assert.True(payload.FuelReadiness.IsFuelReady);
+        Assert.Null(payload.FuelReadiness.NotReadyReason);
         Assert.Contains(payload.ResourceCosts, x => x.ResourceType == ResourceType.Credits && x.Quantity == 5m);
         Assert.Contains(payload.ResourceCosts, x => x.ResourceType == ResourceType.Gas && x.Quantity == 2m);
         Assert.True(payload.CanAfford);
@@ -113,6 +125,14 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
             DestinationPlanetId,
             1,
             TimeSpan.FromHours(1),
+            new OrbitalRouteProfileDto(
+                OrbitalRouteClass.LocalOrbit,
+                1,
+                OrbitalRouteRiskBand.Low,
+                1m,
+                ["Single-hop local orbital transfer."],
+                true),
+            new OrbitalFuelReadinessDto(1m, 6, true, null, OrbitalFuelReadinessPolicy.PlaceholderDerived),
             [
                 new OrbitalTravelCostComponentDto(ResourceType.Credits, 5m),
                 new OrbitalTravelCostComponentDto(ResourceType.Gas, 2m)
@@ -143,10 +163,27 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
         Guid? DestinationPlanetId,
         int AbstractDistanceUnits,
         TimeSpan? EstimatedDuration,
+        OrbitalRouteProfileResponse? RouteProfile,
+        OrbitalFuelReadinessResponse? FuelReadiness,
         OrbitalTravelCostComponentResponse[] ResourceCosts,
         bool CanAfford,
         OrbitalTravelInsufficientResourceResponse[] InsufficientResources,
         string[] Errors);
+
+    private sealed record OrbitalRouteProfileResponse(
+        OrbitalRouteClass RouteClass,
+        int DistanceBand,
+        OrbitalRouteRiskBand RiskBand,
+        decimal FuelMultiplier,
+        string[] ComplexityNotes,
+        bool IsSupported);
+
+    private sealed record OrbitalFuelReadinessResponse(
+        decimal EstimatedFuelUnitsRequired,
+        int EstimatedRangeUnitsAvailable,
+        bool IsFuelReady,
+        string? NotReadyReason,
+        OrbitalFuelReadinessPolicy Policy);
 
     private sealed record OrbitalTravelCostComponentResponse(ResourceType ResourceType, decimal Quantity);
 

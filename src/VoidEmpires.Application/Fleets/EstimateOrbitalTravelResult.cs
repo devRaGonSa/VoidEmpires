@@ -7,6 +7,8 @@ public sealed record EstimateOrbitalTravelResult(
     Guid? DestinationPlanetId,
     int AbstractDistanceUnits,
     TimeSpan? EstimatedDuration,
+    OrbitalRouteProfileDto? RouteProfile,
+    OrbitalFuelReadinessDto? FuelReadiness,
     IReadOnlyList<OrbitalTravelCostComponentDto> ResourceCosts,
     bool CanAfford,
     IReadOnlyList<OrbitalTravelInsufficientResourceDto> InsufficientResources,
@@ -18,6 +20,8 @@ public sealed record EstimateOrbitalTravelResult(
         Guid destinationPlanetId,
         int abstractDistanceUnits,
         TimeSpan estimatedDuration,
+        OrbitalRouteProfileDto routeProfile,
+        OrbitalFuelReadinessDto fuelReadiness,
         IReadOnlyList<OrbitalTravelCostComponentDto> resourceCosts,
         bool canAfford,
         IReadOnlyList<OrbitalTravelInsufficientResourceDto> insufficientResources) =>
@@ -28,11 +32,13 @@ public sealed record EstimateOrbitalTravelResult(
             destinationPlanetId,
             abstractDistanceUnits,
             estimatedDuration,
+            routeProfile,
+            fuelReadiness,
             resourceCosts,
             canAfford,
             insufficientResources,
             []);
 
     public static EstimateOrbitalTravelResult Failure(params string[] errors) =>
-        new(false, null, null, null, 0, null, [], false, [], errors);
+        new(false, null, null, null, 0, null, null, null, [], false, [], errors);
 }

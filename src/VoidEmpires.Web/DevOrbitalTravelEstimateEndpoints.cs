@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VoidEmpires.Application.Fleets;
 using VoidEmpires.Domain.Economy;
+using VoidEmpires.Domain.Fleets;
 
 internal static class DevOrbitalTravelEstimateEndpoints
 {
@@ -46,6 +47,23 @@ internal static class DevOrbitalTravelEstimateEndpoints
                 result.DestinationPlanetId,
                 result.AbstractDistanceUnits,
                 result.EstimatedDuration,
+                result.RouteProfile is null
+                    ? null
+                    : new OrbitalRouteProfileApiResponse(
+                        result.RouteProfile.RouteClass,
+                        result.RouteProfile.DistanceBand,
+                        result.RouteProfile.RiskBand,
+                        result.RouteProfile.FuelMultiplier,
+                        result.RouteProfile.ComplexityNotes,
+                        result.RouteProfile.IsSupported),
+                result.FuelReadiness is null
+                    ? null
+                    : new OrbitalFuelReadinessApiResponse(
+                        result.FuelReadiness.EstimatedFuelUnitsRequired,
+                        result.FuelReadiness.EstimatedRangeUnitsAvailable,
+                        result.FuelReadiness.IsFuelReady,
+                        result.FuelReadiness.NotReadyReason,
+                        result.FuelReadiness.Policy),
                 costs,
                 result.CanAfford,
                 insufficientResources,
@@ -90,14 +108,31 @@ internal sealed record EstimateOrbitalTravelApiResponse(
     Guid? DestinationPlanetId,
     int AbstractDistanceUnits,
     TimeSpan? EstimatedDuration,
+    OrbitalRouteProfileApiResponse? RouteProfile,
+    OrbitalFuelReadinessApiResponse? FuelReadiness,
     IReadOnlyList<OrbitalTravelCostComponentApiResponse> ResourceCosts,
     bool CanAfford,
     IReadOnlyList<OrbitalTravelInsufficientResourceApiResponse> InsufficientResources,
     IReadOnlyList<string> Errors)
 {
     public static EstimateOrbitalTravelApiResponse Failure(IReadOnlyList<string> errors) =>
-        new(false, null, null, null, 0, null, [], false, [], errors);
+        new(false, null, null, null, 0, null, null, null, [], false, [], errors);
 }
+
+internal sealed record OrbitalFuelReadinessApiResponse(
+    decimal EstimatedFuelUnitsRequired,
+    int EstimatedRangeUnitsAvailable,
+    bool IsFuelReady,
+    string? NotReadyReason,
+    OrbitalFuelReadinessPolicy Policy);
+
+internal sealed record OrbitalRouteProfileApiResponse(
+    OrbitalRouteClass RouteClass,
+    int DistanceBand,
+    OrbitalRouteRiskBand RiskBand,
+    decimal FuelMultiplier,
+    IReadOnlyList<string> ComplexityNotes,
+    bool IsSupported);
 
 internal sealed record OrbitalTravelCostComponentApiResponse(ResourceType ResourceType, decimal Quantity);
 
