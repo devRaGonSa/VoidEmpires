@@ -10,7 +10,15 @@ public class DevStrategicMapActionManifestServiceTests
         var result = new DevStrategicMapActionManifestService().Get();
 
         var keys = result.Actions.Select(x => x.ActionKey).ToArray();
-        Assert.Equal(["strategicMap.read", "visual.system.read", "visual.planet.read", "fleet.uiState.read", "fleet.actionManifest.read", "strategicMap.actionManifest.read"], keys);
+        Assert.Equal([
+            "strategicMap.read",
+            "strategicMap.explorationPreview.read",
+            "visual.system.read",
+            "visual.planet.read",
+            "fleet.uiState.read",
+            "fleet.actionManifest.read",
+            "strategicMap.actionManifest.read"
+        ], keys);
     }
 
     [Fact]
@@ -33,6 +41,12 @@ public class DevStrategicMapActionManifestServiceTests
         Assert.Contains("fleet presence", map.Notes, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("route/fuel", map.Notes, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("command availability", map.Notes, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("exploration preview", map.Notes, StringComparison.OrdinalIgnoreCase);
+
+        var exploration = result.Actions.Single(x => x.ActionKey == "strategicMap.explorationPreview.read");
+        Assert.Equal("/api/dev/strategic-map/exploration-preview", exploration.Route);
+        Assert.Contains(exploration.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
+        Assert.Contains("read-only exploration readiness", exploration.Notes, StringComparison.OrdinalIgnoreCase);
 
         var manifest = result.Actions.Single(x => x.ActionKey == "strategicMap.actionManifest.read");
         Assert.Empty(manifest.RequiredFields);
