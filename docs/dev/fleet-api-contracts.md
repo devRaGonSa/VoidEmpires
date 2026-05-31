@@ -191,3 +191,4 @@ Restrictions: read-only and deterministic. This endpoint is a dev metadata surfa
 11. Inspect final state with `GET /api/dev/fleets/overview` or `GET /api/dev/fleets/ui-state`.
 
 See `docs/dev/visual-state-sandbox.md` for related visual-state endpoints and the current rendering of fleet markers and transfer overlays.
+See `docs/dev/strategic-map-api-contract.md` for the map-level read model that consolidates system, planet, fleet presence, transfer overlay, and route/fuel capability summaries for future UI work.

@@ -10,6 +10,7 @@ using VoidEmpires.Application.Fleets;
 using VoidEmpires.Application.Identity;
 using VoidEmpires.Application.Players;
 using VoidEmpires.Application.Research;
+using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Application.Visuals;
 using VoidEmpires.Infrastructure.Assets;
 using VoidEmpires.Infrastructure.Buildings;
@@ -20,6 +21,7 @@ using VoidEmpires.Infrastructure.Identity;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.Players;
 using VoidEmpires.Infrastructure.Research;
+using VoidEmpires.Infrastructure.StrategicMap;
 using VoidEmpires.Infrastructure.Visuals;
 
 namespace VoidEmpires.Infrastructure;
@@ -68,6 +70,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IDevFleetUiStateService, DevFleetUiStateService>();
         services.AddScoped<IPlanetVisualStateService, PlanetVisualStateService>();
         services.AddScoped<ISystemVisualStateService, SystemVisualStateService>();
+        services.AddScoped<IStrategicMapService, StrategicMapService>();
 
         return services;
     }
