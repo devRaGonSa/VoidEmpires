@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Fleets;
 using VoidEmpires.Domain.Assets;
+using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
+using VoidEmpires.Infrastructure.Economy;
 using VoidEmpires.Infrastructure.Fleets;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -24,8 +26,12 @@ public class OrbitalTransferPersistenceServiceTests
             SpaceAssetType.ScoutCraft,
             2);
         dbContext.Set<OrbitalGroup>().Add(group);
+        var stockpile = PlanetResourceStockpile.Create(currentPlanetId);
+        stockpile.Increase(ResourceType.Credits, 5);
+        stockpile.Increase(ResourceType.Gas, 2);
+        dbContext.PlanetResourceStockpiles.Add(stockpile);
         await dbContext.SaveChangesAsync();
-        var service = new OrbitalTransferPersistenceService(dbContext);
+        var service = CreateService(dbContext);
 
         var result = await service.PersistAsync(new PersistOrbitalTransferRequest(
             civilizationId,
@@ -50,13 +56,51 @@ public class OrbitalTransferPersistenceServiceTests
         var persistedGroup = await dbContext.Set<OrbitalGroup>().SingleAsync(x => x.Id == group.Id);
         Assert.Equal(OrbitalGroupStatus.Reserved, persistedGroup.Status);
         Assert.Equal(currentPlanetId, persistedGroup.CurrentPlanetId);
+        var persistedStockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == currentPlanetId);
+        Assert.Equal(0, persistedStockpile.Credits);
+        Assert.Equal(0, persistedStockpile.Gas);
+    }
+
+    [Fact]
+    public async Task PersistAsyncRejectsInsufficientResourcesWithoutMutatingTransferGroupOrStockpile()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var currentPlanetId = Guid.NewGuid();
+        var destinationPlanetId = Guid.NewGuid();
+        var group = OrbitalGroup.CreateStationed(
+            civilizationId,
+            Guid.NewGuid(),
+            currentPlanetId,
+            SpaceAssetType.CargoCraft,
+            2);
+        var stockpile = PlanetResourceStockpile.Create(currentPlanetId);
+        stockpile.Increase(ResourceType.Credits, 1);
+        stockpile.Increase(ResourceType.Gas, 10);
+        dbContext.Set<OrbitalGroup>().Add(group);
+        dbContext.PlanetResourceStockpiles.Add(stockpile);
+        await dbContext.SaveChangesAsync();
+
+        var result = await CreateService(dbContext).PersistAsync(new PersistOrbitalTransferRequest(
+            civilizationId,
+            group.Id,
+            destinationPlanetId,
+            new DateTime(2026, 5, 28, 12, 0, 0, DateTimeKind.Utc)));
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Insufficient Credits.", result.Errors);
+        Assert.Empty(await dbContext.Set<OrbitalTransfer>().ToListAsync());
+        Assert.Equal(OrbitalGroupStatus.Stationed, (await dbContext.Set<OrbitalGroup>().SingleAsync()).Status);
+        var persistedStockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == currentPlanetId);
+        Assert.Equal(1, persistedStockpile.Credits);
+        Assert.Equal(10, persistedStockpile.Gas);
     }
 
     [Fact]
     public async Task PersistAsyncRejectsInvalidRequest()
     {
         await using var dbContext = CreateDbContext();
-        var service = new OrbitalTransferPersistenceService(dbContext);
+        var service = CreateService(dbContext);
 
         var result = await service.PersistAsync(new PersistOrbitalTransferRequest(
             Guid.Empty,
@@ -75,7 +119,7 @@ public class OrbitalTransferPersistenceServiceTests
     public async Task PersistAsyncRejectsUnknownGroupForCivilization()
     {
         await using var dbContext = CreateDbContext();
-        var service = new OrbitalTransferPersistenceService(dbContext);
+        var service = CreateService(dbContext);
 
         var result = await service.PersistAsync(new PersistOrbitalTransferRequest(
             Guid.NewGuid(),
@@ -101,7 +145,7 @@ public class OrbitalTransferPersistenceServiceTests
         group.Reserve();
         dbContext.Set<OrbitalGroup>().Add(group);
         await dbContext.SaveChangesAsync();
-        var service = new OrbitalTransferPersistenceService(dbContext);
+        var service = CreateService(dbContext);
 
         var result = await service.PersistAsync(new PersistOrbitalTransferRequest(
             civilizationId,
@@ -127,7 +171,7 @@ public class OrbitalTransferPersistenceServiceTests
             2);
         dbContext.Set<OrbitalGroup>().Add(group);
         await dbContext.SaveChangesAsync();
-        var service = new OrbitalTransferPersistenceService(dbContext);
+        var service = CreateService(dbContext);
 
         var result = await service.PersistAsync(new PersistOrbitalTransferRequest(
             civilizationId,
@@ -147,4 +191,7 @@ public class OrbitalTransferPersistenceServiceTests
 
         return new VoidEmpiresDbContext(options);
     }
+
+    private static OrbitalTransferPersistenceService CreateService(VoidEmpiresDbContext dbContext) =>
+        new(dbContext, new ResourceSpendService(dbContext));
 }

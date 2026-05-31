@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 6N - Orbital group merge foundation`.
+The repository is consolidated through `Phase 6Q - Charge orbital transfer costs on create`.
 
 ## Repository Reality
 
@@ -35,7 +35,9 @@ Current implemented foundations:
 - Solar system visual state contracts and persisted system visual state service.
 - System visual metadata for renderer preparation: star metadata, coordinates, orbital slots, orbit radii, orbit angles, and scale hints.
 - Read-only system visual overlays: stationed orbital group markers and planned/active transfer route overlays.
-- Read-only orbital travel estimate previews through the application, infrastructure, and development API layers.
+- Read-only orbital travel estimate previews through the application, infrastructure, and development API layers, including affordability and insufficient-resource details.
+- Reusable resource affordability and spend service for persisted planet stockpiles, with atomic multi-resource validation and spending.
+- Orbital transfer creation charges estimated travel costs from persisted planet stockpiles before reserving groups and creating transfers.
 - Persistent orbital group split foundation for stationed groups, preserving civilization, origin planet, current planet, asset type, and status while decreasing the source group quantity.
 - Persistent orbital group merge foundation for compatible stationed groups, increasing the target group quantity and removing the source group.
 - Static visual sandbox at `/dev/visual-state/index.html`.
@@ -86,6 +88,8 @@ Accepted current rules:
 - Creating a transfer reserves the orbital group.
 - Completing a due transfer moves the group to the destination and marks the transfer completed.
 - Orbital travel estimates are preview-only read models. They calculate distance, duration, and estimated resource costs without creating transfers, reserving groups, charging resources, mutating stockpiles, or persisting estimates.
+- Orbital travel estimates report whether the current planet stockpile can afford estimated costs and identify insufficient resources without spending balances.
+- Creating an orbital transfer charges the estimated travel costs from the current planet stockpile before reserving the orbital group and creating the transfer.
 - Splitting an orbital group is available only for stationed groups owned by the requesting civilization. The split quantity must be positive and lower than the source quantity.
 - Merging orbital groups requires different stationed groups owned by the requesting civilization, sharing the same current planet and asset type. The target group quantity increases and the source group is removed.
 - The current sandbox renders markers and transfer route lines as visual indicators only.
@@ -111,7 +115,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 6N: `331` passing tests.
+Current validated baseline after Phase 6Q: `339` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, and static sandbox gating behavior.
 

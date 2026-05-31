@@ -32,6 +32,12 @@ internal static class DevOrbitalTravelEstimateEndpoints
             var costs = result.ResourceCosts
                 .Select(x => new OrbitalTravelCostComponentApiResponse(x.ResourceType, x.Quantity))
                 .ToArray();
+            var insufficientResources = result.InsufficientResources
+                .Select(x => new OrbitalTravelInsufficientResourceApiResponse(
+                    x.ResourceType,
+                    x.RequiredQuantity,
+                    x.AvailableQuantity))
+                .ToArray();
 
             var response = new EstimateOrbitalTravelApiResponse(
                 result.Succeeded,
@@ -41,6 +47,8 @@ internal static class DevOrbitalTravelEstimateEndpoints
                 result.AbstractDistanceUnits,
                 result.EstimatedDuration,
                 costs,
+                result.CanAfford,
+                insufficientResources,
                 result.Errors);
 
             return result.Succeeded ? Results.Ok(response) : Results.Conflict(response);
@@ -83,10 +91,17 @@ internal sealed record EstimateOrbitalTravelApiResponse(
     int AbstractDistanceUnits,
     TimeSpan? EstimatedDuration,
     IReadOnlyList<OrbitalTravelCostComponentApiResponse> ResourceCosts,
+    bool CanAfford,
+    IReadOnlyList<OrbitalTravelInsufficientResourceApiResponse> InsufficientResources,
     IReadOnlyList<string> Errors)
 {
     public static EstimateOrbitalTravelApiResponse Failure(IReadOnlyList<string> errors) =>
-        new(false, null, null, null, 0, null, [], errors);
+        new(false, null, null, null, 0, null, [], false, [], errors);
 }
 
 internal sealed record OrbitalTravelCostComponentApiResponse(ResourceType ResourceType, decimal Quantity);
+
+internal sealed record OrbitalTravelInsufficientResourceApiResponse(
+    ResourceType ResourceType,
+    decimal RequiredQuantity,
+    decimal AvailableQuantity);
