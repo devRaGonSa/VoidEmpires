@@ -126,6 +126,7 @@ public sealed class StrategicMapService(
     {
         layoutByPlanetId.TryGetValue(visualState.PlanetId, out var layout);
         var isOwnedByRequester = visualState.CivilizationId == civilizationId;
+        var exposeVisualDetail = !visualState.IsOwned || isOwnedByRequester;
 
         return new StrategicMapPlanetDto(
             visualState.PlanetId,
@@ -139,11 +140,11 @@ public sealed class StrategicMapService(
             layout?.OrbitRadius ?? 0f,
             layout?.OrbitAngleDegrees ?? 0f,
             layout?.VisualScale ?? 0f,
-            visualState.ColonizationIntensity,
-            visualState.UrbanIntensity,
-            visualState.IndustrialIntensity,
-            visualState.MilitaryIntensity,
-            visualState.OrbitalPresenceIntensity);
+            exposeVisualDetail ? visualState.ColonizationIntensity : 0f,
+            exposeVisualDetail ? visualState.UrbanIntensity : 0f,
+            exposeVisualDetail ? visualState.IndustrialIntensity : 0f,
+            exposeVisualDetail ? visualState.MilitaryIntensity : 0f,
+            exposeVisualDetail ? visualState.OrbitalPresenceIntensity : 0f);
     }
 
     private static IReadOnlyList<StrategicMapRouteFuelNoteDto> CreateRouteFuelNotes() =>

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Assets;
+using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
@@ -64,6 +65,10 @@ public class StrategicMapServiceTests
         dbContext.Set<PlanetOwnership>().AddRange(
             PlanetOwnership.Create(ownedPlanet.Id, civilizationId),
             PlanetOwnership.Create(otherPlanet.Id, otherCivilizationId));
+        dbContext.Set<PlanetBuilding>().AddRange(
+            PlanetBuilding.Create(otherPlanet.Id, BuildingType.CommandCenter, 1, 5),
+            PlanetBuilding.Create(otherPlanet.Id, BuildingType.MetalMine, 1, 5),
+            PlanetBuilding.Create(otherPlanet.Id, BuildingType.DefenseGrid, 1, 5));
         dbContext.Set<OrbitalGroup>().Add(OrbitalGroup.CreateStationed(
             otherCivilizationId,
             otherPlanet.Id,
@@ -78,6 +83,11 @@ public class StrategicMapServiceTests
         var otherMapPlanet = mapSystem.Planets.Single(x => x.PlanetId == otherPlanet.Id);
         Assert.False(otherMapPlanet.IsOwnedByRequestingCivilization);
         Assert.Null(otherMapPlanet.CivilizationId);
+        Assert.Equal(0f, otherMapPlanet.ColonizationIntensity);
+        Assert.Equal(0f, otherMapPlanet.UrbanIntensity);
+        Assert.Equal(0f, otherMapPlanet.IndustrialIntensity);
+        Assert.Equal(0f, otherMapPlanet.MilitaryIntensity);
+        Assert.Equal(0f, otherMapPlanet.OrbitalPresenceIntensity);
         Assert.Empty(mapSystem.FleetPresence);
     }
 
