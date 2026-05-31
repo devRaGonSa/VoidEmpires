@@ -158,6 +158,42 @@ public class OrbitalTransferPersistenceServiceTests
     }
 
     [Fact]
+    public async Task PersistAsyncRejectsSecondActiveTransferForGroup()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var currentPlanetId = Guid.NewGuid();
+        var group = OrbitalGroup.CreateStationed(
+            civilizationId,
+            Guid.NewGuid(),
+            currentPlanetId,
+            SpaceAssetType.ScoutCraft,
+            2);
+        group.Reserve();
+        var existingTransfer = CreateTransfer(group, Guid.NewGuid());
+        var stockpile = PlanetResourceStockpile.Create(currentPlanetId);
+        stockpile.Increase(ResourceType.Credits, 5);
+        stockpile.Increase(ResourceType.Gas, 2);
+        dbContext.Set<OrbitalGroup>().Add(group);
+        dbContext.Set<OrbitalTransfer>().Add(existingTransfer);
+        dbContext.PlanetResourceStockpiles.Add(stockpile);
+        await dbContext.SaveChangesAsync();
+        var service = CreateService(dbContext);
+
+        var result = await service.PersistAsync(new PersistOrbitalTransferRequest(
+            civilizationId,
+            group.Id,
+            Guid.NewGuid(),
+            new DateTime(2026, 5, 30, 12, 0, 0, DateTimeKind.Utc)));
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Orbital group already has an active transfer.", result.Errors);
+        Assert.Equal(1, await dbContext.Set<OrbitalTransfer>().CountAsync());
+        Assert.Equal(5, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Credits);
+        Assert.Equal(2, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Gas);
+    }
+
+    [Fact]
     public async Task PersistAsyncRejectsCurrentPlanetAsDestination()
     {
         await using var dbContext = CreateDbContext();
@@ -194,4 +230,14 @@ public class OrbitalTransferPersistenceServiceTests
 
     private static OrbitalTransferPersistenceService CreateService(VoidEmpiresDbContext dbContext) =>
         new(dbContext, new ResourceSpendService(dbContext));
+
+    private static OrbitalTransfer CreateTransfer(OrbitalGroup group, Guid destinationPlanetId) =>
+        OrbitalTransfer.CreatePlanned(
+            group.CivilizationId,
+            group.Id,
+            group.CurrentPlanetId,
+            destinationPlanetId,
+            1,
+            new DateTime(2026, 5, 30, 12, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 5, 30, 13, 0, 0, DateTimeKind.Utc));
 }

@@ -82,6 +82,24 @@ public class OrbitalGroupSplitServiceTests
     }
 
     [Fact]
+    public async Task SplitAsyncRejectsGroupWithActiveTransfer()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var group = OrbitalGroup.CreateStationed(civilizationId, Guid.NewGuid(), Guid.NewGuid(), SpaceAssetType.ScoutCraft, 3);
+        group.Reserve();
+        dbContext.Set<OrbitalGroup>().Add(group);
+        dbContext.Set<OrbitalTransfer>().Add(CreateTransfer(group, Guid.NewGuid()));
+        await dbContext.SaveChangesAsync();
+        var service = new OrbitalGroupSplitService(dbContext);
+
+        var result = await service.SplitAsync(new SplitOrbitalGroupRequest(civilizationId, group.Id, 1));
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Source orbital group already has an active transfer.", result.Errors);
+    }
+
+    [Fact]
     public async Task SplitAsyncCreatesNewGroupAndDecreasesSourceQuantity()
     {
         await using var dbContext = CreateDbContext();
@@ -120,4 +138,14 @@ public class OrbitalGroupSplitServiceTests
 
         return new VoidEmpiresDbContext(options);
     }
+
+    private static OrbitalTransfer CreateTransfer(OrbitalGroup group, Guid destinationPlanetId) =>
+        OrbitalTransfer.CreatePlanned(
+            group.CivilizationId,
+            group.Id,
+            group.CurrentPlanetId,
+            destinationPlanetId,
+            1,
+            new DateTime(2026, 5, 30, 12, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 5, 30, 13, 0, 0, DateTimeKind.Utc));
 }

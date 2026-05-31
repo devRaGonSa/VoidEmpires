@@ -83,7 +83,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
     public async Task CreateOrbitalTransferReturnsConflictWhenServiceRejectsRequest()
     {
         using var client = CreateConfiguredClient(
-            persistenceService: new FakeOrbitalTransferPersistenceService(PersistOrbitalTransferResult.Failure("Insufficient Credits.")));
+            persistenceService: new FakeOrbitalTransferPersistenceService(PersistOrbitalTransferResult.Failure("Orbital group already has an active transfer.")));
 
         using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/create", ValidCreateRequest());
         var payload = await response.Content.ReadFromJsonAsync<CreateOrbitalTransferResponse>();
@@ -91,7 +91,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.NotNull(payload);
         Assert.False(payload.Succeeded);
-        Assert.Contains("Insufficient Credits.", payload.Errors);
+        Assert.Contains("Orbital group already has an active transfer.", payload.Errors);
     }
 
     [Fact]

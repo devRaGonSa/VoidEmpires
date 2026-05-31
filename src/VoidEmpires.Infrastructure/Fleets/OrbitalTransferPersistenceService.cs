@@ -33,7 +33,23 @@ public sealed class OrbitalTransferPersistenceService(
 
         if (group.Status != OrbitalGroupStatus.Stationed)
         {
+            if (await OrbitalTransferActivityQueries.HasActiveTransferAsync(
+                dbContext.Set<OrbitalTransfer>(),
+                group.Id,
+                cancellationToken))
+            {
+                return PersistOrbitalTransferResult.Failure("Orbital group already has an active transfer.");
+            }
+
             return PersistOrbitalTransferResult.Failure("Only stationed orbital groups can be persisted for transfer.");
+        }
+
+        if (await OrbitalTransferActivityQueries.HasActiveTransferAsync(
+            dbContext.Set<OrbitalTransfer>(),
+            group.Id,
+            cancellationToken))
+        {
+            return PersistOrbitalTransferResult.Failure("Orbital group already has an active transfer.");
         }
 
         if (group.CurrentPlanetId == request.DestinationPlanetId)

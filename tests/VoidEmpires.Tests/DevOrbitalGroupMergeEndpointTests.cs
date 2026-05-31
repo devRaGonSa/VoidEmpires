@@ -72,7 +72,7 @@ public class DevOrbitalGroupMergeEndpointTests(WebApplicationFactory<Program> fa
     [Fact]
     public async Task MergeOrbitalGroupsReturnsConflictWhenServiceRejectsRequest()
     {
-        using var client = CreateConfiguredClient(MergeOrbitalGroupsResult.Failure("Only stationed orbital groups can be merged."));
+        using var client = CreateConfiguredClient(MergeOrbitalGroupsResult.Failure("Target orbital group already has an active transfer."));
 
         using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-groups/merge", ValidRequest());
         var payload = await response.Content.ReadFromJsonAsync<MergeOrbitalGroupsResponse>();
@@ -80,7 +80,7 @@ public class DevOrbitalGroupMergeEndpointTests(WebApplicationFactory<Program> fa
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.NotNull(payload);
         Assert.False(payload.Succeeded);
-        Assert.Contains("Only stationed orbital groups can be merged.", payload.Errors);
+        Assert.Contains("Target orbital group already has an active transfer.", payload.Errors);
     }
 
     private HttpClient CreateConfiguredClient(MergeOrbitalGroupsResult result) =>

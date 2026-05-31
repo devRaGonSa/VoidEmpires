@@ -4,7 +4,7 @@
 
 id: TASK-6S
 title: Harden orbital group invariants while transfers are active
-status: pending
+status: done
 type: hardening
 team: backend
 supporting_teams:
