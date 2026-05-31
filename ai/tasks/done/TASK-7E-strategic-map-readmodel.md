@@ -4,7 +4,7 @@
 
 id: TASK-7E
 title: Add strategic map read model
-status: in-progress
+status: done
 type: feature
 team: backend
 supporting_teams:
