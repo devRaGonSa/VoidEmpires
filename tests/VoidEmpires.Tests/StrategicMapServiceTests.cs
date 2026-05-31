@@ -109,8 +109,10 @@ public class StrategicMapServiceTests
         await using var dbContext = CreateDbContext();
         var civilizationId = Guid.NewGuid();
         var system = CreateSystem("Transit", 4, 5, 6);
+        var remoteVisibleSystem = CreateSystem("Remote Visible", 6, 7, 8);
         var destinationSystem = CreateSystem("Unknown Destination", 7, 8, 9);
         var origin = new Planet(Guid.NewGuid(), system.Id, "Origin", 1, PlanetType.Oceanic, 100);
+        var remoteVisiblePlanet = new Planet(Guid.NewGuid(), remoteVisibleSystem.Id, "Remote", 1, PlanetType.Terran, 95);
         var destination = new Planet(Guid.NewGuid(), destinationSystem.Id, "Destination", 1, PlanetType.Ice, 80);
         var group = OrbitalGroup.CreateStationed(civilizationId, origin.Id, origin.Id, SpaceAssetType.CargoCraft, 3);
         group.Reserve();
@@ -123,9 +125,12 @@ public class StrategicMapServiceTests
             new DateTime(2026, 5, 31, 10, 0, 0, DateTimeKind.Utc),
             new DateTime(2026, 5, 31, 12, 0, 0, DateTimeKind.Utc));
         dbContext.Set<SolarSystem>().Add(system);
+        dbContext.Set<SolarSystem>().Add(remoteVisibleSystem);
         dbContext.Set<SolarSystem>().Add(destinationSystem);
-        dbContext.Set<Planet>().AddRange(origin, destination);
-        dbContext.Set<PlanetOwnership>().Add(PlanetOwnership.Create(origin.Id, civilizationId));
+        dbContext.Set<Planet>().AddRange(origin, remoteVisiblePlanet, destination);
+        dbContext.Set<PlanetOwnership>().AddRange(
+            PlanetOwnership.Create(origin.Id, civilizationId),
+            PlanetOwnership.Create(remoteVisiblePlanet.Id, civilizationId));
         dbContext.Set<OrbitalGroup>().Add(group);
         dbContext.Set<OrbitalTransfer>().Add(transfer);
         await dbContext.SaveChangesAsync();
@@ -133,6 +138,7 @@ public class StrategicMapServiceTests
         var result = await CreateService(dbContext).GetAsync(new GetStrategicMapRequest(civilizationId));
 
         var mapSystem = result.Systems.Single(x => x.SystemId == system.Id);
+        var remoteMapSystem = result.Systems.Single(x => x.SystemId == remoteVisibleSystem.Id);
         var unknownDestinationSystem = result.Systems.Single(x => x.SystemId == destinationSystem.Id);
         Assert.Equal(MapVisibilityLevel.Unknown, unknownDestinationSystem.VisibilityLevel);
         Assert.False(unknownDestinationSystem.IsVisible);
@@ -154,6 +160,11 @@ public class StrategicMapServiceTests
         AssertAvailable(originPlanet.Commands, "fleet.travel.estimate");
         AssertAvailable(originPlanet.Commands, "fleet.transfer.create");
         Assert.Contains("existing fleet command path", originPlanet.Commands.Single(x => x.ActionKey == "fleet.transfer.create").Note, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(remoteMapSystem.FleetPresence);
+        var remotePlanet = Assert.Single(remoteMapSystem.Planets);
+        Assert.Equal(MapVisibilityLevel.Owned, remotePlanet.VisibilityLevel);
+        AssertAvailable(remotePlanet.Commands, "fleet.travel.estimate");
+        AssertAvailable(remotePlanet.Commands, "fleet.transfer.create");
     }
 
     [Fact]

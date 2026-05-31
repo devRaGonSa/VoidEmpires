@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 7L - Visibility and command readiness smoke coverage`.
+The repository is consolidated through `Phase 7M - Map command availability correction`.
 
 ## Repository Reality
 
@@ -128,6 +128,7 @@ Accepted current rules:
 - Strategic map visibility integration remains annotation-only. Phase 7J preserves the existing strategic-map relevance scope and can annotate already-relevant active-transfer destinations as `Unknown`, but it does not make the strategic map endpoint enumerate every unknown persisted system.
 - Strategic map command availability is deterministic and read-only. Phase 7K derives availability from visibility and current requesting-civilization fleet context, blocks unknown/not-visible nodes explicitly, and keeps transfer creation routed through existing fleet command validation.
 - Phase 7L adds integrated smoke coverage for the current visibility and command readiness contract without adding gameplay behavior or persistence.
+- Phase 7M corrected strategic map travel/transfer command availability to use requesting-civilization fleet context from the returned map rather than only the local system being projected.
 - Strategic map action manifest is read-only development tooling for future UI prototypes. It lists strategic map, visual-state, fleet UI state, and manifest read actions with method, route, required fields, success status, common error statuses, and notes.
 - Strategic map readiness smoke coverage protects the current limitation that map/readiness contracts do not expose mesh, texture, binary, shader, route graph, pathfinding, combat, or interception payload fields.
 
@@ -152,7 +153,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 7L: `402` passing tests.
+Current validated baseline after Phase 7M: `402` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, and the map visibility read model.
 

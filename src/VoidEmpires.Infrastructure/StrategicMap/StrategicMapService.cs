@@ -58,7 +58,7 @@ public sealed class StrategicMapService(
             .GetAsync(new GetMapVisibilityRequest(request.CivilizationId), cancellationToken);
         var visibilityBySystemId = visibility.Systems.ToDictionary(x => x.SystemId);
 
-        var systems = new List<StrategicMapSystemDto>();
+        var visualStates = new List<SystemVisualStateDto>();
         foreach (var systemId in systemIds)
         {
             var visualResult = await systemVisualStateService.GetAsync(new GetSystemVisualStateRequest(systemId), cancellationToken);
@@ -67,9 +67,16 @@ public sealed class StrategicMapService(
                 continue;
             }
 
-            visibilityBySystemId.TryGetValue(systemId, out var systemVisibility);
-            systems.Add(CreateSystem(visualResult.VisualState, request.CivilizationId, activeTransfers, systemVisibility));
+            visualStates.Add(visualResult.VisualState);
         }
+        var hasMapFleetContext = visualStates
+            .SelectMany(x => x.OrbitalGroupMarkers)
+            .Any(x => x.CivilizationId == request.CivilizationId);
+        var systems = visualStates.Select(visualState =>
+        {
+            visibilityBySystemId.TryGetValue(visualState.SystemId, out var systemVisibility);
+            return CreateSystem(visualState, request.CivilizationId, activeTransfers, systemVisibility, hasMapFleetContext);
+        }).ToArray();
 
         return new GetStrategicMapResult(
             request.CivilizationId,
@@ -81,7 +88,8 @@ public sealed class StrategicMapService(
         SystemVisualStateDto visualState,
         Guid civilizationId,
         IReadOnlyCollection<OrbitalTransfer> activeTransfers,
-        MapSystemVisibilityDto? visibility)
+        MapSystemVisibilityDto? visibility,
+        bool hasMapFleetContext)
     {
         var layoutByPlanetId = visualState.LayoutHints.ToDictionary(x => x.PlanetId);
         var transfersById = activeTransfers.ToDictionary(x => x.Id);
@@ -96,7 +104,6 @@ public sealed class StrategicMapService(
                 x.Status,
                 x.MarkerKind))
             .ToArray();
-        var hasFleetContext = fleetPresence.Length > 0;
 
         return new StrategicMapSystemDto(
             visualState.SystemId,
@@ -114,7 +121,7 @@ public sealed class StrategicMapService(
             visualState.Planets.Select(x =>
             {
                 visibilityByPlanetId.TryGetValue(x.PlanetId, out var planetVisibility);
-                return CreatePlanet(x, civilizationId, layoutByPlanetId, planetVisibility, hasFleetContext);
+                return CreatePlanet(x, civilizationId, layoutByPlanetId, planetVisibility, hasMapFleetContext);
             }).ToArray(),
             fleetPresence,
             visualState.TransferOverlays
