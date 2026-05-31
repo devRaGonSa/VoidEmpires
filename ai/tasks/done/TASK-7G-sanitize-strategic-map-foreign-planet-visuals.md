@@ -3,7 +3,7 @@
 ---
 id: TASK-7G
 title: Sanitize foreign planet visuals in strategic map
-status: in-progress
+status: done
 type: bugfix
 team: backend
 supporting_teams:
