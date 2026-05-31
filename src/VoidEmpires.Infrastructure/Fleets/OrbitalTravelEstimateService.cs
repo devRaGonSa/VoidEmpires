@@ -1,12 +1,16 @@
 using Microsoft.EntityFrameworkCore;
+using VoidEmpires.Application.Economy;
 using VoidEmpires.Application.Fleets;
+using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Infrastructure.Persistence;
 
 namespace VoidEmpires.Infrastructure.Fleets;
 
-public sealed class OrbitalTravelEstimateService(VoidEmpiresDbContext dbContext) : IOrbitalTravelEstimateService
+public sealed class OrbitalTravelEstimateService(
+    VoidEmpiresDbContext dbContext,
+    IResourceSpendService resourceSpendService) : IOrbitalTravelEstimateService
 {
     public async Task<EstimateOrbitalTravelResult> EstimateAsync(
         EstimateOrbitalTravelRequest request,
@@ -57,6 +61,14 @@ public sealed class OrbitalTravelEstimateService(VoidEmpiresDbContext dbContext)
         var costs = estimate.ResourceCosts
             .Select(x => new OrbitalTravelCostComponentDto(x.ResourceType, x.Quantity))
             .ToArray();
+        var affordability = await resourceSpendService.CheckAffordabilityAsync(
+            new ResourceSpendRequest(
+                group.CurrentPlanetId,
+                costs.Select(x => new ResourceCostDto(x.ResourceType, x.Quantity)).ToArray()),
+            cancellationToken);
+        var insufficientResources = affordability.Succeeded
+            ? []
+            : await GetInsufficientResourcesAsync(group.CurrentPlanetId, costs, cancellationToken);
 
         return EstimateOrbitalTravelResult.Success(
             group.Id,
@@ -64,8 +76,38 @@ public sealed class OrbitalTravelEstimateService(VoidEmpiresDbContext dbContext)
             request.DestinationPlanetId,
             estimate.AbstractDistanceUnits,
             estimate.EstimatedDuration,
-            costs);
+            costs,
+            affordability.Succeeded,
+            insufficientResources);
     }
+
+    private async Task<IReadOnlyList<OrbitalTravelInsufficientResourceDto>> GetInsufficientResourcesAsync(
+        Guid planetId,
+        IReadOnlyList<OrbitalTravelCostComponentDto> costs,
+        CancellationToken cancellationToken)
+    {
+        var stockpile = await dbContext.PlanetResourceStockpiles
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.PlanetId == planetId, cancellationToken);
+
+        return costs
+            .Where(cost => GetAvailable(stockpile, cost.ResourceType) < cost.Quantity)
+            .Select(cost => new OrbitalTravelInsufficientResourceDto(
+                cost.ResourceType,
+                cost.Quantity,
+                GetAvailable(stockpile, cost.ResourceType)))
+            .ToArray();
+    }
+
+    private static decimal GetAvailable(PlanetResourceStockpile? stockpile, ResourceType resourceType) =>
+        resourceType switch
+        {
+            ResourceType.Credits => stockpile?.Credits ?? 0,
+            ResourceType.Metal => stockpile?.Metal ?? 0,
+            ResourceType.Crystal => stockpile?.Crystal ?? 0,
+            ResourceType.Gas => stockpile?.Gas ?? 0,
+            _ => 0
+        };
 
     private static List<string> Validate(EstimateOrbitalTravelRequest request)
     {

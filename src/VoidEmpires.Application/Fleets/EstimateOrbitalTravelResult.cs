@@ -8,6 +8,8 @@ public sealed record EstimateOrbitalTravelResult(
     int AbstractDistanceUnits,
     TimeSpan? EstimatedDuration,
     IReadOnlyList<OrbitalTravelCostComponentDto> ResourceCosts,
+    bool CanAfford,
+    IReadOnlyList<OrbitalTravelInsufficientResourceDto> InsufficientResources,
     IReadOnlyList<string> Errors)
 {
     public static EstimateOrbitalTravelResult Success(
@@ -16,7 +18,9 @@ public sealed record EstimateOrbitalTravelResult(
         Guid destinationPlanetId,
         int abstractDistanceUnits,
         TimeSpan estimatedDuration,
-        IReadOnlyList<OrbitalTravelCostComponentDto> resourceCosts) =>
+        IReadOnlyList<OrbitalTravelCostComponentDto> resourceCosts,
+        bool canAfford,
+        IReadOnlyList<OrbitalTravelInsufficientResourceDto> insufficientResources) =>
         new(
             true,
             orbitalGroupId,
@@ -25,8 +29,10 @@ public sealed record EstimateOrbitalTravelResult(
             abstractDistanceUnits,
             estimatedDuration,
             resourceCosts,
+            canAfford,
+            insufficientResources,
             []);
 
     public static EstimateOrbitalTravelResult Failure(params string[] errors) =>
-        new(false, null, null, null, 0, null, [], errors);
+        new(false, null, null, null, 0, null, [], false, [], errors);
 }

@@ -72,6 +72,8 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
         Assert.Equal(TimeSpan.FromHours(1), payload.EstimatedDuration);
         Assert.Contains(payload.ResourceCosts, x => x.ResourceType == ResourceType.Credits && x.Quantity == 5m);
         Assert.Contains(payload.ResourceCosts, x => x.ResourceType == ResourceType.Gas && x.Quantity == 2m);
+        Assert.True(payload.CanAfford);
+        Assert.Empty(payload.InsufficientResources);
         Assert.Empty(payload.Errors);
     }
 
@@ -114,7 +116,9 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
             [
                 new OrbitalTravelCostComponentDto(ResourceType.Credits, 5m),
                 new OrbitalTravelCostComponentDto(ResourceType.Gas, 2m)
-            ]);
+            ],
+            true,
+            []);
 
     private static object ValidRequest() => new
     {
@@ -140,7 +144,14 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
         int AbstractDistanceUnits,
         TimeSpan? EstimatedDuration,
         OrbitalTravelCostComponentResponse[] ResourceCosts,
+        bool CanAfford,
+        OrbitalTravelInsufficientResourceResponse[] InsufficientResources,
         string[] Errors);
 
     private sealed record OrbitalTravelCostComponentResponse(ResourceType ResourceType, decimal Quantity);
+
+    private sealed record OrbitalTravelInsufficientResourceResponse(
+        ResourceType ResourceType,
+        decimal RequiredQuantity,
+        decimal AvailableQuantity);
 }

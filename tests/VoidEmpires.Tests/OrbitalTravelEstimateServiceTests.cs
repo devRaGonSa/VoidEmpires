@@ -4,6 +4,7 @@ using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
+using VoidEmpires.Infrastructure.Economy;
 using VoidEmpires.Infrastructure.Fleets;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -12,7 +13,7 @@ namespace VoidEmpires.Tests;
 public class OrbitalTravelEstimateServiceTests
 {
     [Fact]
-    public async Task EstimateAsyncReturnsDistanceDurationAndCosts()
+    public async Task EstimateAsyncReturnsAffordableDistanceDurationAndCosts()
     {
         await using var dbContext = CreateDbContext();
         var civilizationId = Guid.NewGuid();
@@ -26,8 +27,12 @@ public class OrbitalTravelEstimateServiceTests
             2);
         dbContext.Set<OrbitalGroup>().Add(group);
         dbContext.Set<Planet>().Add(CreatePlanet(destinationPlanetId));
+        var stockpile = PlanetResourceStockpile.Create(currentPlanetId);
+        stockpile.Increase(ResourceType.Credits, 10);
+        stockpile.Increase(ResourceType.Gas, 5);
+        dbContext.PlanetResourceStockpiles.Add(stockpile);
         await dbContext.SaveChangesAsync();
-        var service = new OrbitalTravelEstimateService(dbContext);
+        var service = CreateService(dbContext);
 
         var result = await service.EstimateAsync(new EstimateOrbitalTravelRequest(
             civilizationId,
@@ -42,9 +47,53 @@ public class OrbitalTravelEstimateServiceTests
         Assert.Equal(TimeSpan.FromHours(1), result.EstimatedDuration);
         Assert.Contains(result.ResourceCosts, x => x.ResourceType == ResourceType.Credits && x.Quantity == 7.5m);
         Assert.Contains(result.ResourceCosts, x => x.ResourceType == ResourceType.Gas && x.Quantity == 3m);
+        Assert.True(result.CanAfford);
+        Assert.Empty(result.InsufficientResources);
         Assert.Empty(result.Errors);
         Assert.Empty(await dbContext.Set<OrbitalTransfer>().ToListAsync());
         Assert.Equal(OrbitalGroupStatus.Stationed, (await dbContext.Set<OrbitalGroup>().SingleAsync()).Status);
+        Assert.Equal(10, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Credits);
+        Assert.Equal(5, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Gas);
+    }
+
+    [Fact]
+    public async Task EstimateAsyncReturnsInsufficientResourcesWithoutMutatingStockpile()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var currentPlanetId = Guid.NewGuid();
+        var destinationPlanetId = Guid.NewGuid();
+        var group = OrbitalGroup.CreateStationed(
+            civilizationId,
+            Guid.NewGuid(),
+            currentPlanetId,
+            SpaceAssetType.CargoCraft,
+            2);
+        var stockpile = PlanetResourceStockpile.Create(currentPlanetId);
+        stockpile.Increase(ResourceType.Credits, 1);
+        stockpile.Increase(ResourceType.Gas, 2);
+        dbContext.Set<OrbitalGroup>().Add(group);
+        dbContext.Set<Planet>().Add(CreatePlanet(destinationPlanetId));
+        dbContext.PlanetResourceStockpiles.Add(stockpile);
+        await dbContext.SaveChangesAsync();
+
+        var result = await CreateService(dbContext).EstimateAsync(new EstimateOrbitalTravelRequest(
+            civilizationId,
+            group.Id,
+            destinationPlanetId));
+
+        Assert.True(result.Succeeded);
+        Assert.False(result.CanAfford);
+        Assert.Contains(result.InsufficientResources, x =>
+            x.ResourceType == ResourceType.Credits &&
+            x.RequiredQuantity == 7.5m &&
+            x.AvailableQuantity == 1m);
+        Assert.Contains(result.InsufficientResources, x =>
+            x.ResourceType == ResourceType.Gas &&
+            x.RequiredQuantity == 3m &&
+            x.AvailableQuantity == 2m);
+        Assert.Equal(1, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Credits);
+        Assert.Equal(2, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Gas);
     }
 
     [Fact]
@@ -53,7 +102,7 @@ public class OrbitalTravelEstimateServiceTests
         await using var dbContext = CreateDbContext();
         dbContext.Set<Planet>().Add(CreatePlanet(Guid.NewGuid()));
         await dbContext.SaveChangesAsync();
-        var service = new OrbitalTravelEstimateService(dbContext);
+        var service = CreateService(dbContext);
 
         var result = await service.EstimateAsync(new EstimateOrbitalTravelRequest(
             Guid.NewGuid(),
@@ -78,7 +127,7 @@ public class OrbitalTravelEstimateServiceTests
         dbContext.Set<OrbitalGroup>().Add(group);
         dbContext.Set<Planet>().Add(CreatePlanet(destinationPlanetId));
         await dbContext.SaveChangesAsync();
-        var service = new OrbitalTravelEstimateService(dbContext);
+        var service = CreateService(dbContext);
 
         var result = await service.EstimateAsync(new EstimateOrbitalTravelRequest(
             Guid.NewGuid(),
@@ -102,7 +151,7 @@ public class OrbitalTravelEstimateServiceTests
             1);
         dbContext.Set<OrbitalGroup>().Add(group);
         await dbContext.SaveChangesAsync();
-        var service = new OrbitalTravelEstimateService(dbContext);
+        var service = CreateService(dbContext);
 
         var result = await service.EstimateAsync(new EstimateOrbitalTravelRequest(
             civilizationId,
@@ -128,7 +177,7 @@ public class OrbitalTravelEstimateServiceTests
         dbContext.Set<OrbitalGroup>().Add(group);
         dbContext.Set<Planet>().Add(CreatePlanet(currentPlanetId));
         await dbContext.SaveChangesAsync();
-        var service = new OrbitalTravelEstimateService(dbContext);
+        var service = CreateService(dbContext);
 
         var result = await service.EstimateAsync(new EstimateOrbitalTravelRequest(
             civilizationId,
@@ -150,4 +199,7 @@ public class OrbitalTravelEstimateServiceTests
 
         return new VoidEmpiresDbContext(options);
     }
+
+    private static OrbitalTravelEstimateService CreateService(VoidEmpiresDbContext dbContext) =>
+        new(dbContext, new ResourceSpendService(dbContext));
 }
