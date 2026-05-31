@@ -76,6 +76,7 @@ if (AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration))
     app.MapDevFleetActionManifestEndpoints();
     app.MapDevSystemVisualStateEndpoints();
     app.MapDevStrategicMapEndpoints();
+    app.MapDevStrategicMapActionManifestEndpoints();
 }
 app.MapGet("/health", () =>
 {

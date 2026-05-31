@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 7G - Strategic map visibility hardening`.
+The repository is consolidated through `Phase 7H - Strategic map readiness smoke coverage`.
 
 ## Repository Reality
 
@@ -55,6 +55,8 @@ Current implemented foundations:
 - Development-only strategic map endpoint at `GET /api/dev/strategic-map?civilizationId={id}` exposes the Phase 7E read model behind existing development gating and persistence checks.
 - Strategic map development contract documentation under `docs/dev/strategic-map-api-contract.md` describes request/response fields, gating behavior, side effects, limitations, and relationship to visual/fleet read models.
 - Strategic map projections sanitize foreign owned planet visual intensity details until a real visibility/sensor model exists.
+- Development-only strategic map action manifest at `GET /api/dev/strategic-map/action-manifest` exposes deterministic metadata for current strategic map, visual state, fleet UI state, and related manifest read actions.
+- Strategic map readiness smoke coverage validates that strategic map, visual state, fleet UI state, and strategic map action manifest read surfaces remain coherent and do not mutate stockpiles, orbital groups, or transfers.
 - Static visual sandbox at `/dev/visual-state/index.html`.
 - CSS-only pseudo-3D visual sandbox rendering for planet/system preview, overlays, markers, and transfer routes.
 - Static sandbox assets are gated behind the same development switch as development APIs.
@@ -88,7 +90,7 @@ Current intentional limitations:
 - no real WebGL renderer
 - no meshes, shaders, textures, or binary render assets from the backend
 - no persisted visual customization model
-- no route graph or fuel/resource travel-cost model
+- no route graph/pathfinding model or persisted fuel inventory/refueling model
 - no combat/interception overlay model
 - no final game UI layout
 
@@ -118,6 +120,8 @@ Accepted current rules:
 - Fleet action manifest is read-only development tooling for future UI prototypes. It lists available dev fleet actions and contracts, including route/fuel preview guidance, but does not replace command validation.
 - The current sandbox renders markers and transfer route lines as visual indicators only.
 - Strategic map read model is read-only backend preparation for future map UI. Phase 7G scopes relevance to owned planets and active transfer origin/destination planets for the requesting civilization; no separate known/visibility model exists yet. Ownership, fleet details, and detailed planet visual intensity signals from other civilizations are not exposed by this read model.
+- Strategic map action manifest is read-only development tooling for future UI prototypes. It lists strategic map, visual-state, fleet UI state, and manifest read actions with method, route, required fields, success status, common error statuses, and notes.
+- Strategic map readiness smoke coverage protects the current limitation that map/readiness contracts do not expose mesh, texture, binary, shader, route graph, pathfinding, combat, or interception payload fields.
 
 ## Dev Surface Gating Note
 
@@ -140,14 +144,14 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 7G: `392` passing tests.
+Current validated baseline after Phase 7H: `397` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, and the strategic map development endpoint.
 
 ## Recommended Next Work
 
-1. Add route/fuel/travel-cost foundation for orbital transfers if movement should become deeper.
-2. Add fleet split/merge foundations if group manipulation is needed before combat.
+1. Deepen movement only after deciding whether route graphs, pathfinding, persisted fuel inventory, or refueling are required.
+2. Add combat/interception foundations only after fleet movement and visibility contracts stabilize.
 3. Start a real renderer spike only after the visual state contract remains stable.
 4. Keep `XUniversePlanet Generator Variator` as an external/local prototype reference until the renderer/prototype phase needs it.
 
