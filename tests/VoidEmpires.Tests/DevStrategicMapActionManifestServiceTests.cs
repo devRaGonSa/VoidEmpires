@@ -32,6 +32,7 @@ public class DevStrategicMapActionManifestServiceTests
         Assert.Contains(map.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
         Assert.Contains("fleet presence", map.Notes, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("route/fuel", map.Notes, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("command availability", map.Notes, StringComparison.OrdinalIgnoreCase);
 
         var manifest = result.Actions.Single(x => x.ActionKey == "strategicMap.actionManifest.read");
         Assert.Empty(manifest.RequiredFields);

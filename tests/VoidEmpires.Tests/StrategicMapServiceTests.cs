@@ -42,9 +42,19 @@ public class StrategicMapServiceTests
         Assert.Equal("Helios", mapSystem.SystemName);
         Assert.Equal(1, mapSystem.CoordinateX);
         Assert.Equal(StarType.YellowDwarf, mapSystem.StarType);
+        Assert.Equal(MapVisibilityLevel.Visible, mapSystem.VisibilityLevel);
+        Assert.Equal(MapVisibilityReason.SystemContainsOwnedPlanet, mapSystem.VisibilityReason);
+        Assert.True(mapSystem.IsVisible);
+        Assert.True(mapSystem.IsOwnedByRequestingCivilization);
+        AssertAvailable(mapSystem.Commands, "strategicMap.system.view");
         var mapPlanet = Assert.Single(mapSystem.Planets);
         Assert.Equal(planet.Id, mapPlanet.PlanetId);
         Assert.True(mapPlanet.IsOwnedByRequestingCivilization);
+        Assert.Equal(MapVisibilityLevel.Owned, mapPlanet.VisibilityLevel);
+        Assert.Equal(MapVisibilityReason.OwnedPlanet, mapPlanet.VisibilityReason);
+        Assert.True(mapPlanet.IsVisible);
+        AssertAvailable(mapPlanet.Commands, "strategicMap.planet.viewDetail");
+        AssertBlocked(mapPlanet.Commands, "fleet.travel.estimate", StrategicMapCommandBlockReason.NoFleetContext);
         Assert.Equal(civilizationId, mapPlanet.CivilizationId);
         Assert.Equal(2, mapPlanet.OrbitalSlot);
         Assert.Equal(7.5f, mapPlanet.OrbitRadius);
@@ -83,6 +93,8 @@ public class StrategicMapServiceTests
         var otherMapPlanet = mapSystem.Planets.Single(x => x.PlanetId == otherPlanet.Id);
         Assert.False(otherMapPlanet.IsOwnedByRequestingCivilization);
         Assert.Null(otherMapPlanet.CivilizationId);
+        Assert.Equal(MapVisibilityLevel.Visible, otherMapPlanet.VisibilityLevel);
+        Assert.True(otherMapPlanet.IsVisible);
         Assert.Equal(0f, otherMapPlanet.ColonizationIntensity);
         Assert.Equal(0f, otherMapPlanet.UrbanIntensity);
         Assert.Equal(0f, otherMapPlanet.IndustrialIntensity);
@@ -97,8 +109,11 @@ public class StrategicMapServiceTests
         await using var dbContext = CreateDbContext();
         var civilizationId = Guid.NewGuid();
         var system = CreateSystem("Transit", 4, 5, 6);
+        var remoteVisibleSystem = CreateSystem("Remote Visible", 6, 7, 8);
+        var destinationSystem = CreateSystem("Unknown Destination", 7, 8, 9);
         var origin = new Planet(Guid.NewGuid(), system.Id, "Origin", 1, PlanetType.Oceanic, 100);
-        var destination = new Planet(Guid.NewGuid(), system.Id, "Destination", 2, PlanetType.Ice, 80);
+        var remoteVisiblePlanet = new Planet(Guid.NewGuid(), remoteVisibleSystem.Id, "Remote", 1, PlanetType.Terran, 95);
+        var destination = new Planet(Guid.NewGuid(), destinationSystem.Id, "Destination", 1, PlanetType.Ice, 80);
         var group = OrbitalGroup.CreateStationed(civilizationId, origin.Id, origin.Id, SpaceAssetType.CargoCraft, 3);
         group.Reserve();
         var transfer = OrbitalTransfer.CreatePlanned(
@@ -110,15 +125,27 @@ public class StrategicMapServiceTests
             new DateTime(2026, 5, 31, 10, 0, 0, DateTimeKind.Utc),
             new DateTime(2026, 5, 31, 12, 0, 0, DateTimeKind.Utc));
         dbContext.Set<SolarSystem>().Add(system);
-        dbContext.Set<Planet>().AddRange(origin, destination);
-        dbContext.Set<PlanetOwnership>().Add(PlanetOwnership.Create(origin.Id, civilizationId));
+        dbContext.Set<SolarSystem>().Add(remoteVisibleSystem);
+        dbContext.Set<SolarSystem>().Add(destinationSystem);
+        dbContext.Set<Planet>().AddRange(origin, remoteVisiblePlanet, destination);
+        dbContext.Set<PlanetOwnership>().AddRange(
+            PlanetOwnership.Create(origin.Id, civilizationId),
+            PlanetOwnership.Create(remoteVisiblePlanet.Id, civilizationId));
         dbContext.Set<OrbitalGroup>().Add(group);
         dbContext.Set<OrbitalTransfer>().Add(transfer);
         await dbContext.SaveChangesAsync();
 
         var result = await CreateService(dbContext).GetAsync(new GetStrategicMapRequest(civilizationId));
 
-        var mapSystem = Assert.Single(result.Systems);
+        var mapSystem = result.Systems.Single(x => x.SystemId == system.Id);
+        var remoteMapSystem = result.Systems.Single(x => x.SystemId == remoteVisibleSystem.Id);
+        var unknownDestinationSystem = result.Systems.Single(x => x.SystemId == destinationSystem.Id);
+        Assert.Equal(MapVisibilityLevel.Unknown, unknownDestinationSystem.VisibilityLevel);
+        Assert.False(unknownDestinationSystem.IsVisible);
+        AssertBlocked(unknownDestinationSystem.Commands, "strategicMap.system.view", StrategicMapCommandBlockReason.NotVisible);
+        var unknownDestinationPlanet = Assert.Single(unknownDestinationSystem.Planets);
+        Assert.Equal(MapVisibilityLevel.Unknown, unknownDestinationPlanet.VisibilityLevel);
+        AssertBlocked(unknownDestinationPlanet.Commands, "strategicMap.planet.viewDetail", StrategicMapCommandBlockReason.Unknown);
         var presence = Assert.Single(mapSystem.FleetPresence);
         Assert.Equal(group.Id, presence.OrbitalGroupId);
         Assert.Equal(origin.Id, presence.PlanetId);
@@ -129,6 +156,15 @@ public class StrategicMapServiceTests
         Assert.Equal(2, overlay.AbstractDistanceUnits);
         Assert.Equal(destination.Id, overlay.DestinationPlanetId);
         Assert.Equal(OrbitalTransferStatus.Planned, overlay.Status);
+        var originPlanet = mapSystem.Planets.Single(x => x.PlanetId == origin.Id);
+        AssertAvailable(originPlanet.Commands, "fleet.travel.estimate");
+        AssertAvailable(originPlanet.Commands, "fleet.transfer.create");
+        Assert.Contains("existing fleet command path", originPlanet.Commands.Single(x => x.ActionKey == "fleet.transfer.create").Note, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(remoteMapSystem.FleetPresence);
+        var remotePlanet = Assert.Single(remoteMapSystem.Planets);
+        Assert.Equal(MapVisibilityLevel.Owned, remotePlanet.VisibilityLevel);
+        AssertAvailable(remotePlanet.Commands, "fleet.travel.estimate");
+        AssertAvailable(remotePlanet.Commands, "fleet.transfer.create");
     }
 
     [Fact]
@@ -151,7 +187,27 @@ public class StrategicMapServiceTests
     }
 
     private static StrategicMapService CreateService(VoidEmpiresDbContext dbContext) =>
-        new(dbContext, new SystemVisualStateService(dbContext, new PlanetVisualStateService(dbContext)));
+        new(
+            dbContext,
+            new SystemVisualStateService(dbContext, new PlanetVisualStateService(dbContext)),
+            new MapVisibilityService(dbContext));
+
+    private static void AssertAvailable(IReadOnlyList<StrategicMapCommandAvailabilityDto> commands, string actionKey)
+    {
+        var command = commands.Single(x => x.ActionKey == actionKey);
+        Assert.True(command.IsAvailable);
+        Assert.Equal(StrategicMapCommandBlockReason.None, command.BlockReason);
+    }
+
+    private static void AssertBlocked(
+        IReadOnlyList<StrategicMapCommandAvailabilityDto> commands,
+        string actionKey,
+        StrategicMapCommandBlockReason reason)
+    {
+        var command = commands.Single(x => x.ActionKey == actionKey);
+        Assert.False(command.IsAvailable);
+        Assert.Equal(reason, command.BlockReason);
+    }
 
     private static SolarSystem CreateSystem(string name, int x, int y, int z)
     {

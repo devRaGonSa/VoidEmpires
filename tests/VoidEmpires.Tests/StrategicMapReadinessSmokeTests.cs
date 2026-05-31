@@ -21,9 +21,12 @@ public class StrategicMapReadinessSmokeTests
     {
         await using var dbContext = CreateDbContext();
         var civilizationId = Guid.NewGuid();
+        var otherCivilizationId = Guid.NewGuid();
         var system = CreateSystem();
+        var destinationSystem = CreateSystem("Outer Veil", 8, 9, 10);
         var origin = new Planet(Guid.NewGuid(), system.Id, "Asterion", 1, PlanetType.Terran, 120, PlanetColonizationStatus.Colonized);
-        var destination = new Planet(Guid.NewGuid(), system.Id, "Nereid", 2, PlanetType.Ice, 80);
+        var foreignPlanet = new Planet(Guid.NewGuid(), system.Id, "Vesper", 2, PlanetType.Desert, 90, PlanetColonizationStatus.Colonized);
+        var destination = new Planet(Guid.NewGuid(), destinationSystem.Id, "Nereid", 1, PlanetType.Ice, 80);
         var group = OrbitalGroup.CreateStationed(civilizationId, origin.Id, origin.Id, SpaceAssetType.ScoutCraft, 5);
         group.Reserve();
         var transfer = OrbitalTransfer.CreatePlanned(
@@ -37,9 +40,11 @@ public class StrategicMapReadinessSmokeTests
         var stockpile = PlanetResourceStockpile.Create(origin.Id);
         stockpile.Increase(ResourceType.Credits, 100);
         stockpile.Increase(ResourceType.Gas, 50);
-        dbContext.Set<SolarSystem>().Add(system);
-        dbContext.Set<Planet>().AddRange(origin, destination);
-        dbContext.Set<PlanetOwnership>().Add(PlanetOwnership.Create(origin.Id, civilizationId));
+        dbContext.Set<SolarSystem>().AddRange(system, destinationSystem);
+        dbContext.Set<Planet>().AddRange(origin, foreignPlanet, destination);
+        dbContext.Set<PlanetOwnership>().AddRange(
+            PlanetOwnership.Create(origin.Id, civilizationId),
+            PlanetOwnership.Create(foreignPlanet.Id, otherCivilizationId));
         dbContext.Set<OrbitalGroup>().Add(group);
         dbContext.Set<OrbitalTransfer>().Add(transfer);
         dbContext.PlanetResourceStockpiles.Add(stockpile);
@@ -47,7 +52,8 @@ public class StrategicMapReadinessSmokeTests
 
         var planetVisualService = new PlanetVisualStateService(dbContext);
         var systemVisualService = new SystemVisualStateService(dbContext, planetVisualService);
-        var strategicMap = await new StrategicMapService(dbContext, systemVisualService)
+        var visibility = await new MapVisibilityService(dbContext).GetAsync(new GetMapVisibilityRequest(civilizationId));
+        var strategicMap = await new StrategicMapService(dbContext, systemVisualService, new MapVisibilityService(dbContext))
             .GetAsync(new GetStrategicMapRequest(civilizationId));
         var systemVisual = await systemVisualService.GetAsync(new GetSystemVisualStateRequest(system.Id));
         var fleetUiState = await new DevFleetUiStateService(
@@ -57,10 +63,36 @@ public class StrategicMapReadinessSmokeTests
             .GetAsync(new GetDevFleetUiStateRequest(civilizationId));
         var mapManifest = new DevStrategicMapActionManifestService().Get();
 
-        var mapSystem = Assert.Single(strategicMap.Systems);
+        var visibleSystem = visibility.Systems.Single(x => x.SystemId == system.Id);
+        Assert.Equal(MapVisibilityLevel.Visible, visibleSystem.VisibilityLevel);
+        Assert.Contains(visibleSystem.Planets, x => x.PlanetId == origin.Id && x.VisibilityLevel == MapVisibilityLevel.Owned);
+        Assert.Contains(visibleSystem.Planets, x => x.PlanetId == foreignPlanet.Id && !x.IsOwnedByRequestingCivilization && x.CivilizationId is null);
+        var unknownVisibilitySystem = visibility.Systems.Single(x => x.SystemId == destinationSystem.Id);
+        Assert.Equal(MapVisibilityLevel.Unknown, unknownVisibilitySystem.VisibilityLevel);
+        Assert.False(unknownVisibilitySystem.IsVisible);
+
+        var mapSystem = strategicMap.Systems.Single(x => x.SystemId == system.Id);
         Assert.Equal(system.Id, mapSystem.SystemId);
-        Assert.Contains(mapSystem.Planets, x => x.PlanetId == origin.Id && x.IsOwnedByRequestingCivilization);
-        Assert.Contains(mapSystem.Planets, x => x.PlanetId == destination.Id);
+        Assert.Equal(MapVisibilityLevel.Visible, mapSystem.VisibilityLevel);
+        Assert.True(mapSystem.IsVisible);
+        AssertAvailable(mapSystem.Commands, "strategicMap.system.view");
+        var originMapPlanet = mapSystem.Planets.Single(x => x.PlanetId == origin.Id);
+        Assert.True(originMapPlanet.IsOwnedByRequestingCivilization);
+        Assert.Equal(MapVisibilityLevel.Owned, originMapPlanet.VisibilityLevel);
+        AssertAvailable(originMapPlanet.Commands, "strategicMap.planet.viewDetail");
+        AssertAvailable(originMapPlanet.Commands, "fleet.travel.estimate");
+        AssertAvailable(originMapPlanet.Commands, "fleet.transfer.create");
+        var foreignMapPlanet = mapSystem.Planets.Single(x => x.PlanetId == foreignPlanet.Id);
+        Assert.False(foreignMapPlanet.IsOwnedByRequestingCivilization);
+        Assert.Null(foreignMapPlanet.CivilizationId);
+        Assert.Equal(MapVisibilityLevel.Visible, foreignMapPlanet.VisibilityLevel);
+        var unknownMapSystem = strategicMap.Systems.Single(x => x.SystemId == destinationSystem.Id);
+        Assert.Equal(MapVisibilityLevel.Unknown, unknownMapSystem.VisibilityLevel);
+        AssertBlocked(unknownMapSystem.Commands, "strategicMap.system.view", StrategicMapCommandBlockReason.NotVisible);
+        var unknownMapPlanet = Assert.Single(unknownMapSystem.Planets);
+        Assert.Equal(destination.Id, unknownMapPlanet.PlanetId);
+        AssertBlocked(unknownMapPlanet.Commands, "strategicMap.planet.viewDetail", StrategicMapCommandBlockReason.Unknown);
+        AssertBlocked(unknownMapPlanet.Commands, "fleet.transfer.create", StrategicMapCommandBlockReason.Unknown);
         Assert.Equal(group.Id, Assert.Single(mapSystem.FleetPresence).OrbitalGroupId);
         Assert.Equal(transfer.Id, Assert.Single(mapSystem.TransferOverlays).TransferId);
         Assert.Contains(strategicMap.RouteFuelNotes, x => x.ActionKey == "fleet.travel.estimate" && x.RequiresDestination);
@@ -69,7 +101,7 @@ public class StrategicMapReadinessSmokeTests
         Assert.NotNull(systemVisual.VisualState);
         Assert.Equal(system.Id, systemVisual.VisualState.SystemId);
         Assert.Contains(systemVisual.VisualState.LayoutHints, x => x.PlanetId == origin.Id && x.OrbitalSlot == 1);
-        Assert.Contains(systemVisual.VisualState.Planets, x => x.PlanetId == destination.Id);
+        Assert.Contains(systemVisual.VisualState.Planets, x => x.PlanetId == foreignPlanet.Id);
         Assert.Equal(group.Id, Assert.Single(systemVisual.VisualState.OrbitalGroupMarkers).OrbitalGroupId);
 
         var uiGroup = Assert.Single(fleetUiState.Groups);
@@ -87,7 +119,7 @@ public class StrategicMapReadinessSmokeTests
         Assert.Contains(mapManifest.Actions, x => x.ActionKey == "fleet.uiState.read" && x.Route == "/api/dev/fleets/ui-state");
         Assert.Contains(mapManifest.Actions, x => x.ActionKey == "fleet.actionManifest.read" && x.Route == "/api/dev/fleets/action-manifest");
 
-        AssertReadSurfacesDidNotMutateState(dbContext, group.Id, transfer.Id, origin.Id);
+        AssertReadSurfacesDidNotMutateState(dbContext, group.Id, transfer.Id, origin.Id, 2, 3, 2);
         AssertNoHeavyRenderOrFutureGameplayContractData();
     }
 
@@ -95,7 +127,10 @@ public class StrategicMapReadinessSmokeTests
         VoidEmpiresDbContext dbContext,
         Guid groupId,
         Guid transferId,
-        Guid stockpilePlanetId)
+        Guid stockpilePlanetId,
+        int expectedSystemCount,
+        int expectedPlanetCount,
+        int expectedOwnershipCount)
     {
         var stockpile = dbContext.PlanetResourceStockpiles.AsNoTracking().Single(x => x.PlanetId == stockpilePlanetId);
         var group = dbContext.Set<OrbitalGroup>().AsNoTracking().Single(x => x.Id == groupId);
@@ -106,6 +141,9 @@ public class StrategicMapReadinessSmokeTests
         Assert.Equal(OrbitalGroupStatus.Reserved, group.Status);
         Assert.Equal(5, group.Quantity);
         Assert.Equal(OrbitalTransferStatus.Planned, transfer.Status);
+        Assert.Equal(expectedSystemCount, dbContext.Set<SolarSystem>().AsNoTracking().Count());
+        Assert.Equal(expectedPlanetCount, dbContext.Set<Planet>().AsNoTracking().Count());
+        Assert.Equal(expectedOwnershipCount, dbContext.Set<PlanetOwnership>().AsNoTracking().Count());
         Assert.DoesNotContain(dbContext.ChangeTracker.Entries(), x => x.State is EntityState.Added or EntityState.Modified or EntityState.Deleted);
     }
 
@@ -122,7 +160,7 @@ public class StrategicMapReadinessSmokeTests
             typeof(PlanetVisualStateDto),
             typeof(GetDevStrategicMapActionManifestResult)
         };
-        var blockedTerms = new[] { "Mesh", "Texture", "Binary", "Shader", "RouteGraph", "Pathfinding", "Combat", "Interception" };
+        var blockedTerms = new[] { "Mesh", "Texture", "Binary", "Shader", "RouteGraph", "Pathfinding", "Combat", "Interception", "Fog", "Exploration", "Sensor", "Scanner" };
 
         foreach (var property in contractTypes.SelectMany(type => type.GetProperties()))
         {
@@ -130,11 +168,30 @@ public class StrategicMapReadinessSmokeTests
         }
     }
 
-    private static SolarSystem CreateSystem()
+    private static void AssertAvailable(IReadOnlyList<StrategicMapCommandAvailabilityDto> commands, string actionKey)
+    {
+        var command = commands.Single(x => x.ActionKey == actionKey);
+        Assert.True(command.IsAvailable);
+        Assert.Equal(StrategicMapCommandBlockReason.None, command.BlockReason);
+    }
+
+    private static void AssertBlocked(
+        IReadOnlyList<StrategicMapCommandAvailabilityDto> commands,
+        string actionKey,
+        StrategicMapCommandBlockReason reason)
+    {
+        var command = commands.Single(x => x.ActionKey == actionKey);
+        Assert.False(command.IsAvailable);
+        Assert.Equal(reason, command.BlockReason);
+    }
+
+    private static SolarSystem CreateSystem() => CreateSystem("Helios Prime", 1, 2, 3);
+
+    private static SolarSystem CreateSystem(string name, int x, int y, int z)
     {
         var systemId = Guid.NewGuid();
-        var star = new Star(Guid.NewGuid(), systemId, "Helios", StarType.YellowDwarf);
-        return new SolarSystem(systemId, Guid.NewGuid(), "Helios Prime", new GalaxyCoordinates(1, 2, 3), star);
+        var star = new Star(Guid.NewGuid(), systemId, $"{name} Star", StarType.YellowDwarf);
+        return new SolarSystem(systemId, Guid.NewGuid(), name, new GalaxyCoordinates(x, y, z), star);
     }
 
     private static VoidEmpiresDbContext CreateDbContext() =>
