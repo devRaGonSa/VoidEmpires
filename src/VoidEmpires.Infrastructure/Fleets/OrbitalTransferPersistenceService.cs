@@ -1,11 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+using VoidEmpires.Application.Economy;
 using VoidEmpires.Application.Fleets;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Infrastructure.Persistence;
 
 namespace VoidEmpires.Infrastructure.Fleets;
 
-public sealed class OrbitalTransferPersistenceService(VoidEmpiresDbContext dbContext) : IOrbitalTransferPersistenceService
+public sealed class OrbitalTransferPersistenceService(
+    VoidEmpiresDbContext dbContext,
+    IResourceSpendService resourceSpendService) : IOrbitalTransferPersistenceService
 {
     public async Task<PersistOrbitalTransferResult> PersistAsync(
         PersistOrbitalTransferRequest request,
@@ -38,27 +41,50 @@ public sealed class OrbitalTransferPersistenceService(VoidEmpiresDbContext dbCon
             return PersistOrbitalTransferResult.Failure("Destination planet must be different from the current planet.");
         }
 
-        var distance = OrbitalTravelEstimator.EstimateAbstractDistanceUnits(group.CurrentPlanetId, request.DestinationPlanetId);
-        var arrivalAtUtc = request.RequestedAtUtc.Add(OrbitalTravelEstimator.EstimateTravelDuration(distance));
+        var estimate = OrbitalTravelEstimator.Estimate(
+            group.CurrentPlanetId,
+            request.DestinationPlanetId,
+            group.AssetType);
+        await using var transaction = dbContext.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory"
+            ? null
+            : await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        var spendResult = await resourceSpendService.SpendAsync(
+            new ResourceSpendRequest(
+                group.CurrentPlanetId,
+                estimate.ResourceCosts
+                    .Select(x => new ResourceCostDto(x.ResourceType, x.Quantity))
+                    .ToArray()),
+            cancellationToken);
+
+        if (!spendResult.Succeeded)
+        {
+            return PersistOrbitalTransferResult.Failure([.. spendResult.Errors]);
+        }
+
+        var arrivalAtUtc = request.RequestedAtUtc.Add(estimate.EstimatedDuration);
         var transfer = OrbitalTransfer.CreatePlanned(
             group.CivilizationId,
             group.Id,
             group.CurrentPlanetId,
             request.DestinationPlanetId,
-            distance,
+            estimate.AbstractDistanceUnits,
             request.RequestedAtUtc,
             arrivalAtUtc);
 
         group.Reserve();
         dbContext.Set<OrbitalTransfer>().Add(transfer);
         await dbContext.SaveChangesAsync(cancellationToken);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
 
         return PersistOrbitalTransferResult.Success(
             transfer.Id,
             group.Id,
             group.CurrentPlanetId,
             request.DestinationPlanetId,
-            distance,
+            estimate.AbstractDistanceUnits,
             request.RequestedAtUtc,
             arrivalAtUtc);
     }

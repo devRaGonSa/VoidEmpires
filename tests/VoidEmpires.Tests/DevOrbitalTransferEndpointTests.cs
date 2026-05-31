@@ -83,7 +83,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
     public async Task CreateOrbitalTransferReturnsConflictWhenServiceRejectsRequest()
     {
         using var client = CreateConfiguredClient(
-            persistenceService: new FakeOrbitalTransferPersistenceService(PersistOrbitalTransferResult.Failure("Only stationed orbital groups can be persisted for transfer.")));
+            persistenceService: new FakeOrbitalTransferPersistenceService(PersistOrbitalTransferResult.Failure("Insufficient Credits.")));
 
         using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/create", ValidCreateRequest());
         var payload = await response.Content.ReadFromJsonAsync<CreateOrbitalTransferResponse>();
@@ -91,7 +91,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.NotNull(payload);
         Assert.False(payload.Succeeded);
-        Assert.Contains("Only stationed orbital groups can be persisted for transfer.", payload.Errors);
+        Assert.Contains("Insufficient Credits.", payload.Errors);
     }
 
     [Fact]
