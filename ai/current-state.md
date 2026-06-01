@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 7P - Exploration command readiness smoke coverage`.
+The repository is consolidated through `Phase 7Q - Exploration mission domain and persistence foundation`.
 
 ## Repository Reality
 
@@ -61,6 +61,7 @@ Current implemented foundations:
 - Strategic map system and planet DTOs now include read-only exploration preview metadata for unknown nodes while blocking preview for already-visible or owned nodes.
 - Development-only strategic map action manifest at `GET /api/dev/strategic-map/action-manifest` exposes deterministic metadata for current strategic map, visual state, fleet UI state, exploration preview, and related manifest read actions.
 - Development-only exploration preview endpoint at `GET /api/dev/strategic-map/exploration-preview?civilizationId={id}` exposes read-only exploration readiness metadata derived from map visibility.
+- Minimal persistent exploration mission foundation exists with `ExplorationMission`, `ExplorationMissionStatus`, EF mapping, and a migration for planned/completed mission lifecycle state. No creation endpoint, completion worker, visibility reveal, sensors, fog-of-war, route graph, pathfinding, combat, interception, or UI behavior has been added.
 - Strategic map readiness smoke coverage validates that strategic map, visual state, fleet UI state, strategic map action manifest, and exploration preview read surfaces remain coherent and do not mutate stockpiles, orbital groups, or transfers.
 - Visibility and command readiness smoke coverage validates owned, foreign-owned, and unknown strategic map nodes across visibility and strategic map read models; verifies command availability for visible nodes and blocked commands for unknown nodes; and protects read-only behavior across systems, planets, ownerships, stockpiles, orbital groups, and transfers.
 - Static visual sandbox at `/dev/visual-state/index.html`.
@@ -134,6 +135,7 @@ Accepted current rules:
 - Strategic map exploration preview is deterministic and read-only. Unknown nodes can show `exploration.preview` as available; already-visible and owned nodes are blocked as `AlreadyVisible` or `AlreadyOwned`. It does not create exploration missions, sensors, persisted fog-of-war, scanners, espionage, diplomacy, combat, interception, route graph, or pathfinding state.
 - Strategic map action manifest is read-only development tooling for future UI prototypes. It lists strategic map, exploration preview, visual-state, fleet UI state, and manifest read actions with method, route, required fields, success status, common error statuses, and notes.
 - Strategic map readiness smoke coverage protects the current limitation that map/readiness contracts do not expose mesh, texture, binary, shader, route graph, pathfinding, combat, or interception payload fields.
+- Phase 7Q adds only the persistent exploration mission data model: requesting civilization, target system, optional target planet, requested/due/completed timestamps, and planned/completed status. Exploration preview remains read-only and does not create missions or reveal map visibility.
 
 ## Dev Surface Gating Note
 

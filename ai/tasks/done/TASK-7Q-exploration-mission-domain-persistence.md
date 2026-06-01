@@ -4,7 +4,7 @@
 
 id: TASK-7Q
 title: Add exploration mission domain and persistence foundation
-status: pending
+status: done
 type: feature
 team: backend
 supporting_teams:
