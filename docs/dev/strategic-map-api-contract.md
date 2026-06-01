@@ -2,11 +2,11 @@
 
 ## Scope and Gating
 
-This contract documents the current development-only strategic map read endpoint and action manifest for future UI and sandbox work. It is not a production gameplay endpoint.
+This contract documents the current development-only strategic map read endpoints and action manifest for future UI and sandbox work. It is not a production gameplay endpoint.
 
-The route is mapped when the web host runs in `Development` or `VoidEmpires:DevEndpoints:Enabled=true`. If the development surface is disabled, the route returns `404 Not Found`. If the route is mapped but `ConnectionStrings:DefaultConnection` is empty, it returns `503 Service Unavailable`.
+The routes are mapped when the web host runs in `Development` or `VoidEmpires:DevEndpoints:Enabled=true`. If the development surface is disabled, routes return `404 Not Found`. If a persistence-backed route is mapped but `ConnectionStrings:DefaultConnection` is empty, it returns `503 Service Unavailable`.
 
-JSON payloads use current .NET enum names such as `YellowDwarf`, `Terran`, `Colonized`, `ScoutCraft`, `Stationed`, `Planned`, and `PlaceholderDerived`.
+JSON payloads use current .NET enum names such as `YellowDwarf`, `Terran`, `Colonized`, `ScoutCraft`, `Stationed`, `Planned`, `PlaceholderDerived`, `Owned`, `Visible`, `Unknown`, `AlreadyVisible`, and `AlreadyOwned`.
 
 ## Endpoints
 
@@ -33,6 +33,31 @@ Response envelope:
 - `map`: strategic map result, or `null` on validation failure.
 - `errors[]`: validation errors.
 
+### Exploration Preview Read
+
+`GET /api/dev/strategic-map/exploration-preview?civilizationId={id}`
+
+Query:
+
+- `civilizationId`: required non-empty GUID. Scopes the preview to the requesting civilization.
+
+Responses:
+
+| Status | Meaning |
+|---|---|
+| `200 OK` | Exploration preview read model returned. |
+| `400 Bad Request` | Missing or empty `civilizationId`. |
+| `404 Not Found` | Development route is disabled. |
+| `503 Service Unavailable` | Persistence is not configured. |
+
+Response envelope:
+
+- `succeeded`: `true` on success.
+- `preview`: exploration action preview result, or `null` on validation failure.
+- `errors[]`: validation errors.
+
+The preview is read-only metadata derived from map visibility. It does not create exploration missions, sensors, persisted fog-of-war, scanner data, espionage, diplomacy, combat, interception, route graph, pathfinding, or UI state.
+
 ### Strategic Map Action Manifest
 
 `GET /api/dev/strategic-map/action-manifest`
@@ -52,7 +77,7 @@ Response envelope:
 
 Each manifest action contains `actionKey`, `displayName`, `method`, `route`, `isReadOnly`, `requiredFields[]`, `successStatus`, `errorStatuses[]`, and `notes`.
 
-Current action keys: `strategicMap.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
+Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
 
 The manifest is read-only metadata for UI discovery. It does not require persistence and does not execute the listed actions.
 
@@ -61,7 +86,7 @@ The manifest is read-only metadata for UI discovery. It does not require persist
 `map` contains:
 
 - `civilizationId`: requesting civilization id.
-- `systems[]`: relevant systems for the current Phase 7F model.
+- `systems[]`: relevant systems for the current strategic map model.
 - `routeFuelNotes[]`: capability notes for route/fuel previews.
 
 Current relevance is inherited from the Phase 7E service: systems are included when they contain owned planets or active transfer origin/destination planets for the requesting civilization. There is no separate known-system, sensor, alliance, or espionage visibility model yet.
@@ -76,6 +101,7 @@ Each `systems[]` item contains:
 - `visibilityLevel`, `visibilityReason`
 - `isVisible`
 - `isOwnedByRequestingCivilization`: currently true when the derived visibility model finds an owned planet in the system.
+- `explorationPreview`: read-only exploration preview metadata.
 - `commands[]`: read-only system-level command availability metadata.
 - `planets[]`
 - `fleetPresence[]`
@@ -87,10 +113,17 @@ Each `planets[]` item contains identity and summary fields:
 - `isOwnedByRequestingCivilization`
 - `visibilityLevel`, `visibilityReason`
 - `isVisible`
+- `explorationPreview`: read-only exploration preview metadata.
 - `commands[]`: read-only planet-level command availability metadata.
 - `civilizationId`: populated only when owned by the requesting civilization.
 - `orbitalSlot`, `orbitRadius`, `orbitAngleDegrees`, `visualScale`
 - `colonizationIntensity`, `urbanIntensity`, `industrialIntensity`, `militaryIntensity`, `orbitalPresenceIntensity`
+
+Each `explorationPreview` item contains:
+
+- `canPreviewExploration`: true only when the current visibility projection supports an exploration preview.
+- `blockReason`: `None`, `AlreadyVisible`, `AlreadyOwned`, or `NoKnownVisibilitySource`.
+- `note`: UI-facing explanation. This is not mission execution and not authorization.
 
 Each `fleetPresence[]` item contains:
 
@@ -111,14 +144,28 @@ Each `routeFuelNotes[]` item contains:
 
 Each `commands[]` item contains:
 
-- `actionKey`: current examples include `strategicMap.system.view`, `strategicMap.planet.viewDetail`, `fleet.travel.estimate`, and `fleet.transfer.create`.
+- `actionKey`: current examples include `strategicMap.system.view`, `strategicMap.planet.viewDetail`, `exploration.preview`, `fleet.travel.estimate`, and `fleet.transfer.create`.
 - `isAvailable`: whether the current read model can show the action as available.
-- `blockReason`: `None`, `Unknown`, `NotVisible`, or `NoFleetContext`.
+- `blockReason`: `None`, `Unknown`, `NotVisible`, `NoFleetContext`, or `ExplorationPreviewUnavailable`.
 - `note`: short UI-facing guidance. Fleet actions are capability hints only and must still use the existing fleet command endpoints and validation.
+
+## Exploration Preview Result
+
+`preview` contains:
+
+- `civilizationId`: requesting civilization id.
+- `systems[]`: derived exploration preview state for the current visibility model.
+- `notes[]`: read-only policy notes.
+
+Each `systems[]` item contains `systemId`, `visibilityLevel`, `canPreviewSystemExploration`, `blockReason`, `note`, and `planets[]`.
+
+Each `planets[]` item contains `planetId`, `visibilityLevel`, `canPreviewPlanetExploration`, `blockReason`, and `note`.
+
+Current placeholder rule: `Unknown` nodes can show exploration preview as available; `Visible` and `Owned` nodes are blocked as already visible or already owned. This is a UI-readiness preview only and does not create any mission or persisted knowledge.
 
 ## Side Effects
 
-None. This endpoint is read-only. It does not create transfers, reserve fleets, complete transfers, charge resources, mutate stockpiles, persist route estimates, or write map state.
+None. These endpoints are read-only. They do not create transfers, reserve fleets, complete transfers, charge resources, mutate stockpiles, persist route estimates, create exploration missions, create sensor data, or write map state.
 
 Command availability is UI metadata, not authorization and not command execution. It does not bypass fleet command validation.
 
@@ -128,7 +175,8 @@ The strategic map read model reuses the same underlying persisted state summariz
 
 - System visual state provides star, coordinate, layout, planet visual, marker, and transfer overlay concepts.
 - Fleet UI state provides group command and route/fuel readiness hints for screen-specific fleet tooling.
-- The strategic map endpoint consolidates map-level system, planet, fleet presence, transfer overlay, and route/fuel capability summaries.
+- The strategic map endpoint consolidates map-level system, planet, fleet presence, transfer overlay, exploration preview, and route/fuel capability summaries.
+- The exploration preview endpoint exposes the same placeholder exploration readiness as a direct read contract for UI tooling.
 - The strategic map action manifest lists these related read actions so future prototypes can discover routes and required fields without hardcoding every contract.
 
 Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` when they need destination-specific route class, risk, placeholder fuel readiness, travel costs, and affordability.
@@ -141,6 +189,7 @@ Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` w
 - No combat or interception.
 - No alliances, diplomacy, sensors, or espionage visibility model.
 - Unknown visibility can appear for strategic-map nodes that are relevant for another reason, such as an active transfer destination, but the strategic map endpoint does not return every persisted unknown system.
+- Exploration preview is placeholder/read-only and does not create exploration missions or persisted fog-of-war.
 - No fuel inventory, refueling, or fuel spending.
 - No meshes, textures, binary assets, shader data, or heavy render payloads.
 - Transfer progress remains a read-time visual approximation.

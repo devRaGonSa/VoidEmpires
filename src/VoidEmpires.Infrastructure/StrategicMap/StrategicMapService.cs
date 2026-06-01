@@ -104,6 +104,8 @@ public sealed class StrategicMapService(
                 x.Status,
                 x.MarkerKind))
             .ToArray();
+        var visibilityLevel = visibility?.VisibilityLevel ?? MapVisibilityLevel.Unknown;
+        var explorationPreview = ExplorationActionPreviewService.CreatePreview(visibilityLevel);
 
         return new StrategicMapSystemDto(
             visualState.SystemId,
@@ -113,11 +115,12 @@ public sealed class StrategicMapService(
             visualState.CoordinateY,
             visualState.CoordinateZ,
             visualState.Star.StarType,
-            visibility?.VisibilityLevel ?? MapVisibilityLevel.Unknown,
+            visibilityLevel,
             visibility?.VisibilityReason ?? MapVisibilityReason.NoKnownVisibilitySource,
             visibility?.IsVisible ?? false,
             visibility?.IsOwnedByRequestingCivilization ?? false,
-            CreateSystemCommands(visibility),
+            explorationPreview,
+            CreateSystemCommands(visibility, explorationPreview),
             visualState.Planets.Select(x =>
             {
                 visibilityByPlanetId.TryGetValue(x.PlanetId, out var planetVisibility);
@@ -154,6 +157,8 @@ public sealed class StrategicMapService(
         layoutByPlanetId.TryGetValue(visualState.PlanetId, out var layout);
         var isOwnedByRequester = visualState.CivilizationId == civilizationId;
         var exposeVisualDetail = !visualState.IsOwned || isOwnedByRequester;
+        var visibilityLevel = visibility?.VisibilityLevel ?? MapVisibilityLevel.Unknown;
+        var explorationPreview = ExplorationActionPreviewService.CreatePreview(visibilityLevel);
 
         return new StrategicMapPlanetDto(
             visualState.PlanetId,
@@ -162,10 +167,11 @@ public sealed class StrategicMapService(
             visualState.Size,
             visualState.ColonizationStatus,
             isOwnedByRequester,
-            visibility?.VisibilityLevel ?? MapVisibilityLevel.Unknown,
+            visibilityLevel,
             visibility?.VisibilityReason ?? MapVisibilityReason.NoKnownVisibilitySource,
             visibility?.IsVisible ?? false,
-            CreatePlanetCommands(visibility, hasFleetContext),
+            explorationPreview,
+            CreatePlanetCommands(visibility, hasFleetContext, explorationPreview),
             isOwnedByRequester ? civilizationId : null,
             layout?.OrbitalSlot ?? 0,
             layout?.OrbitRadius ?? 0f,
@@ -179,7 +185,8 @@ public sealed class StrategicMapService(
     }
 
     private static IReadOnlyList<StrategicMapCommandAvailabilityDto> CreateSystemCommands(
-        MapSystemVisibilityDto? visibility)
+        MapSystemVisibilityDto? visibility,
+        StrategicMapExplorationPreviewDto explorationPreview)
     {
         var isVisible = visibility?.IsVisible == true;
         return
@@ -188,13 +195,19 @@ public sealed class StrategicMapService(
                 "strategicMap.system.view",
                 isVisible,
                 isVisible ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.NotVisible,
-                isVisible ? "System can be viewed from the current visibility projection." : "System is not visible to the requesting civilization.")
+                isVisible ? "System can be viewed from the current visibility projection." : "System is not visible to the requesting civilization."),
+            Command(
+                "exploration.preview",
+                explorationPreview.CanPreviewExploration,
+                explorationPreview.CanPreviewExploration ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.ExplorationPreviewUnavailable,
+                explorationPreview.Note)
         ];
     }
 
     private static IReadOnlyList<StrategicMapCommandAvailabilityDto> CreatePlanetCommands(
         MapPlanetVisibilityDto? visibility,
-        bool hasFleetContext)
+        bool hasFleetContext,
+        StrategicMapExplorationPreviewDto explorationPreview)
     {
         var isVisible = visibility?.IsVisible == true;
         var visibilityBlockReason = visibility?.VisibilityLevel == MapVisibilityLevel.Unknown
@@ -209,6 +222,11 @@ public sealed class StrategicMapService(
                 isVisible,
                 isVisible ? StrategicMapCommandBlockReason.None : visibilityBlockReason,
                 isVisible ? "Planet detail can be viewed from the current visibility projection." : "Planet is unknown or not visible."),
+            Command(
+                "exploration.preview",
+                explorationPreview.CanPreviewExploration,
+                explorationPreview.CanPreviewExploration ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.ExplorationPreviewUnavailable,
+                explorationPreview.Note),
             Command(
                 "fleet.travel.estimate",
                 travelAvailable,

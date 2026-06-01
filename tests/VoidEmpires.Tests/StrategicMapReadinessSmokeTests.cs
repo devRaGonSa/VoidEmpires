@@ -55,6 +55,8 @@ public class StrategicMapReadinessSmokeTests
         var visibility = await new MapVisibilityService(dbContext).GetAsync(new GetMapVisibilityRequest(civilizationId));
         var strategicMap = await new StrategicMapService(dbContext, systemVisualService, new MapVisibilityService(dbContext))
             .GetAsync(new GetStrategicMapRequest(civilizationId));
+        var explorationPreview = await new ExplorationActionPreviewService(new MapVisibilityService(dbContext))
+            .GetAsync(new GetExplorationActionPreviewRequest(civilizationId));
         var systemVisual = await systemVisualService.GetAsync(new GetSystemVisualStateRequest(system.Id));
         var fleetUiState = await new DevFleetUiStateService(
                 dbContext,
@@ -75,11 +77,16 @@ public class StrategicMapReadinessSmokeTests
         Assert.Equal(system.Id, mapSystem.SystemId);
         Assert.Equal(MapVisibilityLevel.Visible, mapSystem.VisibilityLevel);
         Assert.True(mapSystem.IsVisible);
+        Assert.False(mapSystem.ExplorationPreview.CanPreviewExploration);
+        Assert.Equal(ExplorationActionBlockReason.AlreadyVisible, mapSystem.ExplorationPreview.BlockReason);
         AssertAvailable(mapSystem.Commands, "strategicMap.system.view");
+        AssertBlocked(mapSystem.Commands, "exploration.preview", StrategicMapCommandBlockReason.ExplorationPreviewUnavailable);
         var originMapPlanet = mapSystem.Planets.Single(x => x.PlanetId == origin.Id);
         Assert.True(originMapPlanet.IsOwnedByRequestingCivilization);
         Assert.Equal(MapVisibilityLevel.Owned, originMapPlanet.VisibilityLevel);
+        Assert.Equal(ExplorationActionBlockReason.AlreadyOwned, originMapPlanet.ExplorationPreview.BlockReason);
         AssertAvailable(originMapPlanet.Commands, "strategicMap.planet.viewDetail");
+        AssertBlocked(originMapPlanet.Commands, "exploration.preview", StrategicMapCommandBlockReason.ExplorationPreviewUnavailable);
         AssertAvailable(originMapPlanet.Commands, "fleet.travel.estimate");
         AssertAvailable(originMapPlanet.Commands, "fleet.transfer.create");
         var foreignMapPlanet = mapSystem.Planets.Single(x => x.PlanetId == foreignPlanet.Id);
@@ -88,14 +95,23 @@ public class StrategicMapReadinessSmokeTests
         Assert.Equal(MapVisibilityLevel.Visible, foreignMapPlanet.VisibilityLevel);
         var unknownMapSystem = strategicMap.Systems.Single(x => x.SystemId == destinationSystem.Id);
         Assert.Equal(MapVisibilityLevel.Unknown, unknownMapSystem.VisibilityLevel);
+        Assert.True(unknownMapSystem.ExplorationPreview.CanPreviewExploration);
+        AssertAvailable(unknownMapSystem.Commands, "exploration.preview");
         AssertBlocked(unknownMapSystem.Commands, "strategicMap.system.view", StrategicMapCommandBlockReason.NotVisible);
         var unknownMapPlanet = Assert.Single(unknownMapSystem.Planets);
         Assert.Equal(destination.Id, unknownMapPlanet.PlanetId);
+        Assert.True(unknownMapPlanet.ExplorationPreview.CanPreviewExploration);
+        AssertAvailable(unknownMapPlanet.Commands, "exploration.preview");
         AssertBlocked(unknownMapPlanet.Commands, "strategicMap.planet.viewDetail", StrategicMapCommandBlockReason.Unknown);
         AssertBlocked(unknownMapPlanet.Commands, "fleet.transfer.create", StrategicMapCommandBlockReason.Unknown);
         Assert.Equal(group.Id, Assert.Single(mapSystem.FleetPresence).OrbitalGroupId);
         Assert.Equal(transfer.Id, Assert.Single(mapSystem.TransferOverlays).TransferId);
         Assert.Contains(strategicMap.RouteFuelNotes, x => x.ActionKey == "fleet.travel.estimate" && x.RequiresDestination);
+
+        var previewDestinationSystem = explorationPreview.Systems.Single(x => x.SystemId == destinationSystem.Id);
+        Assert.True(previewDestinationSystem.CanPreviewSystemExploration);
+        Assert.Equal(ExplorationActionBlockReason.None, previewDestinationSystem.BlockReason);
+        Assert.Contains(explorationPreview.Notes, x => x.ActionKey == "exploration.preview" && x.IsReadOnly);
 
         Assert.True(systemVisual.Succeeded);
         Assert.NotNull(systemVisual.VisualState);
@@ -114,6 +130,7 @@ public class StrategicMapReadinessSmokeTests
         Assert.Contains(fleetUiState.ResourceContexts, x => x.PlanetId == origin.Id);
 
         Assert.Contains(mapManifest.Actions, x => x.ActionKey == "strategicMap.read" && x.Route == "/api/dev/strategic-map");
+        Assert.Contains(mapManifest.Actions, x => x.ActionKey == "strategicMap.explorationPreview.read" && x.Route == "/api/dev/strategic-map/exploration-preview");
         Assert.Contains(mapManifest.Actions, x => x.ActionKey == "visual.system.read" && x.RequiredFields.Any(field => field.Name == "systemId"));
         Assert.Contains(mapManifest.Actions, x => x.ActionKey == "visual.planet.read" && x.RequiredFields.Any(field => field.Name == "planetId"));
         Assert.Contains(mapManifest.Actions, x => x.ActionKey == "fleet.uiState.read" && x.Route == "/api/dev/fleets/ui-state");
@@ -160,7 +177,7 @@ public class StrategicMapReadinessSmokeTests
             typeof(PlanetVisualStateDto),
             typeof(GetDevStrategicMapActionManifestResult)
         };
-        var blockedTerms = new[] { "Mesh", "Texture", "Binary", "Shader", "RouteGraph", "Pathfinding", "Combat", "Interception", "Fog", "Exploration", "Sensor", "Scanner" };
+        var blockedTerms = new[] { "Mesh", "Texture", "Binary", "Shader", "RouteGraph", "Pathfinding", "Combat", "Interception", "Fog", "Sensor", "Scanner" };
 
         foreach (var property in contractTypes.SelectMany(type => type.GetProperties()))
         {

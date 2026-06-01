@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 7M - Map command availability correction`.
+The repository is consolidated through `Phase 7P - Exploration command readiness smoke coverage`.
 
 ## Repository Reality
 
@@ -58,8 +58,10 @@ Current implemented foundations:
 - Read-only map visibility service derives civilization-scoped visibility from current persisted ownership: owned planets are `Owned`, systems containing owned planets are `Visible`, other planets in visible systems are `Visible` but not owned, and all other persisted systems/planets are represented as `Unknown` with detail fields hidden.
 - Strategic map system and planet DTOs now include derived visibility level, reason, and visibility booleans so development clients can distinguish owned, visible, and unknown relevant map nodes without adding persisted fog-of-war.
 - Strategic map system and planet DTOs now include read-only command availability metadata for map view/detail and fleet travel/transfer capability hints. These flags are UI-readiness metadata and do not replace existing command validation.
-- Development-only strategic map action manifest at `GET /api/dev/strategic-map/action-manifest` exposes deterministic metadata for current strategic map, visual state, fleet UI state, and related manifest read actions.
-- Strategic map readiness smoke coverage validates that strategic map, visual state, fleet UI state, and strategic map action manifest read surfaces remain coherent and do not mutate stockpiles, orbital groups, or transfers.
+- Strategic map system and planet DTOs now include read-only exploration preview metadata for unknown nodes while blocking preview for already-visible or owned nodes.
+- Development-only strategic map action manifest at `GET /api/dev/strategic-map/action-manifest` exposes deterministic metadata for current strategic map, visual state, fleet UI state, exploration preview, and related manifest read actions.
+- Development-only exploration preview endpoint at `GET /api/dev/strategic-map/exploration-preview?civilizationId={id}` exposes read-only exploration readiness metadata derived from map visibility.
+- Strategic map readiness smoke coverage validates that strategic map, visual state, fleet UI state, strategic map action manifest, and exploration preview read surfaces remain coherent and do not mutate stockpiles, orbital groups, or transfers.
 - Visibility and command readiness smoke coverage validates owned, foreign-owned, and unknown strategic map nodes across visibility and strategic map read models; verifies command availability for visible nodes and blocked commands for unknown nodes; and protects read-only behavior across systems, planets, ownerships, stockpiles, orbital groups, and transfers.
 - Static visual sandbox at `/dev/visual-state/index.html`.
 - CSS-only pseudo-3D visual sandbox rendering for planet/system preview, overlays, markers, and transfer routes.
@@ -129,7 +131,8 @@ Accepted current rules:
 - Strategic map command availability is deterministic and read-only. Phase 7K derives availability from visibility and current requesting-civilization fleet context, blocks unknown/not-visible nodes explicitly, and keeps transfer creation routed through existing fleet command validation.
 - Phase 7L adds integrated smoke coverage for the current visibility and command readiness contract without adding gameplay behavior or persistence.
 - Phase 7M corrected strategic map travel/transfer command availability to use requesting-civilization fleet context from the returned map rather than only the local system being projected.
-- Strategic map action manifest is read-only development tooling for future UI prototypes. It lists strategic map, visual-state, fleet UI state, and manifest read actions with method, route, required fields, success status, common error statuses, and notes.
+- Strategic map exploration preview is deterministic and read-only. Unknown nodes can show `exploration.preview` as available; already-visible and owned nodes are blocked as `AlreadyVisible` or `AlreadyOwned`. It does not create exploration missions, sensors, persisted fog-of-war, scanners, espionage, diplomacy, combat, interception, route graph, or pathfinding state.
+- Strategic map action manifest is read-only development tooling for future UI prototypes. It lists strategic map, exploration preview, visual-state, fleet UI state, and manifest read actions with method, route, required fields, success status, common error statuses, and notes.
 - Strategic map readiness smoke coverage protects the current limitation that map/readiness contracts do not expose mesh, texture, binary, shader, route graph, pathfinding, combat, or interception payload fields.
 
 ## Dev Surface Gating Note
@@ -153,9 +156,9 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 7M: `402` passing tests.
+Current validated baseline before this direct GitHub implementation: `402` passing tests.
 
-Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, and the map visibility read model.
+Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, and exploration preview readiness.
 
 ## Recommended Next Work
 
