@@ -51,4 +51,22 @@ public class PersistenceRegistrationTests
         Assert.True(identityOptions.SignIn.RequireConfirmedEmail);
         Assert.NotNull(provider.GetRequiredService<IUserStore<VoidEmpiresUser>>());
     }
+
+    [Fact]
+    public void IdentityRegistrationSupportsValidatedServiceProviderConstruction()
+    {
+        var services = new ServiceCollection();
+
+        services.AddLogging();
+        services.AddVoidEmpiresPersistence("Host=localhost;Database=voidempires_test");
+        services.AddVoidEmpiresIdentity();
+
+        using var provider = services.BuildServiceProvider(new ServiceProviderOptions
+        {
+            ValidateOnBuild = true,
+            ValidateScopes = true
+        });
+
+        Assert.NotNull(provider.GetRequiredService<DataProtectorTokenProvider<VoidEmpiresUser>>());
+    }
 }

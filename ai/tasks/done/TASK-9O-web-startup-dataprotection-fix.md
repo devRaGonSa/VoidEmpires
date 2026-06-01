@@ -3,7 +3,7 @@
 ---
 id: TASK-9O
 title: Phase 9O - Web startup DataProtection registration fix
-status: pending
+status: done
 type: bugfix
 team: backend
 supporting_teams:

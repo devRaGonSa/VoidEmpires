@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -162,6 +163,8 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
     public static IServiceCollection AddVoidEmpiresIdentity(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
+
+        services.AddDataProtection();
 
         services
             .AddIdentityCore<VoidEmpiresUser>(options =>
