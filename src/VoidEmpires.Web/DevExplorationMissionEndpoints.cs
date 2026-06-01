@@ -43,6 +43,32 @@ internal static class DevExplorationMissionEndpoints
             var response = new CreateExplorationMissionApiResponse(false, null, result.Errors);
             return result.IsConflict ? Results.Conflict(response) : Results.BadRequest(response);
         });
+
+        app.MapPost("/api/dev/strategic-map/exploration-missions/complete-due", async (
+            CompleteDueExplorationMissionsApiRequest request,
+            [FromServices] IServiceProvider services,
+            [FromServices] IConfiguration configuration,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(configuration.GetConnectionString("DefaultConnection")))
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (request.NowUtc is null)
+            {
+                return Results.BadRequest(new CompleteDueExplorationMissionsApiResponse(false, 0, [], ["Now is required."]));
+            }
+
+            var service = services.GetRequiredService<IExplorationMissionCompletionService>();
+            var result = await service.CompleteDueAsync(
+                new CompleteDueExplorationMissionsRequest(request.NowUtc.Value),
+                cancellationToken);
+
+            return result.Succeeded
+                ? Results.Ok(new CompleteDueExplorationMissionsApiResponse(true, result.CompletedCount, result.CompletedMissionIds, []))
+                : Results.BadRequest(new CompleteDueExplorationMissionsApiResponse(false, 0, [], result.Errors));
+        });
     }
 }
 
@@ -55,4 +81,12 @@ internal sealed record CreateExplorationMissionApiRequest(
 internal sealed record CreateExplorationMissionApiResponse(
     bool Succeeded,
     CreatedExplorationMissionDto? Mission,
+    IReadOnlyList<string> Errors);
+
+internal sealed record CompleteDueExplorationMissionsApiRequest(DateTime? NowUtc);
+
+internal sealed record CompleteDueExplorationMissionsApiResponse(
+    bool Succeeded,
+    int CompletedCount,
+    IReadOnlyList<Guid> CompletedMissionIds,
     IReadOnlyList<string> Errors);

@@ -14,6 +14,7 @@ public class DevStrategicMapActionManifestServiceTests
             "strategicMap.read",
             "strategicMap.explorationPreview.read",
             "exploration.mission.create",
+            "exploration.mission.completeDue",
             "visual.system.read",
             "visual.planet.read",
             "fleet.uiState.read",
@@ -53,6 +54,13 @@ public class DevStrategicMapActionManifestServiceTests
         Assert.Contains(409, create.ErrorStatuses);
         Assert.Contains(create.RequiredFields, x => x.Name == "targetPlanetId" && !x.IsRequired);
         Assert.Contains("does not complete missions", create.Notes, StringComparison.OrdinalIgnoreCase);
+
+        var completeDue = result.Actions.Single(x => x.ActionKey == "exploration.mission.completeDue");
+        Assert.Equal("POST", completeDue.Method);
+        Assert.False(completeDue.IsReadOnly);
+        Assert.Equal(200, completeDue.SuccessStatus);
+        Assert.Contains(completeDue.RequiredFields, x => x.Name == "nowUtc" && x.Type == "DateTime" && x.IsRequired);
+        Assert.Contains("does not reveal visibility", completeDue.Notes, StringComparison.OrdinalIgnoreCase);
 
         var manifest = result.Actions.Single(x => x.ActionKey == "strategicMap.actionManifest.read");
         Assert.Empty(manifest.RequiredFields);

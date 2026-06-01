@@ -4,7 +4,7 @@
 
 id: TASK-7S
 title: Add exploration mission completion service
-status: pending
+status: done
 type: feature
 team: backend
 supporting_teams:

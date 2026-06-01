@@ -86,6 +86,45 @@ public class DevExplorationMissionEndpointTests(WebApplicationFactory<Program> f
         Assert.Equal(SystemId, fakeService.LastRequest?.TargetSystemId);
     }
 
+    [Fact]
+    public async Task CompleteDueReturnsBadRequestForNonUtcNow()
+    {
+        using var client = CreateConfiguredClient(new FakeExplorationMissionCompletionService(
+            CompleteDueExplorationMissionsResult.Invalid("Now must be UTC.")));
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/dev/strategic-map/exploration-missions/complete-due",
+            new { NowUtc = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Local) });
+        var payload = await response.Content.ReadFromJsonAsync<CompleteDueExplorationMissionsResponse>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload.Succeeded);
+        Assert.Contains("Now must be UTC.", payload.Errors);
+    }
+
+    [Fact]
+    public async Task CompleteDueReturnsOkForValidRequest()
+    {
+        var missionId = Guid.NewGuid();
+        var fakeService = new FakeExplorationMissionCompletionService(
+            CompleteDueExplorationMissionsResult.Success([missionId]));
+        using var client = CreateConfiguredClient(fakeService);
+        var nowUtc = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/dev/strategic-map/exploration-missions/complete-due",
+            new { NowUtc = nowUtc });
+        var payload = await response.Content.ReadFromJsonAsync<CompleteDueExplorationMissionsResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.True(payload.Succeeded);
+        Assert.Equal(1, payload.CompletedCount);
+        Assert.Equal([missionId], payload.CompletedMissionIds);
+        Assert.Equal(nowUtc, fakeService.LastRequest?.NowUtc);
+    }
+
     private HttpClient CreateConfiguredClient(IExplorationMissionCreateService createService) =>
         factory.WithWebHostBuilder(builder =>
         {
@@ -96,6 +135,18 @@ public class DevExplorationMissionEndpointTests(WebApplicationFactory<Program> f
                     ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=voidempires_exploration_mission_endpoint_tests"
                 }));
             builder.ConfigureTestServices(services => services.AddSingleton(createService));
+        }).CreateClient();
+
+    private HttpClient CreateConfiguredClient(IExplorationMissionCompletionService completionService) =>
+        factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Development");
+            builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=voidempires_exploration_mission_endpoint_tests"
+                }));
+            builder.ConfigureTestServices(services => services.AddSingleton(completionService));
         }).CreateClient();
 
     private static object CreateRequest(DateTime? requestedAtUtc = null) => new
@@ -119,8 +170,28 @@ public class DevExplorationMissionEndpointTests(WebApplicationFactory<Program> f
         }
     }
 
+    private sealed class FakeExplorationMissionCompletionService(CompleteDueExplorationMissionsResult result)
+        : IExplorationMissionCompletionService
+    {
+        public CompleteDueExplorationMissionsRequest? LastRequest { get; private set; }
+
+        public Task<CompleteDueExplorationMissionsResult> CompleteDueAsync(
+            CompleteDueExplorationMissionsRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            LastRequest = request;
+            return Task.FromResult(result);
+        }
+    }
+
     private sealed record CreateExplorationMissionResponse(
         bool Succeeded,
         CreatedExplorationMissionDto? Mission,
+        string[] Errors);
+
+    private sealed record CompleteDueExplorationMissionsResponse(
+        bool Succeeded,
+        int CompletedCount,
+        Guid[] CompletedMissionIds,
         string[] Errors);
 }
