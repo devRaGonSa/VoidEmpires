@@ -161,6 +161,19 @@ input {
   color: #bfd0ea;
 }
 
+.section-heading,
+.manifest-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.section-heading p,
+.manifest-header p {
+  margin: 8px 0 0;
+}
+
 .stack-list {
   margin: 14px 0 0;
   padding-left: 20px;
@@ -257,6 +270,28 @@ input {
 
 .subpanel p {
   margin-top: 10px;
+}
+
+.manifest-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.meta-list {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+}
+
+.meta-list dt {
+  color: #8aa7d3;
+  font-size: 0.82rem;
+}
+
+.meta-list dd {
+  margin: 4px 0 0;
+  word-break: break-word;
 }
 
 .system-card {

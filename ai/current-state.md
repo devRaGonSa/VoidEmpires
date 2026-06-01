@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 9C - Frontend strategic map read slice`.
+The repository is consolidated through `Phase 9D - Frontend fleet and action manifest panels`.
 
 ## Repository Reality
 
@@ -100,6 +100,7 @@ Current implemented foundations:
 - Static sandbox assets are gated behind the same development switch as development APIs.
 - `src/VoidEmpires.Frontend` now provides a minimal Vite + React + TypeScript frontend shell with a conservative app layout, route placeholders for strategic map and fleet inspection, backend base URL configuration through `VITE_VOIDEMPIRES_API_BASE_URL`, and explicit development-only warnings.
 - The frontend strategic map page now reads `GET /api/dev/strategic-map?civilizationId={id}`, exposes civilization-id driven loading/error/success states, renders system and planet summaries, and surfaces readiness metadata as informational only.
+- The frontend fleet page now reads `GET /api/dev/fleets/ui-state`, `GET /api/dev/fleets/action-manifest`, and `GET /api/dev/strategic-map/action-manifest`, rendering fleet summaries and manifest metadata as read-only inspection panels without wiring gameplay mutations.
 
 Current foundation chain:
 
@@ -202,6 +203,7 @@ Accepted current rules:
 - Phase 9A adds a documentation-first checkpoint for frontend foundation work, consolidating stable dev/backend contracts, current read-only versus mutating surfaces, readiness limitations, non-goals, and a recommended safe first frontend slice without adding production endpoints or gameplay behavior.
 - Phase 9B adds the first frontend project foundation under `src/VoidEmpires.Frontend` with Vite, React, TypeScript, route placeholders for the strategic map and fleet prototype views, a shared backend API base URL configuration, and a visible reminder that the shell consumes development-only backend contracts.
 - Phase 9C adds the first frontend strategic map read slice: typed strategic map response handling, a read-only query flow keyed by civilization id, map/system summary rendering, and conservative display of readiness metadata without introducing command execution, auth, backend changes, or 3D rendering.
+- Phase 9D adds the first frontend fleet inspection slice: typed fleet UI-state and manifest handling, a read-only fleet query flow keyed by civilization id, grouped fleet summaries, resource/interception notes, and manifest panels that clearly mark mutating actions without executing them.
 
 ## Dev Surface Gating Note
 

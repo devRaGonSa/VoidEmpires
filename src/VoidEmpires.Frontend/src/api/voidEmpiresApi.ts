@@ -1,4 +1,6 @@
 import { appConfig } from "../config";
+import type { ActionManifestResponse } from "./actionManifestTypes";
+import type { FleetUiStateResponse } from "./fleetTypes";
 import type { StrategicMapResponse } from "./strategicMapTypes";
 
 function buildUrl(path: string, query?: Record<string, string>) {
@@ -48,5 +50,16 @@ export const voidEmpiresApi = {
     return requestJson<StrategicMapResponse>("/api/dev/strategic-map", {
       civilizationId,
     });
+  },
+  getFleetUiState(civilizationId: string) {
+    return requestJson<FleetUiStateResponse>("/api/dev/fleets/ui-state", {
+      civilizationId,
+    });
+  },
+  getFleetActionManifest() {
+    return requestJson<ActionManifestResponse>("/api/dev/fleets/action-manifest");
+  },
+  getStrategicMapActionManifest() {
+    return requestJson<ActionManifestResponse>("/api/dev/strategic-map/action-manifest");
   },
 };
