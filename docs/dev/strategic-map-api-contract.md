@@ -113,6 +113,17 @@ Response envelope:
 
 Completion only marks existing due planned missions as completed. It does not reveal visibility, create known-system/fog-of-war/sensor state, assign rewards, add combat/interception, or run a background worker.
 
+### Minimal Exploration Lifecycle
+
+The current development lifecycle is intentionally conservative:
+
+1. `GET /api/dev/strategic-map/exploration-preview` can show `Unknown` systems or planets as eligible.
+2. `POST /api/dev/strategic-map/exploration-missions/create` can persist a planned mission for an eligible target.
+3. `POST /api/dev/strategic-map/exploration-missions/complete-due` can mark due planned missions completed.
+4. Strategic map and visibility reads still report the target as `Unknown` until a future visibility-reveal phase adds real knowledge persistence.
+
+This lifecycle protects command plumbing and persistence only. It does not grant rewards, create scanners/sensors, reveal fog-of-war, assign fleets, mutate resources, or expose final UI behavior.
+
 ### Strategic Map Action Manifest
 
 `GET /api/dev/strategic-map/action-manifest`

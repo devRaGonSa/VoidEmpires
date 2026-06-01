@@ -4,7 +4,7 @@
 
 id: TASK-7T
 title: Add exploration mission lifecycle docs and smoke coverage
-status: pending
+status: done
 type: hardening
 team: backend
 supporting_teams:
