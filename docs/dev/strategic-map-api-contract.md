@@ -181,7 +181,7 @@ Response envelope:
 
 Each manifest action contains `actionKey`, `displayName`, `method`, `route`, `isReadOnly`, `requiredFields[]`, `successStatus`, `errorStatuses[]`, and `notes`.
 
-Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `exploration.mission.create`, `exploration.mission.completeDue`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
+Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `exploration.preview.read`, `exploration.mission.create`, `exploration.mission.completeDue`, `exploration.knowledge.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
 
 The manifest is read-only metadata for UI discovery. It does not require persistence and does not execute the listed actions.
 
@@ -250,10 +250,12 @@ Each `routeFuelNotes[]` item contains:
 
 Each `commands[]` item contains:
 
-- `actionKey`: current examples include `strategicMap.system.view`, `strategicMap.planet.viewDetail`, `exploration.preview`, `fleet.travel.estimate`, and `fleet.transfer.create`.
+- `actionKey`: current examples include `strategicMap.system.view`, `strategicMap.planet.viewDetail`, `exploration.preview`, `exploration.mission.create`, `fleet.travel.estimate`, and `fleet.transfer.create`.
 - `isAvailable`: whether the current read model can show the action as available.
 - `blockReason`: `None`, `Unknown`, `NotVisible`, `NoFleetContext`, or `ExplorationPreviewUnavailable`.
 - `note`: short UI-facing guidance. Fleet actions are capability hints only and must still use the existing fleet command endpoints and validation.
+
+`exploration.mission.create` command metadata is available only when the same target is currently preview-eligible. Visible, owned, or revealed targets block the create hint with `ExplorationPreviewUnavailable`. This is UI metadata only; the mission create endpoint and service remain authoritative for validation.
 
 ## Exploration Preview Result
 
@@ -299,7 +301,7 @@ The exploration mission create endpoint persists a planned `ExplorationMission` 
 
 The strategic map endpoints do not create transfers, reserve fleets, complete transfers, charge resources, mutate stockpiles, persist route estimates, create sensor data, create fog-of-war state, or write map state.
 
-Command availability is UI metadata, not authorization and not command execution. It does not bypass fleet command validation.
+Command availability is UI metadata, not authorization and not command execution. It does not bypass fleet or exploration mission command validation.
 
 ## Relationship to Other Dev Contracts
 
