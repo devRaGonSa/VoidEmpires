@@ -43,6 +43,8 @@ namespace VoidEmpires.Infrastructure.Persistence
 
         public DbSet<Alliance> Alliances => Set<Alliance>();
 
+        public DbSet<AlliancePact> AlliancePacts => Set<AlliancePact>();
+
         public DbSet<AllianceMembership> AllianceMemberships => Set<AllianceMembership>();
 
         public DbSet<DiplomaticContact> DiplomaticContacts => Set<DiplomaticContact>();
