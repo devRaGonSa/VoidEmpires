@@ -1,14 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Fleets;
+using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Infrastructure.Persistence;
+using VoidEmpires.Infrastructure.StrategicMap;
 
 namespace VoidEmpires.Infrastructure.Fleets;
 
 public sealed class DevFleetUiStateService(
     VoidEmpiresDbContext dbContext,
     IFleetOperationalOverviewService fleetOverviewService,
-    IDevFleetActionManifestService actionManifestService) : IDevFleetUiStateService
+    IDevFleetActionManifestService actionManifestService,
+    IInterceptionOpportunityService? interceptionOpportunityService = null) : IDevFleetUiStateService
 {
     public async Task<GetDevFleetUiStateResult> GetAsync(
         GetDevFleetUiStateRequest request,
@@ -16,12 +19,20 @@ public sealed class DevFleetUiStateService(
     {
         if (request.CivilizationId == Guid.Empty)
         {
-            return new GetDevFleetUiStateResult(request.CivilizationId, [], [], GetActionHints());
+            return new GetDevFleetUiStateResult(request.CivilizationId, [], [], GetActionHints(), CreateInterceptionNotes());
         }
 
         var overview = await fleetOverviewService.GetAsync(
             new GetFleetOperationalOverviewRequest(request.CivilizationId),
             cancellationToken);
+        var interceptionOpportunities = (await (interceptionOpportunityService ?? new InterceptionOpportunityService(
+                dbContext,
+                new MapVisibilityService(dbContext),
+                new DetectionCoverageService(dbContext, new SensorProfileService(dbContext)),
+                fleetOverviewService))
+            .GetAsync(new GetInterceptionOpportunitiesRequest(request.CivilizationId), cancellationToken))
+            .Opportunities
+            .ToDictionary(x => x.TransferId, CreateInterceptionReadinessSummary);
 
         var planetIds = overview.Groups
             .Select(x => x.CurrentPlanetId)
@@ -68,7 +79,8 @@ public sealed class DevFleetUiStateService(
                         x.ActiveTransfer.AbstractDistanceUnits,
                         x.ActiveTransfer.DepartureAtUtc,
                         x.ActiveTransfer.ArrivalAtUtc,
-                        x.ActiveTransfer.Status),
+                        x.ActiveTransfer.Status,
+                        interceptionOpportunities.GetValueOrDefault(x.ActiveTransfer.Id)),
                 new DevFleetUiCommandAvailabilityDto(
                     x.Commands.CanCreateTransfer,
                     x.Commands.CanSplit,
@@ -81,7 +93,8 @@ public sealed class DevFleetUiStateService(
             overview.CivilizationId,
             groups,
             resourceContexts,
-            GetActionHints());
+            GetActionHints(),
+            CreateInterceptionNotes());
     }
 
     private IReadOnlyList<DevFleetUiActionHintDto> GetActionHints() => actionManifestService.Get().Actions
@@ -112,4 +125,17 @@ public sealed class DevFleetUiStateService(
                     "Travel estimates are only available for stationed groups without an active transfer.",
                     "No destination-specific route profile or fuel readiness is included in UI state."
                 ]);
+
+    private static InterceptionReadinessSummaryDto CreateInterceptionReadinessSummary(InterceptionOpportunityDto opportunity) =>
+        new(
+            opportunity.OpportunityStatus,
+            opportunity.BlockReasons,
+            opportunity.HasFriendlyInterceptorContext,
+            opportunity.DetectionNote,
+            opportunity.ReadinessNote);
+
+    private static IReadOnlyList<DevFleetUiInterceptionNoteDto> CreateInterceptionNotes() =>
+        [
+            new("Interception readiness is read-only metadata only; actual interception execution is not implemented.")
+        ];
 }

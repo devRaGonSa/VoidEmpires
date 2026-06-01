@@ -22,6 +22,7 @@ public class StrategicMapServiceTests
 
         Assert.Empty(result.Systems);
         Assert.Contains(result.RouteFuelNotes, x => x.RequiresDestination && x.ActionKey == "fleet.travel.estimate");
+        Assert.Contains(result.InterceptionNotes, x => x.Note.Contains("read-only", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -187,6 +188,9 @@ public class StrategicMapServiceTests
         Assert.Equal(2, overlay.AbstractDistanceUnits);
         Assert.Equal(destination.Id, overlay.DestinationPlanetId);
         Assert.Equal(OrbitalTransferStatus.Planned, overlay.Status);
+        Assert.NotNull(overlay.InterceptionReadiness);
+        Assert.Equal(InterceptionOpportunityStatus.ObservedOwnTransfer, overlay.InterceptionReadiness.OpportunityStatus);
+        Assert.Equal([InterceptionOpportunityBlockReason.SelfObservedTransfer], overlay.InterceptionReadiness.BlockReasons);
         var originPlanet = mapSystem.Planets.Single(x => x.PlanetId == origin.Id);
         AssertAvailable(originPlanet.Commands, "fleet.travel.estimate");
         AssertAvailable(originPlanet.Commands, "fleet.transfer.create");

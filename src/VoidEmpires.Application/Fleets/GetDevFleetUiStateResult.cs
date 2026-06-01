@@ -1,6 +1,7 @@
 using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
+using VoidEmpires.Application.StrategicMap;
 
 namespace VoidEmpires.Application.Fleets;
 
@@ -8,7 +9,8 @@ public sealed record GetDevFleetUiStateResult(
     Guid CivilizationId,
     IReadOnlyList<DevFleetUiGroupDto> Groups,
     IReadOnlyList<DevFleetUiResourceContextDto> ResourceContexts,
-    IReadOnlyList<DevFleetUiActionHintDto> ActionHints);
+    IReadOnlyList<DevFleetUiActionHintDto> ActionHints,
+    IReadOnlyList<DevFleetUiInterceptionNoteDto> InterceptionNotes);
 
 public sealed record DevFleetUiGroupDto(
     Guid Id,
@@ -30,7 +32,8 @@ public sealed record DevFleetUiTransferDto(
     int AbstractDistanceUnits,
     DateTime DepartureAtUtc,
     DateTime ArrivalAtUtc,
-    OrbitalTransferStatus Status);
+    OrbitalTransferStatus Status,
+    InterceptionReadinessSummaryDto? InterceptionReadiness = null);
 
 public sealed record DevFleetUiCommandAvailabilityDto(
     bool CanCreateTransfer,
@@ -53,6 +56,8 @@ public sealed record DevFleetUiActionHintDto(
     string Method,
     string Route,
     string Notes);
+
+public sealed record DevFleetUiInterceptionNoteDto(string Note);
 
 public sealed record DevFleetUiRouteFuelReadinessHintDto(
     bool CanRequestTravelEstimate,

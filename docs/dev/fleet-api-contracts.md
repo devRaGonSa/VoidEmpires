@@ -158,11 +158,15 @@ Restrictions: read-only. Command availability is a UI planning hint derived from
 
 Query: required `civilizationId`.
 
-Response: `succeeded`, `uiState`, `errors`. `uiState` contains `civilizationId`, `groups[]`, `resourceContexts[]`, and `actionHints[]`. Groups mirror the operational overview shape and include command availability plus `routeFuelReadiness` capability hints. Resource contexts include current-planet stockpile balances for `Credits`, `Metal`, `Crystal`, and `Gas` when a stockpile exists for a group's current planet. Action hints include action key, display name, route, method, read-only flag, and notes.
+Response: `succeeded`, `uiState`, `errors`. `uiState` contains `civilizationId`, `groups[]`, `resourceContexts[]`, `actionHints[]`, and `interceptionNotes[]`. Groups mirror the operational overview shape and include command availability plus `routeFuelReadiness` capability hints. Resource contexts include current-planet stockpile balances for `Credits`, `Metal`, `Crystal`, and `Gas` when a stockpile exists for a group's current planet. Action hints include action key, display name, route, method, read-only flag, and notes.
 
 `routeFuelReadiness` contains `canRequestTravelEstimate`, `requiresDestination`, `estimateActionKey`, `estimateRoute`, `fuelReadinessPolicy`, nullable `routeProfile`, nullable `fuelReadiness`, and `notes[]`. The current UI-state request has no destination context, so it does not include destination-specific `routeProfile` or `fuelReadiness` values. Frontend prototypes should call `fleet.travel.estimate` with `destinationPlanetId` when they need route class, risk, estimated fuel requirements, range readiness, travel costs, and affordability.
 
-Restrictions: read-only. This endpoint aggregates existing read models for dev UI prototypes; it does not create, cancel, complete, split, merge, estimate, charge, or mutate persisted state.
+When a group has `activeTransfer`, the transfer summary can also include nullable `interceptionReadiness` metadata. Current own-transfer summaries surface `ObservedOwnTransfer` plus self-observed/non-hostile notes only; the UI-state endpoint does not expose hostile interception commands or reveal hidden foreign transfers.
+
+Each `interceptionNotes[]` item is a lightweight reminder that interception readiness is read-only metadata only and that actual interception execution is not implemented.
+
+Restrictions: read-only. This endpoint aggregates existing read models for dev UI prototypes; it does not create, cancel, complete, split, merge, estimate, charge, intercept, or mutate persisted state.
 
 ### Fleet Action Manifest
 
@@ -170,9 +174,9 @@ Restrictions: read-only. This endpoint aggregates existing read models for dev U
 
 Response: `succeeded`, `manifest`, `errors`. `manifest.actions[]` includes `actionKey`, `displayName`, `method`, `route`, `isReadOnly`, `requiredFields[]`, `successStatus`, `errorStatuses[]`, and `notes`.
 
-Current action keys: `fleet.overview.read`, `fleet.uiState.read`, `fleet.travel.estimate`, `fleet.transfer.create`, `fleet.transfer.cancel`, `fleet.transfer.complete`, `fleet.group.split`, and `fleet.group.merge`.
+Current action keys: `fleet.overview.read`, `fleet.uiState.read`, `fleet.interception.readiness.read`, `fleet.travel.estimate`, `fleet.transfer.create`, `fleet.transfer.cancel`, `fleet.transfer.complete`, `fleet.group.split`, and `fleet.group.merge`.
 
-`fleet.uiState.read` notes that UI state includes route/fuel capability hints but no destination-specific estimates. `fleet.travel.estimate` is read-only in the manifest and is the source of route profile and fuel readiness previews when a UI has an explicit destination.
+`fleet.uiState.read` notes that UI state includes route/fuel capability hints but no destination-specific estimates. `fleet.interception.readiness.read` cross-links the strategic-map interception-readiness endpoint for direct transfer-readiness inspection. `fleet.travel.estimate` is read-only in the manifest and is the source of route profile and fuel readiness previews when a UI has an explicit destination.
 
 Restrictions: read-only and deterministic. This endpoint is a dev metadata surface for frontend tooling and does not require persistence beyond development-route gating.
 

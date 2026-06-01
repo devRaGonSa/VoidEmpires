@@ -27,7 +27,7 @@ public class DevFleetUiStateEndpointTests(WebApplicationFactory<Program> factory
     [Fact]
     public async Task UiStateReturnsSuccessfulReadPayload()
     {
-        var fakeService = new FakeDevFleetUiStateService(new GetDevFleetUiStateResult(CivilizationId, [], [], []));
+        var fakeService = new FakeDevFleetUiStateService(new GetDevFleetUiStateResult(CivilizationId, [], [], [], []));
         using var client = factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureAppConfiguration((_, configurationBuilder) =>

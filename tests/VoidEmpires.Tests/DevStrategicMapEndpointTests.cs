@@ -50,7 +50,7 @@ public class DevStrategicMapEndpointTests(WebApplicationFactory<Program> factory
     [InlineData("?civilizationId=00000000-0000-0000-0000-000000000000")]
     public async Task StrategicMapReturnsBadRequestForMissingOrEmptyCivilizationId(string queryString)
     {
-        using var client = CreateConfiguredClient(new GetStrategicMapResult(CivilizationId, [], []));
+        using var client = CreateConfiguredClient(new GetStrategicMapResult(CivilizationId, [], [], [], [], []));
 
         using var response = await client.GetAsync($"/api/dev/strategic-map{queryString}");
         var payload = await response.Content.ReadFromJsonAsync<StrategicMapResponse>();
@@ -191,7 +191,10 @@ public class DevStrategicMapEndpointTests(WebApplicationFactory<Program> factory
                     [],
                     [])
             ],
-            [new StrategicMapRouteFuelNoteDto("fleet.travel.estimate", true, OrbitalFuelReadinessPolicy.PlaceholderDerived, "Requires destinationPlanetId.")]);
+            [new StrategicMapRouteFuelNoteDto("fleet.travel.estimate", true, OrbitalFuelReadinessPolicy.PlaceholderDerived, "Requires destinationPlanetId.")],
+            [],
+            [],
+            []);
     }
 
     private sealed class FakeStrategicMapService(GetStrategicMapResult result) : IStrategicMapService

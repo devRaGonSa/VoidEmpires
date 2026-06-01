@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Fleets;
+using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
@@ -27,6 +28,7 @@ public class DevFleetUiStateServiceTests
         Assert.Empty(result.Groups);
         Assert.Empty(result.ResourceContexts);
         Assert.Contains(result.ActionHints, x => x.ActionKey == "fleet.transfer.create");
+        Assert.Contains(result.InterceptionNotes, x => x.Note.Contains("not implemented", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -122,10 +124,78 @@ public class DevFleetUiStateServiceTests
         Assert.Contains(group.RouteFuelReadiness.Notes, x => x.Contains("Concrete route profile", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public async Task GetAsyncIncludesInterceptionReadinessForActiveOwnTransfer()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var transferId = Guid.NewGuid();
+        var overview = new GetFleetOperationalOverviewResult(
+            civilizationId,
+            [
+                new FleetOperationalGroupDto(
+                    Guid.NewGuid(),
+                    civilizationId,
+                    Guid.NewGuid(),
+                    Guid.NewGuid(),
+                    SpaceAssetType.CargoCraft,
+                    3,
+                    OrbitalGroupStatus.Reserved,
+                    false,
+                    true,
+                    new FleetOperationalTransferDto(
+                        transferId,
+                        Guid.NewGuid(),
+                        2,
+                        new DateTime(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc),
+                        new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc),
+                        OrbitalTransferStatus.Planned),
+                    new FleetOperationalCommandAvailabilityDto(false, false, false, true))
+            ]);
+
+        var result = await new DevFleetUiStateService(
+                dbContext,
+                new FakeFleetOperationalOverviewService(overview),
+                new DevFleetActionManifestService(),
+                new FakeInterceptionOpportunityService(
+                    new GetInterceptionOpportunitiesResult(
+                        civilizationId,
+                        [
+                            new InterceptionOpportunityDto(
+                                transferId,
+                                Guid.NewGuid(),
+                                Guid.NewGuid(),
+                                Guid.NewGuid(),
+                                2,
+                                new DateTime(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc),
+                                new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc),
+                                OrbitalTransferStatus.Planned,
+                                InterceptionOpportunityStatus.ObservedOwnTransfer,
+                                [InterceptionOpportunityBlockReason.SelfObservedTransfer],
+                                false,
+                                "Observed through requesting-civilization fleet state.",
+                                "Own active transfers are surfaced as non-hostile readiness metadata only.")
+                        ])))
+            .GetAsync(new GetDevFleetUiStateRequest(civilizationId));
+
+        var transfer = Assert.Single(result.Groups).ActiveTransfer;
+        Assert.NotNull(transfer);
+        Assert.NotNull(transfer.InterceptionReadiness);
+        Assert.Equal(InterceptionOpportunityStatus.ObservedOwnTransfer, transfer.InterceptionReadiness.OpportunityStatus);
+        Assert.Equal([InterceptionOpportunityBlockReason.SelfObservedTransfer], transfer.InterceptionReadiness.BlockReasons);
+    }
+
     private sealed class FakeFleetOperationalOverviewService(GetFleetOperationalOverviewResult result) : IFleetOperationalOverviewService
     {
         public Task<GetFleetOperationalOverviewResult> GetAsync(
             GetFleetOperationalOverviewRequest request,
+            CancellationToken cancellationToken = default) => Task.FromResult(result);
+    }
+
+    private sealed class FakeInterceptionOpportunityService(GetInterceptionOpportunitiesResult result) : IInterceptionOpportunityService
+    {
+        public Task<GetInterceptionOpportunitiesResult> GetAsync(
+            GetInterceptionOpportunitiesRequest request,
             CancellationToken cancellationToken = default) => Task.FromResult(result);
     }
 
