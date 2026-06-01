@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 7P - Exploration command readiness smoke coverage`.
+The repository is consolidated through `Phase 7T - Exploration mission lifecycle docs and smoke coverage`.
 
 ## Repository Reality
 
@@ -61,6 +61,10 @@ Current implemented foundations:
 - Strategic map system and planet DTOs now include read-only exploration preview metadata for unknown nodes while blocking preview for already-visible or owned nodes.
 - Development-only strategic map action manifest at `GET /api/dev/strategic-map/action-manifest` exposes deterministic metadata for current strategic map, visual state, fleet UI state, exploration preview, and related manifest read actions.
 - Development-only exploration preview endpoint at `GET /api/dev/strategic-map/exploration-preview?civilizationId={id}` exposes read-only exploration readiness metadata derived from map visibility.
+- Minimal persistent exploration mission foundation exists with `ExplorationMission`, `ExplorationMissionStatus`, EF mapping, and a migration for planned/completed mission lifecycle state. No creation endpoint, completion worker, visibility reveal, sensors, fog-of-war, route graph, pathfinding, combat, interception, or UI behavior has been added.
+- Development-only exploration mission creation exists at `POST /api/dev/strategic-map/exploration-missions/create`, creating planned missions only for current exploration-preview-eligible unknown targets with deterministic placeholder due times and no resource cost, fleet assignment, completion, visibility reveal, sensors, fog-of-war, route graph, pathfinding, combat, interception, or UI behavior.
+- Development-only exploration mission completion exists at `POST /api/dev/strategic-map/exploration-missions/complete-due`, marking due planned missions completed without visibility reveal, known-system/fog-of-war/sensor persistence, rewards, combat, interception, route graph, pathfinding, background worker, or UI behavior.
+- Exploration mission lifecycle smoke coverage validates preview -> create planned mission -> complete due mission while strategic map visibility remains conservative and seeded fleet/resource state remains unchanged.
 - Strategic map readiness smoke coverage validates that strategic map, visual state, fleet UI state, strategic map action manifest, and exploration preview read surfaces remain coherent and do not mutate stockpiles, orbital groups, or transfers.
 - Visibility and command readiness smoke coverage validates owned, foreign-owned, and unknown strategic map nodes across visibility and strategic map read models; verifies command availability for visible nodes and blocked commands for unknown nodes; and protects read-only behavior across systems, planets, ownerships, stockpiles, orbital groups, and transfers.
 - Static visual sandbox at `/dev/visual-state/index.html`.
@@ -134,6 +138,10 @@ Accepted current rules:
 - Strategic map exploration preview is deterministic and read-only. Unknown nodes can show `exploration.preview` as available; already-visible and owned nodes are blocked as `AlreadyVisible` or `AlreadyOwned`. It does not create exploration missions, sensors, persisted fog-of-war, scanners, espionage, diplomacy, combat, interception, route graph, or pathfinding state.
 - Strategic map action manifest is read-only development tooling for future UI prototypes. It lists strategic map, exploration preview, visual-state, fleet UI state, and manifest read actions with method, route, required fields, success status, common error statuses, and notes.
 - Strategic map readiness smoke coverage protects the current limitation that map/readiness contracts do not expose mesh, texture, binary, shader, route graph, pathfinding, combat, or interception payload fields.
+- Phase 7Q adds only the persistent exploration mission data model: requesting civilization, target system, optional target planet, requested/due/completed timestamps, and planned/completed status. Exploration preview remains read-only and does not create missions or reveal map visibility.
+- Phase 7R adds a minimal creation service and dev-only endpoint for planned exploration missions. System-level placeholder missions are due after 30 minutes, planet-level placeholder missions after 45 minutes, and creation is allowed only when the existing exploration preview marks the target as eligible.
+- Phase 7S adds a minimal completion service and dev-only endpoint that completes due planned missions by timestamp. Completion currently closes mission lifecycle state only and intentionally does not reveal visibility or create knowledge/fog-of-war persistence.
+- Phase 7T adds lifecycle smoke coverage and documentation for the current preview -> create -> complete flow. The expected behavior remains conservative: completed exploration missions do not reveal targets, create known-system/fog-of-war/sensor state, grant rewards, or mutate fleet/resource state.
 
 ## Dev Surface Gating Note
 
@@ -156,16 +164,17 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline before this direct GitHub implementation: `402` passing tests.
+Current validated baseline after Phase 7T: `434` passing tests.
 
-Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, and exploration preview readiness.
+Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, and the minimal exploration mission lifecycle.
 
 ## Recommended Next Work
 
 1. Deepen movement only after deciding whether route graphs, pathfinding, persisted fuel inventory, or refueling are required.
-2. Add combat/interception foundations only after fleet movement and visibility contracts stabilize.
-3. Start a real renderer spike only after the visual state contract remains stable.
-4. Keep `XUniversePlanet Generator Variator` as an external/local prototype reference until the renderer/prototype phase needs it.
+2. Add real exploration visibility reveal only after defining the persisted knowledge/fog-of-war boundary and its conservative read-model impact.
+3. Add combat/interception foundations only after fleet movement and visibility contracts stabilize.
+4. Start a real renderer spike only after the visual state contract remains stable.
+5. Keep `XUniversePlanet Generator Variator` as an external/local prototype reference until the renderer/prototype phase needs it.
 
 ## Constraints
 

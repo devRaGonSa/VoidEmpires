@@ -1,0 +1,107 @@
+using Microsoft.EntityFrameworkCore;
+using VoidEmpires.Application.StrategicMap;
+using VoidEmpires.Domain.Exploration;
+using VoidEmpires.Domain.Galaxy;
+using VoidEmpires.Infrastructure.Persistence;
+using VoidEmpires.Infrastructure.StrategicMap;
+
+namespace VoidEmpires.Tests;
+
+public class ExplorationMissionCompletionServiceTests
+{
+    [Fact]
+    public async Task CompleteDueAsyncCompletesDuePlannedMission()
+    {
+        await using var dbContext = CreateDbContext();
+        var nowUtc = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
+        var dueMission = ExplorationMission.CreatePlanned(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            null,
+            nowUtc.AddHours(-1),
+            nowUtc);
+        dbContext.ExplorationMissions.Add(dueMission);
+        await dbContext.SaveChangesAsync();
+
+        var result = await new ExplorationMissionCompletionService(dbContext)
+            .CompleteDueAsync(new CompleteDueExplorationMissionsRequest(nowUtc));
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(1, result.CompletedCount);
+        Assert.Equal([dueMission.Id], result.CompletedMissionIds);
+        var persisted = await dbContext.ExplorationMissions.SingleAsync();
+        Assert.Equal(ExplorationMissionStatus.Completed, persisted.Status);
+        Assert.Equal(nowUtc, persisted.CompletedAtUtc);
+    }
+
+    [Fact]
+    public async Task CompleteDueAsyncDoesNotCompleteFutureMission()
+    {
+        await using var dbContext = CreateDbContext();
+        var nowUtc = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
+        var futureMission = ExplorationMission.CreatePlanned(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            null,
+            nowUtc,
+            nowUtc.AddMinutes(1));
+        dbContext.ExplorationMissions.Add(futureMission);
+        await dbContext.SaveChangesAsync();
+
+        var result = await new ExplorationMissionCompletionService(dbContext)
+            .CompleteDueAsync(new CompleteDueExplorationMissionsRequest(nowUtc));
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(0, result.CompletedCount);
+        var persisted = await dbContext.ExplorationMissions.SingleAsync();
+        Assert.Equal(ExplorationMissionStatus.Planned, persisted.Status);
+        Assert.Null(persisted.CompletedAtUtc);
+    }
+
+    [Fact]
+    public async Task CompleteDueAsyncRejectsNonUtcTimestamp()
+    {
+        await using var dbContext = CreateDbContext();
+
+        var result = await new ExplorationMissionCompletionService(dbContext)
+            .CompleteDueAsync(new CompleteDueExplorationMissionsRequest(new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Local)));
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Now must be UTC.", result.Errors);
+    }
+
+    [Fact]
+    public async Task CompleteDueAsyncDoesNotRevealVisibility()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var system = CreateSystem("Unknown", 1, 2, 3);
+        var nowUtc = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
+        dbContext.Set<SolarSystem>().Add(system);
+        dbContext.ExplorationMissions.Add(ExplorationMission.CreatePlanned(
+            civilizationId,
+            system.Id,
+            null,
+            nowUtc.AddHours(-1),
+            nowUtc));
+        await dbContext.SaveChangesAsync();
+
+        _ = await new ExplorationMissionCompletionService(dbContext)
+            .CompleteDueAsync(new CompleteDueExplorationMissionsRequest(nowUtc));
+
+        var visibility = await new MapVisibilityService(dbContext).GetAsync(new GetMapVisibilityRequest(civilizationId));
+        Assert.Equal(MapVisibilityLevel.Unknown, Assert.Single(visibility.Systems).VisibilityLevel);
+    }
+
+    private static SolarSystem CreateSystem(string name, int x, int y, int z)
+    {
+        var systemId = Guid.NewGuid();
+        var star = new Star(Guid.NewGuid(), systemId, $"{name} Star", StarType.YellowDwarf);
+        return new SolarSystem(systemId, Guid.NewGuid(), name, new GalaxyCoordinates(x, y, z), star);
+    }
+
+    private static VoidEmpiresDbContext CreateDbContext() =>
+        new(new DbContextOptionsBuilder<VoidEmpiresDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options);
+}
