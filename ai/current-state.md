@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 9I - Frontend visual-state preview links`.
+The repository is consolidated through `Phase 9J - Frontend visual map docs and smoke checkpoint`.
 
 ## Repository Reality
 
@@ -104,7 +104,7 @@ Current implemented foundations:
 - The frontend strategic map page now supports deterministic local selection for systems and planets, allowing read-only inspection of visibility, counts, and command/readiness metadata without calling mutating endpoints.
 - The frontend strategic map page now also links selected systems and visible planets to the existing visual-state development endpoints, exposing compact renderer-facing summaries plus raw JSON payload inspection without adding rendering or gameplay mutations.
 - The frontend fleet page now reads `GET /api/dev/fleets/ui-state`, `GET /api/dev/fleets/action-manifest`, and `GET /api/dev/strategic-map/action-manifest`, rendering fleet summaries and manifest metadata as read-only inspection panels without wiring gameplay mutations.
-- Frontend setup, limitations, and smoke validation are now documented in `src/VoidEmpires.Frontend/README.md` and `docs/dev/frontend-foundation-smoke-checklist.md`.
+- Frontend setup, limitations, current visual map behavior, and smoke validation are now documented in `src/VoidEmpires.Frontend/README.md` and `docs/dev/frontend-foundation-smoke-checklist.md`.
 
 Current foundation chain:
 
@@ -212,6 +212,7 @@ Accepted current rules:
 - Phase 9G adds the first visual readiness layer for the frontend strategic map: a simple 2D SVG projection that uses backend coordinates, handles empty and single-system maps safely, shows visibility state directly on map nodes, and preserves the existing list/card inspection view.
 - Phase 9H adds a read-only selection detail layer for the frontend strategic map so users can choose a system from the map or list, inspect planet metadata, and review readiness notes without executing gameplay actions.
 - Phase 9I connects the frontend strategic map selection flow to the existing visual-state development endpoints with read-only system and planet preview loaders, compact payload summaries, and raw JSON inspection for renderer-facing contracts.
+- Phase 9J hardens the current frontend visual map slice with updated README guidance, an explicit smoke checklist for 2D map and visual-state preview behavior, and refreshed frontend checkpoint documentation that keeps the UI framed as development-only readiness tooling.
 
 ## Dev Surface Gating Note
 
@@ -234,7 +235,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 9I:
+Current validated baseline after Phase 9J:
 
 - backend: `dotnet restore`, `dotnet build --no-restore`, and `dotnet test --no-build` succeeded with `527` passing tests
 - frontend: `npm install` and `npm run build` succeeded for the current prototype shell

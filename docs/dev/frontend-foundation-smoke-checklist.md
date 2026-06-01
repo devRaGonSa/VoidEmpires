@@ -20,13 +20,19 @@ Use this checklist to validate the current frontend prototype without confusing 
    - loading state appears
    - request errors are rendered clearly when the backend rejects the request
    - system, planet, fleet, transfer, and readiness summary data render on success
+   - systems render in the 2D map view
+   - selecting a system from the map updates the selection detail panel
+   - selecting a system from the chip list updates the same detail panel
+   - selecting a visible planet updates the planet details
+   - `Load system visual state` returns a compact summary plus raw JSON details when the backend is running
+   - `Load planet visual state` works for visible planets and stays read-only/dev-only
 8. Open the `Fleets` route.
 9. Enter the same civilization id and confirm:
    - loading state appears
    - fleet group summaries render on success
    - route/fuel and interception readiness notes render as metadata only
    - fleet and strategic-map manifests render as read-only contract panels
-10. Confirm there are no buttons that execute mutating dev endpoints.
+10. Confirm there are no buttons that execute mutating dev endpoints from either route.
 
 ## Repository validation
 
