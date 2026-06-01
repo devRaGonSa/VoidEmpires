@@ -344,9 +344,11 @@ The manifest is read-only metadata for UI discovery. It does not require persist
 - `detectionNotes[]`: capability notes for placeholder detection coverage metadata.
 - `interceptionNotes[]`: capability notes for read-only interception readiness metadata.
 - `allianceNotes[]`: capability notes for read-only alliance readiness metadata.
+- `alliancePactNotes[]`: capability notes for read-only alliance pact readiness metadata.
+- `alliancePacts[]`: requesting-civilization alliance pact metadata only.
 - `allianceReadiness[]`: requesting-civilization alliance membership metadata only.
 
-Current relevance includes systems that contain owned planets, active transfer origin/destination planets, or exploration knowledge for the requesting civilization. Sensor profiles, detection coverage, and alliance readiness are attached as metadata only; they do not add relevance, reveal visibility, scan targets, expose allied state, or change command availability. There is no alliance, diplomacy, or espionage visibility model yet.
+Current relevance includes systems that contain owned planets, active transfer origin/destination planets, or exploration knowledge for the requesting civilization. Sensor profiles, detection coverage, alliance readiness, and alliance pact readiness are attached as metadata only; they do not add relevance, reveal visibility, scan targets, expose allied state, or change command availability. There is no alliance, diplomacy, or espionage visibility model yet.
 
 Visibility fields are inherited from the map visibility service. They are read-only annotations and do not represent persisted fog-of-war. Current levels are `Owned`, `Visible`, and `Unknown`; current reasons are `OwnedPlanet`, `SystemContainsOwnedPlanet`, `ExploredSystem`, `ExploredPlanet`, and `NoKnownVisibilitySource`.
 
@@ -422,6 +424,14 @@ Each `allianceReadiness[]` item contains:
 Each `membership` item contains `allianceMembershipId`, `allianceId`, `civilizationId`, `status`, `role`, and `joinedAtUtc`.
 
 Alliance readiness is read-only metadata only. In this phase it does not grant shared visibility, allied system relevance, allied fleet presence, shared sensor/detection/interception data, authorization, pacts, trade, war, espionage, combat, or final UI behavior. Diplomatic contacts remain a separate readiness surface and do not imply alliance membership.
+
+Each `alliancePacts[]` item contains:
+
+- `alliancePactId`, `pactType`, `status`, `createdAtUtc`
+- `sourceAlliance`: `allianceId`, `name`, `tag`, `status`
+- `targetAlliance`: `allianceId`, `name`, `tag`, `status`
+
+Alliance pact readiness is read-only metadata only. In this phase it does not grant shared visibility, allied system relevance, allied fleet presence, shared sensor/detection/interception data, authorization, trade execution, war declarations, defense automation, espionage, combat, or final UI behavior. Pact metadata is scoped to alliances where the requesting civilization has an active membership, and diplomatic contacts remain a separate readiness surface.
 
 Each `routeFuelNotes[]` item contains:
 

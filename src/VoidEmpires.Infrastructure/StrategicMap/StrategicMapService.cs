@@ -19,6 +19,7 @@ public sealed class StrategicMapService(
     ISensorProfileService? sensorProfileService = null,
     IDetectionCoverageService? detectionCoverageService = null,
     IInterceptionOpportunityService? interceptionOpportunityService = null,
+    IAlliancePactReadinessQueryService? alliancePactReadinessQueryService = null,
     IAllianceReadinessQueryService? allianceReadinessQueryService = null) : IStrategicMapService
 {
     public async Task<GetStrategicMapResult> GetAsync(
@@ -27,8 +28,12 @@ public sealed class StrategicMapService(
     {
         if (request.CivilizationId == Guid.Empty)
         {
-            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes(), CreateDetectionNotes(), CreateInterceptionNotes(), CreateAllianceNotes(), [], CreateDiplomacyNotes(), []);
+            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes(), CreateDetectionNotes(), CreateInterceptionNotes(), CreateAllianceNotes(), CreateAlliancePactNotes(), [], [], CreateDiplomacyNotes(), []);
         }
+
+        var alliancePacts = (await (alliancePactReadinessQueryService ?? new AlliancePactReadinessQueryService(dbContext))
+            .GetAsync(new GetAlliancePactReadinessRequest(request.CivilizationId), cancellationToken))
+            .Pacts;
 
         var allianceReadiness = (await (allianceReadinessQueryService ?? new AllianceReadinessQueryService(dbContext))
             .GetAsync(new GetAllianceReadinessRequest(request.CivilizationId), cancellationToken))
@@ -76,7 +81,7 @@ public sealed class StrategicMapService(
 
         if (relevantPlanetIds.Length == 0 && knownSystemIds.Count == 0)
         {
-            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes(), CreateDetectionNotes(), CreateInterceptionNotes(), CreateAllianceNotes(), allianceReadiness, CreateDiplomacyNotes(), diplomaticContacts);
+            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes(), CreateDetectionNotes(), CreateInterceptionNotes(), CreateAllianceNotes(), CreateAlliancePactNotes(), alliancePacts, allianceReadiness, CreateDiplomacyNotes(), diplomaticContacts);
         }
 
         var systemIds = await dbContext.Set<Planet>()
@@ -133,6 +138,8 @@ public sealed class StrategicMapService(
             CreateDetectionNotes(),
             CreateInterceptionNotes(),
             CreateAllianceNotes(),
+            CreateAlliancePactNotes(),
+            alliancePacts,
             allianceReadiness,
             CreateDiplomacyNotes(),
             diplomaticContacts);
@@ -333,6 +340,12 @@ public sealed class StrategicMapService(
     [
         new("Alliance readiness is read-only metadata only; it does not grant shared visibility, shared sensor or detection coverage, fleet access, authorization, trade, war, espionage, or combat behavior."),
         new("Alliance memberships are scoped to the requesting civilization only and do not add strategic map relevance or expose ally-owned systems, planets, fleets, transfers, sensors, detection, or interception data.")
+    ];
+
+    private static IReadOnlyList<StrategicMapAlliancePactNoteDto> CreateAlliancePactNotes() =>
+    [
+        new("Alliance pact readiness is read-only metadata only; it does not grant shared visibility, shared sensor or detection coverage, fleet access, authorization, trade execution, war declarations, defense automation, espionage, or combat behavior."),
+        new("Alliance pact metadata is scoped to alliances where the requesting civilization has an active membership and does not add strategic map relevance or expose ally-owned or foreign systems, planets, fleets, transfers, sensors, detection, or interception data.")
     ];
 
     private static IReadOnlyList<StrategicMapDiplomacyNoteDto> CreateDiplomacyNotes() =>
