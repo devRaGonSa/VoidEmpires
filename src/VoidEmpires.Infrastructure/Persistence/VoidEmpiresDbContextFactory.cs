@@ -7,8 +7,13 @@ public sealed class VoidEmpiresDbContextFactory : IDesignTimeDbContextFactory<Vo
 {
     public VoidEmpiresDbContext CreateDbContext(string[] args)
     {
+        var connectionString =
+            Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+            ?? Environment.GetEnvironmentVariable("VOIDEMPIRES_CONNECTION_STRING")
+            ?? "Host=localhost;Database=voidempires_design";
+
         var options = new DbContextOptionsBuilder<VoidEmpiresDbContext>()
-            .UseNpgsql("Host=localhost;Database=voidempires_design")
+            .UseNpgsql(connectionString)
             .Options;
 
         return new VoidEmpiresDbContext(options);
