@@ -2,9 +2,15 @@ import { FormEvent, useMemo, useState } from "react";
 import type {
   ReadinessNote,
   StrategicMapResult,
+  StrategicMapSystem,
 } from "../api/strategicMapTypes";
+import type {
+  PlanetVisualStateResponse,
+  SystemVisualStateResponse,
+} from "../api/voidEmpiresApi";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { StatusBadge } from "../components/StatusBadge";
+import { StrategicMap2DView } from "../components/StrategicMap2DView";
 import { StrategicMapSystemCard } from "../components/StrategicMapSystemCard";
 
 const readinessSections = [
@@ -24,11 +30,46 @@ function formatNote(note: ReadinessNote) {
   return note.note ?? "Readiness metadata present.";
 }
 
+function readText(value: unknown, fallback = "Unavailable") {
+  return typeof value === "string" && value.length > 0 ? value : fallback;
+}
+
+function readCommands(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter(
+        (
+          item,
+        ): item is {
+          actionKey?: string;
+          note?: string;
+          isAvailable?: boolean;
+          blockReason?: string;
+        } => typeof item === "object" && item !== null,
+      )
+    : [];
+}
+
+function readRecord(value: unknown) {
+  return value as Record<string, unknown>;
+}
+
+function formatJson(value: unknown) {
+  return JSON.stringify(value, null, 2);
+}
+
 export function StrategicMapPage() {
   const [civilizationId, setCivilizationId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<StrategicMapResult | null>(null);
+  const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null);
+  const [selectedPlanetId, setSelectedPlanetId] = useState<string | null>(null);
+  const [isLoadingSystemVisual, setIsLoadingSystemVisual] = useState(false);
+  const [systemVisualError, setSystemVisualError] = useState<string | null>(null);
+  const [systemVisualState, setSystemVisualState] = useState<SystemVisualStateResponse["visualState"]>(null);
+  const [isLoadingPlanetVisual, setIsLoadingPlanetVisual] = useState(false);
+  const [planetVisualError, setPlanetVisualError] = useState<string | null>(null);
+  const [planetVisualState, setPlanetVisualState] = useState<PlanetVisualStateResponse["visualState"]>(null);
 
   const summary = useMemo(() => {
     if (!result) {
@@ -47,6 +88,71 @@ export function StrategicMapPage() {
     );
   }, [result]);
 
+  const selectedSystem = useMemo(
+    () =>
+      result?.systems.find((system) => system.systemId === selectedSystemId) ??
+      result?.systems[0] ??
+      null,
+    [result, selectedSystemId],
+  );
+
+  const selectedPlanet = useMemo(
+    () =>
+      selectedSystem?.planets?.find((planet) => planet.planetId === selectedPlanetId) ??
+      selectedSystem?.planets?.[0] ??
+      null,
+    [selectedPlanetId, selectedSystem],
+  );
+
+  function selectSystem(system: StrategicMapSystem) {
+    setSelectedSystemId(system.systemId);
+    setSelectedPlanetId(system.planets?.[0]?.planetId ?? null);
+    setSystemVisualState(null);
+    setSystemVisualError(null);
+    setPlanetVisualState(null);
+    setPlanetVisualError(null);
+  }
+
+  async function loadSystemVisualState() {
+    if (!selectedSystem) {
+      return;
+    }
+
+    setIsLoadingSystemVisual(true);
+    setSystemVisualError(null);
+    try {
+      const response = await voidEmpiresApi.getSystemVisualState(selectedSystem.systemId);
+      setSystemVisualState(response.succeeded ? response.visualState : null);
+      setSystemVisualError(response.succeeded ? null : response.errors[0] ?? "System visual-state request failed.");
+    } catch (requestError) {
+      setSystemVisualState(null);
+      setSystemVisualError(requestError instanceof Error ? requestError.message : "System visual-state request failed.");
+    } finally {
+      setIsLoadingSystemVisual(false);
+    }
+  }
+
+  async function loadPlanetVisualState() {
+    if (!selectedPlanet?.isVisible) {
+      setPlanetVisualState(null);
+      setPlanetVisualError("Select a visible planet to inspect its visual state.");
+      return;
+    }
+
+    setIsLoadingPlanetVisual(true);
+    setPlanetVisualError(null);
+    try {
+      const response = await voidEmpiresApi.getPlanetVisualState(selectedPlanet.planetId);
+      setPlanetVisualState(response.succeeded ? response.visualState : null);
+      setPlanetVisualError(response.succeeded ? null : response.errors[0] ?? "Planet visual-state request failed.");
+    } catch (requestError) {
+      setPlanetVisualState(null);
+      setPlanetVisualError(requestError instanceof Error ? requestError.message : "Planet visual-state request failed.");
+    } finally {
+      setIsLoadingPlanetVisual(false);
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -54,6 +160,12 @@ export function StrategicMapPage() {
     if (!trimmedCivilizationId) {
       setError("Civilization id is required.");
       setResult(null);
+      setSelectedSystemId(null);
+      setSelectedPlanetId(null);
+      setSystemVisualState(null);
+      setSystemVisualError(null);
+      setPlanetVisualState(null);
+      setPlanetVisualError(null);
       return;
     }
 
@@ -64,17 +176,35 @@ export function StrategicMapPage() {
       const response = await voidEmpiresApi.getStrategicMap(trimmedCivilizationId);
       if (!response.succeeded || !response.map) {
         setResult(null);
+        setSelectedSystemId(null);
+        setSelectedPlanetId(null);
+        setSystemVisualState(null);
+        setSystemVisualError(null);
+        setPlanetVisualState(null);
+        setPlanetVisualError(null);
         setError(response.errors[0] ?? "Strategic map request failed.");
         return;
       }
 
       setResult(response.map);
+      setSelectedSystemId(response.map.systems[0]?.systemId ?? null);
+      setSelectedPlanetId(response.map.systems[0]?.planets?.[0]?.planetId ?? null);
+      setSystemVisualState(null);
+      setSystemVisualError(null);
+      setPlanetVisualState(null);
+      setPlanetVisualError(null);
     } catch (requestError) {
       const message =
         requestError instanceof Error
           ? requestError.message
           : "Strategic map request failed.";
       setResult(null);
+      setSelectedSystemId(null);
+      setSelectedPlanetId(null);
+      setSystemVisualState(null);
+      setSystemVisualError(null);
+      setPlanetVisualState(null);
+      setPlanetVisualError(null);
       setError(message);
     } finally {
       setIsLoading(false);
@@ -84,7 +214,7 @@ export function StrategicMapPage() {
   return (
     <section className="page-grid">
       <article className="panel panel-hero">
-        <StatusBadge>Phase 9C read slice</StatusBadge>
+        <StatusBadge>Phase 9H selection readiness slice</StatusBadge>
         <h2>Strategic map development read</h2>
         <p>
           This screen consumes the development-only strategic map endpoint as a
@@ -149,7 +279,160 @@ export function StrategicMapPage() {
 
       {result && (
         <article className="panel">
+          <div className="section-heading">
+            <div>
+              <h3>Strategic map 2D view</h3>
+              <p>
+                Backend coordinates are normalized into a deterministic SVG
+                viewport. This is a read-only visual readiness layer.
+              </p>
+            </div>
+          </div>
+          <StrategicMap2DView
+            systems={result.systems}
+            selectedSystemId={selectedSystem?.systemId}
+            onSelectSystem={(systemId) => {
+              const system = result.systems.find((item) => item.systemId === systemId);
+              if (system) {
+                selectSystem(system);
+              }
+            }}
+          />
+        </article>
+      )}
+
+      {result && (
+        <article className="panel">
+          <h3>Selection detail</h3>
+          <div className="selection-chip-row">
+            {result.systems.map((system) => (
+              <button
+                key={system.systemId}
+                type="button"
+                className={`selection-chip${selectedSystem?.systemId === system.systemId ? " selection-chip-active" : ""}`}
+                onClick={() => selectSystem(system)}
+              >
+                {system.systemName ?? "Unknown system"}
+              </button>
+            ))}
+          </div>
+          {selectedSystem && (
+            <div className="selection-grid">
+              <section className="subpanel">
+                <h4>{selectedSystem.systemName ?? "Unknown system"}</h4>
+                <p>
+                  {selectedSystem.coordinateX ?? "?"}, {selectedSystem.coordinateY ?? "?"},{" "}
+                  {selectedSystem.coordinateZ ?? "?"}
+                </p>
+                <ul className="stack-list compact-list">
+                  <li>Visibility: {selectedSystem.visibilityLevel}</li>
+                  <li>Reason: {selectedSystem.visibilityReason}</li>
+                  <li>Owned: {String(Boolean(readRecord(selectedSystem).isOwnedByRequestingCivilization))}</li>
+                  <li>Planets: {selectedSystem.planets?.length ?? 0}</li>
+                  <li>Fleet markers: {selectedSystem.fleetPresence?.length ?? 0}</li>
+                  <li>Transfer overlays: {selectedSystem.transferOverlays?.length ?? 0}</li>
+                  <li>Sensor and detection summaries: {(selectedSystem.sensorProfiles?.length ?? 0) + (selectedSystem.detectionCoverage?.length ?? 0)}</li>
+                </ul>
+              </section>
+
+              <section className="subpanel">
+                <h4>Planet details</h4>
+                <div className="selection-chip-row">
+                  {selectedSystem.planets?.map((planet) => (
+                    <button
+                      key={planet.planetId}
+                      type="button"
+                      className={`selection-chip${selectedPlanet?.planetId === planet.planetId ? " selection-chip-active" : ""}`}
+                      onClick={() => {
+                        setSelectedPlanetId(planet.planetId);
+                        setPlanetVisualState(null);
+                        setPlanetVisualError(null);
+                      }}
+                    >
+                      {planet.planetName ?? "Unknown planet"}
+                    </button>
+                  ))}
+                </div>
+                {selectedPlanet ? (
+                  <ul className="stack-list compact-list">
+                    <li>Name: {selectedPlanet.planetName ?? "Unknown planet"}</li>
+                    <li>Visibility: {selectedPlanet.visibilityLevel}</li>
+                    <li>Reason: {selectedPlanet.visibilityReason}</li>
+                    <li>Type: {readText(readRecord(selectedPlanet).planetType)}</li>
+                    <li>Colonization: {readText(readRecord(selectedPlanet).colonizationStatus)}</li>
+                    {readCommands(readRecord(selectedPlanet).commands).map((command) => (
+                      <li key={command.actionKey}>
+                        {command.actionKey}: {command.isAvailable ? "available" : readText(command.blockReason, "blocked")} ({readText(command.note, "read-only metadata")})
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No planets are available for the selected system.</p>
+                )}
+              </section>
+            </div>
+          )}
+        </article>
+      )}
+
+      {result && (
+        <article className="panel">
+          <h3>Visual-state preview</h3>
+          <p>These development-only reads expose renderer-facing contracts. They are not final 3D rendering.</p>
+          <div className="selection-grid">
+            <section className="subpanel">
+              <h4>System visual state</h4>
+              <button type="button" className="selection-chip" onClick={loadSystemVisualState} disabled={!selectedSystem || isLoadingSystemVisual}>
+                {isLoadingSystemVisual ? "Loading..." : "Load system visual state"}
+              </button>
+              {systemVisualError && <p className="error-text">{systemVisualError}</p>}
+              {systemVisualState && (
+                <>
+                  <ul className="stack-list compact-list">
+                    <li>Star class: {readText(systemVisualState.star?.visualClass)}</li>
+                    <li>Star type: {readText(systemVisualState.star?.starType)}</li>
+                    <li>Layout hints: {systemVisualState.layoutHints?.length ?? 0}</li>
+                    <li>Orbital markers: {systemVisualState.orbitalGroupMarkers?.length ?? 0}</li>
+                    <li>Transfer overlays: {systemVisualState.transferOverlays?.length ?? 0}</li>
+                  </ul>
+                  <details className="json-details">
+                    <summary>Raw system payload</summary>
+                    <pre className="json-preview">{formatJson(systemVisualState)}</pre>
+                  </details>
+                </>
+              )}
+            </section>
+
+            <section className="subpanel">
+              <h4>Planet visual state</h4>
+              <button type="button" className="selection-chip" onClick={loadPlanetVisualState} disabled={!selectedPlanet || isLoadingPlanetVisual}>
+                {isLoadingPlanetVisual ? "Loading..." : "Load planet visual state"}
+              </button>
+              {!selectedPlanet?.isVisible && <p>Only visible planets should be inspected through this preview.</p>}
+              {planetVisualError && <p className="error-text">{planetVisualError}</p>}
+              {planetVisualState && (
+                <>
+                  <ul className="stack-list compact-list">
+                    <li>Planet type: {readText(planetVisualState.planetType)}</li>
+                    <li>Colonization: {readText(planetVisualState.colonizationStatus)}</li>
+                    <li>Visual seed: {planetVisualState.visualSeed ?? "Unavailable"}</li>
+                    <li>Profile: {readText(planetVisualState.profile?.paletteKey)}</li>
+                  </ul>
+                  <details className="json-details">
+                    <summary>Raw planet payload</summary>
+                    <pre className="json-preview">{formatJson(planetVisualState)}</pre>
+                  </details>
+                </>
+              )}
+            </section>
+          </div>
+        </article>
+      )}
+
+      {result && (
+        <article className="panel">
           <h3>Readiness metadata</h3>
+          <p>These notes are informational only and do not grant gameplay authorization.</p>
           <div className="readiness-grid">
             {readinessSections.map((section) => {
               const notes = result[section.key];

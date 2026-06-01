@@ -2,7 +2,7 @@
 
 This project is the current development-only frontend shell for VoidEmpires.
 
-It is a Vite + React + TypeScript prototype that consumes backend readiness contracts and intentionally avoids production auth, gameplay mutation wiring, WebSockets, and 3D rendering.
+It is a Vite + React + TypeScript prototype that consumes backend readiness contracts and intentionally avoids production auth, gameplay mutation wiring, WebSockets, and 3D rendering. The current strategic map route is a visual readiness slice only: it renders a simple 2D map, supports read-only system and planet selection, and can inspect visual-state payloads from the existing development endpoints.
 
 ## Prerequisites
 
@@ -55,11 +55,22 @@ npm run build
 - `GET /api/dev/fleets/ui-state?civilizationId={id}`
 - `GET /api/dev/fleets/action-manifest`
 - `GET /api/dev/strategic-map/action-manifest`
-
-The current frontend shell also keeps space reserved for:
-
 - `GET /api/dev/solar-systems/{systemId}/visual-state`
 - `GET /api/dev/planets/{planetId}/visual-state`
+
+## Current strategic map behavior
+
+- Renders a deterministic SVG 2D map from backend system coordinates.
+- Lets the user select a system from the map or the list below it.
+- Lets the user inspect read-only system and planet metadata from the strategic-map payload.
+- Lets the user load system and visible-planet visual-state previews as renderer-facing development payloads.
+- Keeps the older system summary cards and readiness metadata panels available for inspection.
+
+## Current fleet behavior
+
+- Loads the fleet UI-state read model for a civilization id.
+- Renders fleet summaries, resource contexts, interception notes, and read-only action manifests.
+- Does not execute any manifest-listed mutating actions.
 
 ## Runtime assumptions
 
@@ -73,6 +84,7 @@ The current frontend shell also keeps space reserved for:
 
 - Development endpoints are not production APIs.
 - Readiness metadata is not gameplay authorization.
+- Visual-state previews are renderer-facing dev contracts, not final rendering.
 - Mutating backend actions are displayed only as manifest metadata.
 - The frontend does not execute transfer creation, exploration creation, cancellation, or completion flows.
 - No production authentication is implemented.

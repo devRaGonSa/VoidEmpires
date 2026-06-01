@@ -2,7 +2,6 @@ import { appConfig } from "../config";
 import type { ActionManifestResponse } from "./actionManifestTypes";
 import type { FleetUiStateResponse } from "./fleetTypes";
 import type { StrategicMapResponse } from "./strategicMapTypes";
-
 function buildUrl(path: string, query?: Record<string, string>) {
   const url = new URL(path, appConfig.apiBaseUrl);
 
@@ -42,6 +41,32 @@ export interface HealthResponse {
   };
 }
 
+export interface SystemVisualStateResponse {
+  succeeded: boolean;
+  visualState: {
+    systemId: string;
+    systemName: string;
+    star?: { starType?: string; visualClass?: string };
+    layoutHints?: Array<{ planetId: string }>;
+    orbitalGroupMarkers?: Array<{ orbitalGroupId: string }>;
+    transferOverlays?: Array<{ transferId: string }>;
+  } | null;
+  errors: string[];
+}
+
+export interface PlanetVisualStateResponse {
+  succeeded: boolean;
+  visualState: {
+    planetId: string;
+    planetName: string;
+    planetType?: string;
+    colonizationStatus?: string;
+    visualSeed?: number;
+    profile?: { paletteKey?: string };
+  } | null;
+  errors: string[];
+}
+
 export const voidEmpiresApi = {
   getHealth() {
     return requestJson<HealthResponse>("/health");
@@ -61,5 +86,11 @@ export const voidEmpiresApi = {
   },
   getStrategicMapActionManifest() {
     return requestJson<ActionManifestResponse>("/api/dev/strategic-map/action-manifest");
+  },
+  getSystemVisualState(systemId: string) {
+    return requestJson<SystemVisualStateResponse>(`/api/dev/solar-systems/${systemId}/visual-state`);
+  },
+  getPlanetVisualState(planetId: string) {
+    return requestJson<PlanetVisualStateResponse>(`/api/dev/planets/${planetId}/visual-state`);
   },
 };

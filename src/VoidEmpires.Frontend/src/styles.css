@@ -268,6 +268,131 @@ input {
   margin: 0;
 }
 
+.strategic-map-view {
+  margin-top: 16px;
+}
+
+.map-legend {
+  margin: 0 0 14px;
+  color: #bfd0ea;
+  font-size: 0.9rem;
+}
+
+.strategic-map-canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 18px;
+  border: 1px solid rgba(122, 159, 214, 0.16);
+  background:
+    radial-gradient(circle at top, rgba(99, 152, 237, 0.12), transparent 32%),
+    rgba(4, 10, 20, 0.88);
+}
+
+.map-frame {
+  fill: url(#map-grid);
+}
+
+.map-node-title,
+.map-node-meta {
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.map-node-ring,
+.map-node-core {
+  stroke: rgba(255, 255, 255, 0.35);
+}
+
+.map-node {
+  cursor: pointer;
+}
+
+.map-node-ring {
+  fill: transparent;
+  stroke-width: 2;
+}
+
+.map-node-core {
+  stroke-width: 1.5;
+}
+
+.map-node-owned {
+  color: #7ff0b7;
+}
+
+.map-node-visible {
+  color: #8bc0ff;
+}
+
+.map-node-unknown {
+  color: #ffca80;
+}
+
+.map-node .map-node-ring,
+.map-node .map-node-core {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.map-node-selected .map-node-ring {
+  stroke: #f4f8ff;
+  stroke-width: 3;
+}
+
+.map-node-title {
+  fill: #f4f8ff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.map-node-meta {
+  fill: #9eb5da;
+  font-size: 13px;
+}
+
+.map-empty-state {
+  margin-top: 14px;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px dashed rgba(122, 159, 214, 0.22);
+  background: rgba(4, 10, 20, 0.56);
+  color: #bfd0ea;
+}
+
+.selection-chip {
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(122, 159, 214, 0.22);
+  background: rgba(4, 10, 20, 0.72);
+  color: #dce7f8;
+  cursor: pointer;
+}
+
+.selection-chip-active {
+  background: rgba(104, 164, 255, 0.18);
+  border-color: rgba(143, 193, 255, 0.4);
+  color: #f3f8ff;
+}
+
+.selection-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 14px; }
+
+.selection-chip-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+.json-details {
+  margin-top: 14px;
+}
+
+.json-preview {
+  margin: 10px 0 0;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(2, 6, 14, 0.9);
+  color: #cfe0fb;
+  overflow: auto;
+  font-size: 0.82rem;
+}
+
 .subpanel p {
   margin-top: 10px;
 }
