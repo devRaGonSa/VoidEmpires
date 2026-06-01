@@ -16,6 +16,7 @@ public class DevStrategicMapActionManifestServiceTests
             "exploration.preview.read",
             "exploration.mission.create",
             "exploration.mission.completeDue",
+            "exploration.mission.list",
             "exploration.knowledge.read",
             "visual.system.read",
             "visual.planet.read",
@@ -69,6 +70,13 @@ public class DevStrategicMapActionManifestServiceTests
         Assert.Equal(200, completeDue.SuccessStatus);
         Assert.Contains(completeDue.RequiredFields, x => x.Name == "nowUtc" && x.Type == "DateTime" && x.IsRequired);
         Assert.Contains("Development operation", completeDue.Notes, StringComparison.OrdinalIgnoreCase);
+
+        var missionList = result.Actions.Single(x => x.ActionKey == "exploration.mission.list");
+        Assert.True(missionList.IsReadOnly);
+        Assert.Equal("GET", missionList.Method);
+        Assert.Equal("/api/dev/strategic-map/exploration-missions", missionList.Route);
+        Assert.Contains(missionList.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
+        Assert.Contains(missionList.RequiredFields, x => x.Name == "status" && x.Type == "ExplorationMissionStatus" && !x.IsRequired);
 
         var knowledge = result.Actions.Single(x => x.ActionKey == "exploration.knowledge.read");
         Assert.True(knowledge.IsReadOnly);

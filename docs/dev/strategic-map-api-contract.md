@@ -58,6 +58,45 @@ Response envelope:
 
 The preview is read-only metadata derived from map visibility. It does not create exploration missions, sensors, persisted fog-of-war, scanner data, espionage, diplomacy, combat, interception, route graph, pathfinding, or UI state.
 
+### Exploration Mission List
+
+`GET /api/dev/strategic-map/exploration-missions?civilizationId={id}&status={optional}`
+
+Query:
+
+- `civilizationId`: required non-empty GUID. Scopes the mission rows to the requesting civilization.
+- `status`: optional `ExplorationMissionStatus` enum name, currently `Planned` or `Completed`.
+
+Responses:
+
+| Status | Meaning |
+|---|---|
+| `200 OK` | Exploration mission list returned. |
+| `400 Bad Request` | Missing or empty `civilizationId`, or invalid `status`. |
+| `404 Not Found` | Development route is disabled. |
+| `503 Service Unavailable` | Persistence is not configured. |
+
+Response envelope:
+
+- `succeeded`: `true` on success.
+- `missions`: exploration mission result, or `null` on validation failure.
+- `errors[]`: validation errors.
+
+The result contains `civilizationId`, optional `status`, `succeeded`, `errors[]`, and deterministic `missions[]` rows ordered by `requestedAtUtc`, `dueAtUtc`, and mission id.
+
+Each `missions[]` item contains:
+
+- `explorationMissionId`
+- `civilizationId`
+- `targetSystemId`
+- `targetPlanetId`
+- `status`
+- `requestedAtUtc`
+- `dueAtUtc`
+- `completedAtUtc`
+
+The endpoint is read-only. It does not create, complete, cancel, or mutate missions, reveal visibility, create sensors/scanners, assign rewards, mutate resources/fleets, add combat/interception, or add route graph/pathfinding state.
+
 ### Exploration Mission Create
 
 `POST /api/dev/strategic-map/exploration-missions/create`
@@ -155,10 +194,11 @@ The endpoint is read-only and returns ids plus source metadata only. It does not
 The current development lifecycle is intentionally conservative:
 
 1. `GET /api/dev/strategic-map/exploration-preview` can show `Unknown` systems or planets as eligible.
-2. `POST /api/dev/strategic-map/exploration-missions/create` can persist a planned mission for an eligible target.
-3. `POST /api/dev/strategic-map/exploration-missions/complete-due` can mark due planned missions completed.
-4. `GET /api/dev/strategic-map/exploration-knowledge` can inspect the recorded knowledge rows for a civilization.
-5. Strategic map and visibility reads can report completed targets as visible through recorded exploration knowledge.
+2. `GET /api/dev/strategic-map/exploration-missions` can inspect planned/completed mission rows for a civilization.
+3. `POST /api/dev/strategic-map/exploration-missions/create` can persist a planned mission for an eligible target.
+4. `POST /api/dev/strategic-map/exploration-missions/complete-due` can mark due planned missions completed.
+5. `GET /api/dev/strategic-map/exploration-knowledge` can inspect the recorded knowledge rows for a civilization.
+6. Strategic map and visibility reads can report completed targets as visible through recorded exploration knowledge.
 
 This lifecycle protects command plumbing and persistence only. Completion records exploration knowledge that read models can use for visibility, but it does not grant rewards, create scanners/sensors, reveal fog-of-war, assign fleets, mutate resources, or expose final UI behavior.
 
@@ -181,7 +221,7 @@ Response envelope:
 
 Each manifest action contains `actionKey`, `displayName`, `method`, `route`, `isReadOnly`, `requiredFields[]`, `successStatus`, `errorStatuses[]`, and `notes`.
 
-Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `exploration.preview.read`, `exploration.mission.create`, `exploration.mission.completeDue`, `exploration.knowledge.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
+Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `exploration.preview.read`, `exploration.mission.create`, `exploration.mission.completeDue`, `exploration.mission.list`, `exploration.knowledge.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
 
 The manifest is read-only metadata for UI discovery. It does not require persistence and does not execute the listed actions.
 
@@ -295,9 +335,21 @@ Ownership remains higher priority than exploration knowledge. System-level knowl
 
 Rows are ordered deterministically by `discoveredAtUtc`, then `systemId`, then `planetId`. Display names are intentionally omitted from this endpoint; current development clients can pair ids with strategic map or visibility reads when those surfaces make names visible.
 
+## Exploration Mission List Result
+
+`missions` contains:
+
+- `civilizationId`: requesting civilization id.
+- `status`: optional status filter echoed when supplied.
+- `succeeded`: whether the query service accepted the request.
+- `missions[]`: civilization-scoped mission rows.
+- `errors[]`: validation errors from the query service.
+
+Rows are ordered deterministically by `requestedAtUtc`, then `dueAtUtc`, then `explorationMissionId`. The optional status filter accepts current enum names only and is applied after civilization scoping.
+
 ## Side Effects
 
-The exploration mission create endpoint persists a planned `ExplorationMission` only. The exploration mission complete-due endpoint updates due planned missions to completed and records exploration knowledge consumed by current visibility reads. The current read endpoints remain read-only.
+The exploration mission create endpoint persists a planned `ExplorationMission` only. The exploration mission complete-due endpoint updates due planned missions to completed and records exploration knowledge consumed by current visibility reads. The mission list, knowledge, strategic map, and preview endpoints remain read-only.
 
 The strategic map endpoints do not create transfers, reserve fleets, complete transfers, charge resources, mutate stockpiles, persist route estimates, create sensor data, create fog-of-war state, or write map state.
 
@@ -311,6 +363,7 @@ The strategic map read model reuses the same underlying persisted state summariz
 - Fleet UI state provides group command and route/fuel readiness hints for screen-specific fleet tooling.
 - The strategic map endpoint consolidates map-level system, planet, fleet presence, transfer overlay, exploration preview, and route/fuel capability summaries.
 - The exploration preview endpoint exposes the same placeholder exploration readiness as a direct read contract for UI tooling.
+- The exploration mission list endpoint exposes current planned/completed mission rows for development inspection with an optional status filter.
 - The exploration mission create endpoint consumes that preview eligibility and creates a planned mission for unknown targets only.
 - The exploration mission complete-due endpoint closes the placeholder mission lifecycle and records exploration knowledge consumed by the visibility read model.
 - The exploration knowledge endpoint exposes the persisted knowledge rows directly for development inspection without deriving new visibility or mutating state.
