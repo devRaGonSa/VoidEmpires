@@ -13,7 +13,8 @@ namespace VoidEmpires.Infrastructure.StrategicMap;
 public sealed class StrategicMapService(
     VoidEmpiresDbContext dbContext,
     ISystemVisualStateService systemVisualStateService,
-    IMapVisibilityService mapVisibilityService) : IStrategicMapService
+    IMapVisibilityService mapVisibilityService,
+    ISensorProfileService? sensorProfileService = null) : IStrategicMapService
 {
     public async Task<GetStrategicMapResult> GetAsync(
         GetStrategicMapRequest request,
@@ -21,7 +22,7 @@ public sealed class StrategicMapService(
     {
         if (request.CivilizationId == Guid.Empty)
         {
-            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes());
+            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes());
         }
 
         var ownedPlanetIds = await dbContext.Set<PlanetOwnership>()
@@ -52,7 +53,7 @@ public sealed class StrategicMapService(
 
         if (relevantPlanetIds.Length == 0 && knownSystemIds.Count == 0)
         {
-            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes());
+            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes());
         }
 
         var systemIds = await dbContext.Set<Planet>()
@@ -65,6 +66,9 @@ public sealed class StrategicMapService(
         var visibility = await mapVisibilityService
             .GetAsync(new GetMapVisibilityRequest(request.CivilizationId), cancellationToken);
         var visibilityBySystemId = visibility.Systems.ToDictionary(x => x.SystemId);
+        var sensorProfiles = (await (sensorProfileService ?? new SensorProfileService(dbContext))
+            .GetAsync(new GetSensorProfilesRequest(request.CivilizationId), cancellationToken))
+            .Profiles;
 
         var visualStates = new List<SystemVisualStateDto>();
         foreach (var systemId in systemIds)
@@ -83,13 +87,14 @@ public sealed class StrategicMapService(
         var systems = visualStates.Select(visualState =>
         {
             visibilityBySystemId.TryGetValue(visualState.SystemId, out var systemVisibility);
-            return CreateSystem(visualState, request.CivilizationId, activeTransfers, systemVisibility, hasMapFleetContext);
+            return CreateSystem(visualState, request.CivilizationId, activeTransfers, systemVisibility, hasMapFleetContext, sensorProfiles);
         }).ToArray();
 
         return new GetStrategicMapResult(
             request.CivilizationId,
             systems.OrderBy(x => x.SystemName).ThenBy(x => x.SystemId).ToArray(),
-            CreateRouteFuelNotes());
+            CreateRouteFuelNotes(),
+            CreateSensorNotes());
     }
 
     private static StrategicMapSystemDto CreateSystem(
@@ -97,11 +102,19 @@ public sealed class StrategicMapService(
         Guid civilizationId,
         IReadOnlyCollection<OrbitalTransfer> activeTransfers,
         MapSystemVisibilityDto? visibility,
-        bool hasMapFleetContext)
+        bool hasMapFleetContext,
+        IReadOnlyList<SensorProfileDto> sensorProfiles)
     {
         var layoutByPlanetId = visualState.LayoutHints.ToDictionary(x => x.PlanetId);
         var transfersById = activeTransfers.ToDictionary(x => x.Id);
         var visibilityByPlanetId = visibility?.Planets.ToDictionary(x => x.PlanetId) ?? [];
+        var sensorsByPlanetId = sensorProfiles
+            .Where(x => x.PlanetId.HasValue)
+            .GroupBy(x => x.PlanetId!.Value)
+            .ToDictionary(x => x.Key, x => x.Select(CreateSensorSummary).ToArray());
+        var sensorsByGroupId = sensorProfiles
+            .Where(x => x.OrbitalGroupId.HasValue)
+            .ToDictionary(x => x.OrbitalGroupId!.Value, CreateSensorSummary);
         var fleetPresence = visualState.OrbitalGroupMarkers
             .Where(x => x.CivilizationId == civilizationId)
             .Select(x => new StrategicMapFleetPresenceDto(
@@ -110,10 +123,14 @@ public sealed class StrategicMapService(
                 x.AssetType,
                 x.Quantity,
                 x.Status,
-                x.MarkerKind))
+                x.MarkerKind,
+                sensorsByGroupId.GetValueOrDefault(x.OrbitalGroupId)))
             .ToArray();
         var visibilityLevel = visibility?.VisibilityLevel ?? MapVisibilityLevel.Unknown;
         var explorationPreview = ExplorationActionPreviewService.CreatePreview(visibilityLevel);
+        var systemSensorProfiles = visibility?.IsVisible == true
+            ? sensorProfiles.Where(x => x.SolarSystemId == visualState.SystemId).Select(CreateSensorSummary).ToArray()
+            : [];
 
         return new StrategicMapSystemDto(
             visualState.SystemId,
@@ -132,7 +149,8 @@ public sealed class StrategicMapService(
             visualState.Planets.Select(x =>
             {
                 visibilityByPlanetId.TryGetValue(x.PlanetId, out var planetVisibility);
-                return CreatePlanet(x, civilizationId, layoutByPlanetId, planetVisibility, hasMapFleetContext);
+                sensorsByPlanetId.TryGetValue(x.PlanetId, out var planetSensorProfiles);
+                return CreatePlanet(x, civilizationId, layoutByPlanetId, planetVisibility, hasMapFleetContext, planetSensorProfiles ?? []);
             }).ToArray(),
             fleetPresence,
             visualState.TransferOverlays
@@ -152,7 +170,8 @@ public sealed class StrategicMapService(
                         x.Progress,
                         x.OverlayKind);
                 })
-                .ToArray());
+                .ToArray(),
+            systemSensorProfiles);
     }
 
     private static StrategicMapPlanetDto CreatePlanet(
@@ -160,7 +179,8 @@ public sealed class StrategicMapService(
         Guid civilizationId,
         IReadOnlyDictionary<Guid, PlanetVisualLayoutHintDto> layoutByPlanetId,
         MapPlanetVisibilityDto? visibility,
-        bool hasFleetContext)
+        bool hasFleetContext,
+        IReadOnlyList<StrategicMapSensorProfileSummaryDto> sensorProfiles)
     {
         layoutByPlanetId.TryGetValue(visualState.PlanetId, out var layout);
         var isOwnedByRequester = visualState.CivilizationId == civilizationId;
@@ -190,7 +210,8 @@ public sealed class StrategicMapService(
             CreateIntensity(exposePlanetDetail, exposeVisualDetail, visualState.UrbanIntensity),
             CreateIntensity(exposePlanetDetail, exposeVisualDetail, visualState.IndustrialIntensity),
             CreateIntensity(exposePlanetDetail, exposeVisualDetail, visualState.MilitaryIntensity),
-            CreateIntensity(exposePlanetDetail, exposeVisualDetail, visualState.OrbitalPresenceIntensity));
+            CreateIntensity(exposePlanetDetail, exposeVisualDetail, visualState.OrbitalPresenceIntensity),
+            visibility?.IsVisible == true ? sensorProfiles : []);
     }
 
     private static float? CreateIntensity(bool exposePlanetDetail, bool exposeVisualDetail, float value) =>
@@ -283,6 +304,15 @@ public sealed class StrategicMapService(
         StrategicMapCommandBlockReason blockReason,
         string note) => new(actionKey, isAvailable, blockReason, note);
 
+    private static StrategicMapSensorProfileSummaryDto CreateSensorSummary(SensorProfileDto profile) =>
+        new(
+            profile.SourceId,
+            profile.SourceKind,
+            profile.SensorClass,
+            profile.DetectionRangeTier,
+            profile.ScanStrength,
+            profile.Note);
+
     private static IReadOnlyList<StrategicMapRouteFuelNoteDto> CreateRouteFuelNotes() =>
         [
             new(
@@ -290,5 +320,10 @@ public sealed class StrategicMapService(
                 true,
                 OrbitalFuelReadinessPolicy.PlaceholderDerived,
                 "Strategic map route/fuel data is capability metadata only; concrete route profiles and fuel readiness require a destinationPlanetId.")
+        ];
+
+    private static IReadOnlyList<StrategicMapSensorNoteDto> CreateSensorNotes() =>
+        [
+            new("Sensor profiles are derived metadata only; they do not reveal visibility, scan targets, or change command validation.")
         ];
 }
