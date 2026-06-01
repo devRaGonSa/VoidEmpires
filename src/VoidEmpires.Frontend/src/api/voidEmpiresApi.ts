@@ -1,7 +1,20 @@
 import { appConfig } from "../config";
+import type { StrategicMapResponse } from "./strategicMapTypes";
 
-async function requestJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${appConfig.apiBaseUrl}${path}`, {
+function buildUrl(path: string, query?: Record<string, string>) {
+  const url = new URL(path, appConfig.apiBaseUrl);
+
+  if (query) {
+    Object.entries(query).forEach(([key, value]) => {
+      url.searchParams.set(key, value);
+    });
+  }
+
+  return url.toString();
+}
+
+async function requestJson<T>(path: string, query?: Record<string, string>): Promise<T> {
+  const response = await fetch(buildUrl(path, query), {
     headers: {
       Accept: "application/json",
     },
@@ -30,5 +43,10 @@ export interface HealthResponse {
 export const voidEmpiresApi = {
   getHealth() {
     return requestJson<HealthResponse>("/health");
+  },
+  getStrategicMap(civilizationId: string) {
+    return requestJson<StrategicMapResponse>("/api/dev/strategic-map", {
+      civilizationId,
+    });
   },
 };

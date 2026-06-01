@@ -4,7 +4,7 @@
 
 id: TASK-9C
 title: Add frontend strategic map read slice
-status: pending
+status: done
 type: feature
 team: frontend
 supporting_teams:
@@ -156,4 +156,3 @@ At the end:
 5. Push the branch to the remote.
 
 The AI Platform runner must push after successful validation.
-
