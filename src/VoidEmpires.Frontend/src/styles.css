@@ -466,12 +466,187 @@ input {
   gap: 18px;
 }
 
+.figma-hero-card,
+.figma-fleet-card {
+  overflow: hidden;
+}
+
 .panel {
   padding: 22px;
 }
 
 .panel-hero {
   padding: 26px;
+}
+
+.figma-hero-card {
+  display: grid;
+  gap: var(--ve-space-5);
+  background:
+    radial-gradient(circle at top right, rgba(70, 239, 255, 0.12), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 82%, transparent), color-mix(in srgb, var(--ve-color-panel) 82%, transparent));
+}
+
+.figma-hero-copy {
+  display: grid;
+  gap: var(--ve-space-3);
+}
+
+.figma-two-column,
+.figma-map-layout,
+.figma-detail-grid,
+.figma-fleet-grid {
+  display: grid;
+  gap: var(--ve-space-4);
+}
+
+.figma-two-column {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.figma-map-layout {
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  align-items: start;
+}
+
+.figma-map-stage,
+.figma-map-sidebar,
+.figma-mini-card,
+.figma-subpanel,
+.figma-transfer-card {
+  display: grid;
+  gap: var(--ve-space-4);
+}
+
+.figma-map-sidebar {
+  align-content: start;
+}
+
+.figma-mini-card,
+.figma-transfer-card {
+  padding: 16px;
+  border-radius: var(--ve-radius-md);
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 42%, transparent);
+  background: color-mix(in srgb, var(--ve-color-panel-2) 76%, transparent);
+}
+
+.figma-section-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--ve-space-3);
+}
+
+.figma-section-header p {
+  margin: 8px 0 0;
+}
+
+.figma-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.figma-stat-grid {
+  display: grid;
+  gap: var(--ve-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.figma-stat {
+  padding: 16px;
+  border-radius: var(--ve-radius-md);
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 42%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 82%, transparent), color-mix(in srgb, var(--ve-color-panel) 90%, transparent));
+}
+
+.figma-stat strong {
+  display: block;
+  font-size: 1.55rem;
+}
+
+.figma-stat span {
+  color: color-mix(in srgb, var(--ve-color-muted) 88%, white);
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.figma-legend-grid,
+.figma-data-list,
+.figma-command-list {
+  display: grid;
+  gap: 10px;
+}
+
+.figma-legend-item,
+.figma-data-row,
+.figma-command-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ve-space-3);
+}
+
+.figma-legend-item {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 38%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 42%, transparent);
+}
+
+.figma-legend-item strong,
+.figma-command-item strong,
+.figma-data-row strong {
+  font-size: 0.95rem;
+}
+
+.figma-legend-item small,
+.figma-data-row span,
+.figma-command-item p,
+.figma-panel-note {
+  color: color-mix(in srgb, var(--ve-color-text) 74%, var(--ve-color-muted));
+}
+
+.figma-command-item p {
+  margin: 4px 0 0;
+  font-size: 0.84rem;
+}
+
+.figma-data-row {
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--ve-color-border) 28%, transparent);
+}
+
+.figma-data-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.figma-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  box-shadow: 0 0 14px currentColor;
+}
+
+.figma-legend-owned {
+  color: var(--ve-color-resource-deuterium);
+}
+
+.figma-legend-visible {
+  color: var(--ve-color-accent-cyan);
+}
+
+.figma-legend-unknown {
+  color: var(--ve-color-warning);
+}
+
+.figma-preview-actions {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--ve-space-3);
 }
 
 .panel p {
@@ -547,6 +722,13 @@ input {
   opacity: 0.7;
 }
 
+.query-form button:focus-visible,
+.selection-chip:focus-visible,
+.map-node:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ve-color-accent-cyan) 72%, white);
+  outline-offset: 3px;
+}
+
 .error-text {
   color: color-mix(in srgb, var(--ve-color-danger) 72%, white);
 }
@@ -591,12 +773,6 @@ input {
   margin-top: 16px;
 }
 
-.map-legend {
-  margin: 0 0 14px;
-  color: color-mix(in srgb, var(--ve-color-text) 80%, var(--ve-color-muted));
-  font-size: 0.9rem;
-}
-
 .strategic-map-canvas {
   width: 100%;
   height: auto;
@@ -606,6 +782,10 @@ input {
   background:
     radial-gradient(circle at top, color-mix(in srgb, var(--ve-color-accent-blue) 12%, transparent), transparent 32%),
     color-mix(in srgb, var(--ve-color-bg) 88%, black);
+}
+
+.map-backdrop {
+  fill: color-mix(in srgb, var(--ve-color-bg) 88%, black);
 }
 
 .map-frame {
@@ -625,6 +805,12 @@ input {
 
 .map-node {
   cursor: pointer;
+  outline: none;
+}
+
+.map-node-halo {
+  fill: currentColor;
+  opacity: 0.12;
 }
 
 .map-node-ring {
@@ -634,6 +820,12 @@ input {
 
 .map-node-core {
   stroke-width: 1.5;
+}
+
+.map-node-indicator {
+  fill: var(--ve-color-accent-cyan);
+  stroke: #f4f8ff;
+  stroke-width: 1.25;
 }
 
 .map-node-owned {
@@ -661,13 +853,13 @@ input {
 
 .map-node-title {
   fill: #f4f8ff;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
 }
 
 .map-node-meta {
   fill: color-mix(in srgb, var(--ve-color-muted) 88%, white);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .map-empty-state {
@@ -697,6 +889,10 @@ input {
 .selection-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 14px; }
 
 .selection-chip-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+.figma-fleet-grid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
 
 .json-details {
   margin-top: 14px;
@@ -783,5 +979,18 @@ input {
 
   .app-sidebar {
     position: static;
+  }
+
+  .figma-map-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .figma-preview-actions,
+  .figma-section-header,
+  .figma-legend-item,
+  .figma-command-item,
+  .figma-data-row {
+    align-items: start;
+    flex-direction: column;
   }
 }

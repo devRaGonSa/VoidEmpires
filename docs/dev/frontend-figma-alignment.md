@@ -10,6 +10,7 @@ This document records the current frontend token foundation derived from the Fig
 
 Phase 9K established reusable frontend tokens so later frontend tasks can align individual screens and components without re-encoding palette and spacing decisions.
 Phase 9L adds the first shell and base-component layer on top of those tokens.
+Phase 9M applies that shell language to the current strategic map and fleet inspection routes.
 
 ## Token source
 
@@ -90,12 +91,20 @@ Current reusable components:
 - `UiProgressBar`
 - `DevEndpointNotice`
 
+Phase 9M screen-level alignment:
+
+- `StrategicMapPage` now uses the token foundation for a darker map stage, a compact map legend, a right-side focus summary, grouped selection/detail cards, and readable visual-state preview panels.
+- `StrategicMap2DView` keeps backend coordinates intact while upgrading node visibility, selection emphasis, and fleet-indicator readability.
+- `FleetsPage` now uses the same panel language for fleet summaries, active-transfer progress, resource contexts, and read-only manifest framing.
+- The frontend still does not execute gameplay mutations. Mutating actions remain explicitly labeled as unavailable from the prototype.
+
 Current implementation notes:
 
 - the top resource bar uses compact resource pills for `Metal`, `Cristal`, `Deuterio`, `Poblacion`, and `Energia`
 - the sidebar uses the Figma navigation vocabulary
 - only `Galaxia` and `Flotas` are enabled routes today
 - the remaining navigation entries are explicit disabled placeholders instead of broken links
+- map, fleet, and preview panels now share the same compact card, badge, and progress treatment instead of separate ad hoc layouts
 
 ## Usage rules
 

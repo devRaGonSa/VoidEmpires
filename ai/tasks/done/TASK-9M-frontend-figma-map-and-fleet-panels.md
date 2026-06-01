@@ -3,7 +3,7 @@
 ---
 id: TASK-9M
 title: Align strategic map and fleet panels with Figma
-status: pending
+status: done
 type: feature
 team: frontend
 supporting_teams:

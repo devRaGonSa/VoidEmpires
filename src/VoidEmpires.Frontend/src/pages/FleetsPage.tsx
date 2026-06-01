@@ -1,11 +1,12 @@
 import { FormEvent, useMemo, useState } from "react";
 import type { ActionManifestAction } from "../api/actionManifestTypes";
-import type { FleetUiState } from "../api/fleetTypes";
+import type { FleetGroupSummary, FleetUiState } from "../api/fleetTypes";
 import type { ReadinessNote } from "../api/strategicMapTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { ActionManifestPanel } from "../components/ActionManifestPanel";
-import { FleetSummaryPanel } from "../components/FleetSummaryPanel";
-import { StatusBadge } from "../components/StatusBadge";
+import { UiBadge } from "../components/ui/UiBadge";
+import { UiCard } from "../components/ui/UiCard";
+import { UiProgressBar } from "../components/ui/UiProgressBar";
 
 function formatNote(note: ReadinessNote) {
   if (typeof note === "string") {
@@ -13,6 +14,63 @@ function formatNote(note: ReadinessNote) {
   }
 
   return note.note ?? "Readiness metadata present.";
+}
+
+function getTransferProgress(group: FleetGroupSummary) {
+  const activeTransfer = group.activeTransfer;
+  if (!activeTransfer) {
+    return null;
+  }
+
+  const departure = Date.parse(activeTransfer.departureAtUtc);
+  const arrival = Date.parse(activeTransfer.arrivalAtUtc);
+  const now = Date.now();
+
+  if (Number.isNaN(departure) || Number.isNaN(arrival) || arrival <= departure) {
+    return null;
+  }
+
+  return Math.max(0, Math.min(100, ((now - departure) / (arrival - departure)) * 100));
+}
+
+function getGroupTone(group: FleetGroupSummary): "good" | "warn" | "neutral" {
+  if (group.hasActiveTransfer) {
+    return "warn";
+  }
+
+  if (group.commands?.canCreateTransfer) {
+    return "good";
+  }
+
+  return "neutral";
+}
+
+interface SummaryMetricProps {
+  label: string;
+  value: number;
+}
+
+function SummaryMetric({ label, value }: SummaryMetricProps) {
+  return (
+    <div className="figma-stat">
+      <strong>{value}</strong>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+interface FleetDataRowProps {
+  label: string;
+  value: string;
+}
+
+function FleetDataRow({ label, value }: FleetDataRowProps) {
+  return (
+    <div className="figma-data-row">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
 }
 
 export function FleetsPage() {
@@ -82,110 +140,229 @@ export function FleetsPage() {
 
   return (
     <section className="page-grid">
-      <article className="panel panel-hero">
-        <StatusBadge>Phase 9D read panels</StatusBadge>
-        <h2>Fleet UI state and action manifests</h2>
-        <p>
-          This page inspects read-only fleet state plus machine-readable action
-          manifests. Mutating backend actions are labeled but intentionally not
-          executable from the frontend prototype.
-        </p>
-      </article>
+      <UiCard className="panel panel-hero figma-hero-card">
+        <div className="figma-hero-copy">
+          <UiBadge tone="resource">Phase 9M fleet alignment</UiBadge>
+          <h2>Fleet UI state and action manifests</h2>
+          <p>
+            Fleet groups, active transfers, and route/readiness metadata are
+            grouped into compact Figma-style cards while mutating actions remain
+            visible but unwired.
+          </p>
+        </div>
+        <div className="figma-badge-row">
+          <UiBadge>Manifest metadata only</UiBadge>
+          <UiBadge>Progress bars for active transfers</UiBadge>
+          <UiBadge tone="warn">No command execution</UiBadge>
+        </div>
+      </UiCard>
 
-      <article className="panel">
-        <h3>Load fleet inspection state</h3>
-        <form className="query-form" onSubmit={handleSubmit}>
-          <label className="field">
-            <span>Civilization id</span>
-            <input
-              type="text"
-              value={civilizationId}
-              onChange={(event) => setCivilizationId(event.target.value)}
-              placeholder="00000000-0000-0000-0000-000000000000"
-              spellCheck={false}
-            />
-          </label>
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? "Loading..." : "Load fleet panels"}
-          </button>
-        </form>
-        {error && <p className="error-text">{error}</p>}
-      </article>
+      <div className="figma-two-column">
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Development endpoint</p>
+              <h3>Load fleet inspection state</h3>
+            </div>
+            <UiBadge>Read-only fleet surface</UiBadge>
+          </div>
+          <form className="query-form" onSubmit={handleSubmit}>
+            <label className="field">
+              <span>Civilization id</span>
+              <input
+                type="text"
+                value={civilizationId}
+                onChange={(event) => setCivilizationId(event.target.value)}
+                placeholder="00000000-0000-0000-0000-000000000000"
+                spellCheck={false}
+                aria-label="Civilization id"
+              />
+            </label>
+            <button type="submit" disabled={isLoading}>
+              {isLoading ? "Loading..." : "Load fleet panels"}
+            </button>
+          </form>
+          {error && <p className="error-text">{error}</p>}
+        </UiCard>
 
-      <article className="panel">
-        <h3>Constraints</h3>
-        <ul className="stack-list">
-          <li>Action manifests are documentation and readiness metadata only.</li>
-          <li>Mutating actions stay unwired in this frontend phase.</li>
-          <li>Interception and route/fuel details remain read-only metadata.</li>
-          <li>Dev endpoints are not production APIs.</li>
-        </ul>
-      </article>
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Current limits</p>
+              <h3>Constraints</h3>
+            </div>
+            <UiBadge tone="warn">No mutations</UiBadge>
+          </div>
+          <ul className="stack-list">
+            <li>Action manifests remain documentation and readiness metadata only.</li>
+            <li>Mutating routes are labeled but never executed from this page.</li>
+            <li>Route/fuel and interception details remain non-authoritative hints.</li>
+            <li>All responses are development tooling, not production gameplay APIs.</li>
+          </ul>
+        </UiCard>
+      </div>
 
       {summary && (
-        <article className="panel">
-          <h3>Fleet summary</h3>
-          <div className="stat-grid">
-            <div className="stat-tile">
-              <strong>{summary.groups}</strong>
-              <span>Groups</span>
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Operational summary</p>
+              <h3>Fleet footprint</h3>
             </div>
-            <div className="stat-tile">
-              <strong>{summary.transfers}</strong>
-              <span>Active transfers</span>
-            </div>
-            <div className="stat-tile">
-              <strong>{summary.resourceContexts}</strong>
-              <span>Resource contexts</span>
-            </div>
-            <div className="stat-tile">
-              <strong>{summary.actionHints}</strong>
-              <span>Action hints</span>
-            </div>
+            <UiBadge>{uiState?.civilizationId ?? "Unknown civilization"}</UiBadge>
           </div>
-        </article>
+          <div className="figma-stat-grid">
+            <SummaryMetric label="Groups" value={summary.groups} />
+            <SummaryMetric label="Active transfers" value={summary.transfers} />
+            <SummaryMetric label="Resource contexts" value={summary.resourceContexts} />
+            <SummaryMetric label="Action hints" value={summary.actionHints} />
+          </div>
+        </UiCard>
       )}
 
       {uiState?.interceptionNotes?.length ? (
-        <article className="panel">
-          <h3>Interception readiness notes</h3>
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Readiness</p>
+              <h3>Interception notes</h3>
+            </div>
+            <UiBadge tone="warn">Informational only</UiBadge>
+          </div>
           <ul className="stack-list compact-list">
             {uiState.interceptionNotes.map((note, index) => (
               <li key={`interception-${index}`}>{formatNote(note)}</li>
             ))}
           </ul>
-        </article>
+        </UiCard>
       ) : null}
 
       {uiState?.resourceContexts?.length ? (
-        <article className="panel">
-          <h3>Resource contexts</h3>
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Local stockpiles</p>
+              <h3>Resource contexts</h3>
+            </div>
+            <UiBadge>{uiState.resourceContexts.length} planets</UiBadge>
+          </div>
           <div className="readiness-grid">
             {uiState.resourceContexts.map((context) => (
-              <section key={context.planetId} className="subpanel">
-                <h4>{context.planetId}</h4>
-                <ul className="stack-list compact-list">
+              <section key={context.planetId} className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Current planet</p>
+                    <h4>{context.planetId}</h4>
+                  </div>
+                  <UiBadge tone="resource">
+                    {(context.balances ?? []).length} balances
+                  </UiBadge>
+                </div>
+                <div className="figma-data-list">
                   {(context.balances ?? []).map((balance) => (
-                    <li key={`${context.planetId}-${balance.resourceType}`}>
-                      {balance.resourceType}: {balance.quantity}
-                    </li>
+                    <FleetDataRow
+                      key={`${context.planetId}-${balance.resourceType}`}
+                      label={balance.resourceType}
+                      value={String(balance.quantity)}
+                    />
                   ))}
-                </ul>
+                </div>
               </section>
             ))}
           </div>
-        </article>
+        </UiCard>
       ) : null}
 
-      {uiState?.groups.map((group) => (
-        <FleetSummaryPanel key={group.id} group={group} />
-      ))}
+      {uiState?.groups.length ? (
+        <div className="figma-fleet-grid">
+          {uiState.groups.map((group) => {
+            const transferProgress = getTransferProgress(group);
+
+            return (
+              <UiCard key={group.id} className="panel figma-fleet-card">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Fleet group</p>
+                    <h3>{group.assetType}</h3>
+                    <p>{group.id}</p>
+                  </div>
+                  <UiBadge tone={getGroupTone(group)}>{group.status}</UiBadge>
+                </div>
+
+                <div className="figma-stat-grid">
+                  <SummaryMetric label="Quantity" value={group.quantity} />
+                  <SummaryMetric
+                    label="Transfer distance"
+                    value={group.activeTransfer?.abstractDistanceUnits ?? 0}
+                  />
+                </div>
+
+                <div className="figma-data-list">
+                  <FleetDataRow label="Current planet" value={group.currentPlanetId} />
+                  <FleetDataRow label="Origin planet" value={group.originPlanetId} />
+                  <FleetDataRow
+                    label="Stationed away"
+                    value={group.isStationedAwayFromOrigin ? "Yes" : "No"}
+                  />
+                </div>
+
+                <div className="figma-badge-row">
+                  {group.commands?.canCreateTransfer && <UiBadge tone="good">Transfer available</UiBadge>}
+                  {group.commands?.canSplit && <UiBadge>Split ready</UiBadge>}
+                  {group.commands?.canMerge && <UiBadge>Merge ready</UiBadge>}
+                  {group.commands?.canCancelTransfer && (
+                    <UiBadge tone="warn">Cancellation available</UiBadge>
+                  )}
+                  {group.routeFuelReadiness?.fuelReadinessPolicy && (
+                    <UiBadge>{group.routeFuelReadiness.fuelReadinessPolicy}</UiBadge>
+                  )}
+                </div>
+
+                {group.activeTransfer && (
+                  <div className="figma-transfer-card">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">Active transfer</p>
+                        <h4>{group.activeTransfer.status}</h4>
+                      </div>
+                      <UiBadge tone="warn">{group.activeTransfer.destinationPlanetId}</UiBadge>
+                    </div>
+                    {transferProgress !== null && (
+                      <UiProgressBar value={transferProgress} tone="neutral" />
+                    )}
+                    <div className="figma-data-list">
+                      <FleetDataRow
+                        label="Departure"
+                        value={group.activeTransfer.departureAtUtc}
+                      />
+                      <FleetDataRow
+                        label="Arrival"
+                        value={group.activeTransfer.arrivalAtUtc}
+                      />
+                    </div>
+                    {group.activeTransfer.interceptionReadiness?.readinessNote && (
+                      <p className="figma-panel-note">
+                        {group.activeTransfer.interceptionReadiness.readinessNote}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {group.routeFuelReadiness?.notes?.length ? (
+                  <ul className="stack-list compact-list">
+                    {group.routeFuelReadiness.notes.map((note) => (
+                      <li key={note}>{note}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </UiCard>
+            );
+          })}
+        </div>
+      ) : null}
 
       {fleetManifest.length > 0 && (
-        <ActionManifestPanel
-          title="Fleet action manifest"
-          actions={fleetManifest}
-        />
+        <ActionManifestPanel title="Fleet action manifest" actions={fleetManifest} />
       )}
 
       {strategicMapManifest.length > 0 && (
