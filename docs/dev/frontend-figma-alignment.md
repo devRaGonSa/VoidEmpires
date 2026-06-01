@@ -11,6 +11,7 @@ This document records the current frontend token foundation derived from the Fig
 Phase 9K established reusable frontend tokens so later frontend tasks can align individual screens and components without re-encoding palette and spacing decisions.
 Phase 9L adds the first shell and base-component layer on top of those tokens.
 Phase 9M applies that shell language to the current strategic map and fleet inspection routes.
+Phase 9N confirms the frontend baseline by tracking `package-lock.json`, keeping build/install instructions deterministic, and preserving the read-only shell constraints.
 
 ## Token source
 

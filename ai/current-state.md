@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 9M - Frontend Figma map and fleet panels`.
+The repository is consolidated through `Phase 9N - Frontend UI hardening and npm lock checkpoint`.
 
 ## Repository Reality
 
@@ -217,6 +217,7 @@ Accepted current rules:
 - Phase 9I connects the frontend strategic map selection flow to the existing visual-state development endpoints with read-only system and planet preview loaders, compact payload summaries, and raw JSON inspection for renderer-facing contracts.
 - Phase 9J hardens the current frontend visual map slice with updated README guidance, an explicit smoke checklist for 2D map and visual-state preview behavior, and refreshed frontend checkpoint documentation that keeps the UI framed as development-only readiness tooling.
 - Phase 9M aligns the current strategic map and fleet prototype screens with the established Figma token layer: the strategic map now uses a staged map panel, compact legend, grouped selection/detail cards, and cleaner visual-state previews, while the fleet page now uses compact fleet cards, active-transfer progress bars, clearer resource-context framing, and explicit read-only manifest presentation without wiring any mutating actions.
+- Phase 9N finalizes the current frontend baseline by tracking `src/VoidEmpires.Frontend/package-lock.json`, keeping `node_modules` and `dist` untracked, and updating the README/checkpoint docs so install, build, smoke, and read-only UI expectations stay deterministic after the Figma alignment work.
 
 ## Dev Surface Gating Note
 
@@ -239,10 +240,10 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 9M:
+Current validated baseline after Phase 9N:
 
 - backend: `dotnet restore`, `dotnet build --no-restore`, and `dotnet test --no-build` succeeded with `527` passing tests
-- frontend: `npm install` and `npm run build` succeeded for the current prototype shell
+- frontend: `npm install` and `npm run build` succeeded for the current prototype shell, and `src/VoidEmpires.Frontend/package-lock.json` is now tracked for deterministic installs
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, and the minimal exploration mission lifecycle.
 

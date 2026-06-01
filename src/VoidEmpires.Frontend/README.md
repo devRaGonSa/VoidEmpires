@@ -3,6 +3,7 @@
 This project is the current development-only frontend shell for VoidEmpires.
 
 It is a Vite + React + TypeScript prototype that consumes backend readiness contracts and intentionally avoids production auth, gameplay mutation wiring, WebSockets, and 3D rendering. The current strategic map route is a visual readiness slice only: it renders a simple 2D map, supports read-only system and planet selection, and can inspect visual-state payloads from the existing development endpoints.
+`package-lock.json` is intentionally tracked for deterministic frontend installs in this repository.
 
 ## Prerequisites
 
@@ -61,15 +62,16 @@ npm run build
 ## Current strategic map behavior
 
 - Renders a deterministic SVG 2D map from backend system coordinates.
+- Uses the current Figma-aligned panel language for the map stage, legend, focus summary, and selection details.
 - Lets the user select a system from the map or the list below it.
 - Lets the user inspect read-only system and planet metadata from the strategic-map payload.
 - Lets the user load system and visible-planet visual-state previews as renderer-facing development payloads.
-- Keeps the older system summary cards and readiness metadata panels available for inspection.
+- Keeps readiness metadata visibly non-authoritative and non-mutating.
 
 ## Current fleet behavior
 
 - Loads the fleet UI-state read model for a civilization id.
-- Renders fleet summaries, resource contexts, interception notes, and read-only action manifests.
+- Renders compact fleet cards, resource contexts, interception notes, active-transfer progress bars, and read-only action manifests.
 - Does not execute any manifest-listed mutating actions.
 
 ## Figma token foundation

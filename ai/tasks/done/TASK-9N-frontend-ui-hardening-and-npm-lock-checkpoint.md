@@ -3,7 +3,7 @@
 ---
 id: TASK-9N
 title: Add frontend UI hardening and npm lock checkpoint
-status: pending
+status: done
 type: hardening
 team: frontend
 supporting_teams:

@@ -189,9 +189,10 @@ The repository now includes `src/VoidEmpires.Frontend`, a Vite + React + TypeScr
 
 Current implemented frontend behavior:
 
-- strategic map route with civilization-id input, loading/error states, deterministic 2D system rendering, local system/planet selection details, visual-state preview loaders for selected systems and visible planets, and conservative readiness metadata rendering
-- fleet route with civilization-id input, loading/error states, fleet group summaries, resource/interception notes, and read-only backend action manifest panels
+- strategic map route with civilization-id input, loading/error states, deterministic 2D system rendering, a compact legend, local system/planet selection details, visual-state preview loaders for selected systems and visible planets, and conservative readiness metadata rendering
+- fleet route with civilization-id input, loading/error states, compact fleet cards, resource/interception notes, active-transfer progress bars where timestamps exist, and read-only backend action manifest panels
 - visible warnings that development endpoints are not production APIs and that readiness metadata is not gameplay authorization
+- deterministic frontend installs through a tracked `src/VoidEmpires.Frontend/package-lock.json`
 
 Current non-goals remain unchanged:
 
