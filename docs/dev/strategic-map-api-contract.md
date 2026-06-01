@@ -297,6 +297,33 @@ The result contains `civilizationId`, deterministic `alliances[]` rows for the r
 
 The endpoint is read-only development tooling. It does not grant shared visibility, shared sensor/detection/interception data, permissions, pacts, trade, war, espionage, combat, or final UI behavior.
 
+### Alliance Pact Readiness Read
+
+`GET /api/dev/strategic-map/alliances/pacts/readiness?civilizationId={id}`
+
+Query:
+
+- `civilizationId`: required non-empty GUID. Scopes alliance pact readiness metadata to the requesting civilization.
+
+Responses:
+
+| Status | Meaning |
+|---|---|
+| `200 OK` | Alliance pact readiness read model returned. |
+| `400 Bad Request` | Missing or empty `civilizationId`. |
+| `404 Not Found` | Development route is disabled. |
+| `503 Service Unavailable` | Persistence is not configured. |
+
+Response envelope:
+
+- `succeeded`: `true` on success.
+- `alliancePactReadiness`: alliance pact readiness result, or `null` on validation failure.
+- `errors[]`: validation errors.
+
+The result contains `civilizationId`, deterministic `pacts[]` rows for alliances where the requesting civilization has an active membership, and `errors[]` when validation fails. Each row contains `alliancePactId`, `pactType`, `status`, `createdAtUtc`, plus nested `sourceAlliance` and `targetAlliance` items with `allianceId`, `name`, `tag`, and `status`.
+
+The endpoint is read-only development tooling. It does not grant shared visibility, shared sensor/detection/interception data, permissions, trade execution, war declarations, defense automation, espionage, combat, or final UI behavior.
+
 ### Minimal Exploration Lifecycle
 
 The current development lifecycle is intentionally conservative:
@@ -329,7 +356,7 @@ Response envelope:
 
 Each manifest action contains `actionKey`, `displayName`, `method`, `route`, `isReadOnly`, `requiredFields[]`, `successStatus`, `errorStatuses[]`, and `notes`.
 
-Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `exploration.preview.read`, `exploration.mission.create`, `exploration.mission.completeDue`, `exploration.mission.list`, `exploration.knowledge.read`, `sensor.profile.read`, `detection.coverage.read`, `interception.opportunity.read`, `alliance.readiness.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
+Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `exploration.preview.read`, `exploration.mission.create`, `exploration.mission.completeDue`, `exploration.mission.list`, `exploration.knowledge.read`, `sensor.profile.read`, `detection.coverage.read`, `interception.opportunity.read`, `alliance.readiness.read`, `alliance.pact.readiness.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
 
 The manifest is read-only metadata for UI discovery. It does not require persistence and does not execute the listed actions.
 
@@ -344,9 +371,11 @@ The manifest is read-only metadata for UI discovery. It does not require persist
 - `detectionNotes[]`: capability notes for placeholder detection coverage metadata.
 - `interceptionNotes[]`: capability notes for read-only interception readiness metadata.
 - `allianceNotes[]`: capability notes for read-only alliance readiness metadata.
+- `alliancePactNotes[]`: capability notes for read-only alliance pact readiness metadata.
+- `alliancePacts[]`: requesting-civilization alliance pact metadata only.
 - `allianceReadiness[]`: requesting-civilization alliance membership metadata only.
 
-Current relevance includes systems that contain owned planets, active transfer origin/destination planets, or exploration knowledge for the requesting civilization. Sensor profiles, detection coverage, and alliance readiness are attached as metadata only; they do not add relevance, reveal visibility, scan targets, expose allied state, or change command availability. There is no alliance, diplomacy, or espionage visibility model yet.
+Current relevance includes systems that contain owned planets, active transfer origin/destination planets, or exploration knowledge for the requesting civilization. Sensor profiles, detection coverage, alliance readiness, and alliance pact readiness are attached as metadata only; they do not add relevance, reveal visibility, scan targets, expose allied state, or change command availability. There is no alliance, diplomacy, or espionage visibility model yet.
 
 Visibility fields are inherited from the map visibility service. They are read-only annotations and do not represent persisted fog-of-war. Current levels are `Owned`, `Visible`, and `Unknown`; current reasons are `OwnedPlanet`, `SystemContainsOwnedPlanet`, `ExploredSystem`, `ExploredPlanet`, and `NoKnownVisibilitySource`.
 
@@ -422,6 +451,14 @@ Each `allianceReadiness[]` item contains:
 Each `membership` item contains `allianceMembershipId`, `allianceId`, `civilizationId`, `status`, `role`, and `joinedAtUtc`.
 
 Alliance readiness is read-only metadata only. In this phase it does not grant shared visibility, allied system relevance, allied fleet presence, shared sensor/detection/interception data, authorization, pacts, trade, war, espionage, combat, or final UI behavior. Diplomatic contacts remain a separate readiness surface and do not imply alliance membership.
+
+Each `alliancePacts[]` item contains:
+
+- `alliancePactId`, `pactType`, `status`, `createdAtUtc`
+- `sourceAlliance`: `allianceId`, `name`, `tag`, `status`
+- `targetAlliance`: `allianceId`, `name`, `tag`, `status`
+
+Alliance pact readiness is read-only metadata only. In this phase it does not grant shared visibility, allied system relevance, allied fleet presence, shared sensor/detection/interception data, authorization, trade execution, war declarations, defense automation, espionage, combat, or final UI behavior. Pact metadata is scoped to alliances where the requesting civilization has an active membership, and diplomatic contacts remain a separate readiness surface.
 
 Each `routeFuelNotes[]` item contains:
 

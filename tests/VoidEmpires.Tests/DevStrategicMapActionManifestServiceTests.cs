@@ -22,6 +22,7 @@ public class DevStrategicMapActionManifestServiceTests
             "detection.coverage.read",
             "interception.opportunity.read",
             "alliance.readiness.read",
+            "alliance.pact.readiness.read",
             "diplomacy.contact.read",
             "visual.system.read",
             "visual.planet.read",
@@ -88,6 +89,14 @@ public class DevStrategicMapActionManifestServiceTests
         Assert.Contains(allianceReadiness.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
         Assert.Contains("shared visibility", allianceReadiness.Notes, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("permissions", allianceReadiness.Notes, StringComparison.OrdinalIgnoreCase);
+
+        var alliancePactReadiness = result.Actions.Single(x => x.ActionKey == "alliance.pact.readiness.read");
+        Assert.True(alliancePactReadiness.IsReadOnly);
+        Assert.Equal("GET", alliancePactReadiness.Method);
+        Assert.Equal("/api/dev/strategic-map/alliances/pacts/readiness", alliancePactReadiness.Route);
+        Assert.Contains(alliancePactReadiness.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
+        Assert.Contains("shared visibility", alliancePactReadiness.Notes, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("defense", alliancePactReadiness.Notes, StringComparison.OrdinalIgnoreCase);
 
         var diplomacy = result.Actions.Single(x => x.ActionKey == "diplomacy.contact.read");
         Assert.True(diplomacy.IsReadOnly);
