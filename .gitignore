@@ -6,3 +6,7 @@ ai/worker.lock
 # Visual Studio local files
 .vs/
 *.csproj.user
+
+# Frontend dependencies and build output
+node_modules/
+dist/
