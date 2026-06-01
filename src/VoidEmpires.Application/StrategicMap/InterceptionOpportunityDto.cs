@@ -33,6 +33,13 @@ public sealed record InterceptionOpportunityDto(
     string DetectionNote,
     string ReadinessNote);
 
+public sealed record InterceptionReadinessSummaryDto(
+    InterceptionOpportunityStatus OpportunityStatus,
+    IReadOnlyList<InterceptionOpportunityBlockReason> BlockReasons,
+    bool HasFriendlyInterceptorContext,
+    string DetectionNote,
+    string ReadinessNote);
+
 public sealed record GetInterceptionOpportunitiesRequest(Guid CivilizationId);
 
 public sealed record GetInterceptionOpportunitiesResult(

@@ -10,7 +10,8 @@ public sealed record GetStrategicMapResult(
     IReadOnlyList<StrategicMapSystemDto> Systems,
     IReadOnlyList<StrategicMapRouteFuelNoteDto> RouteFuelNotes,
     IReadOnlyList<StrategicMapSensorNoteDto> SensorNotes = null!,
-    IReadOnlyList<StrategicMapDetectionNoteDto> DetectionNotes = null!);
+    IReadOnlyList<StrategicMapDetectionNoteDto> DetectionNotes = null!,
+    IReadOnlyList<StrategicMapInterceptionNoteDto> InterceptionNotes = null!);
 
 public sealed record StrategicMapSystemDto(
     Guid SystemId,
@@ -76,7 +77,8 @@ public sealed record StrategicMapTransferOverlayDto(
     DateTime DepartureAtUtc,
     DateTime ArrivalAtUtc,
     float Progress,
-    string OverlayKind);
+    string OverlayKind,
+    InterceptionReadinessSummaryDto? InterceptionReadiness = null);
 
 public sealed record StrategicMapRouteFuelNoteDto(
     string ActionKey,
@@ -87,6 +89,8 @@ public sealed record StrategicMapRouteFuelNoteDto(
 public sealed record StrategicMapSensorNoteDto(string Note);
 
 public sealed record StrategicMapDetectionNoteDto(string Note);
+
+public sealed record StrategicMapInterceptionNoteDto(string Note);
 
 public sealed record StrategicMapSensorProfileSummaryDto(
     Guid SourceId,

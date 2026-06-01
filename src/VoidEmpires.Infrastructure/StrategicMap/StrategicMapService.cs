@@ -6,6 +6,7 @@ using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Exploration;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
+using VoidEmpires.Infrastructure.Fleets;
 using VoidEmpires.Infrastructure.Persistence;
 
 namespace VoidEmpires.Infrastructure.StrategicMap;
@@ -15,7 +16,8 @@ public sealed class StrategicMapService(
     ISystemVisualStateService systemVisualStateService,
     IMapVisibilityService mapVisibilityService,
     ISensorProfileService? sensorProfileService = null,
-    IDetectionCoverageService? detectionCoverageService = null) : IStrategicMapService
+    IDetectionCoverageService? detectionCoverageService = null,
+    IInterceptionOpportunityService? interceptionOpportunityService = null) : IStrategicMapService
 {
     public async Task<GetStrategicMapResult> GetAsync(
         GetStrategicMapRequest request,
@@ -23,7 +25,7 @@ public sealed class StrategicMapService(
     {
         if (request.CivilizationId == Guid.Empty)
         {
-            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes(), CreateDetectionNotes());
+            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes(), CreateDetectionNotes(), CreateInterceptionNotes());
         }
 
         var ownedPlanetIds = await dbContext.Set<PlanetOwnership>()
@@ -54,7 +56,7 @@ public sealed class StrategicMapService(
 
         if (relevantPlanetIds.Length == 0 && knownSystemIds.Count == 0)
         {
-            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes(), CreateDetectionNotes());
+            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes(), CreateDetectionNotes(), CreateInterceptionNotes());
         }
 
         var systemIds = await dbContext.Set<Planet>()
@@ -74,6 +76,14 @@ public sealed class StrategicMapService(
         var detectionCoverage = (await (detectionCoverageService ?? new DetectionCoverageService(dbContext, resolvedSensorProfileService))
             .GetAsync(new GetDetectionCoverageRequest(request.CivilizationId), cancellationToken))
             .Coverages;
+        var interceptionOpportunities = (await (interceptionOpportunityService ?? new InterceptionOpportunityService(
+                dbContext,
+                mapVisibilityService,
+                detectionCoverageService ?? new DetectionCoverageService(dbContext, resolvedSensorProfileService),
+                new FleetOperationalOverviewService(dbContext)))
+            .GetAsync(new GetInterceptionOpportunitiesRequest(request.CivilizationId), cancellationToken))
+            .Opportunities
+            .ToDictionary(x => x.TransferId, CreateInterceptionReadinessSummary);
 
         var visualStates = new List<SystemVisualStateDto>();
         foreach (var systemId in systemIds)
@@ -92,7 +102,7 @@ public sealed class StrategicMapService(
         var systems = visualStates.Select(visualState =>
         {
             visibilityBySystemId.TryGetValue(visualState.SystemId, out var systemVisibility);
-            return CreateSystem(visualState, request.CivilizationId, activeTransfers, systemVisibility, hasMapFleetContext, sensorProfiles, detectionCoverage);
+            return CreateSystem(visualState, request.CivilizationId, activeTransfers, systemVisibility, hasMapFleetContext, sensorProfiles, detectionCoverage, interceptionOpportunities);
         }).ToArray();
 
         return new GetStrategicMapResult(
@@ -100,7 +110,8 @@ public sealed class StrategicMapService(
             systems.OrderBy(x => x.SystemName).ThenBy(x => x.SystemId).ToArray(),
             CreateRouteFuelNotes(),
             CreateSensorNotes(),
-            CreateDetectionNotes());
+            CreateDetectionNotes(),
+            CreateInterceptionNotes());
     }
 
     private static StrategicMapSystemDto CreateSystem(
@@ -110,7 +121,8 @@ public sealed class StrategicMapService(
         MapSystemVisibilityDto? visibility,
         bool hasMapFleetContext,
         IReadOnlyList<SensorProfileDto> sensorProfiles,
-        IReadOnlyList<DetectionCoverageDto> detectionCoverage)
+        IReadOnlyList<DetectionCoverageDto> detectionCoverage,
+        IReadOnlyDictionary<Guid, InterceptionReadinessSummaryDto> interceptionOpportunities)
     {
         var layoutByPlanetId = visualState.LayoutHints.ToDictionary(x => x.PlanetId);
         var transfersById = activeTransfers.ToDictionary(x => x.Id);
@@ -187,7 +199,8 @@ public sealed class StrategicMapService(
                         x.DepartureAtUtc,
                         x.ArrivalAtUtc,
                         x.Progress,
-                        x.OverlayKind);
+                        x.OverlayKind,
+                        interceptionOpportunities.GetValueOrDefault(x.TransferId));
                 })
                 .ToArray(),
             systemSensorProfiles,
@@ -344,6 +357,14 @@ public sealed class StrategicMapService(
             coverage.CoverageConfidencePercent,
             coverage.Note);
 
+    private static InterceptionReadinessSummaryDto CreateInterceptionReadinessSummary(InterceptionOpportunityDto opportunity) =>
+        new(
+            opportunity.OpportunityStatus,
+            opportunity.BlockReasons,
+            opportunity.HasFriendlyInterceptorContext,
+            opportunity.DetectionNote,
+            opportunity.ReadinessNote);
+
     private static IReadOnlyList<StrategicMapRouteFuelNoteDto> CreateRouteFuelNotes() =>
         [
             new(
@@ -361,5 +382,10 @@ public sealed class StrategicMapService(
     private static IReadOnlyList<StrategicMapDetectionNoteDto> CreateDetectionNotes() =>
         [
             new("Detection coverage is derived metadata only; it does not reveal unknown systems or planets, change visibility, or alter command validation.")
+        ];
+
+    private static IReadOnlyList<StrategicMapInterceptionNoteDto> CreateInterceptionNotes() =>
+        [
+            new("Interception readiness is read-only metadata only; it does not execute interception, reveal hidden transfers, or change transfer validation.")
         ];
 }

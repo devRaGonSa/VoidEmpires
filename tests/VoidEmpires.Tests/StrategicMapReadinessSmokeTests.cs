@@ -177,7 +177,7 @@ public class StrategicMapReadinessSmokeTests
             typeof(PlanetVisualStateDto),
             typeof(GetDevStrategicMapActionManifestResult)
         };
-        var blockedTerms = new[] { "Mesh", "Texture", "Binary", "Shader", "RouteGraph", "Pathfinding", "Combat", "Interception", "Fog", "Scanner" };
+        var blockedTerms = new[] { "Mesh", "Texture", "Binary", "Shader", "RouteGraph", "Pathfinding", "Combat", "Fog", "Scanner" };
 
         foreach (var property in contractTypes.SelectMany(type => type.GetProperties()))
         {

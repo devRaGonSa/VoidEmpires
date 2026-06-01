@@ -288,6 +288,7 @@ The manifest is read-only metadata for UI discovery. It does not require persist
 - `routeFuelNotes[]`: capability notes for route/fuel previews.
 - `sensorNotes[]`: capability notes for placeholder sensor metadata.
 - `detectionNotes[]`: capability notes for placeholder detection coverage metadata.
+- `interceptionNotes[]`: capability notes for read-only interception readiness metadata.
 
 Current relevance includes systems that contain owned planets, active transfer origin/destination planets, or exploration knowledge for the requesting civilization. Sensor profiles and detection coverage are attached as metadata only; they do not add relevance, reveal visibility, scan targets, or change command availability. There is no alliance, diplomacy, or espionage visibility model yet.
 
@@ -347,6 +348,15 @@ Each `transferOverlays[]` item contains:
 - `transferId`, `orbitalGroupId`, `originPlanetId`, `destinationPlanetId`
 - `abstractDistanceUnits`, `status`, `departureAtUtc`, `arrivalAtUtc`
 - `progress`, `overlayKind`
+- `interceptionReadiness`: nullable read-only interception summary for overlays the current map already exposes. Current own-transfer overlays surface `ObservedOwnTransfer` plus self-observed/non-hostile notes. Strategic map interception metadata does not reveal hidden foreign transfers or execute interception.
+
+Each `interceptionReadiness` summary contains:
+
+- `opportunityStatus`: current values include `ObservedOwnTransfer`, `DetectedOpportunity`, and `Blocked`.
+- `blockReasons[]`: current values include `SelfObservedTransfer` and `NoFriendlyInterceptorContext`; hidden undetected foreign transfers are omitted rather than revealed.
+- `hasFriendlyInterceptorContext`
+- `detectionNote`
+- `readinessNote`
 
 Each `routeFuelNotes[]` item contains:
 
@@ -436,6 +446,7 @@ The strategic map read model reuses the same underlying persisted state summariz
 - The exploration knowledge endpoint exposes the persisted knowledge rows directly for development inspection without deriving new visibility or mutating state.
 - The sensor profiles endpoint exposes derived placeholder sensor profile rows directly for development inspection without deriving new visibility or mutating state.
 - The detection coverage endpoint exposes derived placeholder coverage rows directly for development inspection without deriving new visibility or mutating state.
+- The strategic map read also now annotates currently exposed transfer overlays with read-only interception readiness summaries derived from the interception opportunity service.
 - The strategic map action manifest lists the currently manifest-backed related actions so future prototypes can discover routes and required fields without hardcoding every contract.
 
 Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` when they need destination-specific route class, risk, placeholder fuel readiness, travel costs, and affordability.
@@ -446,6 +457,7 @@ Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` w
 - No production route.
 - No route graph or pathfinding.
 - No combat or interception.
+- No interception command execution.
 - No alliances, diplomacy, sensors, or espionage visibility model.
 - Sensor profile fields are metadata only and do not provide real range, scanner mechanics, detection, interception, or visibility reveal.
 - Detection coverage fields are metadata only and do not reveal unknown targets, create knowledge, provide scanner mechanics, or change visibility.
