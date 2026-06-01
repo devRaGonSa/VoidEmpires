@@ -4,7 +4,7 @@
 
 id: TASK-8L
 title: Add interception opportunity read model foundation
-status: pending
+status: done
 type: feature
 team: backend
 supporting_teams:
@@ -175,4 +175,3 @@ At the end:
 5. Push the branch to the remote.
 
 The AI Platform runner must push after successful validation.
-

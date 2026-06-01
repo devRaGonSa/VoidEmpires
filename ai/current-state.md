@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 8K - Detection readiness smoke coverage`.
+The repository is consolidated through `Phase 8L - Interception opportunity read model foundation`.
 
 ## Repository Reality
 
@@ -81,6 +81,7 @@ Current implemented foundations:
 - Development-only detection coverage read endpoint at `GET /api/dev/strategic-map/detection-coverage?civilizationId={id}` exposes derived coverage rows for tooling, and the strategic map action manifest now includes `detection.coverage.read`.
 - Sensor readiness smoke coverage validates sensor profiles, strategic-map sensor metadata, exploration knowledge visibility, unknown target sanitization, manifest metadata, and resource/fleet/knowledge non-mutation together.
 - Detection readiness smoke coverage validates sensor profiles, detection coverage, strategic-map detection metadata, exploration-knowledge visibility, action-manifest metadata, unknown-target sanitization, and no-mutation guarantees together.
+- Read-only interception opportunity service derives civilization-scoped metadata for active orbital transfers, surfacing own transfers as self-observed/non-hostile items and exposing only conservatively detected foreign transfers with friendly-context readiness blocking when applicable.
 - Strategic map readiness smoke coverage validates that strategic map, visual state, fleet UI state, strategic map action manifest, and exploration preview read surfaces remain coherent and do not mutate stockpiles, orbital groups, or transfers.
 - Visibility and command readiness smoke coverage validates owned, foreign-owned, and unknown strategic map nodes across visibility and strategic map read models; verifies command availability for visible nodes and blocked commands for unknown nodes; and protects read-only behavior across systems, planets, ownerships, stockpiles, orbital groups, and transfers.
 - Static visual sandbox at `/dev/visual-state/index.html`.
@@ -174,6 +175,7 @@ Accepted current rules:
 - Phase 8I integrates detection coverage into strategic-map readiness metadata with top-level notes plus visible system/planet summaries, while preserving current visibility and command behavior.
 - Phase 8J adds a development-only detection coverage read endpoint plus strategic-map action manifest metadata so tooling can inspect detection readiness directly without adding gameplay behavior.
 - Phase 8K hardens the detection readiness path with integrated smoke coverage across sensor profiles, detection coverage, strategic-map metadata, visibility, manifest metadata, and no-mutation guarantees.
+- Phase 8L adds the first interception readiness read model. It remains read-only, civilization-scoped, and conservative: own transfers appear only as self-observed metadata, foreign transfers surface only when both endpoints are already visible and current local-system detection coverage exists, friendly interceptor context is derived from stationed requester fleets, and no interception execution, combat, persistence, or visibility reveal is added.
 
 ## Dev Surface Gating Note
 
@@ -196,7 +198,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 8K: `478` passing tests.
+Current validated baseline after Phase 8L: `483` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, and the minimal exploration mission lifecycle.
 
