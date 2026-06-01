@@ -72,6 +72,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<ISystemVisualStateService, SystemVisualStateService>();
         services.AddScoped<IStrategicMapService, StrategicMapService>();
         services.AddScoped<IMapVisibilityService, MapVisibilityService>();
+        services.AddScoped<ISensorProfileService, SensorProfileService>();
         services.AddScoped<IExplorationActionPreviewService, ExplorationActionPreviewService>();
         services.AddScoped<IExplorationMissionCreateService, ExplorationMissionCreateService>();
         services.AddScoped<IExplorationMissionCompletionService, ExplorationMissionCompletionService>();

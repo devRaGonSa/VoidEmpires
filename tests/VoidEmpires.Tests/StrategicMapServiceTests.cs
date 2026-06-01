@@ -38,6 +38,7 @@ public class StrategicMapServiceTests
 
         var result = await CreateService(dbContext).GetAsync(new GetStrategicMapRequest(civilizationId));
 
+        Assert.Contains(result.SensorNotes, x => x.Note.Contains("do not reveal visibility", StringComparison.OrdinalIgnoreCase));
         var mapSystem = Assert.Single(result.Systems);
         Assert.Equal(system.Id, mapSystem.SystemId);
         Assert.Equal("Helios", mapSystem.SystemName);
@@ -66,6 +67,8 @@ public class StrategicMapServiceTests
         Assert.Equal(2, mapPlanet.OrbitalSlot);
         Assert.Equal(7.5f, mapPlanet.OrbitRadius);
         Assert.Equal(PlanetColonizationStatus.Colonized, mapPlanet.ColonizationStatus);
+        Assert.Equal(SensorProfileClass.Orbital, Assert.Single(mapSystem.SensorProfiles).SensorClass);
+        Assert.Equal(SensorProfileClass.Orbital, Assert.Single(mapPlanet.SensorProfiles).SensorClass);
     }
 
     [Fact]
@@ -123,6 +126,7 @@ public class StrategicMapServiceTests
         var remoteVisiblePlanet = new Planet(Guid.NewGuid(), remoteVisibleSystem.Id, "Remote", 1, PlanetType.Terran, 95);
         var destination = new Planet(Guid.NewGuid(), destinationSystem.Id, "Destination", 1, PlanetType.Ice, 80);
         var group = OrbitalGroup.CreateStationed(civilizationId, origin.Id, origin.Id, SpaceAssetType.CargoCraft, 3);
+        var scoutGroup = OrbitalGroup.CreateStationed(civilizationId, origin.Id, origin.Id, SpaceAssetType.ScoutCraft, 1);
         group.Reserve();
         var transfer = OrbitalTransfer.CreatePlanned(
             civilizationId,
@@ -139,7 +143,7 @@ public class StrategicMapServiceTests
         dbContext.Set<PlanetOwnership>().AddRange(
             PlanetOwnership.Create(origin.Id, civilizationId),
             PlanetOwnership.Create(remoteVisiblePlanet.Id, civilizationId));
-        dbContext.Set<OrbitalGroup>().Add(group);
+        dbContext.Set<OrbitalGroup>().AddRange(group, scoutGroup);
         dbContext.Set<OrbitalTransfer>().Add(transfer);
         await dbContext.SaveChangesAsync();
 
@@ -154,18 +158,24 @@ public class StrategicMapServiceTests
         AssertAvailable(unknownDestinationSystem.Commands, "exploration.preview");
         AssertAvailable(unknownDestinationSystem.Commands, "exploration.mission.create");
         AssertBlocked(unknownDestinationSystem.Commands, "strategicMap.system.view", StrategicMapCommandBlockReason.NotVisible);
+        Assert.Empty(unknownDestinationSystem.SensorProfiles);
         var unknownDestinationPlanet = Assert.Single(unknownDestinationSystem.Planets);
         Assert.Equal(MapVisibilityLevel.Unknown, unknownDestinationPlanet.VisibilityLevel);
+        Assert.Empty(unknownDestinationPlanet.SensorProfiles);
         Assert.True(unknownDestinationPlanet.ExplorationPreview.CanPreviewExploration);
         AssertAvailable(unknownDestinationPlanet.Commands, "exploration.preview");
         AssertAvailable(unknownDestinationPlanet.Commands, "exploration.mission.create");
         Assert.Contains("mission creation", unknownDestinationPlanet.Commands.Single(x => x.ActionKey == "exploration.mission.create").Note, StringComparison.OrdinalIgnoreCase);
         AssertBlocked(unknownDestinationPlanet.Commands, "strategicMap.planet.viewDetail", StrategicMapCommandBlockReason.Unknown);
-        var presence = Assert.Single(mapSystem.FleetPresence);
+        var presence = mapSystem.FleetPresence.Single(x => x.OrbitalGroupId == group.Id);
         Assert.Equal(group.Id, presence.OrbitalGroupId);
         Assert.Equal(origin.Id, presence.PlanetId);
         Assert.Equal(SpaceAssetType.CargoCraft, presence.AssetType);
         Assert.Equal(OrbitalGroupStatus.Reserved, presence.Status);
+        Assert.Null(presence.SensorProfile);
+        var scoutPresence = mapSystem.FleetPresence.Single(x => x.OrbitalGroupId == scoutGroup.Id);
+        Assert.Equal(SensorProfileClass.Orbital, scoutPresence.SensorProfile?.SensorClass);
+        Assert.Equal(SensorProfileSourceKind.OrbitalGroup, scoutPresence.SensorProfile?.SourceKind);
         var overlay = Assert.Single(mapSystem.TransferOverlays);
         Assert.Equal(transfer.Id, overlay.TransferId);
         Assert.Equal(2, overlay.AbstractDistanceUnits);

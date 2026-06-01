@@ -8,7 +8,8 @@ namespace VoidEmpires.Application.StrategicMap;
 public sealed record GetStrategicMapResult(
     Guid CivilizationId,
     IReadOnlyList<StrategicMapSystemDto> Systems,
-    IReadOnlyList<StrategicMapRouteFuelNoteDto> RouteFuelNotes);
+    IReadOnlyList<StrategicMapRouteFuelNoteDto> RouteFuelNotes,
+    IReadOnlyList<StrategicMapSensorNoteDto> SensorNotes = null!);
 
 public sealed record StrategicMapSystemDto(
     Guid SystemId,
@@ -26,7 +27,8 @@ public sealed record StrategicMapSystemDto(
     IReadOnlyList<StrategicMapCommandAvailabilityDto> Commands,
     IReadOnlyList<StrategicMapPlanetDto> Planets,
     IReadOnlyList<StrategicMapFleetPresenceDto> FleetPresence,
-    IReadOnlyList<StrategicMapTransferOverlayDto> TransferOverlays);
+    IReadOnlyList<StrategicMapTransferOverlayDto> TransferOverlays,
+    IReadOnlyList<StrategicMapSensorProfileSummaryDto> SensorProfiles = null!);
 
 public sealed record StrategicMapPlanetDto(
     Guid PlanetId,
@@ -49,7 +51,8 @@ public sealed record StrategicMapPlanetDto(
     float? UrbanIntensity,
     float? IndustrialIntensity,
     float? MilitaryIntensity,
-    float? OrbitalPresenceIntensity);
+    float? OrbitalPresenceIntensity,
+    IReadOnlyList<StrategicMapSensorProfileSummaryDto> SensorProfiles = null!);
 
 public sealed record StrategicMapFleetPresenceDto(
     Guid OrbitalGroupId,
@@ -57,7 +60,8 @@ public sealed record StrategicMapFleetPresenceDto(
     SpaceAssetType AssetType,
     int Quantity,
     OrbitalGroupStatus Status,
-    string MarkerKind);
+    string MarkerKind,
+    StrategicMapSensorProfileSummaryDto? SensorProfile = null);
 
 public sealed record StrategicMapTransferOverlayDto(
     Guid TransferId,
@@ -75,6 +79,16 @@ public sealed record StrategicMapRouteFuelNoteDto(
     string ActionKey,
     bool RequiresDestination,
     OrbitalFuelReadinessPolicy FuelReadinessPolicy,
+    string Note);
+
+public sealed record StrategicMapSensorNoteDto(string Note);
+
+public sealed record StrategicMapSensorProfileSummaryDto(
+    Guid SourceId,
+    SensorProfileSourceKind SourceKind,
+    SensorProfileClass SensorClass,
+    int DetectionRangeTier,
+    int ScanStrength,
     string Note);
 
 public sealed record StrategicMapExplorationPreviewDto(

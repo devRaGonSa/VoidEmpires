@@ -77,6 +77,7 @@ if (AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration))
     app.MapDevSystemVisualStateEndpoints();
     app.MapDevStrategicMapEndpoints();
     app.MapDevStrategicMapActionManifestEndpoints();
+    app.MapDevSensorProfileEndpoints();
     app.MapDevExplorationActionPreviewEndpoints();
     app.MapDevExplorationMissionEndpoints();
     app.MapDevExplorationKnowledgeEndpoints();

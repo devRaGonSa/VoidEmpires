@@ -18,6 +18,7 @@ public class DevStrategicMapActionManifestServiceTests
             "exploration.mission.completeDue",
             "exploration.mission.list",
             "exploration.knowledge.read",
+            "sensor.profile.read",
             "visual.system.read",
             "visual.planet.read",
             "fleet.uiState.read",
@@ -84,6 +85,13 @@ public class DevStrategicMapActionManifestServiceTests
         Assert.Equal("/api/dev/strategic-map/exploration-knowledge", knowledge.Route);
         Assert.Contains(knowledge.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
         Assert.Contains("ids-only", knowledge.Notes, StringComparison.OrdinalIgnoreCase);
+
+        var sensorProfiles = result.Actions.Single(x => x.ActionKey == "sensor.profile.read");
+        Assert.True(sensorProfiles.IsReadOnly);
+        Assert.Equal("GET", sensorProfiles.Method);
+        Assert.Equal("/api/dev/strategic-map/sensor-profiles", sensorProfiles.Route);
+        Assert.Contains(sensorProfiles.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
+        Assert.Contains("does not reveal", sensorProfiles.Notes, StringComparison.OrdinalIgnoreCase);
 
         var manifest = result.Actions.Single(x => x.ActionKey == "strategicMap.actionManifest.read");
         Assert.Empty(manifest.RequiredFields);
