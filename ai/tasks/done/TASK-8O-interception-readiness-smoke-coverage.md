@@ -4,7 +4,7 @@
 
 id: TASK-8O
 title: Add interception readiness smoke coverage
-status: pending
+status: done
 type: hardening
 team: backend
 supporting_teams:
@@ -154,4 +154,3 @@ At the end:
 5. Push the branch to the remote.
 
 The AI Platform runner must push after successful validation.
-
