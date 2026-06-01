@@ -21,6 +21,7 @@ public class DevStrategicMapActionManifestServiceTests
             "sensor.profile.read",
             "detection.coverage.read",
             "interception.opportunity.read",
+            "alliance.readiness.read",
             "diplomacy.contact.read",
             "visual.system.read",
             "visual.planet.read",
@@ -79,6 +80,14 @@ public class DevStrategicMapActionManifestServiceTests
         Assert.Equal("/api/dev/strategic-map/interception-opportunities", interception.Route);
         Assert.Contains(interception.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
         Assert.Contains("does not execute interception", interception.Notes, StringComparison.OrdinalIgnoreCase);
+
+        var allianceReadiness = result.Actions.Single(x => x.ActionKey == "alliance.readiness.read");
+        Assert.True(allianceReadiness.IsReadOnly);
+        Assert.Equal("GET", allianceReadiness.Method);
+        Assert.Equal("/api/dev/strategic-map/alliances/readiness", allianceReadiness.Route);
+        Assert.Contains(allianceReadiness.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
+        Assert.Contains("shared visibility", allianceReadiness.Notes, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("permissions", allianceReadiness.Notes, StringComparison.OrdinalIgnoreCase);
 
         var diplomacy = result.Actions.Single(x => x.ActionKey == "diplomacy.contact.read");
         Assert.True(diplomacy.IsReadOnly);

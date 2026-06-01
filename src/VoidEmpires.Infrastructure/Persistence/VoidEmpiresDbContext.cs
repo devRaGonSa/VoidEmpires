@@ -41,6 +41,10 @@ namespace VoidEmpires.Infrastructure.Persistence
 
         public DbSet<Civilization> Civilizations => Set<Civilization>();
 
+        public DbSet<Alliance> Alliances => Set<Alliance>();
+
+        public DbSet<AllianceMembership> AllianceMemberships => Set<AllianceMembership>();
+
         public DbSet<DiplomaticContact> DiplomaticContacts => Set<DiplomaticContact>();
 
         public DbSet<PlanetOwnership> PlanetOwnerships => Set<PlanetOwnership>();
