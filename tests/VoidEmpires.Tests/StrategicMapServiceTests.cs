@@ -3,6 +3,7 @@ using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Colonization;
+using VoidEmpires.Domain.Diplomacy;
 using VoidEmpires.Domain.Exploration;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
@@ -21,8 +22,69 @@ public class StrategicMapServiceTests
         var result = await CreateService(dbContext).GetAsync(new GetStrategicMapRequest(Guid.NewGuid()));
 
         Assert.Empty(result.Systems);
+        Assert.Empty(result.AllianceReadiness);
         Assert.Contains(result.RouteFuelNotes, x => x.RequiresDestination && x.ActionKey == "fleet.travel.estimate");
         Assert.Contains(result.InterceptionNotes, x => x.Note.Contains("read-only", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.AllianceNotes, x => x.Note.Contains("shared visibility", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task GetAsyncReturnsOwnAllianceMetadataWithoutAddingAllianceVisibility()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var allyCivilizationId = Guid.NewGuid();
+        var sharedAlliance = Alliance.Create("Void Council", "VC", AllianceStatus.Active, new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc));
+        var alliedOnlySystem = CreateSystem("Ally Hidden", 8, 8, 8);
+        var alliedPlanet = new Planet(Guid.NewGuid(), alliedOnlySystem.Id, "Ally Prime", 1, PlanetType.Terran, 100);
+        dbContext.Alliances.Add(sharedAlliance);
+        dbContext.AllianceMemberships.AddRange(
+            AllianceMembership.Create(sharedAlliance.Id, civilizationId, AllianceMembershipStatus.Active, AllianceMembershipRole.Officer, new DateTime(2026, 6, 1, 12, 5, 0, DateTimeKind.Utc)),
+            AllianceMembership.Create(sharedAlliance.Id, allyCivilizationId, AllianceMembershipStatus.Active, AllianceMembershipRole.Member, new DateTime(2026, 6, 1, 12, 6, 0, DateTimeKind.Utc)));
+        dbContext.Set<SolarSystem>().Add(alliedOnlySystem);
+        dbContext.Set<Planet>().Add(alliedPlanet);
+        dbContext.Set<PlanetOwnership>().Add(PlanetOwnership.Create(alliedPlanet.Id, allyCivilizationId));
+        await dbContext.SaveChangesAsync();
+
+        var result = await CreateService(dbContext).GetAsync(new GetStrategicMapRequest(civilizationId));
+
+        var alliance = Assert.Single(result.AllianceReadiness);
+        Assert.Equal(sharedAlliance.Id, alliance.AllianceId);
+        Assert.Equal(civilizationId, alliance.Membership.CivilizationId);
+        Assert.Equal("VC", alliance.Tag);
+        Assert.Contains(result.AllianceNotes, x => x.Note.Contains("requesting civilization only", StringComparison.OrdinalIgnoreCase));
+        Assert.Empty(result.Systems);
+    }
+
+    [Fact]
+    public async Task GetAsyncKeepsDiplomaticContactsIndependentFromAllianceMembership()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var contactedCivilizationId = Guid.NewGuid();
+        var alliance = Alliance.Create("Void Council", "VC", AllianceStatus.Active, new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc));
+        dbContext.Alliances.Add(alliance);
+        dbContext.AllianceMemberships.Add(AllianceMembership.Create(
+            alliance.Id,
+            civilizationId,
+            AllianceMembershipStatus.Active,
+            AllianceMembershipRole.Leader,
+            new DateTime(2026, 6, 1, 12, 5, 0, DateTimeKind.Utc)));
+        dbContext.DiplomaticContacts.Add(DiplomaticContact.Create(
+            civilizationId,
+            contactedCivilizationId,
+            DiplomaticContactStatus.Friendly,
+            new DateTime(2026, 6, 1, 12, 10, 0, DateTimeKind.Utc),
+            "manual-dev"));
+        await dbContext.SaveChangesAsync();
+
+        var result = await CreateService(dbContext).GetAsync(new GetStrategicMapRequest(civilizationId));
+
+        Assert.Single(result.AllianceReadiness);
+        var contact = Assert.Single(result.DiplomaticContacts);
+        Assert.Equal(contactedCivilizationId, contact.ContactedCivilizationId);
+        Assert.DoesNotContain(result.AllianceReadiness, x => x.Membership.CivilizationId == contact.ContactedCivilizationId);
+        Assert.Contains("does not imply alliance", contact.Note, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -240,18 +302,30 @@ public class StrategicMapServiceTests
         var civilizationId = Guid.NewGuid();
         var system = CreateSystem("Stable", 7, 8, 9);
         var planet = new Planet(Guid.NewGuid(), system.Id, "Quiet", 1, PlanetType.Barren, 70);
+        var alliance = Alliance.Create("Void Council", "VC", AllianceStatus.Active, new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc));
         dbContext.Set<SolarSystem>().Add(system);
         dbContext.Set<Planet>().Add(planet);
         dbContext.Set<PlanetOwnership>().Add(PlanetOwnership.Create(planet.Id, civilizationId));
+        dbContext.Alliances.Add(alliance);
+        dbContext.AllianceMemberships.Add(AllianceMembership.Create(
+            alliance.Id,
+            civilizationId,
+            AllianceMembershipStatus.Active,
+            AllianceMembershipRole.Member,
+            new DateTime(2026, 6, 1, 12, 5, 0, DateTimeKind.Utc)));
         await dbContext.SaveChangesAsync();
         var ownershipCount = await dbContext.Set<PlanetOwnership>().CountAsync();
         var knowledgeCount = await dbContext.ExplorationKnowledge.CountAsync();
+        var allianceCount = await dbContext.Alliances.CountAsync();
+        var membershipCount = await dbContext.AllianceMemberships.CountAsync();
 
         _ = await CreateService(dbContext).GetAsync(new GetStrategicMapRequest(civilizationId));
 
         Assert.Equal(0, dbContext.ChangeTracker.Entries().Count(x => x.State != EntityState.Unchanged));
         Assert.Equal(ownershipCount, await dbContext.Set<PlanetOwnership>().CountAsync());
         Assert.Equal(knowledgeCount, await dbContext.ExplorationKnowledge.CountAsync());
+        Assert.Equal(allianceCount, await dbContext.Alliances.CountAsync());
+        Assert.Equal(membershipCount, await dbContext.AllianceMemberships.CountAsync());
     }
 
     private static StrategicMapService CreateService(VoidEmpiresDbContext dbContext) =>

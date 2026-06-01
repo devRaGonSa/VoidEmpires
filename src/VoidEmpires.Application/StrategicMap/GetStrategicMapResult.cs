@@ -13,6 +13,8 @@ public sealed record GetStrategicMapResult(
     IReadOnlyList<StrategicMapSensorNoteDto> SensorNotes = null!,
     IReadOnlyList<StrategicMapDetectionNoteDto> DetectionNotes = null!,
     IReadOnlyList<StrategicMapInterceptionNoteDto> InterceptionNotes = null!,
+    IReadOnlyList<StrategicMapAllianceNoteDto> AllianceNotes = null!,
+    IReadOnlyList<AllianceReadinessDto> AllianceReadiness = null!,
     IReadOnlyList<StrategicMapDiplomacyNoteDto> DiplomacyNotes = null!,
     IReadOnlyList<StrategicMapDiplomaticContactSummaryDto> DiplomaticContacts = null!);
 
@@ -94,6 +96,8 @@ public sealed record StrategicMapSensorNoteDto(string Note);
 public sealed record StrategicMapDetectionNoteDto(string Note);
 
 public sealed record StrategicMapInterceptionNoteDto(string Note);
+
+public sealed record StrategicMapAllianceNoteDto(string Note);
 
 public sealed record StrategicMapDiplomacyNoteDto(string Note);
 
