@@ -185,6 +185,8 @@ Each `planets[]` item contains identity and summary fields:
 - `orbitalSlot`, `orbitRadius`, `orbitAngleDegrees`, `visualScale`
 - `colonizationIntensity`, `urbanIntensity`, `industrialIntensity`, `militaryIntensity`, `orbitalPresenceIntensity`
 
+For planets whose `visibilityLevel` is `Unknown`, detail fields such as name, type, size, colonization status, orbital layout, visual scale, and visual intensity values are returned as `null`. The stable `planetId`, visibility metadata, exploration preview metadata, and command availability remain present.
+
 Each `explorationPreview` item contains:
 
 - `canPreviewExploration`: true only when the current visibility projection supports an exploration preview.
@@ -239,7 +241,7 @@ The current reveal lifecycle is:
 4. Map visibility consumes exploration knowledge as read-only `Visible` results with `ExploredSystem` or `ExploredPlanet` reasons.
 5. Strategic map relevance includes exploration-known systems, and exploration preview is blocked for revealed targets.
 
-Ownership remains higher priority than exploration knowledge. System-level knowledge reveals system visibility but does not reveal every planet in that system. Planet-level knowledge reveals only that planet. Foreign ownership is not assigned to the requesting civilization and foreign-owned visual intensity details remain sanitized.
+Ownership remains higher priority than exploration knowledge. System-level knowledge reveals system visibility but does not reveal every planet in that system. Planet-level knowledge reveals only that planet. Unknown planets in an explored system keep detail fields null. Foreign ownership is not assigned to the requesting civilization and foreign-owned visual intensity details remain sanitized.
 
 ## Side Effects
 

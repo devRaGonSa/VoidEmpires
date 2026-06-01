@@ -30,10 +30,10 @@ public sealed record StrategicMapSystemDto(
 
 public sealed record StrategicMapPlanetDto(
     Guid PlanetId,
-    string PlanetName,
-    PlanetType PlanetType,
-    int Size,
-    PlanetColonizationStatus ColonizationStatus,
+    string? PlanetName,
+    PlanetType? PlanetType,
+    int? Size,
+    PlanetColonizationStatus? ColonizationStatus,
     bool IsOwnedByRequestingCivilization,
     MapVisibilityLevel VisibilityLevel,
     MapVisibilityReason VisibilityReason,
@@ -41,15 +41,15 @@ public sealed record StrategicMapPlanetDto(
     StrategicMapExplorationPreviewDto ExplorationPreview,
     IReadOnlyList<StrategicMapCommandAvailabilityDto> Commands,
     Guid? CivilizationId,
-    int OrbitalSlot,
-    float OrbitRadius,
-    float OrbitAngleDegrees,
-    float VisualScale,
-    float ColonizationIntensity,
-    float UrbanIntensity,
-    float IndustrialIntensity,
-    float MilitaryIntensity,
-    float OrbitalPresenceIntensity);
+    int? OrbitalSlot,
+    float? OrbitRadius,
+    float? OrbitAngleDegrees,
+    float? VisualScale,
+    float? ColonizationIntensity,
+    float? UrbanIntensity,
+    float? IndustrialIntensity,
+    float? MilitaryIntensity,
+    float? OrbitalPresenceIntensity);
 
 public sealed record StrategicMapFleetPresenceDto(
     Guid OrbitalGroupId,

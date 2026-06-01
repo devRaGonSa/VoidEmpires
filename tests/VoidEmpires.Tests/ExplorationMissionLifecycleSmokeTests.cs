@@ -117,7 +117,10 @@ public class ExplorationMissionLifecycleSmokeTests
         Assert.Equal(MapVisibilityLevel.Unknown, foreignMapPlanet.VisibilityLevel);
         Assert.False(foreignMapPlanet.IsOwnedByRequestingCivilization);
         Assert.Null(foreignMapPlanet.CivilizationId);
-        Assert.Equal(0f, foreignMapPlanet.ColonizationIntensity);
+        Assert.Null(foreignMapPlanet.PlanetName);
+        Assert.Null(foreignMapPlanet.PlanetType);
+        Assert.Null(foreignMapPlanet.Size);
+        Assert.Null(foreignMapPlanet.ColonizationIntensity);
         Assert.True(foreignMapPlanet.ExplorationPreview.CanPreviewExploration);
 
         var revealedPreview = await previewService.GetAsync(new GetExplorationActionPreviewRequest(civilization.Id));

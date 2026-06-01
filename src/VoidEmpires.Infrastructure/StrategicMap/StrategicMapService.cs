@@ -164,16 +164,17 @@ public sealed class StrategicMapService(
     {
         layoutByPlanetId.TryGetValue(visualState.PlanetId, out var layout);
         var isOwnedByRequester = visualState.CivilizationId == civilizationId;
-        var exposeVisualDetail = !visualState.IsOwned || isOwnedByRequester;
         var visibilityLevel = visibility?.VisibilityLevel ?? MapVisibilityLevel.Unknown;
+        var exposePlanetDetail = visibility?.IsVisible == true;
+        var exposeVisualDetail = exposePlanetDetail && (!visualState.IsOwned || isOwnedByRequester);
         var explorationPreview = ExplorationActionPreviewService.CreatePreview(visibilityLevel);
 
         return new StrategicMapPlanetDto(
             visualState.PlanetId,
-            visualState.PlanetName,
-            visualState.PlanetType,
-            visualState.Size,
-            visualState.ColonizationStatus,
+            exposePlanetDetail ? visualState.PlanetName : null,
+            exposePlanetDetail ? visualState.PlanetType : null,
+            exposePlanetDetail ? visualState.Size : null,
+            exposePlanetDetail ? visualState.ColonizationStatus : null,
             isOwnedByRequester,
             visibilityLevel,
             visibility?.VisibilityReason ?? MapVisibilityReason.NoKnownVisibilitySource,
@@ -181,16 +182,19 @@ public sealed class StrategicMapService(
             explorationPreview,
             CreatePlanetCommands(visibility, hasFleetContext, explorationPreview),
             isOwnedByRequester ? civilizationId : null,
-            layout?.OrbitalSlot ?? 0,
-            layout?.OrbitRadius ?? 0f,
-            layout?.OrbitAngleDegrees ?? 0f,
-            layout?.VisualScale ?? 0f,
-            exposeVisualDetail ? visualState.ColonizationIntensity : 0f,
-            exposeVisualDetail ? visualState.UrbanIntensity : 0f,
-            exposeVisualDetail ? visualState.IndustrialIntensity : 0f,
-            exposeVisualDetail ? visualState.MilitaryIntensity : 0f,
-            exposeVisualDetail ? visualState.OrbitalPresenceIntensity : 0f);
+            exposePlanetDetail ? layout?.OrbitalSlot : null,
+            exposePlanetDetail ? layout?.OrbitRadius : null,
+            exposePlanetDetail ? layout?.OrbitAngleDegrees : null,
+            exposePlanetDetail ? layout?.VisualScale : null,
+            CreateIntensity(exposePlanetDetail, exposeVisualDetail, visualState.ColonizationIntensity),
+            CreateIntensity(exposePlanetDetail, exposeVisualDetail, visualState.UrbanIntensity),
+            CreateIntensity(exposePlanetDetail, exposeVisualDetail, visualState.IndustrialIntensity),
+            CreateIntensity(exposePlanetDetail, exposeVisualDetail, visualState.MilitaryIntensity),
+            CreateIntensity(exposePlanetDetail, exposeVisualDetail, visualState.OrbitalPresenceIntensity));
     }
+
+    private static float? CreateIntensity(bool exposePlanetDetail, bool exposeVisualDetail, float value) =>
+        exposePlanetDetail ? exposeVisualDetail ? value : 0f : null;
 
     private static IReadOnlyList<StrategicMapCommandAvailabilityDto> CreateSystemCommands(
         MapSystemVisibilityDto? visibility,

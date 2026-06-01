@@ -185,8 +185,9 @@ public class StrategicMapServiceTests
         var civilizationId = Guid.NewGuid();
         var system = CreateSystem("Explored", 4, 5, 6);
         var planet = new Planet(Guid.NewGuid(), system.Id, "Surveyed", 1, PlanetType.Ice, 80);
+        var hiddenPlanet = new Planet(Guid.NewGuid(), system.Id, "Hidden", 2, PlanetType.Barren, 60);
         dbContext.Set<SolarSystem>().Add(system);
-        dbContext.Set<Planet>().Add(planet);
+        dbContext.Set<Planet>().AddRange(planet, hiddenPlanet);
         dbContext.ExplorationKnowledge.Add(ExplorationKnowledge.Create(civilizationId, system.Id, planet.Id, ExplorationKnowledgeSource.MissionCompletion, Guid.NewGuid(), DateTime.UtcNow));
         await dbContext.SaveChangesAsync();
 
@@ -196,7 +197,13 @@ public class StrategicMapServiceTests
         Assert.Equal(MapVisibilityReason.ExploredSystem, mapSystem.VisibilityReason);
         AssertAvailable(mapSystem.Commands, "strategicMap.system.view");
         AssertBlocked(mapSystem.Commands, "exploration.preview", StrategicMapCommandBlockReason.ExplorationPreviewUnavailable);
-        Assert.Equal(MapVisibilityReason.ExploredPlanet, Assert.Single(mapSystem.Planets).VisibilityReason);
+        Assert.Equal(MapVisibilityReason.ExploredPlanet, mapSystem.Planets.Single(x => x.PlanetId == planet.Id).VisibilityReason);
+        var hidden = mapSystem.Planets.Single(x => x.PlanetId == hiddenPlanet.Id);
+        Assert.Equal(MapVisibilityLevel.Unknown, hidden.VisibilityLevel);
+        Assert.Null(hidden.PlanetName);
+        Assert.Null(hidden.PlanetType);
+        Assert.Null(hidden.Size);
+        Assert.Null(hidden.OrbitalSlot);
     }
 
     [Fact]
