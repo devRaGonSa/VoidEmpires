@@ -183,6 +183,29 @@ Frontend rule:
 6. Use system and planet visual-state reads for detail panels or renderer experiments.
 7. Keep exploration, diplomacy, alliance, pact, sensor, detection, and interception views read-only at first.
 
+## Current Frontend Foundation Status
+
+The repository now includes `src/VoidEmpires.Frontend`, a Vite + React + TypeScript prototype shell.
+
+Current implemented frontend behavior:
+
+- strategic map route with civilization-id input, loading/error states, system and planet summaries, and conservative readiness metadata rendering
+- fleet route with civilization-id input, loading/error states, fleet group summaries, resource/interception notes, and read-only backend action manifest panels
+- visible warnings that development endpoints are not production APIs and that readiness metadata is not gameplay authorization
+
+Current non-goals remain unchanged:
+
+- no production auth
+- no gameplay mutation buttons
+- no WebSockets
+- no final UI
+- no 3D renderer
+
+Operational docs:
+
+- `src/VoidEmpires.Frontend/README.md`
+- `docs/dev/frontend-foundation-smoke-checklist.md`
+
 Not recommended for the first slice:
 
 - Production authentication flow.
@@ -205,3 +228,4 @@ Not recommended for the first slice:
 - `docs/dev/strategic-map-api-contract.md`
 - `docs/dev/fleet-api-contracts.md`
 - `docs/dev/visual-state-sandbox.md`
+- `docs/dev/frontend-foundation-smoke-checklist.md`
