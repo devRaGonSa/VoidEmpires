@@ -379,6 +379,20 @@ input {
 
 .selection-chip-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
 
+.json-details {
+  margin-top: 14px;
+}
+
+.json-preview {
+  margin: 10px 0 0;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(2, 6, 14, 0.9);
+  color: #cfe0fb;
+  overflow: auto;
+  font-size: 0.82rem;
+}
+
 .subpanel p {
   margin-top: 10px;
 }

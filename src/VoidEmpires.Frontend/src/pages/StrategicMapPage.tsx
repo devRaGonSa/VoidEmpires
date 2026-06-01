@@ -4,6 +4,10 @@ import type {
   StrategicMapResult,
   StrategicMapSystem,
 } from "../api/strategicMapTypes";
+import type {
+  PlanetVisualStateResponse,
+  SystemVisualStateResponse,
+} from "../api/voidEmpiresApi";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { StatusBadge } from "../components/StatusBadge";
 import { StrategicMap2DView } from "../components/StrategicMap2DView";
@@ -49,6 +53,10 @@ function readRecord(value: unknown) {
   return value as Record<string, unknown>;
 }
 
+function formatJson(value: unknown) {
+  return JSON.stringify(value, null, 2);
+}
+
 export function StrategicMapPage() {
   const [civilizationId, setCivilizationId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -56,6 +64,12 @@ export function StrategicMapPage() {
   const [result, setResult] = useState<StrategicMapResult | null>(null);
   const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null);
   const [selectedPlanetId, setSelectedPlanetId] = useState<string | null>(null);
+  const [isLoadingSystemVisual, setIsLoadingSystemVisual] = useState(false);
+  const [systemVisualError, setSystemVisualError] = useState<string | null>(null);
+  const [systemVisualState, setSystemVisualState] = useState<SystemVisualStateResponse["visualState"]>(null);
+  const [isLoadingPlanetVisual, setIsLoadingPlanetVisual] = useState(false);
+  const [planetVisualError, setPlanetVisualError] = useState<string | null>(null);
+  const [planetVisualState, setPlanetVisualState] = useState<PlanetVisualStateResponse["visualState"]>(null);
 
   const summary = useMemo(() => {
     if (!result) {
@@ -93,6 +107,50 @@ export function StrategicMapPage() {
   function selectSystem(system: StrategicMapSystem) {
     setSelectedSystemId(system.systemId);
     setSelectedPlanetId(system.planets?.[0]?.planetId ?? null);
+    setSystemVisualState(null);
+    setSystemVisualError(null);
+    setPlanetVisualState(null);
+    setPlanetVisualError(null);
+  }
+
+  async function loadSystemVisualState() {
+    if (!selectedSystem) {
+      return;
+    }
+
+    setIsLoadingSystemVisual(true);
+    setSystemVisualError(null);
+    try {
+      const response = await voidEmpiresApi.getSystemVisualState(selectedSystem.systemId);
+      setSystemVisualState(response.succeeded ? response.visualState : null);
+      setSystemVisualError(response.succeeded ? null : response.errors[0] ?? "System visual-state request failed.");
+    } catch (requestError) {
+      setSystemVisualState(null);
+      setSystemVisualError(requestError instanceof Error ? requestError.message : "System visual-state request failed.");
+    } finally {
+      setIsLoadingSystemVisual(false);
+    }
+  }
+
+  async function loadPlanetVisualState() {
+    if (!selectedPlanet?.isVisible) {
+      setPlanetVisualState(null);
+      setPlanetVisualError("Select a visible planet to inspect its visual state.");
+      return;
+    }
+
+    setIsLoadingPlanetVisual(true);
+    setPlanetVisualError(null);
+    try {
+      const response = await voidEmpiresApi.getPlanetVisualState(selectedPlanet.planetId);
+      setPlanetVisualState(response.succeeded ? response.visualState : null);
+      setPlanetVisualError(response.succeeded ? null : response.errors[0] ?? "Planet visual-state request failed.");
+    } catch (requestError) {
+      setPlanetVisualState(null);
+      setPlanetVisualError(requestError instanceof Error ? requestError.message : "Planet visual-state request failed.");
+    } finally {
+      setIsLoadingPlanetVisual(false);
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -104,6 +162,10 @@ export function StrategicMapPage() {
       setResult(null);
       setSelectedSystemId(null);
       setSelectedPlanetId(null);
+      setSystemVisualState(null);
+      setSystemVisualError(null);
+      setPlanetVisualState(null);
+      setPlanetVisualError(null);
       return;
     }
 
@@ -116,6 +178,10 @@ export function StrategicMapPage() {
         setResult(null);
         setSelectedSystemId(null);
         setSelectedPlanetId(null);
+        setSystemVisualState(null);
+        setSystemVisualError(null);
+        setPlanetVisualState(null);
+        setPlanetVisualError(null);
         setError(response.errors[0] ?? "Strategic map request failed.");
         return;
       }
@@ -123,6 +189,10 @@ export function StrategicMapPage() {
       setResult(response.map);
       setSelectedSystemId(response.map.systems[0]?.systemId ?? null);
       setSelectedPlanetId(response.map.systems[0]?.planets?.[0]?.planetId ?? null);
+      setSystemVisualState(null);
+      setSystemVisualError(null);
+      setPlanetVisualState(null);
+      setPlanetVisualError(null);
     } catch (requestError) {
       const message =
         requestError instanceof Error
@@ -131,6 +201,10 @@ export function StrategicMapPage() {
       setResult(null);
       setSelectedSystemId(null);
       setSelectedPlanetId(null);
+      setSystemVisualState(null);
+      setSystemVisualError(null);
+      setPlanetVisualState(null);
+      setPlanetVisualError(null);
       setError(message);
     } finally {
       setIsLoading(false);
@@ -269,7 +343,11 @@ export function StrategicMapPage() {
                       key={planet.planetId}
                       type="button"
                       className={`selection-chip${selectedPlanet?.planetId === planet.planetId ? " selection-chip-active" : ""}`}
-                      onClick={() => setSelectedPlanetId(planet.planetId)}
+                      onClick={() => {
+                        setSelectedPlanetId(planet.planetId);
+                        setPlanetVisualState(null);
+                        setPlanetVisualError(null);
+                      }}
                     >
                       {planet.planetName ?? "Unknown planet"}
                     </button>
@@ -294,6 +372,60 @@ export function StrategicMapPage() {
               </section>
             </div>
           )}
+        </article>
+      )}
+
+      {result && (
+        <article className="panel">
+          <h3>Visual-state preview</h3>
+          <p>These development-only reads expose renderer-facing contracts. They are not final 3D rendering.</p>
+          <div className="selection-grid">
+            <section className="subpanel">
+              <h4>System visual state</h4>
+              <button type="button" className="selection-chip" onClick={loadSystemVisualState} disabled={!selectedSystem || isLoadingSystemVisual}>
+                {isLoadingSystemVisual ? "Loading..." : "Load system visual state"}
+              </button>
+              {systemVisualError && <p className="error-text">{systemVisualError}</p>}
+              {systemVisualState && (
+                <>
+                  <ul className="stack-list compact-list">
+                    <li>Star class: {readText(systemVisualState.star?.visualClass)}</li>
+                    <li>Star type: {readText(systemVisualState.star?.starType)}</li>
+                    <li>Layout hints: {systemVisualState.layoutHints?.length ?? 0}</li>
+                    <li>Orbital markers: {systemVisualState.orbitalGroupMarkers?.length ?? 0}</li>
+                    <li>Transfer overlays: {systemVisualState.transferOverlays?.length ?? 0}</li>
+                  </ul>
+                  <details className="json-details">
+                    <summary>Raw system payload</summary>
+                    <pre className="json-preview">{formatJson(systemVisualState)}</pre>
+                  </details>
+                </>
+              )}
+            </section>
+
+            <section className="subpanel">
+              <h4>Planet visual state</h4>
+              <button type="button" className="selection-chip" onClick={loadPlanetVisualState} disabled={!selectedPlanet || isLoadingPlanetVisual}>
+                {isLoadingPlanetVisual ? "Loading..." : "Load planet visual state"}
+              </button>
+              {!selectedPlanet?.isVisible && <p>Only visible planets should be inspected through this preview.</p>}
+              {planetVisualError && <p className="error-text">{planetVisualError}</p>}
+              {planetVisualState && (
+                <>
+                  <ul className="stack-list compact-list">
+                    <li>Planet type: {readText(planetVisualState.planetType)}</li>
+                    <li>Colonization: {readText(planetVisualState.colonizationStatus)}</li>
+                    <li>Visual seed: {planetVisualState.visualSeed ?? "Unavailable"}</li>
+                    <li>Profile: {readText(planetVisualState.profile?.paletteKey)}</li>
+                  </ul>
+                  <details className="json-details">
+                    <summary>Raw planet payload</summary>
+                    <pre className="json-preview">{formatJson(planetVisualState)}</pre>
+                  </details>
+                </>
+              )}
+            </section>
+          </div>
         </article>
       )}
 

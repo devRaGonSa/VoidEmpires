@@ -4,7 +4,7 @@
 
 id: TASK-9I
 title: Add frontend visual-state preview links
-status: pending
+status: done
 type: feature
 team: frontend
 supporting_teams:
@@ -157,4 +157,3 @@ At the end:
 5. Push the branch to the remote.
 
 The AI Platform runner must push after successful validation.
-
