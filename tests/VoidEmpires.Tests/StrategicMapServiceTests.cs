@@ -3,6 +3,7 @@ using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Colonization;
+using VoidEmpires.Domain.Exploration;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Infrastructure.Persistence;
@@ -178,6 +179,27 @@ public class StrategicMapServiceTests
     }
 
     [Fact]
+    public async Task GetAsyncIncludesKnowledgeDerivedSystem()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var system = CreateSystem("Explored", 4, 5, 6);
+        var planet = new Planet(Guid.NewGuid(), system.Id, "Surveyed", 1, PlanetType.Ice, 80);
+        dbContext.Set<SolarSystem>().Add(system);
+        dbContext.Set<Planet>().Add(planet);
+        dbContext.ExplorationKnowledge.Add(ExplorationKnowledge.Create(civilizationId, system.Id, planet.Id, ExplorationKnowledgeSource.MissionCompletion, Guid.NewGuid(), DateTime.UtcNow));
+        await dbContext.SaveChangesAsync();
+
+        var mapSystem = Assert.Single((await CreateService(dbContext).GetAsync(new GetStrategicMapRequest(civilizationId))).Systems);
+
+        Assert.Equal(system.Id, mapSystem.SystemId);
+        Assert.Equal(MapVisibilityReason.ExploredSystem, mapSystem.VisibilityReason);
+        AssertAvailable(mapSystem.Commands, "strategicMap.system.view");
+        AssertBlocked(mapSystem.Commands, "exploration.preview", StrategicMapCommandBlockReason.ExplorationPreviewUnavailable);
+        Assert.Equal(MapVisibilityReason.ExploredPlanet, Assert.Single(mapSystem.Planets).VisibilityReason);
+    }
+
+    [Fact]
     public async Task GetAsyncDoesNotMutatePersistedState()
     {
         await using var dbContext = CreateDbContext();
@@ -189,11 +211,13 @@ public class StrategicMapServiceTests
         dbContext.Set<PlanetOwnership>().Add(PlanetOwnership.Create(planet.Id, civilizationId));
         await dbContext.SaveChangesAsync();
         var ownershipCount = await dbContext.Set<PlanetOwnership>().CountAsync();
+        var knowledgeCount = await dbContext.ExplorationKnowledge.CountAsync();
 
         _ = await CreateService(dbContext).GetAsync(new GetStrategicMapRequest(civilizationId));
 
         Assert.Equal(0, dbContext.ChangeTracker.Entries().Count(x => x.State != EntityState.Unchanged));
         Assert.Equal(ownershipCount, await dbContext.Set<PlanetOwnership>().CountAsync());
+        Assert.Equal(knowledgeCount, await dbContext.ExplorationKnowledge.CountAsync());
     }
 
     private static StrategicMapService CreateService(VoidEmpiresDbContext dbContext) =>

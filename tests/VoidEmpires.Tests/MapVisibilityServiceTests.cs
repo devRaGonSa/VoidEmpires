@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Colonization;
+using VoidEmpires.Domain.Exploration;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.StrategicMap;
@@ -106,6 +107,27 @@ public class MapVisibilityServiceTests
     }
 
     [Fact]
+    public async Task GetAsyncUsesExplorationKnowledgeConservatively()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var system = CreateSystem("Explored", 9, 9, 9);
+        var knownPlanet = new Planet(Guid.NewGuid(), system.Id, "Known", 1, PlanetType.Barren, 60);
+        var unknownPlanet = new Planet(Guid.NewGuid(), system.Id, "Hidden", 2, PlanetType.Ice, 70);
+        dbContext.Set<SolarSystem>().Add(system);
+        dbContext.Set<Planet>().AddRange(knownPlanet, unknownPlanet);
+        dbContext.ExplorationKnowledge.Add(ExplorationKnowledge.Create(civilizationId, system.Id, knownPlanet.Id, ExplorationKnowledgeSource.MissionCompletion, Guid.NewGuid(), DateTime.UtcNow));
+        await dbContext.SaveChangesAsync();
+
+        var mapSystem = Assert.Single((await CreateService(dbContext).GetAsync(new GetMapVisibilityRequest(civilizationId))).Systems);
+
+        Assert.Equal(MapVisibilityReason.ExploredSystem, mapSystem.VisibilityReason);
+        Assert.Equal("Explored", mapSystem.SystemName);
+        Assert.Equal(MapVisibilityReason.ExploredPlanet, mapSystem.Planets.Single(x => x.PlanetId == knownPlanet.Id).VisibilityReason);
+        Assert.Null(mapSystem.Planets.Single(x => x.PlanetId == unknownPlanet.Id).PlanetName);
+    }
+
+    [Fact]
     public async Task GetAsyncDoesNotMutatePersistedState()
     {
         await using var dbContext = CreateDbContext();
@@ -117,11 +139,13 @@ public class MapVisibilityServiceTests
         dbContext.Set<PlanetOwnership>().Add(PlanetOwnership.Create(planet.Id, civilizationId));
         await dbContext.SaveChangesAsync();
         var ownershipCount = await dbContext.Set<PlanetOwnership>().CountAsync();
+        var knowledgeCount = await dbContext.ExplorationKnowledge.CountAsync();
 
         _ = await CreateService(dbContext).GetAsync(new GetMapVisibilityRequest(civilizationId));
 
         Assert.Equal(0, dbContext.ChangeTracker.Entries().Count(x => x.State != EntityState.Unchanged));
         Assert.Equal(ownershipCount, await dbContext.Set<PlanetOwnership>().CountAsync());
+        Assert.Equal(knowledgeCount, await dbContext.ExplorationKnowledge.CountAsync());
     }
 
     private static MapVisibilityService CreateService(VoidEmpiresDbContext dbContext) => new(dbContext);

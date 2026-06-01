@@ -112,7 +112,7 @@ public class ExplorationMissionCompletionServiceTests
     }
 
     [Fact]
-    public async Task CompleteDueAsyncDoesNotRevealVisibility()
+    public async Task CompleteDueAsyncMakesCompletedTargetVisibleThroughKnowledge()
     {
         await using var dbContext = CreateDbContext();
         var civilizationId = Guid.NewGuid();
@@ -131,7 +131,10 @@ public class ExplorationMissionCompletionServiceTests
             .CompleteDueAsync(new CompleteDueExplorationMissionsRequest(nowUtc));
 
         var visibility = await new MapVisibilityService(dbContext).GetAsync(new GetMapVisibilityRequest(civilizationId));
-        Assert.Equal(MapVisibilityLevel.Unknown, Assert.Single(visibility.Systems).VisibilityLevel);
+        var mapSystem = Assert.Single(visibility.Systems);
+        Assert.Equal(MapVisibilityLevel.Visible, mapSystem.VisibilityLevel);
+        Assert.Equal(MapVisibilityReason.ExploredSystem, mapSystem.VisibilityReason);
+        Assert.False(mapSystem.IsOwnedByRequestingCivilization);
     }
 
     private static SolarSystem CreateSystem(string name, int x, int y, int z)

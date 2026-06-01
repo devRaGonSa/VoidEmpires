@@ -18,7 +18,7 @@ namespace VoidEmpires.Tests;
 public class ExplorationMissionLifecycleSmokeTests
 {
     [Fact]
-    public async Task PreviewCreateAndCompleteLifecycleRecordsKnowledgeWithoutRevealingVisibilityOrMutatingFleetResources()
+    public async Task PreviewCreateAndCompleteLifecycleRecordsKnowledgeAndRevealsVisibilityWithoutMutatingFleetResources()
     {
         await using var dbContext = CreateDbContext();
         var requestedAtUtc = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
@@ -85,9 +85,10 @@ public class ExplorationMissionLifecycleSmokeTests
 
         var visibility = await new MapVisibilityService(dbContext).GetAsync(new GetMapVisibilityRequest(civilization.Id));
         var targetVisibility = visibility.Systems.Single(x => x.SystemId == targetSystem.Id);
-        Assert.Equal(MapVisibilityLevel.Unknown, targetVisibility.VisibilityLevel);
-        Assert.False(targetVisibility.IsVisible);
-        Assert.Equal(MapVisibilityLevel.Unknown, Assert.Single(targetVisibility.Planets).VisibilityLevel);
+        Assert.Equal(MapVisibilityLevel.Visible, targetVisibility.VisibilityLevel);
+        Assert.Equal(MapVisibilityReason.ExploredSystem, targetVisibility.VisibilityReason);
+        Assert.True(targetVisibility.IsVisible);
+        Assert.Equal(MapVisibilityReason.ExploredPlanet, Assert.Single(targetVisibility.Planets).VisibilityReason);
 
         var systemVisualService = new SystemVisualStateService(
             dbContext,
@@ -95,9 +96,9 @@ public class ExplorationMissionLifecycleSmokeTests
         var strategicMap = await new StrategicMapService(dbContext, systemVisualService, new MapVisibilityService(dbContext))
             .GetAsync(new GetStrategicMapRequest(civilization.Id));
         var targetMapSystem = strategicMap.Systems.Single(x => x.SystemId == targetSystem.Id);
-        Assert.Equal(MapVisibilityLevel.Unknown, targetMapSystem.VisibilityLevel);
-        Assert.False(targetMapSystem.IsVisible);
-        Assert.True(targetMapSystem.ExplorationPreview.CanPreviewExploration);
+        Assert.Equal(MapVisibilityLevel.Visible, targetMapSystem.VisibilityLevel);
+        Assert.True(targetMapSystem.IsVisible);
+        Assert.False(targetMapSystem.ExplorationPreview.CanPreviewExploration);
 
         Assert.Equal(100, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Credits);
         Assert.Equal(50, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Gas);

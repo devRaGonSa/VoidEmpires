@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Colonization;
+using VoidEmpires.Domain.Exploration;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.StrategicMap;
@@ -57,6 +58,25 @@ public class ExplorationActionPreviewServiceTests
         var visiblePreview = systemPreview.Planets.Single(x => x.PlanetId == visiblePlanet.Id);
         Assert.False(visiblePreview.CanPreviewPlanetExploration);
         Assert.Equal(ExplorationActionBlockReason.AlreadyVisible, visiblePreview.BlockReason);
+    }
+
+    [Fact]
+    public async Task GetAsyncBlocksPreviewForExploredTargets()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var system = CreateSystem("Explored", 4, 5, 6);
+        var planet = new Planet(Guid.NewGuid(), system.Id, "Known", 1, PlanetType.Ice, 80);
+        dbContext.Set<SolarSystem>().Add(system);
+        dbContext.Set<Planet>().Add(planet);
+        dbContext.ExplorationKnowledge.Add(ExplorationKnowledge.Create(civilizationId, system.Id, planet.Id, ExplorationKnowledgeSource.MissionCompletion, Guid.NewGuid(), DateTime.UtcNow));
+        await dbContext.SaveChangesAsync();
+
+        var preview = Assert.Single((await CreateService(dbContext).GetAsync(new GetExplorationActionPreviewRequest(civilizationId))).Systems);
+
+        Assert.False(preview.CanPreviewSystemExploration);
+        Assert.Equal(ExplorationActionBlockReason.AlreadyVisible, preview.BlockReason);
+        Assert.False(Assert.Single(preview.Planets).CanPreviewPlanetExploration);
     }
 
     [Fact]

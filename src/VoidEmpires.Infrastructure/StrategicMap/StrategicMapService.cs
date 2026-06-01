@@ -3,6 +3,7 @@ using VoidEmpires.Application.Fleets;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Application.Visuals;
 using VoidEmpires.Domain.Colonization;
+using VoidEmpires.Domain.Exploration;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Infrastructure.Persistence;
@@ -37,13 +38,19 @@ public sealed class StrategicMapService(
             .OrderBy(x => x.ArrivalAtUtc)
             .ThenBy(x => x.Id)
             .ToListAsync(cancellationToken);
+        var knownSystemIds = await dbContext.Set<ExplorationKnowledge>()
+            .AsNoTracking()
+            .Where(x => x.CivilizationId == request.CivilizationId)
+            .Select(x => x.SystemId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
 
         var relevantPlanetIds = ownedPlanetIds
             .Concat(activeTransfers.SelectMany(x => new[] { x.OriginPlanetId, x.DestinationPlanetId }))
             .Distinct()
             .ToArray();
 
-        if (relevantPlanetIds.Length == 0)
+        if (relevantPlanetIds.Length == 0 && knownSystemIds.Count == 0)
         {
             return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes());
         }
@@ -54,6 +61,7 @@ public sealed class StrategicMapService(
             .Select(x => x.SolarSystemId)
             .Distinct()
             .ToListAsync(cancellationToken);
+        systemIds = systemIds.Concat(knownSystemIds).Distinct().ToList();
         var visibility = await mapVisibilityService
             .GetAsync(new GetMapVisibilityRequest(request.CivilizationId), cancellationToken);
         var visibilityBySystemId = visibility.Systems.ToDictionary(x => x.SystemId);

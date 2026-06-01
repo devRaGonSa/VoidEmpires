@@ -4,5 +4,7 @@ public enum MapVisibilityReason
 {
     NoKnownVisibilitySource = 0,
     OwnedPlanet = 1,
-    SystemContainsOwnedPlanet = 2
+    SystemContainsOwnedPlanet = 2,
+    ExploredSystem = 3,
+    ExploredPlanet = 4
 }
