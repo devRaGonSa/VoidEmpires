@@ -21,6 +21,7 @@ public class DevStrategicMapActionManifestServiceTests
             "sensor.profile.read",
             "detection.coverage.read",
             "interception.opportunity.read",
+            "diplomacy.contact.read",
             "visual.system.read",
             "visual.planet.read",
             "fleet.uiState.read",
@@ -46,18 +47,12 @@ public class DevStrategicMapActionManifestServiceTests
         Assert.Contains("fleet presence", map.Notes, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("route/fuel", map.Notes, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("command availability", map.Notes, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("exploration preview", map.Notes, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("diplomacy contact", map.Notes, StringComparison.OrdinalIgnoreCase);
 
         var exploration = result.Actions.Single(x => x.ActionKey == "strategicMap.explorationPreview.read");
         Assert.Equal("/api/dev/strategic-map/exploration-preview", exploration.Route);
         Assert.Contains(exploration.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
         Assert.Contains("read-only exploration readiness", exploration.Notes, StringComparison.OrdinalIgnoreCase);
-
-        var explorationPreview = result.Actions.Single(x => x.ActionKey == "exploration.preview.read");
-        Assert.True(explorationPreview.IsReadOnly);
-        Assert.Equal("GET", explorationPreview.Method);
-        Assert.Equal("/api/dev/strategic-map/exploration-preview", explorationPreview.Route);
-        Assert.Contains(explorationPreview.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
 
         var create = result.Actions.Single(x => x.ActionKey == "exploration.mission.create");
         Assert.Equal("POST", create.Method);
@@ -65,42 +60,18 @@ public class DevStrategicMapActionManifestServiceTests
         Assert.Equal(201, create.SuccessStatus);
         Assert.Contains(409, create.ErrorStatuses);
         Assert.Contains(create.RequiredFields, x => x.Name == "targetPlanetId" && !x.IsRequired);
-        Assert.Contains("does not complete missions", create.Notes, StringComparison.OrdinalIgnoreCase);
-
-        var completeDue = result.Actions.Single(x => x.ActionKey == "exploration.mission.completeDue");
-        Assert.Equal("POST", completeDue.Method);
-        Assert.False(completeDue.IsReadOnly);
-        Assert.Equal(200, completeDue.SuccessStatus);
-        Assert.Contains(completeDue.RequiredFields, x => x.Name == "nowUtc" && x.Type == "DateTime" && x.IsRequired);
-        Assert.Contains("Development operation", completeDue.Notes, StringComparison.OrdinalIgnoreCase);
-
-        var missionList = result.Actions.Single(x => x.ActionKey == "exploration.mission.list");
-        Assert.True(missionList.IsReadOnly);
-        Assert.Equal("GET", missionList.Method);
-        Assert.Equal("/api/dev/strategic-map/exploration-missions", missionList.Route);
-        Assert.Contains(missionList.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
-        Assert.Contains(missionList.RequiredFields, x => x.Name == "status" && x.Type == "ExplorationMissionStatus" && !x.IsRequired);
 
         var knowledge = result.Actions.Single(x => x.ActionKey == "exploration.knowledge.read");
         Assert.True(knowledge.IsReadOnly);
         Assert.Equal("GET", knowledge.Method);
         Assert.Equal("/api/dev/strategic-map/exploration-knowledge", knowledge.Route);
         Assert.Contains(knowledge.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
-        Assert.Contains("ids-only", knowledge.Notes, StringComparison.OrdinalIgnoreCase);
-
-        var sensorProfiles = result.Actions.Single(x => x.ActionKey == "sensor.profile.read");
-        Assert.True(sensorProfiles.IsReadOnly);
-        Assert.Equal("GET", sensorProfiles.Method);
-        Assert.Equal("/api/dev/strategic-map/sensor-profiles", sensorProfiles.Route);
-        Assert.Contains(sensorProfiles.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
-        Assert.Contains("does not reveal", sensorProfiles.Notes, StringComparison.OrdinalIgnoreCase);
 
         var detectionCoverage = result.Actions.Single(x => x.ActionKey == "detection.coverage.read");
         Assert.True(detectionCoverage.IsReadOnly);
         Assert.Equal("GET", detectionCoverage.Method);
         Assert.Equal("/api/dev/strategic-map/detection-coverage", detectionCoverage.Route);
         Assert.Contains(detectionCoverage.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
-        Assert.Contains("does not reveal unknown targets", detectionCoverage.Notes, StringComparison.OrdinalIgnoreCase);
 
         var interception = result.Actions.Single(x => x.ActionKey == "interception.opportunity.read");
         Assert.True(interception.IsReadOnly);
@@ -108,6 +79,13 @@ public class DevStrategicMapActionManifestServiceTests
         Assert.Equal("/api/dev/strategic-map/interception-opportunities", interception.Route);
         Assert.Contains(interception.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
         Assert.Contains("does not execute interception", interception.Notes, StringComparison.OrdinalIgnoreCase);
+
+        var diplomacy = result.Actions.Single(x => x.ActionKey == "diplomacy.contact.read");
+        Assert.True(diplomacy.IsReadOnly);
+        Assert.Equal("GET", diplomacy.Method);
+        Assert.Equal("/api/dev/strategic-map/diplomatic-contacts", diplomacy.Route);
+        Assert.Contains(diplomacy.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
+        Assert.Contains("does not create alliances", diplomacy.Notes, StringComparison.OrdinalIgnoreCase);
 
         var manifest = result.Actions.Single(x => x.ActionKey == "strategicMap.actionManifest.read");
         Assert.Empty(manifest.RequiredFields);

@@ -80,6 +80,7 @@ if (AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration))
     app.MapDevSensorProfileEndpoints();
     app.MapDevDetectionCoverageEndpoints();
     app.MapDevInterceptionOpportunityEndpoints();
+    app.MapDevDiplomaticContactEndpoints();
     app.MapDevExplorationActionPreviewEndpoints();
     app.MapDevExplorationMissionEndpoints();
     app.MapDevExplorationKnowledgeEndpoints();

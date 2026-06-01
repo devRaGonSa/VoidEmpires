@@ -3,6 +3,7 @@ using VoidEmpires.Application.Fleets;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Application.Visuals;
 using VoidEmpires.Domain.Colonization;
+using VoidEmpires.Domain.Diplomacy;
 using VoidEmpires.Domain.Exploration;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
@@ -25,8 +26,22 @@ public sealed class StrategicMapService(
     {
         if (request.CivilizationId == Guid.Empty)
         {
-            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes(), CreateDetectionNotes(), CreateInterceptionNotes());
+            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes(), CreateDetectionNotes(), CreateInterceptionNotes(), CreateDiplomacyNotes(), []);
         }
+
+        var diplomaticContacts = await dbContext.DiplomaticContacts
+            .AsNoTracking()
+            .Where(x => x.CivilizationId == request.CivilizationId)
+            .OrderBy(x => x.DiscoveredAtUtc)
+            .ThenBy(x => x.ContactedCivilizationId)
+            .Select(x => new StrategicMapDiplomaticContactSummaryDto(
+                x.Id,
+                x.ContactedCivilizationId,
+                x.Status,
+                x.Source,
+                x.DiscoveredAtUtc,
+                "Diplomatic contact metadata is read-only and does not imply alliance, pact, trade, war, espionage, or visibility permission."))
+            .ToArrayAsync(cancellationToken);
 
         var ownedPlanetIds = await dbContext.Set<PlanetOwnership>()
             .AsNoTracking()
@@ -56,7 +71,7 @@ public sealed class StrategicMapService(
 
         if (relevantPlanetIds.Length == 0 && knownSystemIds.Count == 0)
         {
-            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes(), CreateDetectionNotes(), CreateInterceptionNotes());
+            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes(), CreateDetectionNotes(), CreateInterceptionNotes(), CreateDiplomacyNotes(), diplomaticContacts);
         }
 
         var systemIds = await dbContext.Set<Planet>()
@@ -111,7 +126,9 @@ public sealed class StrategicMapService(
             CreateRouteFuelNotes(),
             CreateSensorNotes(),
             CreateDetectionNotes(),
-            CreateInterceptionNotes());
+            CreateInterceptionNotes(),
+            CreateDiplomacyNotes(),
+            diplomaticContacts);
     }
 
     private static StrategicMapSystemDto CreateSystem(
@@ -252,140 +269,59 @@ public sealed class StrategicMapService(
     private static float? CreateIntensity(bool exposePlanetDetail, bool exposeVisualDetail, float value) =>
         exposePlanetDetail ? exposeVisualDetail ? value : 0f : null;
 
-    private static IReadOnlyList<StrategicMapCommandAvailabilityDto> CreateSystemCommands(
-        MapSystemVisibilityDto? visibility,
-        StrategicMapExplorationPreviewDto explorationPreview)
+    private static IReadOnlyList<StrategicMapCommandAvailabilityDto> CreateSystemCommands(MapSystemVisibilityDto? visibility, StrategicMapExplorationPreviewDto explorationPreview)
     {
         var isVisible = visibility?.IsVisible == true;
         return
         [
-            Command(
-                "strategicMap.system.view",
-                isVisible,
-                isVisible ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.NotVisible,
-                isVisible ? "System can be viewed from the current visibility projection." : "System is not visible to the requesting civilization."),
-            Command(
-                "exploration.preview",
-                explorationPreview.CanPreviewExploration,
-                explorationPreview.CanPreviewExploration ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.ExplorationPreviewUnavailable,
-                explorationPreview.Note),
-            Command(
-                "exploration.mission.create",
-                explorationPreview.CanPreviewExploration,
-                explorationPreview.CanPreviewExploration ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.ExplorationPreviewUnavailable,
-                explorationPreview.CanPreviewExploration ? "Capability hint only; mission creation must use the exploration mission create endpoint and validation." : explorationPreview.Note)
+            Command("strategicMap.system.view", isVisible, isVisible ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.NotVisible, isVisible ? "System can be viewed from the current visibility projection." : "System is not visible to the requesting civilization."),
+            Command("exploration.preview", explorationPreview.CanPreviewExploration, explorationPreview.CanPreviewExploration ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.ExplorationPreviewUnavailable, explorationPreview.Note),
+            Command("exploration.mission.create", explorationPreview.CanPreviewExploration, explorationPreview.CanPreviewExploration ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.ExplorationPreviewUnavailable, explorationPreview.CanPreviewExploration ? "Capability hint only; mission creation must use the exploration mission create endpoint and validation." : explorationPreview.Note)
         ];
     }
 
-    private static IReadOnlyList<StrategicMapCommandAvailabilityDto> CreatePlanetCommands(
-        MapPlanetVisibilityDto? visibility,
-        bool hasFleetContext,
-        StrategicMapExplorationPreviewDto explorationPreview)
+    private static IReadOnlyList<StrategicMapCommandAvailabilityDto> CreatePlanetCommands(MapPlanetVisibilityDto? visibility, bool hasFleetContext, StrategicMapExplorationPreviewDto explorationPreview)
     {
         var isVisible = visibility?.IsVisible == true;
-        var visibilityBlockReason = visibility?.VisibilityLevel == MapVisibilityLevel.Unknown
-            ? StrategicMapCommandBlockReason.Unknown
-            : StrategicMapCommandBlockReason.NotVisible;
+        var visibilityBlockReason = visibility?.VisibilityLevel == MapVisibilityLevel.Unknown ? StrategicMapCommandBlockReason.Unknown : StrategicMapCommandBlockReason.NotVisible;
         var travelAvailable = isVisible && hasFleetContext;
 
         return
         [
-            Command(
-                "strategicMap.planet.viewDetail",
-                isVisible,
-                isVisible ? StrategicMapCommandBlockReason.None : visibilityBlockReason,
-                isVisible ? "Planet detail can be viewed from the current visibility projection." : "Planet is unknown or not visible."),
-            Command(
-                "exploration.preview",
-                explorationPreview.CanPreviewExploration,
-                explorationPreview.CanPreviewExploration ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.ExplorationPreviewUnavailable,
-                explorationPreview.Note),
-            Command(
-                "exploration.mission.create",
-                explorationPreview.CanPreviewExploration,
-                explorationPreview.CanPreviewExploration ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.ExplorationPreviewUnavailable,
-                explorationPreview.CanPreviewExploration ? "Capability hint only; mission creation must use the exploration mission create endpoint and validation." : explorationPreview.Note),
-            Command(
-                "fleet.travel.estimate",
-                travelAvailable,
-                GetFleetBlockReason(isVisible, hasFleetContext, visibilityBlockReason),
-                travelAvailable ? "Capability hint only; destination-specific estimate validation still applies." : "Requires a visible destination and a requesting-civilization fleet context."),
-            Command(
-                "fleet.transfer.create",
-                travelAvailable,
-                travelAvailable ? StrategicMapCommandBlockReason.None : GetFleetBlockReason(isVisible, hasFleetContext, visibilityBlockReason),
-                travelAvailable ? "Capability hint only; transfer creation must use the existing fleet command path." : "Requires a visible destination and a requesting-civilization fleet context.")
+            Command("strategicMap.planet.viewDetail", isVisible, isVisible ? StrategicMapCommandBlockReason.None : visibilityBlockReason, isVisible ? "Planet detail can be viewed from the current visibility projection." : "Planet is unknown or not visible."),
+            Command("exploration.preview", explorationPreview.CanPreviewExploration, explorationPreview.CanPreviewExploration ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.ExplorationPreviewUnavailable, explorationPreview.Note),
+            Command("exploration.mission.create", explorationPreview.CanPreviewExploration, explorationPreview.CanPreviewExploration ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.ExplorationPreviewUnavailable, explorationPreview.CanPreviewExploration ? "Capability hint only; mission creation must use the exploration mission create endpoint and validation." : explorationPreview.Note),
+            Command("fleet.travel.estimate", travelAvailable, GetFleetBlockReason(isVisible, hasFleetContext, visibilityBlockReason), travelAvailable ? "Capability hint only; destination-specific estimate validation still applies." : "Requires a visible destination and a requesting-civilization fleet context."),
+            Command("fleet.transfer.create", travelAvailable, travelAvailable ? StrategicMapCommandBlockReason.None : GetFleetBlockReason(isVisible, hasFleetContext, visibilityBlockReason), travelAvailable ? "Capability hint only; transfer creation must use the existing fleet command path." : "Requires a visible destination and a requesting-civilization fleet context.")
         ];
     }
 
-    private static StrategicMapCommandBlockReason GetFleetBlockReason(
-        bool isVisible,
-        bool hasFleetContext,
-        StrategicMapCommandBlockReason visibilityBlockReason)
-    {
-        if (!isVisible)
-        {
-            return visibilityBlockReason;
-        }
+    private static StrategicMapCommandBlockReason GetFleetBlockReason(bool isVisible, bool hasFleetContext, StrategicMapCommandBlockReason visibilityBlockReason) =>
+        !isVisible ? visibilityBlockReason : hasFleetContext ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.NoFleetContext;
 
-        return hasFleetContext
-            ? StrategicMapCommandBlockReason.None
-            : StrategicMapCommandBlockReason.NoFleetContext;
-    }
-
-    private static StrategicMapCommandAvailabilityDto Command(
-        string actionKey,
-        bool isAvailable,
-        StrategicMapCommandBlockReason blockReason,
-        string note) => new(actionKey, isAvailable, blockReason, note);
+    private static StrategicMapCommandAvailabilityDto Command(string actionKey, bool isAvailable, StrategicMapCommandBlockReason blockReason, string note) => new(actionKey, isAvailable, blockReason, note);
 
     private static StrategicMapSensorProfileSummaryDto CreateSensorSummary(SensorProfileDto profile) =>
-        new(
-            profile.SourceId,
-            profile.SourceKind,
-            profile.SensorClass,
-            profile.DetectionRangeTier,
-            profile.ScanStrength,
-            profile.Note);
+        new(profile.SourceId, profile.SourceKind, profile.SensorClass, profile.DetectionRangeTier, profile.ScanStrength, profile.Note);
 
     private static StrategicMapDetectionCoverageSummaryDto CreateDetectionSummary(DetectionCoverageDto coverage) =>
-        new(
-            coverage.SourceId,
-            coverage.SourceKind,
-            coverage.CoverageClass,
-            coverage.DetectionRangeTier,
-            coverage.CoverageConfidencePercent,
-            coverage.Note);
+        new(coverage.SourceId, coverage.SourceKind, coverage.CoverageClass, coverage.DetectionRangeTier, coverage.CoverageConfidencePercent, coverage.Note);
 
     private static InterceptionReadinessSummaryDto CreateInterceptionReadinessSummary(InterceptionOpportunityDto opportunity) =>
-        new(
-            opportunity.OpportunityStatus,
-            opportunity.BlockReasons,
-            opportunity.HasFriendlyInterceptorContext,
-            opportunity.DetectionNote,
-            opportunity.ReadinessNote);
+        new(opportunity.OpportunityStatus, opportunity.BlockReasons, opportunity.HasFriendlyInterceptorContext, opportunity.DetectionNote, opportunity.ReadinessNote);
 
     private static IReadOnlyList<StrategicMapRouteFuelNoteDto> CreateRouteFuelNotes() =>
-        [
-            new(
-                "fleet.travel.estimate",
-                true,
-                OrbitalFuelReadinessPolicy.PlaceholderDerived,
-                "Strategic map route/fuel data is capability metadata only; concrete route profiles and fuel readiness require a destinationPlanetId.")
-        ];
+        [new("fleet.travel.estimate", true, OrbitalFuelReadinessPolicy.PlaceholderDerived, "Strategic map route/fuel data is capability metadata only; concrete route profiles and fuel readiness require a destinationPlanetId.")];
 
     private static IReadOnlyList<StrategicMapSensorNoteDto> CreateSensorNotes() =>
-        [
-            new("Sensor profiles are derived metadata only; they do not reveal visibility, scan targets, or change command validation.")
-        ];
+        [new("Sensor profiles are derived metadata only; they do not reveal visibility, scan targets, or change command validation.")];
 
     private static IReadOnlyList<StrategicMapDetectionNoteDto> CreateDetectionNotes() =>
-        [
-            new("Detection coverage is derived metadata only; it does not reveal unknown systems or planets, change visibility, or alter command validation.")
-        ];
+        [new("Detection coverage is derived metadata only; it does not reveal unknown systems or planets, change visibility, or alter command validation.")];
 
     private static IReadOnlyList<StrategicMapInterceptionNoteDto> CreateInterceptionNotes() =>
-        [
-            new("Interception readiness is read-only metadata only; it does not execute interception, reveal hidden transfers, or change transfer validation.")
-        ];
+        [new("Interception readiness is read-only metadata only; it does not execute interception, reveal hidden transfers, or change transfer validation.")];
+
+    private static IReadOnlyList<StrategicMapDiplomacyNoteDto> CreateDiplomacyNotes() =>
+        [new("Diplomatic contacts are read-only readiness metadata only; they do not create alliances, pacts, trade, espionage, war, visibility permissions, or command authorization.")];
 }
