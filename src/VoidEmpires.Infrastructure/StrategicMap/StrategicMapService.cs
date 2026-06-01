@@ -212,7 +212,12 @@ public sealed class StrategicMapService(
                 "exploration.preview",
                 explorationPreview.CanPreviewExploration,
                 explorationPreview.CanPreviewExploration ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.ExplorationPreviewUnavailable,
-                explorationPreview.Note)
+                explorationPreview.Note),
+            Command(
+                "exploration.mission.create",
+                explorationPreview.CanPreviewExploration,
+                explorationPreview.CanPreviewExploration ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.ExplorationPreviewUnavailable,
+                explorationPreview.CanPreviewExploration ? "Capability hint only; mission creation must use the exploration mission create endpoint and validation." : explorationPreview.Note)
         ];
     }
 
@@ -239,6 +244,11 @@ public sealed class StrategicMapService(
                 explorationPreview.CanPreviewExploration,
                 explorationPreview.CanPreviewExploration ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.ExplorationPreviewUnavailable,
                 explorationPreview.Note),
+            Command(
+                "exploration.mission.create",
+                explorationPreview.CanPreviewExploration,
+                explorationPreview.CanPreviewExploration ? StrategicMapCommandBlockReason.None : StrategicMapCommandBlockReason.ExplorationPreviewUnavailable,
+                explorationPreview.CanPreviewExploration ? "Capability hint only; mission creation must use the exploration mission create endpoint and validation." : explorationPreview.Note),
             Command(
                 "fleet.travel.estimate",
                 travelAvailable,

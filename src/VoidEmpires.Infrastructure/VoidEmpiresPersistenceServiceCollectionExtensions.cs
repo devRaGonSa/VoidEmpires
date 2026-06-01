@@ -75,6 +75,8 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IExplorationActionPreviewService, ExplorationActionPreviewService>();
         services.AddScoped<IExplorationMissionCreateService, ExplorationMissionCreateService>();
         services.AddScoped<IExplorationMissionCompletionService, ExplorationMissionCompletionService>();
+        services.AddScoped<IExplorationMissionQueryService, ExplorationMissionQueryService>();
+        services.AddScoped<IExplorationKnowledgeQueryService, ExplorationKnowledgeQueryService>();
 
         return services;
     }

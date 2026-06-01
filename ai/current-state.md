@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 7Y - Strategic map unknown planet sanitization`.
+The repository is consolidated through `Phase 8C - Exploration tooling readiness smoke coverage`.
 
 ## Repository Reality
 
@@ -59,14 +59,20 @@ Current implemented foundations:
 - Strategic map system and planet DTOs now include derived visibility level, reason, and visibility booleans so development clients can distinguish owned, visible, and unknown relevant map nodes without adding persisted fog-of-war.
 - Strategic map system and planet DTOs now include read-only command availability metadata for map view/detail and fleet travel/transfer capability hints. These flags are UI-readiness metadata and do not replace existing command validation.
 - Strategic map system and planet DTOs now include read-only exploration preview metadata for unknown nodes while blocking preview for already-visible or owned nodes.
+- Strategic map command metadata includes `exploration.mission.create` as a UI-readiness hint only when the target is preview-eligible; visible, owned, or revealed targets block it with `ExplorationPreviewUnavailable`, and the create service remains authoritative for validation.
 - Strategic map planet DTOs sanitize unknown planets by keeping detail fields null while preserving stable ids, visibility metadata, preview metadata, and command availability.
 - Development-only strategic map action manifest at `GET /api/dev/strategic-map/action-manifest` exposes deterministic metadata for current strategic map, visual state, fleet UI state, exploration preview, and related manifest read actions.
+- Strategic map action manifest now includes exploration tooling metadata for preview read, mission create, mission complete-due, and knowledge read actions, including routes, methods, mutability, required fields, success statuses, common error statuses, and safety notes.
+- Strategic map action manifest includes `exploration.mission.list` metadata for the development-only mission list read, including optional status filtering.
 - Development-only exploration preview endpoint at `GET /api/dev/strategic-map/exploration-preview?civilizationId={id}` exposes read-only exploration readiness metadata derived from map visibility.
 - Minimal persistent exploration mission foundation exists with `ExplorationMission`, `ExplorationMissionStatus`, EF mapping, and a migration for planned/completed mission lifecycle state. No creation endpoint, completion worker, visibility reveal, sensors, fog-of-war, route graph, pathfinding, combat, interception, or UI behavior has been added.
 - Minimal persistent exploration knowledge foundation exists with `ExplorationKnowledge`, `ExplorationKnowledgeSource`, EF mapping, and a migration for civilization-scoped known systems and optional known planets. Mission completion records it, and map visibility consumes it as read-only visibility.
 - Development-only exploration mission creation exists at `POST /api/dev/strategic-map/exploration-missions/create`, creating planned missions only for current exploration-preview-eligible unknown targets with deterministic placeholder due times and no resource cost, fleet assignment, completion, visibility reveal, sensors, fog-of-war, route graph, pathfinding, combat, interception, or UI behavior.
 - Development-only exploration mission completion exists at `POST /api/dev/strategic-map/exploration-missions/complete-due`, marking due planned missions completed and recording exploration knowledge that read models can expose as visibility without fog-of-war/sensor persistence, rewards, combat, interception, route graph, pathfinding, background worker, or UI behavior.
+- Development-only exploration mission list endpoint exists at `GET /api/dev/strategic-map/exploration-missions?civilizationId={id}&status={optional}`, returning read-only, civilization-scoped planned/completed mission rows in deterministic requested/due/id order without creating, completing, cancelling, or mutating missions.
+- Development-only exploration knowledge read endpoint exists at `GET /api/dev/strategic-map/exploration-knowledge?civilizationId={id}`, returning ids-only, civilization-scoped exploration knowledge rows in deterministic discovered/system/planet order without mutating missions, knowledge, visibility, resources, fleets, sensors, fog-of-war, route graph, pathfinding, combat, interception, or UI state.
 - Exploration mission lifecycle smoke coverage validates preview -> create planned mission -> complete due mission -> record knowledge -> reveal read-model visibility -> strategic map exposure and preview blocking, while ownership remains unassigned, foreign-owned details stay sanitized, and seeded fleet/resource state remains unchanged.
+- Exploration tooling readiness smoke coverage validates preview, mission creation, mission list, due completion, knowledge read, map visibility, strategic map reveal, action manifest metadata, resource/fleet non-mutation, and current no-sensors/no-rewards/no-combat/no-route-graph limitations together.
 - Strategic map readiness smoke coverage validates that strategic map, visual state, fleet UI state, strategic map action manifest, and exploration preview read surfaces remain coherent and do not mutate stockpiles, orbital groups, or transfers.
 - Visibility and command readiness smoke coverage validates owned, foreign-owned, and unknown strategic map nodes across visibility and strategic map read models; verifies command availability for visible nodes and blocked commands for unknown nodes; and protects read-only behavior across systems, planets, ownerships, stockpiles, orbital groups, and transfers.
 - Static visual sandbox at `/dev/visual-state/index.html`.
@@ -149,6 +155,10 @@ Accepted current rules:
 - Phase 7W integrates exploration knowledge into map visibility and strategic map relevance. Ownership still has priority; explored systems and planets use existing `Visible` visibility with `ExploredSystem` and `ExploredPlanet` reasons; system-level knowledge does not reveal every planet detail.
 - Phase 7X hardens the full exploration reveal lifecycle with smoke coverage and documentation. The validated path proves knowledge recording, visibility consumption, conservative strategic-map exposure, blocked preview after reveal, no ownership leakage, and no resource/fleet/reward mutation.
 - Phase 7Y hardens strategic map projection sanitization so unknown planets in explored systems do not leak names, planet types, sizes, colonization status, orbital layout, visual scale, or intensity details.
+- Phase 7Z adds the exploration knowledge query service and development-only read endpoint so tooling can inspect currently recorded knowledge rows for a civilization. The endpoint stays ids-only and read-only, with deterministic ordering and standard dev-route gating.
+- Phase 8A expands strategic map tooling metadata for exploration preview read, mission create, mission complete-due, and knowledge read actions, and adds `exploration.mission.create` command hints to strategic map systems and planets without changing gameplay behavior.
+- Phase 8B adds the exploration mission query service and development-only mission list endpoint with optional status filtering, plus manifest/docs coverage for the new read action.
+- Phase 8C adds consolidated smoke coverage for the exploration dev tooling lifecycle across preview, mission create/list/complete, knowledge read, visibility, strategic map reveal, manifest metadata, and non-mutation guarantees.
 
 ## Dev Surface Gating Note
 
@@ -171,7 +181,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 7Y: `442` passing tests.
+Current validated baseline after Phase 8C: `458` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, and the minimal exploration mission lifecycle.
 

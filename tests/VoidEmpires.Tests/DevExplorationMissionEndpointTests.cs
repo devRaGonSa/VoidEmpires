@@ -17,6 +17,96 @@ public class DevExplorationMissionEndpointTests(WebApplicationFactory<Program> f
     private static readonly Guid SystemId = Guid.Parse("ff06ed7e-6416-4758-a735-9552413014e9");
 
     [Fact]
+    public async Task ListReturnsNotFoundOutsideDevelopmentByDefault()
+    {
+        using var client = factory.WithWebHostBuilder(builder => builder.UseEnvironment("Production")).CreateClient();
+
+        using var response = await client.GetAsync($"/api/dev/strategic-map/exploration-missions?civilizationId={CivilizationId}");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ListReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
+    {
+        using var client = factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Development");
+            builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:DefaultConnection"] = string.Empty
+                }));
+        }).CreateClient();
+
+        using var response = await client.GetAsync($"/api/dev/strategic-map/exploration-missions?civilizationId={CivilizationId}");
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("?civilizationId=00000000-0000-0000-0000-000000000000")]
+    public async Task ListReturnsBadRequestForMissingOrEmptyCivilizationId(string queryString)
+    {
+        using var client = CreateConfiguredClient(new FakeExplorationMissionQueryService(
+            GetExplorationMissionsResult.Success(CivilizationId, null, [])));
+
+        using var response = await client.GetAsync($"/api/dev/strategic-map/exploration-missions{queryString}");
+        var payload = await response.Content.ReadFromJsonAsync<ExplorationMissionListResponse>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload.Succeeded);
+        Assert.Null(payload.Missions);
+        Assert.Contains("Civilization id is required.", payload.Errors);
+    }
+
+    [Fact]
+    public async Task ListReturnsBadRequestForInvalidStatus()
+    {
+        using var client = CreateConfiguredClient(new FakeExplorationMissionQueryService(
+            GetExplorationMissionsResult.Success(CivilizationId, null, [])));
+
+        using var response = await client.GetAsync($"/api/dev/strategic-map/exploration-missions?civilizationId={CivilizationId}&status=Archived");
+        var payload = await response.Content.ReadFromJsonAsync<ExplorationMissionListResponse>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload.Succeeded);
+        Assert.Contains("Status is invalid.", payload.Errors);
+    }
+
+    [Fact]
+    public async Task ListReturnsOkForValidRequest()
+    {
+        var mission = new ExplorationMissionDto(
+            Guid.NewGuid(),
+            CivilizationId,
+            SystemId,
+            null,
+            ExplorationMissionStatus.Planned,
+            new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 6, 1, 12, 30, 0, DateTimeKind.Utc),
+            null);
+        var fakeService = new FakeExplorationMissionQueryService(
+            GetExplorationMissionsResult.Success(CivilizationId, ExplorationMissionStatus.Planned, [mission]));
+        using var client = CreateConfiguredClient(fakeService);
+
+        using var response = await client.GetAsync($"/api/dev/strategic-map/exploration-missions?civilizationId={CivilizationId}&status=Planned");
+        var payload = await response.Content.ReadFromJsonAsync<ExplorationMissionListResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.True(payload.Succeeded);
+        Assert.NotNull(payload.Missions);
+        Assert.Equal(ExplorationMissionStatus.Planned, payload.Missions.Status);
+        Assert.Equal(CivilizationId, fakeService.LastRequest?.CivilizationId);
+        Assert.Equal(ExplorationMissionStatus.Planned, fakeService.LastRequest?.Status);
+        Assert.Equal(mission.ExplorationMissionId, Assert.Single(payload.Missions.Missions).ExplorationMissionId);
+    }
+
+    [Fact]
     public async Task CreateReturnsNotFoundOutsideDevelopmentByDefault()
     {
         using var client = factory.WithWebHostBuilder(builder => builder.UseEnvironment("Production")).CreateClient();
@@ -149,6 +239,18 @@ public class DevExplorationMissionEndpointTests(WebApplicationFactory<Program> f
             builder.ConfigureTestServices(services => services.AddSingleton(completionService));
         }).CreateClient();
 
+    private HttpClient CreateConfiguredClient(IExplorationMissionQueryService queryService) =>
+        factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Development");
+            builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=voidempires_exploration_mission_endpoint_tests"
+                }));
+            builder.ConfigureTestServices(services => services.AddSingleton(queryService));
+        }).CreateClient();
+
     private static object CreateRequest(DateTime? requestedAtUtc = null) => new
     {
         CivilizationId,
@@ -183,6 +285,25 @@ public class DevExplorationMissionEndpointTests(WebApplicationFactory<Program> f
             return Task.FromResult(result);
         }
     }
+
+    private sealed class FakeExplorationMissionQueryService(GetExplorationMissionsResult result)
+        : IExplorationMissionQueryService
+    {
+        public GetExplorationMissionsRequest? LastRequest { get; private set; }
+
+        public Task<GetExplorationMissionsResult> GetAsync(
+            GetExplorationMissionsRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            LastRequest = request;
+            return Task.FromResult(result);
+        }
+    }
+
+    private sealed record ExplorationMissionListResponse(
+        bool Succeeded,
+        GetExplorationMissionsResult? Missions,
+        string[] Errors);
 
     private sealed record CreateExplorationMissionResponse(
         bool Succeeded,

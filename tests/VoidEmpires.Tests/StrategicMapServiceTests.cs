@@ -50,6 +50,7 @@ public class StrategicMapServiceTests
         Assert.Equal(ExplorationActionBlockReason.AlreadyVisible, mapSystem.ExplorationPreview.BlockReason);
         AssertAvailable(mapSystem.Commands, "strategicMap.system.view");
         AssertBlocked(mapSystem.Commands, "exploration.preview", StrategicMapCommandBlockReason.ExplorationPreviewUnavailable);
+        AssertBlocked(mapSystem.Commands, "exploration.mission.create", StrategicMapCommandBlockReason.ExplorationPreviewUnavailable);
         var mapPlanet = Assert.Single(mapSystem.Planets);
         Assert.Equal(planet.Id, mapPlanet.PlanetId);
         Assert.True(mapPlanet.IsOwnedByRequestingCivilization);
@@ -59,6 +60,7 @@ public class StrategicMapServiceTests
         Assert.Equal(ExplorationActionBlockReason.AlreadyOwned, mapPlanet.ExplorationPreview.BlockReason);
         AssertAvailable(mapPlanet.Commands, "strategicMap.planet.viewDetail");
         AssertBlocked(mapPlanet.Commands, "exploration.preview", StrategicMapCommandBlockReason.ExplorationPreviewUnavailable);
+        AssertBlocked(mapPlanet.Commands, "exploration.mission.create", StrategicMapCommandBlockReason.ExplorationPreviewUnavailable);
         AssertBlocked(mapPlanet.Commands, "fleet.travel.estimate", StrategicMapCommandBlockReason.NoFleetContext);
         Assert.Equal(civilizationId, mapPlanet.CivilizationId);
         Assert.Equal(2, mapPlanet.OrbitalSlot);
@@ -150,11 +152,14 @@ public class StrategicMapServiceTests
         Assert.False(unknownDestinationSystem.IsVisible);
         Assert.True(unknownDestinationSystem.ExplorationPreview.CanPreviewExploration);
         AssertAvailable(unknownDestinationSystem.Commands, "exploration.preview");
+        AssertAvailable(unknownDestinationSystem.Commands, "exploration.mission.create");
         AssertBlocked(unknownDestinationSystem.Commands, "strategicMap.system.view", StrategicMapCommandBlockReason.NotVisible);
         var unknownDestinationPlanet = Assert.Single(unknownDestinationSystem.Planets);
         Assert.Equal(MapVisibilityLevel.Unknown, unknownDestinationPlanet.VisibilityLevel);
         Assert.True(unknownDestinationPlanet.ExplorationPreview.CanPreviewExploration);
         AssertAvailable(unknownDestinationPlanet.Commands, "exploration.preview");
+        AssertAvailable(unknownDestinationPlanet.Commands, "exploration.mission.create");
+        Assert.Contains("mission creation", unknownDestinationPlanet.Commands.Single(x => x.ActionKey == "exploration.mission.create").Note, StringComparison.OrdinalIgnoreCase);
         AssertBlocked(unknownDestinationPlanet.Commands, "strategicMap.planet.viewDetail", StrategicMapCommandBlockReason.Unknown);
         var presence = Assert.Single(mapSystem.FleetPresence);
         Assert.Equal(group.Id, presence.OrbitalGroupId);
@@ -197,6 +202,7 @@ public class StrategicMapServiceTests
         Assert.Equal(MapVisibilityReason.ExploredSystem, mapSystem.VisibilityReason);
         AssertAvailable(mapSystem.Commands, "strategicMap.system.view");
         AssertBlocked(mapSystem.Commands, "exploration.preview", StrategicMapCommandBlockReason.ExplorationPreviewUnavailable);
+        AssertBlocked(mapSystem.Commands, "exploration.mission.create", StrategicMapCommandBlockReason.ExplorationPreviewUnavailable);
         Assert.Equal(MapVisibilityReason.ExploredPlanet, mapSystem.Planets.Single(x => x.PlanetId == planet.Id).VisibilityReason);
         var hidden = mapSystem.Planets.Single(x => x.PlanetId == hiddenPlanet.Id);
         Assert.Equal(MapVisibilityLevel.Unknown, hidden.VisibilityLevel);
