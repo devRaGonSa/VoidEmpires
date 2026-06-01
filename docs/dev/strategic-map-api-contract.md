@@ -243,6 +243,33 @@ The result contains `civilizationId` and deterministic `coverages[]` rows derive
 
 The endpoint is read-only development tooling. It does not reveal visibility, reveal unknown targets, trigger detection, interception, or combat, create detection state, mutate exploration knowledge, mutate resources/fleets/missions, or add route graph/pathfinding state.
 
+### Interception Opportunities Read
+
+`GET /api/dev/strategic-map/interception-opportunities?civilizationId={id}`
+
+Query:
+
+- `civilizationId`: required non-empty GUID. Scopes interception-readiness metadata to the requesting civilization.
+
+Responses:
+
+| Status | Meaning |
+|---|---|
+| `200 OK` | Interception opportunity read model returned. |
+| `400 Bad Request` | Missing or empty `civilizationId`. |
+| `404 Not Found` | Development route is disabled. |
+| `503 Service Unavailable` | Persistence is not configured. |
+
+Response envelope:
+
+- `succeeded`: `true` on success.
+- `interceptionOpportunities`: interception opportunity result, or `null` on validation failure.
+- `errors[]`: validation errors.
+
+The result contains `civilizationId` plus deterministic `opportunities[]` rows for currently exposed interception-readiness metadata. Each row contains `transferId`, `orbitalGroupId`, `originPlanetId`, `destinationPlanetId`, `abstractDistanceUnits`, `departureAtUtc`, `arrivalAtUtc`, `transferStatus`, `opportunityStatus`, `blockReasons[]`, `hasFriendlyInterceptorContext`, `detectionNote`, and `readinessNote`.
+
+This endpoint is read-only development tooling. It does not execute interception, combat, or damage; it does not reveal hidden transfers; and it does not mutate fleets, transfers, resources, missions, or knowledge.
+
 ### Minimal Exploration Lifecycle
 
 The current development lifecycle is intentionally conservative:
@@ -275,7 +302,7 @@ Response envelope:
 
 Each manifest action contains `actionKey`, `displayName`, `method`, `route`, `isReadOnly`, `requiredFields[]`, `successStatus`, `errorStatuses[]`, and `notes`.
 
-Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `exploration.preview.read`, `exploration.mission.create`, `exploration.mission.completeDue`, `exploration.mission.list`, `exploration.knowledge.read`, `sensor.profile.read`, `detection.coverage.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
+Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `exploration.preview.read`, `exploration.mission.create`, `exploration.mission.completeDue`, `exploration.mission.list`, `exploration.knowledge.read`, `sensor.profile.read`, `detection.coverage.read`, `interception.opportunity.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
 
 The manifest is read-only metadata for UI discovery. It does not require persistence and does not execute the listed actions.
 
@@ -446,6 +473,7 @@ The strategic map read model reuses the same underlying persisted state summariz
 - The exploration knowledge endpoint exposes the persisted knowledge rows directly for development inspection without deriving new visibility or mutating state.
 - The sensor profiles endpoint exposes derived placeholder sensor profile rows directly for development inspection without deriving new visibility or mutating state.
 - The detection coverage endpoint exposes derived placeholder coverage rows directly for development inspection without deriving new visibility or mutating state.
+- The interception opportunities endpoint exposes the interception readiness read model directly for development inspection without executing interception or changing visibility.
 - The strategic map read also now annotates currently exposed transfer overlays with read-only interception readiness summaries derived from the interception opportunity service.
 - The strategic map action manifest lists the currently manifest-backed related actions so future prototypes can discover routes and required fields without hardcoding every contract.
 

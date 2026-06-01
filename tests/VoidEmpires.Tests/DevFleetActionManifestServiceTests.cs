@@ -12,6 +12,7 @@ public class DevFleetActionManifestServiceTests
         var keys = result.Actions.Select(x => x.ActionKey).ToArray();
         Assert.Contains("fleet.overview.read", keys);
         Assert.Contains("fleet.uiState.read", keys);
+        Assert.Contains("fleet.interception.readiness.read", keys);
         Assert.Contains("fleet.travel.estimate", keys);
         Assert.Contains("fleet.transfer.create", keys);
         Assert.Contains("fleet.transfer.cancel", keys);
@@ -38,6 +39,13 @@ public class DevFleetActionManifestServiceTests
         Assert.Equal("GET", uiState.Method);
         Assert.True(uiState.IsReadOnly);
         Assert.Equal(200, uiState.SuccessStatus);
+
+        var interception = result.Actions.Single(x => x.ActionKey == "fleet.interception.readiness.read");
+        Assert.Equal("GET", interception.Method);
+        Assert.True(interception.IsReadOnly);
+        Assert.Equal("/api/dev/strategic-map/interception-opportunities", interception.Route);
+        Assert.Contains(interception.RequiredFields, x => x.Name == "civilizationId" && x.IsRequired);
+        Assert.Contains("read-only interception readiness", interception.Notes, StringComparison.OrdinalIgnoreCase);
 
         var estimate = result.Actions.Single(x => x.ActionKey == "fleet.travel.estimate");
         Assert.True(estimate.IsReadOnly);

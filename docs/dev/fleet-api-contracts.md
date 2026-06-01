@@ -174,9 +174,9 @@ Restrictions: read-only. This endpoint aggregates existing read models for dev U
 
 Response: `succeeded`, `manifest`, `errors`. `manifest.actions[]` includes `actionKey`, `displayName`, `method`, `route`, `isReadOnly`, `requiredFields[]`, `successStatus`, `errorStatuses[]`, and `notes`.
 
-Current action keys: `fleet.overview.read`, `fleet.uiState.read`, `fleet.travel.estimate`, `fleet.transfer.create`, `fleet.transfer.cancel`, `fleet.transfer.complete`, `fleet.group.split`, and `fleet.group.merge`.
+Current action keys: `fleet.overview.read`, `fleet.uiState.read`, `fleet.interception.readiness.read`, `fleet.travel.estimate`, `fleet.transfer.create`, `fleet.transfer.cancel`, `fleet.transfer.complete`, `fleet.group.split`, and `fleet.group.merge`.
 
-`fleet.uiState.read` notes that UI state includes route/fuel capability hints but no destination-specific estimates. `fleet.travel.estimate` is read-only in the manifest and is the source of route profile and fuel readiness previews when a UI has an explicit destination.
+`fleet.uiState.read` notes that UI state includes route/fuel capability hints but no destination-specific estimates. `fleet.interception.readiness.read` cross-links the strategic-map interception-readiness endpoint for direct transfer-readiness inspection. `fleet.travel.estimate` is read-only in the manifest and is the source of route profile and fuel readiness previews when a UI has an explicit destination.
 
 Restrictions: read-only and deterministic. This endpoint is a dev metadata surface for frontend tooling and does not require persistence beyond development-route gating.
 

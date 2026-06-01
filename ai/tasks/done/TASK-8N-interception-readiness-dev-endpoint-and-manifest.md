@@ -4,7 +4,7 @@
 
 id: TASK-8N
 title: Add interception readiness dev endpoint and manifest metadata
-status: pending
+status: done
 type: feature
 team: backend
 supporting_teams:
@@ -161,4 +161,3 @@ At the end:
 5. Push the branch to the remote.
 
 The AI Platform runner must push after successful validation.
-
