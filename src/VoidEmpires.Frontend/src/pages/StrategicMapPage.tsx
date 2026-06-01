@@ -9,9 +9,9 @@ import type {
   SystemVisualStateResponse,
 } from "../api/voidEmpiresApi";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
-import { StatusBadge } from "../components/StatusBadge";
 import { StrategicMap2DView } from "../components/StrategicMap2DView";
-import { StrategicMapSystemCard } from "../components/StrategicMapSystemCard";
+import { UiBadge } from "../components/ui/UiBadge";
+import { UiCard } from "../components/ui/UiCard";
 
 const readinessSections = [
   { label: "Route and fuel notes", key: "routeFuelNotes" },
@@ -57,6 +57,50 @@ function formatJson(value: unknown) {
   return JSON.stringify(value, null, 2);
 }
 
+function formatCoordinate(value: number | null) {
+  return value ?? "?";
+}
+
+function getVisibilityTone(level: string): "good" | "warn" | "neutral" {
+  if (level === "Owned") {
+    return "good";
+  }
+
+  if (level === "Visible") {
+    return "neutral";
+  }
+
+  return "warn";
+}
+
+interface SummaryMetricProps {
+  label: string;
+  value: number;
+}
+
+function SummaryMetric({ label, value }: SummaryMetricProps) {
+  return (
+    <div className="figma-stat">
+      <strong>{value}</strong>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+interface DataRowProps {
+  label: string;
+  value: string;
+}
+
+function DataRow({ label, value }: DataRowProps) {
+  return (
+    <div className="figma-data-row">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
 export function StrategicMapPage() {
   const [civilizationId, setCivilizationId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -66,10 +110,12 @@ export function StrategicMapPage() {
   const [selectedPlanetId, setSelectedPlanetId] = useState<string | null>(null);
   const [isLoadingSystemVisual, setIsLoadingSystemVisual] = useState(false);
   const [systemVisualError, setSystemVisualError] = useState<string | null>(null);
-  const [systemVisualState, setSystemVisualState] = useState<SystemVisualStateResponse["visualState"]>(null);
+  const [systemVisualState, setSystemVisualState] =
+    useState<SystemVisualStateResponse["visualState"]>(null);
   const [isLoadingPlanetVisual, setIsLoadingPlanetVisual] = useState(false);
   const [planetVisualError, setPlanetVisualError] = useState<string | null>(null);
-  const [planetVisualState, setPlanetVisualState] = useState<PlanetVisualStateResponse["visualState"]>(null);
+  const [planetVisualState, setPlanetVisualState] =
+    useState<PlanetVisualStateResponse["visualState"]>(null);
 
   const summary = useMemo(() => {
     if (!result) {
@@ -104,6 +150,16 @@ export function StrategicMapPage() {
     [selectedPlanetId, selectedSystem],
   );
 
+  const systemCommands = useMemo(
+    () => (selectedSystem ? readCommands(readRecord(selectedSystem).commands) : []),
+    [selectedSystem],
+  );
+
+  const planetCommands = useMemo(
+    () => (selectedPlanet ? readCommands(readRecord(selectedPlanet).commands) : []),
+    [selectedPlanet],
+  );
+
   function selectSystem(system: StrategicMapSystem) {
     setSelectedSystemId(system.systemId);
     setSelectedPlanetId(system.planets?.[0]?.planetId ?? null);
@@ -123,10 +179,18 @@ export function StrategicMapPage() {
     try {
       const response = await voidEmpiresApi.getSystemVisualState(selectedSystem.systemId);
       setSystemVisualState(response.succeeded ? response.visualState : null);
-      setSystemVisualError(response.succeeded ? null : response.errors[0] ?? "System visual-state request failed.");
+      setSystemVisualError(
+        response.succeeded
+          ? null
+          : response.errors[0] ?? "System visual-state request failed.",
+      );
     } catch (requestError) {
       setSystemVisualState(null);
-      setSystemVisualError(requestError instanceof Error ? requestError.message : "System visual-state request failed.");
+      setSystemVisualError(
+        requestError instanceof Error
+          ? requestError.message
+          : "System visual-state request failed.",
+      );
     } finally {
       setIsLoadingSystemVisual(false);
     }
@@ -144,10 +208,18 @@ export function StrategicMapPage() {
     try {
       const response = await voidEmpiresApi.getPlanetVisualState(selectedPlanet.planetId);
       setPlanetVisualState(response.succeeded ? response.visualState : null);
-      setPlanetVisualError(response.succeeded ? null : response.errors[0] ?? "Planet visual-state request failed.");
+      setPlanetVisualError(
+        response.succeeded
+          ? null
+          : response.errors[0] ?? "Planet visual-state request failed.",
+      );
     } catch (requestError) {
       setPlanetVisualState(null);
-      setPlanetVisualError(requestError instanceof Error ? requestError.message : "Planet visual-state request failed.");
+      setPlanetVisualError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Planet visual-state request failed.",
+      );
     } finally {
       setIsLoadingPlanetVisual(false);
     }
@@ -213,188 +285,407 @@ export function StrategicMapPage() {
 
   return (
     <section className="page-grid">
-      <article className="panel panel-hero">
-        <StatusBadge>Phase 9H selection readiness slice</StatusBadge>
-        <h2>Strategic map development read</h2>
-        <p>
-          This screen consumes the development-only strategic map endpoint as a
-          read-only prototype. Readiness metadata is shown conservatively and is
-          not treated as gameplay authorization.
-        </p>
-      </article>
+      <UiCard className="panel panel-hero figma-hero-card">
+        <div className="figma-hero-copy">
+          <UiBadge tone="resource">Phase 9M map alignment</UiBadge>
+          <h2>Strategic map development read</h2>
+          <p>
+            The map, selection panel, and renderer previews now share the same
+            compact Figma-derived panel language while staying strictly
+            development-only and read-only.
+          </p>
+        </div>
+        <div className="figma-badge-row">
+          <UiBadge>Backend coordinates preserved</UiBadge>
+          <UiBadge>Read-only contract surface</UiBadge>
+          <UiBadge tone="warn">No gameplay mutations</UiBadge>
+        </div>
+      </UiCard>
 
-      <article className="panel">
-        <h3>Load civilization map state</h3>
-        <form className="query-form" onSubmit={handleSubmit}>
-          <label className="field">
-            <span>Civilization id</span>
-            <input
-              type="text"
-              value={civilizationId}
-              onChange={(event) => setCivilizationId(event.target.value)}
-              placeholder="00000000-0000-0000-0000-000000000000"
-              spellCheck={false}
-            />
-          </label>
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? "Loading..." : "Load strategic map"}
-          </button>
-        </form>
-        {error && <p className="error-text">{error}</p>}
-      </article>
+      <div className="figma-two-column">
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Development endpoint</p>
+              <h3>Load civilization map state</h3>
+            </div>
+            <UiBadge>Safe inspection only</UiBadge>
+          </div>
+          <form className="query-form" onSubmit={handleSubmit}>
+            <label className="field">
+              <span>Civilization id</span>
+              <input
+                type="text"
+                value={civilizationId}
+                onChange={(event) => setCivilizationId(event.target.value)}
+                placeholder="00000000-0000-0000-0000-000000000000"
+                spellCheck={false}
+                aria-label="Civilization id"
+              />
+            </label>
+            <button type="submit" disabled={isLoading}>
+              {isLoading ? "Loading..." : "Load strategic map"}
+            </button>
+          </form>
+          {error && <p className="error-text">{error}</p>}
+        </UiCard>
 
-      <article className="panel">
-        <h3>Constraints</h3>
-        <ul className="stack-list">
-          <li>Endpoint is development-only and may return `404` or `503`.</li>
-          <li>Data is read-only; no gameplay mutation commands are wired.</li>
-          <li>Readiness metadata does not grant authorization.</li>
-          <li>No production auth or 3D rendering is introduced here.</li>
-        </ul>
-      </article>
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Current limits</p>
+              <h3>Constraints</h3>
+            </div>
+            <UiBadge tone="warn">Dev-only</UiBadge>
+          </div>
+          <ul className="stack-list">
+            <li>Endpoint may return `404` or `503` outside dev-ready backend runs.</li>
+            <li>Data is read-only and does not grant gameplay authorization.</li>
+            <li>Readiness metadata is informative, not command authority.</li>
+            <li>No auth, renderer execution, or mutating controls are added here.</li>
+          </ul>
+        </UiCard>
+      </div>
 
       {summary && (
-        <article className="panel">
-          <h3>Map summary</h3>
-          <div className="stat-grid">
-            <div className="stat-tile">
-              <strong>{summary.systems}</strong>
-              <span>Systems</span>
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Operational summary</p>
+              <h3>Map footprint</h3>
             </div>
-            <div className="stat-tile">
-              <strong>{summary.planets}</strong>
-              <span>Planets</span>
-            </div>
-            <div className="stat-tile">
-              <strong>{summary.fleets}</strong>
-              <span>Fleet markers</span>
-            </div>
-            <div className="stat-tile">
-              <strong>{summary.transfers}</strong>
-              <span>Transfer overlays</span>
-            </div>
+            <UiBadge>{result?.civilizationId ?? "Unknown civilization"}</UiBadge>
           </div>
-        </article>
+          <div className="figma-stat-grid">
+            <SummaryMetric label="Systems" value={summary.systems} />
+            <SummaryMetric label="Planets" value={summary.planets} />
+            <SummaryMetric label="Fleet markers" value={summary.fleets} />
+            <SummaryMetric label="Transfer overlays" value={summary.transfers} />
+          </div>
+        </UiCard>
       )}
 
       {result && (
-        <article className="panel">
-          <div className="section-heading">
+        <UiCard className="panel">
+          <div className="figma-map-layout">
+            <div className="figma-map-stage">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Galaxia</p>
+                  <h3>Strategic map 2D view</h3>
+                  <p>
+                    Backend coordinates are projected into a deterministic SVG
+                    viewport. The view is visual-only and keeps empty and
+                    single-system states safe.
+                  </p>
+                </div>
+                <UiBadge>SVG read model</UiBadge>
+              </div>
+              <StrategicMap2DView
+                systems={result.systems}
+                selectedSystemId={selectedSystem?.systemId}
+                onSelectSystem={(systemId) => {
+                  const system = result.systems.find((item) => item.systemId === systemId);
+                  if (system) {
+                    selectSystem(system);
+                  }
+                }}
+              />
+            </div>
+
+            <aside className="figma-map-sidebar">
+              <div className="figma-mini-card">
+                <p className="eyebrow">Legend</p>
+                <div className="figma-legend-grid">
+                  <div className="figma-legend-item">
+                    <span className="figma-legend-dot figma-legend-owned" />
+                    <strong>Owned</strong>
+                    <small>Direct control</small>
+                  </div>
+                  <div className="figma-legend-item">
+                    <span className="figma-legend-dot figma-legend-visible" />
+                    <strong>Visible</strong>
+                    <small>Observed system</small>
+                  </div>
+                  <div className="figma-legend-item">
+                    <span className="figma-legend-dot figma-legend-unknown" />
+                    <strong>Unknown</strong>
+                    <small>Sanitized contact</small>
+                  </div>
+                </div>
+              </div>
+
+              {selectedSystem && (
+                <div className="figma-mini-card">
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Active focus</p>
+                      <h4>{selectedSystem.systemName ?? "Unknown system"}</h4>
+                    </div>
+                    <UiBadge tone={getVisibilityTone(selectedSystem.visibilityLevel)}>
+                      {selectedSystem.visibilityLevel}
+                    </UiBadge>
+                  </div>
+                  <div className="figma-data-list">
+                    <DataRow
+                      label="Coordinates"
+                      value={`${formatCoordinate(selectedSystem.coordinateX)}, ${formatCoordinate(selectedSystem.coordinateY)}, ${formatCoordinate(selectedSystem.coordinateZ)}`}
+                    />
+                    <DataRow
+                      label="Planets"
+                      value={String(selectedSystem.planets?.length ?? 0)}
+                    />
+                    <DataRow
+                      label="Fleet markers"
+                      value={String(selectedSystem.fleetPresence?.length ?? 0)}
+                    />
+                    <DataRow
+                      label="Transfers"
+                      value={String(selectedSystem.transferOverlays?.length ?? 0)}
+                    />
+                  </div>
+                </div>
+              )}
+            </aside>
+          </div>
+        </UiCard>
+      )}
+
+      {result && selectedSystem && (
+        <UiCard className="panel">
+          <div className="figma-section-header">
             <div>
-              <h3>Strategic map 2D view</h3>
+              <p className="eyebrow">Focused system</p>
+              <h3>Selection detail</h3>
               <p>
-                Backend coordinates are normalized into a deterministic SVG
-                viewport. This is a read-only visual readiness layer.
+                System, planet, and command metadata stay backend-driven and
+                visually grouped for quick inspection.
               </p>
             </div>
+            <UiBadge tone="warn">Non-authoritative readiness</UiBadge>
           </div>
-          <StrategicMap2DView
-            systems={result.systems}
-            selectedSystemId={selectedSystem?.systemId}
-            onSelectSystem={(systemId) => {
-              const system = result.systems.find((item) => item.systemId === systemId);
-              if (system) {
-                selectSystem(system);
-              }
-            }}
-          />
-        </article>
-      )}
 
-      {result && (
-        <article className="panel">
-          <h3>Selection detail</h3>
           <div className="selection-chip-row">
             {result.systems.map((system) => (
               <button
                 key={system.systemId}
                 type="button"
-                className={`selection-chip${selectedSystem?.systemId === system.systemId ? " selection-chip-active" : ""}`}
+                className={`selection-chip${selectedSystem.systemId === system.systemId ? " selection-chip-active" : ""}`}
                 onClick={() => selectSystem(system)}
+                aria-pressed={selectedSystem.systemId === system.systemId}
               >
                 {system.systemName ?? "Unknown system"}
               </button>
             ))}
           </div>
-          {selectedSystem && (
-            <div className="selection-grid">
-              <section className="subpanel">
-                <h4>{selectedSystem.systemName ?? "Unknown system"}</h4>
-                <p>
-                  {selectedSystem.coordinateX ?? "?"}, {selectedSystem.coordinateY ?? "?"},{" "}
-                  {selectedSystem.coordinateZ ?? "?"}
-                </p>
-                <ul className="stack-list compact-list">
-                  <li>Visibility: {selectedSystem.visibilityLevel}</li>
-                  <li>Reason: {selectedSystem.visibilityReason}</li>
-                  <li>Owned: {String(Boolean(readRecord(selectedSystem).isOwnedByRequestingCivilization))}</li>
-                  <li>Planets: {selectedSystem.planets?.length ?? 0}</li>
-                  <li>Fleet markers: {selectedSystem.fleetPresence?.length ?? 0}</li>
-                  <li>Transfer overlays: {selectedSystem.transferOverlays?.length ?? 0}</li>
-                  <li>Sensor and detection summaries: {(selectedSystem.sensorProfiles?.length ?? 0) + (selectedSystem.detectionCoverage?.length ?? 0)}</li>
-                </ul>
-              </section>
 
-              <section className="subpanel">
-                <h4>Planet details</h4>
-                <div className="selection-chip-row">
-                  {selectedSystem.planets?.map((planet) => (
-                    <button
-                      key={planet.planetId}
-                      type="button"
-                      className={`selection-chip${selectedPlanet?.planetId === planet.planetId ? " selection-chip-active" : ""}`}
-                      onClick={() => {
-                        setSelectedPlanetId(planet.planetId);
-                        setPlanetVisualState(null);
-                        setPlanetVisualError(null);
-                      }}
+          <div className="figma-detail-grid">
+            <section className="subpanel figma-subpanel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">System overview</p>
+                  <h4>{selectedSystem.systemName ?? "Unknown system"}</h4>
+                </div>
+                <UiBadge tone={getVisibilityTone(selectedSystem.visibilityLevel)}>
+                  {selectedSystem.visibilityReason}
+                </UiBadge>
+              </div>
+              <div className="figma-data-list">
+                <DataRow
+                  label="Coordinates"
+                  value={`${formatCoordinate(selectedSystem.coordinateX)}, ${formatCoordinate(selectedSystem.coordinateY)}, ${formatCoordinate(selectedSystem.coordinateZ)}`}
+                />
+                <DataRow
+                  label="Owned by requester"
+                  value={String(Boolean(readRecord(selectedSystem).isOwnedByRequestingCivilization))}
+                />
+                <DataRow
+                  label="Sensor summaries"
+                  value={String(
+                    (selectedSystem.sensorProfiles?.length ?? 0) +
+                      (selectedSystem.detectionCoverage?.length ?? 0),
+                  )}
+                />
+              </div>
+              {systemCommands.length > 0 && (
+                <div className="figma-command-list">
+                  {systemCommands.map((command) => (
+                    <div
+                      key={command.actionKey}
+                      className="figma-command-item"
                     >
-                      {planet.planetName ?? "Unknown planet"}
-                    </button>
+                      <div>
+                        <strong>{readText(command.actionKey, "unknown.command")}</strong>
+                        <p>{readText(command.note, "Read-only metadata")}</p>
+                      </div>
+                      <UiBadge tone={command.isAvailable ? "good" : "warn"}>
+                        {command.isAvailable
+                          ? "Available"
+                          : readText(command.blockReason, "Blocked")}
+                      </UiBadge>
+                    </div>
                   ))}
                 </div>
-                {selectedPlanet ? (
-                  <ul className="stack-list compact-list">
-                    <li>Name: {selectedPlanet.planetName ?? "Unknown planet"}</li>
-                    <li>Visibility: {selectedPlanet.visibilityLevel}</li>
-                    <li>Reason: {selectedPlanet.visibilityReason}</li>
-                    <li>Type: {readText(readRecord(selectedPlanet).planetType)}</li>
-                    <li>Colonization: {readText(readRecord(selectedPlanet).colonizationStatus)}</li>
-                    {readCommands(readRecord(selectedPlanet).commands).map((command) => (
-                      <li key={command.actionKey}>
-                        {command.actionKey}: {command.isAvailable ? "available" : readText(command.blockReason, "blocked")} ({readText(command.note, "read-only metadata")})
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No planets are available for the selected system.</p>
-                )}
-              </section>
-            </div>
-          )}
-        </article>
+              )}
+            </section>
+
+            <section className="subpanel figma-subpanel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Planet selector</p>
+                  <h4>Planet details</h4>
+                </div>
+                <UiBadge>{selectedSystem.planets?.length ?? 0} planets</UiBadge>
+              </div>
+
+              <div className="selection-chip-row">
+                {selectedSystem.planets?.map((planet) => (
+                  <button
+                    key={planet.planetId}
+                    type="button"
+                    className={`selection-chip${selectedPlanet?.planetId === planet.planetId ? " selection-chip-active" : ""}`}
+                    onClick={() => {
+                      setSelectedPlanetId(planet.planetId);
+                      setPlanetVisualState(null);
+                      setPlanetVisualError(null);
+                    }}
+                    aria-pressed={selectedPlanet?.planetId === planet.planetId}
+                  >
+                    {planet.planetName ?? "Unknown planet"}
+                  </button>
+                ))}
+              </div>
+
+              {selectedPlanet ? (
+                <>
+                  <div className="figma-data-list">
+                    <DataRow
+                      label="Visibility"
+                      value={`${selectedPlanet.visibilityLevel} (${selectedPlanet.visibilityReason})`}
+                    />
+                    <DataRow
+                      label="Type"
+                      value={readText(readRecord(selectedPlanet).planetType)}
+                    />
+                    <DataRow
+                      label="Colonization"
+                      value={readText(readRecord(selectedPlanet).colonizationStatus)}
+                    />
+                  </div>
+
+                  {planetCommands.length > 0 && (
+                    <div className="figma-command-list">
+                      {planetCommands.map((command) => (
+                        <div
+                          key={command.actionKey}
+                          className="figma-command-item"
+                        >
+                          <div>
+                            <strong>{readText(command.actionKey, "unknown.command")}</strong>
+                            <p>{readText(command.note, "Read-only metadata")}</p>
+                          </div>
+                          <UiBadge tone={command.isAvailable ? "good" : "warn"}>
+                            {command.isAvailable
+                              ? "Available"
+                              : readText(command.blockReason, "Blocked")}
+                          </UiBadge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p>No planets are available for the selected system.</p>
+              )}
+            </section>
+
+            <section className="subpanel figma-subpanel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Readiness scope</p>
+                  <h4>Current metadata exposure</h4>
+                </div>
+                <UiBadge>Inspection only</UiBadge>
+              </div>
+              <div className="figma-data-list">
+                <DataRow
+                  label="Alliance rows"
+                  value={String(result.allianceReadiness?.length ?? 0)}
+                />
+                <DataRow
+                  label="Alliance pact rows"
+                  value={String(result.alliancePacts?.length ?? 0)}
+                />
+                <DataRow
+                  label="Fleet notes"
+                  value={String(result.interceptionNotes?.length ?? 0)}
+                />
+                <DataRow
+                  label="Route/fuel notes"
+                  value={String(result.routeFuelNotes?.length ?? 0)}
+                />
+              </div>
+              <p className="figma-panel-note">
+                Readiness hints do not bypass server validation and should be
+                treated as UI planning signals only.
+              </p>
+            </section>
+          </div>
+        </UiCard>
       )}
 
       {result && (
-        <article className="panel">
-          <h3>Visual-state preview</h3>
-          <p>These development-only reads expose renderer-facing contracts. They are not final 3D rendering.</p>
-          <div className="selection-grid">
-            <section className="subpanel">
-              <h4>System visual state</h4>
-              <button type="button" className="selection-chip" onClick={loadSystemVisualState} disabled={!selectedSystem || isLoadingSystemVisual}>
-                {isLoadingSystemVisual ? "Loading..." : "Load system visual state"}
-              </button>
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Renderer-facing contracts</p>
+              <h3>Visual-state preview</h3>
+              <p>
+                These development-only reads expose payloads for future
+                renderer work. The preview stays compact, readable, and clearly
+                non-final.
+              </p>
+            </div>
+            <UiBadge tone="warn">Dev-only payloads</UiBadge>
+          </div>
+
+          <div className="figma-detail-grid">
+            <section className="subpanel figma-subpanel">
+              <div className="figma-preview-actions">
+                <div>
+                  <p className="eyebrow">System preview</p>
+                  <h4>System visual state</h4>
+                </div>
+                <button
+                  type="button"
+                  className="selection-chip"
+                  onClick={loadSystemVisualState}
+                  disabled={!selectedSystem || isLoadingSystemVisual}
+                >
+                  {isLoadingSystemVisual ? "Loading..." : "Load system visual state"}
+                </button>
+              </div>
               {systemVisualError && <p className="error-text">{systemVisualError}</p>}
               {systemVisualState && (
                 <>
-                  <ul className="stack-list compact-list">
-                    <li>Star class: {readText(systemVisualState.star?.visualClass)}</li>
-                    <li>Star type: {readText(systemVisualState.star?.starType)}</li>
-                    <li>Layout hints: {systemVisualState.layoutHints?.length ?? 0}</li>
-                    <li>Orbital markers: {systemVisualState.orbitalGroupMarkers?.length ?? 0}</li>
-                    <li>Transfer overlays: {systemVisualState.transferOverlays?.length ?? 0}</li>
-                  </ul>
+                  <div className="figma-data-list">
+                    <DataRow
+                      label="Star class"
+                      value={readText(systemVisualState.star?.visualClass)}
+                    />
+                    <DataRow
+                      label="Star type"
+                      value={readText(systemVisualState.star?.starType)}
+                    />
+                    <DataRow
+                      label="Layout hints"
+                      value={String(systemVisualState.layoutHints?.length ?? 0)}
+                    />
+                    <DataRow
+                      label="Transfer overlays"
+                      value={String(systemVisualState.transferOverlays?.length ?? 0)}
+                    />
+                  </div>
                   <details className="json-details">
                     <summary>Raw system payload</summary>
                     <pre className="json-preview">{formatJson(systemVisualState)}</pre>
@@ -403,21 +694,45 @@ export function StrategicMapPage() {
               )}
             </section>
 
-            <section className="subpanel">
-              <h4>Planet visual state</h4>
-              <button type="button" className="selection-chip" onClick={loadPlanetVisualState} disabled={!selectedPlanet || isLoadingPlanetVisual}>
-                {isLoadingPlanetVisual ? "Loading..." : "Load planet visual state"}
-              </button>
-              {!selectedPlanet?.isVisible && <p>Only visible planets should be inspected through this preview.</p>}
+            <section className="subpanel figma-subpanel">
+              <div className="figma-preview-actions">
+                <div>
+                  <p className="eyebrow">Planet preview</p>
+                  <h4>Planet visual state</h4>
+                </div>
+                <button
+                  type="button"
+                  className="selection-chip"
+                  onClick={loadPlanetVisualState}
+                  disabled={!selectedPlanet || isLoadingPlanetVisual}
+                >
+                  {isLoadingPlanetVisual ? "Loading..." : "Load planet visual state"}
+                </button>
+              </div>
+              {!selectedPlanet?.isVisible && (
+                <p>Only visible planets should be inspected through this preview.</p>
+              )}
               {planetVisualError && <p className="error-text">{planetVisualError}</p>}
               {planetVisualState && (
                 <>
-                  <ul className="stack-list compact-list">
-                    <li>Planet type: {readText(planetVisualState.planetType)}</li>
-                    <li>Colonization: {readText(planetVisualState.colonizationStatus)}</li>
-                    <li>Visual seed: {planetVisualState.visualSeed ?? "Unavailable"}</li>
-                    <li>Profile: {readText(planetVisualState.profile?.paletteKey)}</li>
-                  </ul>
+                  <div className="figma-data-list">
+                    <DataRow
+                      label="Planet type"
+                      value={readText(planetVisualState.planetType)}
+                    />
+                    <DataRow
+                      label="Colonization"
+                      value={readText(planetVisualState.colonizationStatus)}
+                    />
+                    <DataRow
+                      label="Visual seed"
+                      value={String(planetVisualState.visualSeed ?? "Unavailable")}
+                    />
+                    <DataRow
+                      label="Palette profile"
+                      value={readText(planetVisualState.profile?.paletteKey)}
+                    />
+                  </div>
                   <details className="json-details">
                     <summary>Raw planet payload</summary>
                     <pre className="json-preview">{formatJson(planetVisualState)}</pre>
@@ -426,13 +741,23 @@ export function StrategicMapPage() {
               )}
             </section>
           </div>
-        </article>
+        </UiCard>
       )}
 
       {result && (
-        <article className="panel">
-          <h3>Readiness metadata</h3>
-          <p>These notes are informational only and do not grant gameplay authorization.</p>
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Readiness annotations</p>
+              <h3>Metadata ledger</h3>
+              <p>
+                Route, sensor, detection, interception, and alliance notes are
+                presented as compact side-information only.
+              </p>
+            </div>
+            <UiBadge>{readinessSections.length} note groups</UiBadge>
+          </div>
+
           <div className="readiness-grid">
             {readinessSections.map((section) => {
               const notes = result[section.key];
@@ -441,7 +766,7 @@ export function StrategicMapPage() {
               }
 
               return (
-                <section key={section.key} className="subpanel">
+                <section key={section.key} className="subpanel figma-subpanel">
                   <h4>{section.label}</h4>
                   <ul className="stack-list compact-list">
                     {notes.map((note, index) => (
@@ -451,23 +776,9 @@ export function StrategicMapPage() {
                 </section>
               );
             })}
-
-            <section className="subpanel">
-              <h4>Alliance readiness</h4>
-              <p>{result.allianceReadiness?.length ?? 0} membership rows exposed.</p>
-            </section>
-
-            <section className="subpanel">
-              <h4>Alliance pact readiness</h4>
-              <p>{result.alliancePacts?.length ?? 0} pact rows exposed.</p>
-            </section>
           </div>
-        </article>
+        </UiCard>
       )}
-
-      {result?.systems.map((system) => (
-        <StrategicMapSystemCard key={system.systemId} system={system} />
-      ))}
     </section>
   );
 }

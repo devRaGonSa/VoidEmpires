@@ -3,6 +3,7 @@
 This project is the current development-only frontend shell for VoidEmpires.
 
 It is a Vite + React + TypeScript prototype that consumes backend readiness contracts and intentionally avoids production auth, gameplay mutation wiring, WebSockets, and 3D rendering. The current strategic map route is a visual readiness slice only: it renders a simple 2D map, supports read-only system and planet selection, and can inspect visual-state payloads from the existing development endpoints.
+`package-lock.json` is intentionally tracked for deterministic frontend installs in this repository.
 
 ## Prerequisites
 
@@ -61,16 +62,49 @@ npm run build
 ## Current strategic map behavior
 
 - Renders a deterministic SVG 2D map from backend system coordinates.
+- Uses the current Figma-aligned panel language for the map stage, legend, focus summary, and selection details.
 - Lets the user select a system from the map or the list below it.
 - Lets the user inspect read-only system and planet metadata from the strategic-map payload.
 - Lets the user load system and visible-planet visual-state previews as renderer-facing development payloads.
-- Keeps the older system summary cards and readiness metadata panels available for inspection.
+- Keeps readiness metadata visibly non-authoritative and non-mutating.
 
 ## Current fleet behavior
 
 - Loads the fleet UI-state read model for a civilization id.
-- Renders fleet summaries, resource contexts, interception notes, and read-only action manifests.
+- Renders compact fleet cards, resource contexts, interception notes, active-transfer progress bars, and read-only action manifests.
 - Does not execute any manifest-listed mutating actions.
+
+## Figma token foundation
+
+Phase 9K adds a frontend token layer derived from `Xuniverse UI v1 - Modern Simple`.
+
+The current stylesheet exposes:
+
+- raw Figma palette variables such as `--ve-figma-bg`, `--ve-figma-panel`, and `--ve-figma-blue`
+- semantic UI variables such as `--ve-color-bg`, `--ve-color-panel`, `--ve-color-border`, and `--ve-color-accent-blue`
+- resource color variables such as `--ve-color-resource-metal`, `--ve-color-resource-crystal`, and `--ve-color-resource-deuterium`
+- layout and surface variables such as `--ve-layout-topbar-height`, `--ve-layout-sidebar-width`, `--ve-radius-*`, and `--ve-shadow-*`
+
+Current alignment intent:
+
+- Figma desktop reference: `1440 x 960`
+- topbar target height: `64px`
+- sidebar target width: `230px`
+- main content target start: about `260px`
+- cards stay compact, dark, and low-noise
+
+These tokens are foundation only. They support later UI alignment work without changing the current prototype into a final game UI.
+
+## Current shell alignment
+
+Phase 9L adds the first Figma-aligned shell layer:
+
+- `AppShell` for the topbar + sidebar layout
+- `TopResourceBar` for compact resource pills
+- `SidebarNav` for Figma navigation labels with safe disabled placeholders
+- `UiCard`, `UiBadge`, `UiProgressBar`, and `DevEndpointNotice` as reusable shell primitives
+
+Only `Galaxia` and `Flotas` are active routes in the sidebar today. Other labels mirror the Figma navigation vocabulary but remain disabled until those read surfaces exist.
 
 ## Runtime assumptions
 

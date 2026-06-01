@@ -50,19 +50,40 @@ export function StrategicMap2DView({
   onSelectSystem,
 }: StrategicMap2DViewProps) {
   if (systems.length === 0) {
-    return <p className="map-empty-state">No relevant systems were returned for this civilization.</p>;
+    return (
+      <p className="map-empty-state">
+        No relevant systems were returned for this civilization.
+      </p>
+    );
   }
 
   return (
     <div className="strategic-map-view">
-      <p className="map-legend">Owned, visible, and unknown systems are color-coded. Labels stay read-only.</p>
-      <svg className="strategic-map-canvas" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Read-only two-dimensional strategic map">
+      <svg
+        className="strategic-map-canvas"
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label="Read-only two-dimensional strategic map"
+      >
         <defs>
           <pattern id="map-grid" width="64" height="64" patternUnits="userSpaceOnUse">
-            <path d="M 64 0 L 0 0 0 64" fill="none" stroke="rgba(132, 163, 214, 0.15)" strokeWidth="1" />
+            <path
+              d="M 64 0 L 0 0 0 64"
+              fill="none"
+              stroke="rgba(132, 163, 214, 0.15)"
+              strokeWidth="1"
+            />
           </pattern>
+          <radialGradient id="map-nebula" cx="50%" cy="18%" r="75%">
+            <stop offset="0%" stopColor="rgba(70, 239, 255, 0.12)" />
+            <stop offset="100%" stopColor="rgba(5, 8, 20, 0)" />
+          </radialGradient>
         </defs>
+
+        <rect width={width} height={height} className="map-backdrop" />
         <rect width={width} height={height} className="map-frame" />
+        <rect width={width} height={height} fill="url(#map-nebula)" />
+
         {project(systems).map(({ system, x, y }) => (
           <g
             key={system.systemId}
@@ -79,11 +100,19 @@ export function StrategicMap2DView({
               }
             }}
           >
+            <title>{system.systemName ?? "Unknown system"}</title>
+            <circle r="30" className="map-node-halo" />
             <circle r="20" className="map-node-ring" />
             <circle r="7" className="map-node-core" />
-            <text className="map-node-title" x="0" y="38">{system.systemName ?? "Unknown system"}</text>
-            <text className="map-node-meta" x="0" y="56">
-              {system.visibilityLevel} | P {system.planets?.length ?? 0} | F {system.fleetPresence?.length ?? 0} | T {system.transferOverlays?.length ?? 0}
+            {(system.fleetPresence?.length ?? 0) > 0 && (
+              <circle cx="18" cy="-14" r="4" className="map-node-indicator" />
+            )}
+            <text className="map-node-title" x="0" y="44">
+              {system.systemName ?? "Unknown system"}
+            </text>
+            <text className="map-node-meta" x="0" y="63">
+              {system.visibilityLevel} | P {system.planets?.length ?? 0} | F{" "}
+              {system.fleetPresence?.length ?? 0} | T {system.transferOverlays?.length ?? 0}
             </text>
           </g>
         ))}

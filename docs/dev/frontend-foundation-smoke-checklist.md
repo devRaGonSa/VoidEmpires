@@ -13,26 +13,30 @@ Use this checklist to validate the current frontend prototype without confusing 
 1. Run `npm install` in `src/VoidEmpires.Frontend`.
 2. Run `npm run build`.
 3. Run `npm run dev`.
-4. Open the frontend shell.
-5. Confirm the header states that the frontend consumes development-only endpoints.
-6. Open the `Strategic Map` route.
-7. Enter a sample civilization id and confirm:
+4. Confirm `src/VoidEmpires.Frontend/package-lock.json` is tracked and neither `node_modules` nor `dist` is staged.
+5. Open the frontend shell.
+6. Confirm the header states that the frontend consumes development-only endpoints.
+7. Open the `Strategic Map` route.
+8. Enter a sample civilization id and confirm:
    - loading state appears
    - request errors are rendered clearly when the backend rejects the request
    - system, planet, fleet, transfer, and readiness summary data render on success
-   - systems render in the 2D map view
-   - selecting a system from the map updates the selection detail panel
+   - systems render in the darker 2D map stage with the compact legend
+   - selecting a system from the map updates the focus summary and selection detail panel
    - selecting a system from the chip list updates the same detail panel
-   - selecting a visible planet updates the planet details
+   - selecting a visible planet updates the planet details and keeps command metadata read-only
    - `Load system visual state` returns a compact summary plus raw JSON details when the backend is running
    - `Load planet visual state` works for visible planets and stays read-only/dev-only
-8. Open the `Fleets` route.
-9. Enter the same civilization id and confirm:
+   - no button on the map page executes a gameplay mutation
+9. Open the `Fleets` route.
+10. Enter the same civilization id and confirm:
    - loading state appears
-   - fleet group summaries render on success
+   - fleet group summaries render as compact cards on success
+   - active transfers show a progress bar when departure and arrival timestamps are available
    - route/fuel and interception readiness notes render as metadata only
    - fleet and strategic-map manifests render as read-only contract panels
-10. Confirm there are no buttons that execute mutating dev endpoints from either route.
+   - mutating manifest actions remain labeled but unavailable from the frontend
+11. Confirm there are no buttons that execute mutating dev endpoints from either route.
 
 ## Repository validation
 
