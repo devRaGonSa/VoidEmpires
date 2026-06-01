@@ -260,8 +260,9 @@ The manifest is read-only metadata for UI discovery. It does not require persist
 - `systems[]`: relevant systems for the current strategic map model.
 - `routeFuelNotes[]`: capability notes for route/fuel previews.
 - `sensorNotes[]`: capability notes for placeholder sensor metadata.
+- `detectionNotes[]`: capability notes for placeholder detection coverage metadata.
 
-Current relevance includes systems that contain owned planets, active transfer origin/destination planets, or exploration knowledge for the requesting civilization. Sensor profiles are attached as metadata only; they do not add relevance, reveal visibility, scan targets, or change command availability. There is no alliance, diplomacy, or espionage visibility model yet.
+Current relevance includes systems that contain owned planets, active transfer origin/destination planets, or exploration knowledge for the requesting civilization. Sensor profiles and detection coverage are attached as metadata only; they do not add relevance, reveal visibility, scan targets, or change command availability. There is no alliance, diplomacy, or espionage visibility model yet.
 
 Visibility fields are inherited from the map visibility service. They are read-only annotations and do not represent persisted fog-of-war. Current levels are `Owned`, `Visible`, and `Unknown`; current reasons are `OwnedPlanet`, `SystemContainsOwnedPlanet`, `ExploredSystem`, `ExploredPlanet`, and `NoKnownVisibilitySource`.
 
@@ -276,6 +277,7 @@ Each `systems[]` item contains:
 - `explorationPreview`: read-only exploration preview metadata.
 - `commands[]`: read-only system-level command availability metadata.
 - `sensorProfiles[]`: read-only sensor profile summaries for visible requesting-civilization sources in the system.
+- `detectionCoverage[]`: read-only detection coverage summaries for visible local requesting-civilization sources in the system.
 - `planets[]`
 - `fleetPresence[]`
 - `transferOverlays[]`
@@ -289,13 +291,14 @@ Each `planets[]` item contains identity and summary fields:
 - `explorationPreview`: read-only exploration preview metadata.
 - `commands[]`: read-only planet-level command availability metadata.
 - `sensorProfiles[]`: read-only sensor profile summaries for visible local requesting-civilization sources.
+- `detectionCoverage[]`: read-only detection coverage summaries for visible local requesting-civilization sources.
 - `civilizationId`: populated only when owned by the requesting civilization.
 - `orbitalSlot`, `orbitRadius`, `orbitAngleDegrees`, `visualScale`
 - `colonizationIntensity`, `urbanIntensity`, `industrialIntensity`, `militaryIntensity`, `orbitalPresenceIntensity`
 
 For planets whose `visibilityLevel` is `Unknown`, detail fields such as name, type, size, colonization status, orbital layout, visual scale, and visual intensity values are returned as `null`. The stable `planetId`, visibility metadata, exploration preview metadata, and command availability remain present.
 
-Unknown planets also return empty `sensorProfiles[]`; sensor metadata is not a visibility source in this phase.
+Unknown planets also return empty `sensorProfiles[]` and `detectionCoverage[]`; sensor and detection metadata are not visibility sources in this phase.
 
 Each `explorationPreview` item contains:
 
@@ -309,6 +312,8 @@ Each `fleetPresence[]` item contains:
 - `sensorProfile`: nullable read-only placeholder metadata for stationed groups that currently derive a profile, such as scout craft groups.
 
 Each sensor profile summary contains `sourceId`, `sourceKind`, `sensorClass`, `detectionRangeTier`, `scanStrength`, and `note`. Current values are deterministic placeholders derived from owned planets and stationed orbital groups only. They do not represent real range, scanning, detection, fog-of-war, espionage, combat, or interception behavior.
+
+Each detection coverage summary contains `sourceId`, `sourceKind`, `coverageClass`, `detectionRangeTier`, `coverageConfidencePercent`, and `note`. Current values are deterministic local-system placeholders derived from owned planets and stationed scout orbital groups only. They do not reveal unknown systems or planets, do not change visibility, and do not represent real detection, scanners, interception, or combat behavior.
 
 Each `transferOverlays[]` item contains:
 
@@ -415,6 +420,7 @@ Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` w
 - No combat or interception.
 - No alliances, diplomacy, sensors, or espionage visibility model.
 - Sensor profile fields are metadata only and do not provide real range, scanner mechanics, detection, interception, or visibility reveal.
+- Detection coverage fields are metadata only and do not reveal unknown targets, create knowledge, provide scanner mechanics, or change visibility.
 - Unknown visibility can appear for strategic-map nodes that are relevant for another reason, such as an active transfer destination, but the strategic map endpoint does not return every persisted unknown system.
 - Exploration preview is placeholder/read-only. Mission creation and completion are separate development-only POST endpoints; completion records exploration knowledge that can reveal read-model visibility but does not create persisted fog-of-war.
 - Exploration knowledge reads are ids-only and do not expose sanitized display names.
