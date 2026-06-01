@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 8G - Sensor readiness smoke coverage`.
+The repository is consolidated through `Phase 8H - Detection coverage read model foundation`.
 
 ## Repository Reality
 
@@ -74,6 +74,7 @@ Current implemented foundations:
 - Exploration mission lifecycle smoke coverage validates preview -> create planned mission -> complete due mission -> record knowledge -> reveal read-model visibility -> strategic map exposure and preview blocking, while ownership remains unassigned, foreign-owned details stay sanitized, and seeded fleet/resource state remains unchanged.
 - Exploration tooling readiness smoke coverage validates preview, mission creation, mission list, due completion, knowledge read, map visibility, strategic map reveal, action manifest metadata, resource/fleet non-mutation, and current no-sensors/no-rewards/no-combat/no-route-graph limitations together.
 - Read-only sensor profile service derives civilization-scoped placeholder sensor metadata from active owned planets and stationed orbital groups, using deterministic sensor class, range tier, scan strength, and source-kind values without adding persisted sensor state, visibility reveal, scanner mechanics, or gameplay behavior.
+- Read-only detection coverage service derives civilization-scoped, conservative local-system coverage metadata from owned planet and stationed scout sensor context, using deterministic source kind, source system/planet ids, coverage class, range tier, confidence, and limitation notes without revealing hidden targets, creating knowledge, or persisting detection state.
 - Strategic map metadata now surfaces sensor profile notes and visible local profile summaries for owned planets and stationed orbital groups, while keeping unknown nodes unrevealed and leaving visibility and command validation unchanged.
 - Development-only sensor profile read endpoint at `GET /api/dev/strategic-map/sensor-profiles?civilizationId={id}` exposes derived profile rows for tooling, and the strategic map action manifest now includes `sensor.profile.read`.
 - Sensor readiness smoke coverage validates sensor profiles, strategic-map sensor metadata, exploration knowledge visibility, unknown target sanitization, manifest metadata, and resource/fleet/knowledge non-mutation together.
@@ -189,7 +190,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 8G: `467` passing tests.
+Current validated baseline after Phase 8H: `472` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, and the minimal exploration mission lifecycle.
 
