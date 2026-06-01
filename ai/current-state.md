@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 8F - Sensor readiness dev endpoint and manifest metadata`.
+The repository is consolidated through `Phase 8G - Sensor readiness smoke coverage`.
 
 ## Repository Reality
 
@@ -76,6 +76,7 @@ Current implemented foundations:
 - Read-only sensor profile service derives civilization-scoped placeholder sensor metadata from active owned planets and stationed orbital groups, using deterministic sensor class, range tier, scan strength, and source-kind values without adding persisted sensor state, visibility reveal, scanner mechanics, or gameplay behavior.
 - Strategic map metadata now surfaces sensor profile notes and visible local profile summaries for owned planets and stationed orbital groups, while keeping unknown nodes unrevealed and leaving visibility and command validation unchanged.
 - Development-only sensor profile read endpoint at `GET /api/dev/strategic-map/sensor-profiles?civilizationId={id}` exposes derived profile rows for tooling, and the strategic map action manifest now includes `sensor.profile.read`.
+- Sensor readiness smoke coverage validates sensor profiles, strategic-map sensor metadata, exploration knowledge visibility, unknown target sanitization, manifest metadata, and resource/fleet/knowledge non-mutation together.
 - Strategic map readiness smoke coverage validates that strategic map, visual state, fleet UI state, strategic map action manifest, and exploration preview read surfaces remain coherent and do not mutate stockpiles, orbital groups, or transfers.
 - Visibility and command readiness smoke coverage validates owned, foreign-owned, and unknown strategic map nodes across visibility and strategic map read models; verifies command availability for visible nodes and blocked commands for unknown nodes; and protects read-only behavior across systems, planets, ownerships, stockpiles, orbital groups, and transfers.
 - Static visual sandbox at `/dev/visual-state/index.html`.
@@ -165,6 +166,7 @@ Accepted current rules:
 - Phase 8D adds the read-only sensor profile service foundation for future exploration, detection, espionage, and interception systems. Profiles are derived placeholders only, scoped by civilization, and do not persist sensor state or reveal visibility.
 - Phase 8E integrates those placeholder sensor summaries into the strategic map read model as metadata-only notes, per-system/per-planet summaries for visible nodes, and fleet-presence summaries where a stationed group has a derived profile.
 - Phase 8F adds the development-only sensor profile read endpoint and manifest metadata so tooling can inspect sensor readiness directly without adding production endpoints or gameplay effects.
+- Phase 8G hardens the sensor readiness path with smoke coverage across sensor profiles, strategic map metadata, exploration knowledge visibility, manifest metadata, and no-mutation guarantees.
 
 ## Dev Surface Gating Note
 
@@ -187,7 +189,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 8F: `467` passing tests.
+Current validated baseline after Phase 8G: `467` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, and the minimal exploration mission lifecycle.
 

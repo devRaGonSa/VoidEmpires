@@ -47,6 +47,12 @@ public class ExplorationToolingReadinessSmokeTests
         var completionService = new ExplorationMissionCompletionService(dbContext);
         var missionQueryService = new ExplorationMissionQueryService(dbContext);
         var knowledgeQueryService = new ExplorationKnowledgeQueryService(dbContext);
+        var sensorProfileService = new SensorProfileService(dbContext);
+
+        var sensorProfiles = await sensorProfileService.GetAsync(new GetSensorProfilesRequest(civilization.Id));
+        Assert.Equal(2, sensorProfiles.Profiles.Count);
+        Assert.Contains(sensorProfiles.Profiles, x => x.SourceKind == SensorProfileSourceKind.Planet && x.PlanetId == homePlanet.Id);
+        Assert.Contains(sensorProfiles.Profiles, x => x.SourceKind == SensorProfileSourceKind.OrbitalGroup && x.OrbitalGroupId == group.Id);
 
         var preview = await previewService.GetAsync(new GetExplorationActionPreviewRequest(civilization.Id));
         var targetPreview = preview.Systems.Single(x => x.SystemId == targetSystem.Id);
@@ -93,12 +99,16 @@ public class ExplorationToolingReadinessSmokeTests
                 new SystemVisualStateService(dbContext, new PlanetVisualStateService(dbContext)),
                 visibilityService)
             .GetAsync(new GetStrategicMapRequest(civilization.Id));
+        var homeMapSystem = strategicMap.Systems.Single(x => x.SystemId == homeSystem.Id);
+        Assert.Contains(homeMapSystem.SensorProfiles, x => x.SourceKind == SensorProfileSourceKind.Planet);
+        Assert.Contains(homeMapSystem.FleetPresence, x => x.SensorProfile?.SourceKind == SensorProfileSourceKind.OrbitalGroup);
         var targetMapSystem = strategicMap.Systems.Single(x => x.SystemId == targetSystem.Id);
         Assert.False(targetMapSystem.ExplorationPreview.CanPreviewExploration);
         AssertBlocked(targetMapSystem.Commands, "exploration.mission.create", StrategicMapCommandBlockReason.ExplorationPreviewUnavailable);
         var hiddenMapPlanet = targetMapSystem.Planets.Single(x => x.PlanetId == hiddenPlanet.Id);
         Assert.Equal(MapVisibilityLevel.Unknown, hiddenMapPlanet.VisibilityLevel);
         Assert.Null(hiddenMapPlanet.PlanetName);
+        Assert.Empty(hiddenMapPlanet.SensorProfiles);
         Assert.True(hiddenMapPlanet.ExplorationPreview.CanPreviewExploration);
         AssertAvailable(hiddenMapPlanet.Commands, "exploration.mission.create");
 
@@ -108,6 +118,7 @@ public class ExplorationToolingReadinessSmokeTests
         Assert.Contains(manifestActions, x => x.ActionKey == "exploration.mission.completeDue" && !x.IsReadOnly);
         Assert.Contains(manifestActions, x => x.ActionKey == "exploration.knowledge.read" && x.IsReadOnly);
         Assert.Contains(manifestActions, x => x.ActionKey == "exploration.mission.list" && x.IsReadOnly);
+        Assert.Contains(manifestActions, x => x.ActionKey == "sensor.profile.read" && x.IsReadOnly);
 
         Assert.Equal(100, dbContext.PlanetResourceStockpiles.AsNoTracking().Single().Credits);
         Assert.Equal(50, dbContext.PlanetResourceStockpiles.AsNoTracking().Single().Gas);
