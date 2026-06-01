@@ -216,6 +216,33 @@ The result contains `civilizationId` and deterministic `profiles[]` rows derived
 
 The endpoint is read-only development tooling. It does not reveal visibility, scan targets, detect objects, create sensor state, mutate exploration knowledge, mutate resources/fleets/missions, add combat/interception, or add route graph/pathfinding state.
 
+### Detection Coverage Read
+
+`GET /api/dev/strategic-map/detection-coverage?civilizationId={id}`
+
+Query:
+
+- `civilizationId`: required non-empty GUID. Scopes detection coverage metadata to the requesting civilization.
+
+Responses:
+
+| Status | Meaning |
+|---|---|
+| `200 OK` | Detection coverage read model returned. |
+| `400 Bad Request` | Missing or empty `civilizationId`. |
+| `404 Not Found` | Development route is disabled. |
+| `503 Service Unavailable` | Persistence is not configured. |
+
+Response envelope:
+
+- `succeeded`: `true` on success.
+- `detectionCoverage`: detection coverage result, or `null` on validation failure.
+- `errors[]`: validation errors.
+
+The result contains `civilizationId` and deterministic `coverages[]` rows derived from owned planets and stationed scout orbital groups. Each coverage contains `sourceId`, `sourceKind`, `coverageClass`, `sourcePlanetId`, `sourceSystemId`, `orbitalGroupId`, `detectionRangeTier`, `coverageConfidencePercent`, `coveredSystemIds`, `limitations`, and `note`.
+
+The endpoint is read-only development tooling. It does not reveal visibility, reveal unknown targets, trigger detection, interception, or combat, create detection state, mutate exploration knowledge, mutate resources/fleets/missions, or add route graph/pathfinding state.
+
 ### Minimal Exploration Lifecycle
 
 The current development lifecycle is intentionally conservative:
@@ -248,7 +275,7 @@ Response envelope:
 
 Each manifest action contains `actionKey`, `displayName`, `method`, `route`, `isReadOnly`, `requiredFields[]`, `successStatus`, `errorStatuses[]`, and `notes`.
 
-Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `exploration.preview.read`, `exploration.mission.create`, `exploration.mission.completeDue`, `exploration.mission.list`, `exploration.knowledge.read`, `sensor.profile.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
+Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `exploration.preview.read`, `exploration.mission.create`, `exploration.mission.completeDue`, `exploration.mission.list`, `exploration.knowledge.read`, `sensor.profile.read`, `detection.coverage.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
 
 The manifest is read-only metadata for UI discovery. It does not require persistence and does not execute the listed actions.
 
@@ -408,6 +435,7 @@ The strategic map read model reuses the same underlying persisted state summariz
 - The exploration mission complete-due endpoint closes the placeholder mission lifecycle and records exploration knowledge consumed by the visibility read model.
 - The exploration knowledge endpoint exposes the persisted knowledge rows directly for development inspection without deriving new visibility or mutating state.
 - The sensor profiles endpoint exposes derived placeholder sensor profile rows directly for development inspection without deriving new visibility or mutating state.
+- The detection coverage endpoint exposes derived placeholder coverage rows directly for development inspection without deriving new visibility or mutating state.
 - The strategic map action manifest lists the currently manifest-backed related actions so future prototypes can discover routes and required fields without hardcoding every contract.
 
 Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` when they need destination-specific route class, risk, placeholder fuel readiness, travel costs, and affordability.
