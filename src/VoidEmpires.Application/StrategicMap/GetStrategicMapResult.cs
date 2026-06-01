@@ -1,5 +1,6 @@
 using VoidEmpires.Application.Fleets;
 using VoidEmpires.Domain.Assets;
+using VoidEmpires.Domain.Diplomacy;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
 
@@ -11,7 +12,9 @@ public sealed record GetStrategicMapResult(
     IReadOnlyList<StrategicMapRouteFuelNoteDto> RouteFuelNotes,
     IReadOnlyList<StrategicMapSensorNoteDto> SensorNotes = null!,
     IReadOnlyList<StrategicMapDetectionNoteDto> DetectionNotes = null!,
-    IReadOnlyList<StrategicMapInterceptionNoteDto> InterceptionNotes = null!);
+    IReadOnlyList<StrategicMapInterceptionNoteDto> InterceptionNotes = null!,
+    IReadOnlyList<StrategicMapDiplomacyNoteDto> DiplomacyNotes = null!,
+    IReadOnlyList<StrategicMapDiplomaticContactSummaryDto> DiplomaticContacts = null!);
 
 public sealed record StrategicMapSystemDto(
     Guid SystemId,
@@ -91,6 +94,16 @@ public sealed record StrategicMapSensorNoteDto(string Note);
 public sealed record StrategicMapDetectionNoteDto(string Note);
 
 public sealed record StrategicMapInterceptionNoteDto(string Note);
+
+public sealed record StrategicMapDiplomacyNoteDto(string Note);
+
+public sealed record StrategicMapDiplomaticContactSummaryDto(
+    Guid DiplomaticContactId,
+    Guid ContactedCivilizationId,
+    DiplomaticContactStatus Status,
+    string Source,
+    DateTime DiscoveredAtUtc,
+    string Note);
 
 public sealed record StrategicMapSensorProfileSummaryDto(
     Guid SourceId,
