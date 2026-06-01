@@ -297,6 +297,33 @@ The result contains `civilizationId`, deterministic `alliances[]` rows for the r
 
 The endpoint is read-only development tooling. It does not grant shared visibility, shared sensor/detection/interception data, permissions, pacts, trade, war, espionage, combat, or final UI behavior.
 
+### Alliance Pact Readiness Read
+
+`GET /api/dev/strategic-map/alliances/pacts/readiness?civilizationId={id}`
+
+Query:
+
+- `civilizationId`: required non-empty GUID. Scopes alliance pact readiness metadata to the requesting civilization.
+
+Responses:
+
+| Status | Meaning |
+|---|---|
+| `200 OK` | Alliance pact readiness read model returned. |
+| `400 Bad Request` | Missing or empty `civilizationId`. |
+| `404 Not Found` | Development route is disabled. |
+| `503 Service Unavailable` | Persistence is not configured. |
+
+Response envelope:
+
+- `succeeded`: `true` on success.
+- `alliancePactReadiness`: alliance pact readiness result, or `null` on validation failure.
+- `errors[]`: validation errors.
+
+The result contains `civilizationId`, deterministic `pacts[]` rows for alliances where the requesting civilization has an active membership, and `errors[]` when validation fails. Each row contains `alliancePactId`, `pactType`, `status`, `createdAtUtc`, plus nested `sourceAlliance` and `targetAlliance` items with `allianceId`, `name`, `tag`, and `status`.
+
+The endpoint is read-only development tooling. It does not grant shared visibility, shared sensor/detection/interception data, permissions, trade execution, war declarations, defense automation, espionage, combat, or final UI behavior.
+
 ### Minimal Exploration Lifecycle
 
 The current development lifecycle is intentionally conservative:
@@ -329,7 +356,7 @@ Response envelope:
 
 Each manifest action contains `actionKey`, `displayName`, `method`, `route`, `isReadOnly`, `requiredFields[]`, `successStatus`, `errorStatuses[]`, and `notes`.
 
-Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `exploration.preview.read`, `exploration.mission.create`, `exploration.mission.completeDue`, `exploration.mission.list`, `exploration.knowledge.read`, `sensor.profile.read`, `detection.coverage.read`, `interception.opportunity.read`, `alliance.readiness.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
+Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `exploration.preview.read`, `exploration.mission.create`, `exploration.mission.completeDue`, `exploration.mission.list`, `exploration.knowledge.read`, `sensor.profile.read`, `detection.coverage.read`, `interception.opportunity.read`, `alliance.readiness.read`, `alliance.pact.readiness.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
 
 The manifest is read-only metadata for UI discovery. It does not require persistence and does not execute the listed actions.
 

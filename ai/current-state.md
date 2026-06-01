@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 8Y - Alliance pact readiness strategic map integration`.
+The repository is consolidated through `Phase 8Z - Alliance pact readiness dev endpoint and manifest metadata`.
 
 ## Repository Reality
 
@@ -91,6 +91,7 @@ Current implemented foundations:
 - Alliance readiness smoke coverage now validates direct alliance readiness reads, diplomatic contacts, strategic map metadata, manifest discoverability, conservative visibility, and no-mutation guarantees together.
 - Minimal alliance pact readiness foundation exists with `AlliancePact`, pact type/status enums, EF mapping, and a civilization-scoped read-only query service that returns deterministic pact metadata for alliances where the requesting civilization has an active membership. It does not add pact gameplay effects, shared visibility, permissions, trade, war, defense execution, espionage, combat, production endpoints, or final UI.
 - Strategic map now surfaces top-level alliance pact readiness notes plus requesting-civilization alliance pact metadata, while keeping pact readiness read-only and preserving the current rule that pacts do not add relevance, reveal allied systems or fleets, share visibility, or share sensor, detection, or interception data.
+- Development-only alliance pact readiness read endpoint at `GET /api/dev/strategic-map/alliances/pacts/readiness?civilizationId={id}` now exposes civilization-scoped pact metadata directly for tooling, and the strategic map action manifest now includes `alliance.pact.readiness.read`.
 - Strategic map readiness smoke coverage validates that strategic map, visual state, fleet UI state, strategic map action manifest, and exploration preview read surfaces remain coherent and do not mutate stockpiles, orbital groups, or transfers.
 - Visibility and command readiness smoke coverage validates owned, foreign-owned, and unknown strategic map nodes across visibility and strategic map read models; verifies command availability for visible nodes and blocked commands for unknown nodes; and protects read-only behavior across systems, planets, ownerships, stockpiles, orbital groups, and transfers.
 - Static visual sandbox at `/dev/visual-state/index.html`.
@@ -194,6 +195,7 @@ Accepted current rules:
 - Phase 8W hardens the full alliance readiness path with smoke coverage across the query service, diplomatic contacts, strategic map, manifest metadata, conservative visibility, and no-mutation guarantees.
 - Phase 8X adds the minimal alliance pact readiness domain foundation: persisted pact metadata between alliances, conservative validation, a deterministic civilization-scoped read query for active alliance participants, and focused domain/persistence/query tests. It intentionally does not add pact gameplay effects, visibility sharing, permissions, trade execution, war, defense automation, espionage, combat, production endpoints, or final UI.
 - Phase 8Y integrates that alliance pact readiness foundation into the strategic map as top-level notes plus requesting-civilization pact metadata only. Pact readiness still does not change strategic-map relevance, visibility, authorization, allied data exposure, trade behavior, war state, defense behavior, or combat behavior.
+- Phase 8Z adds a development-only alliance pact readiness read endpoint plus strategic-map action manifest metadata so tooling can inspect pact readiness directly without adding production endpoints, shared visibility, permissions, trade behavior, war state, defense behavior, espionage, combat, or final UI.
 
 ## Dev Surface Gating Note
 
@@ -216,7 +218,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 8Y: `522` passing tests.
+Current validated baseline after Phase 8Z: `527` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, and the minimal exploration mission lifecycle.
 

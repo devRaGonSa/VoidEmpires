@@ -81,6 +81,7 @@ if (AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration))
     app.MapDevDetectionCoverageEndpoints();
     app.MapDevInterceptionOpportunityEndpoints();
     app.MapDevAllianceReadinessEndpoints();
+    app.MapDevAlliancePactReadinessEndpoints();
     app.MapDevDiplomaticContactEndpoints();
     app.MapDevExplorationActionPreviewEndpoints();
     app.MapDevExplorationMissionEndpoints();
