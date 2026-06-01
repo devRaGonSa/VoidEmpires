@@ -3,7 +3,7 @@
 ---
 id: TASK-9O-B
 title: Phase 9O-B - Fix DataProtection regression test dependencies
-status: pending
+status: done
 type: bugfix
 team: backend
 supporting_teams:

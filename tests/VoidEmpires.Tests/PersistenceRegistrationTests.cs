@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using VoidEmpires.Application.Email;
 using VoidEmpires.Infrastructure;
 using VoidEmpires.Infrastructure.Identity;
 using VoidEmpires.Infrastructure.Persistence;
@@ -59,6 +60,7 @@ public class PersistenceRegistrationTests
 
         services.AddLogging();
         services.AddVoidEmpiresPersistence("Host=localhost;Database=voidempires_test");
+        services.AddSingleton<ITransactionalEmailSender, StubTransactionalEmailSender>();
         services.AddVoidEmpiresIdentity();
 
         using var provider = services.BuildServiceProvider(new ServiceProviderOptions
@@ -68,5 +70,13 @@ public class PersistenceRegistrationTests
         });
 
         Assert.NotNull(provider.GetRequiredService<DataProtectorTokenProvider<VoidEmpiresUser>>());
+    }
+
+    private sealed class StubTransactionalEmailSender : ITransactionalEmailSender
+    {
+        public Task<TransactionalEmailResult> SendAsync(
+            TransactionalEmailMessage message,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(TransactionalEmailResult.Accepted("stub-email"));
     }
 }
