@@ -1,11 +1,69 @@
 :root {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #e7edf7;
-  background:
-    radial-gradient(circle at top, rgba(63, 104, 171, 0.28), transparent 42%),
-    linear-gradient(180deg, #09111f 0%, #050913 58%, #02050b 100%);
   line-height: 1.5;
   font-weight: 400;
+  color: var(--ve-color-text);
+  background:
+    radial-gradient(circle at top, rgba(55, 168, 255, 0.24), transparent 42%),
+    linear-gradient(180deg, var(--ve-color-topbar) 0%, var(--ve-color-bg) 58%, #02050b 100%);
+
+  /* Raw Figma palette */
+  --ve-figma-bg: #050814;
+  --ve-figma-top: #070d1b;
+  --ve-figma-side: #081023;
+  --ve-figma-panel: #0b1328;
+  --ve-figma-panel-2: #101b36;
+  --ve-figma-line: #243a66;
+  --ve-figma-text: #eaf2ff;
+  --ve-figma-muted: #8fa6c8;
+  --ve-figma-blue: #37a8ff;
+  --ve-figma-cyan: #46efff;
+  --ve-figma-green: #52e6a7;
+  --ve-figma-red: #ff5c7a;
+  --ve-figma-amber: #ffc857;
+  --ve-figma-purple: #9b7cff;
+  --ve-figma-metal: #aeb8c6;
+  --ve-figma-crystal: #7de7ff;
+  --ve-figma-deut: #7cffb2;
+
+  /* Semantic color tokens */
+  --ve-color-bg: var(--ve-figma-bg);
+  --ve-color-topbar: var(--ve-figma-top);
+  --ve-color-sidebar: var(--ve-figma-side);
+  --ve-color-panel: var(--ve-figma-panel);
+  --ve-color-panel-2: var(--ve-figma-panel-2);
+  --ve-color-border: var(--ve-figma-line);
+  --ve-color-text: var(--ve-figma-text);
+  --ve-color-muted: var(--ve-figma-muted);
+  --ve-color-accent-blue: var(--ve-figma-blue);
+  --ve-color-accent-cyan: var(--ve-figma-cyan);
+  --ve-color-success: var(--ve-figma-green);
+  --ve-color-danger: var(--ve-figma-red);
+  --ve-color-warning: var(--ve-figma-amber);
+  --ve-color-purple: var(--ve-figma-purple);
+  --ve-color-resource-metal: var(--ve-figma-metal);
+  --ve-color-resource-crystal: var(--ve-figma-crystal);
+  --ve-color-resource-deuterium: var(--ve-figma-deut);
+
+  /* Layout, spacing, radius, elevation */
+  --ve-layout-desktop-width: 1440px;
+  --ve-layout-topbar-height: 64px;
+  --ve-layout-sidebar-width: 230px;
+  --ve-layout-content-start: 260px;
+  --ve-space-2: 8px;
+  --ve-space-3: 12px;
+  --ve-space-4: 16px;
+  --ve-space-5: 20px;
+  --ve-space-6: 24px;
+  --ve-space-8: 32px;
+  --ve-space-12: 48px;
+  --ve-radius-sm: 14px;
+  --ve-radius-md: 16px;
+  --ve-radius-lg: 18px;
+  --ve-radius-xl: 20px;
+  --ve-radius-pill: 999px;
+  --ve-shadow-panel: 0 18px 40px rgba(0, 0, 0, 0.24);
+  --ve-shadow-overlay: 0 10px 24px rgba(0, 0, 0, 0.22);
 }
 
 * {
@@ -16,6 +74,8 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  color: var(--ve-color-text);
+  background-color: var(--ve-color-bg);
 }
 
 a {
@@ -33,17 +93,18 @@ input {
 }
 
 .app-shell {
-  width: min(1120px, calc(100% - 32px));
+  width: min(1120px, calc(100% - var(--ve-space-8)));
   margin: 0 auto;
-  padding: 32px 0 48px;
+  padding: var(--ve-space-8) 0 var(--ve-space-12);
 }
 
 .topbar {
   display: grid;
-  gap: 24px;
+  gap: var(--ve-space-6);
   grid-template-columns: minmax(0, 1fr) 280px;
   align-items: start;
-  margin-bottom: 24px;
+  min-height: var(--ve-layout-topbar-height);
+  margin-bottom: var(--ve-space-6);
 }
 
 .eyebrow {
@@ -51,7 +112,7 @@ input {
   text-transform: uppercase;
   letter-spacing: 0.14em;
   font-size: 0.78rem;
-  color: #8aa7d3;
+  color: var(--ve-color-muted);
 }
 
 .topbar h1,
@@ -63,30 +124,30 @@ input {
 .lede {
   margin: 12px 0 0;
   max-width: 70ch;
-  color: #b7c7e0;
+  color: color-mix(in srgb, var(--ve-color-text) 78%, var(--ve-color-muted));
 }
 
 .environment-panel,
 .panel {
-  background: rgba(9, 17, 31, 0.72);
-  border: 1px solid rgba(122, 159, 214, 0.24);
-  border-radius: 20px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+  background: color-mix(in srgb, var(--ve-color-panel) 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 65%, transparent);
+  border-radius: var(--ve-radius-xl);
+  box-shadow: var(--ve-shadow-panel);
 }
 
 .environment-panel {
-  padding: 20px;
+  padding: var(--ve-space-5);
 }
 
 .environment-panel dl {
   margin: 16px 0 0;
   display: grid;
-  gap: 12px;
+  gap: var(--ve-space-3);
 }
 
 .environment-panel dt {
   margin: 0 0 4px;
-  color: #8aa7d3;
+  color: var(--ve-color-muted);
   font-size: 0.85rem;
 }
 
@@ -98,44 +159,44 @@ input {
 .badge {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
-  padding: 6px 12px;
+  border-radius: var(--ve-radius-pill);
+  padding: 6px var(--ve-space-3);
   font-size: 0.82rem;
-  background: rgba(115, 180, 255, 0.16);
-  border: 1px solid rgba(140, 194, 255, 0.3);
-  color: #dcecff;
+  background: color-mix(in srgb, var(--ve-color-accent-blue) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ve-color-accent-cyan) 28%, transparent);
+  color: color-mix(in srgb, var(--ve-color-text) 92%, var(--ve-color-accent-cyan));
 }
 
 .badge-warn {
-  background: rgba(255, 190, 92, 0.14);
-  border-color: rgba(255, 202, 125, 0.36);
-  color: #ffe2a7;
+  background: color-mix(in srgb, var(--ve-color-warning) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ve-color-warning) 34%, transparent);
+  color: color-mix(in srgb, var(--ve-color-warning) 70%, white);
 }
 
 .badge-good {
-  background: rgba(94, 214, 148, 0.16);
-  border-color: rgba(121, 227, 168, 0.34);
-  color: #c7ffd8;
+  background: color-mix(in srgb, var(--ve-color-success) 16%, transparent);
+  border-color: color-mix(in srgb, var(--ve-color-success) 34%, transparent);
+  color: color-mix(in srgb, var(--ve-color-success) 72%, white);
 }
 
 .nav-tabs {
   display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: var(--ve-space-3);
+  margin-bottom: var(--ve-space-6);
   flex-wrap: wrap;
 }
 
 .nav-tab {
-  padding: 12px 16px;
-  border-radius: 999px;
-  background: rgba(12, 24, 43, 0.72);
-  border: 1px solid rgba(122, 159, 214, 0.16);
-  color: #b8cae8;
+  padding: var(--ve-space-3) var(--ve-space-4);
+  border-radius: var(--ve-radius-pill);
+  background: color-mix(in srgb, var(--ve-color-sidebar) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 48%, transparent);
+  color: color-mix(in srgb, var(--ve-color-text) 76%, var(--ve-color-muted));
 }
 
 .nav-tab-active {
-  background: rgba(104, 164, 255, 0.18);
-  border-color: rgba(143, 193, 255, 0.36);
+  background: color-mix(in srgb, var(--ve-color-accent-blue) 18%, transparent);
+  border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 32%, transparent);
   color: #f3f8ff;
 }
 
@@ -158,14 +219,14 @@ input {
 
 .panel p {
   margin: 12px 0 0;
-  color: #bfd0ea;
+  color: color-mix(in srgb, var(--ve-color-text) 80%, var(--ve-color-muted));
 }
 
 .section-heading,
 .manifest-header {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--ve-space-3);
   align-items: start;
 }
 
@@ -177,7 +238,7 @@ input {
 .stack-list {
   margin: 14px 0 0;
   padding-left: 20px;
-  color: #dce7f8;
+  color: color-mix(in srgb, var(--ve-color-text) 90%, transparent);
 }
 
 .stack-list li + li {
@@ -195,32 +256,33 @@ input {
 
 .field {
   display: grid;
-  gap: 8px;
+  gap: var(--ve-space-2);
 }
 
 .field span {
-  color: #8aa7d3;
+  color: var(--ve-color-muted);
   font-size: 0.9rem;
 }
 
 .field input {
   width: 100%;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(122, 159, 214, 0.22);
-  background: rgba(4, 10, 20, 0.9);
-  color: #eef5ff;
+  padding: var(--ve-space-3) 14px;
+  border-radius: var(--ve-radius-sm);
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 58%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 82%, black);
+  color: var(--ve-color-text);
 }
 
 .query-form button {
   justify-self: start;
-  padding: 12px 16px;
+  padding: var(--ve-space-3) var(--ve-space-4);
   border: 0;
-  border-radius: 14px;
-  background: #7ab3ff;
-  color: #04111f;
+  border-radius: var(--ve-radius-sm);
+  background: var(--ve-color-accent-blue);
+  color: var(--ve-color-bg);
   cursor: pointer;
   font-weight: 700;
+  box-shadow: var(--ve-shadow-overlay);
 }
 
 .query-form button:disabled {
@@ -229,12 +291,12 @@ input {
 }
 
 .error-text {
-  color: #ffb3b3;
+  color: color-mix(in srgb, var(--ve-color-danger) 72%, white);
 }
 
 .stat-grid {
   display: grid;
-  gap: 12px;
+  gap: var(--ve-space-3);
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   margin-top: 14px;
 }
@@ -242,9 +304,9 @@ input {
 .stat-tile,
 .subpanel {
   padding: 14px;
-  border-radius: 16px;
-  background: rgba(4, 10, 20, 0.72);
-  border: 1px solid rgba(122, 159, 214, 0.14);
+  border-radius: var(--ve-radius-md);
+  background: color-mix(in srgb, var(--ve-color-panel-2) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 42%, transparent);
 }
 
 .stat-tile strong {
@@ -253,12 +315,12 @@ input {
 }
 
 .stat-tile span {
-  color: #9eb5da;
+  color: color-mix(in srgb, var(--ve-color-muted) 88%, white);
 }
 
 .readiness-grid {
   display: grid;
-  gap: 12px;
+  gap: var(--ve-space-3);
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   margin-top: 14px;
 }
@@ -274,7 +336,7 @@ input {
 
 .map-legend {
   margin: 0 0 14px;
-  color: #bfd0ea;
+  color: color-mix(in srgb, var(--ve-color-text) 80%, var(--ve-color-muted));
   font-size: 0.9rem;
 }
 
@@ -282,11 +344,11 @@ input {
   width: 100%;
   height: auto;
   display: block;
-  border-radius: 18px;
-  border: 1px solid rgba(122, 159, 214, 0.16);
+  border-radius: var(--ve-radius-lg);
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 48%, transparent);
   background:
-    radial-gradient(circle at top, rgba(99, 152, 237, 0.12), transparent 32%),
-    rgba(4, 10, 20, 0.88);
+    radial-gradient(circle at top, color-mix(in srgb, var(--ve-color-accent-blue) 12%, transparent), transparent 32%),
+    color-mix(in srgb, var(--ve-color-bg) 88%, black);
 }
 
 .map-frame {
@@ -318,15 +380,15 @@ input {
 }
 
 .map-node-owned {
-  color: #7ff0b7;
+  color: var(--ve-color-resource-deuterium);
 }
 
 .map-node-visible {
-  color: #8bc0ff;
+  color: color-mix(in srgb, var(--ve-color-accent-blue) 72%, white);
 }
 
 .map-node-unknown {
-  color: #ffca80;
+  color: color-mix(in srgb, var(--ve-color-warning) 72%, white);
 }
 
 .map-node .map-node-ring,
@@ -347,31 +409,31 @@ input {
 }
 
 .map-node-meta {
-  fill: #9eb5da;
+  fill: color-mix(in srgb, var(--ve-color-muted) 88%, white);
   font-size: 13px;
 }
 
 .map-empty-state {
   margin-top: 14px;
   padding: 18px;
-  border-radius: 16px;
-  border: 1px dashed rgba(122, 159, 214, 0.22);
-  background: rgba(4, 10, 20, 0.56);
-  color: #bfd0ea;
+  border-radius: var(--ve-radius-md);
+  border: 1px dashed color-mix(in srgb, var(--ve-color-border) 56%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 56%, transparent);
+  color: color-mix(in srgb, var(--ve-color-text) 80%, var(--ve-color-muted));
 }
 
 .selection-chip {
   padding: 10px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(122, 159, 214, 0.22);
-  background: rgba(4, 10, 20, 0.72);
-  color: #dce7f8;
+  border-radius: var(--ve-radius-pill);
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 58%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 72%, transparent);
+  color: color-mix(in srgb, var(--ve-color-text) 90%, transparent);
   cursor: pointer;
 }
 
 .selection-chip-active {
-  background: rgba(104, 164, 255, 0.18);
-  border-color: rgba(143, 193, 255, 0.4);
+  background: color-mix(in srgb, var(--ve-color-accent-blue) 18%, transparent);
+  border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 34%, transparent);
   color: #f3f8ff;
 }
 
@@ -386,9 +448,9 @@ input {
 .json-preview {
   margin: 10px 0 0;
   padding: 14px;
-  border-radius: 14px;
-  background: rgba(2, 6, 14, 0.9);
-  color: #cfe0fb;
+  border-radius: var(--ve-radius-sm);
+  background: color-mix(in srgb, var(--ve-color-bg) 90%, black);
+  color: color-mix(in srgb, var(--ve-color-text) 84%, var(--ve-color-accent-cyan));
   overflow: auto;
   font-size: 0.82rem;
 }
@@ -410,7 +472,7 @@ input {
 }
 
 .meta-list dt {
-  color: #8aa7d3;
+  color: var(--ve-color-muted);
   font-size: 0.82rem;
 }
 
@@ -421,13 +483,13 @@ input {
 
 .system-card {
   display: grid;
-  gap: 16px;
+  gap: var(--ve-space-4);
 }
 
 .system-card-header {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--ve-space-3);
   align-items: start;
 }
 
@@ -438,13 +500,13 @@ input {
 .inline-note-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--ve-space-2);
 }
 
 @media (max-width: 820px) {
   .app-shell {
     width: min(100% - 24px, 1120px);
-    padding-top: 24px;
+    padding-top: var(--ve-space-6);
   }
 
   .topbar {

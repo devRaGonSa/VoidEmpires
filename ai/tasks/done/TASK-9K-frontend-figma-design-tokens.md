@@ -3,7 +3,7 @@
 ---
 id: TASK-9K
 title: Add frontend Figma design tokens
-status: pending
+status: done
 type: feature
 team: frontend
 supporting_teams:

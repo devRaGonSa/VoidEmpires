@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 9J - Frontend visual map docs and smoke checkpoint`.
+The repository is consolidated through `Phase 9K - Frontend Figma design token foundation`.
 
 ## Repository Reality
 
@@ -105,6 +105,8 @@ Current implemented foundations:
 - The frontend strategic map page now also links selected systems and visible planets to the existing visual-state development endpoints, exposing compact renderer-facing summaries plus raw JSON payload inspection without adding rendering or gameplay mutations.
 - The frontend fleet page now reads `GET /api/dev/fleets/ui-state`, `GET /api/dev/fleets/action-manifest`, and `GET /api/dev/strategic-map/action-manifest`, rendering fleet summaries and manifest metadata as read-only inspection panels without wiring gameplay mutations.
 - Frontend setup, limitations, current visual map behavior, and smoke validation are now documented in `src/VoidEmpires.Frontend/README.md` and `docs/dev/frontend-foundation-smoke-checklist.md`.
+- Phase 9K adds a Figma-derived frontend token foundation in `src/VoidEmpires.Frontend/src/styles.css`, including reusable raw palette variables, semantic color tokens, spacing/radius/elevation scales, and reserved shell layout variables aligned to the `Xuniverse UI v1 - Modern Simple` concept without introducing the final UI.
+- Frontend Figma alignment guidance is now documented in `src/VoidEmpires.Frontend/README.md` and `docs/dev/frontend-figma-alignment.md` so later UI tasks can reuse the same color and layout vocabulary.
 
 Current foundation chain:
 
@@ -235,7 +237,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 9J:
+Current validated baseline after Phase 9K:
 
 - backend: `dotnet restore`, `dotnet build --no-restore`, and `dotnet test --no-build` succeeded with `527` passing tests
 - frontend: `npm install` and `npm run build` succeeded for the current prototype shell

@@ -72,6 +72,27 @@ npm run build
 - Renders fleet summaries, resource contexts, interception notes, and read-only action manifests.
 - Does not execute any manifest-listed mutating actions.
 
+## Figma token foundation
+
+Phase 9K adds a frontend token layer derived from `Xuniverse UI v1 - Modern Simple`.
+
+The current stylesheet exposes:
+
+- raw Figma palette variables such as `--ve-figma-bg`, `--ve-figma-panel`, and `--ve-figma-blue`
+- semantic UI variables such as `--ve-color-bg`, `--ve-color-panel`, `--ve-color-border`, and `--ve-color-accent-blue`
+- resource color variables such as `--ve-color-resource-metal`, `--ve-color-resource-crystal`, and `--ve-color-resource-deuterium`
+- layout and surface variables such as `--ve-layout-topbar-height`, `--ve-layout-sidebar-width`, `--ve-radius-*`, and `--ve-shadow-*`
+
+Current alignment intent:
+
+- Figma desktop reference: `1440 x 960`
+- topbar target height: `64px`
+- sidebar target width: `230px`
+- main content target start: about `260px`
+- cards stay compact, dark, and low-noise
+
+These tokens are foundation only. They support later UI alignment work without changing the current prototype into a final game UI.
+
 ## Runtime assumptions
 
 - Development endpoints must be enabled through the normal backend rules:
