@@ -62,6 +62,8 @@ namespace VoidEmpires.Infrastructure.Persistence
 
         public DbSet<ExplorationMission> ExplorationMissions => Set<ExplorationMission>();
 
+        public DbSet<ExplorationKnowledge> ExplorationKnowledge => Set<ExplorationKnowledge>();
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
