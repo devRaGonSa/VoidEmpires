@@ -5,6 +5,7 @@ import type {
 } from "../api/strategicMapTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { StatusBadge } from "../components/StatusBadge";
+import { StrategicMap2DView } from "../components/StrategicMap2DView";
 import { StrategicMapSystemCard } from "../components/StrategicMapSystemCard";
 
 const readinessSections = [
@@ -84,7 +85,7 @@ export function StrategicMapPage() {
   return (
     <section className="page-grid">
       <article className="panel panel-hero">
-        <StatusBadge>Phase 9C read slice</StatusBadge>
+        <StatusBadge>Phase 9G visual readiness slice</StatusBadge>
         <h2>Strategic map development read</h2>
         <p>
           This screen consumes the development-only strategic map endpoint as a
@@ -144,6 +145,21 @@ export function StrategicMapPage() {
               <span>Transfer overlays</span>
             </div>
           </div>
+        </article>
+      )}
+
+      {result && (
+        <article className="panel">
+          <div className="section-heading">
+            <div>
+              <h3>Strategic map 2D view</h3>
+              <p>
+                Backend coordinates are normalized into a deterministic SVG
+                viewport. This is a read-only visual readiness layer.
+              </p>
+            </div>
+          </div>
+          <StrategicMap2DView systems={result.systems} />
         </article>
       )}
 
