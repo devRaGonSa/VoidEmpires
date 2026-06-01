@@ -113,6 +113,43 @@ Response envelope:
 
 Completion marks existing due planned missions as completed and records durable exploration knowledge for the target system and optional target planet. Map visibility and strategic-map reads consume that knowledge as read-only visibility; completion still does not create fog-of-war/sensor state, assign rewards, add combat/interception, or run a background worker.
 
+### Exploration Knowledge Read
+
+`GET /api/dev/strategic-map/exploration-knowledge?civilizationId={id}`
+
+Query:
+
+- `civilizationId`: required non-empty GUID. Scopes the knowledge rows to the requesting civilization.
+
+Responses:
+
+| Status | Meaning |
+|---|---|
+| `200 OK` | Exploration knowledge read model returned. |
+| `400 Bad Request` | Missing or empty `civilizationId`. |
+| `404 Not Found` | Development route is disabled. |
+| `503 Service Unavailable` | Persistence is not configured. |
+
+Response envelope:
+
+- `succeeded`: `true` on success.
+- `knowledge`: exploration knowledge result, or `null` on validation failure.
+- `errors[]`: validation errors.
+
+The result contains `civilizationId`, `succeeded`, `errors[]`, and deterministic `knowledge[]` rows ordered by `discoveredAtUtc`, `systemId`, and `planetId`.
+
+Each `knowledge[]` item contains:
+
+- `explorationKnowledgeId`
+- `civilizationId`
+- `systemId`
+- `planetId`
+- `source`
+- `sourceMissionId`
+- `discoveredAtUtc`
+
+The endpoint is read-only and returns ids plus source metadata only. It does not create exploration knowledge, complete missions, reveal new visibility, create sensors/scanners, mutate fog-of-war, add rewards, assign fleets, mutate resources, add combat/interception, or add route graph/pathfinding state.
+
 ### Minimal Exploration Lifecycle
 
 The current development lifecycle is intentionally conservative:
@@ -120,7 +157,8 @@ The current development lifecycle is intentionally conservative:
 1. `GET /api/dev/strategic-map/exploration-preview` can show `Unknown` systems or planets as eligible.
 2. `POST /api/dev/strategic-map/exploration-missions/create` can persist a planned mission for an eligible target.
 3. `POST /api/dev/strategic-map/exploration-missions/complete-due` can mark due planned missions completed.
-4. Strategic map and visibility reads can report completed targets as visible through recorded exploration knowledge.
+4. `GET /api/dev/strategic-map/exploration-knowledge` can inspect the recorded knowledge rows for a civilization.
+5. Strategic map and visibility reads can report completed targets as visible through recorded exploration knowledge.
 
 This lifecycle protects command plumbing and persistence only. Completion records exploration knowledge that read models can use for visibility, but it does not grant rewards, create scanners/sensors, reveal fog-of-war, assign fleets, mutate resources, or expose final UI behavior.
 
@@ -240,8 +278,20 @@ The current reveal lifecycle is:
 3. Completing due missions records exploration knowledge for the target system and, when applicable, the target planet.
 4. Map visibility consumes exploration knowledge as read-only `Visible` results with `ExploredSystem` or `ExploredPlanet` reasons.
 5. Strategic map relevance includes exploration-known systems, and exploration preview is blocked for revealed targets.
+6. The exploration knowledge read endpoint can inspect the persisted knowledge rows directly for development tooling.
 
 Ownership remains higher priority than exploration knowledge. System-level knowledge reveals system visibility but does not reveal every planet in that system. Planet-level knowledge reveals only that planet. Unknown planets in an explored system keep detail fields null. Foreign ownership is not assigned to the requesting civilization and foreign-owned visual intensity details remain sanitized.
+
+## Exploration Knowledge Result
+
+`knowledge` contains:
+
+- `civilizationId`: requesting civilization id.
+- `succeeded`: whether the query service accepted the request.
+- `knowledge[]`: civilization-scoped knowledge rows.
+- `errors[]`: validation errors from the query service.
+
+Rows are ordered deterministically by `discoveredAtUtc`, then `systemId`, then `planetId`. Display names are intentionally omitted from this endpoint; current development clients can pair ids with strategic map or visibility reads when those surfaces make names visible.
 
 ## Side Effects
 
@@ -261,7 +311,8 @@ The strategic map read model reuses the same underlying persisted state summariz
 - The exploration preview endpoint exposes the same placeholder exploration readiness as a direct read contract for UI tooling.
 - The exploration mission create endpoint consumes that preview eligibility and creates a planned mission for unknown targets only.
 - The exploration mission complete-due endpoint closes the placeholder mission lifecycle and records exploration knowledge consumed by the visibility read model.
-- The strategic map action manifest lists these related read actions so future prototypes can discover routes and required fields without hardcoding every contract.
+- The exploration knowledge endpoint exposes the persisted knowledge rows directly for development inspection without deriving new visibility or mutating state.
+- The strategic map action manifest lists the currently manifest-backed related actions so future prototypes can discover routes and required fields without hardcoding every contract.
 
 Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` when they need destination-specific route class, risk, placeholder fuel readiness, travel costs, and affordability.
 
@@ -274,6 +325,7 @@ Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` w
 - No alliances, diplomacy, sensors, or espionage visibility model.
 - Unknown visibility can appear for strategic-map nodes that are relevant for another reason, such as an active transfer destination, but the strategic map endpoint does not return every persisted unknown system.
 - Exploration preview is placeholder/read-only. Mission creation and completion are separate development-only POST endpoints; completion records exploration knowledge that can reveal read-model visibility but does not create persisted fog-of-war.
+- Exploration knowledge reads are ids-only and do not expose sanitized display names.
 - No fuel inventory, refueling, or fuel spending.
 - No meshes, textures, binary assets, shader data, or heavy render payloads.
 - Transfer progress remains a read-time visual approximation.
