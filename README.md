@@ -18,6 +18,7 @@ The repository defines the project direction, keeps the AI-assisted task workflo
 
 - .NET 8 SDK
 - Git
+- Node.js 20+ with npm for `src/VoidEmpires.Frontend`
 
 ### Validate
 
@@ -27,6 +28,14 @@ Run these commands from the repository root:
 dotnet restore
 dotnet build --no-restore
 dotnet test --no-build
+```
+
+For the frontend prototype:
+
+```powershell
+cd src/VoidEmpires.Frontend
+npm install
+npm run build
 ```
 
 ### Run The Web App
@@ -110,6 +119,8 @@ Do not commit real Brevo API keys, SMTP credentials, verified sender addresses, 
 - `ai/roadmap.md`: high-level delivery phases for VoidEmpires
 - `ai/architecture-index.md`: intended module boundaries for the future solution
 - `ai/reports/solution-bootstrap-plan.md`: actionable plan for the first implementation task
+- `src/VoidEmpires.Frontend/README.md`: frontend prototype setup, routes, and limitations
+- `docs/dev/frontend-foundation-smoke-checklist.md`: frontend smoke validation steps
 
 ## Workflow
 

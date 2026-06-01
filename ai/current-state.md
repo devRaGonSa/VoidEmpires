@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 9A - Pre-frontend contract checkpoint`.
+The repository is consolidated through `Phase 9E - Frontend foundation docs and smoke checkpoint`.
 
 ## Repository Reality
 
@@ -98,6 +98,10 @@ Current implemented foundations:
 - Static visual sandbox at `/dev/visual-state/index.html`.
 - CSS-only pseudo-3D visual sandbox rendering for planet/system preview, overlays, markers, and transfer routes.
 - Static sandbox assets are gated behind the same development switch as development APIs.
+- `src/VoidEmpires.Frontend` now provides a minimal Vite + React + TypeScript frontend shell with a conservative app layout, route placeholders for strategic map and fleet inspection, backend base URL configuration through `VITE_VOIDEMPIRES_API_BASE_URL`, and explicit development-only warnings.
+- The frontend strategic map page now reads `GET /api/dev/strategic-map?civilizationId={id}`, exposes civilization-id driven loading/error/success states, renders system and planet summaries, and surfaces readiness metadata as informational only.
+- The frontend fleet page now reads `GET /api/dev/fleets/ui-state`, `GET /api/dev/fleets/action-manifest`, and `GET /api/dev/strategic-map/action-manifest`, rendering fleet summaries and manifest metadata as read-only inspection panels without wiring gameplay mutations.
+- Frontend setup, limitations, and smoke validation are now documented in `src/VoidEmpires.Frontend/README.md` and `docs/dev/frontend-foundation-smoke-checklist.md`.
 
 Current foundation chain:
 
@@ -198,6 +202,10 @@ Accepted current rules:
 - Phase 8Y integrates that alliance pact readiness foundation into the strategic map as top-level notes plus requesting-civilization pact metadata only. Pact readiness still does not change strategic-map relevance, visibility, authorization, allied data exposure, trade behavior, war state, defense behavior, or combat behavior.
 - Phase 8Z adds a development-only alliance pact readiness read endpoint plus strategic-map action manifest metadata so tooling can inspect pact readiness directly without adding production endpoints, shared visibility, permissions, trade behavior, war state, defense behavior, espionage, combat, or final UI.
 - Phase 9A adds a documentation-first checkpoint for frontend foundation work, consolidating stable dev/backend contracts, current read-only versus mutating surfaces, readiness limitations, non-goals, and a recommended safe first frontend slice without adding production endpoints or gameplay behavior.
+- Phase 9B adds the first frontend project foundation under `src/VoidEmpires.Frontend` with Vite, React, TypeScript, route placeholders for the strategic map and fleet prototype views, a shared backend API base URL configuration, and a visible reminder that the shell consumes development-only backend contracts.
+- Phase 9C adds the first frontend strategic map read slice: typed strategic map response handling, a read-only query flow keyed by civilization id, map/system summary rendering, and conservative display of readiness metadata without introducing command execution, auth, backend changes, or 3D rendering.
+- Phase 9D adds the first frontend fleet inspection slice: typed fleet UI-state and manifest handling, a read-only fleet query flow keyed by civilization id, grouped fleet summaries, resource/interception notes, and manifest panels that clearly mark mutating actions without executing them.
+- Phase 9E documents how to install, run, build, and smoke-check the frontend prototype, updates the pre-frontend contract checkpoint with the current frontend foundation status, and keeps the prototype limitations explicit.
 
 ## Dev Surface Gating Note
 
@@ -220,7 +228,10 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 9A: `527` passing tests.
+Current validated baseline after Phase 9E:
+
+- backend: `dotnet restore`, `dotnet build --no-restore`, and `dotnet test --no-build` succeeded with `527` passing tests
+- frontend: `package.json` scripts and setup docs are in place, but npm-based validation was not completed in this environment because npm registry requests timed out repeatedly during dependency resolution
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, and the minimal exploration mission lifecycle.
 
