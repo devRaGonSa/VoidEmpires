@@ -2,6 +2,7 @@ import { FormEvent, useMemo, useState } from "react";
 import type {
   ReadinessNote,
   StrategicMapResult,
+  StrategicMapSystem,
 } from "../api/strategicMapTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { StatusBadge } from "../components/StatusBadge";
@@ -25,11 +26,36 @@ function formatNote(note: ReadinessNote) {
   return note.note ?? "Readiness metadata present.";
 }
 
+function readText(value: unknown, fallback = "Unavailable") {
+  return typeof value === "string" && value.length > 0 ? value : fallback;
+}
+
+function readCommands(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter(
+        (
+          item,
+        ): item is {
+          actionKey?: string;
+          note?: string;
+          isAvailable?: boolean;
+          blockReason?: string;
+        } => typeof item === "object" && item !== null,
+      )
+    : [];
+}
+
+function readRecord(value: unknown) {
+  return value as Record<string, unknown>;
+}
+
 export function StrategicMapPage() {
   const [civilizationId, setCivilizationId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<StrategicMapResult | null>(null);
+  const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null);
+  const [selectedPlanetId, setSelectedPlanetId] = useState<string | null>(null);
 
   const summary = useMemo(() => {
     if (!result) {
@@ -48,6 +74,27 @@ export function StrategicMapPage() {
     );
   }, [result]);
 
+  const selectedSystem = useMemo(
+    () =>
+      result?.systems.find((system) => system.systemId === selectedSystemId) ??
+      result?.systems[0] ??
+      null,
+    [result, selectedSystemId],
+  );
+
+  const selectedPlanet = useMemo(
+    () =>
+      selectedSystem?.planets?.find((planet) => planet.planetId === selectedPlanetId) ??
+      selectedSystem?.planets?.[0] ??
+      null,
+    [selectedPlanetId, selectedSystem],
+  );
+
+  function selectSystem(system: StrategicMapSystem) {
+    setSelectedSystemId(system.systemId);
+    setSelectedPlanetId(system.planets?.[0]?.planetId ?? null);
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -55,6 +102,8 @@ export function StrategicMapPage() {
     if (!trimmedCivilizationId) {
       setError("Civilization id is required.");
       setResult(null);
+      setSelectedSystemId(null);
+      setSelectedPlanetId(null);
       return;
     }
 
@@ -65,17 +114,23 @@ export function StrategicMapPage() {
       const response = await voidEmpiresApi.getStrategicMap(trimmedCivilizationId);
       if (!response.succeeded || !response.map) {
         setResult(null);
+        setSelectedSystemId(null);
+        setSelectedPlanetId(null);
         setError(response.errors[0] ?? "Strategic map request failed.");
         return;
       }
 
       setResult(response.map);
+      setSelectedSystemId(response.map.systems[0]?.systemId ?? null);
+      setSelectedPlanetId(response.map.systems[0]?.planets?.[0]?.planetId ?? null);
     } catch (requestError) {
       const message =
         requestError instanceof Error
           ? requestError.message
           : "Strategic map request failed.";
       setResult(null);
+      setSelectedSystemId(null);
+      setSelectedPlanetId(null);
       setError(message);
     } finally {
       setIsLoading(false);
@@ -85,7 +140,7 @@ export function StrategicMapPage() {
   return (
     <section className="page-grid">
       <article className="panel panel-hero">
-        <StatusBadge>Phase 9G visual readiness slice</StatusBadge>
+        <StatusBadge>Phase 9H selection readiness slice</StatusBadge>
         <h2>Strategic map development read</h2>
         <p>
           This screen consumes the development-only strategic map endpoint as a
@@ -159,13 +214,93 @@ export function StrategicMapPage() {
               </p>
             </div>
           </div>
-          <StrategicMap2DView systems={result.systems} />
+          <StrategicMap2DView
+            systems={result.systems}
+            selectedSystemId={selectedSystem?.systemId}
+            onSelectSystem={(systemId) => {
+              const system = result.systems.find((item) => item.systemId === systemId);
+              if (system) {
+                selectSystem(system);
+              }
+            }}
+          />
+        </article>
+      )}
+
+      {result && (
+        <article className="panel">
+          <h3>Selection detail</h3>
+          <div className="selection-chip-row">
+            {result.systems.map((system) => (
+              <button
+                key={system.systemId}
+                type="button"
+                className={`selection-chip${selectedSystem?.systemId === system.systemId ? " selection-chip-active" : ""}`}
+                onClick={() => selectSystem(system)}
+              >
+                {system.systemName ?? "Unknown system"}
+              </button>
+            ))}
+          </div>
+          {selectedSystem && (
+            <div className="selection-grid">
+              <section className="subpanel">
+                <h4>{selectedSystem.systemName ?? "Unknown system"}</h4>
+                <p>
+                  {selectedSystem.coordinateX ?? "?"}, {selectedSystem.coordinateY ?? "?"},{" "}
+                  {selectedSystem.coordinateZ ?? "?"}
+                </p>
+                <ul className="stack-list compact-list">
+                  <li>Visibility: {selectedSystem.visibilityLevel}</li>
+                  <li>Reason: {selectedSystem.visibilityReason}</li>
+                  <li>Owned: {String(Boolean(readRecord(selectedSystem).isOwnedByRequestingCivilization))}</li>
+                  <li>Planets: {selectedSystem.planets?.length ?? 0}</li>
+                  <li>Fleet markers: {selectedSystem.fleetPresence?.length ?? 0}</li>
+                  <li>Transfer overlays: {selectedSystem.transferOverlays?.length ?? 0}</li>
+                  <li>Sensor and detection summaries: {(selectedSystem.sensorProfiles?.length ?? 0) + (selectedSystem.detectionCoverage?.length ?? 0)}</li>
+                </ul>
+              </section>
+
+              <section className="subpanel">
+                <h4>Planet details</h4>
+                <div className="selection-chip-row">
+                  {selectedSystem.planets?.map((planet) => (
+                    <button
+                      key={planet.planetId}
+                      type="button"
+                      className={`selection-chip${selectedPlanet?.planetId === planet.planetId ? " selection-chip-active" : ""}`}
+                      onClick={() => setSelectedPlanetId(planet.planetId)}
+                    >
+                      {planet.planetName ?? "Unknown planet"}
+                    </button>
+                  ))}
+                </div>
+                {selectedPlanet ? (
+                  <ul className="stack-list compact-list">
+                    <li>Name: {selectedPlanet.planetName ?? "Unknown planet"}</li>
+                    <li>Visibility: {selectedPlanet.visibilityLevel}</li>
+                    <li>Reason: {selectedPlanet.visibilityReason}</li>
+                    <li>Type: {readText(readRecord(selectedPlanet).planetType)}</li>
+                    <li>Colonization: {readText(readRecord(selectedPlanet).colonizationStatus)}</li>
+                    {readCommands(readRecord(selectedPlanet).commands).map((command) => (
+                      <li key={command.actionKey}>
+                        {command.actionKey}: {command.isAvailable ? "available" : readText(command.blockReason, "blocked")} ({readText(command.note, "read-only metadata")})
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No planets are available for the selected system.</p>
+                )}
+              </section>
+            </div>
+          )}
         </article>
       )}
 
       {result && (
         <article className="panel">
           <h3>Readiness metadata</h3>
+          <p>These notes are informational only and do not grant gameplay authorization.</p>
           <div className="readiness-grid">
             {readinessSections.map((section) => {
               const notes = result[section.key];

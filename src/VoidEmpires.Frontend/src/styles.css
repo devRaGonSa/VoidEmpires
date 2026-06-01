@@ -296,11 +296,16 @@ input {
 .map-node-title,
 .map-node-meta {
   text-anchor: middle;
+  pointer-events: none;
 }
 
 .map-node-ring,
 .map-node-core {
   stroke: rgba(255, 255, 255, 0.35);
+}
+
+.map-node {
+  cursor: pointer;
 }
 
 .map-node-ring {
@@ -330,6 +335,11 @@ input {
   stroke: currentColor;
 }
 
+.map-node-selected .map-node-ring {
+  stroke: #f4f8ff;
+  stroke-width: 3;
+}
+
 .map-node-title {
   fill: #f4f8ff;
   font-size: 18px;
@@ -349,6 +359,25 @@ input {
   background: rgba(4, 10, 20, 0.56);
   color: #bfd0ea;
 }
+
+.selection-chip {
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(122, 159, 214, 0.22);
+  background: rgba(4, 10, 20, 0.72);
+  color: #dce7f8;
+  cursor: pointer;
+}
+
+.selection-chip-active {
+  background: rgba(104, 164, 255, 0.18);
+  border-color: rgba(143, 193, 255, 0.4);
+  color: #f3f8ff;
+}
+
+.selection-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 14px; }
+
+.selection-chip-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
 
 .subpanel p {
   margin-top: 10px;

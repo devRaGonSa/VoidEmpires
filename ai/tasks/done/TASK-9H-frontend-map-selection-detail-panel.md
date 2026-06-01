@@ -4,7 +4,7 @@
 
 id: TASK-9H
 title: Add frontend map selection detail panel
-status: pending
+status: done
 type: feature
 team: frontend
 supporting_teams:
@@ -171,4 +171,3 @@ At the end:
 5. Push the branch to the remote.
 
 The AI Platform runner must push after successful validation.
-

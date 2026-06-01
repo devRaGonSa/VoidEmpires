@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 9G - Frontend strategic map 2D view`.
+The repository is consolidated through `Phase 9H - Frontend map selection detail panel`.
 
 ## Repository Reality
 
@@ -101,6 +101,7 @@ Current implemented foundations:
 - `src/VoidEmpires.Frontend` now provides a minimal Vite + React + TypeScript frontend shell with a conservative app layout, route placeholders for strategic map and fleet inspection, backend base URL configuration through `VITE_VOIDEMPIRES_API_BASE_URL`, and explicit development-only warnings.
 - The frontend strategic map page now reads `GET /api/dev/strategic-map?civilizationId={id}`, exposes civilization-id driven loading/error/success states, renders system and planet summaries, and surfaces readiness metadata as informational only.
 - The frontend strategic map page now also renders a deterministic, read-only SVG 2D map view that normalizes backend system coordinates into a responsive viewport while keeping the existing summary cards below the visual layer.
+- The frontend strategic map page now supports deterministic local selection for systems and planets, allowing read-only inspection of visibility, counts, and command/readiness metadata without calling mutating endpoints.
 - The frontend fleet page now reads `GET /api/dev/fleets/ui-state`, `GET /api/dev/fleets/action-manifest`, and `GET /api/dev/strategic-map/action-manifest`, rendering fleet summaries and manifest metadata as read-only inspection panels without wiring gameplay mutations.
 - Frontend setup, limitations, and smoke validation are now documented in `src/VoidEmpires.Frontend/README.md` and `docs/dev/frontend-foundation-smoke-checklist.md`.
 
@@ -208,6 +209,7 @@ Accepted current rules:
 - Phase 9D adds the first frontend fleet inspection slice: typed fleet UI-state and manifest handling, a read-only fleet query flow keyed by civilization id, grouped fleet summaries, resource/interception notes, and manifest panels that clearly mark mutating actions without executing them.
 - Phase 9E documents how to install, run, build, and smoke-check the frontend prototype, updates the pre-frontend contract checkpoint with the current frontend foundation status, and keeps the prototype limitations explicit.
 - Phase 9G adds the first visual readiness layer for the frontend strategic map: a simple 2D SVG projection that uses backend coordinates, handles empty and single-system maps safely, shows visibility state directly on map nodes, and preserves the existing list/card inspection view.
+- Phase 9H adds a read-only selection detail layer for the frontend strategic map so users can choose a system from the map or list, inspect planet metadata, and review readiness notes without executing gameplay actions.
 
 ## Dev Surface Gating Note
 
@@ -230,10 +232,10 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 9G:
+Current validated baseline after Phase 9H:
 
 - backend: `dotnet restore`, `dotnet build --no-restore`, and `dotnet test --no-build` succeeded with `527` passing tests
-- frontend: `package.json` scripts and setup docs are in place, but npm-based validation was not completed in this environment because npm registry requests timed out repeatedly during dependency resolution
+- frontend: `npm install` and `npm run build` succeeded for the current prototype shell
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, and the minimal exploration mission lifecycle.
 

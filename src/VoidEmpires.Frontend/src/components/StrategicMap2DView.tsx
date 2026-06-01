@@ -2,6 +2,8 @@ import type { StrategicMapSystem } from "../api/strategicMapTypes";
 
 interface StrategicMap2DViewProps {
   systems: StrategicMapSystem[];
+  selectedSystemId?: string | null;
+  onSelectSystem?: (systemId: string) => void;
 }
 
 const width = 960;
@@ -42,7 +44,11 @@ function project(systems: StrategicMapSystem[]) {
   }));
 }
 
-export function StrategicMap2DView({ systems }: StrategicMap2DViewProps) {
+export function StrategicMap2DView({
+  systems,
+  selectedSystemId,
+  onSelectSystem,
+}: StrategicMap2DViewProps) {
   if (systems.length === 0) {
     return <p className="map-empty-state">No relevant systems were returned for this civilization.</p>;
   }
@@ -58,7 +64,21 @@ export function StrategicMap2DView({ systems }: StrategicMap2DViewProps) {
         </defs>
         <rect width={width} height={height} className="map-frame" />
         {project(systems).map(({ system, x, y }) => (
-          <g key={system.systemId} transform={`translate(${x} ${y})`} className={`map-node map-node-${tone(system.visibilityLevel)}`}>
+          <g
+            key={system.systemId}
+            transform={`translate(${x} ${y})`}
+            className={`map-node map-node-${tone(system.visibilityLevel)}${selectedSystemId === system.systemId ? " map-node-selected" : ""}`}
+            role="button"
+            tabIndex={0}
+            aria-label={`Select ${system.systemName ?? "unknown system"}`}
+            onClick={() => onSelectSystem?.(system.systemId)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onSelectSystem?.(system.systemId);
+              }
+            }}
+          >
             <circle r="20" className="map-node-ring" />
             <circle r="7" className="map-node-core" />
             <text className="map-node-title" x="0" y="38">{system.systemName ?? "Unknown system"}</text>
