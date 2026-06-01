@@ -18,7 +18,7 @@ namespace VoidEmpires.Tests;
 public class ExplorationMissionLifecycleSmokeTests
 {
     [Fact]
-    public async Task PreviewCreateAndCompleteLifecycleDoesNotRevealVisibilityOrMutateFleetResources()
+    public async Task PreviewCreateAndCompleteLifecycleRecordsKnowledgeWithoutRevealingVisibilityOrMutatingFleetResources()
     {
         await using var dbContext = CreateDbContext();
         var requestedAtUtc = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
@@ -78,6 +78,10 @@ public class ExplorationMissionLifecycleSmokeTests
         var mission = await dbContext.ExplorationMissions.SingleAsync();
         Assert.Equal(ExplorationMissionStatus.Completed, mission.Status);
         Assert.Equal(createResult.Mission.DueAtUtc, mission.CompletedAtUtc);
+        var knowledge = await dbContext.ExplorationKnowledge.OrderBy(x => x.PlanetId.HasValue).ToArrayAsync();
+        Assert.Equal(2, knowledge.Length);
+        Assert.Null(knowledge[0].PlanetId);
+        Assert.Equal(targetPlanet.Id, knowledge[1].PlanetId);
 
         var visibility = await new MapVisibilityService(dbContext).GetAsync(new GetMapVisibilityRequest(civilization.Id));
         var targetVisibility = visibility.Systems.Single(x => x.SystemId == targetSystem.Id);

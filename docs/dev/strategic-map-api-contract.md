@@ -111,7 +111,7 @@ Response envelope:
 - `completedMissionIds[]`: completed mission ids.
 - `errors[]`: validation errors.
 
-Completion only marks existing due planned missions as completed. It does not reveal visibility, create known-system/fog-of-war/sensor state, assign rewards, add combat/interception, or run a background worker.
+Completion marks existing due planned missions as completed and records durable exploration knowledge for the target system and optional target planet. It does not reveal visibility, consume knowledge in strategic-map reads, create fog-of-war/sensor state, assign rewards, add combat/interception, or run a background worker.
 
 ### Minimal Exploration Lifecycle
 
@@ -120,9 +120,9 @@ The current development lifecycle is intentionally conservative:
 1. `GET /api/dev/strategic-map/exploration-preview` can show `Unknown` systems or planets as eligible.
 2. `POST /api/dev/strategic-map/exploration-missions/create` can persist a planned mission for an eligible target.
 3. `POST /api/dev/strategic-map/exploration-missions/complete-due` can mark due planned missions completed.
-4. Strategic map and visibility reads still report the target as `Unknown` until a future visibility-reveal phase adds real knowledge persistence.
+4. Strategic map and visibility reads still report the target as `Unknown` until a future visibility-reveal phase consumes recorded exploration knowledge.
 
-This lifecycle protects command plumbing and persistence only. It does not grant rewards, create scanners/sensors, reveal fog-of-war, assign fleets, mutate resources, or expose final UI behavior.
+This lifecycle protects command plumbing and persistence only. Completion records exploration knowledge for later visibility work, but it does not grant rewards, create scanners/sensors, reveal fog-of-war, assign fleets, mutate resources, or expose final UI behavior.
 
 ### Strategic Map Action Manifest
 
@@ -231,7 +231,7 @@ Current placeholder rule: `Unknown` nodes can show exploration preview as availa
 
 ## Side Effects
 
-The exploration mission create endpoint persists a planned `ExplorationMission` only. The exploration mission complete-due endpoint updates due planned missions to completed. The current read endpoints remain read-only.
+The exploration mission create endpoint persists a planned `ExplorationMission` only. The exploration mission complete-due endpoint updates due planned missions to completed and records exploration knowledge without changing current visibility reads. The current read endpoints remain read-only.
 
 The strategic map endpoints do not create transfers, reserve fleets, complete transfers, charge resources, mutate stockpiles, persist route estimates, create sensor data, reveal visibility, create known-system/fog-of-war state, or write map state.
 
@@ -246,7 +246,7 @@ The strategic map read model reuses the same underlying persisted state summariz
 - The strategic map endpoint consolidates map-level system, planet, fleet presence, transfer overlay, exploration preview, and route/fuel capability summaries.
 - The exploration preview endpoint exposes the same placeholder exploration readiness as a direct read contract for UI tooling.
 - The exploration mission create endpoint consumes that preview eligibility and creates a planned mission for unknown targets only.
-- The exploration mission complete-due endpoint closes the placeholder mission lifecycle without introducing the real visibility reveal model.
+- The exploration mission complete-due endpoint closes the placeholder mission lifecycle and records exploration knowledge for a later visibility reveal model.
 - The strategic map action manifest lists these related read actions so future prototypes can discover routes and required fields without hardcoding every contract.
 
 Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` when they need destination-specific route class, risk, placeholder fuel readiness, travel costs, and affordability.
@@ -259,7 +259,7 @@ Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` w
 - No combat or interception.
 - No alliances, diplomacy, sensors, or espionage visibility model.
 - Unknown visibility can appear for strategic-map nodes that are relevant for another reason, such as an active transfer destination, but the strategic map endpoint does not return every persisted unknown system.
-- Exploration preview is placeholder/read-only. Mission creation and completion are separate development-only POST endpoints and do not create persisted fog-of-war or reveal visibility.
+- Exploration preview is placeholder/read-only. Mission creation and completion are separate development-only POST endpoints; completion records exploration knowledge but does not create persisted fog-of-war or reveal visibility yet.
 - No fuel inventory, refueling, or fuel spending.
 - No meshes, textures, binary assets, shader data, or heavy render payloads.
 - Transfer progress remains a read-time visual approximation.
