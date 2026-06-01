@@ -39,6 +39,7 @@ public class StrategicMapServiceTests
         var result = await CreateService(dbContext).GetAsync(new GetStrategicMapRequest(civilizationId));
 
         Assert.Contains(result.SensorNotes, x => x.Note.Contains("do not reveal visibility", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.DetectionNotes, x => x.Note.Contains("does not reveal unknown systems or planets", StringComparison.OrdinalIgnoreCase));
         var mapSystem = Assert.Single(result.Systems);
         Assert.Equal(system.Id, mapSystem.SystemId);
         Assert.Equal("Helios", mapSystem.SystemName);
@@ -69,6 +70,8 @@ public class StrategicMapServiceTests
         Assert.Equal(PlanetColonizationStatus.Colonized, mapPlanet.ColonizationStatus);
         Assert.Equal(SensorProfileClass.Orbital, Assert.Single(mapSystem.SensorProfiles).SensorClass);
         Assert.Equal(SensorProfileClass.Orbital, Assert.Single(mapPlanet.SensorProfiles).SensorClass);
+        Assert.Equal(DetectionCoverageClass.Orbital, Assert.Single(mapSystem.DetectionCoverage).CoverageClass);
+        Assert.Equal(DetectionCoverageSourceKind.Planet, Assert.Single(mapPlanet.DetectionCoverage).SourceKind);
     }
 
     [Fact]
@@ -159,9 +162,11 @@ public class StrategicMapServiceTests
         AssertAvailable(unknownDestinationSystem.Commands, "exploration.mission.create");
         AssertBlocked(unknownDestinationSystem.Commands, "strategicMap.system.view", StrategicMapCommandBlockReason.NotVisible);
         Assert.Empty(unknownDestinationSystem.SensorProfiles);
+        Assert.Empty(unknownDestinationSystem.DetectionCoverage);
         var unknownDestinationPlanet = Assert.Single(unknownDestinationSystem.Planets);
         Assert.Equal(MapVisibilityLevel.Unknown, unknownDestinationPlanet.VisibilityLevel);
         Assert.Empty(unknownDestinationPlanet.SensorProfiles);
+        Assert.Empty(unknownDestinationPlanet.DetectionCoverage);
         Assert.True(unknownDestinationPlanet.ExplorationPreview.CanPreviewExploration);
         AssertAvailable(unknownDestinationPlanet.Commands, "exploration.preview");
         AssertAvailable(unknownDestinationPlanet.Commands, "exploration.mission.create");
@@ -176,6 +181,7 @@ public class StrategicMapServiceTests
         var scoutPresence = mapSystem.FleetPresence.Single(x => x.OrbitalGroupId == scoutGroup.Id);
         Assert.Equal(SensorProfileClass.Orbital, scoutPresence.SensorProfile?.SensorClass);
         Assert.Equal(SensorProfileSourceKind.OrbitalGroup, scoutPresence.SensorProfile?.SourceKind);
+        Assert.Contains(mapSystem.DetectionCoverage, x => x.SourceKind == DetectionCoverageSourceKind.OrbitalGroup && x.SourceId == scoutGroup.Id);
         var overlay = Assert.Single(mapSystem.TransferOverlays);
         Assert.Equal(transfer.Id, overlay.TransferId);
         Assert.Equal(2, overlay.AbstractDistanceUnits);
@@ -220,6 +226,7 @@ public class StrategicMapServiceTests
         Assert.Null(hidden.PlanetType);
         Assert.Null(hidden.Size);
         Assert.Null(hidden.OrbitalSlot);
+        Assert.Empty(hidden.DetectionCoverage);
     }
 
     [Fact]

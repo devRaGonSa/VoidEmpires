@@ -9,7 +9,8 @@ public sealed record GetStrategicMapResult(
     Guid CivilizationId,
     IReadOnlyList<StrategicMapSystemDto> Systems,
     IReadOnlyList<StrategicMapRouteFuelNoteDto> RouteFuelNotes,
-    IReadOnlyList<StrategicMapSensorNoteDto> SensorNotes = null!);
+    IReadOnlyList<StrategicMapSensorNoteDto> SensorNotes = null!,
+    IReadOnlyList<StrategicMapDetectionNoteDto> DetectionNotes = null!);
 
 public sealed record StrategicMapSystemDto(
     Guid SystemId,
@@ -28,7 +29,8 @@ public sealed record StrategicMapSystemDto(
     IReadOnlyList<StrategicMapPlanetDto> Planets,
     IReadOnlyList<StrategicMapFleetPresenceDto> FleetPresence,
     IReadOnlyList<StrategicMapTransferOverlayDto> TransferOverlays,
-    IReadOnlyList<StrategicMapSensorProfileSummaryDto> SensorProfiles = null!);
+    IReadOnlyList<StrategicMapSensorProfileSummaryDto> SensorProfiles = null!,
+    IReadOnlyList<StrategicMapDetectionCoverageSummaryDto> DetectionCoverage = null!);
 
 public sealed record StrategicMapPlanetDto(
     Guid PlanetId,
@@ -52,7 +54,8 @@ public sealed record StrategicMapPlanetDto(
     float? IndustrialIntensity,
     float? MilitaryIntensity,
     float? OrbitalPresenceIntensity,
-    IReadOnlyList<StrategicMapSensorProfileSummaryDto> SensorProfiles = null!);
+    IReadOnlyList<StrategicMapSensorProfileSummaryDto> SensorProfiles = null!,
+    IReadOnlyList<StrategicMapDetectionCoverageSummaryDto> DetectionCoverage = null!);
 
 public sealed record StrategicMapFleetPresenceDto(
     Guid OrbitalGroupId,
@@ -83,12 +86,22 @@ public sealed record StrategicMapRouteFuelNoteDto(
 
 public sealed record StrategicMapSensorNoteDto(string Note);
 
+public sealed record StrategicMapDetectionNoteDto(string Note);
+
 public sealed record StrategicMapSensorProfileSummaryDto(
     Guid SourceId,
     SensorProfileSourceKind SourceKind,
     SensorProfileClass SensorClass,
     int DetectionRangeTier,
     int ScanStrength,
+    string Note);
+
+public sealed record StrategicMapDetectionCoverageSummaryDto(
+    Guid SourceId,
+    DetectionCoverageSourceKind SourceKind,
+    DetectionCoverageClass CoverageClass,
+    int DetectionRangeTier,
+    int CoverageConfidencePercent,
     string Note);
 
 public sealed record StrategicMapExplorationPreviewDto(

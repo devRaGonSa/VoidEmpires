@@ -216,6 +216,33 @@ The result contains `civilizationId` and deterministic `profiles[]` rows derived
 
 The endpoint is read-only development tooling. It does not reveal visibility, scan targets, detect objects, create sensor state, mutate exploration knowledge, mutate resources/fleets/missions, add combat/interception, or add route graph/pathfinding state.
 
+### Detection Coverage Read
+
+`GET /api/dev/strategic-map/detection-coverage?civilizationId={id}`
+
+Query:
+
+- `civilizationId`: required non-empty GUID. Scopes detection coverage metadata to the requesting civilization.
+
+Responses:
+
+| Status | Meaning |
+|---|---|
+| `200 OK` | Detection coverage read model returned. |
+| `400 Bad Request` | Missing or empty `civilizationId`. |
+| `404 Not Found` | Development route is disabled. |
+| `503 Service Unavailable` | Persistence is not configured. |
+
+Response envelope:
+
+- `succeeded`: `true` on success.
+- `detectionCoverage`: detection coverage result, or `null` on validation failure.
+- `errors[]`: validation errors.
+
+The result contains `civilizationId` and deterministic `coverages[]` rows derived from owned planets and stationed scout orbital groups. Each coverage contains `sourceId`, `sourceKind`, `coverageClass`, `sourcePlanetId`, `sourceSystemId`, `orbitalGroupId`, `detectionRangeTier`, `coverageConfidencePercent`, `coveredSystemIds`, `limitations`, and `note`.
+
+The endpoint is read-only development tooling. It does not reveal visibility, reveal unknown targets, trigger detection, interception, or combat, create detection state, mutate exploration knowledge, mutate resources/fleets/missions, or add route graph/pathfinding state.
+
 ### Minimal Exploration Lifecycle
 
 The current development lifecycle is intentionally conservative:
@@ -248,7 +275,7 @@ Response envelope:
 
 Each manifest action contains `actionKey`, `displayName`, `method`, `route`, `isReadOnly`, `requiredFields[]`, `successStatus`, `errorStatuses[]`, and `notes`.
 
-Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `exploration.preview.read`, `exploration.mission.create`, `exploration.mission.completeDue`, `exploration.mission.list`, `exploration.knowledge.read`, `sensor.profile.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
+Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `exploration.preview.read`, `exploration.mission.create`, `exploration.mission.completeDue`, `exploration.mission.list`, `exploration.knowledge.read`, `sensor.profile.read`, `detection.coverage.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
 
 The manifest is read-only metadata for UI discovery. It does not require persistence and does not execute the listed actions.
 
@@ -260,8 +287,9 @@ The manifest is read-only metadata for UI discovery. It does not require persist
 - `systems[]`: relevant systems for the current strategic map model.
 - `routeFuelNotes[]`: capability notes for route/fuel previews.
 - `sensorNotes[]`: capability notes for placeholder sensor metadata.
+- `detectionNotes[]`: capability notes for placeholder detection coverage metadata.
 
-Current relevance includes systems that contain owned planets, active transfer origin/destination planets, or exploration knowledge for the requesting civilization. Sensor profiles are attached as metadata only; they do not add relevance, reveal visibility, scan targets, or change command availability. There is no alliance, diplomacy, or espionage visibility model yet.
+Current relevance includes systems that contain owned planets, active transfer origin/destination planets, or exploration knowledge for the requesting civilization. Sensor profiles and detection coverage are attached as metadata only; they do not add relevance, reveal visibility, scan targets, or change command availability. There is no alliance, diplomacy, or espionage visibility model yet.
 
 Visibility fields are inherited from the map visibility service. They are read-only annotations and do not represent persisted fog-of-war. Current levels are `Owned`, `Visible`, and `Unknown`; current reasons are `OwnedPlanet`, `SystemContainsOwnedPlanet`, `ExploredSystem`, `ExploredPlanet`, and `NoKnownVisibilitySource`.
 
@@ -276,6 +304,7 @@ Each `systems[]` item contains:
 - `explorationPreview`: read-only exploration preview metadata.
 - `commands[]`: read-only system-level command availability metadata.
 - `sensorProfiles[]`: read-only sensor profile summaries for visible requesting-civilization sources in the system.
+- `detectionCoverage[]`: read-only detection coverage summaries for visible local requesting-civilization sources in the system.
 - `planets[]`
 - `fleetPresence[]`
 - `transferOverlays[]`
@@ -289,13 +318,14 @@ Each `planets[]` item contains identity and summary fields:
 - `explorationPreview`: read-only exploration preview metadata.
 - `commands[]`: read-only planet-level command availability metadata.
 - `sensorProfiles[]`: read-only sensor profile summaries for visible local requesting-civilization sources.
+- `detectionCoverage[]`: read-only detection coverage summaries for visible local requesting-civilization sources.
 - `civilizationId`: populated only when owned by the requesting civilization.
 - `orbitalSlot`, `orbitRadius`, `orbitAngleDegrees`, `visualScale`
 - `colonizationIntensity`, `urbanIntensity`, `industrialIntensity`, `militaryIntensity`, `orbitalPresenceIntensity`
 
 For planets whose `visibilityLevel` is `Unknown`, detail fields such as name, type, size, colonization status, orbital layout, visual scale, and visual intensity values are returned as `null`. The stable `planetId`, visibility metadata, exploration preview metadata, and command availability remain present.
 
-Unknown planets also return empty `sensorProfiles[]`; sensor metadata is not a visibility source in this phase.
+Unknown planets also return empty `sensorProfiles[]` and `detectionCoverage[]`; sensor and detection metadata are not visibility sources in this phase.
 
 Each `explorationPreview` item contains:
 
@@ -309,6 +339,8 @@ Each `fleetPresence[]` item contains:
 - `sensorProfile`: nullable read-only placeholder metadata for stationed groups that currently derive a profile, such as scout craft groups.
 
 Each sensor profile summary contains `sourceId`, `sourceKind`, `sensorClass`, `detectionRangeTier`, `scanStrength`, and `note`. Current values are deterministic placeholders derived from owned planets and stationed orbital groups only. They do not represent real range, scanning, detection, fog-of-war, espionage, combat, or interception behavior.
+
+Each detection coverage summary contains `sourceId`, `sourceKind`, `coverageClass`, `detectionRangeTier`, `coverageConfidencePercent`, and `note`. Current values are deterministic local-system placeholders derived from owned planets and stationed scout orbital groups only. They do not reveal unknown systems or planets, do not change visibility, and do not represent real detection, scanners, interception, or combat behavior.
 
 Each `transferOverlays[]` item contains:
 
@@ -403,6 +435,7 @@ The strategic map read model reuses the same underlying persisted state summariz
 - The exploration mission complete-due endpoint closes the placeholder mission lifecycle and records exploration knowledge consumed by the visibility read model.
 - The exploration knowledge endpoint exposes the persisted knowledge rows directly for development inspection without deriving new visibility or mutating state.
 - The sensor profiles endpoint exposes derived placeholder sensor profile rows directly for development inspection without deriving new visibility or mutating state.
+- The detection coverage endpoint exposes derived placeholder coverage rows directly for development inspection without deriving new visibility or mutating state.
 - The strategic map action manifest lists the currently manifest-backed related actions so future prototypes can discover routes and required fields without hardcoding every contract.
 
 Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` when they need destination-specific route class, risk, placeholder fuel readiness, travel costs, and affordability.
@@ -415,6 +448,7 @@ Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` w
 - No combat or interception.
 - No alliances, diplomacy, sensors, or espionage visibility model.
 - Sensor profile fields are metadata only and do not provide real range, scanner mechanics, detection, interception, or visibility reveal.
+- Detection coverage fields are metadata only and do not reveal unknown targets, create knowledge, provide scanner mechanics, or change visibility.
 - Unknown visibility can appear for strategic-map nodes that are relevant for another reason, such as an active transfer destination, but the strategic map endpoint does not return every persisted unknown system.
 - Exploration preview is placeholder/read-only. Mission creation and completion are separate development-only POST endpoints; completion records exploration knowledge that can reveal read-model visibility but does not create persisted fog-of-war.
 - Exploration knowledge reads are ids-only and do not expose sanitized display names.

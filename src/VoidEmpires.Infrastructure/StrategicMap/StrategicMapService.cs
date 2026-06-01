@@ -14,7 +14,8 @@ public sealed class StrategicMapService(
     VoidEmpiresDbContext dbContext,
     ISystemVisualStateService systemVisualStateService,
     IMapVisibilityService mapVisibilityService,
-    ISensorProfileService? sensorProfileService = null) : IStrategicMapService
+    ISensorProfileService? sensorProfileService = null,
+    IDetectionCoverageService? detectionCoverageService = null) : IStrategicMapService
 {
     public async Task<GetStrategicMapResult> GetAsync(
         GetStrategicMapRequest request,
@@ -22,7 +23,7 @@ public sealed class StrategicMapService(
     {
         if (request.CivilizationId == Guid.Empty)
         {
-            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes());
+            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes(), CreateDetectionNotes());
         }
 
         var ownedPlanetIds = await dbContext.Set<PlanetOwnership>()
@@ -53,7 +54,7 @@ public sealed class StrategicMapService(
 
         if (relevantPlanetIds.Length == 0 && knownSystemIds.Count == 0)
         {
-            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes());
+            return new GetStrategicMapResult(request.CivilizationId, [], CreateRouteFuelNotes(), CreateSensorNotes(), CreateDetectionNotes());
         }
 
         var systemIds = await dbContext.Set<Planet>()
@@ -66,9 +67,13 @@ public sealed class StrategicMapService(
         var visibility = await mapVisibilityService
             .GetAsync(new GetMapVisibilityRequest(request.CivilizationId), cancellationToken);
         var visibilityBySystemId = visibility.Systems.ToDictionary(x => x.SystemId);
-        var sensorProfiles = (await (sensorProfileService ?? new SensorProfileService(dbContext))
+        var resolvedSensorProfileService = sensorProfileService ?? new SensorProfileService(dbContext);
+        var sensorProfiles = (await resolvedSensorProfileService
             .GetAsync(new GetSensorProfilesRequest(request.CivilizationId), cancellationToken))
             .Profiles;
+        var detectionCoverage = (await (detectionCoverageService ?? new DetectionCoverageService(dbContext, resolvedSensorProfileService))
+            .GetAsync(new GetDetectionCoverageRequest(request.CivilizationId), cancellationToken))
+            .Coverages;
 
         var visualStates = new List<SystemVisualStateDto>();
         foreach (var systemId in systemIds)
@@ -87,14 +92,15 @@ public sealed class StrategicMapService(
         var systems = visualStates.Select(visualState =>
         {
             visibilityBySystemId.TryGetValue(visualState.SystemId, out var systemVisibility);
-            return CreateSystem(visualState, request.CivilizationId, activeTransfers, systemVisibility, hasMapFleetContext, sensorProfiles);
+            return CreateSystem(visualState, request.CivilizationId, activeTransfers, systemVisibility, hasMapFleetContext, sensorProfiles, detectionCoverage);
         }).ToArray();
 
         return new GetStrategicMapResult(
             request.CivilizationId,
             systems.OrderBy(x => x.SystemName).ThenBy(x => x.SystemId).ToArray(),
             CreateRouteFuelNotes(),
-            CreateSensorNotes());
+            CreateSensorNotes(),
+            CreateDetectionNotes());
     }
 
     private static StrategicMapSystemDto CreateSystem(
@@ -103,7 +109,8 @@ public sealed class StrategicMapService(
         IReadOnlyCollection<OrbitalTransfer> activeTransfers,
         MapSystemVisibilityDto? visibility,
         bool hasMapFleetContext,
-        IReadOnlyList<SensorProfileDto> sensorProfiles)
+        IReadOnlyList<SensorProfileDto> sensorProfiles,
+        IReadOnlyList<DetectionCoverageDto> detectionCoverage)
     {
         var layoutByPlanetId = visualState.LayoutHints.ToDictionary(x => x.PlanetId);
         var transfersById = activeTransfers.ToDictionary(x => x.Id);
@@ -131,6 +138,9 @@ public sealed class StrategicMapService(
         var systemSensorProfiles = visibility?.IsVisible == true
             ? sensorProfiles.Where(x => x.SolarSystemId == visualState.SystemId).Select(CreateSensorSummary).ToArray()
             : [];
+        var systemDetectionCoverage = visibility?.IsVisible == true
+            ? detectionCoverage.Where(x => x.SourceSystemId == visualState.SystemId).Select(CreateDetectionSummary).ToArray()
+            : [];
 
         return new StrategicMapSystemDto(
             visualState.SystemId,
@@ -150,7 +160,16 @@ public sealed class StrategicMapService(
             {
                 visibilityByPlanetId.TryGetValue(x.PlanetId, out var planetVisibility);
                 sensorsByPlanetId.TryGetValue(x.PlanetId, out var planetSensorProfiles);
-                return CreatePlanet(x, civilizationId, layoutByPlanetId, planetVisibility, hasMapFleetContext, planetSensorProfiles ?? []);
+                return CreatePlanet(
+                    x,
+                    civilizationId,
+                    layoutByPlanetId,
+                    planetVisibility,
+                    hasMapFleetContext,
+                    planetSensorProfiles ?? [],
+                    visibility?.IsVisible == true
+                        ? detectionCoverage.Where(coverage => coverage.SourcePlanetId == x.PlanetId).Select(CreateDetectionSummary).ToArray()
+                        : []);
             }).ToArray(),
             fleetPresence,
             visualState.TransferOverlays
@@ -171,7 +190,8 @@ public sealed class StrategicMapService(
                         x.OverlayKind);
                 })
                 .ToArray(),
-            systemSensorProfiles);
+            systemSensorProfiles,
+            systemDetectionCoverage);
     }
 
     private static StrategicMapPlanetDto CreatePlanet(
@@ -180,7 +200,8 @@ public sealed class StrategicMapService(
         IReadOnlyDictionary<Guid, PlanetVisualLayoutHintDto> layoutByPlanetId,
         MapPlanetVisibilityDto? visibility,
         bool hasFleetContext,
-        IReadOnlyList<StrategicMapSensorProfileSummaryDto> sensorProfiles)
+        IReadOnlyList<StrategicMapSensorProfileSummaryDto> sensorProfiles,
+        IReadOnlyList<StrategicMapDetectionCoverageSummaryDto> detectionCoverage)
     {
         layoutByPlanetId.TryGetValue(visualState.PlanetId, out var layout);
         var isOwnedByRequester = visualState.CivilizationId == civilizationId;
@@ -211,7 +232,8 @@ public sealed class StrategicMapService(
             CreateIntensity(exposePlanetDetail, exposeVisualDetail, visualState.IndustrialIntensity),
             CreateIntensity(exposePlanetDetail, exposeVisualDetail, visualState.MilitaryIntensity),
             CreateIntensity(exposePlanetDetail, exposeVisualDetail, visualState.OrbitalPresenceIntensity),
-            visibility?.IsVisible == true ? sensorProfiles : []);
+            visibility?.IsVisible == true ? sensorProfiles : [],
+            visibility?.IsVisible == true ? detectionCoverage : []);
     }
 
     private static float? CreateIntensity(bool exposePlanetDetail, bool exposeVisualDetail, float value) =>
@@ -313,6 +335,15 @@ public sealed class StrategicMapService(
             profile.ScanStrength,
             profile.Note);
 
+    private static StrategicMapDetectionCoverageSummaryDto CreateDetectionSummary(DetectionCoverageDto coverage) =>
+        new(
+            coverage.SourceId,
+            coverage.SourceKind,
+            coverage.CoverageClass,
+            coverage.DetectionRangeTier,
+            coverage.CoverageConfidencePercent,
+            coverage.Note);
+
     private static IReadOnlyList<StrategicMapRouteFuelNoteDto> CreateRouteFuelNotes() =>
         [
             new(
@@ -325,5 +356,10 @@ public sealed class StrategicMapService(
     private static IReadOnlyList<StrategicMapSensorNoteDto> CreateSensorNotes() =>
         [
             new("Sensor profiles are derived metadata only; they do not reveal visibility, scan targets, or change command validation.")
+        ];
+
+    private static IReadOnlyList<StrategicMapDetectionNoteDto> CreateDetectionNotes() =>
+        [
+            new("Detection coverage is derived metadata only; it does not reveal unknown systems or planets, change visibility, or alter command validation.")
         ];
 }
