@@ -93,6 +93,17 @@ Current alignment intent:
 
 These tokens are foundation only. They support later UI alignment work without changing the current prototype into a final game UI.
 
+## Current shell alignment
+
+Phase 9L adds the first Figma-aligned shell layer:
+
+- `AppShell` for the topbar + sidebar layout
+- `TopResourceBar` for compact resource pills
+- `SidebarNav` for Figma navigation labels with safe disabled placeholders
+- `UiCard`, `UiBadge`, `UiProgressBar`, and `DevEndpointNotice` as reusable shell primitives
+
+Only `Galaxia` and `Flotas` are active routes in the sidebar today. Other labels mirror the Figma navigation vocabulary but remain disabled until those read surfaces exist.
+
 ## Runtime assumptions
 
 - Development endpoints must be enabled through the normal backend rules:

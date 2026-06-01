@@ -3,7 +3,7 @@
 ---
 id: TASK-9L
 title: Align frontend shell and base components with Figma
-status: pending
+status: done
 type: feature
 team: frontend
 supporting_teams:

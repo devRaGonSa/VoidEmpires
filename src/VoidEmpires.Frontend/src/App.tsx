@@ -1,61 +1,46 @@
-import { NavLink, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { appConfig } from "./config";
+import { AppShell } from "./components/ui/AppShell";
 import { FleetsPage } from "./pages/FleetsPage";
 import { StrategicMapPage } from "./pages/StrategicMapPage";
 
-const navItems = [
-  { to: "/", label: "Strategic Map" },
-  { to: "/fleets", label: "Fleets" },
-];
+const sidebarItems = [
+  { label: "Resumen" },
+  { label: "Planeta" },
+  { label: "Construccion" },
+  { label: "Investigacion" },
+  { label: "Ejercito Tierra" },
+  { label: "Astillero" },
+  { label: "Defensas" },
+  { label: "Flotas", to: "/fleets" },
+  { label: "Galaxia", to: "/" },
+  { label: "Espionaje" },
+  { label: "Alianza" },
+  { label: "Mercado" },
+  { label: "Ranking" },
+] as const;
+
+const resources = [
+  { label: "Metal", value: "128.4k", progress: 72, tone: "metal" },
+  { label: "Cristal", value: "84.1k", progress: 58, tone: "crystal" },
+  { label: "Deuterio", value: "42.8k", progress: 43, tone: "deuterium" },
+  { label: "Poblacion", value: "12.4M", progress: 81, tone: "neutral" },
+  { label: "Energia", value: "+480", progress: 66, tone: "power" },
+] as const;
 
 export default function App() {
   return (
-    <div className="app-shell">
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">VoidEmpires frontend prototype</p>
-          <h1>Development-only command surface</h1>
-          <p className="lede">
-            Conservative frontend shell for inspecting current backend readiness
-            contracts without enabling gameplay mutations or production auth.
-          </p>
-        </div>
-        <div className="environment-panel">
-          <span className="badge badge-warn">Dev endpoints only</span>
-          <dl>
-            <div>
-              <dt>Backend base URL</dt>
-              <dd>{appConfig.apiBaseUrl}</dd>
-            </div>
-            <div>
-              <dt>Expected backend profile</dt>
-              <dd>{appConfig.backendProfile}</dd>
-            </div>
-          </dl>
-        </div>
-      </header>
-
-      <nav className="nav-tabs" aria-label="Primary">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === "/"}
-            className={({ isActive }) =>
-              isActive ? "nav-tab nav-tab-active" : "nav-tab"
-            }
-          >
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
-
-      <main className="page-frame">
-        <Routes>
-          <Route path="/" element={<StrategicMapPage />} />
-          <Route path="/fleets" element={<FleetsPage />} />
-        </Routes>
-      </main>
-    </div>
+    <AppShell
+      apiBaseUrl={appConfig.apiBaseUrl}
+      backendProfile={appConfig.backendProfile}
+      resources={[...resources]}
+      sidebarItems={[...sidebarItems]}
+      userLabel="RaulG"
+    >
+      <Routes>
+        <Route path="/" element={<StrategicMapPage />} />
+        <Route path="/fleets" element={<FleetsPage />} />
+      </Routes>
+    </AppShell>
   );
 }

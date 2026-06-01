@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 9K - Frontend Figma design token foundation`.
+The repository is consolidated through `Phase 9L - Frontend Figma shell and base components`.
 
 ## Repository Reality
 
@@ -107,6 +107,7 @@ Current implemented foundations:
 - Frontend setup, limitations, current visual map behavior, and smoke validation are now documented in `src/VoidEmpires.Frontend/README.md` and `docs/dev/frontend-foundation-smoke-checklist.md`.
 - Phase 9K adds a Figma-derived frontend token foundation in `src/VoidEmpires.Frontend/src/styles.css`, including reusable raw palette variables, semantic color tokens, spacing/radius/elevation scales, and reserved shell layout variables aligned to the `Xuniverse UI v1 - Modern Simple` concept without introducing the final UI.
 - Frontend Figma alignment guidance is now documented in `src/VoidEmpires.Frontend/README.md` and `docs/dev/frontend-figma-alignment.md` so later UI tasks can reuse the same color and layout vocabulary.
+- Phase 9L aligns the frontend shell with the Figma layout language through reusable `components/ui` primitives, a 64px-style top resource bar, a 230px-style sidebar with Figma navigation labels, safe disabled placeholders for non-implemented sections, and an `AppShell` composition that preserves the existing read-only route behavior.
 
 Current foundation chain:
 
@@ -237,7 +238,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 9K:
+Current validated baseline after Phase 9L:
 
 - backend: `dotnet restore`, `dotnet build --no-restore`, and `dotnet test --no-build` succeeded with `527` passing tests
 - frontend: `npm install` and `npm run build` succeeded for the current prototype shell

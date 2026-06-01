@@ -8,7 +8,8 @@ This document records the current frontend token foundation derived from the Fig
 - page: `Xuniverse UI v1 - Modern Simple`
 - design system frame: `2:1635`
 
-Phase 9K does not implement the final interface. It establishes reusable frontend tokens so later frontend tasks can align individual screens and components without re-encoding palette and spacing decisions.
+Phase 9K established reusable frontend tokens so later frontend tasks can align individual screens and components without re-encoding palette and spacing decisions.
+Phase 9L adds the first shell and base-component layer on top of those tokens.
 
 ## Token source
 
@@ -75,6 +76,27 @@ Reserved layout targets from the Figma concept:
 
 The current prototype does not yet implement the final sidebar or final resource-pill composition. These layout values are stored now so later tasks can consume them consistently.
 
+## Current shell components
+
+The current shell and primitive layer now lives under `src/VoidEmpires.Frontend/src/components/ui/`.
+
+Current reusable components:
+
+- `AppShell`
+- `SidebarNav`
+- `TopResourceBar`
+- `UiCard`
+- `UiBadge`
+- `UiProgressBar`
+- `DevEndpointNotice`
+
+Current implementation notes:
+
+- the top resource bar uses compact resource pills for `Metal`, `Cristal`, `Deuterio`, `Poblacion`, and `Energia`
+- the sidebar uses the Figma navigation vocabulary
+- only `Galaxia` and `Flotas` are enabled routes today
+- the remaining navigation entries are explicit disabled placeholders instead of broken links
+
 ## Usage rules
 
 - Prefer semantic tokens over raw hex values in component and page styling.
@@ -82,7 +104,7 @@ The current prototype does not yet implement the final sidebar or final resource
 - Treat resource colors as domain accents, not generic status colors.
 - Keep current development-only warnings visually clear.
 
-## Non-goals for Phase 9K
+## Non-goals for Phase 9L
 
 - no final production UI
 - no gameplay mutations
