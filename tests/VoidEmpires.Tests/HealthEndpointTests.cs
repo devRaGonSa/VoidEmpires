@@ -18,7 +18,7 @@ public class HealthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     [Fact]
     public async Task HealthEndpointReturnsExpectedPayload()
     {
-        using var client = _factory.CreateClient();
+        using var client = _factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.GetAsync("/health");
         var payload = await response.Content.ReadFromJsonAsync<HealthResponse>();

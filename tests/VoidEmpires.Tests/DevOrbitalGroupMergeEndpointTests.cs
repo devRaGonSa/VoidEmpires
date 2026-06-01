@@ -29,7 +29,7 @@ public class DevOrbitalGroupMergeEndpointTests(WebApplicationFactory<Program> fa
     [Fact]
     public async Task MergeOrbitalGroupsReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-groups/merge", ValidRequest());
 

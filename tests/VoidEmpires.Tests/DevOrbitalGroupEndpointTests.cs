@@ -26,7 +26,7 @@ public class DevOrbitalGroupEndpointTests(WebApplicationFactory<Program> factory
     [Fact]
     public async Task CreateFromStockReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-groups/create-from-stock", ValidRequest());
 

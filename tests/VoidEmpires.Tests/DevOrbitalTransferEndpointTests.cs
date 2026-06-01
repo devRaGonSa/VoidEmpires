@@ -34,7 +34,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
     [Fact]
     public async Task CreateOrbitalTransferReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/create", ValidCreateRequest());
 
@@ -97,7 +97,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
     [Fact]
     public async Task ListOrbitalTransfersReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.GetAsync($"/api/dev/fleets/orbital-transfers?civilizationId={CivilizationId}");
 
@@ -175,7 +175,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
     [Fact]
     public async Task CompleteOrbitalTransfersReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/complete-due", ValidCompleteRequest());
 
@@ -229,7 +229,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
     [Fact]
     public async Task CancelOrbitalTransferReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/cancel", ValidCancelRequest());
 

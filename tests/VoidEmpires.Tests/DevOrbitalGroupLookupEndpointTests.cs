@@ -32,7 +32,7 @@ public class DevOrbitalGroupLookupEndpointTests(WebApplicationFactory<Program> f
     [Fact]
     public async Task ListOrbitalGroupsReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.GetAsync($"/api/dev/fleets/orbital-groups?civilizationId={CivilizationId}");
 

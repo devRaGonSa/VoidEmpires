@@ -26,7 +26,7 @@ public class DevConstructionQueueEndpointTests(WebApplicationFactory<Program> fa
     [Fact]
     public async Task EnqueueReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.PostAsJsonAsync("/api/dev/buildings/construction-orders/enqueue", ValidEnqueueRequest());
 

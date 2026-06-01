@@ -29,7 +29,7 @@ public class DevOrbitalGroupSplitEndpointTests(WebApplicationFactory<Program> fa
     [Fact]
     public async Task SplitOrbitalGroupReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-groups/split", ValidRequest());
 

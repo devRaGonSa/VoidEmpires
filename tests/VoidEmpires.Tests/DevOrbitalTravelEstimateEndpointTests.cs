@@ -32,7 +32,7 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
     [Fact]
     public async Task EstimateOrbitalTravelReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-travel/estimate", ValidRequest());
 

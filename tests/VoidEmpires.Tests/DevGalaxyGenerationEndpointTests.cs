@@ -25,7 +25,7 @@ public class DevGalaxyGenerationEndpointTests(WebApplicationFactory<Program> fac
     [Fact]
     public async Task GenerateGalaxyReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.PostAsJsonAsync("/api/dev/galaxies/generate", ValidRequest());
 

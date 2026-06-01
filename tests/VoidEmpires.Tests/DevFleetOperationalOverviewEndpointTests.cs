@@ -32,7 +32,7 @@ public class DevFleetOperationalOverviewEndpointTests(WebApplicationFactory<Prog
     [Fact]
     public async Task OverviewReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.GetAsync($"/api/dev/fleets/overview?civilizationId={CivilizationId}");
 

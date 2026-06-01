@@ -3,7 +3,7 @@
 ---
 id: TASK-9Q
 title: Isolate endpoint tests from ambient DefaultConnection environment variables
-status: pending
+status: done
 type: test
 team: qa
 supporting_teams:

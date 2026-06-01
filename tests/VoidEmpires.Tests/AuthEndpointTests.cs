@@ -21,7 +21,7 @@ public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     [Fact]
     public async Task RegisterReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = _factory.CreateClient();
+        using var client = _factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.PostAsJsonAsync(
             "/api/auth/register",
@@ -33,7 +33,7 @@ public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     [Fact]
     public async Task ConfirmEmailReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = _factory.CreateClient();
+        using var client = _factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.GetAsync("/api/auth/confirm-email?userId=user-123&token=test-token");
 
