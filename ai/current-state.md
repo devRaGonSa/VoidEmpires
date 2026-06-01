@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 7T - Exploration mission lifecycle docs and smoke coverage`.
+The repository is consolidated through `Phase 7Y - Strategic map unknown planet sanitization`.
 
 ## Repository Reality
 
@@ -55,16 +55,18 @@ Current implemented foundations:
 - Development-only strategic map endpoint at `GET /api/dev/strategic-map?civilizationId={id}` exposes the Phase 7E read model behind existing development gating and persistence checks.
 - Strategic map development contract documentation under `docs/dev/strategic-map-api-contract.md` describes request/response fields, gating behavior, side effects, limitations, and relationship to visual/fleet read models.
 - Strategic map projections sanitize foreign owned planet visual intensity details until a real visibility/sensor model exists.
-- Read-only map visibility service derives civilization-scoped visibility from current persisted ownership: owned planets are `Owned`, systems containing owned planets are `Visible`, other planets in visible systems are `Visible` but not owned, and all other persisted systems/planets are represented as `Unknown` with detail fields hidden.
+- Read-only map visibility service derives civilization-scoped visibility from current persisted ownership and exploration knowledge: owned planets are `Owned`, systems containing owned planets are `Visible`, other planets in ownership-visible systems are `Visible` but not owned, explored systems are `Visible`, explored planets are `Visible`, and unknown systems/planets keep detail fields hidden.
 - Strategic map system and planet DTOs now include derived visibility level, reason, and visibility booleans so development clients can distinguish owned, visible, and unknown relevant map nodes without adding persisted fog-of-war.
 - Strategic map system and planet DTOs now include read-only command availability metadata for map view/detail and fleet travel/transfer capability hints. These flags are UI-readiness metadata and do not replace existing command validation.
 - Strategic map system and planet DTOs now include read-only exploration preview metadata for unknown nodes while blocking preview for already-visible or owned nodes.
+- Strategic map planet DTOs sanitize unknown planets by keeping detail fields null while preserving stable ids, visibility metadata, preview metadata, and command availability.
 - Development-only strategic map action manifest at `GET /api/dev/strategic-map/action-manifest` exposes deterministic metadata for current strategic map, visual state, fleet UI state, exploration preview, and related manifest read actions.
 - Development-only exploration preview endpoint at `GET /api/dev/strategic-map/exploration-preview?civilizationId={id}` exposes read-only exploration readiness metadata derived from map visibility.
 - Minimal persistent exploration mission foundation exists with `ExplorationMission`, `ExplorationMissionStatus`, EF mapping, and a migration for planned/completed mission lifecycle state. No creation endpoint, completion worker, visibility reveal, sensors, fog-of-war, route graph, pathfinding, combat, interception, or UI behavior has been added.
+- Minimal persistent exploration knowledge foundation exists with `ExplorationKnowledge`, `ExplorationKnowledgeSource`, EF mapping, and a migration for civilization-scoped known systems and optional known planets. Mission completion records it, and map visibility consumes it as read-only visibility.
 - Development-only exploration mission creation exists at `POST /api/dev/strategic-map/exploration-missions/create`, creating planned missions only for current exploration-preview-eligible unknown targets with deterministic placeholder due times and no resource cost, fleet assignment, completion, visibility reveal, sensors, fog-of-war, route graph, pathfinding, combat, interception, or UI behavior.
-- Development-only exploration mission completion exists at `POST /api/dev/strategic-map/exploration-missions/complete-due`, marking due planned missions completed without visibility reveal, known-system/fog-of-war/sensor persistence, rewards, combat, interception, route graph, pathfinding, background worker, or UI behavior.
-- Exploration mission lifecycle smoke coverage validates preview -> create planned mission -> complete due mission while strategic map visibility remains conservative and seeded fleet/resource state remains unchanged.
+- Development-only exploration mission completion exists at `POST /api/dev/strategic-map/exploration-missions/complete-due`, marking due planned missions completed and recording exploration knowledge that read models can expose as visibility without fog-of-war/sensor persistence, rewards, combat, interception, route graph, pathfinding, background worker, or UI behavior.
+- Exploration mission lifecycle smoke coverage validates preview -> create planned mission -> complete due mission -> record knowledge -> reveal read-model visibility -> strategic map exposure and preview blocking, while ownership remains unassigned, foreign-owned details stay sanitized, and seeded fleet/resource state remains unchanged.
 - Strategic map readiness smoke coverage validates that strategic map, visual state, fleet UI state, strategic map action manifest, and exploration preview read surfaces remain coherent and do not mutate stockpiles, orbital groups, or transfers.
 - Visibility and command readiness smoke coverage validates owned, foreign-owned, and unknown strategic map nodes across visibility and strategic map read models; verifies command availability for visible nodes and blocked commands for unknown nodes; and protects read-only behavior across systems, planets, ownerships, stockpiles, orbital groups, and transfers.
 - Static visual sandbox at `/dev/visual-state/index.html`.
@@ -129,7 +131,7 @@ Accepted current rules:
 - Fleet UI state route/fuel readiness hints intentionally do not invent a destination. The travel estimate endpoint remains the source of concrete route profile and fuel readiness previews because it requires `destinationPlanetId`.
 - Fleet action manifest is read-only development tooling for future UI prototypes. It lists available dev fleet actions and contracts, including route/fuel preview guidance, but does not replace command validation.
 - The current sandbox renders markers and transfer route lines as visual indicators only.
-- Strategic map read model is read-only backend preparation for future map UI. Phase 7G scopes relevance to owned planets and active transfer origin/destination planets for the requesting civilization; no separate known/visibility model exists yet. Ownership, fleet details, and detailed planet visual intensity signals from other civilizations are not exposed by this read model.
+- Strategic map read model is read-only backend preparation for future map UI. Relevance includes owned planets, active transfer origin/destination planets, and exploration-known systems for the requesting civilization. Ownership, fleet details, and detailed planet visual intensity signals from other civilizations are not exposed by this read model.
 - Map visibility is a derived read-only projection, not persisted fog-of-war. Phase 7I does not add exploration missions, sensors, known-system persistence, espionage, diplomacy, route graphs, pathfinding, combat, interception, or UI. Until a real knowledge model exists, unknown systems and planets are returned with identifiers and `Unknown` visibility while names, coordinates, star type, planet type, size, colonization status, and orbital slot are hidden.
 - Strategic map visibility integration remains annotation-only. Phase 7J preserves the existing strategic-map relevance scope and can annotate already-relevant active-transfer destinations as `Unknown`, but it does not make the strategic map endpoint enumerate every unknown persisted system.
 - Strategic map command availability is deterministic and read-only. Phase 7K derives availability from visibility and current requesting-civilization fleet context, blocks unknown/not-visible nodes explicitly, and keeps transfer creation routed through existing fleet command validation.
@@ -142,6 +144,11 @@ Accepted current rules:
 - Phase 7R adds a minimal creation service and dev-only endpoint for planned exploration missions. System-level placeholder missions are due after 30 minutes, planet-level placeholder missions after 45 minutes, and creation is allowed only when the existing exploration preview marks the target as eligible.
 - Phase 7S adds a minimal completion service and dev-only endpoint that completes due planned missions by timestamp. Completion currently closes mission lifecycle state only and intentionally does not reveal visibility or create knowledge/fog-of-war persistence.
 - Phase 7T adds lifecycle smoke coverage and documentation for the current preview -> create -> complete flow. The expected behavior remains conservative: completed exploration missions do not reveal targets, create known-system/fog-of-war/sensor state, grant rewards, or mutate fleet/resource state.
+- Phase 7U adds only the exploration knowledge persistence foundation: civilization, system, optional planet, discovery source, optional source mission, discovery timestamp, and database uniqueness indexes for system-level and planet-level knowledge. It does not change visibility, mission completion, sensors, scanners, fog-of-war behavior, or UI.
+- Phase 7V records exploration knowledge when due planned exploration missions complete. System-target missions record system knowledge; planet-target missions record both system and planet knowledge. Map visibility and strategic map reads do not consume this knowledge until Phase 7W.
+- Phase 7W integrates exploration knowledge into map visibility and strategic map relevance. Ownership still has priority; explored systems and planets use existing `Visible` visibility with `ExploredSystem` and `ExploredPlanet` reasons; system-level knowledge does not reveal every planet detail.
+- Phase 7X hardens the full exploration reveal lifecycle with smoke coverage and documentation. The validated path proves knowledge recording, visibility consumption, conservative strategic-map exposure, blocked preview after reveal, no ownership leakage, and no resource/fleet/reward mutation.
+- Phase 7Y hardens strategic map projection sanitization so unknown planets in explored systems do not leak names, planet types, sizes, colonization status, orbital layout, visual scale, or intensity details.
 
 ## Dev Surface Gating Note
 
@@ -164,14 +171,14 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 7T: `434` passing tests.
+Current validated baseline after Phase 7Y: `442` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, and the minimal exploration mission lifecycle.
 
 ## Recommended Next Work
 
 1. Deepen movement only after deciding whether route graphs, pathfinding, persisted fuel inventory, or refueling are required.
-2. Add real exploration visibility reveal only after defining the persisted knowledge/fog-of-war boundary and its conservative read-model impact.
+2. Consider whether exploration knowledge should later evolve into a richer fog-of-war model with separate known/scanned/sensored states.
 3. Add combat/interception foundations only after fleet movement and visibility contracts stabilize.
 4. Start a real renderer spike only after the visual state contract remains stable.
 5. Keep `XUniversePlanet Generator Variator` as an external/local prototype reference until the renderer/prototype phase needs it.

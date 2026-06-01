@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Colonization;
+using VoidEmpires.Domain.Exploration;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -35,9 +36,15 @@ public sealed class MapVisibilityService(VoidEmpiresDbContext dbContext) : IMapV
             .Where(x => x.CivilizationId == request.CivilizationId)
             .Select(x => x.PlanetId)
             .ToHashSet();
+        var knowledge = await dbContext.Set<ExplorationKnowledge>()
+            .AsNoTracking()
+            .Where(x => x.CivilizationId == request.CivilizationId)
+            .ToListAsync(cancellationToken);
+        var knownSystemIds = knowledge.Select(x => x.SystemId).ToHashSet();
+        var knownPlanetIds = knowledge.Where(x => x.PlanetId.HasValue).Select(x => x.PlanetId!.Value).ToHashSet();
 
         var resultSystems = systems
-            .Select(system => CreateSystem(system, request.CivilizationId, ownedPlanetIds, ownerships))
+            .Select(system => CreateSystem(system, request.CivilizationId, ownedPlanetIds, ownerships, knownSystemIds, knownPlanetIds))
             .ToArray();
 
         return new GetMapVisibilityResult(request.CivilizationId, resultSystems);
@@ -47,13 +54,15 @@ public sealed class MapVisibilityService(VoidEmpiresDbContext dbContext) : IMapV
         SolarSystem system,
         Guid civilizationId,
         IReadOnlySet<Guid> ownedPlanetIds,
-        IReadOnlyDictionary<Guid, PlanetOwnership> ownerships)
+        IReadOnlyDictionary<Guid, PlanetOwnership> ownerships,
+        IReadOnlySet<Guid> knownSystemIds,
+        IReadOnlySet<Guid> knownPlanetIds)
     {
-        var isVisible = system.Planets.Any(x => ownedPlanetIds.Contains(x.Id));
+        var hasOwnedPlanet = system.Planets.Any(x => ownedPlanetIds.Contains(x.Id));
+        var isVisible = hasOwnedPlanet || knownSystemIds.Contains(system.Id);
         var visibilityLevel = isVisible ? MapVisibilityLevel.Visible : MapVisibilityLevel.Unknown;
-        var reason = isVisible
-            ? MapVisibilityReason.SystemContainsOwnedPlanet
-            : MapVisibilityReason.NoKnownVisibilitySource;
+        var reason = hasOwnedPlanet ? MapVisibilityReason.SystemContainsOwnedPlanet :
+            isVisible ? MapVisibilityReason.ExploredSystem : MapVisibilityReason.NoKnownVisibilitySource;
 
         return new MapSystemVisibilityDto(
             system.Id,
@@ -70,29 +79,29 @@ public sealed class MapVisibilityService(VoidEmpiresDbContext dbContext) : IMapV
             system.Planets
                 .OrderBy(x => x.OrbitalSlot)
                 .ThenBy(x => x.Id)
-                .Select(planet => CreatePlanet(planet, civilizationId, isVisible, ownedPlanetIds, ownerships))
+                .Select(planet => CreatePlanet(planet, civilizationId, hasOwnedPlanet, ownedPlanetIds, ownerships, knownPlanetIds))
                 .ToArray());
     }
 
     private static MapPlanetVisibilityDto CreatePlanet(
         Planet planet,
         Guid civilizationId,
-        bool systemIsVisible,
+        bool systemContainsOwnedPlanet,
         IReadOnlySet<Guid> ownedPlanetIds,
-        IReadOnlyDictionary<Guid, PlanetOwnership> ownerships)
+        IReadOnlyDictionary<Guid, PlanetOwnership> ownerships,
+        IReadOnlySet<Guid> knownPlanetIds)
     {
         var isOwned = ownedPlanetIds.Contains(planet.Id);
-        var isVisible = isOwned || systemIsVisible;
+        var isKnown = knownPlanetIds.Contains(planet.Id);
+        var isVisible = isOwned || systemContainsOwnedPlanet || isKnown;
         var visibilityLevel = isOwned
             ? MapVisibilityLevel.Owned
             : isVisible
                 ? MapVisibilityLevel.Visible
                 : MapVisibilityLevel.Unknown;
-        var reason = isOwned
-            ? MapVisibilityReason.OwnedPlanet
-            : isVisible
-                ? MapVisibilityReason.SystemContainsOwnedPlanet
-                : MapVisibilityReason.NoKnownVisibilitySource;
+        var reason = isOwned ? MapVisibilityReason.OwnedPlanet :
+            systemContainsOwnedPlanet ? MapVisibilityReason.SystemContainsOwnedPlanet :
+            isKnown ? MapVisibilityReason.ExploredPlanet : MapVisibilityReason.NoKnownVisibilitySource;
 
         return new MapPlanetVisibilityDto(
             planet.Id,
