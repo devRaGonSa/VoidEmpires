@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 7W - Map visibility uses exploration knowledge`.
+The repository is consolidated through `Phase 7X - Exploration reveal lifecycle docs and smoke coverage`.
 
 ## Repository Reality
 
@@ -65,7 +65,7 @@ Current implemented foundations:
 - Minimal persistent exploration knowledge foundation exists with `ExplorationKnowledge`, `ExplorationKnowledgeSource`, EF mapping, and a migration for civilization-scoped known systems and optional known planets. Mission completion records it, and map visibility consumes it as read-only visibility.
 - Development-only exploration mission creation exists at `POST /api/dev/strategic-map/exploration-missions/create`, creating planned missions only for current exploration-preview-eligible unknown targets with deterministic placeholder due times and no resource cost, fleet assignment, completion, visibility reveal, sensors, fog-of-war, route graph, pathfinding, combat, interception, or UI behavior.
 - Development-only exploration mission completion exists at `POST /api/dev/strategic-map/exploration-missions/complete-due`, marking due planned missions completed and recording exploration knowledge that read models can expose as visibility without fog-of-war/sensor persistence, rewards, combat, interception, route graph, pathfinding, background worker, or UI behavior.
-- Exploration mission lifecycle smoke coverage validates preview -> create planned mission -> complete due mission -> record knowledge -> reveal read-model visibility while seeded fleet/resource state remains unchanged.
+- Exploration mission lifecycle smoke coverage validates preview -> create planned mission -> complete due mission -> record knowledge -> reveal read-model visibility -> strategic map exposure and preview blocking, while ownership remains unassigned, foreign-owned details stay sanitized, and seeded fleet/resource state remains unchanged.
 - Strategic map readiness smoke coverage validates that strategic map, visual state, fleet UI state, strategic map action manifest, and exploration preview read surfaces remain coherent and do not mutate stockpiles, orbital groups, or transfers.
 - Visibility and command readiness smoke coverage validates owned, foreign-owned, and unknown strategic map nodes across visibility and strategic map read models; verifies command availability for visible nodes and blocked commands for unknown nodes; and protects read-only behavior across systems, planets, ownerships, stockpiles, orbital groups, and transfers.
 - Static visual sandbox at `/dev/visual-state/index.html`.
@@ -146,6 +146,7 @@ Accepted current rules:
 - Phase 7U adds only the exploration knowledge persistence foundation: civilization, system, optional planet, discovery source, optional source mission, discovery timestamp, and database uniqueness indexes for system-level and planet-level knowledge. It does not change visibility, mission completion, sensors, scanners, fog-of-war behavior, or UI.
 - Phase 7V records exploration knowledge when due planned exploration missions complete. System-target missions record system knowledge; planet-target missions record both system and planet knowledge. Map visibility and strategic map reads do not consume this knowledge until Phase 7W.
 - Phase 7W integrates exploration knowledge into map visibility and strategic map relevance. Ownership still has priority; explored systems and planets use existing `Visible` visibility with `ExploredSystem` and `ExploredPlanet` reasons; system-level knowledge does not reveal every planet detail.
+- Phase 7X hardens the full exploration reveal lifecycle with smoke coverage and documentation. The validated path proves knowledge recording, visibility consumption, conservative strategic-map exposure, blocked preview after reveal, no ownership leakage, and no resource/fleet/reward mutation.
 
 ## Dev Surface Gating Note
 
@@ -168,14 +169,14 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 7W: `442` passing tests.
+Current validated baseline after Phase 7X: `442` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, and the minimal exploration mission lifecycle.
 
 ## Recommended Next Work
 
 1. Deepen movement only after deciding whether route graphs, pathfinding, persisted fuel inventory, or refueling are required.
-2. Add real exploration visibility reveal only after defining the persisted knowledge/fog-of-war boundary and its conservative read-model impact.
+2. Consider whether exploration knowledge should later evolve into a richer fog-of-war model with separate known/scanned/sensored states.
 3. Add combat/interception foundations only after fleet movement and visibility contracts stabilize.
 4. Start a real renderer spike only after the visual state contract remains stable.
 5. Keep `XUniversePlanet Generator Variator` as an external/local prototype reference until the renderer/prototype phase needs it.

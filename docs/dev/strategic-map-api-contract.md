@@ -155,7 +155,7 @@ The manifest is read-only metadata for UI discovery. It does not require persist
 - `systems[]`: relevant systems for the current strategic map model.
 - `routeFuelNotes[]`: capability notes for route/fuel previews.
 
-Current relevance is inherited from the Phase 7E service: systems are included when they contain owned planets or active transfer origin/destination planets for the requesting civilization. There is no separate known-system, sensor, alliance, or espionage visibility model yet.
+Current relevance includes systems that contain owned planets, active transfer origin/destination planets, or exploration knowledge for the requesting civilization. There is no sensor, alliance, diplomacy, or espionage visibility model yet.
 
 Visibility fields are inherited from the map visibility service. They are read-only annotations and do not represent persisted fog-of-war. Current levels are `Owned`, `Visible`, and `Unknown`; current reasons are `OwnedPlanet`, `SystemContainsOwnedPlanet`, `ExploredSystem`, `ExploredPlanet`, and `NoKnownVisibilitySource`.
 
@@ -229,11 +229,23 @@ Each `planets[]` item contains `planetId`, `visibilityLevel`, `canPreviewPlanetE
 
 Current placeholder rule: `Unknown` nodes can show exploration preview as available; `Visible` and `Owned` nodes are blocked as already visible or already owned. This is a UI-readiness preview only and does not create any mission or persisted knowledge.
 
+## Exploration Reveal Rules
+
+The current reveal lifecycle is:
+
+1. Unknown systems and planets can be previewed for exploration.
+2. Mission creation persists a planned mission for an eligible target.
+3. Completing due missions records exploration knowledge for the target system and, when applicable, the target planet.
+4. Map visibility consumes exploration knowledge as read-only `Visible` results with `ExploredSystem` or `ExploredPlanet` reasons.
+5. Strategic map relevance includes exploration-known systems, and exploration preview is blocked for revealed targets.
+
+Ownership remains higher priority than exploration knowledge. System-level knowledge reveals system visibility but does not reveal every planet in that system. Planet-level knowledge reveals only that planet. Foreign ownership is not assigned to the requesting civilization and foreign-owned visual intensity details remain sanitized.
+
 ## Side Effects
 
 The exploration mission create endpoint persists a planned `ExplorationMission` only. The exploration mission complete-due endpoint updates due planned missions to completed and records exploration knowledge consumed by current visibility reads. The current read endpoints remain read-only.
 
-The strategic map endpoints do not create transfers, reserve fleets, complete transfers, charge resources, mutate stockpiles, persist route estimates, create sensor data, reveal visibility, create known-system/fog-of-war state, or write map state.
+The strategic map endpoints do not create transfers, reserve fleets, complete transfers, charge resources, mutate stockpiles, persist route estimates, create sensor data, create fog-of-war state, or write map state.
 
 Command availability is UI metadata, not authorization and not command execution. It does not bypass fleet command validation.
 
