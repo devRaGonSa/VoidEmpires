@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Colonization;
+using VoidEmpires.Domain.Diplomacy;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Exploration;
 using VoidEmpires.Domain.Fleets;
@@ -39,6 +40,8 @@ namespace VoidEmpires.Infrastructure.Persistence
         public DbSet<PlayerProfile> PlayerProfiles => Set<PlayerProfile>();
 
         public DbSet<Civilization> Civilizations => Set<Civilization>();
+
+        public DbSet<DiplomaticContact> DiplomaticContacts => Set<DiplomaticContact>();
 
         public DbSet<PlanetOwnership> PlanetOwnerships => Set<PlanetOwnership>();
 
