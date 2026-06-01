@@ -4,7 +4,7 @@
 
 id: TASK-7R
 title: Add exploration mission creation service and dev endpoint
-status: pending
+status: done
 type: feature
 team: backend
 supporting_teams:

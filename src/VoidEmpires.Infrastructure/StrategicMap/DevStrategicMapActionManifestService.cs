@@ -10,6 +10,7 @@ public sealed class DevStrategicMapActionManifestService : IDevStrategicMapActio
     [
         Read("strategicMap.read", "Read strategic map", "GET", "/api/dev/strategic-map", [Field("civilizationId", "Guid")], "Returns civilization-scoped relevant systems, planet summaries, fleet presence, transfer overlays, command availability metadata, exploration preview metadata, and route/fuel capability notes."),
         Read("strategicMap.explorationPreview.read", "Read exploration preview", "GET", "/api/dev/strategic-map/exploration-preview", [Field("civilizationId", "Guid")], "Returns read-only exploration readiness metadata derived from map visibility. It does not create missions, sensors, persisted fog-of-war, espionage, diplomacy, combat, or route graph state."),
+        Mutating("exploration.mission.create", "Create exploration mission", "POST", "/api/dev/strategic-map/exploration-missions/create", [Field("civilizationId", "Guid"), Field("targetSystemId", "Guid"), Field("targetPlanetId", "Guid", false), Field("requestedAtUtc", "DateTime")], "Creates a minimal planned exploration mission for a preview-eligible unknown target with deterministic placeholder duration. It does not complete missions, reveal visibility, assign fleets, charge resources, or create sensor/fog-of-war state."),
         Read("visual.system.read", "Read system visual state", "GET", "/api/dev/solar-systems/{systemId}/visual-state", [Field("systemId", "Guid")], "Returns renderer-facing star, coordinate, layout, planet visual state, marker, and transfer overlay data for one solar system."),
         Read("visual.planet.read", "Read planet visual state", "GET", "/api/dev/planets/{planetId}/visual-state", [Field("planetId", "Guid")], "Returns renderer-facing visual state for one planet without meshes, textures, binary assets, or shader data."),
         Read("fleet.uiState.read", "Read fleet UI state", "GET", "/api/dev/fleets/ui-state", [Field("civilizationId", "Guid")], "Returns fleet screen state and route/fuel readiness capability hints related to map tooling."),
@@ -25,5 +26,13 @@ public sealed class DevStrategicMapActionManifestService : IDevStrategicMapActio
         IReadOnlyList<DevStrategicMapActionFieldDto> fields,
         string notes) => new(key, displayName, method, route, true, fields, 200, [400, 404, 503], notes);
 
-    private static DevStrategicMapActionFieldDto Field(string name, string type) => new(name, type, true);
+    private static DevStrategicMapActionManifestItem Mutating(
+        string key,
+        string displayName,
+        string method,
+        string route,
+        IReadOnlyList<DevStrategicMapActionFieldDto> fields,
+        string notes) => new(key, displayName, method, route, false, fields, 201, [400, 404, 409, 503], notes);
+
+    private static DevStrategicMapActionFieldDto Field(string name, string type, bool isRequired = true) => new(name, type, isRequired);
 }

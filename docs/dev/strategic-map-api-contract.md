@@ -2,7 +2,7 @@
 
 ## Scope and Gating
 
-This contract documents the current development-only strategic map read endpoints and action manifest for future UI and sandbox work. It is not a production gameplay endpoint.
+This contract documents the current development-only strategic map endpoints and action manifest for future UI and sandbox work. It is not a production gameplay endpoint.
 
 The routes are mapped when the web host runs in `Development` or `VoidEmpires:DevEndpoints:Enabled=true`. If the development surface is disabled, routes return `404 Not Found`. If a persistence-backed route is mapped but `ConnectionStrings:DefaultConnection` is empty, it returns `503 Service Unavailable`.
 
@@ -58,6 +58,35 @@ Response envelope:
 
 The preview is read-only metadata derived from map visibility. It does not create exploration missions, sensors, persisted fog-of-war, scanner data, espionage, diplomacy, combat, interception, route graph, pathfinding, or UI state.
 
+### Exploration Mission Create
+
+`POST /api/dev/strategic-map/exploration-missions/create`
+
+Body:
+
+- `civilizationId`: required non-empty GUID. Scopes the request to the creating civilization.
+- `targetSystemId`: required non-empty GUID. Target system to explore.
+- `targetPlanetId`: optional non-empty GUID. When provided, it must belong to `targetSystemId`.
+- `requestedAtUtc`: required UTC timestamp.
+
+Responses:
+
+| Status | Meaning |
+|---|---|
+| `201 Created` | Planned exploration mission created. |
+| `400 Bad Request` | Missing fields, invalid ids/timestamp, unknown civilization/system, or planet not in system. |
+| `404 Not Found` | Development route is disabled. |
+| `409 Conflict` | Current visibility/preview rules do not allow exploration for the target. |
+| `503 Service Unavailable` | Persistence is not configured. |
+
+Response envelope:
+
+- `succeeded`: `true` on success.
+- `mission`: created mission summary, or `null` on failure.
+- `errors[]`: validation or eligibility errors.
+
+The placeholder duration is deterministic: system-level missions are due 30 minutes after `requestedAtUtc`; planet-level missions are due 45 minutes after `requestedAtUtc`. Creation does not complete the mission, reveal visibility, assign fleets, charge resources, create sensors/scanners, mutate fog-of-war, or add route/pathfinding state.
+
 ### Strategic Map Action Manifest
 
 `GET /api/dev/strategic-map/action-manifest`
@@ -77,7 +106,7 @@ Response envelope:
 
 Each manifest action contains `actionKey`, `displayName`, `method`, `route`, `isReadOnly`, `requiredFields[]`, `successStatus`, `errorStatuses[]`, and `notes`.
 
-Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
+Current action keys: `strategicMap.read`, `strategicMap.explorationPreview.read`, `exploration.mission.create`, `visual.system.read`, `visual.planet.read`, `fleet.uiState.read`, `fleet.actionManifest.read`, and `strategicMap.actionManifest.read`.
 
 The manifest is read-only metadata for UI discovery. It does not require persistence and does not execute the listed actions.
 
@@ -165,7 +194,9 @@ Current placeholder rule: `Unknown` nodes can show exploration preview as availa
 
 ## Side Effects
 
-None. These endpoints are read-only. They do not create transfers, reserve fleets, complete transfers, charge resources, mutate stockpiles, persist route estimates, create exploration missions, create sensor data, or write map state.
+The exploration mission create endpoint persists a planned `ExplorationMission` only. The current read endpoints remain read-only.
+
+The strategic map endpoints do not create transfers, reserve fleets, complete transfers, charge resources, mutate stockpiles, persist route estimates, create sensor data, reveal visibility, or write map state.
 
 Command availability is UI metadata, not authorization and not command execution. It does not bypass fleet command validation.
 
@@ -177,6 +208,7 @@ The strategic map read model reuses the same underlying persisted state summariz
 - Fleet UI state provides group command and route/fuel readiness hints for screen-specific fleet tooling.
 - The strategic map endpoint consolidates map-level system, planet, fleet presence, transfer overlay, exploration preview, and route/fuel capability summaries.
 - The exploration preview endpoint exposes the same placeholder exploration readiness as a direct read contract for UI tooling.
+- The exploration mission create endpoint consumes that preview eligibility and creates a planned mission for unknown targets only.
 - The strategic map action manifest lists these related read actions so future prototypes can discover routes and required fields without hardcoding every contract.
 
 Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` when they need destination-specific route class, risk, placeholder fuel readiness, travel costs, and affordability.
@@ -189,7 +221,7 @@ Frontend prototypes should call `POST /api/dev/fleets/orbital-travel/estimate` w
 - No combat or interception.
 - No alliances, diplomacy, sensors, or espionage visibility model.
 - Unknown visibility can appear for strategic-map nodes that are relevant for another reason, such as an active transfer destination, but the strategic map endpoint does not return every persisted unknown system.
-- Exploration preview is placeholder/read-only and does not create exploration missions or persisted fog-of-war.
+- Exploration preview is placeholder/read-only. Mission creation is a separate development-only POST endpoint and does not create persisted fog-of-war or reveal visibility.
 - No fuel inventory, refueling, or fuel spending.
 - No meshes, textures, binary assets, shader data, or heavy render payloads.
 - Transfer progress remains a read-time visual approximation.

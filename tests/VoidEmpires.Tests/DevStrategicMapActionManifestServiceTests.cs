@@ -13,6 +13,7 @@ public class DevStrategicMapActionManifestServiceTests
         Assert.Equal([
             "strategicMap.read",
             "strategicMap.explorationPreview.read",
+            "exploration.mission.create",
             "visual.system.read",
             "visual.planet.read",
             "fleet.uiState.read",
@@ -28,10 +29,7 @@ public class DevStrategicMapActionManifestServiceTests
 
         foreach (var action in result.Actions)
         {
-            Assert.Equal("GET", action.Method);
             Assert.StartsWith("/api/dev/", action.Route, StringComparison.Ordinal);
-            Assert.True(action.IsReadOnly);
-            Assert.Equal(200, action.SuccessStatus);
             Assert.NotEmpty(action.ErrorStatuses);
             Assert.False(string.IsNullOrWhiteSpace(action.Notes));
         }
@@ -47,6 +45,14 @@ public class DevStrategicMapActionManifestServiceTests
         Assert.Equal("/api/dev/strategic-map/exploration-preview", exploration.Route);
         Assert.Contains(exploration.RequiredFields, x => x.Name == "civilizationId" && x.Type == "Guid" && x.IsRequired);
         Assert.Contains("read-only exploration readiness", exploration.Notes, StringComparison.OrdinalIgnoreCase);
+
+        var create = result.Actions.Single(x => x.ActionKey == "exploration.mission.create");
+        Assert.Equal("POST", create.Method);
+        Assert.False(create.IsReadOnly);
+        Assert.Equal(201, create.SuccessStatus);
+        Assert.Contains(409, create.ErrorStatuses);
+        Assert.Contains(create.RequiredFields, x => x.Name == "targetPlanetId" && !x.IsRequired);
+        Assert.Contains("does not complete missions", create.Notes, StringComparison.OrdinalIgnoreCase);
 
         var manifest = result.Actions.Single(x => x.ActionKey == "strategicMap.actionManifest.read");
         Assert.Empty(manifest.RequiredFields);
