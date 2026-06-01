@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 8V - Alliance readiness dev endpoint and manifest metadata`.
+The repository is consolidated through `Phase 8W - Alliance readiness smoke coverage`.
 
 ## Repository Reality
 
@@ -88,6 +88,7 @@ Current implemented foundations:
 - Minimal alliance readiness foundation exists with `Alliance`, `AllianceMembership`, status/role enums, EF mapping, and a civilization-scoped read-only query service that returns deterministic alliance membership metadata without granting gameplay permissions, shared visibility, diplomacy automation, pacts, trade, espionage, war, combat, chat, or UI behavior.
 - Strategic map now surfaces top-level alliance readiness notes plus requesting-civilization alliance membership metadata, while keeping alliance readiness read-only and preserving the current rule that alliances do not add relevance, reveal allied systems/fleets, share visibility, or share sensor/detection/interception data.
 - Development-only alliance readiness read endpoint at `GET /api/dev/strategic-map/alliances/readiness?civilizationId={id}` now exposes civilization-scoped alliance metadata directly for tooling, and the strategic map action manifest now includes `alliance.readiness.read`.
+- Alliance readiness smoke coverage now validates direct alliance readiness reads, diplomatic contacts, strategic map metadata, manifest discoverability, conservative visibility, and no-mutation guarantees together.
 - Strategic map readiness smoke coverage validates that strategic map, visual state, fleet UI state, strategic map action manifest, and exploration preview read surfaces remain coherent and do not mutate stockpiles, orbital groups, or transfers.
 - Visibility and command readiness smoke coverage validates owned, foreign-owned, and unknown strategic map nodes across visibility and strategic map read models; verifies command availability for visible nodes and blocked commands for unknown nodes; and protects read-only behavior across systems, planets, ownerships, stockpiles, orbital groups, and transfers.
 - Static visual sandbox at `/dev/visual-state/index.html`.
@@ -188,6 +189,7 @@ Accepted current rules:
 - Phase 8T adds a minimal alliance readiness foundation: persisted alliance and alliance membership metadata, conservative validation, a deterministic civilization-scoped read query, and focused tests. It intentionally does not add invitations, permissions, shared visibility, pacts, trade, espionage, war, combat, chat, production endpoints, or final UI.
 - Phase 8U integrates that alliance readiness foundation into the strategic map as top-level notes plus requesting-civilization membership metadata only. Diplomatic contacts remain separate metadata, and alliance readiness still does not change relevance, visibility, authorization, or allied data exposure.
 - Phase 8V adds a development-only alliance readiness read endpoint plus strategic-map action manifest metadata so tooling can inspect alliance readiness directly without adding production endpoints, gameplay effects, shared visibility, permissions, or allied data exposure.
+- Phase 8W hardens the full alliance readiness path with smoke coverage across the query service, diplomatic contacts, strategic map, manifest metadata, conservative visibility, and no-mutation guarantees.
 
 ## Dev Surface Gating Note
 
@@ -210,7 +212,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 8V: `514` passing tests.
+Current validated baseline after Phase 8W: `515` passing tests.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, and the minimal exploration mission lifecycle.
 
