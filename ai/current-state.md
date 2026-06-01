@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 9A - Pre-frontend contract checkpoint`.
+The repository is consolidated through `Phase 9B - Frontend shell foundation`.
 
 ## Repository Reality
 
@@ -98,6 +98,7 @@ Current implemented foundations:
 - Static visual sandbox at `/dev/visual-state/index.html`.
 - CSS-only pseudo-3D visual sandbox rendering for planet/system preview, overlays, markers, and transfer routes.
 - Static sandbox assets are gated behind the same development switch as development APIs.
+- `src/VoidEmpires.Frontend` now provides a minimal Vite + React + TypeScript frontend shell with a conservative app layout, route placeholders for strategic map and fleet inspection, backend base URL configuration through `VITE_VOIDEMPIRES_API_BASE_URL`, and explicit development-only warnings.
 
 Current foundation chain:
 
@@ -198,6 +199,7 @@ Accepted current rules:
 - Phase 8Y integrates that alliance pact readiness foundation into the strategic map as top-level notes plus requesting-civilization pact metadata only. Pact readiness still does not change strategic-map relevance, visibility, authorization, allied data exposure, trade behavior, war state, defense behavior, or combat behavior.
 - Phase 8Z adds a development-only alliance pact readiness read endpoint plus strategic-map action manifest metadata so tooling can inspect pact readiness directly without adding production endpoints, shared visibility, permissions, trade behavior, war state, defense behavior, espionage, combat, or final UI.
 - Phase 9A adds a documentation-first checkpoint for frontend foundation work, consolidating stable dev/backend contracts, current read-only versus mutating surfaces, readiness limitations, non-goals, and a recommended safe first frontend slice without adding production endpoints or gameplay behavior.
+- Phase 9B adds the first frontend project foundation under `src/VoidEmpires.Frontend` with Vite, React, TypeScript, route placeholders for the strategic map and fleet prototype views, a shared backend API base URL configuration, and a visible reminder that the shell consumes development-only backend contracts.
 
 ## Dev Surface Gating Note
 
