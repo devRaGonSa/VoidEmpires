@@ -3,7 +3,7 @@
 ---
 id: TASK-12E
 title: Phase 12E - Fleet cockpit OGame-style action hierarchy
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

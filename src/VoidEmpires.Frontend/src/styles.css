@@ -1006,6 +1006,34 @@ select {
   margin-top: 14px;
 }
 
+.fleet-action-stage,
+.fleet-action-context {
+  display: grid;
+  gap: var(--ve-space-3);
+}
+
+.fleet-action-stage {
+  margin: 18px 0;
+}
+
+.fleet-action-context,
+.fleet-action-primary-card {
+  border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 22%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--ve-color-accent-blue) 9%, var(--ve-color-panel-2)),
+    color-mix(in srgb, var(--ve-color-panel) 90%, transparent)
+  );
+}
+
+.fleet-prototype-panel {
+  opacity: 0.92;
+}
+
+.prototype-control-grid-compact {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
 .transfer-prepare-button {
   width: 100%;
 }

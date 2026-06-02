@@ -723,10 +723,32 @@ export function FleetsPage() {
               <div className="figma-section-header">
                 <div>
                   <p className="eyebrow">Ejecucion de mando</p>
-                  <h3>Estimacion y acciones protegidas</h3>
-                  <p>La columna de mando reune vista previa, confirmacion y resultado en un solo lugar.</p>
+                  <h3>Ruta, estimacion y orden activa</h3>
+                  <p>Primero eliges escuadra y destino, luego estimas la ruta y por ultimo confirmas la orden protegida.</p>
                 </div>
-                <UiBadge tone="good">Vista segura + mutacion protegida</UiBadge>
+                <UiBadge tone="good">Cabina principal</UiBadge>
+              </div>
+              <div className="fleet-action-stage">
+                <div className="figma-badge-row">
+                  <UiBadge tone="good">1. Escuadra</UiBadge>
+                  <UiBadge tone="good">2. Destino</UiBadge>
+                  <UiBadge tone="good">3. Estimacion</UiBadge>
+                  <UiBadge tone="warn">4. Accion protegida</UiBadge>
+                </div>
+                <div className="subpanel fleet-action-context">
+                  <FleetDataRow
+                    label="Escuadra en foco"
+                    value={
+                      selectedGroup
+                        ? `${formatSpaceAssetType(selectedGroup.assetType)} en ${formatPlanetReference(selectedGroup.currentPlanetId)}`
+                        : "Sin escuadra lista"
+                    }
+                  />
+                  <FleetDataRow
+                    label="Destino previsto"
+                    value={effectiveDestinationPlanetId ? formatPlanetReference(effectiveDestinationPlanetId) : "Sin destino"}
+                  />
+                </div>
               </div>
               <form className="query-form" onSubmit={handleEstimateSubmit}>
                 <label className="field">
@@ -789,7 +811,7 @@ export function FleetsPage() {
               {cancelTransferStaleMessage ? <p className="figma-panel-note">{cancelTransferStaleMessage}</p> : null}
               {cancelTransferNetworkError ? <p className="error-text">{cancelTransferNetworkError}</p> : null}
               {estimateResult ? (
-                <section className="subpanel figma-subpanel">
+                <section className="subpanel figma-subpanel fleet-action-primary-card">
                   <div className="figma-section-header">
                     <div>
                       <p className="eyebrow">Resultado de estimacion</p>
@@ -808,15 +830,15 @@ export function FleetsPage() {
                 </section>
               ) : null}
               {createTransferConfirmationState ? (
-                <section className="subpanel transfer-confirmation-panel">
+                <section className="subpanel transfer-confirmation-panel fleet-action-primary-card">
                   <div className="figma-section-header">
                     <div>
-                      <p className="eyebrow">Accion de desarrollo</p>
+                      <p className="eyebrow">Accion protegida</p>
                       <h4>Crear transferencia orbital</h4>
                       <p>Solo se habilita cuando la ultima estimacion sigue vigente para este grupo y destino.</p>
                     </div>
                     <div className="figma-badge-row">
-                      <UiBadge tone="warn">Accion de desarrollo</UiBadge>
+                      <UiBadge tone="warn">Accion protegida</UiBadge>
                       <UiBadge tone={createTransferConfirmationState.canPrepare ? "good" : "warn"}>
                         {createTransferConfirmationState.canPrepare ? "Lista para confirmar" : "Bloqueada"}
                       </UiBadge>
@@ -869,7 +891,7 @@ export function FleetsPage() {
                 </section>
               ) : null}
               {createTransferResult ? (
-                <section className="subpanel figma-subpanel">
+                <section className="subpanel figma-subpanel fleet-action-primary-card">
                   <div className="figma-section-header">
                     <div>
                       <p className="eyebrow">Resultado de accion</p>
@@ -890,7 +912,7 @@ export function FleetsPage() {
                 </section>
               ) : null}
               {cancelTransferResult ? (
-                <section className="subpanel figma-subpanel">
+                <section className="subpanel figma-subpanel fleet-action-primary-card">
                   <div className="figma-section-header">
                     <div>
                       <p className="eyebrow">Resultado de accion</p>
@@ -966,46 +988,6 @@ export function FleetsPage() {
         </div>
       )}
 
-      {uiState && mutationConfirmations.length > 0 && (
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Solo prototipo</p>
-              <h3>Manifiesto de mutaciones protegidas</h3>
-              <p>Visible para consulta, pero aun bloqueado para la operativa normal.</p>
-            </div>
-            <UiBadge tone="warn">Mutacion protegida</UiBadge>
-          </div>
-          <div className="prototype-control-grid">
-            {mutationConfirmations.map((control) => (
-              <section key={control.actionKey} className="subpanel prototype-control-card">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Contrato de mutacion</p>
-                    <h4>{control.label}</h4>
-                    <p>{control.mutationSummary}</p>
-                  </div>
-                  <div className="figma-badge-row">
-                    <UiBadge tone="warn">Mutacion</UiBadge>
-                    <UiBadge tone={control.readinessTone}>{control.readinessLabel}</UiBadge>
-                    <UiBadge tone={control.prototypeLevel === "danger" ? "warn" : "neutral"}>
-                      {control.prototypeLevel === "danger" ? "Riesgo" : "Solo prototipo"}
-                    </UiBadge>
-                  </div>
-                </div>
-                <button type="button" className="prototype-control-button" disabled>
-                  {control.label}
-                </button>
-                <div className="figma-data-list">
-                  <FleetDataRow label="Confirmacion" value={control.confirmationText} />
-                  <FleetDataRow label="Motivo del bloqueo" value={control.disabledReason} />
-                </div>
-              </section>
-            ))}
-          </div>
-        </UiCard>
-      )}
-
       {(fleetManifest.length > 0 || strategicMapManifest.length > 0) && (
         <div className="fleet-manifest-grid">
           {fleetManifest.length > 0 && (
@@ -1022,6 +1004,42 @@ export function FleetsPage() {
             />
           )}
         </div>
+      )}
+
+      {uiState && mutationConfirmations.length > 0 && (
+        <UiCard className="panel fleet-prototype-panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Solo prototipo</p>
+              <h3>Futuras mutaciones de flota</h3>
+              <p>Se dejan visibles como referencia tecnica, pero no forman parte del flujo principal de ordenes.</p>
+            </div>
+            <UiBadge tone="warn">Solo prototipo</UiBadge>
+          </div>
+          <div className="prototype-control-grid prototype-control-grid-compact">
+            {mutationConfirmations.map((control) => (
+              <section key={control.actionKey} className="subpanel prototype-control-card">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Accion futura</p>
+                    <h4>{control.label}</h4>
+                  </div>
+                  <div className="figma-badge-row">
+                    <UiBadge tone={control.readinessTone}>{control.readinessLabel}</UiBadge>
+                    <UiBadge tone={control.prototypeLevel === "danger" ? "warn" : "neutral"}>
+                      {control.prototypeLevel === "danger" ? "Riesgo" : "Solo prototipo"}
+                    </UiBadge>
+                  </div>
+                </div>
+                <p className="figma-panel-note">{control.mutationSummary}</p>
+                <div className="figma-data-list">
+                  <FleetDataRow label="Requiere confirmacion" value={control.confirmationText} />
+                  <FleetDataRow label="Motivo del bloqueo" value={control.disabledReason} />
+                </div>
+              </section>
+            ))}
+          </div>
+        </UiCard>
       )}
     </section>
   );
