@@ -70,17 +70,34 @@ export function presentEstimateResult(result: FleetCommandApiResult<EstimateOrbi
   const costSummary = response?.resourceCosts.length
     ? response.resourceCosts.map((cost) => `${cost.resourceType} ${cost.quantity}`).join(", ")
     : "No projected cost components.";
+  const defaultSummary =
+    result.httpStatus === 400
+      ? "Validacion rechazada por la API de desarrollo."
+      : result.httpStatus === 404
+        ? "Ruta o datos de desarrollo no encontrados."
+        : result.httpStatus === 409
+          ? "Conflicto detectado en el estado actual de la flota."
+          : result.httpStatus === 503
+            ? "Persistencia no configurada para este entorno."
+            : `Request returned ${result.httpStatus}.`;
 
   return {
     key: "estimate-result",
-    label: "Travel estimate result",
+    label: "Estimacion",
     tone: result.httpStatus === 200 && response?.succeeded ? (response.canAfford ? "good" : "warn") : "warn",
     summary:
       result.httpStatus === 200 && response?.succeeded
-        ? `Distance ${response.abstractDistanceUnits} with ${response.estimatedDuration ?? "unknown duration"}.`
-        : errors[0] ?? `Request returned ${result.httpStatus}.`,
+        ? `Solo lectura completada. Distancia ${response.abstractDistanceUnits} con ${response.estimatedDuration ?? "duracion desconocida"}.`
+        : errors[0] ?? defaultSummary,
     details: [
+      "No ejecuta movimiento.",
       costSummary,
+      ...(response?.routeProfile
+        ? [
+            `Clase de ruta: ${response.routeProfile.routeClass}`,
+            `Banda de riesgo: ${response.routeProfile.riskBand}`,
+          ]
+        : []),
       ...(response?.fuelReadiness ? [`Fuel ready: ${response.fuelReadiness.isFuelReady ? "yes" : "no"}`] : []),
       ...(response?.insufficientResources.map((resource) => `Missing ${resource.resourceType}: ${resource.requiredQuantity - resource.availableQuantity}`) ?? []),
       ...errors.slice(1),

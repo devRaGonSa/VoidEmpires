@@ -1,5 +1,6 @@
 import { FormEvent, useMemo, useState } from "react";
 import type { ActionManifestAction } from "../api/actionManifestTypes";
+import type { FleetCommandPresentationItem } from "../utils/fleetCommandPresentation";
 import type { FleetGroupSummary, FleetUiState } from "../api/fleetTypes";
 import type { ReadinessNote } from "../api/strategicMapTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
@@ -17,7 +18,16 @@ import {
   formatSpaceAssetType,
   formatTransferStatus,
 } from "../utils/domainPresentation";
-import { buildFleetCommandReadiness } from "../utils/fleetCommandPresentation";
+import {
+  buildFleetCommandReadiness,
+  presentEstimateResult,
+} from "../utils/fleetCommandPresentation";
+
+const knownDevelopmentPlanetIds = [
+  "40000000-0000-0000-0000-000000000001",
+  "40000000-0000-0000-0000-000000000002",
+  "40000000-0000-0000-0000-000000000003",
+];
 
 function formatNote(note: ReadinessNote) {
   if (typeof note === "string") {
@@ -93,6 +103,11 @@ export function FleetsPage() {
   const [strategicMapManifest, setStrategicMapManifest] = useState<
     ActionManifestAction[]
   >([]);
+  const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [selectedDestinationPlanetId, setSelectedDestinationPlanetId] = useState("");
+  const [isEstimating, setIsEstimating] = useState(false);
+  const [estimateResult, setEstimateResult] = useState<FleetCommandPresentationItem | null>(null);
+  const [estimateNetworkError, setEstimateNetworkError] = useState<string | null>(null);
 
   const summary = useMemo(() => {
     if (!uiState) {
@@ -107,6 +122,44 @@ export function FleetsPage() {
     };
   }, [uiState]);
 
+  const estimateEligibleGroups = useMemo(
+    () => uiState?.groups.filter((group) => group.routeFuelReadiness?.canRequestTravelEstimate) ?? [],
+    [uiState],
+  );
+
+  const effectiveGroupId = selectedGroupId || estimateEligibleGroups[0]?.id || "";
+  const selectedGroup = useMemo(
+    () => estimateEligibleGroups.find((group) => group.id === effectiveGroupId) ?? null,
+    [effectiveGroupId, estimateEligibleGroups],
+  );
+
+  const destinationOptions = useMemo(() => {
+    const candidates = new Set<string>(knownDevelopmentPlanetIds);
+
+    uiState?.groups.forEach((group) => {
+      candidates.add(group.currentPlanetId);
+      candidates.add(group.originPlanetId);
+      if (group.activeTransfer?.destinationPlanetId) {
+        candidates.add(group.activeTransfer.destinationPlanetId);
+      }
+    });
+
+    uiState?.resourceContexts?.forEach((context) => {
+      candidates.add(context.planetId);
+    });
+
+    return [...candidates]
+      .filter((planetId) => planetId && planetId !== selectedGroup?.currentPlanetId)
+      .sort((left, right) =>
+        formatPlanetReference(left).localeCompare(formatPlanetReference(right)),
+      );
+  }, [selectedGroup?.currentPlanetId, uiState]);
+
+  const effectiveDestinationPlanetId =
+    selectedDestinationPlanetId && destinationOptions.includes(selectedDestinationPlanetId)
+      ? selectedDestinationPlanetId
+      : destinationOptions[0] || "";
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -119,6 +172,8 @@ export function FleetsPage() {
 
     setIsLoading(true);
     setError(null);
+    setEstimateResult(null);
+    setEstimateNetworkError(null);
 
     try {
       const [uiStateResponse, fleetManifestResponse, strategicMapManifestResponse] =
@@ -146,6 +201,38 @@ export function FleetsPage() {
       setError(message);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleEstimateSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!uiState?.civilizationId || !effectiveGroupId || !effectiveDestinationPlanetId) {
+      setEstimateResult(null);
+      setEstimateNetworkError("Selecciona grupo y destino antes de calcular la estimacion.");
+      return;
+    }
+
+    setIsEstimating(true);
+    setEstimateResult(null);
+    setEstimateNetworkError(null);
+
+    try {
+      const result = await voidEmpiresApi.estimateOrbitalTravel({
+        civilizationId: uiState.civilizationId,
+        orbitalGroupId: effectiveGroupId,
+        destinationPlanetId: effectiveDestinationPlanetId,
+      });
+
+      setEstimateResult(presentEstimateResult(result));
+    } catch (requestError) {
+      const message =
+        requestError instanceof Error
+          ? requestError.message
+          : "Network error while requesting travel estimate.";
+      setEstimateNetworkError(message);
+    } finally {
+      setIsEstimating(false);
     }
   }
 
@@ -213,6 +300,94 @@ export function FleetsPage() {
           </ul>
         </UiCard>
       </div>
+
+      {uiState && (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Estimacion</p>
+              <h3>Solo lectura orbital</h3>
+              <p>No ejecuta movimiento, no reserva grupos y no consume recursos.</p>
+            </div>
+            <UiBadge tone="good">POST read-only</UiBadge>
+          </div>
+          <form className="query-form" onSubmit={handleEstimateSubmit}>
+            <label className="field">
+                <span>Grupo elegible</span>
+              <select
+                value={effectiveGroupId}
+                onChange={(event) => setSelectedGroupId(event.target.value)}
+                disabled={isEstimating || estimateEligibleGroups.length === 0}
+                aria-label="Grupo elegible"
+              >
+                {estimateEligibleGroups.length === 0 ? (
+                  <option value="">No hay grupos listos para estimacion</option>
+                ) : (
+                  estimateEligibleGroups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {formatSpaceAssetType(group.assetType)} · {formatPlanetReference(group.currentPlanetId)} · {formatCompactGuid(group.id)}
+                    </option>
+                  ))
+                )}
+              </select>
+            </label>
+            <label className="field">
+                <span>Planeta destino</span>
+              <select
+                value={effectiveDestinationPlanetId}
+                onChange={(event) => setSelectedDestinationPlanetId(event.target.value)}
+                disabled={isEstimating || destinationOptions.length === 0}
+                aria-label="Planeta destino"
+              >
+                {destinationOptions.length === 0 ? (
+                  <option value="">Sin destinos disponibles</option>
+                ) : (
+                  destinationOptions.map((planetId) => (
+                    <option key={planetId} value={planetId}>
+                      {formatPlanetReference(planetId)}
+                    </option>
+                  ))
+                )}
+              </select>
+            </label>
+            <button
+              type="submit"
+              disabled={
+                isEstimating ||
+                estimateEligibleGroups.length === 0 ||
+                destinationOptions.length === 0
+              }
+            >
+              {isEstimating ? "Calculando..." : "Calcular estimacion"}
+            </button>
+          </form>
+          <div className="figma-badge-row">
+            <UiBadge>Estimacion</UiBadge>
+            <UiBadge tone="good">Solo lectura</UiBadge>
+            <UiBadge tone="warn">No ejecuta movimiento</UiBadge>
+          </div>
+          {estimateNetworkError ? <p className="error-text">Network error: {estimateNetworkError}</p> : null}
+          {estimateResult ? (
+            <section className="subpanel figma-subpanel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Resultado</p>
+                  <h4>{estimateResult.label}</h4>
+                </div>
+                <UiBadge tone={estimateResult.tone}>{estimateResult.tone === "good" ? "Listo" : "Atencion"}</UiBadge>
+              </div>
+              <p>{estimateResult.summary}</p>
+              {estimateResult.details.length > 0 ? (
+                <ul className="stack-list compact-list">
+                  {estimateResult.details.map((detail) => (
+                    <li key={detail}>{detail}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+          ) : null}
+        </UiCard>
+      )}
 
       {summary && (
         <UiCard className="panel">

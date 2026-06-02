@@ -67,10 +67,6 @@ async function requestCommandJson<T>(path: string, body: unknown): Promise<Fleet
     ? ((await response.json()) as T)
     : null;
 
-  if (!response.ok && payload === null) {
-    throw new Error(`Request failed with status ${response.status}.`);
-  }
-
   return {
     httpStatus: response.status,
     response: payload,
