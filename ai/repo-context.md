@@ -4,7 +4,7 @@
 
 VoidEmpires is the future home of the `VoidEmpires` game and its supporting services.
 
-At this stage the repository is in Phase 1 technical foundation work. It contains AI Platform workflow assets, project-planning documentation, and the initial buildable `.NET` solution.
+At this stage the repository is in Phase 9N frontend UI hardening and backend foundation refinement. It contains AI Platform workflow assets, project-planning documentation, the buildable `.NET` solution, and the `src/VoidEmpires.Frontend` prototype.
 
 The current purpose of the repository is to preserve the product direction, architecture direction, and delivery workflow while incrementally building the first service foundation.
 
@@ -23,13 +23,14 @@ These pillars are planning assumptions for repository setup. They should be refi
 
 ## Technical Direction
 
-The initial implementation direction is a .NET-based solution named `VoidEmpires`. The solution currently includes:
+The current implementation direction is a modular .NET-based solution named `VoidEmpires`. The solution currently includes:
 
 - `VoidEmpires.Web` as the first ASP.NET Core host
 - `VoidEmpires.Application` for future use-case orchestration
 - `VoidEmpires.Domain` for future domain rules
 - `VoidEmpires.Infrastructure` for future adapters and infrastructure concerns
 - `VoidEmpires.Tests` for baseline unit and smoke coverage
+- `VoidEmpires.Frontend` for the current Vite + React prototype shell
 
 The early technical bias is:
 
@@ -41,7 +42,7 @@ The early technical bias is:
 
 The selected primary relational database engine is PostgreSQL 16. The intended .NET persistence stack is EF Core with Npgsql unless a later decision supersedes it. Real database configuration must be supplied externally through safe environment-specific mechanisms such as environment variables, user secrets, deployment secrets, or private infrastructure configuration. Do not commit real connection strings, passwords, private hostnames, VPN details, or NAS addresses. CI and automated tests must not depend on the real PostgreSQL database.
 
-No database code, deployment assets, authentication, background processing, or gameplay systems exist yet. Those should be introduced only through explicit follow-up tasks.
+Current implemented runtime surfaces already include the web host health and authentication flows, controlled development galaxy generation endpoints, persisted infrastructure services, and the frontend prototype shell. Future tasks should extend those existing boundaries instead of assuming the repository is still at an empty bootstrap stage.
 
 ## Workflow Expectations
 
@@ -75,7 +76,7 @@ There is no automated team routing yet. Task metadata and human review still pro
 
 Current constraints for repository work:
 
-- the repository has a minimal service foundation but no gameplay implementation
+- the repository has a service foundation plus a frontend prototype, but gameplay systems remain incremental and task-driven
 - application behavior should be added only through explicit tasks
 - workflow scripts should remain stable unless a task explicitly targets them
 - repository context documents should stay deterministic, concise, and easy for future agents to reuse
