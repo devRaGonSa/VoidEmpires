@@ -1,5 +1,9 @@
 import { FormEvent, useMemo, useState } from "react";
 import type { ActionManifestAction } from "../api/actionManifestTypes";
+import type {
+  EstimateOrbitalTravelResponse,
+  FleetCommandApiResult,
+} from "../api/fleetCommandTypes";
 import type { FleetCommandPresentationItem } from "../utils/fleetCommandPresentation";
 import type { FleetGroupSummary, FleetUiState } from "../api/fleetTypes";
 import type { ReadinessNote } from "../api/strategicMapTypes";
@@ -107,8 +111,11 @@ export function FleetsPage() {
   const [selectedGroupId, setSelectedGroupId] = useState("");
   const [selectedDestinationPlanetId, setSelectedDestinationPlanetId] = useState("");
   const [isEstimating, setIsEstimating] = useState(false);
+  const [estimateApiResult, setEstimateApiResult] =
+    useState<FleetCommandApiResult<EstimateOrbitalTravelResponse> | null>(null);
   const [estimateResult, setEstimateResult] = useState<FleetCommandPresentationItem | null>(null);
   const [estimateNetworkError, setEstimateNetworkError] = useState<string | null>(null);
+  const [hasCreateTransferAcknowledgement, setHasCreateTransferAcknowledgement] = useState(false);
 
   const summary = useMemo(() => {
     if (!uiState) {
@@ -164,7 +171,67 @@ export function FleetsPage() {
     () => buildFleetMutationConfirmations(fleetManifest, uiState),
     [fleetManifest, uiState],
   );
+  const createTransferConfirmationState = useMemo(() => {
+    const response = estimateApiResult?.response;
 
+    if (
+      !estimateApiResult ||
+      estimateApiResult.httpStatus !== 200 ||
+      !response?.succeeded ||
+      !selectedGroup ||
+      !selectedGroup.commands?.canCreateTransfer ||
+      !effectiveDestinationPlanetId ||
+      response.orbitalGroupId !== selectedGroup.id ||
+      response.currentPlanetId !== selectedGroup.currentPlanetId ||
+      response.destinationPlanetId !== effectiveDestinationPlanetId
+    ) {
+      return null;
+    }
+
+    const fuelReady = response.fuelReadiness?.isFuelReady ?? true;
+    const canPrepare = response.canAfford && fuelReady;
+    const missingResources = response.insufficientResources.map(
+      (resource) =>
+        `${formatResourceType(resource.resourceType)}: faltan ${
+          resource.requiredQuantity - resource.availableQuantity
+        }`,
+    );
+
+    return {
+      canPrepare,
+      blockReason: !response.canAfford
+        ? "La estimacion indica que faltan recursos para esta transferencia."
+        : !fuelReady
+          ? response.fuelReadiness?.notReadyReason ?? "La metadata de fuel readiness sigue bloqueando la accion."
+          : null,
+      routeSummary: `${formatPlanetReference(selectedGroup.currentPlanetId)} -> ${formatPlanetReference(response.destinationPlanetId ?? effectiveDestinationPlanetId)}`,
+      costSummary: response.resourceCosts.length
+        ? response.resourceCosts
+            .map((cost) => `${formatResourceType(cost.resourceType)} ${cost.quantity}`)
+            .join(", ")
+        : "Sin coste proyectado.",
+      details: [
+        `Distancia abstracta ${response.abstractDistanceUnits}`,
+        `Duracion estimada ${response.estimatedDuration ?? "desconocida"}`,
+        ...(response.routeProfile
+          ? [
+              `Clase de ruta ${response.routeProfile.routeClass}`,
+              `Riesgo ${response.routeProfile.riskBand}`,
+            ]
+          : []),
+        ...(response.fuelReadiness
+          ? [
+              `Fuel readiness ${response.fuelReadiness.isFuelReady ? "lista" : "bloqueada"}`,
+            ]
+          : []),
+        ...missingResources,
+      ],
+    };
+  }, [effectiveDestinationPlanetId, estimateApiResult, selectedGroup]);
+
+  function resetCreateTransferAcknowledgement() {
+    setHasCreateTransferAcknowledgement(false);
+  }
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -177,8 +244,10 @@ export function FleetsPage() {
 
     setIsLoading(true);
     setError(null);
+    setEstimateApiResult(null);
     setEstimateResult(null);
     setEstimateNetworkError(null);
+    resetCreateTransferAcknowledgement();
 
     try {
       const [uiStateResponse, fleetManifestResponse, strategicMapManifestResponse] =
@@ -213,14 +282,17 @@ export function FleetsPage() {
     event.preventDefault();
 
     if (!uiState?.civilizationId || !effectiveGroupId || !effectiveDestinationPlanetId) {
+      setEstimateApiResult(null);
       setEstimateResult(null);
       setEstimateNetworkError("Selecciona grupo y destino antes de calcular la estimacion.");
       return;
     }
 
     setIsEstimating(true);
+    setEstimateApiResult(null);
     setEstimateResult(null);
     setEstimateNetworkError(null);
+    resetCreateTransferAcknowledgement();
 
     try {
       const result = await voidEmpiresApi.estimateOrbitalTravel({
@@ -229,6 +301,7 @@ export function FleetsPage() {
         destinationPlanetId: effectiveDestinationPlanetId,
       });
 
+      setEstimateApiResult(result);
       setEstimateResult(presentEstimateResult(result));
     } catch (requestError) {
       const message =
@@ -321,7 +394,13 @@ export function FleetsPage() {
                 <span>Grupo elegible</span>
               <select
                 value={effectiveGroupId}
-                onChange={(event) => setSelectedGroupId(event.target.value)}
+                onChange={(event) => {
+                  setSelectedGroupId(event.target.value);
+                  setEstimateApiResult(null);
+                  setEstimateResult(null);
+                  setEstimateNetworkError(null);
+                  resetCreateTransferAcknowledgement();
+                }}
                 disabled={isEstimating || estimateEligibleGroups.length === 0}
                 aria-label="Grupo elegible"
               >
@@ -340,7 +419,13 @@ export function FleetsPage() {
                 <span>Planeta destino</span>
               <select
                 value={effectiveDestinationPlanetId}
-                onChange={(event) => setSelectedDestinationPlanetId(event.target.value)}
+                onChange={(event) => {
+                  setSelectedDestinationPlanetId(event.target.value);
+                  setEstimateApiResult(null);
+                  setEstimateResult(null);
+                  setEstimateNetworkError(null);
+                  resetCreateTransferAcknowledgement();
+                }}
                 disabled={isEstimating || destinationOptions.length === 0}
                 aria-label="Planeta destino"
               >
@@ -389,6 +474,61 @@ export function FleetsPage() {
                   ))}
                 </ul>
               ) : null}
+            </section>
+          ) : null}
+          {createTransferConfirmationState ? (
+            <section className="subpanel transfer-confirmation-panel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Accion de desarrollo</p>
+                  <h4>Crear transferencia orbital</h4>
+                  <p>Mutara datos de desarrollo cuando la ejecucion real se habilite en una fase posterior.</p>
+                </div>
+                <div className="figma-badge-row">
+                  <UiBadge tone="warn">Accion de desarrollo</UiBadge>
+                  <UiBadge tone={createTransferConfirmationState.canPrepare ? "good" : "warn"}>
+                    {createTransferConfirmationState.canPrepare ? "Lista para confirmar" : "Bloqueada"}
+                  </UiBadge>
+                </div>
+              </div>
+              <div className="figma-data-list">
+                <FleetDataRow label="Grupo" value={formatCompactGuid(selectedGroup?.id ?? "")} />
+                <FleetDataRow label="Ruta" value={createTransferConfirmationState.routeSummary} />
+                <FleetDataRow label="Coste estimado" value={createTransferConfirmationState.costSummary} />
+              </div>
+              <ul className="stack-list compact-list">
+                {createTransferConfirmationState.details.map((detail) => (
+                  <li key={detail}>{detail}</li>
+                ))}
+              </ul>
+              {createTransferConfirmationState.blockReason ? (
+                <p className="error-text">{createTransferConfirmationState.blockReason}</p>
+              ) : null}
+              <div className="transfer-confirmation-flow">
+                <label className="confirmation-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={hasCreateTransferAcknowledgement}
+                    onChange={(event) => setHasCreateTransferAcknowledgement(event.target.checked)}
+                    disabled={!createTransferConfirmationState.canPrepare}
+                  />
+                  <span>Requiere confirmacion explicita</span>
+                </label>
+                <div className="transfer-confirmation-actions">
+                  <button
+                    type="button"
+                    disabled={
+                      !createTransferConfirmationState.canPrepare ||
+                      !hasCreateTransferAcknowledgement
+                    }
+                  >
+                    Crear transferencia orbital
+                  </button>
+                </div>
+                <p className="figma-panel-note">
+                  La accion final sigue bloqueada en la UI y no envia el endpoint durante Phase 11L.
+                </p>
+              </div>
             </section>
           ) : null}
         </UiCard>

@@ -115,7 +115,7 @@ export function buildFleetMutationConfirmations(
 
       const disabledReasonByAction: Record<string, string> = {
         "fleet.transfer.create": stationedGroups > 0
-          ? "Execution remains disabled on the Fleet page even when stationed groups are available."
+          ? "A dedicated local confirmation flow is available, but route execution remains disabled on the Fleet page."
           : "No stationed groups are currently available to prepare a transfer.",
         "fleet.transfer.cancel": activeTransfers > 0
           ? "Execution remains disabled on the Fleet page even when active transfers exist."

@@ -3,7 +3,7 @@
 ---
 id: TASK-11L
 title: Phase 11L - Create transfer confirmation flow
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

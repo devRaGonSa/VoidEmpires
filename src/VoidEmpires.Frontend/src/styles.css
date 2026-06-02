@@ -921,6 +921,54 @@ input {
   opacity: 1;
 }
 
+.transfer-confirmation-panel {
+  margin-top: 14px;
+}
+
+.transfer-confirmation-actions button {
+  justify-self: start;
+  padding: var(--ve-space-3) var(--ve-space-4);
+  border-radius: var(--ve-radius-sm);
+  font-weight: 700;
+}
+
+.transfer-confirmation-flow {
+  display: grid;
+  gap: var(--ve-space-3);
+  margin-top: 14px;
+}
+
+.confirmation-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--ve-space-3);
+  color: color-mix(in srgb, var(--ve-color-text) 88%, var(--ve-color-muted));
+}
+
+.confirmation-checkbox input {
+  width: 16px;
+  height: 16px;
+}
+
+.transfer-confirmation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ve-space-3);
+}
+
+.transfer-confirmation-actions button {
+  border: 0;
+  background: var(--ve-color-accent-blue);
+  color: var(--ve-color-bg);
+  cursor: pointer;
+  box-shadow: var(--ve-shadow-overlay);
+}
+
+.transfer-confirmation-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .json-details {
   margin-top: 14px;
 }
@@ -1041,7 +1089,9 @@ input {
   .figma-section-header,
   .figma-legend-item,
   .figma-command-item,
-  .figma-data-row {
+  .figma-data-row,
+  .confirmation-checkbox,
+  .transfer-confirmation-actions {
     align-items: start;
     flex-direction: column;
   }
