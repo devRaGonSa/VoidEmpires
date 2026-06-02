@@ -24,6 +24,8 @@ export function AppShell({
 }: AppShellProps) {
   const location = useLocation();
   const isFleetRoute = location.pathname === "/fleets";
+  const isStrategicMapRoute = location.pathname === "/";
+  const isCompactIntro = isFleetRoute || isStrategicMapRoute;
 
   return (
     <div className="app-shell">
@@ -51,14 +53,14 @@ export function AppShell({
         <div className="app-main-column">
           <section
             className={
-              isFleetRoute
+              isCompactIntro
                 ? "shell-intro-grid shell-intro-grid-compact"
                 : "shell-intro-grid"
             }
           >
             <UiCard
               className={
-                isFleetRoute
+                isCompactIntro
                   ? "shell-intro-card shell-intro-card-compact"
                   : "shell-intro-card"
               }
@@ -68,12 +70,16 @@ export function AppShell({
                 <h1>
                   {isFleetRoute
                     ? "Cabina de mando para desarrollo"
-                    : "Superficie de mando solo para desarrollo"}
+                    : isStrategicMapRoute
+                      ? "Cabina estrategica de lectura"
+                      : "Superficie de mando solo para desarrollo"}
                 </h1>
                 <p className="lede">
                   {isFleetRoute
                     ? "Ruta operativa compacta: el contexto tecnico sigue visible, pero la jugabilidad sube en la primera vista."
-                    : "Cabina alineada con Figma para inspeccionar los contratos de disponibilidad actuales del backend sin habilitar mutaciones de juego ni autenticacion de produccion."}
+                    : isStrategicMapRoute
+                      ? "La galaxia prioriza mapa, seleccion y contexto tactico. Los detalles tecnicos siguen disponibles, pero pasan a una segunda capa."
+                      : "Cabina alineada con Figma para inspeccionar los contratos de disponibilidad actuales del backend sin habilitar mutaciones de juego ni autenticacion de produccion."}
                 </p>
               </div>
             </UiCard>

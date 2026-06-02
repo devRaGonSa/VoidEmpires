@@ -547,6 +547,22 @@ select {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
+.strategic-cockpit-top,
+.strategic-system-layout,
+.technical-disclosure-body {
+  display: grid;
+  gap: var(--ve-space-4);
+}
+
+.strategic-cockpit-top,
+.technical-disclosure-body {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.strategic-system-layout {
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+}
+
 .fleet-cockpit-top,
 .fleet-preflight-strip,
 .fleet-cockpit-layout,
@@ -723,7 +739,7 @@ select {
 }
 
 .figma-map-layout {
-  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.7fr);
   align-items: start;
 }
 
@@ -738,6 +754,33 @@ select {
 
 .figma-map-sidebar {
   align-content: start;
+}
+
+.strategic-map-panel {
+  overflow: hidden;
+}
+
+.strategic-loader-panel .query-form {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.strategic-loader-panel .query-form button {
+  min-width: 148px;
+}
+
+.strategic-rules-list,
+.strategic-overlay-list {
+  margin-top: 12px;
+}
+
+.strategic-detail-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin-top: 14px;
+}
+
+.strategic-readiness-grid {
+  margin-top: 12px;
 }
 
 .figma-mini-card,
@@ -1116,6 +1159,35 @@ select {
 .selection-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 14px; }
 
 .selection-chip-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+.technical-disclosure {
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 44%, transparent);
+  border-radius: var(--ve-radius-xl);
+  background: color-mix(in srgb, var(--ve-color-panel) 58%, transparent);
+  box-shadow: var(--ve-shadow-panel);
+}
+
+.technical-disclosure summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ve-space-3);
+  padding: 18px 22px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.technical-disclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.technical-disclosure[open] {
+  padding-bottom: var(--ve-space-4);
+}
+
+.technical-disclosure-body {
+  padding: 0 var(--ve-space-4);
+}
 
 .figma-fleet-grid {
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -1509,6 +1581,7 @@ select {
 
   .fleet-selected-grid,
   .fleet-dev-loader-panel .query-form,
+  .strategic-loader-panel .query-form,
   .fleet-action-stage,
   .fleet-orders-panel .query-form,
   .fleet-order-step-grid {
