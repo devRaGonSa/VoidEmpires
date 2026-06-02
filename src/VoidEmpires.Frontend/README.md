@@ -122,6 +122,7 @@ Only `Galaxia` and `Flotas` are active routes in the sidebar today. Other labels
 - Readiness metadata is not gameplay authorization.
 - Visual-state previews are renderer-facing dev contracts, not final rendering.
 - `create transfer` mutates development data and is allowed only behind the explicit confirmation flow.
+- Re-applying the `minimal-validation` seed is additive and idempotent, but it does not remove extra transfers, reset group state, or refill already-existing stockpiles after a mutation run.
 - `cancel`, `complete-due`, `split`, `merge`, and exploration creation remain manifest metadata only.
 - No production authentication is implemented.
 - No polling, WebSockets, or final renderer pipeline is implemented.
@@ -140,9 +141,12 @@ npm run build --prefix src/VoidEmpires.Frontend
 Optional seed and API confirmation:
 
 ```powershell
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"minimal-validation"}'
 Invoke-RestMethod -Method Get -Uri "http://localhost:5142/api/dev/fleets/ui-state?civilizationId=00000000-0000-0000-0000-000000000001"
 Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/fleets/orbital-travel/estimate" -ContentType "application/json" -Body '{"civilizationId":"00000000-0000-0000-0000-000000000001","orbitalGroupId":"<stationed-group-id>","destinationPlanetId":"40000000-0000-0000-0000-000000000002"}'
 Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/fleets/orbital-transfers/create" -ContentType "application/json" -Body '{"civilizationId":"00000000-0000-0000-0000-000000000001","orbitalGroupId":"<stationed-group-id>","destinationPlanetId":"40000000-0000-0000-0000-000000000002","requestedAtUtc":"2026-06-02T13:00:00Z"}'
 ```
+
+If a previous local run already mutated fleet state, inspect `ui-state` first. Re-applying `minimal-validation` restores missing baseline rows only; use a fresh disposable local database when you need the original transfer/resource baseline back.
 
 Manual browser review is deferred for this block unless a clear regression appears. See `docs/dev/frontend-foundation-smoke-checklist.md`.

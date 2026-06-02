@@ -3,7 +3,7 @@
 ---
 id: TASK-11R
 title: Phase 11R - Development seed reset and recovery documentation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

@@ -86,6 +86,15 @@ Expected validation outcomes:
 - `POST /api/dev/fleets/orbital-transfers/cancel` marks an active transfer as cancelled, returns the reserved group to `Stationed`, and does not refund previously charged travel resources.
 - `POST /api/dev/fleets/orbital-transfers/complete-due` completes only transfers whose `arrivalAtUtc` is due, moves their groups to the destination planet, and is safe to repeat after completion because already completed transfers are ignored.
 
+## Seed Re-Apply And Recovery
+
+The `minimal-validation` seed is additive and idempotent, not a destructive reset.
+
+- Re-applying it is safe when you only need missing baseline rows such as the sample civilization, seeded planets, baseline groups, or the owned-planet stockpile row to exist.
+- Re-applying it does not delete extra transfers or groups created during validation, reset a mutated group back to its original stationed state, cancel or remove planned transfers, refund spent travel resources, or top up stockpiles that already exist.
+- If a previous local validation run already changed fleet, transfer, or resource state and you need the original baseline back exactly, point the app to a fresh disposable local database and then apply `minimal-validation` again.
+- Before re-running create-transfer validation, inspect `GET /api/dev/fleets/ui-state` to confirm the currently stationed groups, active transfers, and current-planet resource context that the next estimate or mutation will use.
+
 ## Non-Visual Validation Checklist
 
 Use this checklist for the current frontend preparation block. Manual visual QA is intentionally deferred until a later interface milestone.
@@ -93,7 +102,7 @@ Use this checklist for the current frontend preparation block. Manual visual QA 
 1. Run `dotnet build --no-restore` from the repository root.
 2. Run `dotnet test --no-build` from the repository root.
 3. Run `npm run build --prefix src/VoidEmpires.Frontend`.
-4. Optionally apply the `minimal-validation` seed and call `GET /api/dev/fleets/ui-state` plus `POST /api/dev/fleets/orbital-travel/estimate` when you need non-visual confirmation that readiness metadata and estimate shapes still match the documented contracts.
+4. Optionally apply the `minimal-validation` seed, inspect `GET /api/dev/fleets/ui-state`, and then call `POST /api/dev/fleets/orbital-travel/estimate` when you need non-visual confirmation that readiness metadata and estimate shapes still match the documented contracts.
 5. Treat frontend mutation controls as development-only affordances. The current Fleet page may execute only `create` behind an explicit confirmation flow; `cancel`, `complete-due`, `split`, and `merge` must remain non-executable.
 6. Keep manual browser review deferred unless a clear frontend regression appears; this milestone relies on build, test, and optional API-only checks rather than visual sign-off.
 

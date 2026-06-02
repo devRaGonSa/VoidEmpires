@@ -97,6 +97,8 @@ Current convention notes:
 - Planet `40000000-0000-0000-0000-000000000002` (`Cinder Reach`)
 - Planet `40000000-0000-0000-0000-000000000003` (`Frost Hollow`)
 - Re-running the same profile should remain safe and idempotent as later seed tasks add data.
+- Re-applying `minimal-validation` validates that the baseline rows exist, but it does not wipe later mutations, delete extra transfers or groups, refund spent resources, or rebuild stockpiles that already exist.
+- If `create transfer` or other dev-only mutations changed the local validation state and you need a true clean slate, switch to a fresh disposable local database before applying the seed again. The repository does not currently provide a destructive reset command.
 - Keep seed execution in `Development`, or explicitly set `VoidEmpires:DevEndpoints:Enabled=true` for non-production validation environments only.
 
 ### Manual Validation Flow
@@ -136,6 +138,13 @@ Current frontend mutation boundary:
 - `POST /api/dev/fleets/orbital-travel/estimate` may execute from the frontend as a read-only preview.
 - `POST /api/dev/fleets/orbital-transfers/create` may execute from the frontend only after explicit development-only confirmation and mutates development data.
 - `cancel`, `complete-due`, `split`, and `merge` remain disabled or prototype-only in the frontend.
+
+Recommended recovery flow after `create transfer` mutates local validation data:
+
+1. Inspect `GET /api/dev/fleets/ui-state?civilizationId=00000000-0000-0000-0000-000000000001` to confirm the current stationed groups, active transfers, and resource context.
+2. Re-apply `POST /api/dev/seeds/apply` with `{"profile":"minimal-validation"}` only when you need to restore missing baseline rows.
+3. If fleet state, transfer rows, or resource balances must return to the original baseline, use a fresh disposable local database and then apply `minimal-validation` again.
+4. Re-run `dotnet build --no-restore`, `dotnet test --no-build`, and `npm run build --prefix src/VoidEmpires.Frontend`.
 
 ### Database Configuration
 
