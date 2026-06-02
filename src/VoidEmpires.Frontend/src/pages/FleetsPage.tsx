@@ -7,6 +7,15 @@ import { ActionManifestPanel } from "../components/ActionManifestPanel";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { UiProgressBar } from "../components/ui/UiProgressBar";
+import {
+  formatBooleanLabel,
+  formatCompactGuid,
+  formatFuelReadinessPolicy,
+  formatOrbitalGroupStatus,
+  formatResourceType,
+  formatSpaceAssetType,
+  formatTransferStatus,
+} from "../utils/domainPresentation";
 
 function formatNote(note: ReadinessNote) {
   if (typeof note === "string") {
@@ -209,7 +218,7 @@ export function FleetsPage() {
               <p className="eyebrow">Operational summary</p>
               <h3>Fleet footprint</h3>
             </div>
-            <UiBadge>{uiState?.civilizationId ?? "Unknown civilization"}</UiBadge>
+            <UiBadge>{formatCompactGuid(uiState?.civilizationId)}</UiBadge>
           </div>
           <div className="figma-stat-grid">
             <SummaryMetric label="Groups" value={summary.groups} />
@@ -272,7 +281,7 @@ export function FleetsPage() {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Current planet</p>
-                    <h4>{context.planetId}</h4>
+                    <h4>{formatCompactGuid(context.planetId)}</h4>
                   </div>
                   <UiBadge tone="resource">
                     {(context.balances ?? []).length} balances
@@ -282,7 +291,7 @@ export function FleetsPage() {
                   {(context.balances ?? []).map((balance) => (
                     <FleetDataRow
                       key={`${context.planetId}-${balance.resourceType}`}
-                      label={balance.resourceType}
+                      label={formatResourceType(balance.resourceType)}
                       value={String(balance.quantity)}
                     />
                   ))}
@@ -303,10 +312,10 @@ export function FleetsPage() {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Fleet group</p>
-                    <h3>{group.assetType}</h3>
-                    <p>{group.id}</p>
+                    <h3>{formatSpaceAssetType(group.assetType)}</h3>
+                    <p>{formatCompactGuid(group.id)}</p>
                   </div>
-                  <UiBadge tone={getGroupTone(group)}>{group.status}</UiBadge>
+                  <UiBadge tone={getGroupTone(group)}>{formatOrbitalGroupStatus(group.status)}</UiBadge>
                 </div>
 
                 <div className="figma-stat-grid">
@@ -318,11 +327,11 @@ export function FleetsPage() {
                 </div>
 
                 <div className="figma-data-list">
-                  <FleetDataRow label="Current planet" value={group.currentPlanetId} />
-                  <FleetDataRow label="Origin planet" value={group.originPlanetId} />
+                  <FleetDataRow label="Current planet" value={formatCompactGuid(group.currentPlanetId)} />
+                  <FleetDataRow label="Origin planet" value={formatCompactGuid(group.originPlanetId)} />
                   <FleetDataRow
                     label="Stationed away"
-                    value={group.isStationedAwayFromOrigin ? "Yes" : "No"}
+                    value={formatBooleanLabel(group.isStationedAwayFromOrigin)}
                   />
                 </div>
 
@@ -334,7 +343,7 @@ export function FleetsPage() {
                     <UiBadge tone="warn">Cancellation available</UiBadge>
                   )}
                   {group.routeFuelReadiness?.fuelReadinessPolicy && (
-                    <UiBadge>{group.routeFuelReadiness.fuelReadinessPolicy}</UiBadge>
+                    <UiBadge>{formatFuelReadinessPolicy(group.routeFuelReadiness.fuelReadinessPolicy)}</UiBadge>
                   )}
                 </div>
 
@@ -343,9 +352,9 @@ export function FleetsPage() {
                     <div className="figma-section-header">
                       <div>
                         <p className="eyebrow">Active transfer</p>
-                        <h4>{group.activeTransfer.status}</h4>
+                        <h4>{formatTransferStatus(group.activeTransfer.status)}</h4>
                       </div>
-                      <UiBadge tone="warn">{group.activeTransfer.destinationPlanetId}</UiBadge>
+                      <UiBadge tone="warn">{formatCompactGuid(group.activeTransfer.destinationPlanetId)}</UiBadge>
                     </div>
                     {transferProgress !== null && (
                       <UiProgressBar value={transferProgress} tone="neutral" />

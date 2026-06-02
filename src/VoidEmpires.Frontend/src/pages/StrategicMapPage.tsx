@@ -12,6 +12,16 @@ import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { StrategicMap2DView } from "../components/StrategicMap2DView";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
+import {
+  formatColonizationStatus,
+  formatCommandBlockReason,
+  formatCompactGuid,
+  formatPlanetType,
+  formatVisibilityLevel,
+  formatVisibilityReason,
+  isOwnedVisibilityLevel,
+  isVisibleVisibilityLevel,
+} from "../utils/domainPresentation";
 
 const readinessSections = [
   { label: "Route and fuel notes", key: "routeFuelNotes" },
@@ -62,11 +72,11 @@ function formatCoordinate(value: number | null) {
 }
 
 function getVisibilityTone(level: string): "good" | "warn" | "neutral" {
-  if (level === "Owned") {
+  if (isOwnedVisibilityLevel(level)) {
     return "good";
   }
 
-  if (level === "Visible") {
+  if (isVisibleVisibilityLevel(level)) {
     return "neutral";
   }
 
@@ -354,7 +364,7 @@ export function StrategicMapPage() {
               <p className="eyebrow">Operational summary</p>
               <h3>Map footprint</h3>
             </div>
-            <UiBadge>{result?.civilizationId ?? "Unknown civilization"}</UiBadge>
+            <UiBadge>{formatCompactGuid(result?.civilizationId)}</UiBadge>
           </div>
           <div className="figma-stat-grid">
             <SummaryMetric label="Systems" value={summary.systems} />
@@ -399,7 +409,7 @@ export function StrategicMapPage() {
                 <div className="figma-legend-grid">
                   <div className="figma-legend-item">
                     <span className="figma-legend-dot figma-legend-owned" />
-                    <strong>Owned</strong>
+                    <strong>Propio</strong>
                     <small>Direct control</small>
                   </div>
                   <div className="figma-legend-item">
@@ -409,7 +419,7 @@ export function StrategicMapPage() {
                   </div>
                   <div className="figma-legend-item">
                     <span className="figma-legend-dot figma-legend-unknown" />
-                    <strong>Unknown</strong>
+                    <strong>Desconocido</strong>
                     <small>Sanitized contact</small>
                   </div>
                 </div>
@@ -423,7 +433,7 @@ export function StrategicMapPage() {
                       <h4>{selectedSystem.systemName ?? "Unknown system"}</h4>
                     </div>
                     <UiBadge tone={getVisibilityTone(selectedSystem.visibilityLevel)}>
-                      {selectedSystem.visibilityLevel}
+                      {formatVisibilityLevel(selectedSystem.visibilityLevel)}
                     </UiBadge>
                   </div>
                   <div className="figma-data-list">
@@ -507,7 +517,7 @@ export function StrategicMapPage() {
                   <h4>{selectedSystem.systemName ?? "Unknown system"}</h4>
                 </div>
                 <UiBadge tone={getVisibilityTone(selectedSystem.visibilityLevel)}>
-                  {selectedSystem.visibilityReason}
+                  {formatVisibilityReason(selectedSystem.visibilityReason)}
                 </UiBadge>
               </div>
               <div className="figma-data-list">
@@ -539,9 +549,7 @@ export function StrategicMapPage() {
                         <p>{readText(command.note, "Read-only metadata")}</p>
                       </div>
                       <UiBadge tone={command.isAvailable ? "good" : "warn"}>
-                        {command.isAvailable
-                          ? "Available"
-                          : readText(command.blockReason, "Blocked")}
+                        {command.isAvailable ? "Disponible" : formatCommandBlockReason(command.blockReason, "Bloqueado")}
                       </UiBadge>
                     </div>
                   ))}
@@ -581,15 +589,23 @@ export function StrategicMapPage() {
                   <div className="figma-data-list">
                     <DataRow
                       label="Visibility"
-                      value={`${selectedPlanet.visibilityLevel} (${selectedPlanet.visibilityReason})`}
+                      value={`${formatVisibilityLevel(selectedPlanet.visibilityLevel)} (${formatVisibilityReason(selectedPlanet.visibilityReason)})`}
                     />
                     <DataRow
                       label="Type"
-                      value={readText(readRecord(selectedPlanet).planetType)}
+                      value={formatPlanetType(
+                        readRecord(selectedPlanet).planetType as string | number | null | undefined,
+                      )}
                     />
                     <DataRow
                       label="Colonization"
-                      value={readText(readRecord(selectedPlanet).colonizationStatus)}
+                      value={formatColonizationStatus(
+                        readRecord(selectedPlanet).colonizationStatus as
+                          | string
+                          | number
+                          | null
+                          | undefined,
+                      )}
                     />
                   </div>
 
@@ -605,9 +621,7 @@ export function StrategicMapPage() {
                             <p>{readText(command.note, "Read-only metadata")}</p>
                           </div>
                           <UiBadge tone={command.isAvailable ? "good" : "warn"}>
-                            {command.isAvailable
-                              ? "Available"
-                              : readText(command.blockReason, "Blocked")}
+                            {command.isAvailable ? "Disponible" : formatCommandBlockReason(command.blockReason, "Bloqueado")}
                           </UiBadge>
                         </div>
                       ))}
@@ -738,11 +752,11 @@ export function StrategicMapPage() {
                   <div className="figma-data-list">
                     <DataRow
                       label="Planet type"
-                      value={readText(planetVisualState.planetType)}
+                      value={formatPlanetType(planetVisualState.planetType)}
                     />
                     <DataRow
                       label="Colonization"
-                      value={readText(planetVisualState.colonizationStatus)}
+                      value={formatColonizationStatus(planetVisualState.colonizationStatus)}
                     />
                     <DataRow
                       label="Visual seed"

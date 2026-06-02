@@ -1,4 +1,9 @@
 import type { StrategicMapSystem } from "../api/strategicMapTypes";
+import {
+  formatVisibilityLevel,
+  isOwnedVisibilityLevel,
+  isVisibleVisibilityLevel,
+} from "../utils/domainPresentation";
 
 interface StrategicMap2DViewProps {
   systems: StrategicMapSystem[];
@@ -11,9 +16,9 @@ const height = 540;
 const pad = 72;
 
 function tone(level: string) {
-  return level === "Owned"
+  return isOwnedVisibilityLevel(level)
     ? "owned"
-    : level === "Visible"
+    : isVisibleVisibilityLevel(level)
       ? "visible"
       : "unknown";
 }
@@ -111,7 +116,7 @@ export function StrategicMap2DView({
               {system.systemName ?? "Unknown system"}
             </text>
             <text className="map-node-meta" x="0" y="63">
-              {system.visibilityLevel} | P {system.planets?.length ?? 0} | F{" "}
+              {formatVisibilityLevel(system.visibilityLevel)} | P {system.planets?.length ?? 0} | F{" "}
               {system.fleetPresence?.length ?? 0} | T {system.transferOverlays?.length ?? 0}
             </text>
           </g>
