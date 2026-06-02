@@ -137,6 +137,10 @@ export function FleetsPage() {
     () => uiState?.groups.filter((group) => group.routeFuelReadiness?.canRequestTravelEstimate) ?? [],
     [uiState],
   );
+  const activeTransferGroups = useMemo(
+    () => uiState?.groups.filter((group) => group.activeTransfer) ?? [],
+    [uiState],
+  );
   const inspectedGroup = useMemo(
     () => uiState?.groups.find((group) => group.id === inspectedGroupId) ?? uiState?.groups[0] ?? null,
     [inspectedGroupId, uiState],
@@ -688,7 +692,7 @@ export function FleetsPage() {
               <div>
                 <p className="eyebrow">Lista orbital</p>
                 <h3>Rail de escuadras</h3>
-                <p>Usa este rail para enfocar la cabina en una escuadra cada vez.</p>
+                <p>La cabina principal siempre se centra en una escuadra operativa a la vez.</p>
               </div>
               <UiBadge>{uiState.groups.length} seguidas</UiBadge>
             </div>
@@ -719,10 +723,10 @@ export function FleetsPage() {
               />
             ) : null}
 
-            <UiCard className="panel">
+            <UiCard className="panel fleet-orders-panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">Ejecucion de mando</p>
+                  <p className="eyebrow">Ordenes</p>
                   <h3>Ruta, estimacion y orden activa</h3>
                   <p>Primero eliges escuadra y destino, luego estimas la ruta y por ultimo confirmas la orden protegida.</p>
                 </div>
@@ -934,6 +938,58 @@ export function FleetsPage() {
               ) : null}
             </UiCard>
 
+            <UiCard className="panel fleet-transfer-overview-panel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Traslados activos</p>
+                  <h3>Movimientos en curso</h3>
+                  <p>Vista compacta de las escuadras que ya salieron y requieren seguimiento.</p>
+                </div>
+                <UiBadge tone={activeTransferGroups.length > 0 ? "warn" : "good"}>
+                  {activeTransferGroups.length > 0 ? `${activeTransferGroups.length} en ruta` : "Sin movimientos"}
+                </UiBadge>
+              </div>
+              {activeTransferGroups.length > 0 ? (
+                <div className="fleet-transfer-overview-grid">
+                  {activeTransferGroups.map((group) => (
+                    <section key={group.id} className="subpanel figma-subpanel fleet-transfer-overview-card">
+                      <div className="figma-section-header">
+                        <div>
+                          <p className="eyebrow">Escuadra en transito</p>
+                          <h4>{formatSpaceAssetType(group.assetType)}</h4>
+                          <p className="dev-meta">ID tactico {formatCompactGuid(group.id)}</p>
+                        </div>
+                        <UiBadge tone="warn">
+                          {formatPlanetReference(group.activeTransfer?.destinationPlanetId ?? "")}
+                        </UiBadge>
+                      </div>
+                      <div className="figma-data-list">
+                        <FleetDataRow label="Origen" value={formatPlanetReference(group.originPlanetId)} />
+                        <FleetDataRow label="Planeta actual" value={formatPlanetReference(group.currentPlanetId)} />
+                        <FleetDataRow
+                          label="Llegada"
+                          value={group.activeTransfer?.arrivalAtUtc ?? "Sin llegada visible"}
+                        />
+                      </div>
+                      <div className="transfer-confirmation-actions">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setInspectedGroupId(group.id);
+                            setSelectedGroupId(group.id);
+                          }}
+                        >
+                          Enfocar escuadra
+                        </button>
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              ) : (
+                <p className="figma-panel-note">No hay traslados activos en esta civilizacion.</p>
+              )}
+            </UiCard>
+
             {uiState?.resourceContexts?.length ? (
               <UiCard className="panel">
                 <div className="figma-section-header">
@@ -969,11 +1025,12 @@ export function FleetsPage() {
             ) : null}
 
             {uiState?.interceptionNotes?.length ? (
-              <UiCard className="panel">
+              <UiCard className="panel fleet-technical-panel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Estado de ruta</p>
+                    <p className="eyebrow">Tecnico secundario</p>
                     <h3>Alertas de intercepcion</h3>
+                    <p>Se mantienen visibles como lectura operativa, sin entrar en el flujo principal de ordenes.</p>
                   </div>
                   <UiBadge tone="warn">Solo informativo</UiBadge>
                 </div>
@@ -992,14 +1049,14 @@ export function FleetsPage() {
         <div className="fleet-manifest-grid">
           {fleetManifest.length > 0 && (
             <ActionManifestPanel
-              title="Manifiesto de acciones de flota"
+              title="Tecnico: manifiesto de acciones de flota"
               actions={fleetManifest}
               mutationConfirmations={mutationConfirmations}
             />
           )}
           {strategicMapManifest.length > 0 && (
             <ActionManifestPanel
-              title="Manifiesto de acciones del mapa estrategico"
+              title="Tecnico: manifiesto del mapa estrategico"
               actions={strategicMapManifest}
             />
           )}

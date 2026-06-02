@@ -62,11 +62,12 @@ export function FleetSelectedGroupPanel({
   const transferProgressLabel = formatTransferProgressLabel(group);
 
   return (
-    <UiCard className="panel">
+    <UiCard className="panel fleet-selected-panel">
       <div className="figma-section-header">
         <div className="fleet-identity-block">
-          <p className="eyebrow">Escuadra enfocada</p>
-          <h3>{formatSpaceAssetType(group.assetType)}</h3>
+          <p className="eyebrow">Escuadra seleccionada</p>
+          <h3>Puente tactico de {formatSpaceAssetType(group.assetType)}</h3>
+          <p>El foco principal de la cabina muestra posicion, disponibilidad y cualquier traslado activo.</p>
           <p className="dev-meta">ID tactico {formatCompactGuid(group.id)}</p>
         </div>
         <div className="figma-badge-row">
@@ -92,8 +93,8 @@ export function FleetSelectedGroupPanel({
         <section className="subpanel figma-subpanel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Posicion</p>
-              <h4>Contexto de despliegue</h4>
+              <p className="eyebrow">Despliegue</p>
+              <h4>Posicion orbital</h4>
             </div>
             <UiBadge>Estado visible</UiBadge>
           </div>
@@ -116,8 +117,8 @@ export function FleetSelectedGroupPanel({
         <section className="subpanel figma-subpanel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Estado de mando</p>
-              <h4>Planificacion en solo lectura</h4>
+              <p className="eyebrow">Capacidad</p>
+              <h4>Lectura de mando</h4>
             </div>
             <UiBadge tone="warn">Solo inspeccion</UiBadge>
           </div>
@@ -142,11 +143,12 @@ export function FleetSelectedGroupPanel({
       </div>
 
       {group.activeTransfer ? (
-        <div className="figma-transfer-card">
+        <div className="figma-transfer-card fleet-selected-transfer-card">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Estado del traslado</p>
+              <p className="eyebrow">Traslado activo</p>
               <h4>{formatTransferStatus(group.activeTransfer.status)}</h4>
+              <p>La anulacion sigue protegida y solo aparece cuando la escuadra activa esta en foco.</p>
             </div>
             <UiBadge tone="warn">{formatPlanetReference(group.activeTransfer.destinationPlanetId)}</UiBadge>
           </div>

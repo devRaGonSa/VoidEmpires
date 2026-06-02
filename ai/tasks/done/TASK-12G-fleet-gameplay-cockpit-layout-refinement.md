@@ -3,7 +3,7 @@
 ---
 id: TASK-12G
 title: Phase 12G - Fleet gameplay cockpit layout refinement
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

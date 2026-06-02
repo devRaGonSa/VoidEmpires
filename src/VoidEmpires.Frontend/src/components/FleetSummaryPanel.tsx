@@ -30,6 +30,7 @@ export function FleetSummaryPanel({
         <div className="fleet-identity-block">
           <p className="eyebrow">Escuadra orbital</p>
           <h4>{formatSpaceAssetType(group.assetType)}</h4>
+          <p>Lista breve para saltar entre escuadras y abrir la cabina principal.</p>
           <p className="dev-meta">ID tactico {formatCompactGuid(group.id)}</p>
         </div>
         <UiBadge tone={group.hasActiveTransfer ? "warn" : group.commands?.canCreateTransfer ? "good" : "neutral"}>
@@ -62,7 +63,7 @@ export function FleetSummaryPanel({
       </div>
 
       <button type="button" className="fleet-summary-select-button" onClick={() => onSelect(group.id)}>
-        {isSelected ? "Escuadra enfocada" : "Ver detalles"}
+        {isSelected ? "Cabina enfocada" : "Abrir cabina"}
       </button>
     </article>
   );
