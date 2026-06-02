@@ -138,6 +138,7 @@ export function FleetsPage() {
   const [isCancellingTransfer, setIsCancellingTransfer] = useState(false);
   const [cancelTransferResult, setCancelTransferResult] = useState<FleetCommandPresentationItem | null>(null);
   const [cancelTransferNetworkError, setCancelTransferNetworkError] = useState<string | null>(null);
+  const [cancelTransferStaleMessage, setCancelTransferStaleMessage] = useState<string | null>(null);
   const [isCreatingTransfer, setIsCreatingTransfer] = useState(false);
   const [createTransferResult, setCreateTransferResult] = useState<FleetCommandPresentationItem | null>(null);
   const [createTransferNetworkError, setCreateTransferNetworkError] = useState<string | null>(null);
@@ -350,6 +351,9 @@ export function FleetsPage() {
     if (!visiblePreparedCancelTransfer) {
       setPreparedCancelTransferId("");
       setHasCancelTransferAcknowledgement(false);
+      setCancelTransferStaleMessage(
+        "La transferencia preparada ya no esta activa en la UI. Estado actualizado desde la API.",
+      );
     }
   }, [preparedCancelTransferId, visiblePreparedCancelTransfer]);
 
@@ -526,6 +530,7 @@ export function FleetsPage() {
     setHasCancelTransferAcknowledgement(false);
     setCancelTransferResult(null);
     setCancelTransferNetworkError(null);
+    setCancelTransferStaleMessage(null);
   }
 
   async function handleCancelTransfer(group: FleetGroupSummary) {
@@ -561,6 +566,9 @@ export function FleetsPage() {
       if (result.httpStatus === 200 && result.response?.succeeded) {
         setPreparedCancelTransferId("");
         setHasCancelTransferAcknowledgement(false);
+        setCancelTransferStaleMessage(
+          "Estado actualizado desde la API. La transferencia cancelada ya no debe aparecer como activa.",
+        );
 
         try {
           await refreshFleetUiState(uiState.civilizationId);
@@ -730,6 +738,7 @@ export function FleetsPage() {
           {estimateStaleMessage ? <p className="error-text">{estimateStaleMessage}</p> : null}
           {estimateNetworkError ? <p className="error-text">Network error: {estimateNetworkError}</p> : null}
           {createTransferNetworkError ? <p className="error-text">{createTransferNetworkError}</p> : null}
+          {cancelTransferStaleMessage ? <p className="figma-panel-note">{cancelTransferStaleMessage}</p> : null}
           {cancelTransferNetworkError ? <p className="error-text">{cancelTransferNetworkError}</p> : null}
           {estimateResult ? (
             <section className="subpanel figma-subpanel">

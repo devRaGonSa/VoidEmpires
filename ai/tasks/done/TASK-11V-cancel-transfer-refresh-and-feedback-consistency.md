@@ -3,7 +3,7 @@
 ---
 id: TASK-11V
 title: Phase 11V - Cancel transfer refresh and feedback consistency
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

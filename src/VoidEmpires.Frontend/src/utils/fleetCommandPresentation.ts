@@ -328,6 +328,9 @@ export function presentCancelTransferResult(result: FleetCommandApiResult<Cancel
       ...(isSuccess ? ["La cancelacion no reembolsa los recursos ya cobrados por el create transfer."] : []),
       ...(response?.orbitalTransferId ? [`Transfer ${response.orbitalTransferId}`] : []),
       ...(response?.orbitalGroupId ? [`Grupo ${response.orbitalGroupId}`] : []),
+      ...(!isSuccess && result.httpStatus === 404
+        ? ["La confirmacion local puede estar obsoleta. Recarga la UI si otra accion ya elimino esta transferencia activa."]
+        : []),
       ...(!isSuccess && result.httpStatus === 409
         ? ["Recarga la UI de flotas antes de reintentar si otra accion ya cambio esta transferencia."]
         : []),
