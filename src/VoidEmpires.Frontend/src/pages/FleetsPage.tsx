@@ -9,6 +9,7 @@ import type { FleetGroupSummary, FleetUiState } from "../api/fleetTypes";
 import type { ReadinessNote } from "../api/strategicMapTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { FleetSelectedGroupPanel } from "../components/FleetSelectedGroupPanel";
+import { FleetSummaryPanel } from "../components/FleetSummaryPanel";
 import { ActionManifestPanel } from "../components/ActionManifestPanel";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -29,6 +30,7 @@ import {
   presentFleetSquadListItem,
   presentCancelTransferNetworkFailure,
   presentCancelTransferResult,
+  presentCompletionResult,
   presentCreateTransferNetworkFailure,
   presentCreateTransferResult,
 } from "../utils/fleetCommandPresentation";
@@ -101,6 +103,16 @@ function formatSquadOptionLabel(group: FleetGroupSummary) {
   return `${formatSquadIdentity(group)} | ${group.quantity} unidades | ID tactico ${formatCompactGuid(group.id)}`;
 }
 
+function isTransferDueForUi(group: FleetGroupSummary) {
+  const arrivalAtUtc = group.activeTransfer?.arrivalAtUtc;
+  if (!arrivalAtUtc) {
+    return false;
+  }
+
+  const arrivalTime = Date.parse(arrivalAtUtc);
+  return !Number.isNaN(arrivalTime) && arrivalTime <= Date.now();
+}
+
 export function FleetsPage() {
   const [civilizationId, setCivilizationId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -120,6 +132,12 @@ export function FleetsPage() {
   const [estimateSnapshot, setEstimateSnapshot] = useState<EstimateSnapshot | null>(null);
   const [estimateStaleMessage, setEstimateStaleMessage] = useState<string | null>(null);
   const [hasCreateTransferAcknowledgement, setHasCreateTransferAcknowledgement] = useState(false);
+  const [preparedCompleteDueGroupId, setPreparedCompleteDueGroupId] = useState("");
+  const [hasCompleteDueAcknowledgement, setHasCompleteDueAcknowledgement] = useState(false);
+  const [isCompletingDueTransfers, setIsCompletingDueTransfers] = useState(false);
+  const [completeDueTransferResult, setCompleteDueTransferResult] = useState<FleetCommandPresentationItem | null>(null);
+  const [completeDueTransferNetworkError, setCompleteDueTransferNetworkError] = useState<string | null>(null);
+  const [completeDueTransferStaleMessage, setCompleteDueTransferStaleMessage] = useState<string | null>(null);
   const [preparedCancelTransferId, setPreparedCancelTransferId] = useState("");
   const [hasCancelTransferAcknowledgement, setHasCancelTransferAcknowledgement] = useState(false);
   const [isCancellingTransfer, setIsCancellingTransfer] = useState(false);
@@ -151,6 +169,14 @@ export function FleetsPage() {
   const activeTransferGroups = useMemo(
     () => uiState?.groups.filter((group) => group.activeTransfer) ?? [],
     [uiState],
+  );
+  const dueTransferGroups = useMemo(
+    () => activeTransferGroups.filter((group) => isTransferDueForUi(group)),
+    [activeTransferGroups],
+  );
+  const hasCompleteDueAction = useMemo(
+    () => fleetManifest.some((action) => action.actionKey === "fleet.transfer.complete"),
+    [fleetManifest],
   );
   const activeTransferItems = useMemo(
     () =>
@@ -217,6 +243,13 @@ export function FleetsPage() {
           group.activeTransfer?.id === preparedCancelTransferId && group.commands?.canCancelTransfer,
       ) ?? null,
     [preparedCancelTransferId, uiState],
+  );
+  const visiblePreparedCompleteDueGroup = useMemo(
+    () =>
+      uiState?.groups.find(
+        (group) => group.id === preparedCompleteDueGroupId && isTransferDueForUi(group),
+      ) ?? null,
+    [preparedCompleteDueGroupId, uiState],
   );
   const liveEstimateResponse = useMemo(() => {
     const response = estimateApiResult?.response;
@@ -363,6 +396,20 @@ export function FleetsPage() {
       invalidateEstimate("El destino cambio desde la ultima estimacion. Calcula una nueva estimacion.");
     }
   }, [effectiveDestinationPlanetId, estimateSnapshot, selectedGroup]);
+
+  useEffect(() => {
+    if (!preparedCompleteDueGroupId) {
+      return;
+    }
+
+    if (!visiblePreparedCompleteDueGroup) {
+      setPreparedCompleteDueGroupId("");
+      setHasCompleteDueAcknowledgement(false);
+      setCompleteDueTransferStaleMessage(
+        "La llegada preparada ya no figura como vencida en la UI. Estado actualizado desde la API.",
+      );
+    }
+  }, [preparedCompleteDueGroupId, visiblePreparedCompleteDueGroup]);
 
   useEffect(() => {
     if (!preparedCancelTransferId) {
@@ -553,6 +600,87 @@ export function FleetsPage() {
     setCancelTransferStaleMessage(null);
   }
 
+  function handlePrepareCompleteDueTransfer(groupId: string) {
+    setPreparedCompleteDueGroupId((currentValue) => (currentValue === groupId ? "" : groupId));
+    setHasCompleteDueAcknowledgement(false);
+    setCompleteDueTransferResult(null);
+    setCompleteDueTransferNetworkError(null);
+    setCompleteDueTransferStaleMessage(null);
+  }
+
+  async function handleCompleteDueTransfers(group: FleetGroupSummary) {
+    if (isCompletingDueTransfers) {
+      setCompleteDueTransferNetworkError("Ya hay una solicitud de completar vencidos en curso.");
+      return;
+    }
+
+    if (!hasCompleteDueAction) {
+      setCompleteDueTransferNetworkError("La API de desarrollo no expone completar vencidos en este entorno.");
+      return;
+    }
+
+    if (preparedCompleteDueGroupId !== group.id || !isTransferDueForUi(group)) {
+      setCompleteDueTransferNetworkError("Falta una llegada vencida y visible para ejecutar completar vencidos.");
+      return;
+    }
+
+    if (!hasCompleteDueAcknowledgement) {
+      setCompleteDueTransferNetworkError("Confirma la accion explicita antes de completar vencidos.");
+      return;
+    }
+
+    if (!uiState?.civilizationId) {
+      setCompleteDueTransferNetworkError("Primero carga una cabina valida antes de ejecutar completar vencidos.");
+      return;
+    }
+
+    setIsCompletingDueTransfers(true);
+    setCompleteDueTransferResult(null);
+    setCompleteDueTransferNetworkError(null);
+
+    try {
+      const result = await voidEmpiresApi.completeDueOrbitalTransfers({
+        nowUtc: new Date().toISOString(),
+      });
+
+      setCompleteDueTransferResult(presentCompletionResult(result));
+
+      if (result.httpStatus === 200 && result.response?.succeeded) {
+        setPreparedCompleteDueGroupId("");
+        setHasCompleteDueAcknowledgement(false);
+        setCompleteDueTransferStaleMessage(
+          "El lote controlado se ejecuto. La cabina debe refrescarse para confirmar que las llegadas vencidas ya no siguen activas.",
+        );
+
+        try {
+          await refreshFleetUiState(uiState.civilizationId);
+          setCompleteDueTransferResult((currentResult) =>
+            currentResult
+              ? {
+                  ...currentResult,
+                  details: ["Estado actualizado desde la API.", ...currentResult.details],
+                }
+              : currentResult,
+          );
+        } catch (refreshError) {
+          setCompleteDueTransferNetworkError(
+            refreshError instanceof Error
+              ? `Lote aplicado, pero no se pudo refrescar la UI: ${refreshError.message}`
+              : "Lote aplicado, pero no se pudo refrescar la UI.",
+          );
+        }
+      }
+    } catch (requestError) {
+      const message =
+        requestError instanceof Error
+          ? requestError.message
+          : "Error de red al completar traslados vencidos.";
+      setCompleteDueTransferNetworkError(message);
+    } finally {
+      setIsCompletingDueTransfers(false);
+    }
+  }
+
   async function handleCancelTransfer(group: FleetGroupSummary) {
     const transferId = group.activeTransfer?.id;
 
@@ -734,45 +862,14 @@ export function FleetsPage() {
             </div>
             <div className="fleet-summary-list">
               {squadListItems.map(({ group, presentation }) => (
-                <article
+                <FleetSummaryPanel
                   key={group.id}
-                  className={`subpanel figma-subpanel fleet-summary-card${inspectedGroup?.id === group.id ? " fleet-summary-card-selected" : ""}`}
-                >
-                  <div className="fleet-summary-card-head">
-                    <div className="fleet-summary-card-title">
-                      <p className="eyebrow">Escuadra orbital</p>
-                      <h4>{presentation.title}</h4>
-                      <p className="fleet-summary-card-location">Orbita en {presentation.locationLabel}</p>
-                    </div>
-                    <div className="fleet-summary-card-status">
-                      <UiBadge tone={presentation.statusTone}>{presentation.statusLabel}</UiBadge>
-                      <strong>{presentation.quantityLabel}</strong>
-                    </div>
-                  </div>
-
-                  <div className="fleet-summary-card-strip">
-                    <span className="fleet-summary-card-route-label">
-                      {group.activeTransfer ? "Destino activo" : "Ruta"}
-                    </span>
-                    <strong>{presentation.destinationLabel}</strong>
-                  </div>
-
-                  <div className="fleet-summary-card-meta">
-                    <div className="figma-badge-row">
-                      <UiBadge tone={presentation.readinessTone}>{presentation.readinessLabel}</UiBadge>
-                      {inspectedGroup?.id === group.id ? <UiBadge tone="good">En foco</UiBadge> : null}
-                    </div>
-                    <p className="dev-meta">ID tactico {presentation.technicalIdLabel}</p>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="fleet-summary-select-button"
-                    onClick={() => setInspectedGroupId(group.id)}
-                  >
-                    {inspectedGroup?.id === group.id ? "Cabina enfocada" : "Abrir cabina"}
-                  </button>
-                </article>
+                  group={group}
+                  presentation={presentation}
+                  isSelected={inspectedGroup?.id === group.id}
+                  hasDueTransfer={isTransferDueForUi(group)}
+                  onSelect={setInspectedGroupId}
+                />
               ))}
             </div>
           </UiCard>
@@ -783,9 +880,17 @@ export function FleetsPage() {
                 group={inspectedGroup}
                 readinessItems={inspectedReadinessItems}
                 groupTone={getGroupTone(inspectedGroup)}
+                canCompleteDueTransfers={hasCompleteDueAction}
+                dueTransferCount={dueTransferGroups.length}
+                preparedCompleteDueGroupId={preparedCompleteDueGroupId}
+                hasCompleteDueAcknowledgement={hasCompleteDueAcknowledgement}
+                isCompletingDueTransfers={isCompletingDueTransfers}
                 preparedCancelTransferId={preparedCancelTransferId}
                 hasCancelTransferAcknowledgement={hasCancelTransferAcknowledgement}
                 isCancellingTransfer={isCancellingTransfer}
+                onPrepareCompleteDueTransfer={handlePrepareCompleteDueTransfer}
+                onCompleteDueAcknowledgementChange={setHasCompleteDueAcknowledgement}
+                onCompleteDueTransfers={handleCompleteDueTransfers}
                 onPrepareCancelTransfer={handlePrepareCancelTransfer}
                 onCancelAcknowledgementChange={setHasCancelTransferAcknowledgement}
                 onCancelTransfer={handleCancelTransfer}
@@ -882,6 +987,8 @@ export function FleetsPage() {
               {estimateStaleMessage ? <p className="error-text">{estimateStaleMessage}</p> : null}
               {estimateNetworkError ? <p className="error-text">Error de red: {estimateNetworkError}</p> : null}
               {createTransferNetworkError ? <p className="error-text">{createTransferNetworkError}</p> : null}
+                {completeDueTransferStaleMessage ? <p className="figma-panel-note">{completeDueTransferStaleMessage}</p> : null}
+                {completeDueTransferNetworkError ? <p className="error-text">{completeDueTransferNetworkError}</p> : null}
                 {cancelTransferStaleMessage ? <p className="figma-panel-note">{cancelTransferStaleMessage}</p> : null}
                 {cancelTransferNetworkError ? <p className="error-text">{cancelTransferNetworkError}</p> : null}
                 {estimateReviewCard ? (
@@ -1024,6 +1131,34 @@ export function FleetsPage() {
                   {cancelTransferResult.details.length > 0 ? (
                     <ul className="stack-list compact-list">
                       {cancelTransferResult.details.map((detail) => (
+                        <li key={detail}>{detail}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </section>
+              ) : null}
+              {completeDueTransferResult ? (
+                <section className="subpanel figma-subpanel fleet-action-primary-card">
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Resultado de accion</p>
+                      <h4>{completeDueTransferResult.label}</h4>
+                    </div>
+                    <UiBadge tone={completeDueTransferResult.tone}>
+                      {completeDueTransferResult.tone === "good" ? "Mutacion aplicada" : "No aplicada"}
+                    </UiBadge>
+                  </div>
+                  <p>{completeDueTransferResult.summary}</p>
+                  {completeDueTransferResult.facts?.length ? (
+                    <div className="fleet-estimate-facts fleet-estimate-review-grid">
+                      {completeDueTransferResult.facts.map((fact) => (
+                        <FleetDataRow key={`complete-result-${fact.label}`} label={fact.label} value={fact.value} />
+                      ))}
+                    </div>
+                  ) : null}
+                  {completeDueTransferResult.details.length > 0 ? (
+                    <ul className="stack-list compact-list">
+                      {completeDueTransferResult.details.map((detail) => (
                         <li key={detail}>{detail}</li>
                       ))}
                     </ul>

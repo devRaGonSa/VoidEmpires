@@ -1,61 +1,51 @@
 import type { FleetGroupSummary } from "../api/fleetTypes";
-import {
-  formatCompactGuid,
-  formatOrbitalGroupStatus,
-  formatPlanetReference,
-  formatSpaceAssetType,
-} from "../utils/domainPresentation";
+import type { FleetSquadListPresentationItem } from "../utils/fleetCommandPresentation";
 import { UiBadge } from "./ui/UiBadge";
 
 interface FleetSummaryPanelProps {
   group: FleetGroupSummary;
+  presentation: FleetSquadListPresentationItem;
   isSelected: boolean;
+  hasDueTransfer: boolean;
   onSelect: (groupId: string) => void;
 }
 
 export function FleetSummaryPanel({
   group,
+  presentation,
   isSelected,
+  hasDueTransfer,
   onSelect,
 }: FleetSummaryPanelProps) {
-  const readinessLabel = group.hasActiveTransfer
-    ? "Transferencia activa"
-    : group.commands?.canCreateTransfer
-      ? "Lista para ordenar"
-      : "Solo inspeccion";
-
   return (
     <article className={`subpanel figma-subpanel fleet-summary-card${isSelected ? " fleet-summary-card-selected" : ""}`}>
-      <div className="figma-section-header">
-        <div className="fleet-identity-block">
+      <div className="fleet-summary-card-head">
+        <div className="fleet-summary-card-title">
           <p className="eyebrow">Escuadra orbital</p>
-          <h4>{formatSpaceAssetType(group.assetType)}</h4>
-          <p>Orbita en {formatPlanetReference(group.currentPlanetId)}. Lista breve para saltar entre escuadras y abrir la cabina principal.</p>
-          <p className="dev-meta">ID tactico {formatCompactGuid(group.id)}</p>
+          <h4>{presentation.title}</h4>
+          <p className="fleet-summary-card-location">Orbita en {presentation.locationLabel}</p>
         </div>
-        <UiBadge tone={group.hasActiveTransfer ? "warn" : group.commands?.canCreateTransfer ? "good" : "neutral"}>
-          {formatOrbitalGroupStatus(group.status)}
-        </UiBadge>
-      </div>
-
-      <div className="figma-data-list">
-        <div className="figma-data-row">
-          <span>Cantidad</span>
-          <strong>{group.quantity}</strong>
-        </div>
-        <div className="figma-data-row">
-          <span>Estado tactico</span>
-          <strong>{readinessLabel}</strong>
+        <div className="fleet-summary-card-status">
+          <UiBadge tone={presentation.statusTone}>{presentation.statusLabel}</UiBadge>
+          <strong>{presentation.quantityLabel}</strong>
         </div>
       </div>
 
-      <div className="figma-badge-row">
-        <UiBadge tone={group.routeFuelReadiness?.canRequestTravelEstimate ? "good" : "warn"}>
-          {group.routeFuelReadiness?.canRequestTravelEstimate ? "Ruta estimable" : "Ruta bloqueada"}
-        </UiBadge>
-        {group.activeTransfer ? (
-          <UiBadge tone="warn">{formatPlanetReference(group.activeTransfer.destinationPlanetId)}</UiBadge>
-        ) : null}
+      <div className="fleet-summary-card-strip">
+        <span className="fleet-summary-card-route-label">
+          {group.activeTransfer ? "Destino activo" : "Ruta"}
+        </span>
+        <strong>{presentation.destinationLabel}</strong>
+      </div>
+
+      <div className="fleet-summary-card-meta">
+        <div className="figma-badge-row">
+          <UiBadge tone={hasDueTransfer ? "warn" : presentation.readinessTone}>
+            {hasDueTransfer ? "Llegada vencida" : presentation.readinessLabel}
+          </UiBadge>
+          {isSelected ? <UiBadge tone="good">En foco</UiBadge> : null}
+        </div>
+        <p className="dev-meta">ID tactico {presentation.technicalIdLabel}</p>
       </div>
 
       <button type="button" className="fleet-summary-select-button" onClick={() => onSelect(group.id)}>

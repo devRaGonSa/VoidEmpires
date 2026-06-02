@@ -40,9 +40,17 @@ interface FleetSelectedGroupPanelProps {
   group: FleetGroupSummary;
   readinessItems: FleetCommandPresentationItem[];
   groupTone: "good" | "warn" | "neutral";
+  canCompleteDueTransfers: boolean;
+  dueTransferCount: number;
+  preparedCompleteDueGroupId: string;
+  hasCompleteDueAcknowledgement: boolean;
+  isCompletingDueTransfers: boolean;
   preparedCancelTransferId: string;
   hasCancelTransferAcknowledgement: boolean;
   isCancellingTransfer: boolean;
+  onPrepareCompleteDueTransfer: (groupId: string) => void;
+  onCompleteDueAcknowledgementChange: (checked: boolean) => void;
+  onCompleteDueTransfers: (group: FleetGroupSummary) => void;
   onPrepareCancelTransfer: (transferId: string) => void;
   onCancelAcknowledgementChange: (checked: boolean) => void;
   onCancelTransfer: (group: FleetGroupSummary) => void;
@@ -52,15 +60,31 @@ export function FleetSelectedGroupPanel({
   group,
   readinessItems,
   groupTone,
+  canCompleteDueTransfers,
+  dueTransferCount,
+  preparedCompleteDueGroupId,
+  hasCompleteDueAcknowledgement,
+  isCompletingDueTransfers,
   preparedCancelTransferId,
   hasCancelTransferAcknowledgement,
   isCancellingTransfer,
+  onPrepareCompleteDueTransfer,
+  onCompleteDueAcknowledgementChange,
+  onCompleteDueTransfers,
   onPrepareCancelTransfer,
   onCancelAcknowledgementChange,
   onCancelTransfer,
 }: FleetSelectedGroupPanelProps) {
   const transferProgress = getTransferProgress(group);
   const transferProgressLabel = formatTransferProgressLabel(group);
+  const isDueTransferReady = Boolean(group.activeTransfer && (transferProgress ?? -1) >= 100);
+  const dueTransferSummary = isDueTransferReady
+    ? dueTransferCount > 1
+      ? `La llegada visible ya vencio y hay ${dueTransferCount} traslados vencidos en esta cabina.`
+      : "La llegada visible ya vencio y puede usarse como prueba local para ejecutar el lote controlado."
+    : group.activeTransfer
+      ? "Este traslado sigue en curso. La ejecucion controlada solo se habilita cuando la llegada ya vencio."
+      : "No hay traslado activo en foco para justificar completar vencidos.";
 
   return (
     <UiCard className="panel fleet-selected-panel">
@@ -188,12 +212,78 @@ export function FleetSelectedGroupPanel({
             <button
               type="button"
               className="prototype-control-button transfer-prepare-button"
+              onClick={() => onPrepareCompleteDueTransfer(group.id)}
+              disabled={!canCompleteDueTransfers || !isDueTransferReady}
+            >
+              {preparedCompleteDueGroupId === group.id ? "Ocultar completar vencidos" : "Preparar completar vencidos"}
+            </button>
+            <button
+              type="button"
+              className="prototype-control-button transfer-prepare-button"
               onClick={() => onPrepareCancelTransfer(group.activeTransfer?.id ?? "")}
               disabled={!group.activeTransfer?.id || !group.commands?.canCancelTransfer}
             >
               {preparedCancelTransferId === group.activeTransfer.id ? "Ocultar confirmacion" : "Preparar anulacion"}
             </button>
           </div>
+          <section className="subpanel transfer-confirmation-panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Completar vencidos</p>
+                <h4>Ejecutar lote controlado</h4>
+                <p>{dueTransferSummary}</p>
+                <p className="dev-meta">
+                  {group.activeTransfer
+                    ? `Traslado ${formatCompactGuid(group.activeTransfer.id)} | Llegada ${group.activeTransfer.arrivalAtUtc}`
+                    : "Sin traslado activo"}
+                </p>
+              </div>
+              <div className="figma-badge-row">
+                <UiBadge tone="warn">Solo desarrollo</UiBadge>
+                <UiBadge tone={isDueTransferReady && canCompleteDueTransfers ? "good" : "neutral"}>
+                  {isDueTransferReady && canCompleteDueTransfers ? "Lista para confirmar" : "Bloqueada"}
+                </UiBadge>
+              </div>
+            </div>
+            <div className="figma-data-list">
+              <div className="figma-data-row">
+                <span>Traslados vencidos visibles</span>
+                <strong>{dueTransferCount}</strong>
+              </div>
+              <div className="figma-data-row">
+                <span>Planeta destino</span>
+                <strong>{formatPlanetPrimaryLabel(group.activeTransfer.destinationPlanetId)}</strong>
+              </div>
+            </div>
+            {preparedCompleteDueGroupId === group.id ? (
+              <div className="transfer-confirmation-flow">
+                <label className="confirmation-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={hasCompleteDueAcknowledgement}
+                    onChange={(event) => onCompleteDueAcknowledgementChange(event.target.checked)}
+                    disabled={!canCompleteDueTransfers || !isDueTransferReady}
+                  />
+                  <span>Confirmo completar ahora los traslados vencidos de desarrollo</span>
+                </label>
+                <div className="transfer-confirmation-actions">
+                  <button
+                    type="button"
+                    onClick={() => onCompleteDueTransfers(group)}
+                    disabled={
+                      isCompletingDueTransfers ||
+                      !canCompleteDueTransfers ||
+                      !isDueTransferReady ||
+                      !hasCompleteDueAcknowledgement ||
+                      preparedCompleteDueGroupId !== group.id
+                    }
+                  >
+                    {isCompletingDueTransfers ? "Completando..." : "Completar traslados vencidos"}
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </section>
           {preparedCancelTransferId === group.activeTransfer.id ? (
             <section className="subpanel transfer-confirmation-panel">
               <div className="figma-section-header">
