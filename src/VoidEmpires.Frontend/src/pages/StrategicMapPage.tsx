@@ -1,4 +1,5 @@
 import { FormEvent, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import type {
   ReadinessNote,
   StrategicMapResult,
@@ -656,11 +657,11 @@ export function StrategicMapPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Planetary intelligence</p>
-                <h3>Colonies and worlds</h3>
-                <p>Planet visibility, ownership, and colonization state stay close to the selected system.</p>
+                <p className="eyebrow">Inteligencia planetaria</p>
+                <h3>Colonias y mundos</h3>
+                <p>La lista planetaria deja claro que mundos puedes inspeccionar ahora y a que vista puedes saltar despues.</p>
               </div>
-              <UiBadge>{selectedSystem.planets?.length ?? 0} planets</UiBadge>
+              <UiBadge>{selectedSystem.planets?.length ?? 0} planetas</UiBadge>
             </div>
 
             <div className="selection-chip-row">
@@ -700,8 +701,8 @@ export function StrategicMapPage() {
                 <section className="subpanel figma-subpanel">
                   <div className="figma-section-header">
                     <div>
-                      <p className="eyebrow">Selected planet</p>
-                      <h4>{selectedPlanet.planetName ?? "Unknown planet"}</h4>
+                      <p className="eyebrow">Planeta seleccionado</p>
+                      <h4>{selectedPlanet.planetName ?? "Planeta desconocido"}</h4>
                     </div>
                     <UiBadge tone={getVisibilityTone(selectedPlanet.visibilityLevel)}>
                       {Boolean(selectedPlanetRecord?.isOwnedByRequestingCivilization)
@@ -715,11 +716,11 @@ export function StrategicMapPage() {
                       value={`${formatVisibilityLevel(selectedPlanet.visibilityLevel)} (${formatVisibilityReason(selectedPlanet.visibilityReason)})`}
                     />
                     <DataRow
-                      label="Type"
+                      label="Tipo"
                       value={formatPlanetType(readDomainValue(selectedPlanetRecord ?? {}, "planetType"))}
                     />
                     <DataRow
-                      label="Colonization"
+                      label="Colonizacion"
                       value={formatColonizationStatus(
                         readDomainValue(selectedPlanetRecord ?? {}, "colonizationStatus"),
                       )}
@@ -728,6 +729,14 @@ export function StrategicMapPage() {
                       label="Id breve"
                       value={formatCompactGuid(selectedPlanet.planetId)}
                     />
+                  </div>
+                  <div className="selection-chip-row">
+                    <Link className="selection-chip selection-chip-active" to="/fleets">
+                      Ir a Flotas
+                    </Link>
+                    <span className="selection-chip" aria-disabled="true">
+                      Vista Planeta en preparacion
+                    </span>
                   </div>
                 </section>
 
