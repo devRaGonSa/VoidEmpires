@@ -21,6 +21,8 @@ export interface FleetMutationConfirmationModel {
   label: string;
   prototypeLevel: "prototype" | "danger";
   mutationSummary: string;
+  readinessLabel: string;
+  readinessTone: CommandTone;
   requiresConfirmation: boolean;
   confirmationText: string;
   disabledReason: string;
@@ -103,6 +105,8 @@ export function buildFleetMutationConfirmations(
           label: action.displayName,
           prototypeLevel: "danger",
           mutationSummary,
+          readinessLabel: activeTransfers > 0 ? "Global batch guarded" : "Waiting for due transfers",
+          readinessTone: activeTransfers > 0 ? "warn" : "neutral",
           requiresConfirmation: true,
           confirmationText: "Danger confirmation required before completing due transfers in a batch.",
           disabledReason: "Complete-due stays disabled because it is a global batch mutation, not a routine page action.",
@@ -129,6 +133,26 @@ export function buildFleetMutationConfirmations(
         label: action.displayName,
         prototypeLevel: "prototype",
         mutationSummary,
+        readinessLabel:
+          action.actionKey === "fleet.transfer.create"
+            ? stationedGroups > 0 ? "Ready in metadata" : "Blocked"
+            : action.actionKey === "fleet.transfer.cancel"
+              ? activeTransfers > 0 ? "Ready in metadata" : "Blocked"
+              : action.actionKey === "fleet.group.split"
+                ? splitReadyGroups > 0 ? "Ready in metadata" : "Blocked"
+                : action.actionKey === "fleet.group.merge"
+                  ? mergeReadyGroups > 0 ? "Ready in metadata" : "Blocked"
+                  : "Guarded",
+        readinessTone:
+          action.actionKey === "fleet.transfer.create"
+            ? stationedGroups > 0 ? "good" : "warn"
+            : action.actionKey === "fleet.transfer.cancel"
+              ? activeTransfers > 0 ? "good" : "warn"
+              : action.actionKey === "fleet.group.split"
+                ? splitReadyGroups > 0 ? "good" : "warn"
+                : action.actionKey === "fleet.group.merge"
+                  ? mergeReadyGroups > 0 ? "good" : "warn"
+                  : "neutral",
         requiresConfirmation: true,
         confirmationText: `Prototype confirmation required before ${action.displayName.toLowerCase()}.`,
         disabledReason: disabledReasonByAction[action.actionKey]

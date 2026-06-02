@@ -894,6 +894,33 @@ input {
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
+.prototype-control-grid {
+  display: grid;
+  gap: var(--ve-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin-top: 14px;
+}
+
+.prototype-control-card {
+  align-content: start;
+}
+
+.prototype-control-button {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 var(--ve-space-4);
+  border-radius: var(--ve-radius-sm);
+  border: 1px dashed color-mix(in srgb, var(--ve-color-warning) 48%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 62%, black);
+  color: color-mix(in srgb, var(--ve-color-text) 70%, var(--ve-color-muted));
+  font-weight: 700;
+  cursor: not-allowed;
+}
+
+.prototype-control-button:disabled {
+  opacity: 1;
+}
+
 .json-details {
   margin-top: 14px;
 }

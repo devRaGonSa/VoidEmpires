@@ -394,6 +394,46 @@ export function FleetsPage() {
         </UiCard>
       )}
 
+      {uiState && mutationConfirmations.length > 0 && (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Prototype only</p>
+              <h3>Guarded mutation controls</h3>
+              <p>Visible for discoverability, disabled by design, and never executed from this page.</p>
+            </div>
+            <UiBadge tone="warn">Mutacion protegida</UiBadge>
+          </div>
+          <div className="prototype-control-grid">
+            {mutationConfirmations.map((control) => (
+              <section key={control.actionKey} className="subpanel prototype-control-card">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Mutation contract</p>
+                    <h4>{control.label}</h4>
+                    <p>{control.mutationSummary}</p>
+                  </div>
+                  <div className="figma-badge-row">
+                    <UiBadge tone="warn">Mutacion</UiBadge>
+                    <UiBadge tone={control.readinessTone}>{control.readinessLabel}</UiBadge>
+                    <UiBadge tone={control.prototypeLevel === "danger" ? "warn" : "neutral"}>
+                      {control.prototypeLevel === "danger" ? "Danger" : "Prototype only"}
+                    </UiBadge>
+                  </div>
+                </div>
+                <button type="button" className="prototype-control-button" disabled>
+                  {control.label}
+                </button>
+                <div className="figma-data-list">
+                  <FleetDataRow label="Confirmation" value={control.confirmationText} />
+                  <FleetDataRow label="Disabled reason" value={control.disabledReason} />
+                </div>
+              </section>
+            ))}
+          </div>
+        </UiCard>
+      )}
+
       {summary && (
         <UiCard className="panel">
           <div className="figma-section-header">
