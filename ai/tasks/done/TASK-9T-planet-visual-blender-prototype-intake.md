@@ -3,7 +3,7 @@
 ---
 id: TASK-9T
 title: Phase 9T - Planet visual Blender prototype intake
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
