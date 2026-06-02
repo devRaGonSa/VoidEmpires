@@ -17,12 +17,7 @@ import {
   formatSpaceAssetType,
   formatTransferStatus,
 } from "../utils/domainPresentation";
-
-interface CommandReadinessItem {
-  key: string;
-  label: string;
-  value: string;
-}
+import { buildFleetCommandReadiness } from "../utils/fleetCommandPresentation";
 
 function formatNote(note: ReadinessNote) {
   if (typeof note === "string") {
@@ -59,36 +54,6 @@ function getGroupTone(group: FleetGroupSummary): "good" | "warn" | "neutral" {
   }
 
   return "neutral";
-}
-
-function getCommandReadiness(group: FleetGroupSummary): CommandReadinessItem[] {
-  return [
-    {
-      key: "estimate",
-      label: "Travel preview",
-      value: group.routeFuelReadiness?.canRequestTravelEstimate ? "Preview ready" : "Preview blocked",
-    },
-    {
-      key: "create-transfer",
-      label: "Create transfer",
-      value: group.commands?.canCreateTransfer ? "Ready" : "Blocked",
-    },
-    {
-      key: "split",
-      label: "Split group",
-      value: group.commands?.canSplit ? "Ready" : "Blocked",
-    },
-    {
-      key: "merge",
-      label: "Merge groups",
-      value: group.commands?.canMerge ? "Ready" : "Blocked",
-    },
-    {
-      key: "cancel-transfer",
-      label: "Cancel transfer",
-      value: group.commands?.canCancelTransfer ? "Ready" : "Blocked",
-    },
-  ];
 }
 
 interface SummaryMetricProps {
@@ -343,7 +308,7 @@ export function FleetsPage() {
         <div className="figma-fleet-grid">
           {uiState.groups.map((group) => {
             const transferProgress = getTransferProgress(group);
-            const readinessItems = getCommandReadiness(group);
+            const readinessItems = buildFleetCommandReadiness(group, uiState.actionHints ?? []);
 
             return (
               <UiCard key={group.id} className="panel figma-fleet-card">
@@ -386,10 +351,20 @@ export function FleetsPage() {
                     <FleetDataRow
                       key={`${group.id}-${item.key}`}
                       label={item.label}
-                      value={item.value}
+                      value={item.summary}
                     />
                   ))}
                 </div>
+
+                {readinessItems.some((item) => item.details.length > 0) ? (
+                  <ul className="stack-list compact-list">
+                    {readinessItems.flatMap((item) =>
+                      item.details.map((detail) => (
+                        <li key={`${group.id}-${item.key}-${detail}`}>{item.label}: {detail}</li>
+                      )),
+                    )}
+                  </ul>
+                ) : null}
 
                 {group.routeFuelReadiness?.fuelReadinessPolicy && (
                   <div className="figma-badge-row">
