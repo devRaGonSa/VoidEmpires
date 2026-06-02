@@ -3,7 +3,7 @@
 ---
 id: TASK-12I
 title: Phase 12I - Fleet order panel gameplay simplification
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

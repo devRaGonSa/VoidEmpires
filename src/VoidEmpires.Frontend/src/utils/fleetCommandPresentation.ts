@@ -11,6 +11,7 @@ import {
   formatCompactGuid,
   formatOrbitalGroupStatus,
   formatPlanetReference,
+  formatResourceType,
   formatSpaceAssetType,
 } from "./domainPresentation";
 
@@ -34,6 +35,11 @@ export interface FleetSquadListPresentationItem {
   readinessLabel: string;
   readinessTone: CommandTone;
   technicalIdLabel: string;
+}
+
+export interface FleetEstimateFact {
+  label: string;
+  value: string;
 }
 
 function getUnexpectedResponseSummary(result: FleetCommandApiResult<unknown>) {
@@ -104,6 +110,43 @@ export function presentFleetSquadListItem(
     readinessTone: isTravelling ? "warn" : canOrder || canEstimate ? "good" : "neutral",
     technicalIdLabel: formatTechnicalId(group.id) ?? "Sin ID",
   };
+}
+
+export function buildFleetEstimateFacts(
+  response: EstimateOrbitalTravelResponse | null,
+  currentPlanetId?: string | null,
+  destinationPlanetId?: string | null,
+): FleetEstimateFact[] {
+  if (!response?.succeeded) {
+    return [];
+  }
+
+  const costLabel = response.resourceCosts.length
+    ? response.resourceCosts.map((cost) => `${formatResourceType(cost.resourceType)} ${cost.quantity}`).join(", ")
+    : "Sin coste";
+
+  return [
+    {
+      label: "Origen",
+      value: formatPlanetReference(response.currentPlanetId ?? currentPlanetId ?? ""),
+    },
+    {
+      label: "Destino",
+      value: formatPlanetReference(response.destinationPlanetId ?? destinationPlanetId ?? ""),
+    },
+    {
+      label: "Duracion",
+      value: response.estimatedDuration ?? "Sin duracion visible",
+    },
+    {
+      label: "Coste",
+      value: costLabel,
+    },
+    {
+      label: "Lista",
+      value: response.canAfford && (response.fuelReadiness?.isFuelReady ?? true) ? "Si" : "No",
+    },
+  ];
 }
 
 export function buildFleetCommandReadiness(group: FleetGroupSummary, actionHints: FleetActionHint[]) {

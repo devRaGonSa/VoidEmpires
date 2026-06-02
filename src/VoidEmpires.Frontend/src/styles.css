@@ -1076,6 +1076,37 @@ select {
   margin: 18px 0;
 }
 
+.fleet-order-step-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+}
+
+.fleet-order-step {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 36%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 38%, transparent);
+}
+
+.fleet-order-step strong {
+  color: var(--ve-color-accent-cyan);
+  font-size: 1rem;
+}
+
+.fleet-order-step span {
+  color: color-mix(in srgb, var(--ve-color-text) 86%, var(--ve-color-muted));
+  font-size: 0.84rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.fleet-order-step-warn strong {
+  color: var(--ve-color-warning);
+}
+
 .fleet-action-context,
 .fleet-action-primary-card {
   border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 22%, transparent);
@@ -1100,6 +1131,15 @@ select {
 .fleet-selected-transfer-card {
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--ve-color-accent-blue) 8%, var(--ve-color-panel-2)), color-mix(in srgb, var(--ve-color-panel) 92%, transparent));
+}
+
+.fleet-estimate-digest {
+  border-color: color-mix(in srgb, var(--ve-color-success) 20%, transparent);
+}
+
+.fleet-estimate-facts {
+  display: grid;
+  gap: 10px;
 }
 
 .prototype-control-grid-compact {

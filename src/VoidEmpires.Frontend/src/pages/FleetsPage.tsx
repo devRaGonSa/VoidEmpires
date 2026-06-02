@@ -20,6 +20,7 @@ import {
 } from "../utils/domainPresentation";
 import {
   buildFleetCommandReadiness,
+  buildFleetEstimateFacts,
   buildFleetMutationConfirmations,
   presentFleetSquadListItem,
   presentCancelTransferNetworkFailure,
@@ -271,6 +272,15 @@ export function FleetsPage() {
       ],
     };
   }, [effectiveDestinationPlanetId, liveEstimateResponse, selectedGroup]);
+  const estimateFacts = useMemo(
+    () =>
+      buildFleetEstimateFacts(
+        liveEstimateResponse ?? estimateApiResult?.response ?? null,
+        selectedGroup?.currentPlanetId,
+        effectiveDestinationPlanetId,
+      ),
+    [effectiveDestinationPlanetId, estimateApiResult?.response, liveEstimateResponse, selectedGroup?.currentPlanetId],
+  );
 
   function clearEstimateState() {
     setEstimateApiResult(null);
@@ -767,18 +777,19 @@ export function FleetsPage() {
             <UiCard className="panel fleet-orders-panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">Ordenes</p>
-                  <h3>Ruta, estimacion y orden activa</h3>
-                  <p>Primero eliges escuadra y destino, luego estimas la ruta y por ultimo confirmas la orden protegida.</p>
+                  <p className="eyebrow">Secuencia de orden</p>
+                  <h3>Seleccion, estimacion y confirmacion</h3>
+                  <p>El flujo de juego queda en cinco pasos: eliges escuadra, eliges destino, calculas, revisas y confirmas.</p>
                 </div>
                 <UiBadge tone="good">Cabina principal</UiBadge>
               </div>
               <div className="fleet-action-stage">
-                <div className="figma-badge-row">
-                  <UiBadge tone="good">1. Escuadra</UiBadge>
-                  <UiBadge tone="good">2. Destino</UiBadge>
-                  <UiBadge tone="good">3. Estimacion</UiBadge>
-                  <UiBadge tone="warn">4. Accion protegida</UiBadge>
+                <div className="fleet-order-step-grid">
+                  <div className="fleet-order-step"><strong>1</strong><span>Escuadra</span></div>
+                  <div className="fleet-order-step"><strong>2</strong><span>Destino</span></div>
+                  <div className="fleet-order-step"><strong>3</strong><span>Calcular</span></div>
+                  <div className="fleet-order-step"><strong>4</strong><span>Revisar</span></div>
+                  <div className="fleet-order-step fleet-order-step-warn"><strong>5</strong><span>Confirmar</span></div>
                 </div>
                 <div className="subpanel fleet-action-context">
                   <FleetDataRow
@@ -853,13 +864,29 @@ export function FleetsPage() {
               {estimateStaleMessage ? <p className="error-text">{estimateStaleMessage}</p> : null}
               {estimateNetworkError ? <p className="error-text">Error de red: {estimateNetworkError}</p> : null}
               {createTransferNetworkError ? <p className="error-text">{createTransferNetworkError}</p> : null}
-              {cancelTransferStaleMessage ? <p className="figma-panel-note">{cancelTransferStaleMessage}</p> : null}
-              {cancelTransferNetworkError ? <p className="error-text">{cancelTransferNetworkError}</p> : null}
+                {cancelTransferStaleMessage ? <p className="figma-panel-note">{cancelTransferStaleMessage}</p> : null}
+                {cancelTransferNetworkError ? <p className="error-text">{cancelTransferNetworkError}</p> : null}
+                {estimateFacts.length > 0 ? (
+                  <section className="subpanel figma-subpanel fleet-estimate-digest">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">Revision rapida</p>
+                        <h4>Resumen de ruta</h4>
+                      </div>
+                      <UiBadge tone="good">Paso 4</UiBadge>
+                    </div>
+                    <div className="fleet-estimate-facts">
+                      {estimateFacts.map((fact) => (
+                        <FleetDataRow key={fact.label} label={fact.label} value={fact.value} />
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
               {estimateResult ? (
                 <section className="subpanel figma-subpanel fleet-action-primary-card">
                   <div className="figma-section-header">
                     <div>
-                      <p className="eyebrow">Resultado de estimacion</p>
+                      <p className="eyebrow">Calculo</p>
                       <h4>{estimateResult.label}</h4>
                     </div>
                     <UiBadge tone={estimateResult.tone}>{estimateResult.tone === "good" ? "Listo" : "Atencion"}</UiBadge>
@@ -878,8 +905,8 @@ export function FleetsPage() {
                 <section className="subpanel transfer-confirmation-panel fleet-action-primary-card">
                   <div className="figma-section-header">
                     <div>
-                      <p className="eyebrow">Accion protegida</p>
-                      <h4>Crear transferencia orbital</h4>
+                      <p className="eyebrow">Paso 5</p>
+                      <h4>Confirmar transferencia orbital</h4>
                       <p>Solo se habilita cuando la ultima estimacion sigue vigente para este grupo y destino.</p>
                     </div>
                     <div className="figma-badge-row">
@@ -909,15 +936,15 @@ export function FleetsPage() {
                   </ul>
                   {createTransferConfirmationState.blockReason ? <p className="error-text">{createTransferConfirmationState.blockReason}</p> : null}
                   <div className="transfer-confirmation-flow">
-                    <label className="confirmation-checkbox">
-                      <input
-                        type="checkbox"
-                        checked={hasCreateTransferAcknowledgement}
-                        onChange={(event) => setHasCreateTransferAcknowledgement(event.target.checked)}
-                        disabled={!createTransferConfirmationState.canPrepare}
-                      />
-                      <span>Requiere confirmacion explicita</span>
-                    </label>
+                      <label className="confirmation-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={hasCreateTransferAcknowledgement}
+                          onChange={(event) => setHasCreateTransferAcknowledgement(event.target.checked)}
+                          disabled={!createTransferConfirmationState.canPrepare}
+                        />
+                        <span>Confirmo esta orden de traslado</span>
+                      </label>
                     <div className="transfer-confirmation-actions">
                       <button
                         type="button"
@@ -931,7 +958,7 @@ export function FleetsPage() {
                         {isCreatingTransfer ? "Creando..." : "Crear transferencia orbital"}
                       </button>
                     </div>
-                    <p className="figma-panel-note">La accion sigue marcada como desarrollo y nunca se ejecuta sin esta confirmacion explicita.</p>
+                    <p className="figma-panel-note">Sigue siendo una accion protegida de prototipo y nunca se ejecuta sin esta confirmacion.</p>
                   </div>
                 </section>
               ) : null}

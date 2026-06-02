@@ -191,9 +191,9 @@ export function FleetSelectedGroupPanel({
             <section className="subpanel transfer-confirmation-panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">Accion de desarrollo</p>
+                  <p className="eyebrow">Confirmar anulacion</p>
                   <h4>Cancelar transferencia orbital</h4>
-                  <p>La cancelacion sigue protegida y no reembolsa recursos ya cobrados.</p>
+                  <p>La anulacion sigue protegida y no reembolsa recursos ya cobrados.</p>
                 </div>
                 <div className="figma-badge-row">
                   <UiBadge tone="warn">Accion de desarrollo</UiBadge>
@@ -233,7 +233,7 @@ export function FleetSelectedGroupPanel({
                     checked={hasCancelTransferAcknowledgement}
                     onChange={(event) => onCancelAcknowledgementChange(event.target.checked)}
                   />
-                  <span>Requiere confirmacion explicita</span>
+                  <span>Confirmo la anulacion de esta ruta</span>
                 </label>
                 <div className="transfer-confirmation-actions">
                   <button
