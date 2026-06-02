@@ -3,7 +3,7 @@
 ---
 id: TASK-12F
 title: Phase 12F - Fleet cockpit visual validation checklist update
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

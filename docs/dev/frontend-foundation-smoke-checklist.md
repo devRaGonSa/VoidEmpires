@@ -41,7 +41,7 @@ Manual visual validation is deferred for the current fleet execution block unles
    - prototype-only mutation controls remain separated from the executable command column
 11. Within the same Fleet cockpit, confirm:
    - loading state appears
-   - fleet group summaries render as readable rail cards and raw GUIDs stay secondary to human-readable labels
+   - fleet group summaries render as readable rail cards and raw GUIDs stay secondary to ship or planet labels
    - the read-only estimate flow can submit `POST /api/dev/fleets/orbital-travel/estimate` and render loading, success, validation, not-found, conflict, or network-error feedback without creating a transfer
    - `create transfer` remains clearly labeled as a development action, requires explicit confirmation, and can submit only `POST /api/dev/fleets/orbital-transfers/create`
    - a successful create-transfer refresh clears stale estimate state and surfaces an `Estado actualizado desde la API.` cue in the mutation result area
@@ -53,14 +53,22 @@ Manual visual validation is deferred for the current fleet execution block unles
    - feedback areas for estimate, create-transfer, and cancel-transfer results render readable success, warning, or error messaging rather than JSON-first output
    - fleet and strategic-map manifests render as read-only contract panels
    - mutating manifest actions remain labeled but unavailable from the frontend
-12. Confirm no buttons other than the explicit `create transfer` and `cancel transfer` confirmation paths execute mutating dev endpoints from either route.
+12. For the polished Fleet cockpit visual review, confirm:
+   - the screen reads mostly in Spanish and no mixed English labels dominate the main flow
+   - the rail, selected-group panel, and main action column feel like a simple playable fleet screen rather than a dev console
+   - the action column reads in this order: escuadra, destino, estimacion, confirmacion de create o cancel
+   - create and cancel remain the only executable mutation paths and both still require explicit confirmation
+   - `complete-due`, `split`, and `merge` remain visible only as disabled or prototype-only controls
+   - technical ids remain available for development use, but compact ids stay secondary to ship names, planet references, and route summaries
+   - resource contexts stay readable by planet and do not get buried behind technical metadata
+   - result and error feedback remain readable at a glance, and no raw enum numbers or `NetworkError` text dominates the panel
+13. Confirm no buttons other than the explicit `create transfer` and `cancel transfer` confirmation paths execute mutating dev endpoints from either route.
 
 ## Repository validation
 
 Run from repository root:
 
 ```powershell
-dotnet restore
 dotnet build --no-restore
 dotnet test --no-build
 npm run build --prefix src/VoidEmpires.Frontend

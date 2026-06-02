@@ -155,4 +155,4 @@ If a previous local run already mutated fleet state, inspect `ui-state` first. R
 
 Manual browser review is deferred for this block unless a clear regression appears. See `docs/dev/frontend-foundation-smoke-checklist.md`.
 
-For the Fleet cockpit milestone, use the manual visual checklist there after the required non-visual validation commands succeed. Focus the browser review on command deck readability, selected-group context, guarded create/cancel confirmations, disabled prototype controls, and readable transfer/result feedback.
+For the Fleet cockpit milestone, use the manual visual checklist there after the required non-visual validation commands succeed. Focus the browser review on mostly Spanish copy, a readable rail + selected-group + action-column hierarchy, explicit create/cancel confirmations, secondary compact ids, readable resource context, and readable result or error feedback without dominant raw enum numbers or `NetworkError` text.

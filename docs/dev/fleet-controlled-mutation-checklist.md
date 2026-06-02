@@ -4,6 +4,8 @@ Use this checklist for the current non-visual regression pass around the Fleet p
 
 Manual browser review is not required for this block unless a clear frontend regression appears.
 
+For the polished Fleet cockpit milestone, pair this checklist with the manual visual review section in `docs/dev/frontend-foundation-smoke-checklist.md`.
+
 ## Required validation
 
 1. Run `dotnet build --no-restore` from the repository root.
@@ -28,6 +30,16 @@ Manual browser review is not required for this block unless a clear frontend reg
 7. Confirm the result identifies the cancelled transfer or group, clearly reports `estado actualizado`, and keeps the no-refund rule visible.
 8. Read `GET /api/dev/fleets/ui-state` again and confirm the cancelled transfer no longer appears active and the group is back in a stationed or available state.
 
+## Visual QA focus
+
+If a manual browser pass is needed for this milestone, confirm:
+
+1. The main Fleet action column stays readable in this order: escuadra, destino, estimacion, confirmacion, resultado.
+2. `create transfer` and `cancel transfer` are still the only executable mutation actions and both remain behind explicit confirmation.
+3. `complete-due`, `split`, and `merge` stay visible only as prototype-only or disabled controls.
+4. Friendly ship or planet labels stay visually primary while compact ids remain secondary development metadata.
+5. Success, warning, and network failure feedback stay readable without raw JSON, dominant enum numbers, or `NetworkError` wording taking over the panel.
+
 ## Guard checks
 
 1. Try to reuse an estimate after changing the selected group or destination and confirm the frontend rejects it as stale.
@@ -43,3 +55,13 @@ Manual browser review is not required for this block unless a clear frontend reg
 2. Re-applying it does not delete extra transfers, reset reserved groups, or refund spent resources after create-transfer.
 3. Re-applying it also does not remove already-cancelled transfer rows or reconstruct spent travel resources after a cancel-transfer cycle.
 4. If you need the original baseline exactly, switch to a fresh disposable local database and then apply the seed again.
+
+## Technical validation baseline
+
+Run from repository root:
+
+```powershell
+dotnet build --no-restore
+dotnet test --no-build
+npm run build --prefix src/VoidEmpires.Frontend
+```
