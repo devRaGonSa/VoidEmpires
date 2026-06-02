@@ -434,12 +434,12 @@ export function presentCreateTransferResult(result: FleetCommandApiResult<Create
           : defaultSummary,
     details: [
       ...(isSuccess ? ["La mutacion reservo el grupo y persistio una transferencia planificada."] : []),
-      ...(response?.orbitalTransferId ? [`ID de traslado ${formatTechnicalId(response.orbitalTransferId)}`] : []),
-      ...(response?.orbitalGroupId ? [`ID tactico ${formatTechnicalId(response.orbitalGroupId)}`] : []),
       ...(response?.originPlanetId ? [`Origen ${formatPlanetReference(response.originPlanetId)}`] : []),
       ...(response?.destinationPlanetId ? [`Destino ${formatPlanetReference(response.destinationPlanetId)}`] : []),
       ...(response?.departureAtUtc ? [`Salida ${response.departureAtUtc}`] : []),
       ...(response?.arrivalAtUtc ? [`Llegada ${response.arrivalAtUtc}`] : []),
+      ...(response?.orbitalTransferId ? [`ID de traslado ${formatTechnicalId(response.orbitalTransferId)}`] : []),
+      ...(response?.orbitalGroupId ? [`ID tactico ${formatTechnicalId(response.orbitalGroupId)}`] : []),
       ...(!isSuccess && result.httpStatus === 409
         ? ["Vuelve a cargar la UI o recalcula la estimacion antes de reintentar."]
         : []),
@@ -496,14 +496,14 @@ export function presentCancelTransferResult(result: FleetCommandApiResult<Cancel
           : defaultSummary,
     details: [
       ...(isSuccess ? ["La cancelacion no reembolsa los recursos ya cobrados por el create transfer."] : []),
-      ...(response?.orbitalTransferId ? [`ID de traslado ${formatTechnicalId(response.orbitalTransferId)}`] : []),
-      ...(response?.orbitalGroupId ? [`ID tactico ${formatTechnicalId(response.orbitalGroupId)}`] : []),
       ...(!isSuccess && result.httpStatus === 404
         ? ["La confirmacion local puede estar obsoleta. Recarga la UI si otra accion ya elimino esta transferencia activa."]
         : []),
       ...(!isSuccess && result.httpStatus === 409
         ? ["Recarga la UI de flotas antes de reintentar si otra accion ya cambio esta transferencia."]
         : []),
+      ...(response?.orbitalTransferId ? [`ID de traslado ${formatTechnicalId(response.orbitalTransferId)}`] : []),
+      ...(response?.orbitalGroupId ? [`ID tactico ${formatTechnicalId(response.orbitalGroupId)}`] : []),
       ...(!isSuccess && !hasExpectedErrorPayload ? ["La UI no recibio el payload JSON esperado para este comando."] : []),
       ...(response?.errors.slice(1) ?? []),
     ],

@@ -66,8 +66,8 @@ export function FleetSelectedGroupPanel({
       <div className="figma-section-header">
         <div className="fleet-identity-block">
           <p className="eyebrow">Escuadra seleccionada</p>
-          <h3>Puente tactico de {formatSpaceAssetType(group.assetType)}</h3>
-          <p>La escuadra elegida desde el listado concentra posicion, disponibilidad y cualquier traslado activo.</p>
+          <h3>{formatSpaceAssetType(group.assetType)}</h3>
+          <p>Orbita en {formatPlanetReference(group.currentPlanetId)} y concentra posicion, disponibilidad y cualquier traslado activo.</p>
           <p className="dev-meta">ID tactico {formatCompactGuid(group.id)}</p>
         </div>
         <div className="figma-badge-row">
@@ -147,17 +147,14 @@ export function FleetSelectedGroupPanel({
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Traslado activo</p>
-              <h4>{formatTransferStatus(group.activeTransfer.status)}</h4>
-              <p>La anulacion sigue protegida y solo aparece cuando la escuadra activa esta en foco.</p>
+              <h4>Rumbo a {formatPlanetReference(group.activeTransfer.destinationPlanetId)}</h4>
+              <p>{formatTransferStatus(group.activeTransfer.status)}. La anulacion sigue protegida y solo aparece cuando la escuadra activa esta en foco.</p>
+              <p className="dev-meta">ID de traslado {formatCompactGuid(group.activeTransfer.id)}</p>
             </div>
             <UiBadge tone="warn">{formatPlanetReference(group.activeTransfer.destinationPlanetId)}</UiBadge>
           </div>
           {transferProgress !== null ? <UiProgressBar value={transferProgress} tone="neutral" /> : null}
           <div className="figma-data-list">
-            <div className="figma-data-row">
-              <span>ID de traslado</span>
-              <strong>{formatCompactGuid(group.activeTransfer.id)}</strong>
-            </div>
             <div className="figma-data-row">
               <span>Destino</span>
               <strong>{formatPlanetReference(group.activeTransfer.destinationPlanetId)}</strong>
@@ -194,6 +191,9 @@ export function FleetSelectedGroupPanel({
                   <p className="eyebrow">Confirmar anulacion</p>
                   <h4>Cancelar transferencia orbital</h4>
                   <p>La anulacion sigue protegida y no reembolsa recursos ya cobrados.</p>
+                  <p className="dev-meta">
+                    Traslado {formatCompactGuid(group.activeTransfer.id)} · Escuadra {formatCompactGuid(group.id)}
+                  </p>
                 </div>
                 <div className="figma-badge-row">
                   <UiBadge tone="warn">Accion de desarrollo</UiBadge>
@@ -201,14 +201,6 @@ export function FleetSelectedGroupPanel({
                 </div>
               </div>
               <div className="figma-data-list">
-                <div className="figma-data-row">
-                  <span>ID de traslado</span>
-                  <strong>{formatCompactGuid(group.activeTransfer.id)}</strong>
-                </div>
-                <div className="figma-data-row">
-                  <span>ID tactico</span>
-                  <strong>{formatCompactGuid(group.id)}</strong>
-                </div>
                 <div className="figma-data-row">
                   <span>Origen</span>
                   <strong>{formatPlanetReference(group.originPlanetId)}</strong>

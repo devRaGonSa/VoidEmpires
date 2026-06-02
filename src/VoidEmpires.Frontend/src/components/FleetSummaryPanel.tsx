@@ -30,7 +30,7 @@ export function FleetSummaryPanel({
         <div className="fleet-identity-block">
           <p className="eyebrow">Escuadra orbital</p>
           <h4>{formatSpaceAssetType(group.assetType)}</h4>
-          <p>Lista breve para saltar entre escuadras y abrir la cabina principal.</p>
+          <p>Orbita en {formatPlanetReference(group.currentPlanetId)}. Lista breve para saltar entre escuadras y abrir la cabina principal.</p>
           <p className="dev-meta">ID tactico {formatCompactGuid(group.id)}</p>
         </div>
         <UiBadge tone={group.hasActiveTransfer ? "warn" : group.commands?.canCreateTransfer ? "good" : "neutral"}>
@@ -39,10 +39,6 @@ export function FleetSummaryPanel({
       </div>
 
       <div className="figma-data-list">
-        <div className="figma-data-row">
-          <span>Planeta actual</span>
-          <strong>{formatPlanetReference(group.currentPlanetId)}</strong>
-        </div>
         <div className="figma-data-row">
           <span>Cantidad</span>
           <strong>{group.quantity}</strong>

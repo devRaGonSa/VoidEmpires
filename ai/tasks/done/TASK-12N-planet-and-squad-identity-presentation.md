@@ -3,7 +3,7 @@
 ---
 id: TASK-12N
 title: Phase 12N - Planet and squad identity presentation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

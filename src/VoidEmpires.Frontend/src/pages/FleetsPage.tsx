@@ -92,6 +92,14 @@ interface EstimateSnapshot {
   destinationPlanetId: string;
 }
 
+function formatSquadIdentity(group: FleetGroupSummary) {
+  return `${formatSpaceAssetType(group.assetType)} en ${formatPlanetReference(group.currentPlanetId)}`;
+}
+
+function formatSquadOptionLabel(group: FleetGroupSummary) {
+  return `${formatSquadIdentity(group)} · ${group.quantity} unidades`;
+}
+
 export function FleetsPage() {
   const [civilizationId, setCivilizationId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -807,7 +815,7 @@ export function FleetsPage() {
                     label="Escuadra en foco"
                     value={
                       selectedGroup
-                        ? `${formatSpaceAssetType(selectedGroup.assetType)} en ${formatPlanetReference(selectedGroup.currentPlanetId)}`
+                        ? formatSquadIdentity(selectedGroup)
                         : "Sin escuadra lista"
                     }
                   />
@@ -835,7 +843,7 @@ export function FleetsPage() {
                     ) : (
                       estimateEligibleGroups.map((group) => (
                         <option key={group.id} value={group.id}>
-                          {formatSpaceAssetType(group.assetType)} - {formatPlanetReference(group.currentPlanetId)}
+                          {formatSquadOptionLabel(group)}
                         </option>
                       ))
                     )}
@@ -932,14 +940,14 @@ export function FleetsPage() {
                       label="Escuadra"
                       value={
                         selectedGroup
-                          ? `${formatSpaceAssetType(selectedGroup.assetType)} en ${formatPlanetReference(selectedGroup.currentPlanetId)}`
+                          ? formatSquadIdentity(selectedGroup)
                           : "Sin escuadra"
                       }
                     />
-                    <FleetDataRow label="ID tactico" value={formatCompactGuid(selectedGroup?.id ?? "")} />
                     <FleetDataRow label="Ruta" value={createTransferConfirmationState.routeSummary} />
                     <FleetDataRow label="Coste estimado" value={createTransferConfirmationState.costSummary} />
                   </div>
+                  <p className="dev-meta">ID tactico {formatCompactGuid(selectedGroup?.id ?? "")}</p>
                   <ul className="stack-list compact-list">
                     {createTransferConfirmationState.details.map((detail) => (
                       <li key={detail}>{detail}</li>
