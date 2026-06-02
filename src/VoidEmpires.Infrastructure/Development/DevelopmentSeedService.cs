@@ -19,6 +19,9 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
     private static readonly Guid SeedOwnedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
     private static readonly Guid SeedOuterPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000002");
     private static readonly Guid SeedIcePlanetId = Guid.Parse("40000000-0000-0000-0000-000000000003");
+    private const string SeedGalaxyName = "Validation Galaxy";
+    private const string SeedSystemName = "Helios Gate";
+    private const string SeedStarName = "Helios Gate Star";
     private static readonly DateTime SeedTransferDepartureAtUtc = new(2026, 6, 2, 8, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime SeedTransferArrivalAtUtc = new(2026, 6, 2, 12, 0, 0, DateTimeKind.Utc);
 
@@ -46,14 +49,19 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
 
     private async Task SeedMinimalValidationProfileAsync(CancellationToken cancellationToken)
     {
+        if (!await dbContext.Galaxies.AnyAsync(x => x.Id == SeedGalaxyId, cancellationToken))
+        {
+            dbContext.Galaxies.Add(new Galaxy(SeedGalaxyId, SeedGalaxyName));
+        }
+
         if (!await dbContext.Set<SolarSystem>().AnyAsync(x => x.Id == SeedSystemId, cancellationToken))
         {
             dbContext.Set<SolarSystem>().Add(new SolarSystem(
                 SeedSystemId,
                 SeedGalaxyId,
-                "Helios Gate",
+                SeedSystemName,
                 new GalaxyCoordinates(12, -4, 3),
-                new Star(SeedStarId, SeedSystemId, "Helios Gate Star", StarType.YellowDwarf)));
+                new Star(SeedStarId, SeedSystemId, SeedStarName, StarType.YellowDwarf)));
         }
 
         if (!await dbContext.Set<Planet>().AnyAsync(x => x.Id == SeedOwnedPlanetId, cancellationToken))
