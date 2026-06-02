@@ -63,12 +63,26 @@ async function requestCommandJson<T>(path: string, body: unknown): Promise<Fleet
   });
 
   const contentType = response.headers.get("content-type") ?? "";
-  const payload = contentType.includes("application/json")
-    ? ((await response.json()) as T)
-    : null;
+  const hasJsonBody = contentType.includes("application/json");
+  let payload: T | null = null;
+
+  if (hasJsonBody) {
+    try {
+      payload = (await response.json()) as T;
+    } catch {
+      return {
+        httpStatus: response.status,
+        hasJsonBody: true,
+        bodyParseFailed: true,
+        response: null,
+      };
+    }
+  }
 
   return {
     httpStatus: response.status,
+    hasJsonBody,
+    bodyParseFailed: false,
     response: payload,
   };
 }

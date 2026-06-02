@@ -1,6 +1,8 @@
 export type FleetCommandResultStatus = number | string;
 export interface FleetCommandApiResult<TResponse> {
   httpStatus: number;
+  hasJsonBody: boolean;
+  bodyParseFailed: boolean;
   response: TResponse | null;
 }
 export interface EstimateOrbitalTravelRequest {

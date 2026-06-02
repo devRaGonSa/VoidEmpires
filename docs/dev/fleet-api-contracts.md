@@ -250,6 +250,7 @@ Frontend readiness guidance:
 - `create transfer` should remain behind the latest matching estimate context, summarize route and cost before submission, and clear or mark stale estimate data after a successful mutation refresh with an `estado actualizado` style cue.
 - Frontend guards should invalidate the pending estimate when fleet UI state refreshes, when the selected group changes, when the destination changes, or when the estimated group is no longer stationed and create-ready.
 - Frontend guards should block duplicate `create transfer` submissions while the request is in flight and should reject submission unless the currently selected group and destination still match the latest successful estimate.
+- Frontend result feedback should distinguish success, validation (`400`), missing data (`404`), stale or already-active conflicts (`409`), persistence gating (`503`), network failures, and unexpected non-JSON or malformed JSON responses.
 - Keep mutation contracts in clearly marked development or prototype sections. Current Fleet page work must not wire split, merge, create, cancel, or complete-due to ordinary gameplay-style buttons or click handlers.
 - Disabled prototype controls are allowed for discoverability only when they stay visibly guarded, non-submitting, and non-executable.
 - If a prototype later executes a mutation contract, require an explicit development-only affordance and show the route as a contract boundary rather than presenting it as routine gameplay UI.

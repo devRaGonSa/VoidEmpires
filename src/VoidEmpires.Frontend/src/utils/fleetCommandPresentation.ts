@@ -17,6 +17,18 @@ export interface FleetCommandPresentationItem {
   details: string[];
 }
 
+function getUnexpectedResponseSummary(result: FleetCommandApiResult<unknown>) {
+  if (result.bodyParseFailed) {
+    return `La API devolvio ${result.httpStatus} pero el cuerpo JSON no se pudo leer.`;
+  }
+
+  if (!result.hasJsonBody) {
+    return `La API devolvio ${result.httpStatus} sin cuerpo JSON util para la UI.`;
+  }
+
+  return `La API devolvio ${result.httpStatus} con una forma de respuesta inesperada.`;
+}
+
 export interface FleetMutationConfirmationModel {
   actionKey: string;
   label: string;
@@ -205,35 +217,66 @@ export function presentEstimateResult(result: FleetCommandApiResult<EstimateOrbi
 
 export function presentCreateTransferResult(result: FleetCommandApiResult<CreateOrbitalTransferResponse>): FleetCommandPresentationItem {
   const response = result.response;
+  const isSuccess = (result.httpStatus === 200 || result.httpStatus === 201) && response?.succeeded;
+  const hasExpectedErrorPayload = response && Array.isArray(response.errors);
   const defaultSummary =
     result.httpStatus === 400
-      ? "Validacion rechazada por create transfer."
+      ? "La API rechazo la solicitud. Revisa grupo, destino y fecha UTC antes de reenviar."
       : result.httpStatus === 404
-        ? "Grupo o destino no encontrados en los datos de desarrollo."
+        ? "El grupo o destino ya no existen en el estado de desarrollo actual."
         : result.httpStatus === 409
-          ? "El estado actual de la flota ya no permite crear la transferencia."
+          ? "Conflicto detectado: la estimacion puede estar obsoleta o el grupo ya tiene una transferencia activa."
           : result.httpStatus === 503
-            ? "Persistencia no configurada para este entorno."
-            : `Request returned ${result.httpStatus}.`;
+            ? "La persistencia no esta configurada para este entorno de desarrollo."
+            : getUnexpectedResponseSummary(result);
 
   return {
     key: "create-transfer-result",
-    label: "Crear transferencia orbital",
+    label: isSuccess
+      ? "Transferencia orbital creada"
+      : result.httpStatus === 400
+        ? "Validacion rechazada"
+        : result.httpStatus === 404
+          ? "Datos no encontrados"
+          : result.httpStatus === 409
+            ? "Conflicto de estado"
+            : result.httpStatus === 503
+              ? "Persistencia no disponible"
+              : "Respuesta inesperada",
     tone:
-      (result.httpStatus === 200 || result.httpStatus === 201) && response?.succeeded
+      isSuccess
         ? "good"
         : "warn",
     summary:
-      (result.httpStatus === 200 || result.httpStatus === 201) && response?.succeeded
-        ? `Transferencia creada. Distancia ${response.abstractDistanceUnits} hacia ${response.destinationPlanetId ?? "destino desconocido"}.`
-        : response?.errors[0] ?? defaultSummary,
+      isSuccess
+        ? `El estado de desarrollo cambio correctamente. Distancia ${response.abstractDistanceUnits} hacia ${response.destinationPlanetId ?? "destino desconocido"}.`
+        : hasExpectedErrorPayload && response.errors[0]
+          ? response.errors[0]
+          : defaultSummary,
     details: [
+      ...(isSuccess ? ["La mutacion reservo el grupo y persistio una transferencia planificada."] : []),
       ...(response?.orbitalTransferId ? [`Transfer ${response.orbitalTransferId}`] : []),
       ...(response?.orbitalGroupId ? [`Grupo ${response.orbitalGroupId}`] : []),
+      ...(response?.originPlanetId ? [`Origen ${response.originPlanetId}`] : []),
+      ...(response?.destinationPlanetId ? [`Destino ${response.destinationPlanetId}`] : []),
       ...(response?.departureAtUtc ? [`Salida ${response.departureAtUtc}`] : []),
       ...(response?.arrivalAtUtc ? [`Llegada ${response.arrivalAtUtc}`] : []),
+      ...(!isSuccess && result.httpStatus === 409
+        ? ["Vuelve a cargar la UI o recalcula la estimacion antes de reintentar."]
+        : []),
+      ...(!isSuccess && !hasExpectedErrorPayload ? ["La UI no recibio el payload JSON esperado para este comando."] : []),
       ...(response?.errors.slice(1) ?? []),
     ],
+  };
+}
+
+export function presentCreateTransferNetworkFailure(message: string): FleetCommandPresentationItem {
+  return {
+    key: "create-transfer-network-error",
+    label: "Error de red",
+    tone: "warn",
+    summary: "No se pudo completar create transfer porque la solicitud no llego a la API.",
+    details: [message],
   };
 }
 

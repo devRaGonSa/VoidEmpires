@@ -25,6 +25,7 @@ import {
 import {
   buildFleetCommandReadiness,
   buildFleetMutationConfirmations,
+  presentCreateTransferNetworkFailure,
   presentCreateTransferResult,
   presentEstimateResult,
 } from "../utils/fleetCommandPresentation";
@@ -463,7 +464,7 @@ export function FleetsPage() {
             currentResult
               ? {
                   ...currentResult,
-                  details: ["Estado actualizado.", ...currentResult.details],
+                  details: ["Estado actualizado desde la API.", ...currentResult.details],
                 }
               : currentResult,
           );
@@ -480,7 +481,7 @@ export function FleetsPage() {
         requestError instanceof Error
           ? requestError.message
           : "Network error while creating the transfer.";
-      setCreateTransferNetworkError(message);
+      setCreateTransferResult(presentCreateTransferNetworkFailure(message));
     } finally {
       createTransferInFlightRef.current = false;
       setIsCreatingTransfer(false);
@@ -710,7 +711,7 @@ export function FleetsPage() {
                   <h4>{createTransferResult.label}</h4>
                 </div>
                 <UiBadge tone={createTransferResult.tone}>
-                  {createTransferResult.tone === "good" ? "Completada" : "Atencion"}
+                  {createTransferResult.tone === "good" ? "Mutacion aplicada" : "No aplicada"}
                 </UiBadge>
               </div>
               <p>{createTransferResult.summary}</p>

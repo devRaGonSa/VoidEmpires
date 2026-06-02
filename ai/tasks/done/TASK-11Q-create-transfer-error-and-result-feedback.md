@@ -3,7 +3,7 @@
 ---
 id: TASK-11Q
 title: Phase 11Q - Create transfer error and result feedback
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
