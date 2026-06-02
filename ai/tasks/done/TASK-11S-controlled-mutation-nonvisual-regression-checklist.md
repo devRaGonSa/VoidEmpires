@@ -3,7 +3,7 @@
 ---
 id: TASK-11S
 title: Phase 11S - Controlled mutation non-visual regression checklist
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

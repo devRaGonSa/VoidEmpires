@@ -107,6 +107,7 @@ Use this checklist for the current frontend preparation block. Manual visual QA 
 6. Keep manual browser review deferred unless a clear frontend regression appears; this milestone relies on build, test, and optional API-only checks rather than visual sign-off.
 
 Manual browser review is not required for Phase 11H through 11K unless a clear frontend regression appears. The intended evidence for this block is successful build and test execution plus optional API-level contract checks.
+For the current estimate -> confirm -> create-transfer path, use [fleet-controlled-mutation-checklist.md](./fleet-controlled-mutation-checklist.md) as the focused non-visual regression pass.
 
 ## Endpoint Summary
 

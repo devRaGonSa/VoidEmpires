@@ -203,6 +203,7 @@ Do not commit real Brevo API keys, SMTP credentials, verified sender addresses, 
 - `ai/reports/solution-bootstrap-plan.md`: actionable plan for the first implementation task
 - `src/VoidEmpires.Frontend/README.md`: frontend prototype setup, routes, and limitations
 - `docs/dev/frontend-foundation-smoke-checklist.md`: frontend smoke validation steps
+- `docs/dev/fleet-controlled-mutation-checklist.md`: focused non-visual regression steps for the Fleet estimate and create-transfer flow
 
 ## Workflow
 

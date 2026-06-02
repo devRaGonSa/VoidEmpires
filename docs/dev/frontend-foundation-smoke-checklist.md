@@ -2,6 +2,8 @@
 
 Use this checklist to validate the current frontend prototype without confusing it with production UI.
 
+For the specific Fleet estimate -> confirm -> create-transfer path, pair this document with `docs/dev/fleet-controlled-mutation-checklist.md`.
+
 ## Backend prerequisites
 
 1. Start `VoidEmpires.Web` with development endpoints enabled.
