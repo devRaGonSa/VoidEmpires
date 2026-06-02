@@ -49,6 +49,7 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(EstimateOrbitalTravelResultStatus.ValidationFailed, payload.Status);
         Assert.False(payload.Succeeded);
         Assert.Contains("Civilization id is required.", payload.Errors);
         Assert.Contains("Orbital group id is required.", payload.Errors);
@@ -70,6 +71,7 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(EstimateOrbitalTravelResultStatus.ValidationFailed, payload.Status);
         Assert.False(payload.Succeeded);
         Assert.Contains("Civilization id is required.", payload.Errors);
         Assert.Contains("Orbital group id is required.", payload.Errors);
@@ -86,6 +88,7 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(EstimateOrbitalTravelResultStatus.Succeeded, payload.Status);
         Assert.True(payload.Succeeded);
         Assert.Equal(OrbitalGroupId, payload.OrbitalGroupId);
         Assert.Equal(CurrentPlanetId, payload.CurrentPlanetId);
@@ -111,16 +114,33 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
     }
 
     [Fact]
+    public async Task EstimateOrbitalTravelReturnsNotFoundWhenServiceCannotFindEntities()
+    {
+        using var client = CreateConfiguredClient(
+            EstimateOrbitalTravelResult.NotFound("Destination planet was not found."));
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-travel/estimate", ValidRequest());
+        var payload = await response.Content.ReadFromJsonAsync<EstimateOrbitalTravelResponse>();
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.Equal(EstimateOrbitalTravelResultStatus.NotFound, payload.Status);
+        Assert.False(payload.Succeeded);
+        Assert.Contains("Destination planet was not found.", payload.Errors);
+    }
+
+    [Fact]
     public async Task EstimateOrbitalTravelReturnsConflictWhenServiceRejectsRequest()
     {
         using var client = CreateConfiguredClient(
-            EstimateOrbitalTravelResult.Failure("Orbital group already has an active transfer."));
+            EstimateOrbitalTravelResult.Conflict("Orbital group already has an active transfer."));
 
         using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-travel/estimate", ValidRequest());
         var payload = await response.Content.ReadFromJsonAsync<EstimateOrbitalTravelResponse>();
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(EstimateOrbitalTravelResultStatus.Conflict, payload.Status);
         Assert.False(payload.Succeeded);
         Assert.Contains("Orbital group already has an active transfer.", payload.Errors);
     }
@@ -178,6 +198,7 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
     }
 
     private sealed record EstimateOrbitalTravelResponse(
+        EstimateOrbitalTravelResultStatus Status,
         bool Succeeded,
         Guid? OrbitalGroupId,
         Guid? CurrentPlanetId,

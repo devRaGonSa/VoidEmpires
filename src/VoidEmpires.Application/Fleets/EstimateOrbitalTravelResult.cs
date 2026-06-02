@@ -1,6 +1,15 @@
 namespace VoidEmpires.Application.Fleets;
 
+public enum EstimateOrbitalTravelResultStatus
+{
+    Succeeded = 0,
+    ValidationFailed = 1,
+    NotFound = 2,
+    Conflict = 3
+}
+
 public sealed record EstimateOrbitalTravelResult(
+    EstimateOrbitalTravelResultStatus Status,
     bool Succeeded,
     Guid? OrbitalGroupId,
     Guid? CurrentPlanetId,
@@ -26,6 +35,7 @@ public sealed record EstimateOrbitalTravelResult(
         bool canAfford,
         IReadOnlyList<OrbitalTravelInsufficientResourceDto> insufficientResources) =>
         new(
+            EstimateOrbitalTravelResultStatus.Succeeded,
             true,
             orbitalGroupId,
             currentPlanetId,
@@ -39,6 +49,15 @@ public sealed record EstimateOrbitalTravelResult(
             insufficientResources,
             []);
 
+    public static EstimateOrbitalTravelResult ValidationFailure(params string[] errors) =>
+        new(EstimateOrbitalTravelResultStatus.ValidationFailed, false, null, null, null, 0, null, null, null, [], false, [], errors);
+
+    public static EstimateOrbitalTravelResult NotFound(params string[] errors) =>
+        new(EstimateOrbitalTravelResultStatus.NotFound, false, null, null, null, 0, null, null, null, [], false, [], errors);
+
+    public static EstimateOrbitalTravelResult Conflict(params string[] errors) =>
+        new(EstimateOrbitalTravelResultStatus.Conflict, false, null, null, null, 0, null, null, null, [], false, [], errors);
+
     public static EstimateOrbitalTravelResult Failure(params string[] errors) =>
-        new(false, null, null, null, 0, null, null, null, [], false, [], errors);
+        Conflict(errors);
 }

@@ -22,7 +22,7 @@ public sealed class OrbitalTravelEstimateService(
         var validationErrors = Validate(request);
         if (validationErrors.Count > 0)
         {
-            return EstimateOrbitalTravelResult.Failure([.. validationErrors]);
+            return EstimateOrbitalTravelResult.ValidationFailure([.. validationErrors]);
         }
 
         var civilizationExists = await dbContext.Set<Civilization>()
@@ -31,7 +31,7 @@ public sealed class OrbitalTravelEstimateService(
 
         if (!civilizationExists)
         {
-            return EstimateOrbitalTravelResult.Failure("Civilization was not found.");
+            return EstimateOrbitalTravelResult.NotFound("Civilization was not found.");
         }
 
         var group = await dbContext.Set<OrbitalGroup>()
@@ -43,12 +43,12 @@ public sealed class OrbitalTravelEstimateService(
 
         if (group is null)
         {
-            return EstimateOrbitalTravelResult.Failure("Orbital group was not found for the civilization.");
+            return EstimateOrbitalTravelResult.NotFound("Orbital group was not found for the civilization.");
         }
 
         if (group.CurrentPlanetId == Guid.Empty)
         {
-            return EstimateOrbitalTravelResult.Failure("Orbital group current planet is required.");
+            return EstimateOrbitalTravelResult.Conflict("Orbital group current planet is required.");
         }
 
         if (await OrbitalTransferActivityQueries.HasActiveTransferAsync(
@@ -56,12 +56,12 @@ public sealed class OrbitalTravelEstimateService(
             group.Id,
             cancellationToken))
         {
-            return EstimateOrbitalTravelResult.Failure("Orbital group already has an active transfer.");
+            return EstimateOrbitalTravelResult.Conflict("Orbital group already has an active transfer.");
         }
 
         if (group.Status != OrbitalGroupStatus.Stationed)
         {
-            return EstimateOrbitalTravelResult.Failure("Only stationed orbital groups can be estimated for travel.");
+            return EstimateOrbitalTravelResult.Conflict("Only stationed orbital groups can be estimated for travel.");
         }
 
         var destinationExists = await dbContext.Set<Planet>()
@@ -70,12 +70,12 @@ public sealed class OrbitalTravelEstimateService(
 
         if (!destinationExists)
         {
-            return EstimateOrbitalTravelResult.Failure("Destination planet was not found.");
+            return EstimateOrbitalTravelResult.NotFound("Destination planet was not found.");
         }
 
         if (group.CurrentPlanetId == request.DestinationPlanetId)
         {
-            return EstimateOrbitalTravelResult.Failure("Destination planet must be different from the current planet.");
+            return EstimateOrbitalTravelResult.Conflict("Destination planet must be different from the current planet.");
         }
 
         var estimate = OrbitalTravelEstimator.Estimate(

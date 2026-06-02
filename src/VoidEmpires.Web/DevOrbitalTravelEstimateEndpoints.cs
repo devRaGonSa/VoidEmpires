@@ -41,6 +41,7 @@ internal static class DevOrbitalTravelEstimateEndpoints
                 .ToArray();
 
             var response = new EstimateOrbitalTravelApiResponse(
+                result.Status,
                 result.Succeeded,
                 result.OrbitalGroupId,
                 result.CurrentPlanetId,
@@ -69,7 +70,13 @@ internal static class DevOrbitalTravelEstimateEndpoints
                 insufficientResources,
                 result.Errors);
 
-            return result.Succeeded ? Results.Ok(response) : Results.Conflict(response);
+            return result.Status switch
+            {
+                EstimateOrbitalTravelResultStatus.Succeeded => Results.Ok(response),
+                EstimateOrbitalTravelResultStatus.ValidationFailed => Results.BadRequest(response),
+                EstimateOrbitalTravelResultStatus.NotFound => Results.NotFound(response),
+                _ => Results.Conflict(response)
+            };
         });
     }
 
@@ -102,6 +109,7 @@ internal sealed record EstimateOrbitalTravelApiRequest(
     Guid? DestinationPlanetId);
 
 internal sealed record EstimateOrbitalTravelApiResponse(
+    EstimateOrbitalTravelResultStatus Status,
     bool Succeeded,
     Guid? OrbitalGroupId,
     Guid? CurrentPlanetId,
@@ -116,7 +124,7 @@ internal sealed record EstimateOrbitalTravelApiResponse(
     IReadOnlyList<string> Errors)
 {
     public static EstimateOrbitalTravelApiResponse Failure(IReadOnlyList<string> errors) =>
-        new(false, null, null, null, 0, null, null, null, [], false, [], errors);
+        new(EstimateOrbitalTravelResultStatus.ValidationFailed, false, null, null, null, 0, null, null, null, [], false, [], errors);
 }
 
 internal sealed record OrbitalFuelReadinessApiResponse(

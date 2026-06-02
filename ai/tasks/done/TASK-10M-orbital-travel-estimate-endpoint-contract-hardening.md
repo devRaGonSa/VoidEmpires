@@ -3,7 +3,7 @@
 ---
 id: TASK-10M
 title: Phase 10M - Orbital travel estimate endpoint contract hardening
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
