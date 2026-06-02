@@ -56,6 +56,27 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
     }
 
     [Fact]
+    public async Task EstimateOrbitalTravelReturnsBadRequestForEmptyIdentifiers()
+    {
+        using var client = CreateConfiguredClient(SuccessfulResult());
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-travel/estimate", new
+        {
+            civilizationId = Guid.Empty,
+            orbitalGroupId = Guid.Empty,
+            destinationPlanetId = Guid.Empty
+        });
+        var payload = await response.Content.ReadFromJsonAsync<EstimateOrbitalTravelResponse>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload.Succeeded);
+        Assert.Contains("Civilization id is required.", payload.Errors);
+        Assert.Contains("Orbital group id is required.", payload.Errors);
+        Assert.Contains("Destination planet id is required.", payload.Errors);
+    }
+
+    [Fact]
     public async Task EstimateOrbitalTravelReturnsOkForValidPreview()
     {
         using var client = CreateConfiguredClient(SuccessfulResult());

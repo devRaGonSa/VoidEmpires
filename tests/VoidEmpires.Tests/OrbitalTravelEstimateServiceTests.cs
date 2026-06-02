@@ -4,6 +4,7 @@ using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
+using VoidEmpires.Domain.Players;
 using VoidEmpires.Infrastructure.Economy;
 using VoidEmpires.Infrastructure.Fleets;
 using VoidEmpires.Infrastructure.Persistence;
@@ -16,7 +17,7 @@ public class OrbitalTravelEstimateServiceTests
     public async Task EstimateAsyncReturnsAffordableDistanceDurationAndCosts()
     {
         await using var dbContext = CreateDbContext();
-        var civilizationId = Guid.NewGuid();
+        var civilizationId = await AddCivilizationAsync(dbContext);
         var currentPlanetId = Guid.NewGuid();
         var destinationPlanetId = Guid.NewGuid();
         var group = OrbitalGroup.CreateStationed(
@@ -71,7 +72,7 @@ public class OrbitalTravelEstimateServiceTests
     public async Task EstimateAsyncReturnsInsufficientResourcesWithoutMutatingStockpile()
     {
         await using var dbContext = CreateDbContext();
-        var civilizationId = Guid.NewGuid();
+        var civilizationId = await AddCivilizationAsync(dbContext);
         var currentPlanetId = Guid.NewGuid();
         var destinationPlanetId = Guid.NewGuid();
         var group = OrbitalGroup.CreateStationed(
@@ -111,12 +112,13 @@ public class OrbitalTravelEstimateServiceTests
     public async Task EstimateAsyncRejectsMissingOrbitalGroup()
     {
         await using var dbContext = CreateDbContext();
+        var civilizationId = await AddCivilizationAsync(dbContext);
         dbContext.Set<Planet>().Add(CreatePlanet(Guid.NewGuid()));
         await dbContext.SaveChangesAsync();
         var service = CreateService(dbContext);
 
         var result = await service.EstimateAsync(new EstimateOrbitalTravelRequest(
-            Guid.NewGuid(),
+            civilizationId,
             Guid.NewGuid(),
             Guid.NewGuid()));
 
@@ -125,12 +127,48 @@ public class OrbitalTravelEstimateServiceTests
     }
 
     [Fact]
-    public async Task EstimateAsyncRejectsCivilizationMismatch()
+    public async Task EstimateAsyncRejectsUnknownCivilizationWithoutMutatingState()
     {
         await using var dbContext = CreateDbContext();
+        var currentPlanetId = Guid.NewGuid();
         var destinationPlanetId = Guid.NewGuid();
         var group = OrbitalGroup.CreateStationed(
             Guid.NewGuid(),
+            Guid.NewGuid(),
+            currentPlanetId,
+            SpaceAssetType.ScoutCraft,
+            1);
+        var stockpile = PlanetResourceStockpile.Create(currentPlanetId);
+        stockpile.Increase(ResourceType.Credits, 5);
+        stockpile.Increase(ResourceType.Gas, 2);
+        dbContext.Set<OrbitalGroup>().Add(group);
+        dbContext.Set<Planet>().Add(CreatePlanet(destinationPlanetId));
+        dbContext.PlanetResourceStockpiles.Add(stockpile);
+        await dbContext.SaveChangesAsync();
+
+        var result = await CreateService(dbContext).EstimateAsync(new EstimateOrbitalTravelRequest(
+            Guid.NewGuid(),
+            group.Id,
+            destinationPlanetId));
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Civilization was not found.", result.Errors);
+        Assert.Empty(await dbContext.Set<OrbitalTransfer>().ToListAsync());
+        Assert.Equal(OrbitalGroupStatus.Stationed, (await dbContext.Set<OrbitalGroup>().SingleAsync()).Status);
+        var persistedStockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == currentPlanetId);
+        Assert.Equal(5, persistedStockpile.Credits);
+        Assert.Equal(2, persistedStockpile.Gas);
+    }
+
+    [Fact]
+    public async Task EstimateAsyncRejectsCivilizationMismatch()
+    {
+        await using var dbContext = CreateDbContext();
+        var foreignCivilizationId = await AddCivilizationAsync(dbContext);
+        var requestingCivilizationId = await AddCivilizationAsync(dbContext);
+        var destinationPlanetId = Guid.NewGuid();
+        var group = OrbitalGroup.CreateStationed(
+            foreignCivilizationId,
             Guid.NewGuid(),
             Guid.NewGuid(),
             SpaceAssetType.ScoutCraft,
@@ -141,19 +179,21 @@ public class OrbitalTravelEstimateServiceTests
         var service = CreateService(dbContext);
 
         var result = await service.EstimateAsync(new EstimateOrbitalTravelRequest(
-            Guid.NewGuid(),
+            requestingCivilizationId,
             group.Id,
             destinationPlanetId));
 
         Assert.False(result.Succeeded);
         Assert.Contains("Orbital group was not found for the civilization.", result.Errors);
+        Assert.Empty(await dbContext.Set<OrbitalTransfer>().ToListAsync());
+        Assert.Equal(OrbitalGroupStatus.Stationed, (await dbContext.Set<OrbitalGroup>().SingleAsync()).Status);
     }
 
     [Fact]
     public async Task EstimateAsyncRejectsMissingDestinationPlanet()
     {
         await using var dbContext = CreateDbContext();
-        var civilizationId = Guid.NewGuid();
+        var civilizationId = await AddCivilizationAsync(dbContext);
         var group = OrbitalGroup.CreateStationed(
             civilizationId,
             Guid.NewGuid(),
@@ -177,7 +217,7 @@ public class OrbitalTravelEstimateServiceTests
     public async Task EstimateAsyncRejectsSameDestinationAsCurrentPlanet()
     {
         await using var dbContext = CreateDbContext();
-        var civilizationId = Guid.NewGuid();
+        var civilizationId = await AddCivilizationAsync(dbContext);
         var currentPlanetId = Guid.NewGuid();
         var group = OrbitalGroup.CreateStationed(
             civilizationId,
@@ -203,7 +243,7 @@ public class OrbitalTravelEstimateServiceTests
     public async Task EstimateAsyncRejectsGroupWithActiveTransfer()
     {
         await using var dbContext = CreateDbContext();
-        var civilizationId = Guid.NewGuid();
+        var civilizationId = await AddCivilizationAsync(dbContext);
         var currentPlanetId = Guid.NewGuid();
         var destinationPlanetId = Guid.NewGuid();
         var group = OrbitalGroup.CreateStationed(
@@ -230,6 +270,17 @@ public class OrbitalTravelEstimateServiceTests
 
     private static Planet CreatePlanet(Guid planetId) =>
         new(planetId, Guid.NewGuid(), "Asterion", 1, PlanetType.Terran, 100);
+
+    private static async Task<Guid> AddCivilizationAsync(VoidEmpiresDbContext dbContext)
+    {
+        var uniqueId = Guid.NewGuid().ToString("N");
+        var profile = PlayerProfile.Create($"player-{uniqueId}", $"Player {uniqueId[..8]}");
+        var civilization = Civilization.Create(profile.Id, $"Civilization-{Guid.NewGuid():N}", CivilizationArchetype.Balanced);
+        profile.AddCivilization(civilization);
+        dbContext.Set<PlayerProfile>().Add(profile);
+        await dbContext.SaveChangesAsync();
+        return civilization.Id;
+    }
 
     private static VoidEmpiresDbContext CreateDbContext()
     {

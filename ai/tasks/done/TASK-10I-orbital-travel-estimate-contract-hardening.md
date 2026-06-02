@@ -3,7 +3,7 @@
 ---
 id: TASK-10I
 title: Phase 10I - Orbital travel estimate contract hardening
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
@@ -33,6 +33,7 @@ Target the estimate service, route profile service, fuel readiness service, API 
 ## Expected files to modify
 
 - `src/VoidEmpires.Application/*`
+- `src/VoidEmpires.Infrastructure/*`
 - `src/VoidEmpires.Web/*`
 - `tests/VoidEmpires.Tests/*`
 

@@ -4,6 +4,7 @@ using VoidEmpires.Application.Fleets;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
+using VoidEmpires.Domain.Players;
 using VoidEmpires.Infrastructure.Persistence;
 
 namespace VoidEmpires.Infrastructure.Fleets;
@@ -22,6 +23,15 @@ public sealed class OrbitalTravelEstimateService(
         if (validationErrors.Count > 0)
         {
             return EstimateOrbitalTravelResult.Failure([.. validationErrors]);
+        }
+
+        var civilizationExists = await dbContext.Set<Civilization>()
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == request.CivilizationId, cancellationToken);
+
+        if (!civilizationExists)
+        {
+            return EstimateOrbitalTravelResult.Failure("Civilization was not found.");
         }
 
         var group = await dbContext.Set<OrbitalGroup>()

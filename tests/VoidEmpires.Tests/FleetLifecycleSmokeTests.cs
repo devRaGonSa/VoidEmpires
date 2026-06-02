@@ -4,6 +4,7 @@ using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
+using VoidEmpires.Domain.Players;
 using VoidEmpires.Infrastructure.Economy;
 using VoidEmpires.Infrastructure.Fleets;
 using VoidEmpires.Infrastructure.Persistence;
@@ -16,7 +17,10 @@ public class FleetLifecycleSmokeTests
     public async Task CurrentFleetLifecycleRemainsCoherentAcrossServices()
     {
         await using var dbContext = CreateDbContext();
-        var civilizationId = Guid.NewGuid();
+        var player = PlayerProfile.Create(Guid.NewGuid().ToString("N"), "Fleet Smoke");
+        var civilization = Civilization.Create(player.Id, "Fleet Lifecycle", CivilizationArchetype.Exploratory);
+        player.AddCivilization(civilization);
+        var civilizationId = civilization.Id;
         var originPlanetId = Guid.NewGuid();
         var firstDestinationPlanetId = Guid.NewGuid();
         var finalDestinationPlanetId = Guid.NewGuid();
@@ -40,6 +44,7 @@ public class FleetLifecycleSmokeTests
             CreatePlanet(originPlanetId),
             CreatePlanet(firstDestinationPlanetId),
             CreatePlanet(finalDestinationPlanetId));
+        dbContext.Set<PlayerProfile>().Add(player);
         dbContext.Set<OrbitalGroup>().AddRange(group, mergeCandidate);
         dbContext.PlanetResourceStockpiles.Add(stockpile);
         await dbContext.SaveChangesAsync();
