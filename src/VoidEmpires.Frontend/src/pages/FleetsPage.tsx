@@ -20,6 +20,7 @@ import {
 } from "../utils/domainPresentation";
 import {
   buildFleetCommandReadiness,
+  buildFleetMutationConfirmations,
   presentEstimateResult,
 } from "../utils/fleetCommandPresentation";
 
@@ -159,6 +160,10 @@ export function FleetsPage() {
     selectedDestinationPlanetId && destinationOptions.includes(selectedDestinationPlanetId)
       ? selectedDestinationPlanetId
       : destinationOptions[0] || "";
+  const mutationConfirmations = useMemo(
+    () => buildFleetMutationConfirmations(fleetManifest, uiState),
+    [fleetManifest, uiState],
+  );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -325,7 +330,7 @@ export function FleetsPage() {
                 ) : (
                   estimateEligibleGroups.map((group) => (
                     <option key={group.id} value={group.id}>
-                      {formatSpaceAssetType(group.assetType)} · {formatPlanetReference(group.currentPlanetId)} · {formatCompactGuid(group.id)}
+                      {formatSpaceAssetType(group.assetType)} - {formatPlanetReference(group.currentPlanetId)} - {formatCompactGuid(group.id)}
                     </option>
                   ))
                 )}
@@ -600,7 +605,11 @@ export function FleetsPage() {
       ) : null}
 
       {fleetManifest.length > 0 && (
-        <ActionManifestPanel title="Fleet action manifest" actions={fleetManifest} />
+        <ActionManifestPanel
+          title="Fleet action manifest"
+          actions={fleetManifest}
+          mutationConfirmations={mutationConfirmations}
+        />
       )}
 
       {strategicMapManifest.length > 0 && (
@@ -612,3 +621,4 @@ export function FleetsPage() {
     </section>
   );
 }
+

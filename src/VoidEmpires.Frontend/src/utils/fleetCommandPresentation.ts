@@ -3,7 +3,8 @@ import type {
   EstimateOrbitalTravelResponse,
   FleetCommandApiResult,
 } from "../api/fleetCommandTypes";
-import type { FleetActionHint, FleetGroupSummary } from "../api/fleetTypes";
+import type { ActionManifestAction } from "../api/actionManifestTypes";
+import type { FleetActionHint, FleetGroupSummary, FleetUiState } from "../api/fleetTypes";
 
 type CommandTone = "neutral" | "good" | "warn";
 
@@ -15,8 +16,26 @@ export interface FleetCommandPresentationItem {
   details: string[];
 }
 
+export interface FleetMutationConfirmationModel {
+  actionKey: string;
+  label: string;
+  prototypeLevel: "prototype" | "danger";
+  mutationSummary: string;
+  requiresConfirmation: boolean;
+  confirmationText: string;
+  disabledReason: string;
+}
+
 function getActionLabel(actionKey: string, actionHints: FleetActionHint[], fallback: string) {
   return actionHints.find((hint) => hint.actionKey === actionKey)?.displayName ?? fallback;
+}
+
+function normalizeNotes(notes: ActionManifestAction["notes"]) {
+  if (!notes) {
+    return [];
+  }
+
+  return Array.isArray(notes) ? notes : [notes];
 }
 
 export function buildFleetCommandReadiness(group: FleetGroupSummary, actionHints: FleetActionHint[]) {
@@ -62,6 +81,60 @@ export function buildFleetCommandReadiness(group: FleetGroupSummary, actionHints
       details: group.activeTransfer ? [`Transfer ${group.activeTransfer.id}`] : [],
     },
   ] satisfies FleetCommandPresentationItem[];
+}
+
+export function buildFleetMutationConfirmations(
+  actions: ActionManifestAction[],
+  uiState: FleetUiState | null,
+): FleetMutationConfirmationModel[] {
+  const stationedGroups = uiState?.groups.filter((group) => group.status === "Stationed").length ?? 0;
+  const activeTransfers = uiState?.groups.filter((group) => group.hasActiveTransfer).length ?? 0;
+  const mergeReadyGroups = uiState?.groups.filter((group) => group.commands?.canMerge).length ?? 0;
+  const splitReadyGroups = uiState?.groups.filter((group) => group.commands?.canSplit).length ?? 0;
+
+  return actions
+    .filter((action) => !action.isReadOnly)
+    .map((action) => {
+      const mutationSummary = normalizeNotes(action.notes)[0] ?? "Prototype-only mutation contract.";
+
+      if (action.actionKey === "fleet.transfer.complete") {
+        return {
+          actionKey: action.actionKey,
+          label: action.displayName,
+          prototypeLevel: "danger",
+          mutationSummary,
+          requiresConfirmation: true,
+          confirmationText: "Danger confirmation required before completing due transfers in a batch.",
+          disabledReason: "Complete-due stays disabled because it is a global batch mutation, not a routine page action.",
+        };
+      }
+
+      const disabledReasonByAction: Record<string, string> = {
+        "fleet.transfer.create": stationedGroups > 0
+          ? "Execution remains disabled on the Fleet page even when stationed groups are available."
+          : "No stationed groups are currently available to prepare a transfer.",
+        "fleet.transfer.cancel": activeTransfers > 0
+          ? "Execution remains disabled on the Fleet page even when active transfers exist."
+          : "No active transfers are currently available to cancel.",
+        "fleet.group.split": splitReadyGroups > 0
+          ? "Execution remains disabled on the Fleet page even when split-ready groups exist."
+          : "No groups are currently in a safe state to split.",
+        "fleet.group.merge": mergeReadyGroups > 0
+          ? "Execution remains disabled on the Fleet page even when merge-ready groups exist."
+          : "No compatible groups are currently in a safe state to merge.",
+      };
+
+      return {
+        actionKey: action.actionKey,
+        label: action.displayName,
+        prototypeLevel: "prototype",
+        mutationSummary,
+        requiresConfirmation: true,
+        confirmationText: `Prototype confirmation required before ${action.displayName.toLowerCase()}.`,
+        disabledReason: disabledReasonByAction[action.actionKey]
+          ?? "This mutation contract is intentionally metadata-only on the Fleet page.",
+      };
+    });
 }
 
 export function presentEstimateResult(result: FleetCommandApiResult<EstimateOrbitalTravelResponse>): FleetCommandPresentationItem {

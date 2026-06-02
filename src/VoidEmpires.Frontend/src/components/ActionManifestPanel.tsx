@@ -1,9 +1,11 @@
 import type { ActionManifestAction } from "../api/actionManifestTypes";
+import type { FleetMutationConfirmationModel } from "../utils/fleetCommandPresentation";
 import { StatusBadge } from "./StatusBadge";
 
 interface ActionManifestPanelProps {
   title: string;
   actions: ActionManifestAction[];
+  mutationConfirmations?: FleetMutationConfirmationModel[];
 }
 
 function normalizeNotes(notes: ActionManifestAction["notes"]) {
@@ -50,6 +52,7 @@ function formatRequiredFields(fields: ActionManifestAction["requiredFields"]) {
 export function ActionManifestPanel({
   title,
   actions,
+  mutationConfirmations = [],
 }: ActionManifestPanelProps) {
   const readOnlyActions = actions.filter((action) => action.isReadOnly);
   const mutatingActions = actions.filter((action) => !action.isReadOnly);
@@ -72,11 +75,14 @@ export function ActionManifestPanel({
         ) : null}
 
         <div className="manifest-list">
-          {groupActions.map((action) => (
-            <section
-              key={action.actionKey}
-              className={`subpanel ${action.isReadOnly ? "manifest-card-readonly" : "manifest-card-mutating"}`}
-            >
+          {groupActions.map((action) => {
+            const confirmation = mutationConfirmations.find((item) => item.actionKey === action.actionKey);
+
+            return (
+              <section
+                key={action.actionKey}
+                className={`subpanel ${action.isReadOnly ? "manifest-card-readonly" : "manifest-card-mutating"}`}
+              >
               <div className="manifest-header">
                 <div>
                   <h4>{action.displayName}</h4>
@@ -129,8 +135,30 @@ export function ActionManifestPanel({
                   ))}
                 </ul>
               )}
+
+              {!action.isReadOnly && confirmation ? (
+                <dl className="meta-list">
+                  <div>
+                    <dt>Prototype level</dt>
+                    <dd>{confirmation.prototypeLevel}</dd>
+                  </div>
+                  <div>
+                    <dt>Mutation summary</dt>
+                    <dd>{confirmation.mutationSummary}</dd>
+                  </div>
+                  <div>
+                    <dt>Confirmation</dt>
+                    <dd>{confirmation.confirmationText}</dd>
+                  </div>
+                  <div>
+                    <dt>Disabled reason</dt>
+                    <dd>{confirmation.disabledReason}</dd>
+                  </div>
+                </dl>
+              ) : null}
             </section>
-          ))}
+            );
+          })}
         </div>
       </section>
     );
