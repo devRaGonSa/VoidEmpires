@@ -220,6 +220,26 @@ export function FleetsPage() {
         </UiCard>
       )}
 
+      {uiState && summary && summary.groups === 0 && summary.resourceContexts === 0 && (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Empty development state</p>
+              <h3>No orbital groups deployed yet</h3>
+              <p>
+                This civilization currently has no orbital groups, active transfers,
+                or local resource contexts in the development dataset.
+              </p>
+            </div>
+            <UiBadge tone="warn">Safe zero-state</UiBadge>
+          </div>
+          <ul className="stack-list">
+            <li>Fleet counters remain at zero until groups are seeded or created elsewhere.</li>
+            <li>Action manifests below still document available contracts, but no gameplay mutation can be executed from this screen.</li>
+          </ul>
+        </UiCard>
+      )}
+
       {uiState?.interceptionNotes?.length ? (
         <UiCard className="panel">
           <div className="figma-section-header">

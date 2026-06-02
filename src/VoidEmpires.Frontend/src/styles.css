@@ -918,6 +918,31 @@ input {
   margin-top: 14px;
 }
 
+.manifest-group-title { display: flex; align-items: center; justify-content: space-between; gap: var(--ve-space-3); margin-top: 14px; }
+
+.manifest-card-readonly {
+  border-left: 3px solid color-mix(in srgb, var(--ve-color-success) 65%, transparent);
+}
+
+.manifest-card-mutating {
+  border-left: 3px solid color-mix(in srgb, var(--ve-color-warning) 72%, transparent);
+}
+
+.manifest-keyline, .manifest-code { font-family: "Consolas", "Courier New", monospace; }
+
+.manifest-code {
+  font-size: 0.85rem;
+}
+
+.manifest-required-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.manifest-required-list li + li {
+  margin-top: 4px;
+}
+
 .meta-list {
   display: grid;
   gap: 10px;

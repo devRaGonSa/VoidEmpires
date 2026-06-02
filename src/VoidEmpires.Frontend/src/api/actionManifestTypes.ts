@@ -12,7 +12,7 @@ export interface ActionManifestAction {
   method: string;
   route: string;
   isReadOnly: boolean;
-  requiredFields?: string[];
+  requiredFields?: unknown[];
   successStatus?: number | string;
   errorStatuses?: Array<number | string>;
   notes?: string | string[] | null;

@@ -451,6 +451,26 @@ export function StrategicMapPage() {
         </UiCard>
       )}
 
+      {result && result.systems.length === 0 && (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Empty development state</p>
+              <h3>No relevant systems found yet</h3>
+              <p>
+                The current civilization has no owned or discovered systems in this
+                development dataset, so Galaxia stays on a safe read-only zero state.
+              </p>
+            </div>
+            <UiBadge tone="warn">0 visible systems</UiBadge>
+          </div>
+          <ul className="stack-list">
+            <li>System, planet, fleet-marker, and transfer counters remain at zero.</li>
+            <li>The map preview is intentionally visual-only and does not create data; load seeded backend data to inspect populated systems.</li>
+          </ul>
+        </UiCard>
+      )}
+
       {result && selectedSystem && (
         <UiCard className="panel">
           <div className="figma-section-header">
