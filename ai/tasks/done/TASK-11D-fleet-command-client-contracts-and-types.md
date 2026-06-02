@@ -3,7 +3,7 @@
 ---
 id: TASK-11D
 title: Phase 11D - Fleet command client contracts and types
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

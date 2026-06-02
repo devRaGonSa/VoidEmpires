@@ -1,5 +1,20 @@
 import { appConfig } from "../config";
 import type { ActionManifestResponse } from "./actionManifestTypes";
+import type {
+  CancelOrbitalTransferRequest,
+  CancelOrbitalTransferResponse,
+  CompleteOrbitalTransfersRequest,
+  CompleteOrbitalTransfersResponse,
+  CreateOrbitalTransferRequest,
+  CreateOrbitalTransferResponse,
+  EstimateOrbitalTravelRequest,
+  EstimateOrbitalTravelResponse,
+  FleetCommandApiResult,
+  MergeOrbitalGroupsRequest,
+  MergeOrbitalGroupsResponse,
+  SplitOrbitalGroupRequest,
+  SplitOrbitalGroupResponse,
+} from "./fleetCommandTypes";
 import type { FleetUiStateResponse } from "./fleetTypes";
 import type { StrategicMapResponse } from "./strategicMapTypes";
 function buildUrl(path: string, query?: Record<string, string>) {
@@ -14,11 +29,20 @@ function buildUrl(path: string, query?: Record<string, string>) {
   return url.toString();
 }
 
-async function requestJson<T>(path: string, query?: Record<string, string>): Promise<T> {
-  const response = await fetch(buildUrl(path, query), {
+interface JsonRequestOptions {
+  body?: unknown;
+  method?: "GET" | "POST";
+  query?: Record<string, string>;
+}
+
+async function requestJson<T>(path: string, options?: JsonRequestOptions): Promise<T> {
+  const response = await fetch(buildUrl(path, options?.query), {
+    body: options?.body ? JSON.stringify(options.body) : undefined,
     headers: {
       Accept: "application/json",
+      ...(options?.body ? { "Content-Type": "application/json" } : {}),
     },
+    method: options?.method ?? "GET",
   });
 
   if (!response.ok) {
@@ -26,6 +50,31 @@ async function requestJson<T>(path: string, query?: Record<string, string>): Pro
   }
 
   return (await response.json()) as T;
+}
+
+async function requestCommandJson<T>(path: string, body: unknown): Promise<FleetCommandApiResult<T>> {
+  const response = await fetch(buildUrl(path), {
+    body: JSON.stringify(body),
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
+
+  const contentType = response.headers.get("content-type") ?? "";
+  const payload = contentType.includes("application/json")
+    ? ((await response.json()) as T)
+    : null;
+
+  if (!response.ok && payload === null) {
+    throw new Error(`Request failed with status ${response.status}.`);
+  }
+
+  return {
+    httpStatus: response.status,
+    response: payload,
+  };
 }
 
 export interface HealthResponse {
@@ -89,12 +138,12 @@ export const voidEmpiresApi = {
   },
   getStrategicMap(civilizationId: string) {
     return requestJson<StrategicMapResponse>("/api/dev/strategic-map", {
-      civilizationId,
+      query: { civilizationId },
     });
   },
   getFleetUiState(civilizationId: string) {
     return requestJson<FleetUiStateResponse>("/api/dev/fleets/ui-state", {
-      civilizationId,
+      query: { civilizationId },
     });
   },
   getFleetActionManifest() {
@@ -108,5 +157,41 @@ export const voidEmpiresApi = {
   },
   getPlanetVisualState(planetId: string) {
     return requestJson<PlanetVisualStateResponse>(`/api/dev/planets/${planetId}/visual-state`);
+  },
+  estimateOrbitalTravel(request: EstimateOrbitalTravelRequest) {
+    return requestCommandJson<EstimateOrbitalTravelResponse>(
+      "/api/dev/fleets/orbital-travel/estimate",
+      request,
+    );
+  },
+  createOrbitalTransfer(request: CreateOrbitalTransferRequest) {
+    return requestCommandJson<CreateOrbitalTransferResponse>(
+      "/api/dev/fleets/orbital-transfers/create",
+      request,
+    );
+  },
+  cancelOrbitalTransfer(request: CancelOrbitalTransferRequest) {
+    return requestCommandJson<CancelOrbitalTransferResponse>(
+      "/api/dev/fleets/orbital-transfers/cancel",
+      request,
+    );
+  },
+  completeDueOrbitalTransfers(request: CompleteOrbitalTransfersRequest) {
+    return requestCommandJson<CompleteOrbitalTransfersResponse>(
+      "/api/dev/fleets/orbital-transfers/complete-due",
+      request,
+    );
+  },
+  splitOrbitalGroup(request: SplitOrbitalGroupRequest) {
+    return requestCommandJson<SplitOrbitalGroupResponse>(
+      "/api/dev/fleets/orbital-groups/split",
+      request,
+    );
+  },
+  mergeOrbitalGroups(request: MergeOrbitalGroupsRequest) {
+    return requestCommandJson<MergeOrbitalGroupsResponse>(
+      "/api/dev/fleets/orbital-groups/merge",
+      request,
+    );
   },
 };
