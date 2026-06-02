@@ -19,16 +19,16 @@ export function FleetSummaryPanel({
   onSelect,
 }: FleetSummaryPanelProps) {
   const readinessLabel = group.hasActiveTransfer
-    ? "Transfer active"
+    ? "Transferencia activa"
     : group.commands?.canCreateTransfer
-      ? "Command ready"
-      : "Inspection only";
+      ? "Lista para ordenar"
+      : "Solo inspeccion";
 
   return (
     <article className={`subpanel figma-subpanel fleet-summary-card${isSelected ? " fleet-summary-card-selected" : ""}`}>
       <div className="figma-section-header">
         <div>
-          <p className="eyebrow">Orbital group</p>
+          <p className="eyebrow">Escuadra orbital</p>
           <h4>{formatSpaceAssetType(group.assetType)}</h4>
           <p>{formatCompactGuid(group.id)}</p>
         </div>
@@ -39,22 +39,22 @@ export function FleetSummaryPanel({
 
       <div className="figma-data-list">
         <div className="figma-data-row">
-          <span>Current planet</span>
+          <span>Planeta actual</span>
           <strong>{formatPlanetReference(group.currentPlanetId)}</strong>
         </div>
         <div className="figma-data-row">
-          <span>Quantity</span>
+          <span>Cantidad</span>
           <strong>{group.quantity}</strong>
         </div>
         <div className="figma-data-row">
-          <span>Command state</span>
+          <span>Estado tactico</span>
           <strong>{readinessLabel}</strong>
         </div>
       </div>
 
       <div className="figma-badge-row">
         <UiBadge tone={group.routeFuelReadiness?.canRequestTravelEstimate ? "good" : "warn"}>
-          {group.routeFuelReadiness?.canRequestTravelEstimate ? "Estimate ready" : "Estimate blocked"}
+          {group.routeFuelReadiness?.canRequestTravelEstimate ? "Ruta estimable" : "Ruta bloqueada"}
         </UiBadge>
         {group.activeTransfer ? (
           <UiBadge tone="warn">{formatPlanetReference(group.activeTransfer.destinationPlanetId)}</UiBadge>
@@ -62,7 +62,7 @@ export function FleetSummaryPanel({
       </div>
 
       <button type="button" className="fleet-summary-select-button" onClick={() => onSelect(group.id)}>
-        {isSelected ? "Selected group" : "Open command detail"}
+        {isSelected ? "Escuadra enfocada" : "Ver detalles"}
       </button>
     </article>
   );

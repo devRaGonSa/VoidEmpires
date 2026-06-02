@@ -59,43 +59,43 @@ export function buildFleetCommandReadiness(group: FleetGroupSummary, actionHints
   return [
     {
       key: "estimate",
-      label: getActionLabel("fleet.travel.estimate", actionHints, "Travel preview"),
+      label: getActionLabel("fleet.travel.estimate", actionHints, "Vista de ruta"),
       tone: group.routeFuelReadiness?.canRequestTravelEstimate ? "good" : "warn",
-      summary: group.routeFuelReadiness?.canRequestTravelEstimate ? "Preview ready" : "Preview blocked",
+      summary: group.routeFuelReadiness?.canRequestTravelEstimate ? "Vista lista" : "Vista bloqueada",
       details: [
-        ...(group.routeFuelReadiness?.requiresDestination ? ["Destination context required."] : []),
-        ...(group.routeFuelReadiness?.estimateRoute ? [`Route ${group.routeFuelReadiness.estimateRoute}`] : []),
-        ...(group.routeFuelReadiness?.fuelReadinessPolicy ? [`Policy ${group.routeFuelReadiness.fuelReadinessPolicy}`] : []),
+        ...(group.routeFuelReadiness?.requiresDestination ? ["Falta elegir destino."] : []),
+        ...(group.routeFuelReadiness?.estimateRoute ? [`Ruta ${group.routeFuelReadiness.estimateRoute}`] : []),
+        ...(group.routeFuelReadiness?.fuelReadinessPolicy ? [`Politica ${group.routeFuelReadiness.fuelReadinessPolicy}`] : []),
         ...(group.routeFuelReadiness?.notes ?? []),
       ],
     },
     {
       key: "create-transfer",
-      label: getActionLabel("fleet.transfer.create", actionHints, "Create transfer"),
+      label: getActionLabel("fleet.transfer.create", actionHints, "Crear traslado"),
       tone: group.commands?.canCreateTransfer ? "good" : "warn",
-      summary: group.commands?.canCreateTransfer ? "Ready to plan" : "Blocked by current fleet state",
-      details: group.hasActiveTransfer ? ["Group already has an active transfer."] : [],
+      summary: group.commands?.canCreateTransfer ? "Lista para trazar" : "Bloqueada por el estado actual",
+      details: group.hasActiveTransfer ? ["La escuadra ya tiene un traslado activo."] : [],
     },
     {
       key: "split",
-      label: getActionLabel("fleet.group.split", actionHints, "Split group"),
+      label: getActionLabel("fleet.group.split", actionHints, "Dividir escuadra"),
       tone: group.commands?.canSplit ? "good" : "warn",
-      summary: group.commands?.canSplit ? "Quantity can be partitioned" : "Split unavailable",
-      details: group.hasActiveTransfer ? ["Active transfers prevent safe split operations."] : [],
+      summary: group.commands?.canSplit ? "La cantidad puede separarse" : "Division no disponible",
+      details: group.hasActiveTransfer ? ["Un traslado activo impide dividir con seguridad."] : [],
     },
     {
       key: "merge",
-      label: getActionLabel("fleet.group.merge", actionHints, "Merge groups"),
+      label: getActionLabel("fleet.group.merge", actionHints, "Fusionar escuadras"),
       tone: group.commands?.canMerge ? "good" : "warn",
-      summary: group.commands?.canMerge ? "Compatible groups can merge" : "Merge unavailable",
-      details: group.hasActiveTransfer ? ["Active transfers prevent safe merge operations."] : [],
+      summary: group.commands?.canMerge ? "Las escuadras compatibles pueden unirse" : "Fusion no disponible",
+      details: group.hasActiveTransfer ? ["Un traslado activo impide fusionar con seguridad."] : [],
     },
     {
       key: "cancel-transfer",
-      label: getActionLabel("fleet.transfer.cancel", actionHints, "Cancel transfer"),
+      label: getActionLabel("fleet.transfer.cancel", actionHints, "Anular traslado"),
       tone: group.commands?.canCancelTransfer ? "good" : "neutral",
-      summary: group.commands?.canCancelTransfer ? "Active transfer can be cancelled" : "No cancellable transfer",
-      details: group.activeTransfer ? [`Transfer ${group.activeTransfer.id}`] : [],
+      summary: group.commands?.canCancelTransfer ? "El traslado activo puede anularse" : "No hay traslados anulables",
+      details: group.activeTransfer ? [`Traslado ${group.activeTransfer.id}`] : [],
     },
   ] satisfies FleetCommandPresentationItem[];
 }
@@ -112,7 +112,7 @@ export function buildFleetMutationConfirmations(
   return actions
     .filter((action) => !action.isReadOnly)
     .map((action) => {
-      const mutationSummary = normalizeNotes(action.notes)[0] ?? "Prototype-only mutation contract.";
+      const mutationSummary = normalizeNotes(action.notes)[0] ?? "Contrato de mutacion visible solo como prototipo.";
 
       if (action.actionKey === "fleet.transfer.complete") {
         return {
@@ -121,27 +121,27 @@ export function buildFleetMutationConfirmations(
           prototypeLevel: "danger",
           mutationSummary,
           surfaceLabel: "Solo metadata protegida",
-          readinessLabel: activeTransfers > 0 ? "Global batch guarded" : "Waiting for due transfers",
+          readinessLabel: activeTransfers > 0 ? "Lote global protegido" : "Sin traslados vencidos",
           readinessTone: activeTransfers > 0 ? "warn" : "neutral",
           requiresConfirmation: true,
-          confirmationText: "Danger confirmation required before completing due transfers in a batch.",
-          disabledReason: "Complete-due stays disabled because it is a global batch mutation, not a routine page action.",
+          confirmationText: "Requeriria una confirmacion de riesgo antes de completar traslados vencidos por lote.",
+          disabledReason: "Complete-due sigue desactivado porque es una mutacion global, no una accion rutinaria de cabina.",
         };
       }
 
       const disabledReasonByAction: Record<string, string> = {
         "fleet.transfer.create": stationedGroups > 0
-          ? "A dedicated local confirmation flow is available, but route execution remains disabled on the Fleet page."
-          : "No stationed groups are currently available to prepare a transfer.",
+          ? "Hay un flujo local de confirmacion, pero la ejecucion de ruta sigue limitada en la cabina."
+          : "No hay escuadras apostadas listas para preparar un traslado.",
         "fleet.transfer.cancel": activeTransfers > 0
-          ? "A dedicated local confirmation flow can prepare cancellation, but endpoint execution remains disabled on the Fleet page."
-          : "No active transfers are currently available to cancel.",
+          ? "Hay un flujo local para preparar la anulacion, pero la ejecucion sigue limitada en la cabina."
+          : "No hay traslados activos disponibles para anular.",
         "fleet.group.split": splitReadyGroups > 0
-          ? "Execution remains disabled on the Fleet page even when split-ready groups exist."
-          : "No groups are currently in a safe state to split.",
+          ? "La ejecucion sigue desactivada en la cabina aunque existan escuadras listas para dividir."
+          : "No hay escuadras en un estado seguro para dividir.",
         "fleet.group.merge": mergeReadyGroups > 0
-          ? "Execution remains disabled on the Fleet page even when merge-ready groups exist."
-          : "No compatible groups are currently in a safe state to merge.",
+          ? "La ejecucion sigue desactivada en la cabina aunque existan escuadras listas para fusionar."
+          : "No hay escuadras compatibles en un estado seguro para fusionar.",
       };
 
       return {
@@ -157,14 +157,14 @@ export function buildFleetMutationConfirmations(
               : "Solo metadata protegida",
         readinessLabel:
           action.actionKey === "fleet.transfer.create"
-            ? stationedGroups > 0 ? "Ready in metadata" : "Blocked"
+            ? stationedGroups > 0 ? "Lista en metadata" : "Bloqueada"
             : action.actionKey === "fleet.transfer.cancel"
-              ? activeTransfers > 0 ? "Ready in metadata" : "Blocked"
+              ? activeTransfers > 0 ? "Lista en metadata" : "Bloqueada"
               : action.actionKey === "fleet.group.split"
-                ? splitReadyGroups > 0 ? "Ready in metadata" : "Blocked"
+                ? splitReadyGroups > 0 ? "Lista en metadata" : "Bloqueada"
                 : action.actionKey === "fleet.group.merge"
-                  ? mergeReadyGroups > 0 ? "Ready in metadata" : "Blocked"
-                  : "Guarded",
+                  ? mergeReadyGroups > 0 ? "Lista en metadata" : "Bloqueada"
+                  : "Protegida",
         readinessTone:
           action.actionKey === "fleet.transfer.create"
             ? stationedGroups > 0 ? "good" : "warn"
@@ -176,9 +176,9 @@ export function buildFleetMutationConfirmations(
                   ? mergeReadyGroups > 0 ? "good" : "warn"
                   : "neutral",
         requiresConfirmation: true,
-        confirmationText: `Prototype confirmation required before ${action.displayName.toLowerCase()}.`,
+        confirmationText: `Se requeriria confirmacion de prototipo antes de ${action.displayName.toLowerCase()}.`,
         disabledReason: disabledReasonByAction[action.actionKey]
-          ?? "This mutation contract is intentionally metadata-only on the Fleet page.",
+          ?? "Este contrato de mutacion se muestra solo como metadata en la cabina.",
       };
     });
 }
@@ -198,7 +198,7 @@ export function presentEstimateResult(result: FleetCommandApiResult<EstimateOrbi
           ? "Conflicto detectado en el estado actual de la flota."
           : result.httpStatus === 503
             ? "Persistencia no configurada para este entorno."
-            : `Request returned ${result.httpStatus}.`;
+            : `La solicitud devolvio ${result.httpStatus}.`;
 
   return {
     key: "estimate-result",
@@ -217,8 +217,8 @@ export function presentEstimateResult(result: FleetCommandApiResult<EstimateOrbi
             `Banda de riesgo: ${response.routeProfile.riskBand}`,
           ]
         : []),
-      ...(response?.fuelReadiness ? [`Fuel ready: ${response.fuelReadiness.isFuelReady ? "yes" : "no"}`] : []),
-      ...(response?.insufficientResources.map((resource) => `Missing ${resource.resourceType}: ${resource.requiredQuantity - resource.availableQuantity}`) ?? []),
+      ...(response?.fuelReadiness ? [`Combustible listo: ${response.fuelReadiness.isFuelReady ? "si" : "no"}`] : []),
+      ...(response?.insufficientResources.map((resource) => `Falta ${resource.resourceType}: ${resource.requiredQuantity - resource.availableQuantity}`) ?? []),
       ...errors.slice(1),
     ],
   };
@@ -264,7 +264,7 @@ export function presentCreateTransferResult(result: FleetCommandApiResult<Create
           : defaultSummary,
     details: [
       ...(isSuccess ? ["La mutacion reservo el grupo y persistio una transferencia planificada."] : []),
-      ...(response?.orbitalTransferId ? [`Transfer ${response.orbitalTransferId}`] : []),
+      ...(response?.orbitalTransferId ? [`Traslado ${response.orbitalTransferId}`] : []),
       ...(response?.orbitalGroupId ? [`Grupo ${response.orbitalGroupId}`] : []),
       ...(response?.originPlanetId ? [`Origen ${response.originPlanetId}`] : []),
       ...(response?.destinationPlanetId ? [`Destino ${response.destinationPlanetId}`] : []),
@@ -284,7 +284,7 @@ export function presentCreateTransferNetworkFailure(message: string): FleetComma
     key: "create-transfer-network-error",
     label: "Error de red",
     tone: "warn",
-    summary: "No se pudo completar create transfer porque la solicitud no llego a la API.",
+    summary: "No se pudo completar crear traslado porque la solicitud no llego a la API.",
     details: [message],
   };
 }
@@ -326,7 +326,7 @@ export function presentCancelTransferResult(result: FleetCommandApiResult<Cancel
           : defaultSummary,
     details: [
       ...(isSuccess ? ["La cancelacion no reembolsa los recursos ya cobrados por el create transfer."] : []),
-      ...(response?.orbitalTransferId ? [`Transfer ${response.orbitalTransferId}`] : []),
+      ...(response?.orbitalTransferId ? [`Traslado ${response.orbitalTransferId}`] : []),
       ...(response?.orbitalGroupId ? [`Grupo ${response.orbitalGroupId}`] : []),
       ...(!isSuccess && result.httpStatus === 404
         ? ["La confirmacion local puede estar obsoleta. Recarga la UI si otra accion ya elimino esta transferencia activa."]
@@ -345,7 +345,7 @@ export function presentCancelTransferNetworkFailure(message: string): FleetComma
     key: "cancel-transfer-network-error",
     label: "Error de red",
     tone: "warn",
-    summary: "No se pudo completar cancel transfer porque la solicitud no llego a la API.",
+    summary: "No se pudo completar anular traslado porque la solicitud no llego a la API.",
     details: [message],
   };
 }

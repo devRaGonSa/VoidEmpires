@@ -3,7 +3,7 @@
 ---
 id: TASK-12C
 title: Phase 12C - Fleet cockpit Spanish copy normalization
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

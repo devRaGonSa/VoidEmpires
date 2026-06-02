@@ -233,7 +233,7 @@ export function FleetsPage() {
       blockReason: !liveEstimateResponse.canAfford
         ? "La estimacion indica que faltan recursos para esta transferencia."
         : !fuelReady
-          ? liveEstimateResponse.fuelReadiness?.notReadyReason ?? "La metadata de fuel readiness sigue bloqueando la accion."
+          ? liveEstimateResponse.fuelReadiness?.notReadyReason ?? "La regla de combustible sigue bloqueando la accion."
           : null,
       routeSummary: `${formatPlanetReference(selectedGroup.currentPlanetId)} -> ${formatPlanetReference(liveEstimateResponse.destinationPlanetId ?? effectiveDestinationPlanetId)}`,
       costSummary: liveEstimateResponse.resourceCosts.length
@@ -252,7 +252,7 @@ export function FleetsPage() {
           : []),
         ...(liveEstimateResponse.fuelReadiness
           ? [
-              `Fuel readiness ${liveEstimateResponse.fuelReadiness.isFuelReady ? "lista" : "bloqueada"}`,
+              `Combustible ${liveEstimateResponse.fuelReadiness.isFuelReady ? "listo" : "bloqueado"}`,
             ]
           : []),
         ...missingResources,
@@ -288,7 +288,7 @@ export function FleetsPage() {
     const uiStateResponse = await voidEmpiresApi.getFleetUiState(civilizationIdValue);
 
     if (!uiStateResponse.succeeded || !uiStateResponse.uiState) {
-      throw new Error(uiStateResponse.errors[0] ?? "Fleet UI state refresh failed.");
+      throw new Error(uiStateResponse.errors[0] ?? "No se pudo refrescar el estado de flotas.");
     }
 
     setUiState(uiStateResponse.uiState);
@@ -342,7 +342,7 @@ export function FleetsPage() {
 
     const trimmedCivilizationId = civilizationId.trim();
     if (!trimmedCivilizationId) {
-      setError("Civilization id is required.");
+      setError("El civilizationId es obligatorio.");
       setUiState(null);
       return;
     }
@@ -367,7 +367,7 @@ export function FleetsPage() {
 
       if (!uiStateResponse.succeeded || !uiStateResponse.uiState) {
         setUiState(null);
-        setError(uiStateResponse.errors[0] ?? "Fleet UI state request failed.");
+        setError(uiStateResponse.errors[0] ?? "La solicitud del estado de flotas fallo.");
         return;
       }
 
@@ -378,7 +378,7 @@ export function FleetsPage() {
       const message =
         requestError instanceof Error
           ? requestError.message
-          : "Fleet requests failed.";
+          : "Las solicitudes de flota fallaron.";
       setUiState(null);
       setError(message);
     } finally {
@@ -423,7 +423,7 @@ export function FleetsPage() {
       const message =
         requestError instanceof Error
           ? requestError.message
-          : "Network error while requesting travel estimate.";
+          : "Error de red al pedir la estimacion de viaje.";
       setEstimateNetworkError(message);
     } finally {
       setIsEstimating(false);
@@ -432,7 +432,7 @@ export function FleetsPage() {
 
   async function handleCreateTransfer() {
     if (createTransferInFlightRef.current || isCreatingTransfer) {
-      setCreateTransferNetworkError("Ya hay una solicitud de create transfer en curso.");
+      setCreateTransferNetworkError("Ya hay una solicitud de crear traslado en curso.");
       return;
     }
 
@@ -447,7 +447,7 @@ export function FleetsPage() {
     }
 
     if (!hasCreateTransferAcknowledgement) {
-      setCreateTransferNetworkError("Confirma la accion explicita antes de enviar create transfer.");
+      setCreateTransferNetworkError("Confirma la accion explicita antes de enviar crear traslado.");
       return;
     }
 
@@ -517,7 +517,7 @@ export function FleetsPage() {
     const transferId = group.activeTransfer?.id;
 
     if (isCancellingTransfer) {
-      setCancelTransferNetworkError("Ya hay una solicitud de cancel transfer en curso.");
+      setCancelTransferNetworkError("Ya hay una solicitud de anular traslado en curso.");
       return;
     }
 
@@ -527,7 +527,7 @@ export function FleetsPage() {
     }
 
     if (!hasCancelTransferAcknowledgement) {
-      setCancelTransferNetworkError("Confirma la accion explicita antes de enviar cancel transfer.");
+      setCancelTransferNetworkError("Confirma la accion explicita antes de enviar anular traslado.");
       return;
     }
 
@@ -587,15 +587,15 @@ export function FleetsPage() {
     <section className="page-grid">
       <UiCard className="panel panel-hero figma-hero-card">
         <div className="figma-hero-copy">
-          <UiBadge tone="resource">Phase 11X cockpit layout</UiBadge>
-          <h2>Fleet command cockpit</h2>
-          <p>Scan the fleet footprint, focus one orbital group at a time, and keep development-only execution behind explicit confirmation.</p>
+          <UiBadge tone="resource">Cabina fase 11X</UiBadge>
+          <h2>Cabina de mando orbital</h2>
+          <p>Revisa la huella de flota, enfoca una escuadra cada vez y deja las acciones de desarrollo tras confirmacion explicita.</p>
         </div>
         <div className="figma-badge-row">
-          <UiBadge>Summary deck</UiBadge>
-          <UiBadge>Group rail</UiBadge>
-          <UiBadge>Selected detail</UiBadge>
-          <UiBadge tone="warn">Guarded create and cancel</UiBadge>
+          <UiBadge>Resumen tactico</UiBadge>
+          <UiBadge>Rail de escuadras</UiBadge>
+          <UiBadge>Detalle enfocado</UiBadge>
+          <UiBadge tone="warn">Crear y anular protegidos</UiBadge>
         </div>
       </UiCard>
 
@@ -603,25 +603,25 @@ export function FleetsPage() {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Development endpoint</p>
-              <h3>Load cockpit state</h3>
+              <p className="eyebrow">Entrada de desarrollo</p>
+              <h3>Cargar estado de cabina</h3>
             </div>
-            <UiBadge>Development surface</UiBadge>
+            <UiBadge>Superficie de desarrollo</UiBadge>
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
-              <span>Civilization id</span>
+              <span>Identificador de civilizacion</span>
               <input
                 type="text"
                 value={civilizationId}
                 onChange={(event) => setCivilizationId(event.target.value)}
                 placeholder="00000000-0000-0000-0000-000000000000"
                 spellCheck={false}
-                aria-label="Civilization id"
+                aria-label="Identificador de civilizacion"
               />
             </label>
             <button type="submit" disabled={isLoading}>
-              {isLoading ? "Loading..." : "Load fleet panels"}
+              {isLoading ? "Cargando..." : "Cargar paneles"}
             </button>
           </form>
           {error && <p className="error-text">{error}</p>}
@@ -630,16 +630,16 @@ export function FleetsPage() {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Execution boundaries</p>
-              <h3>Command rules</h3>
+              <p className="eyebrow">Limites de ejecucion</p>
+              <h3>Reglas de mando</h3>
             </div>
-            <UiBadge tone="warn">Prototype guarded</UiBadge>
+            <UiBadge tone="warn">Prototipo protegido</UiBadge>
           </div>
           <ul className="stack-list">
-            <li>Estimate remains read-only and never reserves groups or spends resources.</li>
-            <li>Create transfer requires a matching fresh estimate plus explicit confirmation.</li>
-            <li>Cancel transfer requires an active visible transfer plus explicit confirmation.</li>
-            <li>Complete-due, split, and merge stay visible as prototype metadata only.</li>
+            <li>La estimacion sigue en solo lectura y nunca reserva escuadras ni gasta recursos.</li>
+            <li>Crear traslado exige una estimacion vigente y una confirmacion explicita.</li>
+            <li>Anular traslado exige un traslado activo visible y una confirmacion explicita.</li>
+            <li>Complete-due, split y merge siguen visibles solo como metadata de prototipo.</li>
           </ul>
         </UiCard>
       </div>
@@ -648,17 +648,17 @@ export function FleetsPage() {
         <UiCard className="panel fleet-summary-deck">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Operational summary</p>
-              <h3>Command deck</h3>
-              <p>Compact status for the loaded civilization and the current fleet-readiness footprint.</p>
+              <p className="eyebrow">Resumen operativo</p>
+              <h3>Puente de mando</h3>
+              <p>Estado compacto de la civilizacion cargada y su situacion orbital.</p>
             </div>
             <UiBadge>{formatCompactGuid(uiState?.civilizationId)}</UiBadge>
           </div>
           <div className="figma-stat-grid">
-            <SummaryMetric label="Groups" value={summary.groups} />
-            <SummaryMetric label="Active transfers" value={summary.transfers} />
-            <SummaryMetric label="Resource contexts" value={summary.resourceContexts} />
-            <SummaryMetric label="Action hints" value={summary.actionHints} />
+            <SummaryMetric label="Escuadras" value={summary.groups} />
+            <SummaryMetric label="Traslados activos" value={summary.transfers} />
+            <SummaryMetric label="Reservas locales" value={summary.resourceContexts} />
+            <SummaryMetric label="Senales tacticas" value={summary.actionHints} />
           </div>
         </UiCard>
       )}
@@ -667,15 +667,15 @@ export function FleetsPage() {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Empty development state</p>
-              <h3>No orbital groups deployed yet</h3>
-              <p>This civilization currently has no orbital groups, active transfers, or local resource contexts.</p>
+              <p className="eyebrow">Estado vacio</p>
+              <h3>Aun no hay escuadras desplegadas</h3>
+              <p>Esta civilizacion todavia no tiene escuadras orbitales, traslados activos ni reservas locales.</p>
             </div>
-            <UiBadge tone="warn">Safe zero-state</UiBadge>
+            <UiBadge tone="warn">Cero seguro</UiBadge>
           </div>
           <ul className="stack-list">
-            <li>Fleet counters remain at zero until groups are seeded or created elsewhere.</li>
-            <li>Action manifests remain available as contract context for later validation.</li>
+            <li>Los contadores seguiran a cero hasta que otras herramientas creen escuadras.</li>
+            <li>Los manifiestos siguen visibles como contexto contractual para futuras validaciones.</li>
           </ul>
         </UiCard>
       )}
@@ -685,11 +685,11 @@ export function FleetsPage() {
           <UiCard className="panel fleet-group-rail">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Orbital group list</p>
-                <h3>Group rail</h3>
-                <p>Use the rail to focus the command cockpit on one group at a time.</p>
+                <p className="eyebrow">Lista orbital</p>
+                <h3>Rail de escuadras</h3>
+                <p>Usa este rail para enfocar la cabina en una escuadra cada vez.</p>
               </div>
-              <UiBadge>{uiState.groups.length} tracked</UiBadge>
+              <UiBadge>{uiState.groups.length} seguidas</UiBadge>
             </div>
             <div className="fleet-summary-list">
               {uiState.groups.map((group) => (
@@ -721,11 +721,11 @@ export function FleetsPage() {
             <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">Command execution</p>
-                  <h3>Estimate and guarded actions</h3>
-                  <p>The command column keeps read-only preview, explicit confirmation, and result feedback together.</p>
+                  <p className="eyebrow">Ejecucion de mando</p>
+                  <h3>Estimacion y acciones protegidas</h3>
+                  <p>La columna de mando reune vista previa, confirmacion y resultado en un solo lugar.</p>
                 </div>
-                <UiBadge tone="good">POST read-only + guarded mutation</UiBadge>
+                <UiBadge tone="good">Vista segura + mutacion protegida</UiBadge>
               </div>
               <form className="query-form" onSubmit={handleEstimateSubmit}>
                 <label className="field">
@@ -780,10 +780,10 @@ export function FleetsPage() {
               <div className="figma-badge-row">
                 <UiBadge>Estimacion</UiBadge>
                 <UiBadge tone="good">Solo lectura</UiBadge>
-                <UiBadge tone="warn">Mutaciones protegidas</UiBadge>
+                <UiBadge tone="warn">Ordenes protegidas</UiBadge>
               </div>
               {estimateStaleMessage ? <p className="error-text">{estimateStaleMessage}</p> : null}
-              {estimateNetworkError ? <p className="error-text">Network error: {estimateNetworkError}</p> : null}
+              {estimateNetworkError ? <p className="error-text">Error de red: {estimateNetworkError}</p> : null}
               {createTransferNetworkError ? <p className="error-text">{createTransferNetworkError}</p> : null}
               {cancelTransferStaleMessage ? <p className="figma-panel-note">{cancelTransferStaleMessage}</p> : null}
               {cancelTransferNetworkError ? <p className="error-text">{cancelTransferNetworkError}</p> : null}
@@ -791,7 +791,7 @@ export function FleetsPage() {
                 <section className="subpanel figma-subpanel">
                   <div className="figma-section-header">
                     <div>
-                      <p className="eyebrow">Estimate result</p>
+                      <p className="eyebrow">Resultado de estimacion</p>
                       <h4>{estimateResult.label}</h4>
                     </div>
                     <UiBadge tone={estimateResult.tone}>{estimateResult.tone === "good" ? "Listo" : "Atencion"}</UiBadge>
@@ -863,7 +863,7 @@ export function FleetsPage() {
                 <section className="subpanel figma-subpanel">
                   <div className="figma-section-header">
                     <div>
-                      <p className="eyebrow">Mutation result</p>
+                      <p className="eyebrow">Resultado de accion</p>
                       <h4>{createTransferResult.label}</h4>
                     </div>
                     <UiBadge tone={createTransferResult.tone}>
@@ -884,7 +884,7 @@ export function FleetsPage() {
                 <section className="subpanel figma-subpanel">
                   <div className="figma-section-header">
                     <div>
-                      <p className="eyebrow">Mutation result</p>
+                      <p className="eyebrow">Resultado de accion</p>
                       <h4>{cancelTransferResult.label}</h4>
                     </div>
                     <UiBadge tone={cancelTransferResult.tone}>
@@ -907,17 +907,17 @@ export function FleetsPage() {
               <UiCard className="panel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Transfer support</p>
-                    <h3>Resource contexts</h3>
+                    <p className="eyebrow">Apoyo logistico</p>
+                    <h3>Reservas por planeta</h3>
                   </div>
-                  <UiBadge>{uiState.resourceContexts.length} planets</UiBadge>
+                  <UiBadge>{uiState.resourceContexts.length} planetas</UiBadge>
                 </div>
                 <div className="readiness-grid">
                   {uiState.resourceContexts.map((context) => (
                     <section key={context.planetId} className="subpanel figma-subpanel">
                       <div className="figma-section-header">
                         <div>
-                          <p className="eyebrow">Current planet</p>
+                          <p className="eyebrow">Planeta actual</p>
                           <h4>{formatPlanetReference(context.planetId)}</h4>
                         </div>
                         <UiBadge tone="resource">{(context.balances ?? []).length} balances</UiBadge>
@@ -941,10 +941,10 @@ export function FleetsPage() {
               <UiCard className="panel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Transfer status</p>
-                    <h3>Interception notes</h3>
+                    <p className="eyebrow">Estado de ruta</p>
+                    <h3>Alertas de intercepcion</h3>
                   </div>
-                  <UiBadge tone="warn">Informational only</UiBadge>
+                  <UiBadge tone="warn">Solo informativo</UiBadge>
                 </div>
                 <ul className="stack-list compact-list">
                   {uiState.interceptionNotes.map((note, index) => (
@@ -961,9 +961,9 @@ export function FleetsPage() {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Prototype only</p>
-              <h3>Guarded mutation manifest</h3>
-              <p>Visible for discoverability, but still blocked from ordinary fleet execution.</p>
+              <p className="eyebrow">Solo prototipo</p>
+              <h3>Manifiesto de mutaciones protegidas</h3>
+              <p>Visible para consulta, pero aun bloqueado para la operativa normal.</p>
             </div>
             <UiBadge tone="warn">Mutacion protegida</UiBadge>
           </div>
@@ -972,7 +972,7 @@ export function FleetsPage() {
               <section key={control.actionKey} className="subpanel prototype-control-card">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Mutation contract</p>
+                    <p className="eyebrow">Contrato de mutacion</p>
                     <h4>{control.label}</h4>
                     <p>{control.mutationSummary}</p>
                   </div>
@@ -980,7 +980,7 @@ export function FleetsPage() {
                     <UiBadge tone="warn">Mutacion</UiBadge>
                     <UiBadge tone={control.readinessTone}>{control.readinessLabel}</UiBadge>
                     <UiBadge tone={control.prototypeLevel === "danger" ? "warn" : "neutral"}>
-                      {control.prototypeLevel === "danger" ? "Danger" : "Prototype only"}
+                      {control.prototypeLevel === "danger" ? "Riesgo" : "Solo prototipo"}
                     </UiBadge>
                   </div>
                 </div>
@@ -988,8 +988,8 @@ export function FleetsPage() {
                   {control.label}
                 </button>
                 <div className="figma-data-list">
-                  <FleetDataRow label="Confirmation" value={control.confirmationText} />
-                  <FleetDataRow label="Disabled reason" value={control.disabledReason} />
+                  <FleetDataRow label="Confirmacion" value={control.confirmationText} />
+                  <FleetDataRow label="Motivo del bloqueo" value={control.disabledReason} />
                 </div>
               </section>
             ))}
@@ -1001,14 +1001,14 @@ export function FleetsPage() {
         <div className="fleet-manifest-grid">
           {fleetManifest.length > 0 && (
             <ActionManifestPanel
-              title="Fleet action manifest"
+              title="Manifiesto de acciones de flota"
               actions={fleetManifest}
               mutationConfirmations={mutationConfirmations}
             />
           )}
           {strategicMapManifest.length > 0 && (
             <ActionManifestPanel
-              title="Strategic map action manifest"
+              title="Manifiesto de acciones del mapa estrategico"
               actions={strategicMapManifest}
             />
           )}

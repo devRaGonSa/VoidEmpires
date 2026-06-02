@@ -65,7 +65,7 @@ export function FleetSelectedGroupPanel({
     <UiCard className="panel">
       <div className="figma-section-header">
         <div>
-          <p className="eyebrow">Selected group</p>
+          <p className="eyebrow">Escuadra enfocada</p>
           <h3>{formatSpaceAssetType(group.assetType)}</h3>
           <p>{formatCompactGuid(group.id)}</p>
         </div>
@@ -80,11 +80,11 @@ export function FleetSelectedGroupPanel({
       <div className="figma-stat-grid">
         <div className="figma-stat">
           <strong>{group.quantity}</strong>
-          <span>Quantity</span>
+          <span>Cantidad</span>
         </div>
         <div className="figma-stat">
           <strong>{group.activeTransfer?.abstractDistanceUnits ?? 0}</strong>
-          <span>Transfer distance</span>
+          <span>Tramo orbital</span>
         </div>
       </div>
 
@@ -92,22 +92,22 @@ export function FleetSelectedGroupPanel({
         <section className="subpanel figma-subpanel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Position</p>
-              <h4>Deployment context</h4>
+              <p className="eyebrow">Posicion</p>
+              <h4>Contexto de despliegue</h4>
             </div>
-            <UiBadge>Live UI state</UiBadge>
+            <UiBadge>Estado visible</UiBadge>
           </div>
           <div className="figma-data-list">
             <div className="figma-data-row">
-              <span>Current planet</span>
+              <span>Planeta actual</span>
               <strong>{formatPlanetReference(group.currentPlanetId)}</strong>
             </div>
             <div className="figma-data-row">
-              <span>Origin planet</span>
+              <span>Planeta de origen</span>
               <strong>{formatPlanetReference(group.originPlanetId)}</strong>
             </div>
             <div className="figma-data-row">
-              <span>Stationed away</span>
+              <span>Lejos del origen</span>
               <strong>{formatBooleanLabel(group.isStationedAwayFromOrigin)}</strong>
             </div>
           </div>
@@ -116,10 +116,10 @@ export function FleetSelectedGroupPanel({
         <section className="subpanel figma-subpanel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Command readiness</p>
-              <h4>Read-only planning state</h4>
+              <p className="eyebrow">Estado de mando</p>
+              <h4>Planificacion en solo lectura</h4>
             </div>
-            <UiBadge tone="warn">Inspection only</UiBadge>
+            <UiBadge tone="warn">Solo inspeccion</UiBadge>
           </div>
           <div className="figma-data-list">
             {readinessItems.map((item) => (
@@ -145,7 +145,7 @@ export function FleetSelectedGroupPanel({
         <div className="figma-transfer-card">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Transfer status</p>
+              <p className="eyebrow">Estado del traslado</p>
               <h4>{formatTransferStatus(group.activeTransfer.status)}</h4>
             </div>
             <UiBadge tone="warn">{formatPlanetReference(group.activeTransfer.destinationPlanetId)}</UiBadge>
@@ -153,24 +153,24 @@ export function FleetSelectedGroupPanel({
           {transferProgress !== null ? <UiProgressBar value={transferProgress} tone="neutral" /> : null}
           <div className="figma-data-list">
             <div className="figma-data-row">
-              <span>Transfer</span>
+              <span>Traslado</span>
               <strong>{formatCompactGuid(group.activeTransfer.id)}</strong>
             </div>
             <div className="figma-data-row">
-              <span>Destination</span>
+              <span>Destino</span>
               <strong>{formatPlanetReference(group.activeTransfer.destinationPlanetId)}</strong>
             </div>
             <div className="figma-data-row">
-              <span>Departure</span>
+              <span>Salida</span>
               <strong>{group.activeTransfer.departureAtUtc}</strong>
             </div>
             <div className="figma-data-row">
-              <span>Arrival</span>
+              <span>Llegada</span>
               <strong>{group.activeTransfer.arrivalAtUtc}</strong>
             </div>
             {transferProgressLabel ? (
               <div className="figma-data-row">
-                <span>Progress</span>
+                <span>Avance</span>
                 <strong>{transferProgressLabel}</strong>
               </div>
             ) : null}
@@ -182,7 +182,7 @@ export function FleetSelectedGroupPanel({
               onClick={() => onPrepareCancelTransfer(group.activeTransfer?.id ?? "")}
               disabled={!group.activeTransfer?.id || !group.commands?.canCancelTransfer}
             >
-              {preparedCancelTransferId === group.activeTransfer.id ? "Ocultar confirmacion" : "Preparar cancelacion"}
+              {preparedCancelTransferId === group.activeTransfer.id ? "Ocultar confirmacion" : "Preparar anulacion"}
             </button>
           </div>
           {preparedCancelTransferId === group.activeTransfer.id ? (
@@ -200,7 +200,7 @@ export function FleetSelectedGroupPanel({
               </div>
               <div className="figma-data-list">
                 <div className="figma-data-row">
-                  <span>Transfer</span>
+                  <span>Traslado</span>
                   <strong>{formatCompactGuid(group.activeTransfer.id)}</strong>
                 </div>
                 <div className="figma-data-row">
