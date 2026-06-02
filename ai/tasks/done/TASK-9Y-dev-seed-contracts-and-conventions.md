@@ -3,7 +3,7 @@
 ---
 id: TASK-9Y
 title: Phase 9Y - Development seed contracts and conventions
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

@@ -18,7 +18,7 @@ builder.Services.AddCors(options =>
             .WithOrigins(
                 "http://localhost:5173",
                 "http://127.0.0.1:5173")
-            .WithMethods(HttpMethods.Get)
+            .WithMethods(HttpMethods.Get, HttpMethods.Post)
             .WithHeaders(
                 HeaderNames.Accept,
                 HeaderNames.ContentType);

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VoidEmpires.Application.Development;
 using VoidEmpires.Application.Assets;
 using VoidEmpires.Application.Buildings;
 using VoidEmpires.Application.Fleets;
@@ -14,6 +15,36 @@ internal static class DevEndpointMappings
 {
     public static void MapDevEndpointMappings(this WebApplication app)
     {
+        app.MapPost("/api/dev/seeds/apply", async (
+            ApplyDevelopmentSeedApiRequest request,
+            [FromServices] IServiceProvider services,
+            [FromServices] IConfiguration configuration,
+            CancellationToken cancellationToken) =>
+        {
+            if (!IsPersistenceConfigured(configuration))
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            var errors = ValidateApplyDevelopmentSeed(request);
+            if (errors.Count > 0)
+            {
+                return Results.BadRequest(new ApplyDevelopmentSeedApiResponse(false, request.Profile, [], errors));
+            }
+
+            var service = services.GetRequiredService<IDevelopmentSeedService>();
+            var result = await service.ApplyAsync(new ApplyDevelopmentSeedRequest(request.Profile!.Trim()), cancellationToken);
+            var response = new ApplyDevelopmentSeedApiResponse(
+                result.Succeeded,
+                result.Profile,
+                result.AppliedSteps,
+                result.Errors);
+
+            return result.Succeeded
+                ? Results.Ok(response)
+                : Results.BadRequest(response);
+        });
+
         app.MapPost("/api/dev/galaxies/generate", async (
             GenerateGalaxyApiRequest request,
             [FromServices] IServiceProvider services,
@@ -364,6 +395,18 @@ internal static class DevEndpointMappings
         return errors;
     }
 
+    private static IReadOnlyList<string> ValidateApplyDevelopmentSeed(ApplyDevelopmentSeedApiRequest request)
+    {
+        var errors = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(request.Profile))
+        {
+            errors.Add("Seed profile is required.");
+        }
+
+        return errors;
+    }
+
     private static IReadOnlyList<string> ValidateStartingCivilization(CreateStartingCivilizationApiRequest request)
     {
         var errors = new List<string>();
@@ -574,6 +617,14 @@ internal static class DevEndpointMappings
         return errors;
     }
 }
+
+internal sealed record ApplyDevelopmentSeedApiRequest(string? Profile);
+
+internal sealed record ApplyDevelopmentSeedApiResponse(
+    bool Succeeded,
+    string? Profile,
+    IReadOnlyList<string> AppliedSteps,
+    IReadOnlyList<string> Errors);
 
 internal sealed record GenerateGalaxyApiRequest(
     string? Name,

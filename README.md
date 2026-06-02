@@ -51,6 +51,7 @@ The initial runtime checks are:
 - `POST /api/auth/register` accepts an email and password, creates a user through the registration service, and sends confirmation email through the transactional email abstraction.
 - `GET /api/auth/confirm-email` accepts `userId` and `token` query parameters and delegates confirmation to the email confirmation service.
 - `POST /api/dev/galaxies/generate` is available only in Development, or when `VoidEmpires:DevEndpoints:Enabled` is explicitly set to `true`, and requires configured persistence.
+- `POST /api/dev/seeds/apply` is available only in Development, or when `VoidEmpires:DevEndpoints:Enabled=true`, and is the explicit opt-in entrypoint for local validation seed profiles.
 
 Example development galaxy generation request:
 
@@ -63,6 +64,35 @@ Invoke-RestMethod `
 ```
 
 Do not enable development endpoints against production data. Use a local or disposable development database for generated test galaxies.
+
+### Development Seed Convention
+
+Development seed data is opt-in and must never run automatically on startup. Use a disposable local database such as `VoidEmpireDB_Dev`, or any explicitly configured private development database.
+
+Run the web app with:
+
+```powershell
+$env:ASPNETCORE_ENVIRONMENT = "Development"
+$env:ConnectionStrings__DefaultConnection = "Host=localhost;Database=VoidEmpireDB_Dev;Username=postgres;Password=<local-password>"
+dotnet run --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
+```
+
+Then apply the current development seed profile explicitly:
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:5000/api/dev/seeds/apply" `
+  -ContentType "application/json" `
+  -Body '{"profile":"minimal-validation"}'
+```
+
+Current convention notes:
+
+- The `minimal-validation` profile is the stable profile name for development validation data.
+- Phase `9Y` introduces only the explicit trigger and contract; later tasks extend the same profile with actual dataset rows.
+- Re-running the same profile should remain safe and idempotent as later seed tasks add data.
+- Keep seed execution in `Development`, or explicitly set `VoidEmpires:DevEndpoints:Enabled=true` for non-production validation environments only.
 
 ### Database Configuration
 
