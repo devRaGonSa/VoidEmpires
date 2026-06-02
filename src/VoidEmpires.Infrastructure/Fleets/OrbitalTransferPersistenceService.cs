@@ -17,7 +17,7 @@ public sealed class OrbitalTransferPersistenceService(
         var validationErrors = Validate(request);
         if (validationErrors.Count > 0)
         {
-            return PersistOrbitalTransferResult.Failure([.. validationErrors]);
+            return PersistOrbitalTransferResult.ValidationFailure([.. validationErrors]);
         }
 
         var group = await dbContext.Set<OrbitalGroup>()
@@ -28,7 +28,7 @@ public sealed class OrbitalTransferPersistenceService(
 
         if (group is null)
         {
-            return PersistOrbitalTransferResult.Failure("Orbital group was not found for the civilization.");
+            return PersistOrbitalTransferResult.NotFound("Orbital group was not found for the civilization.");
         }
 
         if (group.Status != OrbitalGroupStatus.Stationed)
@@ -38,10 +38,10 @@ public sealed class OrbitalTransferPersistenceService(
                 group.Id,
                 cancellationToken))
             {
-                return PersistOrbitalTransferResult.Failure("Orbital group already has an active transfer.");
+                return PersistOrbitalTransferResult.Conflict("Orbital group already has an active transfer.");
             }
 
-            return PersistOrbitalTransferResult.Failure("Only stationed orbital groups can be persisted for transfer.");
+            return PersistOrbitalTransferResult.Conflict("Only stationed orbital groups can be persisted for transfer.");
         }
 
         if (await OrbitalTransferActivityQueries.HasActiveTransferAsync(
@@ -49,12 +49,12 @@ public sealed class OrbitalTransferPersistenceService(
             group.Id,
             cancellationToken))
         {
-            return PersistOrbitalTransferResult.Failure("Orbital group already has an active transfer.");
+            return PersistOrbitalTransferResult.Conflict("Orbital group already has an active transfer.");
         }
 
         if (group.CurrentPlanetId == request.DestinationPlanetId)
         {
-            return PersistOrbitalTransferResult.Failure("Destination planet must be different from the current planet.");
+            return PersistOrbitalTransferResult.Conflict("Destination planet must be different from the current planet.");
         }
 
         var estimate = OrbitalTravelEstimator.Estimate(
@@ -74,7 +74,7 @@ public sealed class OrbitalTransferPersistenceService(
 
         if (!spendResult.Succeeded)
         {
-            return PersistOrbitalTransferResult.Failure([.. spendResult.Errors]);
+            return PersistOrbitalTransferResult.Conflict([.. spendResult.Errors]);
         }
 
         var arrivalAtUtc = request.RequestedAtUtc.Add(estimate.EstimatedDuration);

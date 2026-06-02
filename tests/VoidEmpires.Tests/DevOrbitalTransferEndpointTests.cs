@@ -51,6 +51,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(PersistOrbitalTransferResultStatus.ValidationFailed, payload.Status);
         Assert.False(payload.Succeeded);
         Assert.Contains("Civilization id is required.", payload.Errors);
         Assert.Contains("Orbital group id is required.", payload.Errors);
@@ -68,6 +69,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(PersistOrbitalTransferResultStatus.Succeeded, payload.Status);
         Assert.True(payload.Succeeded);
         Assert.Equal(TransferId, payload.OrbitalTransferId);
         Assert.Equal(OrbitalGroupId, payload.OrbitalGroupId);
@@ -80,16 +82,33 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
     }
 
     [Fact]
+    public async Task CreateOrbitalTransferReturnsNotFoundWhenServiceCannotFindOwnedGroup()
+    {
+        using var client = CreateConfiguredClient(
+            persistenceService: new FakeOrbitalTransferPersistenceService(PersistOrbitalTransferResult.NotFound("Orbital group was not found for the civilization.")));
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/create", ValidCreateRequest());
+        var payload = await response.Content.ReadFromJsonAsync<CreateOrbitalTransferResponse>();
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.Equal(PersistOrbitalTransferResultStatus.NotFound, payload.Status);
+        Assert.False(payload.Succeeded);
+        Assert.Contains("Orbital group was not found for the civilization.", payload.Errors);
+    }
+
+    [Fact]
     public async Task CreateOrbitalTransferReturnsConflictWhenServiceRejectsRequest()
     {
         using var client = CreateConfiguredClient(
-            persistenceService: new FakeOrbitalTransferPersistenceService(PersistOrbitalTransferResult.Failure("Orbital group already has an active transfer.")));
+            persistenceService: new FakeOrbitalTransferPersistenceService(PersistOrbitalTransferResult.Conflict("Orbital group already has an active transfer.")));
 
         using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/create", ValidCreateRequest());
         var payload = await response.Content.ReadFromJsonAsync<CreateOrbitalTransferResponse>();
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(PersistOrbitalTransferResultStatus.Conflict, payload.Status);
         Assert.False(payload.Succeeded);
         Assert.Contains("Orbital group already has an active transfer.", payload.Errors);
     }
@@ -402,6 +421,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
     }
 
     private sealed record CreateOrbitalTransferResponse(
+        PersistOrbitalTransferResultStatus Status,
         bool Succeeded,
         Guid? OrbitalTransferId,
         Guid? OrbitalGroupId,

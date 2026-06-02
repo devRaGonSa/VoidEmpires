@@ -1,6 +1,15 @@
 namespace VoidEmpires.Application.Fleets;
 
+public enum PersistOrbitalTransferResultStatus
+{
+    Succeeded = 0,
+    ValidationFailed = 1,
+    NotFound = 2,
+    Conflict = 3
+}
+
 public sealed record PersistOrbitalTransferResult(
+    PersistOrbitalTransferResultStatus Status,
     bool Succeeded,
     Guid? OrbitalTransferId,
     Guid? OrbitalGroupId,
@@ -20,6 +29,7 @@ public sealed record PersistOrbitalTransferResult(
         DateTime departureAtUtc,
         DateTime arrivalAtUtc) =>
         new(
+            PersistOrbitalTransferResultStatus.Succeeded,
             true,
             orbitalTransferId,
             orbitalGroupId,
@@ -30,6 +40,15 @@ public sealed record PersistOrbitalTransferResult(
             arrivalAtUtc,
             []);
 
+    public static PersistOrbitalTransferResult ValidationFailure(params string[] errors) =>
+        new(PersistOrbitalTransferResultStatus.ValidationFailed, false, null, null, null, null, 0, null, null, errors);
+
+    public static PersistOrbitalTransferResult NotFound(params string[] errors) =>
+        new(PersistOrbitalTransferResultStatus.NotFound, false, null, null, null, null, 0, null, null, errors);
+
+    public static PersistOrbitalTransferResult Conflict(params string[] errors) =>
+        new(PersistOrbitalTransferResultStatus.Conflict, false, null, null, null, null, 0, null, null, errors);
+
     public static PersistOrbitalTransferResult Failure(params string[] errors) =>
-        new(false, null, null, null, null, 0, null, null, errors);
+        Conflict(errors);
 }

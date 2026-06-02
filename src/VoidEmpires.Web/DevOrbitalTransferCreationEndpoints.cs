@@ -30,6 +30,7 @@ internal static class DevOrbitalTransferCreationEndpoints
                 request.RequestedAtUtc!.Value), cancellationToken);
 
             var response = new CreateOrbitalTransferApiResponse(
+                result.Status,
                 result.Succeeded,
                 result.OrbitalTransferId,
                 result.OrbitalGroupId,
@@ -40,9 +41,13 @@ internal static class DevOrbitalTransferCreationEndpoints
                 result.ArrivalAtUtc,
                 result.Errors);
 
-            return result.Succeeded
-                ? Results.Created($"/api/dev/fleets/orbital-transfers/{result.OrbitalTransferId}", response)
-                : Results.Conflict(response);
+            return result.Status switch
+            {
+                PersistOrbitalTransferResultStatus.Succeeded => Results.Created($"/api/dev/fleets/orbital-transfers/{result.OrbitalTransferId}", response),
+                PersistOrbitalTransferResultStatus.ValidationFailed => Results.BadRequest(response),
+                PersistOrbitalTransferResultStatus.NotFound => Results.NotFound(response),
+                _ => Results.Conflict(response)
+            };
         });
     }
 
@@ -88,6 +93,7 @@ internal sealed record CreateOrbitalTransferApiRequest(
     DateTime? RequestedAtUtc);
 
 internal sealed record CreateOrbitalTransferApiResponse(
+    PersistOrbitalTransferResultStatus Status,
     bool Succeeded,
     Guid? OrbitalTransferId,
     Guid? OrbitalGroupId,
@@ -99,5 +105,5 @@ internal sealed record CreateOrbitalTransferApiResponse(
     IReadOnlyList<string> Errors)
 {
     public static CreateOrbitalTransferApiResponse Failure(IReadOnlyList<string> errors) =>
-        new(false, null, null, null, null, 0, null, null, errors);
+        new(PersistOrbitalTransferResultStatus.ValidationFailed, false, null, null, null, null, 0, null, null, errors);
 }
