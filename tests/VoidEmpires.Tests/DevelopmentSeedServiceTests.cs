@@ -6,6 +6,7 @@ using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
+using VoidEmpires.Domain.Players;
 using VoidEmpires.Infrastructure.Development;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.StrategicMap;
@@ -15,6 +16,7 @@ namespace VoidEmpires.Tests;
 
 public class DevelopmentSeedServiceTests
 {
+    private static readonly Guid PlayerProfileId = Guid.Parse("90000000-0000-0000-0000-000000000001");
     private static readonly Guid CivilizationId = Guid.Parse("00000000-0000-0000-0000-000000000001");
     private static readonly Guid GalaxyId = Guid.Parse("10000000-0000-0000-0000-000000000001");
     private static readonly Guid SystemId = Guid.Parse("20000000-0000-0000-0000-000000000001");
@@ -30,6 +32,12 @@ public class DevelopmentSeedServiceTests
 
         Assert.True(result.Succeeded);
         Assert.Contains(result.AppliedSteps, x => x.Contains(CivilizationId.ToString(), StringComparison.Ordinal));
+        var playerProfile = await dbContext.Set<PlayerProfile>().SingleAsync(x => x.Id == PlayerProfileId);
+        var civilization = await dbContext.Set<Civilization>().SingleAsync(x => x.Id == CivilizationId);
+        Assert.Equal(PlayerProfileId, playerProfile.Id);
+        Assert.Equal(CivilizationId, civilization.Id);
+        Assert.Equal(PlayerProfileId, civilization.PlayerProfileId);
+        Assert.Equal(OwnedPlanetId, civilization.HomePlanetId);
         var galaxy = await dbContext.Galaxies.SingleAsync(x => x.Id == GalaxyId);
         var solarSystem = await dbContext.Set<SolarSystem>().SingleAsync(x => x.Id == SystemId);
         Assert.Equal(GalaxyId, galaxy.Id);
@@ -61,6 +69,8 @@ public class DevelopmentSeedServiceTests
         _ = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("minimal-validation"));
         _ = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("minimal-validation"));
 
+        Assert.Equal(1, await dbContext.Set<PlayerProfile>().CountAsync(x => x.Id == PlayerProfileId));
+        Assert.Equal(1, await dbContext.Set<Civilization>().CountAsync(x => x.Id == CivilizationId));
         Assert.Equal(1, await dbContext.Galaxies.CountAsync(x => x.Id == GalaxyId));
         Assert.Equal(1, await dbContext.Set<SolarSystem>().CountAsync(x => x.Id == SystemId));
         Assert.Equal(3, await dbContext.Set<Planet>().CountAsync(x => x.SolarSystemId == SystemId));

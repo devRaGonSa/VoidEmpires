@@ -5,6 +5,7 @@ using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
+using VoidEmpires.Domain.Players;
 using VoidEmpires.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,7 @@ namespace VoidEmpires.Infrastructure.Development;
 
 public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDevelopmentSeedService
 {
+    private static readonly Guid SeedPlayerProfileId = Guid.Parse("90000000-0000-0000-0000-000000000001");
     private static readonly Guid SeedCivilizationId = Guid.Parse("00000000-0000-0000-0000-000000000001");
     private static readonly Guid SeedGalaxyId = Guid.Parse("10000000-0000-0000-0000-000000000001");
     private static readonly Guid SeedSystemId = Guid.Parse("20000000-0000-0000-0000-000000000001");
@@ -19,6 +21,9 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
     private static readonly Guid SeedOwnedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
     private static readonly Guid SeedOuterPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000002");
     private static readonly Guid SeedIcePlanetId = Guid.Parse("40000000-0000-0000-0000-000000000003");
+    private const string SeedUserId = "seed-user-minimal-validation";
+    private const string SeedPlayerDisplayName = "Validation Commander";
+    private const string SeedCivilizationName = "Void Seed Civilization";
     private const string SeedGalaxyName = "Validation Galaxy";
     private const string SeedSystemName = "Helios Gate";
     private const string SeedStarName = "Helios Gate Star";
@@ -49,6 +54,13 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
 
     private async Task SeedMinimalValidationProfileAsync(CancellationToken cancellationToken)
     {
+        if (!await dbContext.Set<PlayerProfile>().AnyAsync(x => x.Id == SeedPlayerProfileId, cancellationToken))
+        {
+            var profile = PlayerProfile.Create(SeedUserId, SeedPlayerDisplayName);
+            dbContext.Entry(profile).Property(x => x.Id).CurrentValue = SeedPlayerProfileId;
+            dbContext.Set<PlayerProfile>().Add(profile);
+        }
+
         if (!await dbContext.Galaxies.AnyAsync(x => x.Id == SeedGalaxyId, cancellationToken))
         {
             dbContext.Galaxies.Add(new Galaxy(SeedGalaxyId, SeedGalaxyName));
@@ -103,6 +115,17 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
                 cancellationToken))
         {
             dbContext.Set<PlanetOwnership>().Add(PlanetOwnership.Create(SeedOwnedPlanetId, SeedCivilizationId));
+        }
+
+        if (!await dbContext.Set<Civilization>().AnyAsync(x => x.Id == SeedCivilizationId, cancellationToken))
+        {
+            var civilization = Civilization.Create(
+                SeedPlayerProfileId,
+                SeedCivilizationName,
+                CivilizationArchetype.Balanced,
+                SeedOwnedPlanetId);
+            dbContext.Entry(civilization).Property(x => x.Id).CurrentValue = SeedCivilizationId;
+            dbContext.Set<Civilization>().Add(civilization);
         }
 
         if (!await dbContext.PlanetResourceStockpiles.AnyAsync(x => x.PlanetId == SeedOwnedPlanetId, cancellationToken))

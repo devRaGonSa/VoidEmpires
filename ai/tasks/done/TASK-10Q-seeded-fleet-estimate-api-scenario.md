@@ -3,7 +3,7 @@
 ---
 id: TASK-10Q
 title: Phase 10Q - Seeded fleet estimate API scenario
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

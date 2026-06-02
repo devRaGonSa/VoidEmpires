@@ -3,17 +3,22 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Fleets;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
+using VoidEmpires.Infrastructure.Persistence;
 
 namespace VoidEmpires.Tests;
 
 public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
 {
+    private static readonly Guid SeededCivilizationId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+    private static readonly Guid SeededOwnedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
+    private static readonly Guid SeededDestinationPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000002");
     private static readonly Guid CivilizationId = Guid.Parse("3659791b-71b4-4582-b9cd-ee396930d075");
     private static readonly Guid OrbitalGroupId = Guid.Parse("4a332c10-5a76-407e-8fb5-d1a29ad568bc");
     private static readonly Guid CurrentPlanetId = Guid.Parse("4813dab0-0de6-454c-8c6c-d70944b87bfa");
@@ -145,6 +150,95 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
         Assert.Contains("Orbital group already has an active transfer.", payload.Errors);
     }
 
+    [Fact]
+    public async Task EstimateOrbitalTravelSucceedsForSeededScenarioWithoutMutatingState()
+    {
+        const string databaseName = "dev-orbital-travel-estimate-seeded-scenario";
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: databaseName);
+        using var client = configuredFactory.CreateClient();
+
+        using (var seedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "minimal-validation" }))
+        {
+            var seedBody = await seedResponse.Content.ReadAsStringAsync();
+            Assert.True(seedResponse.IsSuccessStatusCode, seedBody);
+            Assert.Equal(HttpStatusCode.OK, seedResponse.StatusCode);
+            var seedPayload = System.Text.Json.JsonSerializer.Deserialize<ApplyDevelopmentSeedResponse>(
+                seedBody,
+                new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
+            Assert.NotNull(seedPayload);
+            Assert.True(seedPayload.Succeeded, seedBody);
+            Assert.Equal("minimal-validation", seedPayload.Profile);
+        }
+
+        using var scope = configuredFactory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+        var seededGroup = await dbContext.Set<OrbitalGroup>()
+            .AsNoTracking()
+            .Where(x =>
+                x.CivilizationId == SeededCivilizationId &&
+                x.CurrentPlanetId == SeededOwnedPlanetId &&
+                x.Status == OrbitalGroupStatus.Stationed)
+            .OrderByDescending(x => x.Quantity)
+            .FirstAsync();
+        var stockpileBefore = await dbContext.PlanetResourceStockpiles
+            .AsNoTracking()
+            .SingleAsync(x => x.PlanetId == SeededOwnedPlanetId);
+        var transferCountBefore = await dbContext.Set<OrbitalTransfer>().CountAsync();
+
+        using (var uiStateResponse = await client.GetAsync($"/api/dev/fleets/ui-state?civilizationId={SeededCivilizationId}"))
+        {
+            var uiStatePayload = await uiStateResponse.Content.ReadFromJsonAsync<DevFleetUiStateResponse>();
+            Assert.Equal(HttpStatusCode.OK, uiStateResponse.StatusCode);
+            Assert.NotNull(uiStatePayload?.UiState);
+            Assert.Contains(uiStatePayload.UiState.Groups, x => x.Id == seededGroup.Id && x.Status == OrbitalGroupStatus.Stationed);
+            Assert.Contains(uiStatePayload.UiState.ResourceContexts, x =>
+                x.PlanetId == SeededOwnedPlanetId &&
+                x.Balances.Any(balance => balance.ResourceType == ResourceType.Credits && balance.Quantity == 125));
+        }
+
+        using (var estimateResponse = await client.PostAsJsonAsync("/api/dev/fleets/orbital-travel/estimate", new
+        {
+            civilizationId = SeededCivilizationId,
+            orbitalGroupId = seededGroup.Id,
+            destinationPlanetId = SeededDestinationPlanetId
+        }))
+        {
+            var estimatePayload = await estimateResponse.Content.ReadFromJsonAsync<EstimateOrbitalTravelResponse>();
+            Assert.Equal(HttpStatusCode.OK, estimateResponse.StatusCode);
+            Assert.NotNull(estimatePayload);
+            Assert.Equal(EstimateOrbitalTravelResultStatus.Succeeded, estimatePayload.Status);
+            Assert.True(estimatePayload.Succeeded);
+            Assert.Equal(seededGroup.Id, estimatePayload.OrbitalGroupId);
+            Assert.Equal(SeededOwnedPlanetId, estimatePayload.CurrentPlanetId);
+            Assert.Equal(SeededDestinationPlanetId, estimatePayload.DestinationPlanetId);
+            Assert.Equal(1, estimatePayload.AbstractDistanceUnits);
+            Assert.Equal(TimeSpan.FromHours(1), estimatePayload.EstimatedDuration);
+            Assert.NotNull(estimatePayload.RouteProfile);
+            Assert.Equal(OrbitalRouteClass.LocalOrbit, estimatePayload.RouteProfile.RouteClass);
+            Assert.NotNull(estimatePayload.FuelReadiness);
+            Assert.True(estimatePayload.FuelReadiness.IsFuelReady);
+            Assert.Contains(estimatePayload.ResourceCosts, x => x.ResourceType == ResourceType.Credits && x.Quantity == 5m);
+            Assert.Contains(estimatePayload.ResourceCosts, x => x.ResourceType == ResourceType.Gas && x.Quantity == 2m);
+            Assert.True(estimatePayload.CanAfford);
+            Assert.Empty(estimatePayload.InsufficientResources);
+        }
+
+        var transferCountAfter = await dbContext.Set<OrbitalTransfer>().CountAsync();
+        var persistedGroup = await dbContext.Set<OrbitalGroup>()
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == seededGroup.Id);
+        var stockpileAfter = await dbContext.PlanetResourceStockpiles
+            .AsNoTracking()
+            .SingleAsync(x => x.PlanetId == SeededOwnedPlanetId);
+
+        Assert.Equal(transferCountBefore, transferCountAfter);
+        Assert.Equal(OrbitalGroupStatus.Stationed, persistedGroup.Status);
+        Assert.Equal(stockpileBefore.Credits, stockpileAfter.Credits);
+        Assert.Equal(stockpileBefore.Metal, stockpileAfter.Metal);
+        Assert.Equal(stockpileBefore.Crystal, stockpileAfter.Crystal);
+        Assert.Equal(stockpileBefore.Gas, stockpileAfter.Gas);
+    }
+
     private HttpClient CreateConfiguredClient(EstimateOrbitalTravelResult result) =>
         factory.WithWebHostBuilder(builder =>
         {
@@ -233,4 +327,15 @@ public class DevOrbitalTravelEstimateEndpointTests(WebApplicationFactory<Program
         ResourceType ResourceType,
         decimal RequiredQuantity,
         decimal AvailableQuantity);
+
+    private sealed record ApplyDevelopmentSeedResponse(
+        bool Succeeded,
+        string? Profile,
+        string[] AppliedSteps,
+        string[] Errors);
+
+    private sealed record DevFleetUiStateResponse(
+        bool Succeeded,
+        GetDevFleetUiStateResult? UiState,
+        string[] Errors);
 }
