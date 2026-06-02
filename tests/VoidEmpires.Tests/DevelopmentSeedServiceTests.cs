@@ -2,7 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Development;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Colonization;
+using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Economy;
+using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Infrastructure.Development;
 using VoidEmpires.Infrastructure.Persistence;
@@ -35,6 +37,9 @@ public class DevelopmentSeedServiceTests
         Assert.Equal(80, stockpile.Metal);
         Assert.Equal(35, stockpile.Crystal);
         Assert.Equal(20, stockpile.Gas);
+        Assert.True(await dbContext.Set<OrbitalAssetStock>().AnyAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == SpaceAssetType.EscortCraft && x.Quantity == 4));
+        Assert.Equal(3, await dbContext.Set<OrbitalGroup>().CountAsync(x => x.CivilizationId == CivilizationId));
+        Assert.True(await dbContext.Set<OrbitalTransfer>().AnyAsync(x => x.CivilizationId == CivilizationId && x.DestinationPlanetId != x.OriginPlanetId && x.Status == OrbitalTransferStatus.Planned));
     }
 
     [Fact]
@@ -50,6 +55,9 @@ public class DevelopmentSeedServiceTests
         Assert.Equal(3, await dbContext.Set<Planet>().CountAsync(x => x.SolarSystemId == SystemId));
         Assert.Equal(1, await dbContext.Set<PlanetOwnership>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.CivilizationId == CivilizationId));
         Assert.Equal(1, await dbContext.PlanetResourceStockpiles.CountAsync(x => x.PlanetId == OwnedPlanetId));
+        Assert.Equal(1, await dbContext.Set<OrbitalAssetStock>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == SpaceAssetType.EscortCraft));
+        Assert.Equal(3, await dbContext.Set<OrbitalGroup>().CountAsync(x => x.CivilizationId == CivilizationId));
+        Assert.Equal(1, await dbContext.Set<OrbitalTransfer>().CountAsync(x => x.CivilizationId == CivilizationId && x.Status == OrbitalTransferStatus.Planned));
     }
 
     [Fact]

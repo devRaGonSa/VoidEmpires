@@ -3,7 +3,7 @@
 ---
 id: TASK-10A
 title: Phase 10A - Seed minimal fleet development data
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

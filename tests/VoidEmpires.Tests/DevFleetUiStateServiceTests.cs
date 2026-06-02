@@ -1,11 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+using VoidEmpires.Application.Development;
 using VoidEmpires.Application.Fleets;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
+using VoidEmpires.Infrastructure.Development;
 using VoidEmpires.Infrastructure.Fleets;
 using VoidEmpires.Infrastructure.Persistence;
+using VoidEmpires.Infrastructure.StrategicMap;
 
 namespace VoidEmpires.Tests;
 
@@ -185,6 +188,30 @@ public class DevFleetUiStateServiceTests
         Assert.Equal([InterceptionOpportunityBlockReason.SelfObservedTransfer], transfer.InterceptionReadiness.BlockReasons);
     }
 
+    [Fact]
+    public async Task GetAsyncReturnsNonEmptyGroupsForMinimalValidationSeed()
+    {
+        await using var dbContext = CreateDbContext();
+        await new DevelopmentSeedService(dbContext).ApplyAsync(GetSeedRequest());
+
+        var result = await new DevFleetUiStateService(
+                dbContext,
+                new FleetOperationalOverviewService(dbContext),
+                new DevFleetActionManifestService(),
+                new InterceptionOpportunityService(
+                    dbContext,
+                    new MapVisibilityService(dbContext),
+                    new DetectionCoverageService(dbContext, new SensorProfileService(dbContext)),
+                    new FleetOperationalOverviewService(dbContext)))
+            .GetAsync(new GetDevFleetUiStateRequest(Guid.Parse("00000000-0000-0000-0000-000000000001")));
+
+        Assert.NotEmpty(result.Groups);
+        Assert.Contains(result.Groups, x => x.Commands.CanCreateTransfer && x.Status == OrbitalGroupStatus.Stationed);
+        Assert.Contains(result.Groups, x => x.HasActiveTransfer && x.ActiveTransfer is not null);
+        Assert.NotEmpty(result.ResourceContexts);
+        Assert.Contains(result.ResourceContexts, x => x.Balances.Any(balance => balance.ResourceType == ResourceType.Credits && balance.Quantity == 125));
+    }
+
     private sealed class FakeFleetOperationalOverviewService(GetFleetOperationalOverviewResult result) : IFleetOperationalOverviewService
     {
         public Task<GetFleetOperationalOverviewResult> GetAsync(
@@ -198,6 +225,8 @@ public class DevFleetUiStateServiceTests
             GetInterceptionOpportunitiesRequest request,
             CancellationToken cancellationToken = default) => Task.FromResult(result);
     }
+
+    private static ApplyDevelopmentSeedRequest GetSeedRequest() => new("minimal-validation");
 
     private static VoidEmpiresDbContext CreateDbContext() =>
         new(new DbContextOptionsBuilder<VoidEmpiresDbContext>()
