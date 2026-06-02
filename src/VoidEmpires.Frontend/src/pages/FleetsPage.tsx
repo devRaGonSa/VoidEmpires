@@ -1127,58 +1127,68 @@ export function FleetsPage() {
         </div>
       )}
 
-      {(fleetManifest.length > 0 || strategicMapManifest.length > 0) && (
-        <div className="fleet-manifest-grid">
-          {fleetManifest.length > 0 && (
-            <ActionManifestPanel
-              title="Tecnico: manifiesto de acciones de flota"
-              actions={fleetManifest}
-              mutationConfirmations={mutationConfirmations}
-            />
-          )}
-          {strategicMapManifest.length > 0 && (
-            <ActionManifestPanel
-              title="Tecnico: manifiesto del mapa estrategico"
-              actions={strategicMapManifest}
-            />
-          )}
-        </div>
-      )}
+      {((fleetManifest.length > 0 || strategicMapManifest.length > 0) ||
+        (uiState && mutationConfirmations.length > 0)) && (
+        <details className="fleet-technical-disclosure">
+          <summary>
+            <span>Detalles de desarrollo y contratos</span>
+            <UiBadge tone="warn">Secundario</UiBadge>
+          </summary>
 
-      {uiState && mutationConfirmations.length > 0 && (
-        <UiCard className="panel fleet-prototype-panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Solo prototipo</p>
-              <h3>Futuras mutaciones de flota</h3>
-              <p>Se dejan visibles como referencia tecnica, pero no forman parte del flujo principal de ordenes.</p>
+          {(fleetManifest.length > 0 || strategicMapManifest.length > 0) && (
+            <div className="fleet-manifest-grid">
+              {fleetManifest.length > 0 && (
+                <ActionManifestPanel
+                  title="Tecnico: manifiesto de acciones de flota"
+                  actions={fleetManifest}
+                  mutationConfirmations={mutationConfirmations}
+                />
+              )}
+              {strategicMapManifest.length > 0 && (
+                <ActionManifestPanel
+                  title="Tecnico: manifiesto del mapa estrategico"
+                  actions={strategicMapManifest}
+                />
+              )}
             </div>
-            <UiBadge tone="warn">Solo prototipo</UiBadge>
-          </div>
-          <div className="prototype-control-grid prototype-control-grid-compact">
-            {mutationConfirmations.map((control) => (
-              <section key={control.actionKey} className="subpanel prototype-control-card">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Accion futura</p>
-                    <h4>{control.label}</h4>
-                  </div>
-                  <div className="figma-badge-row">
-                    <UiBadge tone={control.readinessTone}>{control.readinessLabel}</UiBadge>
-                    <UiBadge tone={control.prototypeLevel === "danger" ? "warn" : "neutral"}>
-                      {control.prototypeLevel === "danger" ? "Riesgo" : "Solo prototipo"}
-                    </UiBadge>
-                  </div>
+          )}
+
+          {uiState && mutationConfirmations.length > 0 && (
+            <UiCard className="panel fleet-prototype-panel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Solo prototipo</p>
+                  <h3>Futuras mutaciones de flota</h3>
+                  <p>Se dejan visibles como referencia tecnica, pero no forman parte del flujo principal de ordenes.</p>
                 </div>
-                <p className="figma-panel-note">{control.mutationSummary}</p>
-                <div className="figma-data-list">
-                  <FleetDataRow label="Requiere confirmacion" value={control.confirmationText} />
-                  <FleetDataRow label="Motivo del bloqueo" value={control.disabledReason} />
-                </div>
-              </section>
-            ))}
-          </div>
-        </UiCard>
+                <UiBadge tone="warn">Solo prototipo</UiBadge>
+              </div>
+              <div className="prototype-control-grid prototype-control-grid-compact">
+                {mutationConfirmations.map((control) => (
+                  <section key={control.actionKey} className="subpanel prototype-control-card">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">Accion futura</p>
+                        <h4>{control.label}</h4>
+                      </div>
+                      <div className="figma-badge-row">
+                        <UiBadge tone={control.readinessTone}>{control.readinessLabel}</UiBadge>
+                        <UiBadge tone={control.prototypeLevel === "danger" ? "warn" : "neutral"}>
+                          {control.prototypeLevel === "danger" ? "Riesgo" : "Solo prototipo"}
+                        </UiBadge>
+                      </div>
+                    </div>
+                    <p className="figma-panel-note">{control.mutationSummary}</p>
+                    <div className="figma-data-list">
+                      <FleetDataRow label="Requiere confirmacion" value={control.confirmationText} />
+                      <FleetDataRow label="Motivo del bloqueo" value={control.disabledReason} />
+                    </div>
+                  </section>
+                ))}
+              </div>
+            </UiCard>
+          )}
+        </details>
       )}
     </section>
   );

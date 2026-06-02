@@ -3,7 +3,7 @@
 ---
 id: TASK-12K
 title: Phase 12K - Fleet technical and dev panels collapse
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

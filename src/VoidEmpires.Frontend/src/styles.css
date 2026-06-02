@@ -1133,6 +1133,36 @@ select {
     linear-gradient(180deg, color-mix(in srgb, var(--ve-color-accent-blue) 8%, var(--ve-color-panel-2)), color-mix(in srgb, var(--ve-color-panel) 92%, transparent));
 }
 
+.fleet-technical-disclosure {
+  margin-top: var(--ve-space-4);
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 44%, transparent);
+  border-radius: var(--ve-radius-xl);
+  background: color-mix(in srgb, var(--ve-color-panel) 58%, transparent);
+  box-shadow: var(--ve-shadow-panel);
+}
+
+.fleet-technical-disclosure summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ve-space-3);
+  padding: 18px 22px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.fleet-technical-disclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.fleet-technical-disclosure[open] {
+  padding-bottom: var(--ve-space-4);
+}
+
+.fleet-technical-disclosure > :not(summary) {
+  padding: 0 var(--ve-space-4);
+}
+
 .fleet-estimate-digest {
   border-color: color-mix(in srgb, var(--ve-color-success) 20%, transparent);
 }
