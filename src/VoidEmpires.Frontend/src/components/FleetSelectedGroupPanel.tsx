@@ -78,6 +78,7 @@ export function FleetSelectedGroupPanel({
   const transferProgress = getTransferProgress(group);
   const transferProgressLabel = formatTransferProgressLabel(group);
   const isDueTransferReady = Boolean(group.activeTransfer && (transferProgress ?? -1) >= 100);
+  const canCancelTransfer = Boolean(group.activeTransfer?.id && group.commands?.canCancelTransfer);
   const dueTransferSummary = isDueTransferReady
     ? dueTransferCount > 1
       ? `La llegada visible ya vencio y hay ${dueTransferCount} traslados vencidos en esta cabina.`
@@ -209,22 +210,24 @@ export function FleetSelectedGroupPanel({
             <p className="dev-meta">{formatPlanetSecondaryLabel(group.activeTransfer.destinationPlanetId)}</p>
           ) : null}
           <div className="transfer-confirmation-actions">
-            <button
-              type="button"
-              className="prototype-control-button transfer-prepare-button"
-              onClick={() => onPrepareCompleteDueTransfer(group.id)}
-              disabled={!canCompleteDueTransfers || !isDueTransferReady}
-            >
-              {preparedCompleteDueGroupId === group.id ? "Ocultar completar vencidos" : "Preparar completar vencidos"}
-            </button>
-            <button
-              type="button"
-              className="prototype-control-button transfer-prepare-button"
-              onClick={() => onPrepareCancelTransfer(group.activeTransfer?.id ?? "")}
-              disabled={!group.activeTransfer?.id || !group.commands?.canCancelTransfer}
-            >
-              {preparedCancelTransferId === group.activeTransfer.id ? "Ocultar confirmacion" : "Preparar anulacion"}
-            </button>
+            {canCompleteDueTransfers && isDueTransferReady ? (
+              <button
+                type="button"
+                className="prototype-control-button transfer-prepare-button"
+                onClick={() => onPrepareCompleteDueTransfer(group.id)}
+              >
+                {preparedCompleteDueGroupId === group.id ? "Ocultar completar vencidos" : "Preparar completar vencidos"}
+              </button>
+            ) : null}
+            {canCancelTransfer ? (
+              <button
+                type="button"
+                className="prototype-control-button transfer-prepare-button"
+                onClick={() => onPrepareCancelTransfer(group.activeTransfer?.id ?? "")}
+              >
+                {preparedCancelTransferId === group.activeTransfer.id ? "Ocultar confirmacion" : "Preparar anulacion"}
+              </button>
+            ) : null}
           </div>
           <section className="subpanel transfer-confirmation-panel">
             <div className="figma-section-header">
@@ -255,6 +258,12 @@ export function FleetSelectedGroupPanel({
                 <strong>{formatPlanetPrimaryLabel(group.activeTransfer.destinationPlanetId)}</strong>
               </div>
             </div>
+            {!canCompleteDueTransfers ? (
+              <p className="figma-panel-note">La accion completar vencidos sigue oculta porque este entorno no expone ese contrato.</p>
+            ) : null}
+            {!isDueTransferReady ? (
+              <p className="figma-panel-note">Todavia no hay una llegada vencida para habilitar completar vencidos desde esta cabina.</p>
+            ) : null}
             {preparedCompleteDueGroupId === group.id ? (
               <div className="transfer-confirmation-flow">
                 <label className="confirmation-checkbox">
@@ -284,6 +293,9 @@ export function FleetSelectedGroupPanel({
               </div>
             ) : null}
           </section>
+          {!canCancelTransfer ? (
+            <p className="figma-panel-note">La anulacion solo aparece cuando la API marca este traslado como anulable.</p>
+          ) : null}
           {preparedCancelTransferId === group.activeTransfer.id ? (
             <section className="subpanel transfer-confirmation-panel">
               <div className="figma-section-header">

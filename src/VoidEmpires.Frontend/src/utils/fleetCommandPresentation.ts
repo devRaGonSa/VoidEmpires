@@ -84,14 +84,18 @@ export interface FleetEstimateReviewCard {
 export interface FleetActiveTransferPresentationItem {
   title: string;
   statusLabel: string;
+  statusTone: CommandTone;
   originLabel: string;
   destinationLabel: string;
   departureLabel: string;
   arrivalLabel: string;
   progressValue: number | null;
   progressLabel: string;
-  cancelLabel: string;
-  cancelTone: CommandTone;
+  phaseLabel: string;
+  phaseTone: CommandTone;
+  canCancel: boolean;
+  canCompleteDue: boolean;
+  hasTimingGap: boolean;
 }
 
 function getUnexpectedResponseSummary(result: FleetCommandApiResult<unknown>) {
@@ -275,18 +279,30 @@ export function presentFleetActiveTransferItem(group: FleetGroupSummary): FleetA
     Number.isNaN(departure) || Number.isNaN(arrival) || arrival <= departure
       ? null
       : Math.max(0, Math.min(100, ((now - departure) / (arrival - departure)) * 100));
+  const hasTimingGap = progressValue === null;
+  const canCompleteDue = !hasTimingGap && now >= arrival;
+  const phaseLabel = hasTimingGap
+    ? "Horario no legible"
+    : canCompleteDue
+      ? "Llegada vencida"
+      : "En curso";
+  const phaseTone: CommandTone = hasTimingGap ? "neutral" : canCompleteDue ? "warn" : "good";
 
   return {
     title: formatSpaceAssetType(group.assetType),
     statusLabel: formatTransferStatus(transfer.status),
+    statusTone: canCompleteDue ? "warn" : "neutral",
     originLabel: formatPlanetPrimaryLabel(group.originPlanetId),
     destinationLabel: formatPlanetPrimaryLabel(transfer.destinationPlanetId),
     departureLabel: transfer.departureAtUtc,
     arrivalLabel: transfer.arrivalAtUtc,
     progressValue,
     progressLabel: progressValue === null ? "Avance no disponible" : `${Math.round(progressValue)}% completado`,
-    cancelLabel: group.commands?.canCancelTransfer ? "Anulacion disponible" : "Sin anulacion visible",
-    cancelTone: group.commands?.canCancelTransfer ? "good" : "neutral",
+    phaseLabel,
+    phaseTone,
+    canCancel: group.commands?.canCancelTransfer ?? false,
+    canCompleteDue,
+    hasTimingGap,
   };
 }
 

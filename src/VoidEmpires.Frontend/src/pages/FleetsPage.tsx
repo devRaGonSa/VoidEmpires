@@ -174,6 +174,10 @@ export function FleetsPage() {
     () => activeTransferGroups.filter((group) => isTransferDueForUi(group)),
     [activeTransferGroups],
   );
+  const cancellableTransferCount = useMemo(
+    () => activeTransferGroups.filter((group) => group.commands?.canCancelTransfer).length,
+    [activeTransferGroups],
+  );
   const hasCompleteDueAction = useMemo(
     () => fleetManifest.some((action) => action.actionKey === "fleet.transfer.complete"),
     [fleetManifest],
@@ -849,6 +853,20 @@ export function FleetsPage() {
         </UiCard>
       )}
 
+      {!uiState ? (
+        <UiCard className="panel fleet-transfer-overview-panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Traslados activos</p>
+              <h3>Movimientos en curso</h3>
+              <p>Carga primero una cabina para ver traslados activos, rutas anulables y llegadas vencidas.</p>
+            </div>
+            <UiBadge tone="neutral">Sin datos</UiBadge>
+          </div>
+          <p className="figma-panel-note">Todavia no hay datos de flota cargados en esta sesion.</p>
+        </UiCard>
+      ) : null}
+
       {uiState && (
         <div className="fleet-cockpit-layout">
           <UiCard className="panel fleet-group-rail">
@@ -1172,12 +1190,32 @@ export function FleetsPage() {
                 <div>
                   <p className="eyebrow">Traslados activos</p>
                   <h3>Movimientos en curso</h3>
-                  <p>Vista compacta de las escuadras que ya salieron y requieren seguimiento.</p>
+                  <p>Vista compacta de las escuadras que ya salieron y de las acciones controladas que realmente estan disponibles.</p>
                 </div>
                 <UiBadge tone={activeTransferGroups.length > 0 ? "warn" : "good"}>
                   {activeTransferGroups.length > 0 ? `${activeTransferGroups.length} en ruta` : "Sin movimientos"}
                 </UiBadge>
               </div>
+              {activeTransferGroups.length > 0 ? (
+                <div className="figma-badge-row">
+                  <UiBadge tone={cancellableTransferCount > 0 ? "good" : "neutral"}>
+                    {cancellableTransferCount > 0
+                      ? `${cancellableTransferCount} anulable${cancellableTransferCount === 1 ? "" : "s"}`
+                      : "Sin anulaciones"}
+                  </UiBadge>
+                  <UiBadge tone={dueTransferGroups.length > 0 ? "warn" : "neutral"}>
+                    {dueTransferGroups.length > 0
+                      ? `${dueTransferGroups.length} vencido${dueTransferGroups.length === 1 ? "" : "s"}`
+                      : "Sin vencidos"}
+                  </UiBadge>
+                </div>
+              ) : null}
+              {activeTransferGroups.length > 0 && cancellableTransferCount === 0 ? (
+                <p className="figma-panel-note">Ningun traslado visible puede anularse ahora mismo segun la API.</p>
+              ) : null}
+              {activeTransferGroups.length > 0 && dueTransferGroups.length === 0 ? (
+                <p className="figma-panel-note">No hay llegadas vencidas; completar vencidos seguira oculto hasta que alguna ruta llegue a tiempo.</p>
+              ) : null}
               {activeTransferItems.length > 0 ? (
                 <div className="fleet-transfer-overview-grid">
                   {activeTransferItems.map(({ group, presentation }) => (
@@ -1188,7 +1226,10 @@ export function FleetsPage() {
                           <h4>{presentation.title}</h4>
                           <p className="dev-meta">ID tactico {formatCompactGuid(group.id)}</p>
                         </div>
-                        <UiBadge tone="warn">{presentation.statusLabel}</UiBadge>
+                        <div className="figma-badge-row">
+                          <UiBadge tone={presentation.statusTone}>{presentation.statusLabel}</UiBadge>
+                          <UiBadge tone={presentation.phaseTone}>{presentation.phaseLabel}</UiBadge>
+                        </div>
                       </div>
                       {presentation.progressValue !== null ? (
                         <UiProgressBar value={presentation.progressValue} tone="neutral" />
@@ -1201,8 +1242,15 @@ export function FleetsPage() {
                         <FleetDataRow label="Avance" value={presentation.progressLabel} />
                       </div>
                       <div className="figma-badge-row">
-                        <UiBadge tone={presentation.cancelTone}>{presentation.cancelLabel}</UiBadge>
+                        {presentation.canCancel ? <UiBadge tone="good">Anular desde cabina</UiBadge> : null}
+                        {presentation.canCompleteDue ? <UiBadge tone="warn">Completar vencido desde cabina</UiBadge> : null}
                       </div>
+                      {presentation.hasTimingGap ? (
+                        <p className="figma-panel-note">Faltan marcas horarias legibles para decidir progreso o completado desde esta tarjeta.</p>
+                      ) : null}
+                      {!presentation.canCancel && !presentation.canCompleteDue ? (
+                        <p className="figma-panel-note">Esta ruta sigue visible, pero ninguna mutacion controlada esta habilitada todavia.</p>
+                      ) : null}
                       <div className="transfer-confirmation-actions">
                         <button
                           type="button"
