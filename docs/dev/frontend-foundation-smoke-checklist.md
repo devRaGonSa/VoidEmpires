@@ -35,12 +35,14 @@ Manual visual validation is deferred for the current fleet execution block unles
    - loading state appears
    - fleet group summaries render as compact cards on success
    - the read-only estimate flow can submit `POST /api/dev/fleets/orbital-travel/estimate` and render loading, success, validation, not-found, conflict, or network-error feedback without creating a transfer
+   - `create transfer` remains clearly labeled as a development action, requires explicit confirmation, and can submit only `POST /api/dev/fleets/orbital-transfers/create`
+   - a successful create-transfer refresh clears stale estimate state and surfaces an `Estado actualizado.` cue in the mutation result area
    - active transfers show a progress bar when departure and arrival timestamps are available
    - route/fuel and interception readiness notes render as metadata only
-   - prototype mutation controls are visible but disabled, clearly marked as prototype-only, and never execute mutation endpoints
+   - prototype mutation controls for `cancel`, `complete-due`, `split`, and `merge` are visible but disabled, clearly marked as prototype-only, and never execute mutation endpoints
    - fleet and strategic-map manifests render as read-only contract panels
    - mutating manifest actions remain labeled but unavailable from the frontend
-11. Confirm there are no buttons that execute mutating dev endpoints from either route.
+11. Confirm no buttons other than the explicit `create transfer` confirmation path execute mutating dev endpoints from either route.
 
 ## Repository validation
 

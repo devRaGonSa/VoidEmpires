@@ -72,8 +72,9 @@ npm run build
 
 - Loads the fleet UI-state read model for a civilization id.
 - Executes only the read-only travel estimate preview at `POST /api/dev/fleets/orbital-travel/estimate`.
+- Executes `POST /api/dev/fleets/orbital-transfers/create` only after an explicit development-only confirmation tied to the latest matching estimate.
 - Renders compact fleet cards, resource contexts, interception notes, active-transfer progress bars, read-only action manifests, mutation confirmation metadata, and disabled prototype mutation controls.
-- Keeps `create`, `cancel`, `complete-due`, `split`, and `merge` visibly guarded and non-executable from the UI.
+- Keeps `cancel`, `complete-due`, `split`, and `merge` visibly guarded and non-executable from the UI.
 
 ## Figma token foundation
 
@@ -120,8 +121,8 @@ Only `Galaxia` and `Flotas` are active routes in the sidebar today. Other labels
 - Development endpoints are not production APIs.
 - Readiness metadata is not gameplay authorization.
 - Visual-state previews are renderer-facing dev contracts, not final rendering.
-- Mutating backend actions are displayed only as manifest metadata.
-- The frontend does not execute transfer creation, exploration creation, cancellation, or completion flows.
+- `create transfer` mutates development data and is allowed only behind the explicit confirmation flow.
+- `cancel`, `complete-due`, `split`, `merge`, and exploration creation remain manifest metadata only.
 - No production authentication is implemented.
 - No polling, WebSockets, or final renderer pipeline is implemented.
 - No final game UI styling or 3D map is implemented.
@@ -141,6 +142,7 @@ Optional seed and API confirmation:
 ```powershell
 Invoke-RestMethod -Method Get -Uri "http://localhost:5142/api/dev/fleets/ui-state?civilizationId=00000000-0000-0000-0000-000000000001"
 Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/fleets/orbital-travel/estimate" -ContentType "application/json" -Body '{"civilizationId":"00000000-0000-0000-0000-000000000001","orbitalGroupId":"<stationed-group-id>","destinationPlanetId":"40000000-0000-0000-0000-000000000002"}'
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/fleets/orbital-transfers/create" -ContentType "application/json" -Body '{"civilizationId":"00000000-0000-0000-0000-000000000001","orbitalGroupId":"<stationed-group-id>","destinationPlanetId":"40000000-0000-0000-0000-000000000002","requestedAtUtc":"2026-06-02T13:00:00Z"}'
 ```
 
 Manual browser review is deferred for this block unless a clear regression appears. See `docs/dev/frontend-foundation-smoke-checklist.md`.

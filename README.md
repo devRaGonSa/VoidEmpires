@@ -131,6 +131,12 @@ Validation URLs:
 - `/api/dev/planets/40000000-0000-0000-0000-000000000002/visual-state`
 - `/api/dev/planets/40000000-0000-0000-0000-000000000003/visual-state`
 
+Current frontend mutation boundary:
+
+- `POST /api/dev/fleets/orbital-travel/estimate` may execute from the frontend as a read-only preview.
+- `POST /api/dev/fleets/orbital-transfers/create` may execute from the frontend only after explicit development-only confirmation and mutates development data.
+- `cancel`, `complete-due`, `split`, and `merge` remain disabled or prototype-only in the frontend.
+
 ### Database Configuration
 
 PostgreSQL 16 is the selected primary database engine. EF Core with Npgsql is the current persistence stack in `VoidEmpires.Infrastructure`. The repository stores only an empty placeholder at `ConnectionStrings:DefaultConnection`; real connection strings must be supplied outside source control.

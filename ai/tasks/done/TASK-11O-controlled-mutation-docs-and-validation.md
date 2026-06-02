@@ -3,7 +3,7 @@
 ---
 id: TASK-11O
 title: Phase 11O - Controlled mutation docs and validation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

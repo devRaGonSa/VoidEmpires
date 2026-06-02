@@ -95,6 +95,7 @@ Use this checklist for the current frontend preparation block. Manual visual QA 
 3. Run `npm run build --prefix src/VoidEmpires.Frontend`.
 4. Optionally apply the `minimal-validation` seed and call `GET /api/dev/fleets/ui-state` plus `POST /api/dev/fleets/orbital-travel/estimate` when you need non-visual confirmation that readiness metadata and estimate shapes still match the documented contracts.
 5. Treat frontend mutation controls as development-only affordances. The current Fleet page may execute only `create` behind an explicit confirmation flow; `cancel`, `complete-due`, `split`, and `merge` must remain non-executable.
+6. Keep manual browser review deferred unless a clear frontend regression appears; this milestone relies on build, test, and optional API-only checks rather than visual sign-off.
 
 Manual browser review is not required for Phase 11H through 11K unless a clear frontend regression appears. The intended evidence for this block is successful build and test execution plus optional API-level contract checks.
 
