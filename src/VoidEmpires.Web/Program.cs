@@ -1,13 +1,29 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 using VoidEmpires.Application.Identity;
 using VoidEmpires.Infrastructure;
 using VoidEmpires.Infrastructure.Email;
 
 var builder = WebApplication.CreateBuilder(args);
+const string LocalFrontendDevelopmentCorsPolicy = "LocalFrontendDevelopment";
 
 builder.Services.Configure<BrevoEmailOptions>(builder.Configuration.GetSection(BrevoEmailOptions.SectionName));
 builder.Services.AddVoidEmpiresTransactionalEmail();
 builder.Services.AddVoidEmpiresGalaxyGeneration();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(LocalFrontendDevelopmentCorsPolicy, policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "http://127.0.0.1:5173")
+            .WithMethods(HttpMethods.Get)
+            .WithHeaders(
+                HeaderNames.Accept,
+                HeaderNames.ContentType);
+    });
+});
 
 var defaultConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddVoidEmpiresPersistence(defaultConnectionString);
@@ -21,6 +37,12 @@ if (!string.IsNullOrWhiteSpace(defaultConnectionString))
 }
 
 var app = builder.Build();
+var developmentEndpointsEnabled = AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration);
+
+if (developmentEndpointsEnabled)
+{
+    app.UseCors(LocalFrontendDevelopmentCorsPolicy);
+}
 
 app.MapGet("/", () => "VoidEmpires");
 app.MapPost("/api/auth/register", async (
@@ -68,7 +90,7 @@ app.MapGet("/api/auth/confirm-email", async (
         ? Results.Ok(new AuthApiResponse(true, userId, []))
         : Results.BadRequest(new AuthApiResponse(false, null, result.Errors));
 });
-if (AreDevelopmentEndpointsEnabled(app.Environment, app.Configuration))
+if (developmentEndpointsEnabled)
 {
     app.UseStaticFiles();
     app.MapDevEndpointMappings();
