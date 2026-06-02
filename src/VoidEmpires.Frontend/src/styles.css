@@ -87,7 +87,8 @@ a {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -504,6 +505,64 @@ input {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
+.fleet-cockpit-top,
+.fleet-cockpit-layout,
+.fleet-selected-grid,
+.fleet-manifest-grid {
+  display: grid;
+  gap: var(--ve-space-4);
+}
+
+.fleet-cockpit-top,
+.fleet-manifest-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.fleet-cockpit-layout {
+  grid-template-columns: minmax(300px, 0.78fr) minmax(0, 1.22fr);
+  align-items: start;
+}
+
+.fleet-command-column,
+.fleet-group-rail,
+.fleet-summary-list {
+  display: grid;
+  gap: var(--ve-space-4);
+}
+
+.fleet-group-rail {
+  align-content: start;
+}
+
+.fleet-summary-card {
+  transition:
+    border-color 140ms ease,
+    transform 140ms ease,
+    background-color 140ms ease;
+}
+
+.fleet-summary-card-selected {
+  border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 34%, transparent);
+  background: color-mix(in srgb, var(--ve-color-accent-blue) 10%, var(--ve-color-panel-2));
+  transform: translateY(-1px);
+}
+
+.fleet-summary-select-button {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid color-mix(in srgb, var(--ve-color-accent-cyan) 26%, transparent);
+  border-radius: var(--ve-radius-sm);
+  background: color-mix(in srgb, var(--ve-color-accent-blue) 16%, transparent);
+  color: var(--ve-color-text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fleet-selected-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin-top: 14px;
+}
+
 .figma-map-layout {
   grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
   align-items: start;
@@ -697,6 +756,15 @@ input {
 }
 
 .field input {
+  width: 100%;
+  padding: var(--ve-space-3) 14px;
+  border-radius: var(--ve-radius-sm);
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 58%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 82%, black);
+  color: var(--ve-color-text);
+}
+
+.field select {
   width: 100%;
   padding: var(--ve-space-3) 14px;
   border-radius: var(--ve-radius-sm);
@@ -1086,6 +1154,10 @@ input {
   }
 
   .figma-map-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .fleet-cockpit-layout {
     grid-template-columns: 1fr;
   }
 

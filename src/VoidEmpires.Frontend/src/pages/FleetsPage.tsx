@@ -9,6 +9,7 @@ import type { FleetGroupSummary, FleetUiState } from "../api/fleetTypes";
 import type { ReadinessNote } from "../api/strategicMapTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { ActionManifestPanel } from "../components/ActionManifestPanel";
+import { FleetSummaryPanel } from "../components/FleetSummaryPanel";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { UiProgressBar } from "../components/ui/UiProgressBar";
@@ -123,6 +124,7 @@ export function FleetsPage() {
   const [strategicMapManifest, setStrategicMapManifest] = useState<
     ActionManifestAction[]
   >([]);
+  const [inspectedGroupId, setInspectedGroupId] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState("");
   const [selectedDestinationPlanetId, setSelectedDestinationPlanetId] = useState("");
   const [isEstimating, setIsEstimating] = useState(false);
@@ -160,6 +162,10 @@ export function FleetsPage() {
   const estimateEligibleGroups = useMemo(
     () => uiState?.groups.filter((group) => group.routeFuelReadiness?.canRequestTravelEstimate) ?? [],
     [uiState],
+  );
+  const inspectedGroup = useMemo(
+    () => uiState?.groups.find((group) => group.id === inspectedGroupId) ?? uiState?.groups[0] ?? null,
+    [inspectedGroupId, uiState],
   );
 
   const effectiveGroupId = selectedGroupId || estimateEligibleGroups[0]?.id || "";
@@ -599,34 +605,34 @@ export function FleetsPage() {
     }
   }
 
+  const inspectedReadinessItems = inspectedGroup
+    ? buildFleetCommandReadiness(inspectedGroup, uiState?.actionHints ?? [])
+    : [];
+
   return (
     <section className="page-grid">
       <UiCard className="panel panel-hero figma-hero-card">
         <div className="figma-hero-copy">
-          <UiBadge tone="resource">Phase 9M fleet alignment</UiBadge>
-          <h2>Fleet UI state and action manifests</h2>
-          <p>
-            Fleet groups, active transfers, and route/readiness metadata are
-            grouped into compact Figma-style cards while mutating actions remain
-            visible as development-only contracts and remain unwired.
-          </p>
+          <UiBadge tone="resource">Phase 11X cockpit layout</UiBadge>
+          <h2>Fleet command cockpit</h2>
+          <p>Scan the fleet footprint, focus one orbital group at a time, and keep development-only execution behind explicit confirmation.</p>
         </div>
         <div className="figma-badge-row">
-          <UiBadge>Manifest metadata only</UiBadge>
-          <UiBadge tone="warn">Prototype-only mutation contracts</UiBadge>
-          <UiBadge>Progress bars for active transfers</UiBadge>
-          <UiBadge tone="warn">Create transfer guarded</UiBadge>
+          <UiBadge>Summary deck</UiBadge>
+          <UiBadge>Group rail</UiBadge>
+          <UiBadge>Selected detail</UiBadge>
+          <UiBadge tone="warn">Guarded create and cancel</UiBadge>
         </div>
       </UiCard>
 
-      <div className="figma-two-column">
+      <div className="fleet-cockpit-top">
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Development endpoint</p>
-              <h3>Load fleet inspection state</h3>
+              <h3>Load cockpit state</h3>
             </div>
-            <UiBadge>Read-only fleet surface</UiBadge>
+            <UiBadge>Development surface</UiBadge>
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
@@ -650,215 +656,472 @@ export function FleetsPage() {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Current limits</p>
-              <h3>Constraints</h3>
+              <p className="eyebrow">Execution boundaries</p>
+              <h3>Command rules</h3>
             </div>
-            <UiBadge tone="warn">No mutations</UiBadge>
+            <UiBadge tone="warn">Prototype guarded</UiBadge>
           </div>
           <ul className="stack-list">
-            <li>Action manifests remain documentation and readiness metadata only.</li>
-            <li>Create transfer stays behind explicit confirmation, while cancel remains preparation-only.</li>
-            <li>Route/fuel and interception details remain non-authoritative hints.</li>
-            <li>All responses are development tooling, not production gameplay APIs.</li>
+            <li>Estimate remains read-only and never reserves groups or spends resources.</li>
+            <li>Create transfer requires a matching fresh estimate plus explicit confirmation.</li>
+            <li>Cancel transfer requires an active visible transfer plus explicit confirmation.</li>
+            <li>Complete-due, split, and merge stay visible as prototype metadata only.</li>
           </ul>
         </UiCard>
       </div>
 
-      {uiState && (
+      {summary && (
+        <UiCard className="panel fleet-summary-deck">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Operational summary</p>
+              <h3>Command deck</h3>
+              <p>Compact status for the loaded civilization and the current fleet-readiness footprint.</p>
+            </div>
+            <UiBadge>{formatCompactGuid(uiState?.civilizationId)}</UiBadge>
+          </div>
+          <div className="figma-stat-grid">
+            <SummaryMetric label="Groups" value={summary.groups} />
+            <SummaryMetric label="Active transfers" value={summary.transfers} />
+            <SummaryMetric label="Resource contexts" value={summary.resourceContexts} />
+            <SummaryMetric label="Action hints" value={summary.actionHints} />
+          </div>
+        </UiCard>
+      )}
+
+      {uiState && summary && summary.groups === 0 && summary.resourceContexts === 0 && (
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Estimacion</p>
-              <h3>Solo lectura orbital</h3>
-              <p>No ejecuta movimiento, no reserva grupos y no consume recursos.</p>
+              <p className="eyebrow">Empty development state</p>
+              <h3>No orbital groups deployed yet</h3>
+              <p>This civilization currently has no orbital groups, active transfers, or local resource contexts.</p>
             </div>
-            <UiBadge tone="good">POST read-only</UiBadge>
+            <UiBadge tone="warn">Safe zero-state</UiBadge>
           </div>
-          <form className="query-form" onSubmit={handleEstimateSubmit}>
-            <label className="field">
-                <span>Grupo elegible</span>
-              <select
-                value={effectiveGroupId}
-                onChange={(event) => {
-                  setSelectedGroupId(event.target.value);
-                  invalidateEstimate("El grupo cambio. Calcula una nueva estimacion antes de crear la transferencia.");
-                }}
-                disabled={isEstimating || estimateEligibleGroups.length === 0}
-                aria-label="Grupo elegible"
-              >
-                {estimateEligibleGroups.length === 0 ? (
-                  <option value="">No hay grupos listos para estimacion</option>
-                ) : (
-                  estimateEligibleGroups.map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {formatSpaceAssetType(group.assetType)} - {formatPlanetReference(group.currentPlanetId)} - {formatCompactGuid(group.id)}
-                    </option>
-                  ))
-                )}
-              </select>
-            </label>
-            <label className="field">
-                <span>Planeta destino</span>
-              <select
-                value={effectiveDestinationPlanetId}
-                onChange={(event) => {
-                  setSelectedDestinationPlanetId(event.target.value);
-                  invalidateEstimate("El destino cambio. Calcula una nueva estimacion antes de crear la transferencia.");
-                }}
-                disabled={isEstimating || destinationOptions.length === 0}
-                aria-label="Planeta destino"
-              >
-                {destinationOptions.length === 0 ? (
-                  <option value="">Sin destinos disponibles</option>
-                ) : (
-                  destinationOptions.map((planetId) => (
-                    <option key={planetId} value={planetId}>
-                      {formatPlanetReference(planetId)}
-                    </option>
-                  ))
-                )}
-              </select>
-            </label>
-            <button
-              type="submit"
-              disabled={
-                isEstimating ||
-                estimateEligibleGroups.length === 0 ||
-                destinationOptions.length === 0
-              }
-            >
-              {isEstimating ? "Calculando..." : "Calcular estimacion"}
-            </button>
-          </form>
-          <div className="figma-badge-row">
-            <UiBadge>Estimacion</UiBadge>
-            <UiBadge tone="good">Solo lectura</UiBadge>
-            <UiBadge tone="warn">No ejecuta movimiento</UiBadge>
-          </div>
-          {estimateStaleMessage ? <p className="error-text">{estimateStaleMessage}</p> : null}
-          {estimateNetworkError ? <p className="error-text">Network error: {estimateNetworkError}</p> : null}
-          {createTransferNetworkError ? <p className="error-text">{createTransferNetworkError}</p> : null}
-          {cancelTransferStaleMessage ? <p className="figma-panel-note">{cancelTransferStaleMessage}</p> : null}
-          {cancelTransferNetworkError ? <p className="error-text">{cancelTransferNetworkError}</p> : null}
-          {estimateResult ? (
-            <section className="subpanel figma-subpanel">
-              <div className="figma-section-header">
-                <div>
-                  <p className="eyebrow">Resultado</p>
-                  <h4>{estimateResult.label}</h4>
-                </div>
-                <UiBadge tone={estimateResult.tone}>{estimateResult.tone === "good" ? "Listo" : "Atencion"}</UiBadge>
-              </div>
-              <p>{estimateResult.summary}</p>
-              {estimateResult.details.length > 0 ? (
-                <ul className="stack-list compact-list">
-                  {estimateResult.details.map((detail) => (
-                    <li key={detail}>{detail}</li>
-                  ))}
-                </ul>
-              ) : null}
-            </section>
-          ) : null}
-          {createTransferConfirmationState ? (
-            <section className="subpanel transfer-confirmation-panel">
-              <div className="figma-section-header">
-                <div>
-                  <p className="eyebrow">Accion de desarrollo</p>
-                  <h4>Crear transferencia orbital</h4>
-                  <p>Mutara datos de desarrollo cuando la ejecucion real se habilite en una fase posterior.</p>
-                </div>
-                <div className="figma-badge-row">
-                  <UiBadge tone="warn">Accion de desarrollo</UiBadge>
-                  <UiBadge tone={createTransferConfirmationState.canPrepare ? "good" : "warn"}>
-                    {createTransferConfirmationState.canPrepare ? "Lista para confirmar" : "Bloqueada"}
-                  </UiBadge>
-                </div>
-              </div>
-              <div className="figma-data-list">
-                <FleetDataRow label="Grupo" value={formatCompactGuid(selectedGroup?.id ?? "")} />
-                <FleetDataRow label="Ruta" value={createTransferConfirmationState.routeSummary} />
-                <FleetDataRow label="Coste estimado" value={createTransferConfirmationState.costSummary} />
-              </div>
-              <ul className="stack-list compact-list">
-                {createTransferConfirmationState.details.map((detail) => (
-                  <li key={detail}>{detail}</li>
-                ))}
-              </ul>
-              {createTransferConfirmationState.blockReason ? (
-                <p className="error-text">{createTransferConfirmationState.blockReason}</p>
-              ) : null}
-              <div className="transfer-confirmation-flow">
-                <label className="confirmation-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={hasCreateTransferAcknowledgement}
-                    onChange={(event) => setHasCreateTransferAcknowledgement(event.target.checked)}
-                    disabled={!createTransferConfirmationState.canPrepare}
-                  />
-                  <span>Requiere confirmacion explicita</span>
-                </label>
-                <div className="transfer-confirmation-actions">
-                  <button
-                    type="button"
-                    onClick={handleCreateTransfer}
-                    disabled={
-                      isCreatingTransfer ||
-                      !createTransferConfirmationState.canPrepare ||
-                      !hasCreateTransferAcknowledgement
-                    }
-                  >
-                    {isCreatingTransfer ? "Creando..." : "Crear transferencia orbital"}
-                  </button>
-                </div>
-                <p className="figma-panel-note">
-                  La accion sigue marcada como desarrollo, exige una estimacion vigente, y nunca se ejecuta sin esta confirmacion explicita.
-                </p>
-              </div>
-            </section>
-          ) : null}
-          {createTransferResult ? (
-            <section className="subpanel figma-subpanel">
-              <div className="figma-section-header">
-                <div>
-                  <p className="eyebrow">Resultado de mutacion</p>
-                  <h4>{createTransferResult.label}</h4>
-                </div>
-                <UiBadge tone={createTransferResult.tone}>
-                  {createTransferResult.tone === "good" ? "Mutacion aplicada" : "No aplicada"}
-                </UiBadge>
-              </div>
-              <p>{createTransferResult.summary}</p>
-              {createTransferResult.details.length > 0 ? (
-                <ul className="stack-list compact-list">
-                  {createTransferResult.details.map((detail) => (
-                    <li key={detail}>{detail}</li>
-                  ))}
-                </ul>
-              ) : null}
-            </section>
-          ) : null}
-          {cancelTransferResult ? (
-            <section className="subpanel figma-subpanel">
-              <div className="figma-section-header">
-                <div>
-                  <p className="eyebrow">Resultado de mutacion</p>
-                  <h4>{cancelTransferResult.label}</h4>
-                </div>
-                <UiBadge tone={cancelTransferResult.tone}>
-                  {cancelTransferResult.tone === "good" ? "Mutacion aplicada" : "No aplicada"}
-                </UiBadge>
-              </div>
-              <p>{cancelTransferResult.summary}</p>
-              {cancelTransferResult.details.length > 0 ? (
-                <ul className="stack-list compact-list">
-                  {cancelTransferResult.details.map((detail) => (
-                    <li key={detail}>{detail}</li>
-                  ))}
-                </ul>
-              ) : null}
-            </section>
-          ) : null}
+          <ul className="stack-list">
+            <li>Fleet counters remain at zero until groups are seeded or created elsewhere.</li>
+            <li>Action manifests remain available as contract context for later validation.</li>
+          </ul>
         </UiCard>
+      )}
+
+      {uiState && (
+        <div className="fleet-cockpit-layout">
+          <UiCard className="panel fleet-group-rail">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Orbital group list</p>
+                <h3>Group rail</h3>
+                <p>Use the rail to focus the command cockpit on one group at a time.</p>
+              </div>
+              <UiBadge>{uiState.groups.length} tracked</UiBadge>
+            </div>
+            <div className="fleet-summary-list">
+              {uiState.groups.map((group) => (
+                <FleetSummaryPanel
+                  key={group.id}
+                  group={group}
+                  isSelected={inspectedGroup?.id === group.id}
+                  onSelect={setInspectedGroupId}
+                />
+              ))}
+            </div>
+          </UiCard>
+
+          <div className="fleet-command-column">
+            {inspectedGroup ? (
+              <UiCard className="panel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Selected group</p>
+                    <h3>{formatSpaceAssetType(inspectedGroup.assetType)}</h3>
+                    <p>{formatCompactGuid(inspectedGroup.id)}</p>
+                  </div>
+                  <div className="figma-badge-row">
+                    <UiBadge tone={getGroupTone(inspectedGroup)}>{formatOrbitalGroupStatus(inspectedGroup.status)}</UiBadge>
+                    {inspectedGroup.routeFuelReadiness?.fuelReadinessPolicy ? (
+                      <UiBadge>{formatFuelReadinessPolicy(inspectedGroup.routeFuelReadiness.fuelReadinessPolicy)}</UiBadge>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="figma-stat-grid">
+                  <SummaryMetric label="Quantity" value={inspectedGroup.quantity} />
+                  <SummaryMetric label="Transfer distance" value={inspectedGroup.activeTransfer?.abstractDistanceUnits ?? 0} />
+                </div>
+
+                <div className="fleet-selected-grid">
+                  <section className="subpanel figma-subpanel">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">Position</p>
+                        <h4>Deployment context</h4>
+                      </div>
+                      <UiBadge>Live UI state</UiBadge>
+                    </div>
+                    <div className="figma-data-list">
+                      <FleetDataRow label="Current planet" value={formatPlanetReference(inspectedGroup.currentPlanetId)} />
+                      <FleetDataRow label="Origin planet" value={formatPlanetReference(inspectedGroup.originPlanetId)} />
+                      <FleetDataRow label="Stationed away" value={formatBooleanLabel(inspectedGroup.isStationedAwayFromOrigin)} />
+                    </div>
+                  </section>
+
+                  <section className="subpanel figma-subpanel">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">Command readiness</p>
+                        <h4>Read-only planning state</h4>
+                      </div>
+                      <UiBadge tone="warn">Inspection only</UiBadge>
+                    </div>
+                    <div className="figma-data-list">
+                      {inspectedReadinessItems.map((item) => (
+                        <FleetDataRow key={`${inspectedGroup.id}-${item.key}`} label={item.label} value={item.summary} />
+                      ))}
+                    </div>
+                    {inspectedReadinessItems.some((item) => item.details.length > 0) ? (
+                      <ul className="stack-list compact-list">
+                        {inspectedReadinessItems.flatMap((item) =>
+                          item.details.map((detail) => (
+                            <li key={`${inspectedGroup.id}-${item.key}-${detail}`}>{item.label}: {detail}</li>
+                          )),
+                        )}
+                      </ul>
+                    ) : null}
+                  </section>
+                </div>
+
+                {inspectedGroup.activeTransfer ? (
+                  <div className="figma-transfer-card">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">Transfer status</p>
+                        <h4>{formatTransferStatus(inspectedGroup.activeTransfer.status)}</h4>
+                      </div>
+                      <UiBadge tone="warn">{formatPlanetReference(inspectedGroup.activeTransfer.destinationPlanetId)}</UiBadge>
+                    </div>
+                    {getTransferProgress(inspectedGroup) !== null ? (
+                      <UiProgressBar value={getTransferProgress(inspectedGroup) ?? 0} tone="neutral" />
+                    ) : null}
+                    <div className="figma-data-list">
+                      <FleetDataRow label="Transfer" value={formatCompactGuid(inspectedGroup.activeTransfer.id)} />
+                      <FleetDataRow label="Destination" value={formatPlanetReference(inspectedGroup.activeTransfer.destinationPlanetId)} />
+                      <FleetDataRow label="Departure" value={inspectedGroup.activeTransfer.departureAtUtc} />
+                      <FleetDataRow label="Arrival" value={inspectedGroup.activeTransfer.arrivalAtUtc} />
+                      {formatTransferProgressLabel(inspectedGroup) ? (
+                        <FleetDataRow label="Progress" value={formatTransferProgressLabel(inspectedGroup) ?? "Sin progreso"} />
+                      ) : null}
+                    </div>
+                    <div className="transfer-confirmation-actions">
+                      <button
+                        type="button"
+                        className="prototype-control-button transfer-prepare-button"
+                        onClick={() => handlePrepareCancelTransfer(inspectedGroup.activeTransfer?.id ?? "")}
+                        disabled={!inspectedGroup.activeTransfer?.id || !inspectedGroup.commands?.canCancelTransfer}
+                      >
+                        {preparedCancelTransferId === inspectedGroup.activeTransfer.id ? "Ocultar confirmacion" : "Preparar cancelacion"}
+                      </button>
+                    </div>
+                    {preparedCancelTransferId === inspectedGroup.activeTransfer.id && (
+                      <section className="subpanel transfer-confirmation-panel">
+                        <div className="figma-section-header">
+                          <div>
+                            <p className="eyebrow">Accion de desarrollo</p>
+                            <h4>Cancelar transferencia orbital</h4>
+                            <p>La cancelacion sigue protegida y no reembolsa recursos ya cobrados.</p>
+                          </div>
+                          <div className="figma-badge-row">
+                            <UiBadge tone="warn">Accion de desarrollo</UiBadge>
+                            <UiBadge tone="warn">No reembolsa recursos</UiBadge>
+                          </div>
+                        </div>
+                        <div className="figma-data-list">
+                          <FleetDataRow label="Transfer" value={formatCompactGuid(inspectedGroup.activeTransfer.id)} />
+                          <FleetDataRow label="Grupo" value={formatCompactGuid(inspectedGroup.id)} />
+                          <FleetDataRow label="Origen" value={formatPlanetReference(inspectedGroup.originPlanetId)} />
+                          <FleetDataRow label="Planeta actual" value={formatPlanetReference(inspectedGroup.currentPlanetId)} />
+                          <FleetDataRow label="Destino" value={formatPlanetReference(inspectedGroup.activeTransfer.destinationPlanetId)} />
+                          <FleetDataRow label="Llegada" value={inspectedGroup.activeTransfer.arrivalAtUtc} />
+                        </div>
+                        <div className="transfer-confirmation-flow">
+                          <label className="confirmation-checkbox">
+                            <input
+                              type="checkbox"
+                              checked={hasCancelTransferAcknowledgement}
+                              onChange={(event) => setHasCancelTransferAcknowledgement(event.target.checked)}
+                            />
+                            <span>Requiere confirmacion explicita</span>
+                          </label>
+                          <div className="transfer-confirmation-actions">
+                            <button
+                              type="button"
+                              onClick={() => handleCancelTransfer(inspectedGroup)}
+                              disabled={
+                                isCancellingTransfer ||
+                                !hasCancelTransferAcknowledgement ||
+                                preparedCancelTransferId !== inspectedGroup.activeTransfer.id
+                              }
+                            >
+                              {isCancellingTransfer ? "Cancelando..." : "Cancelar transferencia orbital"}
+                            </button>
+                          </div>
+                        </div>
+                      </section>
+                    )}
+                    {inspectedGroup.activeTransfer.interceptionReadiness?.readinessNote ? (
+                      <p className="figma-panel-note">{inspectedGroup.activeTransfer.interceptionReadiness.readinessNote}</p>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {inspectedGroup.routeFuelReadiness?.notes?.length ? (
+                  <ul className="stack-list compact-list">
+                    {inspectedGroup.routeFuelReadiness.notes.map((note) => (
+                      <li key={note}>{note}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </UiCard>
+            ) : null}
+
+            <UiCard className="panel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Command execution</p>
+                  <h3>Estimate and guarded actions</h3>
+                  <p>The command column keeps read-only preview, explicit confirmation, and result feedback together.</p>
+                </div>
+                <UiBadge tone="good">POST read-only + guarded mutation</UiBadge>
+              </div>
+              <form className="query-form" onSubmit={handleEstimateSubmit}>
+                <label className="field">
+                  <span>Grupo elegible</span>
+                  <select
+                    value={effectiveGroupId}
+                    onChange={(event) => {
+                      setSelectedGroupId(event.target.value);
+                      setInspectedGroupId(event.target.value);
+                      invalidateEstimate("El grupo cambio. Calcula una nueva estimacion antes de crear la transferencia.");
+                    }}
+                    disabled={isEstimating || estimateEligibleGroups.length === 0}
+                    aria-label="Grupo elegible"
+                  >
+                    {estimateEligibleGroups.length === 0 ? (
+                      <option value="">No hay grupos listos para estimacion</option>
+                    ) : (
+                      estimateEligibleGroups.map((group) => (
+                        <option key={group.id} value={group.id}>
+                          {formatSpaceAssetType(group.assetType)} - {formatPlanetReference(group.currentPlanetId)} - {formatCompactGuid(group.id)}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </label>
+                <label className="field">
+                  <span>Planeta destino</span>
+                  <select
+                    value={effectiveDestinationPlanetId}
+                    onChange={(event) => {
+                      setSelectedDestinationPlanetId(event.target.value);
+                      invalidateEstimate("El destino cambio. Calcula una nueva estimacion antes de crear la transferencia.");
+                    }}
+                    disabled={isEstimating || destinationOptions.length === 0}
+                    aria-label="Planeta destino"
+                  >
+                    {destinationOptions.length === 0 ? (
+                      <option value="">Sin destinos disponibles</option>
+                    ) : (
+                      destinationOptions.map((planetId) => (
+                        <option key={planetId} value={planetId}>
+                          {formatPlanetReference(planetId)}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </label>
+                <button type="submit" disabled={isEstimating || estimateEligibleGroups.length === 0 || destinationOptions.length === 0}>
+                  {isEstimating ? "Calculando..." : "Calcular estimacion"}
+                </button>
+              </form>
+              <div className="figma-badge-row">
+                <UiBadge>Estimacion</UiBadge>
+                <UiBadge tone="good">Solo lectura</UiBadge>
+                <UiBadge tone="warn">Mutaciones protegidas</UiBadge>
+              </div>
+              {estimateStaleMessage ? <p className="error-text">{estimateStaleMessage}</p> : null}
+              {estimateNetworkError ? <p className="error-text">Network error: {estimateNetworkError}</p> : null}
+              {createTransferNetworkError ? <p className="error-text">{createTransferNetworkError}</p> : null}
+              {cancelTransferStaleMessage ? <p className="figma-panel-note">{cancelTransferStaleMessage}</p> : null}
+              {cancelTransferNetworkError ? <p className="error-text">{cancelTransferNetworkError}</p> : null}
+              {estimateResult ? (
+                <section className="subpanel figma-subpanel">
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Estimate result</p>
+                      <h4>{estimateResult.label}</h4>
+                    </div>
+                    <UiBadge tone={estimateResult.tone}>{estimateResult.tone === "good" ? "Listo" : "Atencion"}</UiBadge>
+                  </div>
+                  <p>{estimateResult.summary}</p>
+                  {estimateResult.details.length > 0 ? (
+                    <ul className="stack-list compact-list">
+                      {estimateResult.details.map((detail) => (
+                        <li key={detail}>{detail}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </section>
+              ) : null}
+              {createTransferConfirmationState ? (
+                <section className="subpanel transfer-confirmation-panel">
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Accion de desarrollo</p>
+                      <h4>Crear transferencia orbital</h4>
+                      <p>Solo se habilita cuando la ultima estimacion sigue vigente para este grupo y destino.</p>
+                    </div>
+                    <div className="figma-badge-row">
+                      <UiBadge tone="warn">Accion de desarrollo</UiBadge>
+                      <UiBadge tone={createTransferConfirmationState.canPrepare ? "good" : "warn"}>
+                        {createTransferConfirmationState.canPrepare ? "Lista para confirmar" : "Bloqueada"}
+                      </UiBadge>
+                    </div>
+                  </div>
+                  <div className="figma-data-list">
+                    <FleetDataRow label="Grupo" value={formatCompactGuid(selectedGroup?.id ?? "")} />
+                    <FleetDataRow label="Ruta" value={createTransferConfirmationState.routeSummary} />
+                    <FleetDataRow label="Coste estimado" value={createTransferConfirmationState.costSummary} />
+                  </div>
+                  <ul className="stack-list compact-list">
+                    {createTransferConfirmationState.details.map((detail) => (
+                      <li key={detail}>{detail}</li>
+                    ))}
+                  </ul>
+                  {createTransferConfirmationState.blockReason ? <p className="error-text">{createTransferConfirmationState.blockReason}</p> : null}
+                  <div className="transfer-confirmation-flow">
+                    <label className="confirmation-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={hasCreateTransferAcknowledgement}
+                        onChange={(event) => setHasCreateTransferAcknowledgement(event.target.checked)}
+                        disabled={!createTransferConfirmationState.canPrepare}
+                      />
+                      <span>Requiere confirmacion explicita</span>
+                    </label>
+                    <div className="transfer-confirmation-actions">
+                      <button
+                        type="button"
+                        onClick={handleCreateTransfer}
+                        disabled={
+                          isCreatingTransfer ||
+                          !createTransferConfirmationState.canPrepare ||
+                          !hasCreateTransferAcknowledgement
+                        }
+                      >
+                        {isCreatingTransfer ? "Creando..." : "Crear transferencia orbital"}
+                      </button>
+                    </div>
+                    <p className="figma-panel-note">La accion sigue marcada como desarrollo y nunca se ejecuta sin esta confirmacion explicita.</p>
+                  </div>
+                </section>
+              ) : null}
+              {createTransferResult ? (
+                <section className="subpanel figma-subpanel">
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Mutation result</p>
+                      <h4>{createTransferResult.label}</h4>
+                    </div>
+                    <UiBadge tone={createTransferResult.tone}>
+                      {createTransferResult.tone === "good" ? "Mutacion aplicada" : "No aplicada"}
+                    </UiBadge>
+                  </div>
+                  <p>{createTransferResult.summary}</p>
+                  {createTransferResult.details.length > 0 ? (
+                    <ul className="stack-list compact-list">
+                      {createTransferResult.details.map((detail) => (
+                        <li key={detail}>{detail}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </section>
+              ) : null}
+              {cancelTransferResult ? (
+                <section className="subpanel figma-subpanel">
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Mutation result</p>
+                      <h4>{cancelTransferResult.label}</h4>
+                    </div>
+                    <UiBadge tone={cancelTransferResult.tone}>
+                      {cancelTransferResult.tone === "good" ? "Mutacion aplicada" : "No aplicada"}
+                    </UiBadge>
+                  </div>
+                  <p>{cancelTransferResult.summary}</p>
+                  {cancelTransferResult.details.length > 0 ? (
+                    <ul className="stack-list compact-list">
+                      {cancelTransferResult.details.map((detail) => (
+                        <li key={detail}>{detail}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </section>
+              ) : null}
+            </UiCard>
+
+            {uiState?.resourceContexts?.length ? (
+              <UiCard className="panel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Transfer support</p>
+                    <h3>Resource contexts</h3>
+                  </div>
+                  <UiBadge>{uiState.resourceContexts.length} planets</UiBadge>
+                </div>
+                <div className="readiness-grid">
+                  {uiState.resourceContexts.map((context) => (
+                    <section key={context.planetId} className="subpanel figma-subpanel">
+                      <div className="figma-section-header">
+                        <div>
+                          <p className="eyebrow">Current planet</p>
+                          <h4>{formatPlanetReference(context.planetId)}</h4>
+                        </div>
+                        <UiBadge tone="resource">{(context.balances ?? []).length} balances</UiBadge>
+                      </div>
+                      <div className="figma-data-list">
+                        {(context.balances ?? []).map((balance) => (
+                          <FleetDataRow
+                            key={`${context.planetId}-${balance.resourceType}`}
+                            label={formatResourceType(balance.resourceType)}
+                            value={String(balance.quantity)}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              </UiCard>
+            ) : null}
+
+            {uiState?.interceptionNotes?.length ? (
+              <UiCard className="panel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Transfer status</p>
+                    <h3>Interception notes</h3>
+                  </div>
+                  <UiBadge tone="warn">Informational only</UiBadge>
+                </div>
+                <ul className="stack-list compact-list">
+                  {uiState.interceptionNotes.map((note, index) => (
+                    <li key={`interception-${index}`}>{formatNote(note)}</li>
+                  ))}
+                </ul>
+              </UiCard>
+            ) : null}
+          </div>
+        </div>
       )}
 
       {uiState && mutationConfirmations.length > 0 && (
@@ -866,8 +1129,8 @@ export function FleetsPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Prototype only</p>
-              <h3>Guarded mutation controls</h3>
-              <p>Visible for discoverability, disabled by design, and never executed from this page.</p>
+              <h3>Guarded mutation manifest</h3>
+              <p>Visible for discoverability, but still blocked from ordinary fleet execution.</p>
             </div>
             <UiBadge tone="warn">Mutacion protegida</UiBadge>
           </div>
@@ -901,315 +1164,22 @@ export function FleetsPage() {
         </UiCard>
       )}
 
-      {summary && (
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Operational summary</p>
-              <h3>Fleet footprint</h3>
-            </div>
-            <UiBadge>{formatCompactGuid(uiState?.civilizationId)}</UiBadge>
-          </div>
-          <div className="figma-stat-grid">
-            <SummaryMetric label="Groups" value={summary.groups} />
-            <SummaryMetric label="Active transfers" value={summary.transfers} />
-            <SummaryMetric label="Resource contexts" value={summary.resourceContexts} />
-            <SummaryMetric label="Action hints" value={summary.actionHints} />
-          </div>
-        </UiCard>
-      )}
-
-      {uiState && summary && summary.groups === 0 && summary.resourceContexts === 0 && (
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Empty development state</p>
-              <h3>No orbital groups deployed yet</h3>
-              <p>
-                This civilization currently has no orbital groups, active transfers,
-                or local resource contexts in the development dataset.
-              </p>
-            </div>
-            <UiBadge tone="warn">Safe zero-state</UiBadge>
-          </div>
-          <ul className="stack-list">
-            <li>Fleet counters remain at zero until groups are seeded or created elsewhere.</li>
-            <li>Action manifests below still document available contracts, but no gameplay mutation can be executed from this screen.</li>
-          </ul>
-        </UiCard>
-      )}
-
-      {uiState?.interceptionNotes?.length ? (
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Readiness</p>
-              <h3>Interception notes</h3>
-            </div>
-            <UiBadge tone="warn">Informational only</UiBadge>
-          </div>
-          <ul className="stack-list compact-list">
-            {uiState.interceptionNotes.map((note, index) => (
-              <li key={`interception-${index}`}>{formatNote(note)}</li>
-            ))}
-          </ul>
-        </UiCard>
-      ) : null}
-
-      {uiState?.resourceContexts?.length ? (
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Local stockpiles</p>
-              <h3>Resource contexts</h3>
-            </div>
-            <UiBadge>{uiState.resourceContexts.length} planets</UiBadge>
-          </div>
-          <div className="readiness-grid">
-            {uiState.resourceContexts.map((context) => (
-              <section key={context.planetId} className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Current planet</p>
-                    <h4>{formatPlanetReference(context.planetId)}</h4>
-                  </div>
-                  <UiBadge tone="resource">
-                    {(context.balances ?? []).length} balances
-                  </UiBadge>
-                </div>
-                <div className="figma-data-list">
-                  {(context.balances ?? []).map((balance) => (
-                    <FleetDataRow
-                      key={`${context.planetId}-${balance.resourceType}`}
-                      label={formatResourceType(balance.resourceType)}
-                      value={String(balance.quantity)}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        </UiCard>
-      ) : null}
-
-      {uiState?.groups.length ? (
-        <div className="figma-fleet-grid">
-          {uiState.groups.map((group) => {
-            const transferProgress = getTransferProgress(group);
-            const readinessItems = buildFleetCommandReadiness(group, uiState.actionHints ?? []);
-
-            return (
-              <UiCard key={group.id} className="panel figma-fleet-card">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Fleet group</p>
-                    <h3>{formatSpaceAssetType(group.assetType)}</h3>
-                    <p>{formatCompactGuid(group.id)}</p>
-                  </div>
-                  <UiBadge tone={getGroupTone(group)}>{formatOrbitalGroupStatus(group.status)}</UiBadge>
-                </div>
-
-                <div className="figma-stat-grid">
-                  <SummaryMetric label="Quantity" value={group.quantity} />
-                  <SummaryMetric
-                    label="Transfer distance"
-                    value={group.activeTransfer?.abstractDistanceUnits ?? 0}
-                  />
-                </div>
-
-                <div className="figma-data-list">
-                  <FleetDataRow label="Current planet" value={formatPlanetReference(group.currentPlanetId)} />
-                  <FleetDataRow label="Origin planet" value={formatPlanetReference(group.originPlanetId)} />
-                  <FleetDataRow
-                    label="Stationed away"
-                    value={formatBooleanLabel(group.isStationedAwayFromOrigin)}
-                  />
-                </div>
-
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Command readiness</p>
-                    <h4>Read-only command planning state</h4>
-                  </div>
-                  <UiBadge tone="warn">Inspection only</UiBadge>
-                </div>
-
-                <div className="figma-data-list">
-                  {readinessItems.map((item) => (
-                    <FleetDataRow
-                      key={`${group.id}-${item.key}`}
-                      label={item.label}
-                      value={item.summary}
-                    />
-                  ))}
-                </div>
-
-                {readinessItems.some((item) => item.details.length > 0) ? (
-                  <ul className="stack-list compact-list">
-                    {readinessItems.flatMap((item) =>
-                      item.details.map((detail) => (
-                        <li key={`${group.id}-${item.key}-${detail}`}>{item.label}: {detail}</li>
-                      )),
-                    )}
-                  </ul>
-                ) : null}
-
-                <p className="figma-panel-note">
-                  Future command execution must stay behind explicit development or prototype affordances. This Fleet page does not send mutation requests.
-                </p>
-
-                {group.routeFuelReadiness?.fuelReadinessPolicy && (
-                  <div className="figma-badge-row">
-                    <UiBadge>{formatFuelReadinessPolicy(group.routeFuelReadiness.fuelReadinessPolicy)}</UiBadge>
-                  </div>
-                )}
-
-                {group.activeTransfer && (
-                  <div className="figma-transfer-card">
-                    <div className="figma-section-header">
-                      <div>
-                        <p className="eyebrow">Active transfer</p>
-                        <h4>{formatTransferStatus(group.activeTransfer.status)}</h4>
-                      </div>
-                      <UiBadge tone="warn">{formatPlanetReference(group.activeTransfer.destinationPlanetId)}</UiBadge>
-                    </div>
-                    {transferProgress !== null && (
-                      <UiProgressBar value={transferProgress} tone="neutral" />
-                    )}
-                    <div className="figma-data-list">
-                      <FleetDataRow
-                        label="Transfer"
-                        value={formatCompactGuid(group.activeTransfer.id)}
-                      />
-                      <FleetDataRow
-                        label="Destination"
-                        value={formatPlanetReference(group.activeTransfer.destinationPlanetId)}
-                      />
-                      <FleetDataRow
-                        label="Departure"
-                        value={group.activeTransfer.departureAtUtc}
-                      />
-                      <FleetDataRow
-                        label="Arrival"
-                        value={group.activeTransfer.arrivalAtUtc}
-                      />
-                      {transferProgress !== null ? (
-                        <FleetDataRow
-                          label="Progress"
-                          value={formatTransferProgressLabel(group) ?? "Sin progreso"}
-                        />
-                      ) : null}
-                    </div>
-                    <div className="transfer-confirmation-actions">
-                      <button
-                        type="button"
-                        className="prototype-control-button transfer-prepare-button"
-                        onClick={() => handlePrepareCancelTransfer(group.activeTransfer?.id ?? "")}
-                        disabled={!group.activeTransfer?.id || !group.commands?.canCancelTransfer}
-                      >
-                        {preparedCancelTransferId === group.activeTransfer.id
-                          ? "Ocultar confirmacion"
-                          : "Preparar cancelacion"}
-                      </button>
-                    </div>
-                    {preparedCancelTransferId === group.activeTransfer.id && (
-                      <section className="subpanel transfer-confirmation-panel">
-                        <div className="figma-section-header">
-                          <div>
-                            <p className="eyebrow">Accion de desarrollo</p>
-                            <h4>Cancelar transferencia orbital</h4>
-                            <p>Mutara datos de desarrollo cuando la ejecucion controlada se habilite.</p>
-                          </div>
-                          <div className="figma-badge-row">
-                            <UiBadge tone="warn">Accion de desarrollo</UiBadge>
-                            <UiBadge tone="warn">No reembolsa recursos</UiBadge>
-                          </div>
-                        </div>
-                        <div className="figma-data-list">
-                          <FleetDataRow label="Transfer" value={formatCompactGuid(group.activeTransfer.id)} />
-                          <FleetDataRow label="Grupo" value={formatCompactGuid(group.id)} />
-                          <FleetDataRow label="Origen" value={formatPlanetReference(group.originPlanetId)} />
-                          <FleetDataRow label="Planeta actual" value={formatPlanetReference(group.currentPlanetId)} />
-                          <FleetDataRow label="Destino" value={formatPlanetReference(group.activeTransfer.destinationPlanetId)} />
-                          <FleetDataRow label="Llegada" value={group.activeTransfer.arrivalAtUtc} />
-                          {transferProgress !== null ? (
-                            <FleetDataRow
-                              label="Progreso"
-                              value={formatTransferProgressLabel(group) ?? "Sin progreso"}
-                            />
-                          ) : null}
-                        </div>
-                        <ul className="stack-list compact-list">
-                          <li>Transfer id conocido y visible antes de confirmar.</li>
-                          <li>Requiere confirmacion explicita.</li>
-                          <li>La ejecucion del endpoint sigue bloqueada en esta fase.</li>
-                        </ul>
-                        <div className="transfer-confirmation-flow">
-                          <label className="confirmation-checkbox">
-                            <input
-                              type="checkbox"
-                              checked={hasCancelTransferAcknowledgement}
-                              onChange={(event) =>
-                                setHasCancelTransferAcknowledgement(event.target.checked)
-                              }
-                            />
-                            <span>Requiere confirmacion explicita</span>
-                          </label>
-                          <div className="transfer-confirmation-actions">
-                            <button
-                              type="button"
-                              onClick={() => handleCancelTransfer(group)}
-                              disabled={
-                                isCancellingTransfer ||
-                                !hasCancelTransferAcknowledgement ||
-                                preparedCancelTransferId !== group.activeTransfer.id
-                              }
-                            >
-                              {isCancellingTransfer
-                                ? "Cancelando..."
-                                : "Cancelar transferencia orbital"}
-                            </button>
-                          </div>
-                          <p className="figma-panel-note">
-                            No reembolsa recursos y solo ejecuta la solicitud cuando esta transferencia visible sigue confirmada.
-                          </p>
-                        </div>
-                      </section>
-                    )}
-                    {group.activeTransfer.interceptionReadiness?.readinessNote && (
-                      <p className="figma-panel-note">
-                        {group.activeTransfer.interceptionReadiness.readinessNote}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {group.routeFuelReadiness?.notes?.length ? (
-                  <ul className="stack-list compact-list">
-                    {group.routeFuelReadiness.notes.map((note) => (
-                      <li key={note}>{note}</li>
-                    ))}
-                  </ul>
-                ) : null}
-              </UiCard>
-            );
-          })}
+      {(fleetManifest.length > 0 || strategicMapManifest.length > 0) && (
+        <div className="fleet-manifest-grid">
+          {fleetManifest.length > 0 && (
+            <ActionManifestPanel
+              title="Fleet action manifest"
+              actions={fleetManifest}
+              mutationConfirmations={mutationConfirmations}
+            />
+          )}
+          {strategicMapManifest.length > 0 && (
+            <ActionManifestPanel
+              title="Strategic map action manifest"
+              actions={strategicMapManifest}
+            />
+          )}
         </div>
-      ) : null}
-
-      {fleetManifest.length > 0 && (
-        <ActionManifestPanel
-          title="Fleet action manifest"
-          actions={fleetManifest}
-          mutationConfirmations={mutationConfirmations}
-        />
-      )}
-
-      {strategicMapManifest.length > 0 && (
-        <ActionManifestPanel
-          title="Strategic map action manifest"
-          actions={strategicMapManifest}
-        />
       )}
     </section>
   );

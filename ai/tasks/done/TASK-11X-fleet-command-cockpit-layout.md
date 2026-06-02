@@ -3,7 +3,7 @@
 ---
 id: TASK-11X
 title: Phase 11X - Fleet command cockpit layout
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
