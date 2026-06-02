@@ -3,7 +3,7 @@
 ---
 id: TASK-10V
 title: Phase 10V - Merge orbital groups service lifecycle hardening
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
