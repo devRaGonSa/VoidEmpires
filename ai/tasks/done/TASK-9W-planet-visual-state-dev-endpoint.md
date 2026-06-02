@@ -3,7 +3,7 @@
 ---
 id: TASK-9W
 title: Phase 9W - Planet visual state development endpoint
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
