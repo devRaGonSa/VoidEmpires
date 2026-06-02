@@ -86,6 +86,18 @@ Expected validation outcomes:
 - `POST /api/dev/fleets/orbital-transfers/cancel` marks an active transfer as cancelled, returns the reserved group to `Stationed`, and does not refund previously charged travel resources.
 - `POST /api/dev/fleets/orbital-transfers/complete-due` completes only transfers whose `arrivalAtUtc` is due, moves their groups to the destination planet, and is safe to repeat after completion because already completed transfers are ignored.
 
+## Non-Visual Validation Checklist
+
+Use this checklist for the current frontend preparation block. Manual visual QA is intentionally deferred until a later interface milestone.
+
+1. Run `npm run build` in `src/VoidEmpires.Frontend` to validate TypeScript contracts, presentation helpers, and route wiring.
+2. Run `dotnet build VoidEmpires.sln` to validate backend and shared contract compilation.
+3. Run `dotnet test VoidEmpires.sln` to validate the current automated fleet and development-endpoint coverage.
+4. Optionally apply the `minimal-validation` seed and call `GET /api/dev/fleets/ui-state` plus `POST /api/dev/fleets/orbital-travel/estimate` when you need non-visual confirmation that readiness metadata and estimate shapes still match the documented contracts.
+5. Treat `create`, `cancel`, `complete-due`, `split`, and `merge` as development or prototype endpoints only. They are valid for contract verification but are not part of ordinary gameplay UI validation in this block.
+
+Manual browser review is not required for Phase 11D through 11G. The intended evidence for this block is successful build and test execution plus optional API-level contract checks.
+
 ## Endpoint Summary
 
 | Method | Route | Mode | Main side effect |

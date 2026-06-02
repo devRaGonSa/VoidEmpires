@@ -3,7 +3,7 @@
 ---
 id: TASK-11G
 title: Phase 11G - Fleet command non-visual validation documentation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
