@@ -62,7 +62,23 @@ export interface PlanetVisualStateResponse {
     planetType?: string;
     colonizationStatus?: string;
     visualSeed?: number;
-    profile?: { paletteKey?: string };
+    colonizationIntensity?: number;
+    urbanIntensity?: number;
+    industrialIntensity?: number;
+    terraformingIntensity?: number;
+    militaryIntensity?: number;
+    orbitalPresenceIntensity?: number;
+    profile?: {
+      paletteKey?: string;
+      surfaceProfile?: string;
+      lightDistributionMode?: string;
+      platformMode?: string;
+      atmosphereProfile?: string;
+      cloudProfile?: string;
+      supportsNightLights?: boolean;
+      supportsSurfacePlatforms?: boolean;
+      supportsOrbitalMegastructureHints?: boolean;
+    };
   } | null;
   errors: string[];
 }

@@ -12,7 +12,9 @@ import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { StrategicMap2DView } from "../components/StrategicMap2DView";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
+import { UiProgressBar } from "../components/ui/UiProgressBar";
 import {
+  formatBooleanLabel,
   formatColonizationStatus,
   formatCommandBlockReason,
   formatCompactGuid,
@@ -113,6 +115,36 @@ function DataRow({ label, value }: DataRowProps) {
     <div className="figma-data-row">
       <span>{label}</span>
       <strong>{value}</strong>
+    </div>
+  );
+}
+
+interface IntensityRowProps {
+  label: string;
+  value: number | null | undefined;
+}
+
+function formatPercentage(value: number | null | undefined) {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "No disponible";
+  }
+
+  return `${Math.round(Math.max(0, Math.min(1, value)) * 100)}%`;
+}
+
+function IntensityRow({ label, value }: IntensityRowProps) {
+  const percent =
+    typeof value === "number" && !Number.isNaN(value)
+      ? Math.max(0, Math.min(100, value * 100))
+      : 0;
+
+  return (
+    <div>
+      <div className="figma-data-row">
+        <span>{label}</span>
+        <strong>{formatPercentage(value)}</strong>
+      </div>
+      <UiProgressBar value={percent} tone="neutral" />
     </div>
   );
 }
@@ -787,6 +819,10 @@ export function StrategicMapPage() {
                 <>
                   <div className="figma-data-list">
                     <DataRow
+                      label="Planet name"
+                      value={readText(planetVisualState.planetName)}
+                    />
+                    <DataRow
                       label="Planet type"
                       value={formatPlanetType(planetVisualState.planetType)}
                     />
@@ -799,9 +835,80 @@ export function StrategicMapPage() {
                       value={String(planetVisualState.visualSeed ?? "Unavailable")}
                     />
                     <DataRow
-                      label="Palette profile"
-                      value={readText(planetVisualState.profile?.paletteKey)}
+                      label="Surface profile"
+                      value={readText(planetVisualState.profile?.surfaceProfile)}
                     />
+                    <DataRow
+                      label="Light distribution"
+                      value={readText(planetVisualState.profile?.lightDistributionMode)}
+                    />
+                    <DataRow
+                      label="Platform mode"
+                      value={readText(planetVisualState.profile?.platformMode)}
+                    />
+                    <DataRow
+                      label="Atmosphere profile"
+                      value={readText(planetVisualState.profile?.atmosphereProfile)}
+                    />
+                    <DataRow
+                      label="Cloud profile"
+                      value={readText(planetVisualState.profile?.cloudProfile)}
+                    />
+                    <DataRow
+                      label="Night lights"
+                      value={formatBooleanLabel(Boolean(planetVisualState.profile?.supportsNightLights))}
+                    />
+                    <DataRow
+                      label="Surface platforms"
+                      value={formatBooleanLabel(
+                        Boolean(planetVisualState.profile?.supportsSurfacePlatforms),
+                      )}
+                    />
+                    <DataRow
+                      label="Orbital mega hints"
+                      value={formatBooleanLabel(
+                        Boolean(
+                          planetVisualState.profile?.supportsOrbitalMegastructureHints,
+                        ),
+                      )}
+                    />
+                    {planetVisualState.profile?.paletteKey && (
+                      <DataRow
+                        label="Palette profile"
+                        value={readText(planetVisualState.profile.paletteKey)}
+                      />
+                    )}
+                  </div>
+                  <div className="readiness-grid">
+                    <section className="subpanel figma-subpanel">
+                      <h4>Intensities</h4>
+                      <div className="stack-list compact-list">
+                        <IntensityRow
+                          label="Colonization intensity"
+                          value={planetVisualState.colonizationIntensity}
+                        />
+                        <IntensityRow
+                          label="Urban intensity"
+                          value={planetVisualState.urbanIntensity}
+                        />
+                        <IntensityRow
+                          label="Industrial intensity"
+                          value={planetVisualState.industrialIntensity}
+                        />
+                        <IntensityRow
+                          label="Terraforming intensity"
+                          value={planetVisualState.terraformingIntensity}
+                        />
+                        <IntensityRow
+                          label="Military intensity"
+                          value={planetVisualState.militaryIntensity}
+                        />
+                        <IntensityRow
+                          label="Orbital presence intensity"
+                          value={planetVisualState.orbitalPresenceIntensity}
+                        />
+                      </div>
+                    </section>
                   </div>
                   <details className="json-details">
                     <summary>Raw planet payload</summary>
