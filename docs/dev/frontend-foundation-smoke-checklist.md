@@ -30,11 +30,14 @@ Fleet cockpit v1 acceptance boundary:
 8. Enter a sample civilization id and confirm:
    - loading state appears
    - request errors are rendered clearly when the backend rejects the request
-   - system, planet, fleet, transfer, and readiness summary data render on success
-   - systems render in the darker 2D map stage with the compact legend
-   - selecting a system from the map updates the focus summary and selection detail panel
-   - selecting a system from the chip list updates the same detail panel
-   - selecting a visible planet updates the planet details and keeps command metadata read-only
+   - the top cockpit strip renders command input, strategic summary, and read-only safety rules first
+   - systems render in the darker 2D map stage with a readable legend for ownership, visibility, fleets, and transfer overlays
+   - selecting a system from the map updates the active focus rail and the focused-system panel
+   - selecting a system from the chip list updates the same focused-system panel
+   - the primary strategic surface reads mostly in Spanish and keeps technical or API-oriented language out of the first viewport where practical
+   - selecting a visible planet updates the planet details, keeps command metadata read-only, and shows the current navigation intent toward `Flotas`
+   - the `Vista Planeta en preparacion` placeholder stays visibly non-routable
+   - the technical drawer starts collapsed and keeps renderer payloads, readiness ledgers, and raw JSON secondary
    - `Load system visual state` returns a compact summary plus raw JSON details when the backend is running
    - `Load planet visual state` works for visible planets and stays read-only/dev-only
    - no button on the map page executes a gameplay mutation
@@ -78,6 +81,16 @@ Fleet cockpit v1 acceptance boundary:
    - result and error feedback remain readable at a glance, and no raw enum numbers or `NetworkError` text dominates the panel
    - technical manifests and future mutation metadata stay collapsed or clearly secondary under development details
 13. Confirm no buttons other than the explicit `create transfer`, `cancel transfer`, and `complete due` confirmation paths execute mutating dev endpoints from either route.
+
+Strategic map cockpit v1 visual review:
+
+- Confirm the first viewport feels like a playable map cockpit rather than a raw dev readout.
+- Confirm the map remains the largest surface and the selection, planet, and transfer context stay adjacent to it.
+- Confirm fleet markers and transfer overlays are visually distinct enough to decode without reading raw counts first.
+- Confirm focused-system labels, planet labels, and primary actions are Spanish-first.
+- Confirm ids remain secondary metadata only.
+- Confirm the read-only boundary is always visible and the page does not imply command authority.
+- Confirm technical diagnostics remain collapsed or clearly secondary after the cockpit loads.
 
 ## Repository validation
 

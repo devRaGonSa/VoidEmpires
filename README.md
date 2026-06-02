@@ -150,6 +150,7 @@ Recommended recovery flow after `create transfer` or `cancel transfer` mutates l
 5. Use `docs/dev/fleet-controlled-mutation-checklist.md` as the non-visual regression baseline for the estimate -> confirm -> create-transfer -> confirm -> cancel-transfer or complete-due paths.
 6. For Fleet cockpit v1 manual browser QA, use `docs/dev/frontend-foundation-smoke-checklist.md` and confirm the command deck, group rail, selected-group detail, guarded command column, prototype-only split or merge controls, and readable feedback areas on the `Flotas` route.
 7. For the completed Fleet cockpit milestone, also confirm the final visual gameplay checklist: mostly Spanish UI, compact scannable squad rail, readable selected-group panel, simple estimate/create/cancel/complete-due order flow, visible active transfers with progress and due-state cues, readable resources, secondary compact ids, readable estimate results, and collapsed development details.
+8. For the completed Galaxia cockpit milestone, use `docs/dev/frontend-foundation-smoke-checklist.md` and confirm the strategic command strip, dominant 2D map stage, focused-system panel, planet intelligence panel, distinct fleet/transfer overlays, and collapsed technical drawer all remain clearly read-only.
 
 ### Database Configuration
 

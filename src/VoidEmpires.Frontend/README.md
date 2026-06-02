@@ -2,7 +2,7 @@
 
 This project is the current development-only frontend shell for VoidEmpires.
 
-It is a Vite + React + TypeScript prototype that consumes backend readiness contracts and intentionally avoids production auth, gameplay mutation wiring, WebSockets, and 3D rendering. The current strategic map route is a visual readiness slice only: it renders a simple 2D map, supports read-only system and planet selection, and can inspect visual-state payloads from the existing development endpoints.
+It is a Vite + React + TypeScript prototype that consumes backend readiness contracts and intentionally avoids production auth, gameplay mutation wiring, WebSockets, and 3D rendering. The current strategic map route is a read-only playable cockpit slice: it renders a simple 2D map, supports read-only system and planet selection, exposes fleet and transfer overlay cues, and keeps renderer-facing payloads behind secondary technical details.
 `package-lock.json` is intentionally tracked for deterministic frontend installs in this repository.
 
 ## Prerequisites
@@ -62,11 +62,13 @@ npm run build
 ## Current strategic map behavior
 
 - Renders a deterministic SVG 2D map from backend system coordinates.
-- Uses the current Figma-aligned panel language for the map stage, legend, focus summary, and selection details.
-- Lets the user select a system from the map or the list below it.
-- Lets the user inspect read-only system and planet metadata from the strategic-map payload.
-- Lets the user load system and visible-planet visual-state previews as renderer-facing development payloads.
+- Uses a cockpit layout that prioritizes command input, strategic summary, map stage, focused-system detail, planet intelligence, and transfer context.
+- Lets the user select a system from the map or the system rail below it.
+- Lets the user inspect read-only system and planet metadata from the strategic-map payload with Spanish-first primary labels.
+- Shows fleet markers and transfer overlay cues directly in the map legend and stage.
+- Lets the user load system and visible-planet visual-state previews as renderer-facing development payloads from a collapsed technical drawer.
 - Keeps readiness metadata visibly non-authoritative and non-mutating.
+- Keeps `/fleets` as the only live navigation target from the strategic cockpit; Planet navigation remains a labeled placeholder.
 
 ## Current fleet behavior
 
@@ -165,3 +167,5 @@ For Fleet cockpit v1, use `docs/dev/frontend-foundation-smoke-checklist.md` as t
 Focus the browser review on mostly Spanish shell labels, a readable rail + selected-group + action-column hierarchy, explicit create/cancel confirmations, secondary compact ids, readable resource context, readable estimate results, and readable result or error feedback without dominant raw enum numbers or `NetworkError` text.
 Also confirm the active-transfer panel remains obvious, progress-aware, due-aware, and action-aware, while technical manifests stay collapsed behind development details by default and only `split` and `merge` remain prototype-only.
 Also confirm the compact development header, cleaned primary labels, and visually distinct step states across the five-step order flow.
+
+For the current Galaxia cockpit, also confirm the first viewport keeps the map as the dominant surface, the focused-system and planet panels stay readable without raw API language dominating, fleet and transfer overlays remain visually distinct, and the technical drawer stays secondary to the gameplay-like read surface.
