@@ -70,6 +70,15 @@ export interface FleetEstimateFact {
   value: string;
 }
 
+export interface FleetEstimateReviewCard {
+  tone: CommandTone;
+  title: string;
+  statusLabel: string;
+  summary: string;
+  facts: FleetEstimateFact[];
+  warnings: string[];
+}
+
 export interface FleetActiveTransferPresentationItem {
   title: string;
   statusLabel: string;
@@ -195,6 +204,58 @@ export function buildFleetEstimateFacts(
       value: response.canAfford && (response.fuelReadiness?.isFuelReady ?? true) ? "Si" : "No",
     },
   ];
+}
+
+export function buildFleetEstimateReviewCard(
+  result: FleetCommandApiResult<EstimateOrbitalTravelResponse> | null,
+  squadLabel: string,
+  currentPlanetId?: string | null,
+  destinationPlanetId?: string | null,
+): FleetEstimateReviewCard | null {
+  if (!result) {
+    return null;
+  }
+
+  const response = result.response;
+  const isSuccess = result.httpStatus === 200 && response?.succeeded;
+  const isReady = isSuccess && response.canAfford && (response.fuelReadiness?.isFuelReady ?? true);
+  const costLabel = response?.resourceCosts.length
+    ? response.resourceCosts.map((cost) => `${formatResourceType(cost.resourceType)} ${cost.quantity}`).join(", ")
+    : "Sin coste proyectado";
+  const warnings = isSuccess
+    ? [
+        ...(response.fuelReadiness && !response.fuelReadiness.isFuelReady
+          ? [response.fuelReadiness.notReadyReason ?? "La regla de combustible sigue bloqueando la salida."]
+          : []),
+        ...response.insufficientResources.map(
+          (resource) =>
+            `${formatResourceType(resource.resourceType)}: faltan ${resource.requiredQuantity - resource.availableQuantity}`,
+        ),
+      ]
+    : response?.errors ?? [];
+
+  return {
+    tone: isReady ? "good" : "warn",
+    title: "Estimacion de traslado",
+    statusLabel: isReady ? "Lista para confirmar" : "Requiere ajustes",
+    summary: isSuccess
+      ? "Revision previa completada. Comprueba ruta, coste y disponibilidad antes de confirmar."
+      : response?.errors[0] ?? `La solicitud devolvio ${result.httpStatus}.`,
+    facts: isSuccess
+      ? [
+          { label: "Escuadra", value: squadLabel },
+          { label: "Origen", value: formatPlanetReference(response.currentPlanetId ?? currentPlanetId ?? "") },
+          { label: "Destino", value: formatPlanetReference(response.destinationPlanetId ?? destinationPlanetId ?? "") },
+          { label: "Duracion", value: response.estimatedDuration ?? "Sin duracion visible" },
+          { label: "Coste", value: costLabel },
+          { label: "Disponibilidad", value: isReady ? "Lista" : "Bloqueada" },
+        ]
+      : [
+          { label: "Escuadra", value: squadLabel },
+          { label: "Ruta", value: `${formatPlanetReference(currentPlanetId ?? "")} -> ${formatPlanetReference(destinationPlanetId ?? "")}` },
+        ],
+    warnings,
+  };
 }
 
 export function presentFleetActiveTransferItem(group: FleetGroupSummary): FleetActiveTransferPresentationItem | null {

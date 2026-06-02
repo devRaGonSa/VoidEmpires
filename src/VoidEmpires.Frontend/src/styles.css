@@ -1167,9 +1167,25 @@ select {
   border-color: color-mix(in srgb, var(--ve-color-success) 20%, transparent);
 }
 
+.fleet-estimate-review-card {
+  gap: var(--ve-space-3);
+  background:
+    radial-gradient(circle at top right, rgba(82, 230, 167, 0.08), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 86%, transparent), color-mix(in srgb, var(--ve-color-panel) 92%, transparent));
+}
+
 .fleet-estimate-facts {
   display: grid;
   gap: 10px;
+}
+
+.fleet-estimate-review-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.fleet-estimate-next-step {
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--ve-color-border) 28%, transparent);
 }
 
 .fleet-readiness-details {

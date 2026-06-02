@@ -3,7 +3,7 @@
 ---
 id: TASK-12P
 title: Phase 12P - Fleet order estimate result card
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

@@ -21,7 +21,7 @@ import {
 } from "../utils/domainPresentation";
 import {
   buildFleetCommandReadiness,
-  buildFleetEstimateFacts,
+  buildFleetEstimateReviewCard,
   buildFleetMutationConfirmations,
   presentFleetActiveTransferItem,
   presentFleetSquadListItem,
@@ -29,7 +29,6 @@ import {
   presentCancelTransferResult,
   presentCreateTransferNetworkFailure,
   presentCreateTransferResult,
-  presentEstimateResult,
 } from "../utils/fleetCommandPresentation";
 
 const knownDevelopmentPlanetIds = [
@@ -115,7 +114,6 @@ export function FleetsPage() {
   const [isEstimating, setIsEstimating] = useState(false);
   const [estimateApiResult, setEstimateApiResult] =
     useState<FleetCommandApiResult<EstimateOrbitalTravelResponse> | null>(null);
-  const [estimateResult, setEstimateResult] = useState<FleetCommandPresentationItem | null>(null);
   const [estimateNetworkError, setEstimateNetworkError] = useState<string | null>(null);
   const [estimateSnapshot, setEstimateSnapshot] = useState<EstimateSnapshot | null>(null);
   const [estimateStaleMessage, setEstimateStaleMessage] = useState<string | null>(null);
@@ -291,25 +289,25 @@ export function FleetsPage() {
       ],
     };
   }, [effectiveDestinationPlanetId, liveEstimateResponse, selectedGroup]);
-  const estimateFacts = useMemo(
+  const estimateReviewCard = useMemo(
     () =>
-      buildFleetEstimateFacts(
-        liveEstimateResponse ?? estimateApiResult?.response ?? null,
+      buildFleetEstimateReviewCard(
+        estimateApiResult,
+        selectedGroup ? formatSquadIdentity(selectedGroup) : "Sin escuadra lista",
         selectedGroup?.currentPlanetId,
         effectiveDestinationPlanetId,
       ),
-    [effectiveDestinationPlanetId, estimateApiResult?.response, liveEstimateResponse, selectedGroup?.currentPlanetId],
+    [effectiveDestinationPlanetId, estimateApiResult, selectedGroup],
   );
 
   function clearEstimateState() {
     setEstimateApiResult(null);
-    setEstimateResult(null);
     setEstimateNetworkError(null);
     setEstimateSnapshot(null);
   }
 
   function invalidateEstimate(reason: string) {
-    if (estimateSnapshot || estimateApiResult || estimateResult) {
+    if (estimateSnapshot || estimateApiResult) {
       clearEstimateState();
       setEstimateStaleMessage(reason);
     } else {
@@ -450,7 +448,6 @@ export function FleetsPage() {
       });
 
       setEstimateApiResult(result);
-      setEstimateResult(presentEstimateResult(result));
       setEstimateSnapshot(
         result.httpStatus === 200 && result.response?.succeeded && selectedGroup
           ? {
@@ -885,41 +882,35 @@ export function FleetsPage() {
               {createTransferNetworkError ? <p className="error-text">{createTransferNetworkError}</p> : null}
                 {cancelTransferStaleMessage ? <p className="figma-panel-note">{cancelTransferStaleMessage}</p> : null}
                 {cancelTransferNetworkError ? <p className="error-text">{cancelTransferNetworkError}</p> : null}
-                {estimateFacts.length > 0 ? (
-                  <section className="subpanel figma-subpanel fleet-estimate-digest">
+                {estimateReviewCard ? (
+                  <section className="subpanel figma-subpanel fleet-estimate-digest fleet-estimate-review-card">
                     <div className="figma-section-header">
                       <div>
-                        <p className="eyebrow">Revision rapida</p>
-                        <h4>Resumen de ruta</h4>
+                        <p className="eyebrow">Paso 4</p>
+                        <h4>{estimateReviewCard.title}</h4>
+                        <p>{estimateReviewCard.summary}</p>
                       </div>
-                      <UiBadge tone="good">Paso 4</UiBadge>
+                      <UiBadge tone={estimateReviewCard.tone}>{estimateReviewCard.statusLabel}</UiBadge>
                     </div>
-                    <div className="fleet-estimate-facts">
-                      {estimateFacts.map((fact) => (
+                    <div className="fleet-estimate-facts fleet-estimate-review-grid">
+                      {estimateReviewCard.facts.map((fact) => (
                         <FleetDataRow key={fact.label} label={fact.label} value={fact.value} />
                       ))}
                     </div>
+                    {estimateReviewCard.warnings.length > 0 ? (
+                      <ul className="stack-list compact-list">
+                        {estimateReviewCard.warnings.map((detail) => (
+                          <li key={detail}>{detail}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    <p className="figma-panel-note fleet-estimate-next-step">
+                      {createTransferConfirmationState
+                        ? "Paso siguiente: confirma la orden protegida con esta misma revision vigente."
+                        : "Paso siguiente: la confirmacion se desbloquea solo con una estimacion vigente para este grupo y destino."}
+                    </p>
                   </section>
                 ) : null}
-              {estimateResult ? (
-                <section className="subpanel figma-subpanel fleet-action-primary-card">
-                  <div className="figma-section-header">
-                    <div>
-                      <p className="eyebrow">Calculo</p>
-                      <h4>{estimateResult.label}</h4>
-                    </div>
-                    <UiBadge tone={estimateResult.tone}>{estimateResult.tone === "good" ? "Listo" : "Atencion"}</UiBadge>
-                  </div>
-                  <p>{estimateResult.summary}</p>
-                  {estimateResult.details.length > 0 ? (
-                    <ul className="stack-list compact-list">
-                      {estimateResult.details.map((detail) => (
-                        <li key={detail}>{detail}</li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </section>
-              ) : null}
               {createTransferConfirmationState ? (
                 <section className="subpanel transfer-confirmation-panel fleet-action-primary-card">
                   <div className="figma-section-header">
@@ -950,8 +941,8 @@ export function FleetsPage() {
                   <p className="dev-meta">ID tactico {formatCompactGuid(selectedGroup?.id ?? "")}</p>
                   <ul className="stack-list compact-list">
                     {createTransferConfirmationState.details.map((detail) => (
-                      <li key={detail}>{detail}</li>
-                    ))}
+                        <li key={detail}>{detail}</li>
+                      ))}
                   </ul>
                   {createTransferConfirmationState.blockReason ? <p className="error-text">{createTransferConfirmationState.blockReason}</p> : null}
                   <div className="transfer-confirmation-flow">
