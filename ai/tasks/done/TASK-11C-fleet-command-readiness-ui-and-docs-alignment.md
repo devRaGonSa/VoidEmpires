@@ -3,7 +3,7 @@
 ---
 id: TASK-11C
 title: Phase 11C - Fleet command readiness UI and docs alignment
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

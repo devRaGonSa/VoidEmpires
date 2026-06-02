@@ -18,6 +18,12 @@ import {
   formatTransferStatus,
 } from "../utils/domainPresentation";
 
+interface CommandReadinessItem {
+  key: string;
+  label: string;
+  value: string;
+}
+
 function formatNote(note: ReadinessNote) {
   if (typeof note === "string") {
     return note;
@@ -53,6 +59,36 @@ function getGroupTone(group: FleetGroupSummary): "good" | "warn" | "neutral" {
   }
 
   return "neutral";
+}
+
+function getCommandReadiness(group: FleetGroupSummary): CommandReadinessItem[] {
+  return [
+    {
+      key: "estimate",
+      label: "Travel preview",
+      value: group.routeFuelReadiness?.canRequestTravelEstimate ? "Preview ready" : "Preview blocked",
+    },
+    {
+      key: "create-transfer",
+      label: "Create transfer",
+      value: group.commands?.canCreateTransfer ? "Ready" : "Blocked",
+    },
+    {
+      key: "split",
+      label: "Split group",
+      value: group.commands?.canSplit ? "Ready" : "Blocked",
+    },
+    {
+      key: "merge",
+      label: "Merge groups",
+      value: group.commands?.canMerge ? "Ready" : "Blocked",
+    },
+    {
+      key: "cancel-transfer",
+      label: "Cancel transfer",
+      value: group.commands?.canCancelTransfer ? "Ready" : "Blocked",
+    },
+  ];
 }
 
 interface SummaryMetricProps {
@@ -307,6 +343,7 @@ export function FleetsPage() {
         <div className="figma-fleet-grid">
           {uiState.groups.map((group) => {
             const transferProgress = getTransferProgress(group);
+            const readinessItems = getCommandReadiness(group);
 
             return (
               <UiCard key={group.id} className="panel figma-fleet-card">
@@ -336,17 +373,29 @@ export function FleetsPage() {
                   />
                 </div>
 
-                <div className="figma-badge-row">
-                  {group.commands?.canCreateTransfer && <UiBadge tone="good">Traslado disponible</UiBadge>}
-                  {group.commands?.canSplit && <UiBadge>Division lista</UiBadge>}
-                  {group.commands?.canMerge && <UiBadge>Fusion lista</UiBadge>}
-                  {group.commands?.canCancelTransfer && (
-                    <UiBadge tone="warn">Cancelacion disponible</UiBadge>
-                  )}
-                  {group.routeFuelReadiness?.fuelReadinessPolicy && (
-                    <UiBadge>{formatFuelReadinessPolicy(group.routeFuelReadiness.fuelReadinessPolicy)}</UiBadge>
-                  )}
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Command readiness</p>
+                    <h4>Metadata-only command state</h4>
+                  </div>
+                  <UiBadge>Contracts only</UiBadge>
                 </div>
+
+                <div className="figma-data-list">
+                  {readinessItems.map((item) => (
+                    <FleetDataRow
+                      key={`${group.id}-${item.key}`}
+                      label={item.label}
+                      value={item.value}
+                    />
+                  ))}
+                </div>
+
+                {group.routeFuelReadiness?.fuelReadinessPolicy && (
+                  <div className="figma-badge-row">
+                    <UiBadge>{formatFuelReadinessPolicy(group.routeFuelReadiness.fuelReadinessPolicy)}</UiBadge>
+                  </div>
+                )}
 
                 {group.activeTransfer && (
                   <div className="figma-transfer-card">
@@ -362,7 +411,7 @@ export function FleetsPage() {
                     )}
                     <div className="figma-data-list">
                       <FleetDataRow
-                        label="Destino"
+                        label="Destination"
                         value={formatPlanetReference(group.activeTransfer.destinationPlanetId)}
                       />
                       <FleetDataRow

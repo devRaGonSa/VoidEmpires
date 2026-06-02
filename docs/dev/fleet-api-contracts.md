@@ -229,6 +229,11 @@ Each `interceptionNotes[]` item is a lightweight reminder that interception read
 
 Restrictions: read-only. This endpoint aggregates existing read models for dev UI prototypes; it does not create, cancel, complete, split, merge, estimate, charge, intercept, or mutate persisted state.
 
+Frontend readiness guidance:
+
+- Treat `commands` and `routeFuelReadiness.canRequestTravelEstimate` as readiness metadata only. Render them as `Ready` or `Blocked` labels instead of executable controls.
+- Keep read-only inspection actions such as `estimate`, `overview`, `ui-state`, and manifest reads visually distinct from mutation contracts, even when an inspection route uses `POST`.
+
 ### Fleet Action Manifest
 
 `GET /api/dev/fleets/action-manifest`
