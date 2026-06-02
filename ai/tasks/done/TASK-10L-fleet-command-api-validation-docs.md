@@ -3,7 +3,7 @@
 ---
 id: TASK-10L
 title: Phase 10L - Fleet command API validation documentation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

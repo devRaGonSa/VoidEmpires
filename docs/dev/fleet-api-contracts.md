@@ -25,6 +25,46 @@ Error payloads include `succeeded: false` and `errors[]` except for unmapped rou
 
 Phase 6W reviewed the fleet development endpoints and kept the existing response behavior unchanged. The current surface already uses the expected lightweight conventions for frontend tooling: validation failures return `400`, missing persistence returns `503`, disabled development routes return `404`, canceling a missing transfer returns `404`, state or invariant conflicts return `409`, successful reads return `200`, and successful mutating commands retain their nearby endpoint conventions of `200` or `201`.
 
+## Local Validation Flow
+
+Use this flow only against a disposable local development database. These routes are development-only validation surfaces for backend and prototype work. They are not gameplay UI, combat execution, or interception execution contracts.
+
+Start the backend with a placeholder-only local connection string pattern:
+
+```powershell
+$env:ASPNETCORE_ENVIRONMENT = "Development"
+$env:ConnectionStrings__DefaultConnection = "Host=localhost;Database=<local-dev-db>;Username=<local-user>;Password=<local-password>"
+dotnet run --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
+```
+
+The current validation seed uses civilization `00000000-0000-0000-0000-000000000001`, owned planet `40000000-0000-0000-0000-000000000001`, and destination planet `40000000-0000-0000-0000-000000000002`. Use `ui-state` to copy the current stationed scout-group id and any active transfer id before running the mutating examples.
+
+```powershell
+Invoke-RestMethod -Method Get -Uri "http://localhost:5142/health"
+
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"minimal-validation"}'
+
+Invoke-RestMethod -Method Get -Uri "http://localhost:5142/api/dev/fleets/ui-state?civilizationId=00000000-0000-0000-0000-000000000001"
+
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/fleets/orbital-travel/estimate" -ContentType "application/json" -Body '{"civilizationId":"00000000-0000-0000-0000-000000000001","orbitalGroupId":"<stationed-scout-group-id-from-ui-state>","destinationPlanetId":"40000000-0000-0000-0000-000000000002"}'
+
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/fleets/orbital-transfers/create" -ContentType "application/json" -Body '{"civilizationId":"00000000-0000-0000-0000-000000000001","orbitalGroupId":"<stationed-scout-group-id-from-ui-state>","destinationPlanetId":"40000000-0000-0000-0000-000000000002","requestedAtUtc":"2026-06-02T13:00:00Z"}'
+
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/fleets/orbital-transfers/cancel" -ContentType "application/json" -Body '{"civilizationId":"00000000-0000-0000-0000-000000000001","orbitalTransferId":"<active-or-new-transfer-id>"}'
+
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/fleets/orbital-transfers/complete-due" -ContentType "application/json" -Body '{"nowUtc":"2026-06-02T12:00:00Z"}'
+```
+
+Expected validation outcomes:
+
+- `GET /health` confirms the host is up and shows whether persistence is configured.
+- `POST /api/dev/seeds/apply` is explicit and idempotent for the `minimal-validation` profile.
+- `GET /api/dev/fleets/ui-state` is the safest place to inspect the current group state before mutating anything.
+- `POST /api/dev/fleets/orbital-travel/estimate` is read-only. It previews duration, route profile, placeholder fuel-readiness metadata, and resource costs without reserving a group, charging resources, or creating a transfer.
+- `POST /api/dev/fleets/orbital-transfers/create` charges the estimated travel resources, reserves the selected stationed group, and persists a planned transfer.
+- `POST /api/dev/fleets/orbital-transfers/cancel` marks an active transfer as cancelled, returns the reserved group to `Stationed`, and does not refund previously charged travel resources.
+- `POST /api/dev/fleets/orbital-transfers/complete-due` completes only transfers whose `arrivalAtUtc` is due, moves their groups to the destination planet, and is safe to repeat after completion because already completed transfers are ignored.
+
 ## Endpoint Summary
 
 | Method | Route | Mode | Main side effect |
