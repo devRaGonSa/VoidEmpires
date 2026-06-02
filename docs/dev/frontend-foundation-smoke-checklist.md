@@ -33,20 +33,27 @@ Manual visual validation is deferred for the current fleet execution block unles
    - `Load planet visual state` works for visible planets and stays read-only/dev-only
    - no button on the map page executes a gameplay mutation
 9. Open the `Fleets` route.
-10. Enter the same civilization id and confirm:
+10. Enter the same civilization id and confirm the new cockpit layout renders in clearly separated sections:
+   - a top command deck summarizes groups, active transfers, resource contexts, and action hints
+   - an orbital group rail lists the available groups with readable asset type, current planet, and compact identifiers
+   - a selected-group panel shows asset type, quantity, status, current planet, origin planet, readiness, and active transfer context when present
+   - a command column groups estimate inputs, latest estimate state, guarded create-transfer confirmation, and guarded cancel-transfer confirmation together
+   - prototype-only mutation controls remain separated from the executable command column
+11. Within the same Fleet cockpit, confirm:
    - loading state appears
-   - fleet group summaries render as compact cards on success
+   - fleet group summaries render as readable rail cards and raw GUIDs stay secondary to human-readable labels
    - the read-only estimate flow can submit `POST /api/dev/fleets/orbital-travel/estimate` and render loading, success, validation, not-found, conflict, or network-error feedback without creating a transfer
    - `create transfer` remains clearly labeled as a development action, requires explicit confirmation, and can submit only `POST /api/dev/fleets/orbital-transfers/create`
    - a successful create-transfer refresh clears stale estimate state and surfaces an `Estado actualizado desde la API.` cue in the mutation result area
    - `cancel transfer` remains clearly labeled as a development action, requires explicit confirmation for a visible active transfer, and can submit only `POST /api/dev/fleets/orbital-transfers/cancel`
    - a successful cancel-transfer refresh clears stale cancel context, surfaces an `estado actualizado` cue, and keeps the no-refund rule visible
-   - active transfers show a progress bar when departure and arrival timestamps are available
+   - active transfers show route, timestamps, progress when available, and cancel readiness in the selected-group transfer panel
    - route/fuel and interception readiness notes render as metadata only
    - prototype mutation controls for `complete-due`, `split`, and `merge` are visible but disabled, clearly marked as prototype-only, and never execute mutation endpoints
+   - feedback areas for estimate, create-transfer, and cancel-transfer results render readable success, warning, or error messaging rather than JSON-first output
    - fleet and strategic-map manifests render as read-only contract panels
    - mutating manifest actions remain labeled but unavailable from the frontend
-11. Confirm no buttons other than the explicit `create transfer` and `cancel transfer` confirmation paths execute mutating dev endpoints from either route.
+12. Confirm no buttons other than the explicit `create transfer` and `cancel transfer` confirmation paths execute mutating dev endpoints from either route.
 
 ## Repository validation
 

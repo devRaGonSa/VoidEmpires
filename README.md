@@ -147,6 +147,7 @@ Recommended recovery flow after `create transfer` or `cancel transfer` mutates l
 3. If fleet state, transfer rows, or resource balances must return to the original baseline, use a fresh disposable local database and then apply `minimal-validation` again.
 4. Re-run `dotnet build --no-restore`, `dotnet test --no-build`, and `npm run build --prefix src/VoidEmpires.Frontend`.
 5. Keep manual browser review deferred unless a clear frontend regression appears; the current fleet mutation path is validated primarily through build, test, and optional API-level checks.
+6. When a browser review is needed for the Fleet cockpit milestone, use `docs/dev/frontend-foundation-smoke-checklist.md` and confirm the command deck, group rail, selected-group detail, guarded command column, disabled prototype controls, and readable feedback areas on the `Flotas` route.
 
 ### Database Configuration
 

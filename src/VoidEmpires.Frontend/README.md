@@ -71,10 +71,11 @@ npm run build
 ## Current fleet behavior
 
 - Loads the fleet UI-state read model for a civilization id.
+- Renders a Fleet command cockpit with a top summary deck, orbital-group rail, selected-group detail panel, command column, and prototype-only mutation manifest.
 - Executes only the read-only travel estimate preview at `POST /api/dev/fleets/orbital-travel/estimate`.
 - Executes `POST /api/dev/fleets/orbital-transfers/create` only after an explicit development-only confirmation tied to the latest matching estimate.
 - Executes `POST /api/dev/fleets/orbital-transfers/cancel` only after an explicit development-only confirmation tied to a currently visible active transfer.
-- Renders compact fleet cards, resource contexts, interception notes, active-transfer progress bars, read-only action manifests, mutation confirmation metadata, and disabled prototype mutation controls.
+- Renders readable selected-group readiness, transfer status, resource contexts, interception notes, active-transfer progress bars, feedback panels, read-only action manifests, mutation confirmation metadata, and disabled prototype mutation controls.
 - Keeps `complete-due`, `split`, and `merge` visibly guarded and non-executable from the UI.
 
 ## Figma token foundation
@@ -153,3 +154,5 @@ Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/fleets/orbita
 If a previous local run already mutated fleet state, inspect `ui-state` first. Re-applying `minimal-validation` restores missing baseline rows only; use a fresh disposable local database when you need the original transfer/resource baseline back.
 
 Manual browser review is deferred for this block unless a clear regression appears. See `docs/dev/frontend-foundation-smoke-checklist.md`.
+
+For the Fleet cockpit milestone, use the manual visual checklist there after the required non-visual validation commands succeed. Focus the browser review on command deck readability, selected-group context, guarded create/cancel confirmations, disabled prototype controls, and readable transfer/result feedback.

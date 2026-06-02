@@ -3,7 +3,7 @@
 ---
 id: TASK-12A
 title: Phase 12A - Fleet cockpit visual validation docs
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
