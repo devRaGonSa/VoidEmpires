@@ -25,6 +25,7 @@ import {
 import {
   buildFleetCommandReadiness,
   buildFleetMutationConfirmations,
+  presentCreateTransferResult,
   presentEstimateResult,
 } from "../utils/fleetCommandPresentation";
 
@@ -116,6 +117,9 @@ export function FleetsPage() {
   const [estimateResult, setEstimateResult] = useState<FleetCommandPresentationItem | null>(null);
   const [estimateNetworkError, setEstimateNetworkError] = useState<string | null>(null);
   const [hasCreateTransferAcknowledgement, setHasCreateTransferAcknowledgement] = useState(false);
+  const [isCreatingTransfer, setIsCreatingTransfer] = useState(false);
+  const [createTransferResult, setCreateTransferResult] = useState<FleetCommandPresentationItem | null>(null);
+  const [createTransferNetworkError, setCreateTransferNetworkError] = useState<string | null>(null);
 
   const summary = useMemo(() => {
     if (!uiState) {
@@ -231,7 +235,20 @@ export function FleetsPage() {
 
   function resetCreateTransferAcknowledgement() {
     setHasCreateTransferAcknowledgement(false);
+    setCreateTransferResult(null);
+    setCreateTransferNetworkError(null);
   }
+
+  async function refreshFleetUiState(civilizationIdValue: string) {
+    const uiStateResponse = await voidEmpiresApi.getFleetUiState(civilizationIdValue);
+
+    if (!uiStateResponse.succeeded || !uiStateResponse.uiState) {
+      throw new Error(uiStateResponse.errors[0] ?? "Fleet UI state refresh failed.");
+    }
+
+    setUiState(uiStateResponse.uiState);
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -311,6 +328,55 @@ export function FleetsPage() {
       setEstimateNetworkError(message);
     } finally {
       setIsEstimating(false);
+    }
+  }
+
+  async function handleCreateTransfer() {
+    if (!uiState?.civilizationId || !selectedGroup || !effectiveDestinationPlanetId) {
+      setCreateTransferNetworkError("Falta contexto valido para crear la transferencia.");
+      return;
+    }
+
+    setIsCreatingTransfer(true);
+    setCreateTransferResult(null);
+    setCreateTransferNetworkError(null);
+
+    try {
+      const result = await voidEmpiresApi.createOrbitalTransfer({
+        civilizationId: uiState.civilizationId,
+        orbitalGroupId: selectedGroup.id,
+        destinationPlanetId: effectiveDestinationPlanetId,
+        requestedAtUtc: new Date().toISOString(),
+      });
+
+      setCreateTransferResult(presentCreateTransferResult(result));
+
+      if ((result.httpStatus === 200 || result.httpStatus === 201) && result.response?.succeeded) {
+        setEstimateApiResult(null);
+        setEstimateResult(null);
+        setEstimateNetworkError(null);
+        setSelectedGroupId("");
+        setSelectedDestinationPlanetId("");
+        setHasCreateTransferAcknowledgement(false);
+
+        try {
+          await refreshFleetUiState(uiState.civilizationId);
+        } catch (refreshError) {
+          setCreateTransferNetworkError(
+            refreshError instanceof Error
+              ? `Transferencia creada, pero no se pudo refrescar la UI: ${refreshError.message}`
+              : "Transferencia creada, pero no se pudo refrescar la UI.",
+          );
+        }
+      }
+    } catch (requestError) {
+      const message =
+        requestError instanceof Error
+          ? requestError.message
+          : "Network error while creating the transfer.";
+      setCreateTransferNetworkError(message);
+    } finally {
+      setIsCreatingTransfer(false);
     }
   }
 
@@ -457,6 +523,7 @@ export function FleetsPage() {
             <UiBadge tone="warn">No ejecuta movimiento</UiBadge>
           </div>
           {estimateNetworkError ? <p className="error-text">Network error: {estimateNetworkError}</p> : null}
+          {createTransferNetworkError ? <p className="error-text">{createTransferNetworkError}</p> : null}
           {estimateResult ? (
             <section className="subpanel figma-subpanel">
               <div className="figma-section-header">
@@ -517,18 +584,41 @@ export function FleetsPage() {
                 <div className="transfer-confirmation-actions">
                   <button
                     type="button"
+                    onClick={handleCreateTransfer}
                     disabled={
+                      isCreatingTransfer ||
                       !createTransferConfirmationState.canPrepare ||
                       !hasCreateTransferAcknowledgement
                     }
                   >
-                    Crear transferencia orbital
+                    {isCreatingTransfer ? "Creando..." : "Crear transferencia orbital"}
                   </button>
                 </div>
                 <p className="figma-panel-note">
-                  La accion final sigue bloqueada en la UI y no envia el endpoint durante Phase 11L.
+                  La accion sigue marcada como desarrollo y nunca se ejecuta sin esta confirmacion explicita.
                 </p>
               </div>
+            </section>
+          ) : null}
+          {createTransferResult ? (
+            <section className="subpanel figma-subpanel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Resultado de mutacion</p>
+                  <h4>{createTransferResult.label}</h4>
+                </div>
+                <UiBadge tone={createTransferResult.tone}>
+                  {createTransferResult.tone === "good" ? "Completada" : "Atencion"}
+                </UiBadge>
+              </div>
+              <p>{createTransferResult.summary}</p>
+              {createTransferResult.details.length > 0 ? (
+                <ul className="stack-list compact-list">
+                  {createTransferResult.details.map((detail) => (
+                    <li key={detail}>{detail}</li>
+                  ))}
+                </ul>
+              ) : null}
             </section>
           ) : null}
         </UiCard>

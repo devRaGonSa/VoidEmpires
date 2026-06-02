@@ -94,7 +94,7 @@ Use this checklist for the current frontend preparation block. Manual visual QA 
 2. Run `dotnet test --no-build` from the repository root.
 3. Run `npm run build --prefix src/VoidEmpires.Frontend`.
 4. Optionally apply the `minimal-validation` seed and call `GET /api/dev/fleets/ui-state` plus `POST /api/dev/fleets/orbital-travel/estimate` when you need non-visual confirmation that readiness metadata and estimate shapes still match the documented contracts.
-5. Treat frontend mutation controls as documentation-only prototype affordances. The current Fleet page may prepare a local confirmation flow for `create`, but it must not execute `create`, `cancel`, `complete-due`, `split`, or `merge`.
+5. Treat frontend mutation controls as development-only affordances. The current Fleet page may execute only `create` behind an explicit confirmation flow; `cancel`, `complete-due`, `split`, and `merge` must remain non-executable.
 
 Manual browser review is not required for Phase 11H through 11K unless a clear frontend regression appears. The intended evidence for this block is successful build and test execution plus optional API-level contract checks.
 
@@ -245,8 +245,8 @@ Frontend readiness guidance:
 
 - Treat `commands` and `routeFuelReadiness.canRequestTravelEstimate` as readiness metadata only. Render them as `Ready` or `Blocked` labels instead of executable controls.
 - Keep read-only inspection actions such as `estimate`, `overview`, `ui-state`, and manifest reads visually distinct from mutation contracts, even when an inspection route uses `POST`.
-- The current frontend prototype may execute only `POST /api/dev/fleets/orbital-travel/estimate`, and that path remains explicitly read-only.
-- A development-only `create transfer` confirmation preview may summarize route and cost from the latest matching estimate, but the UI must stop before sending `POST /api/dev/fleets/orbital-transfers/create`.
+- The current frontend prototype may execute `POST /api/dev/fleets/orbital-travel/estimate` plus the explicitly confirmed development-only `POST /api/dev/fleets/orbital-transfers/create`.
+- `create transfer` should remain behind the latest matching estimate context, summarize route and cost before submission, and clear or mark stale estimate data after a successful mutation refresh.
 - Keep mutation contracts in clearly marked development or prototype sections. Current Fleet page work must not wire split, merge, create, cancel, or complete-due to ordinary gameplay-style buttons or click handlers.
 - Disabled prototype controls are allowed for discoverability only when they stay visibly guarded, non-submitting, and non-executable.
 - If a prototype later executes a mutation contract, require an explicit development-only affordance and show the route as a contract boundary rather than presenting it as routine gameplay UI.

@@ -1,5 +1,6 @@
 import type {
   CompleteOrbitalTransfersResponse,
+  CreateOrbitalTransferResponse,
   EstimateOrbitalTravelResponse,
   FleetCommandApiResult,
 } from "../api/fleetCommandTypes";
@@ -198,6 +199,40 @@ export function presentEstimateResult(result: FleetCommandApiResult<EstimateOrbi
       ...(response?.fuelReadiness ? [`Fuel ready: ${response.fuelReadiness.isFuelReady ? "yes" : "no"}`] : []),
       ...(response?.insufficientResources.map((resource) => `Missing ${resource.resourceType}: ${resource.requiredQuantity - resource.availableQuantity}`) ?? []),
       ...errors.slice(1),
+    ],
+  };
+}
+
+export function presentCreateTransferResult(result: FleetCommandApiResult<CreateOrbitalTransferResponse>): FleetCommandPresentationItem {
+  const response = result.response;
+  const defaultSummary =
+    result.httpStatus === 400
+      ? "Validacion rechazada por create transfer."
+      : result.httpStatus === 404
+        ? "Grupo o destino no encontrados en los datos de desarrollo."
+        : result.httpStatus === 409
+          ? "El estado actual de la flota ya no permite crear la transferencia."
+          : result.httpStatus === 503
+            ? "Persistencia no configurada para este entorno."
+            : `Request returned ${result.httpStatus}.`;
+
+  return {
+    key: "create-transfer-result",
+    label: "Crear transferencia orbital",
+    tone:
+      (result.httpStatus === 200 || result.httpStatus === 201) && response?.succeeded
+        ? "good"
+        : "warn",
+    summary:
+      (result.httpStatus === 200 || result.httpStatus === 201) && response?.succeeded
+        ? `Transferencia creada. Distancia ${response.abstractDistanceUnits} hacia ${response.destinationPlanetId ?? "destino desconocido"}.`
+        : response?.errors[0] ?? defaultSummary,
+    details: [
+      ...(response?.orbitalTransferId ? [`Transfer ${response.orbitalTransferId}`] : []),
+      ...(response?.orbitalGroupId ? [`Grupo ${response.orbitalGroupId}`] : []),
+      ...(response?.departureAtUtc ? [`Salida ${response.departureAtUtc}`] : []),
+      ...(response?.arrivalAtUtc ? [`Llegada ${response.arrivalAtUtc}`] : []),
+      ...(response?.errors.slice(1) ?? []),
     ],
   };
 }

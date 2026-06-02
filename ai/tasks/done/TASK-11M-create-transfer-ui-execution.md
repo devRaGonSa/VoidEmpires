@@ -3,7 +3,7 @@
 ---
 id: TASK-11M
 title: Phase 11M - Create transfer UI execution
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
