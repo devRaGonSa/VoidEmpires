@@ -17,6 +17,7 @@ import {
   formatCommandBlockReason,
   formatCompactGuid,
   formatPlanetType,
+  formatStarType,
   formatVisibilityLevel,
   formatVisibilityReason,
   isOwnedVisibilityLevel,
@@ -69,6 +70,11 @@ function formatJson(value: unknown) {
 
 function formatCoordinate(value: number | null) {
   return value ?? "?";
+}
+
+function readDomainValue(record: Record<string, unknown>, key: string) {
+  const value = record[key];
+  return typeof value === "string" || typeof value === "number" ? value : null;
 }
 
 function getVisibilityTone(level: string): "good" | "warn" | "neutral" {
@@ -169,6 +175,9 @@ export function StrategicMapPage() {
     () => (selectedPlanet ? readCommands(readRecord(selectedPlanet).commands) : []),
     [selectedPlanet],
   );
+
+  const selectedSystemRecord = selectedSystem ? readRecord(selectedSystem) : null;
+  const selectedPlanetRecord = selectedPlanet ? readRecord(selectedPlanet) : null;
 
   function selectSystem(system: StrategicMapSystem) {
     setSelectedSystemId(system.systemId);
@@ -525,9 +534,17 @@ export function StrategicMapPage() {
                   label="Coordinates"
                   value={`${formatCoordinate(selectedSystem.coordinateX)}, ${formatCoordinate(selectedSystem.coordinateY)}, ${formatCoordinate(selectedSystem.coordinateZ)}`}
                 />
+                {readDomainValue(selectedSystemRecord ?? {}, "starType") && (
+                  <DataRow
+                    label="Star type"
+                    value={formatStarType(
+                      readDomainValue(selectedSystemRecord ?? {}, "starType"),
+                    )}
+                  />
+                )}
                 <DataRow
                   label="Owned by requester"
-                  value={String(Boolean(readRecord(selectedSystem).isOwnedByRequestingCivilization))}
+                  value={Boolean(selectedSystemRecord?.isOwnedByRequestingCivilization) ? "Si" : "No"}
                 />
                 <DataRow
                   label="Sensor summaries"
@@ -578,34 +595,53 @@ export function StrategicMapPage() {
                       setPlanetVisualError(null);
                     }}
                     aria-pressed={selectedPlanet?.planetId === planet.planetId}
+                    title={planet.planetId}
                   >
-                    {planet.planetName ?? "Unknown planet"}
+                    {planet.planetName ?? "Unknown planet"} ·{" "}
+                    {formatPlanetType(readDomainValue(readRecord(planet), "planetType"), "Tipo pendiente")} ·{" "}
+                    {Boolean(readRecord(planet).isOwnedByRequestingCivilization)
+                      ? "Propio"
+                      : formatVisibilityLevel(planet.visibilityLevel)}{" "}
+                    ·{" "}
+                    {formatColonizationStatus(
+                      readDomainValue(readRecord(planet), "colonizationStatus"),
+                      "Colonizacion pendiente",
+                    )}
                   </button>
                 ))}
               </div>
 
               {selectedPlanet ? (
                 <>
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Selected planet</p>
+                      <h4>{selectedPlanet.planetName ?? "Unknown planet"}</h4>
+                    </div>
+                    <UiBadge tone={getVisibilityTone(selectedPlanet.visibilityLevel)}>
+                      {Boolean(selectedPlanetRecord?.isOwnedByRequestingCivilization)
+                        ? "Propio"
+                        : formatVisibilityLevel(selectedPlanet.visibilityLevel)}
+                    </UiBadge>
+                  </div>
                   <div className="figma-data-list">
                     <DataRow
-                      label="Visibility"
+                      label="Estado"
                       value={`${formatVisibilityLevel(selectedPlanet.visibilityLevel)} (${formatVisibilityReason(selectedPlanet.visibilityReason)})`}
                     />
                     <DataRow
                       label="Type"
-                      value={formatPlanetType(
-                        readRecord(selectedPlanet).planetType as string | number | null | undefined,
-                      )}
+                      value={formatPlanetType(readDomainValue(selectedPlanetRecord ?? {}, "planetType"))}
                     />
                     <DataRow
                       label="Colonization"
                       value={formatColonizationStatus(
-                        readRecord(selectedPlanet).colonizationStatus as
-                          | string
-                          | number
-                          | null
-                          | undefined,
+                        readDomainValue(selectedPlanetRecord ?? {}, "colonizationStatus"),
                       )}
+                    />
+                    <DataRow
+                      label="Id breve"
+                      value={formatCompactGuid(selectedPlanet.planetId)}
                     />
                   </div>
 
@@ -709,7 +745,7 @@ export function StrategicMapPage() {
                     />
                     <DataRow
                       label="Star type"
-                      value={readText(systemVisualState.star?.starType)}
+                      value={formatStarType(systemVisualState.star?.starType)}
                     />
                     <DataRow
                       label="Layout hints"

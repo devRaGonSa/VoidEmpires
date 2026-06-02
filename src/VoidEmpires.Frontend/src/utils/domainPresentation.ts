@@ -114,6 +114,23 @@ const visibilityReasonLabels: LabelCatalog = {
   },
 };
 
+const starTypeLabels: LabelCatalog = {
+  names: {
+    YellowDwarf: "Enana amarilla",
+    RedDwarf: "Enana roja",
+    BlueGiant: "Gigante azul",
+    WhiteDwarf: "Enana blanca",
+    NeutronStar: "Estrella de neutrones",
+  },
+  numbers: {
+    1: "Enana amarilla",
+    2: "Enana roja",
+    3: "Gigante azul",
+    4: "Enana blanca",
+    5: "Estrella de neutrones",
+  },
+};
+
 const commandBlockReasonLabels: LabelCatalog = {
   names: {
     None: "Sin bloqueo",
@@ -247,6 +264,10 @@ export function formatVisibilityLevel(value: DomainValue, fallback?: string) {
 
 export function formatVisibilityReason(value: DomainValue, fallback?: string) {
   return resolveLabel(value, visibilityReasonLabels, fallback);
+}
+
+export function formatStarType(value: DomainValue, fallback?: string) {
+  return resolveLabel(value, starTypeLabels, fallback);
 }
 
 export function formatCommandBlockReason(value: DomainValue, fallback?: string) {
