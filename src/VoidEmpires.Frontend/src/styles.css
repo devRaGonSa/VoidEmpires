@@ -46,7 +46,7 @@
   --ve-color-resource-deuterium: var(--ve-figma-deut);
 
   /* Layout, spacing, radius, elevation */
-  --ve-layout-desktop-width: 1440px;
+  --ve-layout-desktop-width: 1600px;
   --ve-layout-topbar-height: 64px;
   --ve-layout-sidebar-width: 230px;
   --ve-layout-content-start: 260px;
@@ -464,7 +464,7 @@ select {
 
 .page-grid {
   display: grid;
-  gap: 18px;
+  gap: 20px;
 }
 
 .figma-hero-card,
@@ -519,7 +519,7 @@ select {
 }
 
 .fleet-cockpit-layout {
-  grid-template-columns: minmax(300px, 0.78fr) minmax(0, 1.22fr);
+  grid-template-columns: minmax(360px, 410px) minmax(0, 1fr);
   align-items: start;
 }
 
@@ -534,6 +534,10 @@ select {
   align-content: start;
 }
 
+.fleet-summary-list {
+  gap: 14px;
+}
+
 .fleet-selected-panel,
 .fleet-orders-panel,
 .fleet-transfer-overview-panel,
@@ -544,6 +548,9 @@ select {
 }
 
 .fleet-summary-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
   transition:
     border-color 140ms ease,
     transform 140ms ease,
@@ -602,9 +609,11 @@ select {
 
 .fleet-summary-card-selected {
   border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 34%, transparent);
-  background: color-mix(in srgb, var(--ve-color-accent-blue) 10%, var(--ve-color-panel-2));
-  transform: translateY(-1px);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ve-color-accent-cyan) 18%, transparent);
+  background: color-mix(in srgb, var(--ve-color-accent-blue) 14%, var(--ve-color-panel-2));
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--ve-color-accent-cyan) 24%, transparent),
+    0 14px 28px rgba(0, 0, 0, 0.18);
 }
 
 .fleet-identity-block {
@@ -632,7 +641,7 @@ select {
 }
 
 .fleet-selected-grid {
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
   margin-top: 14px;
 }
 
@@ -1073,13 +1082,16 @@ select {
 }
 
 .fleet-action-stage {
+  display: grid;
+  gap: var(--ve-space-4);
+  grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
   margin: 18px 0;
 }
 
 .fleet-order-step-grid {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .fleet-order-step {
@@ -1115,6 +1127,15 @@ select {
     color-mix(in srgb, var(--ve-color-accent-blue) 9%, var(--ve-color-panel-2)),
     color-mix(in srgb, var(--ve-color-panel) 90%, transparent)
   );
+}
+
+.fleet-orders-panel .query-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+}
+
+.fleet-orders-panel .query-form button {
+  grid-column: 1 / -1;
 }
 
 .fleet-prototype-panel {
@@ -1370,6 +1391,13 @@ select {
   }
 
   .fleet-cockpit-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .fleet-selected-grid,
+  .fleet-action-stage,
+  .fleet-orders-panel .query-form,
+  .fleet-order-step-grid {
     grid-template-columns: 1fr;
   }
 

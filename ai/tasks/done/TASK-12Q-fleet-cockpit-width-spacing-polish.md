@@ -3,7 +3,7 @@
 ---
 id: TASK-12Q
 title: Phase 12Q - Fleet cockpit width and spacing polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
