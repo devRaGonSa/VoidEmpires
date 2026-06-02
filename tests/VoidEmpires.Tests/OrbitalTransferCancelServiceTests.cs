@@ -122,6 +122,37 @@ public class OrbitalTransferCancelServiceTests
         Assert.Equal(0, persistedStockpile.Gas);
     }
 
+    [Fact]
+    public async Task CancelAsyncRejectsNonReservedGroupWithoutMutatingTransfer()
+    {
+        await using var dbContext = CreateDbContext();
+        var group = OrbitalGroup.CreateStationed(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            SpaceAssetType.ScoutCraft,
+            1);
+        var transfer = CreateTransfer(group, Guid.NewGuid());
+        dbContext.Set<OrbitalGroup>().Add(group);
+        dbContext.Set<OrbitalTransfer>().Add(transfer);
+        await dbContext.SaveChangesAsync();
+
+        var result = await new OrbitalTransferCancelService(dbContext).CancelAsync(new CancelOrbitalTransferRequest(
+            group.CivilizationId,
+            transfer.Id));
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(CancelOrbitalTransferResultStatus.Conflict, result.Status);
+        Assert.Contains("Only reserved orbital groups can be released.", result.Errors);
+
+        var persistedTransfer = await dbContext.Set<OrbitalTransfer>().SingleAsync(x => x.Id == transfer.Id);
+        Assert.Equal(OrbitalTransferStatus.Planned, persistedTransfer.Status);
+
+        var persistedGroup = await dbContext.Set<OrbitalGroup>().SingleAsync(x => x.Id == group.Id);
+        Assert.Equal(OrbitalGroupStatus.Stationed, persistedGroup.Status);
+        Assert.Equal(group.CurrentPlanetId, persistedGroup.CurrentPlanetId);
+    }
+
     private static OrbitalGroup CreateReservedGroup(Guid civilizationId, Guid originPlanetId, Guid currentPlanetId)
     {
         var group = OrbitalGroup.CreateStationed(

@@ -89,6 +89,30 @@ public class OrbitalTransferCompletionServiceTests
     }
 
     [Fact]
+    public async Task CompleteDueAsyncIsIdempotentAcrossRepeatedCalls()
+    {
+        await using var dbContext = CreateDbContext();
+        var nowUtc = new DateTime(2026, 5, 28, 12, 0, 0, DateTimeKind.Utc);
+        var group = CreateReservedGroup(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+        var destinationPlanetId = Guid.NewGuid();
+        var transfer = CreateTransfer(group, destinationPlanetId, nowUtc.AddHours(-1), nowUtc);
+        dbContext.Set<OrbitalGroup>().Add(group);
+        dbContext.Set<OrbitalTransfer>().Add(transfer);
+        await dbContext.SaveChangesAsync();
+
+        var service = new OrbitalTransferCompletionService(dbContext);
+        var firstResult = await service.CompleteDueAsync(nowUtc);
+        var secondResult = await service.CompleteDueAsync(nowUtc.AddMinutes(1));
+
+        Assert.Equal(1, firstResult.CompletedCount);
+        Assert.Contains(transfer.Id, firstResult.CompletedTransferIds);
+        Assert.Contains(group.Id, firstResult.CompletedOrbitalGroupIds);
+        Assert.Equal(0, secondResult.CompletedCount);
+        Assert.Empty(secondResult.CompletedTransferIds);
+        Assert.Empty(secondResult.CompletedOrbitalGroupIds);
+    }
+
+    [Fact]
     public async Task CompleteDueAsyncProcessesMultipleDueTransfers()
     {
         await using var dbContext = CreateDbContext();
@@ -120,6 +144,37 @@ public class OrbitalTransferCompletionServiceTests
         Assert.Equal(secondDestinationPlanetId, persistedSecondGroup.CurrentPlanetId);
         Assert.Equal(OrbitalGroupStatus.Stationed, persistedFirstGroup.Status);
         Assert.Equal(OrbitalGroupStatus.Stationed, persistedSecondGroup.Status);
+    }
+
+    [Fact]
+    public async Task CompleteDueAsyncSkipsDueTransferWhenGroupIsNotReserved()
+    {
+        await using var dbContext = CreateDbContext();
+        var nowUtc = new DateTime(2026, 5, 28, 12, 0, 0, DateTimeKind.Utc);
+        var group = OrbitalGroup.CreateStationed(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            SpaceAssetType.ScoutCraft,
+            1);
+        var destinationPlanetId = Guid.NewGuid();
+        var transfer = CreateTransfer(group, destinationPlanetId, nowUtc.AddHours(-1), nowUtc);
+        dbContext.Set<OrbitalGroup>().Add(group);
+        dbContext.Set<OrbitalTransfer>().Add(transfer);
+        await dbContext.SaveChangesAsync();
+
+        var result = await new OrbitalTransferCompletionService(dbContext).CompleteDueAsync(nowUtc);
+
+        Assert.Equal(0, result.CompletedCount);
+        Assert.Empty(result.CompletedTransferIds);
+        Assert.Empty(result.CompletedOrbitalGroupIds);
+
+        var persistedTransfer = await dbContext.Set<OrbitalTransfer>().SingleAsync(x => x.Id == transfer.Id);
+        Assert.Equal(OrbitalTransferStatus.Planned, persistedTransfer.Status);
+
+        var persistedGroup = await dbContext.Set<OrbitalGroup>().SingleAsync(x => x.Id == group.Id);
+        Assert.Equal(group.CurrentPlanetId, persistedGroup.CurrentPlanetId);
+        Assert.Equal(OrbitalGroupStatus.Stationed, persistedGroup.Status);
     }
 
     [Fact]

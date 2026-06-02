@@ -3,7 +3,7 @@
 ---
 id: TASK-10K
 title: Phase 10K - Cancel and complete orbital transfer lifecycle hardening
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

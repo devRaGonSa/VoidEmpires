@@ -45,6 +45,12 @@ public sealed class OrbitalTransferCompletionService(VoidEmpiresDbContext dbCont
                 continue;
             }
 
+            if (group.CivilizationId != transfer.CivilizationId ||
+                group.Status != OrbitalGroupStatus.Reserved)
+            {
+                continue;
+            }
+
             group.ArriveAt(transfer.DestinationPlanetId);
             transfer.Complete(nowUtc);
             completedTransferIds.Add(transfer.Id);
