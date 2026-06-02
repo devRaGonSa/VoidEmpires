@@ -10,7 +10,6 @@ import type { ReadinessNote } from "../api/strategicMapTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { FleetSelectedGroupPanel } from "../components/FleetSelectedGroupPanel";
 import { ActionManifestPanel } from "../components/ActionManifestPanel";
-import { FleetSummaryPanel } from "../components/FleetSummaryPanel";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import {
@@ -22,6 +21,7 @@ import {
 import {
   buildFleetCommandReadiness,
   buildFleetMutationConfirmations,
+  presentFleetSquadListItem,
   presentCancelTransferNetworkFailure,
   presentCancelTransferResult,
   presentCreateTransferNetworkFailure,
@@ -139,6 +139,14 @@ export function FleetsPage() {
   );
   const activeTransferGroups = useMemo(
     () => uiState?.groups.filter((group) => group.activeTransfer) ?? [],
+    [uiState],
+  );
+  const squadListItems = useMemo(
+    () =>
+      uiState?.groups.map((group) => ({
+        group,
+        presentation: presentFleetSquadListItem(group, uiState.actionHints ?? []),
+      })) ?? [],
     [uiState],
   );
   const inspectedGroup = useMemo(
@@ -697,13 +705,46 @@ export function FleetsPage() {
               <UiBadge>{uiState.groups.length} seguidas</UiBadge>
             </div>
             <div className="fleet-summary-list">
-              {uiState.groups.map((group) => (
-                <FleetSummaryPanel
+              {squadListItems.map(({ group, presentation }) => (
+                <article
                   key={group.id}
-                  group={group}
-                  isSelected={inspectedGroup?.id === group.id}
-                  onSelect={setInspectedGroupId}
-                />
+                  className={`subpanel figma-subpanel fleet-summary-card${inspectedGroup?.id === group.id ? " fleet-summary-card-selected" : ""}`}
+                >
+                  <div className="fleet-summary-card-head">
+                    <div className="fleet-summary-card-title">
+                      <p className="eyebrow">Escuadra orbital</p>
+                      <h4>{presentation.title}</h4>
+                      <p className="fleet-summary-card-location">Orbita en {presentation.locationLabel}</p>
+                    </div>
+                    <div className="fleet-summary-card-status">
+                      <UiBadge tone={presentation.statusTone}>{presentation.statusLabel}</UiBadge>
+                      <strong>{presentation.quantityLabel}</strong>
+                    </div>
+                  </div>
+
+                  <div className="fleet-summary-card-strip">
+                    <span className="fleet-summary-card-route-label">
+                      {group.activeTransfer ? "Destino activo" : "Ruta"}
+                    </span>
+                    <strong>{presentation.destinationLabel}</strong>
+                  </div>
+
+                  <div className="fleet-summary-card-meta">
+                    <div className="figma-badge-row">
+                      <UiBadge tone={presentation.readinessTone}>{presentation.readinessLabel}</UiBadge>
+                      {inspectedGroup?.id === group.id ? <UiBadge tone="good">En foco</UiBadge> : null}
+                    </div>
+                    <p className="dev-meta">ID tactico {presentation.technicalIdLabel}</p>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="fleet-summary-select-button"
+                    onClick={() => setInspectedGroupId(group.id)}
+                  >
+                    {inspectedGroup?.id === group.id ? "Cabina enfocada" : "Abrir cabina"}
+                  </button>
+                </article>
               ))}
             </div>
           </UiCard>

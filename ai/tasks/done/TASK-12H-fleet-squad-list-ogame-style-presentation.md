@@ -3,7 +3,7 @@
 ---
 id: TASK-12H
 title: Phase 12H - Fleet squad list OGame-style presentation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

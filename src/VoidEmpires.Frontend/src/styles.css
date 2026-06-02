@@ -552,6 +552,54 @@ select {
     linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 82%, transparent), color-mix(in srgb, var(--ve-color-panel) 94%, transparent));
 }
 
+.fleet-summary-card-head,
+.fleet-summary-card-meta,
+.fleet-summary-card-status {
+  display: flex;
+  gap: var(--ve-space-3);
+}
+
+.fleet-summary-card-head,
+.fleet-summary-card-meta {
+  align-items: start;
+  justify-content: space-between;
+}
+
+.fleet-summary-card-title {
+  display: grid;
+  gap: 4px;
+}
+
+.fleet-summary-card-location {
+  margin: 0;
+  color: color-mix(in srgb, var(--ve-color-text) 86%, var(--ve-color-muted));
+}
+
+.fleet-summary-card-status {
+  flex-direction: column;
+  align-items: end;
+}
+
+.fleet-summary-card-status strong {
+  font-size: 0.95rem;
+}
+
+.fleet-summary-card-strip {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 36%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 38%, transparent);
+}
+
+.fleet-summary-card-route-label {
+  color: var(--ve-color-muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .fleet-summary-card-selected {
   border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 34%, transparent);
   background: color-mix(in srgb, var(--ve-color-accent-blue) 10%, var(--ve-color-panel-2));
@@ -1228,6 +1276,8 @@ select {
 
   .figma-preview-actions,
   .figma-section-header,
+  .fleet-summary-card-head,
+  .fleet-summary-card-meta,
   .figma-legend-item,
   .figma-command-item,
   .figma-data-row,
@@ -1235,5 +1285,9 @@ select {
   .transfer-confirmation-actions {
     align-items: start;
     flex-direction: column;
+  }
+
+  .fleet-summary-card-status {
+    align-items: start;
   }
 }

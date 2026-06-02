@@ -7,7 +7,12 @@ import type {
 } from "../api/fleetCommandTypes";
 import type { ActionManifestAction } from "../api/actionManifestTypes";
 import type { FleetActionHint, FleetGroupSummary, FleetUiState } from "../api/fleetTypes";
-import { formatCompactGuid, formatPlanetReference } from "./domainPresentation";
+import {
+  formatCompactGuid,
+  formatOrbitalGroupStatus,
+  formatPlanetReference,
+  formatSpaceAssetType,
+} from "./domainPresentation";
 
 type CommandTone = "neutral" | "good" | "warn";
 
@@ -17,6 +22,18 @@ export interface FleetCommandPresentationItem {
   tone: CommandTone;
   summary: string;
   details: string[];
+}
+
+export interface FleetSquadListPresentationItem {
+  title: string;
+  quantityLabel: string;
+  locationLabel: string;
+  destinationLabel: string;
+  statusLabel: string;
+  statusTone: CommandTone;
+  readinessLabel: string;
+  readinessTone: CommandTone;
+  technicalIdLabel: string;
 }
 
 function getUnexpectedResponseSummary(result: FleetCommandApiResult<unknown>) {
@@ -58,6 +75,35 @@ function normalizeNotes(notes: ActionManifestAction["notes"]) {
 
 function formatTechnicalId(value?: string | null) {
   return value ? formatCompactGuid(value) : null;
+}
+
+export function presentFleetSquadListItem(
+  group: FleetGroupSummary,
+  actionHints: FleetActionHint[],
+): FleetSquadListPresentationItem {
+  const isTravelling = group.hasActiveTransfer;
+  const canOrder = group.commands?.canCreateTransfer ?? false;
+  const canEstimate = group.routeFuelReadiness?.canRequestTravelEstimate ?? false;
+
+  return {
+    title: formatSpaceAssetType(group.assetType),
+    quantityLabel: `${group.quantity} unidades`,
+    locationLabel: formatPlanetReference(group.currentPlanetId),
+    destinationLabel: isTravelling && group.activeTransfer
+      ? formatPlanetReference(group.activeTransfer.destinationPlanetId)
+      : "Sin destino activo",
+    statusLabel: formatOrbitalGroupStatus(group.status),
+    statusTone: isTravelling ? "warn" : canOrder ? "good" : "neutral",
+    readinessLabel: isTravelling
+      ? getActionLabel("fleet.transfer.cancel", actionHints, "Mision en curso")
+      : canOrder
+        ? "Lista para ordenar"
+        : canEstimate
+          ? "Lista para estimar"
+          : "En espera",
+    readinessTone: isTravelling ? "warn" : canOrder || canEstimate ? "good" : "neutral",
+    technicalIdLabel: formatTechnicalId(group.id) ?? "Sin ID",
+  };
 }
 
 export function buildFleetCommandReadiness(group: FleetGroupSummary, actionHints: FleetActionHint[]) {

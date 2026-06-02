@@ -67,7 +67,7 @@ export function FleetSelectedGroupPanel({
         <div className="fleet-identity-block">
           <p className="eyebrow">Escuadra seleccionada</p>
           <h3>Puente tactico de {formatSpaceAssetType(group.assetType)}</h3>
-          <p>El foco principal de la cabina muestra posicion, disponibilidad y cualquier traslado activo.</p>
+          <p>La escuadra elegida desde el listado concentra posicion, disponibilidad y cualquier traslado activo.</p>
           <p className="dev-meta">ID tactico {formatCompactGuid(group.id)}</p>
         </div>
         <div className="figma-badge-row">
