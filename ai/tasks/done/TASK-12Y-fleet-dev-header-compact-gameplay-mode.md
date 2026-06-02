@@ -3,7 +3,7 @@
 ---
 id: TASK-12Y
 title: Phase 12Y - Fleet development header compact gameplay mode
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

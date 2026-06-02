@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 import { DevEndpointNotice } from "./DevEndpointNotice";
 import { SidebarNav, type SidebarNavItem } from "./SidebarNav";
 import { TopResourceBar, type TopResourceItem } from "./TopResourceBar";
@@ -21,6 +22,9 @@ export function AppShell({
   sidebarItems,
   userLabel,
 }: AppShellProps) {
+  const location = useLocation();
+  const isFleetRoute = location.pathname === "/fleets";
+
   return (
     <div className="app-shell">
       <header className="app-topbar">
@@ -45,19 +49,38 @@ export function AppShell({
         </aside>
 
         <div className="app-main-column">
-          <section className="shell-intro-grid">
-            <UiCard className="shell-intro-card">
-              <p className="eyebrow">Prototipo frontend de VoidEmpires</p>
-              <h1>Superficie de mando solo para desarrollo</h1>
-              <p className="lede">
-                Cabina alineada con Figma para inspeccionar los contratos de
-                disponibilidad actuales del backend sin habilitar mutaciones de
-                juego ni autenticacion de produccion.
-              </p>
+          <section
+            className={
+              isFleetRoute
+                ? "shell-intro-grid shell-intro-grid-compact"
+                : "shell-intro-grid"
+            }
+          >
+            <UiCard
+              className={
+                isFleetRoute
+                  ? "shell-intro-card shell-intro-card-compact"
+                  : "shell-intro-card"
+              }
+            >
+              <div className="shell-intro-copy">
+                <p className="eyebrow">Prototipo frontend de VoidEmpires</p>
+                <h1>
+                  {isFleetRoute
+                    ? "Cabina de mando para desarrollo"
+                    : "Superficie de mando solo para desarrollo"}
+                </h1>
+                <p className="lede">
+                  {isFleetRoute
+                    ? "Ruta operativa compacta: el contexto tecnico sigue visible, pero la jugabilidad sube en la primera vista."
+                    : "Cabina alineada con Figma para inspeccionar los contratos de disponibilidad actuales del backend sin habilitar mutaciones de juego ni autenticacion de produccion."}
+                </p>
+              </div>
             </UiCard>
             <DevEndpointNotice
               apiBaseUrl={apiBaseUrl}
               backendProfile={backendProfile}
+              compact={isFleetRoute}
             />
           </section>
 

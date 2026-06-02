@@ -771,14 +771,15 @@ export function FleetsPage() {
         </div>
       </UiCard>
 
-      <div className="fleet-cockpit-top">
-        <UiCard className="panel">
+      <div className="fleet-preflight-strip">
+        <UiCard className="panel fleet-dev-loader-panel">
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Entrada de desarrollo</p>
-              <h3>Cargar estado de cabina</h3>
+              <h3>Cargar cabina</h3>
+              <p>El cargador sigue visible, pero ya no ocupa la cabecera principal.</p>
             </div>
-            <UiBadge>Superficie de desarrollo</UiBadge>
+            <UiBadge tone="neutral">Secundario</UiBadge>
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
@@ -799,15 +800,16 @@ export function FleetsPage() {
           {error && <p className="error-text">{error}</p>}
         </UiCard>
 
-        <UiCard className="panel">
+        <UiCard className="panel fleet-dev-rules-panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Limites de ejecucion</p>
-              <h3>Reglas de mando</h3>
+              <p className="eyebrow">Seguridad operativa</p>
+              <h3>Protecciones activas</h3>
+              <p>Las advertencias siguen presentes, pero bajan a un rol de contexto antes de jugar.</p>
             </div>
-            <UiBadge tone="warn">Prototipo protegido</UiBadge>
+            <UiBadge tone="warn">Protegido</UiBadge>
           </div>
-          <ul className="stack-list">
+          <ul className="stack-list compact-list fleet-dev-rules-list">
             <li>La estimacion sigue en solo lectura y nunca reserva escuadras ni gasta recursos.</li>
             <li>Crear traslado exige una estimacion vigente y una confirmacion explicita.</li>
             <li>Anular traslado exige un traslado activo visible y una confirmacion explicita.</li>

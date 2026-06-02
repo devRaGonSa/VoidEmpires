@@ -261,6 +261,35 @@ select {
   min-height: 180px;
 }
 
+.shell-intro-copy {
+  display: grid;
+  gap: var(--ve-space-3);
+}
+
+.shell-intro-grid-compact {
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr);
+  gap: var(--ve-space-3);
+  margin-bottom: var(--ve-space-4);
+}
+
+.shell-intro-card-compact {
+  min-height: 0;
+  padding: 18px 22px;
+}
+
+.shell-intro-card-compact .eyebrow {
+  margin-bottom: 6px;
+}
+
+.shell-intro-card-compact h1 {
+  font-size: 1.45rem;
+}
+
+.shell-intro-card-compact .lede {
+  margin-top: 8px;
+  max-width: 56ch;
+}
+
 .ui-card,
 .environment-panel,
 .panel {
@@ -340,6 +369,11 @@ select {
   gap: var(--ve-space-4);
 }
 
+.dev-endpoint-notice-compact {
+  gap: var(--ve-space-3);
+  padding: 18px;
+}
+
 .dev-endpoint-notice-head {
   display: flex;
   align-items: center;
@@ -362,6 +396,14 @@ select {
 .dev-endpoint-meta dd {
   margin: 0;
   word-break: break-word;
+}
+
+.dev-endpoint-notice-compact p {
+  margin-top: 0;
+}
+
+.dev-endpoint-notice-compact .dev-endpoint-meta {
+  gap: var(--ve-space-2);
 }
 
 .topbar {
@@ -506,6 +548,7 @@ select {
 }
 
 .fleet-cockpit-top,
+.fleet-preflight-strip,
 .fleet-cockpit-layout,
 .fleet-selected-grid,
 .fleet-manifest-grid {
@@ -514,8 +557,13 @@ select {
 }
 
 .fleet-cockpit-top,
+.fleet-preflight-strip,
 .fleet-manifest-grid {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.fleet-preflight-strip {
+  gap: var(--ve-space-3);
 }
 
 .fleet-cockpit-layout {
@@ -545,6 +593,35 @@ select {
   background:
     radial-gradient(circle at top right, rgba(70, 239, 255, 0.08), transparent 34%),
     color-mix(in srgb, var(--ve-color-panel) 84%, transparent);
+}
+
+.fleet-dev-loader-panel,
+.fleet-dev-rules-panel {
+  padding: 18px;
+}
+
+.fleet-dev-loader-panel .figma-section-header p,
+.fleet-dev-rules-panel .figma-section-header p {
+  margin-top: 6px;
+}
+
+.fleet-dev-loader-panel .query-form {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.fleet-dev-loader-panel .query-form button {
+  min-width: 160px;
+}
+
+.fleet-dev-rules-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.fleet-dev-rules-list li + li {
+  margin-top: 0;
 }
 
 .fleet-summary-card {
@@ -1395,6 +1472,7 @@ select {
   }
 
   .fleet-selected-grid,
+  .fleet-dev-loader-panel .query-form,
   .fleet-action-stage,
   .fleet-orders-panel .query-form,
   .fleet-order-step-grid {

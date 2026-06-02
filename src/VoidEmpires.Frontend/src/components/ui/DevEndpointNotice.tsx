@@ -4,14 +4,22 @@ import { UiCard } from "./UiCard";
 interface DevEndpointNoticeProps {
   apiBaseUrl: string;
   backendProfile: string;
+  compact?: boolean;
 }
 
 export function DevEndpointNotice({
   apiBaseUrl,
   backendProfile,
+  compact = false,
 }: DevEndpointNoticeProps) {
   return (
-    <UiCard className="dev-endpoint-notice">
+    <UiCard
+      className={
+        compact
+          ? "dev-endpoint-notice dev-endpoint-notice-compact"
+          : "dev-endpoint-notice"
+      }
+    >
       <div className="dev-endpoint-notice-head">
         <h3>Superficie de endpoints de desarrollo</h3>
         <UiBadge tone="warn">Prototipo en solo lectura</UiBadge>
