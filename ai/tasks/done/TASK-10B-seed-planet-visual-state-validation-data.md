@@ -3,7 +3,7 @@
 ---
 id: TASK-10B
 title: Phase 10B - Seed planet visual state validation data and manual docs
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

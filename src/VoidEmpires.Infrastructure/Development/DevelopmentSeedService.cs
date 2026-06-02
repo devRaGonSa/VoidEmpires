@@ -1,6 +1,7 @@
 using VoidEmpires.Application.Development;
 using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Assets;
+using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
@@ -83,10 +84,10 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
             dbContext.Set<Planet>().Add(new Planet(
                 SeedIcePlanetId,
                 SeedSystemId,
-                "Frost Hollow",
+                "Aether Crown",
                 3,
-                PlanetType.Ice,
-                86));
+                PlanetType.GasGiant,
+                160));
         }
 
         if (!await dbContext.Set<PlanetOwnership>().AnyAsync(
@@ -104,6 +105,34 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
             stockpile.Increase(ResourceType.Crystal, 35);
             stockpile.Increase(ResourceType.Gas, 20);
             dbContext.PlanetResourceStockpiles.Add(stockpile);
+        }
+
+        if (!await dbContext.Set<PlanetBuilding>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId && x.BuildingType == BuildingType.CommandCenter,
+                cancellationToken))
+        {
+            dbContext.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOwnedPlanetId, BuildingType.CommandCenter, 4, 1));
+        }
+
+        if (!await dbContext.Set<PlanetBuilding>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId && x.BuildingType == BuildingType.HabitationDistrict,
+                cancellationToken))
+        {
+            dbContext.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOwnedPlanetId, BuildingType.HabitationDistrict, 3, 1));
+        }
+
+        if (!await dbContext.Set<PlanetBuilding>().AnyAsync(
+                x => x.PlanetId == SeedOuterPlanetId && x.BuildingType == BuildingType.MetalMine,
+                cancellationToken))
+        {
+            dbContext.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOuterPlanetId, BuildingType.MetalMine, 6, 1));
+        }
+
+        if (!await dbContext.Set<PlanetBuilding>().AnyAsync(
+                x => x.PlanetId == SeedOuterPlanetId && x.BuildingType == BuildingType.Shipyard,
+                cancellationToken))
+        {
+            dbContext.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOuterPlanetId, BuildingType.Shipyard, 2, 1));
         }
 
         if (!await dbContext.Set<OrbitalAssetStock>().AnyAsync(
@@ -145,6 +174,23 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
                 SeedOwnedPlanetId,
                 SpaceAssetType.ScoutCraft,
                 2));
+        }
+
+        if (!await dbContext.Set<OrbitalGroup>().AnyAsync(
+                x => x.CivilizationId == SeedCivilizationId &&
+                    x.OriginPlanetId == SeedOwnedPlanetId &&
+                    x.CurrentPlanetId == SeedIcePlanetId &&
+                    x.AssetType == SpaceAssetType.EscortCraft &&
+                    x.Quantity == 4 &&
+                    x.Status == OrbitalGroupStatus.Stationed,
+                cancellationToken))
+        {
+            dbContext.Set<OrbitalGroup>().Add(OrbitalGroup.CreateStationed(
+                SeedCivilizationId,
+                SeedOwnedPlanetId,
+                SeedIcePlanetId,
+                SpaceAssetType.EscortCraft,
+                4));
         }
 
         var transferGroup = await dbContext.Set<OrbitalGroup>()

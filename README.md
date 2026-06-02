@@ -99,6 +99,38 @@ Current convention notes:
 - Re-running the same profile should remain safe and idempotent as later seed tasks add data.
 - Keep seed execution in `Development`, or explicitly set `VoidEmpires:DevEndpoints:Enabled=true` for non-production validation environments only.
 
+### Manual Validation Flow
+
+Backend:
+
+```powershell
+$env:ASPNETCORE_ENVIRONMENT = "Development"
+$env:ConnectionStrings__DefaultConnection = "Host=localhost;Database=VoidEmpireDB_Dev;Username=postgres;Password=<local-password>"
+dotnet run --project src/VoidEmpires.Web/VoidEmpires.Web.csproj
+```
+
+Apply the explicit seed:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"minimal-validation"}'
+```
+
+Frontend:
+
+```powershell
+$env:VITE_VOIDEMPIRES_API_BASE_URL = "http://localhost:5142"
+npm run dev --prefix src/VoidEmpires.Frontend
+```
+
+Validation URLs:
+
+- `/health`
+- `/api/dev/strategic-map?civilizationId=00000000-0000-0000-0000-000000000001`
+- `/api/dev/fleets/ui-state?civilizationId=00000000-0000-0000-0000-000000000001`
+- `/api/dev/planets/40000000-0000-0000-0000-000000000001/visual-state`
+- `/api/dev/planets/40000000-0000-0000-0000-000000000002/visual-state`
+- `/api/dev/planets/40000000-0000-0000-0000-000000000003/visual-state`
+
 ### Database Configuration
 
 PostgreSQL 16 is the selected primary database engine. EF Core with Npgsql is the current persistence stack in `VoidEmpires.Infrastructure`. The repository stores only an empty placeholder at `ConnectionStrings:DefaultConnection`; real connection strings must be supplied outside source control.

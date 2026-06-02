@@ -7,6 +7,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Visuals;
 using VoidEmpires.Domain.Galaxy;
+using VoidEmpires.Application.Development;
+using VoidEmpires.Infrastructure.Development;
+using VoidEmpires.Infrastructure.Persistence;
+using VoidEmpires.Infrastructure.Visuals;
+using Microsoft.EntityFrameworkCore;
 
 namespace VoidEmpires.Tests;
 
@@ -69,6 +74,25 @@ public class DevPlanetVisualStateEndpointTests(WebApplicationFactory<Program> fa
         Assert.Equal(CivilizationId, payload.VisualState.CivilizationId);
         Assert.Equal("hsl(120, 70%, 55%)", payload.VisualState.CivilizationColor);
         Assert.Equal("terran_continental", payload.VisualState.Profile.SurfaceProfile);
+    }
+
+    [Fact]
+    public async Task PlanetVisualStateReturnsOkForSeededPlanet()
+    {
+        const string seededPlanetId = "40000000-0000-0000-0000-000000000001";
+        using var dbContext = new VoidEmpiresDbContext(new DbContextOptionsBuilder<VoidEmpiresDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options);
+        await new DevelopmentSeedService(dbContext).ApplyAsync(new ApplyDevelopmentSeedRequest("minimal-validation"));
+        using var client = CreateConfiguredClient(new PlanetVisualStateService(dbContext));
+
+        using var response = await client.GetAsync($"/api/dev/planets/{seededPlanetId}/visual-state");
+        var payload = await response.Content.ReadFromJsonAsync<PlanetVisualStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.VisualState);
+        Assert.Equal(Guid.Parse(seededPlanetId), payload.VisualState.PlanetId);
+        Assert.True(payload.VisualState.ColonizationIntensity > 0f);
     }
 
     [Fact]
