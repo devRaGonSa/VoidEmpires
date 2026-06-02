@@ -3,7 +3,7 @@
 ---
 id: TASK-9U
 title: Phase 9U - Planet visual state application contracts
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
