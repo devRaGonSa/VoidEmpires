@@ -15,11 +15,11 @@ JSON payloads use current .NET enum names such as `ScoutCraft`, `Stationed`, `Re
 | `200 OK` | Successful read, merge, cancel, complete, UI-state, or manifest operation. |
 | `201 Created` | Successful group creation, split, or transfer creation. |
 | `400 Bad Request` | Missing, empty, non-positive, or non-UTC required data. |
-| `404 Not Found` | Development route is disabled, or cancel targets a missing transfer. |
+| `404 Not Found` | Development route is disabled, or a command targets missing persisted fleet data. |
 | `409 Conflict` | Valid request shape rejected by current persisted state. |
 | `503 Service Unavailable` | Persistence is not configured. |
 
-Error payloads include `succeeded: false` and `errors[]` except for unmapped routes and persistence-gating responses. The transfer estimate, transfer create, and transfer cancel commands also expose a `status` field so clients can distinguish validation, not-found, conflict, and success outcomes without parsing error strings.
+Error payloads include `succeeded: false` and `errors[]` except for unmapped routes and persistence-gating responses. The split, merge, transfer estimate, transfer create, and transfer cancel commands also expose a `status` field so clients can distinguish validation, not-found, conflict, and success outcomes without parsing error strings.
 
 ## Consistency Review Notes
 
@@ -110,9 +110,9 @@ Restrictions: read-only. Missing `civilizationId` returns `400 Bad Request`.
 
 Request: `civilizationId`, `sourceOrbitalGroupId`, `quantity`.
 
-Response: `succeeded`, `sourceOrbitalGroupId`, `newOrbitalGroupId`, `sourceQuantity`, `newQuantity`, `errors`.
+Response: `status`, `succeeded`, `sourceOrbitalGroupId`, `newOrbitalGroupId`, `sourceQuantity`, `newQuantity`, `errors`.
 
-Restrictions: source must belong to the civilization, be stationed, have no active transfer, and keep at least one unit after the split. `quantity` must be positive and lower than source quantity.
+Restrictions: source must belong to the civilization, be stationed, have no active transfer, and keep at least one unit after the split. `quantity` must be positive and lower than source quantity. Missing source groups return `404`; ownership or lifecycle/state rejections return `409`.
 
 ### Merge Groups
 
@@ -120,9 +120,9 @@ Restrictions: source must belong to the civilization, be stationed, have no acti
 
 Request: `civilizationId`, `targetOrbitalGroupId`, `sourceOrbitalGroupId`.
 
-Response: `succeeded`, `targetOrbitalGroupId`, `sourceOrbitalGroupId`, `targetQuantity`, `errors`.
+Response: `status`, `succeeded`, `targetOrbitalGroupId`, `sourceOrbitalGroupId`, `targetQuantity`, `errors`.
 
-Restrictions: target and source must differ, belong to the civilization, be stationed, have no active transfer, share the same current planet, and share the same asset type.
+Restrictions: target and source must differ, belong to the civilization, be stationed, have no active transfer, share the same current planet, and share the same asset type. Missing target or source groups return `404`; ownership or lifecycle/state rejections return `409`.
 
 ## Orbital Travel and Transfer Contracts
 
