@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { ActionManifestAction } from "../api/actionManifestTypes";
 import type {
   EstimateOrbitalTravelResponse,
@@ -100,6 +100,12 @@ function FleetDataRow({ label, value }: FleetDataRowProps) {
   );
 }
 
+interface EstimateSnapshot {
+  orbitalGroupId: string;
+  currentPlanetId: string;
+  destinationPlanetId: string;
+}
+
 export function FleetsPage() {
   const [civilizationId, setCivilizationId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -116,10 +122,13 @@ export function FleetsPage() {
     useState<FleetCommandApiResult<EstimateOrbitalTravelResponse> | null>(null);
   const [estimateResult, setEstimateResult] = useState<FleetCommandPresentationItem | null>(null);
   const [estimateNetworkError, setEstimateNetworkError] = useState<string | null>(null);
+  const [estimateSnapshot, setEstimateSnapshot] = useState<EstimateSnapshot | null>(null);
+  const [estimateStaleMessage, setEstimateStaleMessage] = useState<string | null>(null);
   const [hasCreateTransferAcknowledgement, setHasCreateTransferAcknowledgement] = useState(false);
   const [isCreatingTransfer, setIsCreatingTransfer] = useState(false);
   const [createTransferResult, setCreateTransferResult] = useState<FleetCommandPresentationItem | null>(null);
   const [createTransferNetworkError, setCreateTransferNetworkError] = useState<string | null>(null);
+  const createTransferInFlightRef = useRef(false);
 
   const summary = useMemo(() => {
     if (!uiState) {
@@ -175,26 +184,42 @@ export function FleetsPage() {
     () => buildFleetMutationConfirmations(fleetManifest, uiState),
     [fleetManifest, uiState],
   );
-  const createTransferConfirmationState = useMemo(() => {
+  const liveEstimateResponse = useMemo(() => {
     const response = estimateApiResult?.response;
 
     if (
+      !estimateSnapshot ||
       !estimateApiResult ||
       estimateApiResult.httpStatus !== 200 ||
       !response?.succeeded ||
       !selectedGroup ||
+      selectedGroup.status !== "Stationed" ||
+      selectedGroup.hasActiveTransfer ||
       !selectedGroup.commands?.canCreateTransfer ||
-      !effectiveDestinationPlanetId ||
-      response.orbitalGroupId !== selectedGroup.id ||
-      response.currentPlanetId !== selectedGroup.currentPlanetId ||
-      response.destinationPlanetId !== effectiveDestinationPlanetId
+      response.orbitalGroupId !== estimateSnapshot.orbitalGroupId ||
+      response.currentPlanetId !== estimateSnapshot.currentPlanetId ||
+      response.destinationPlanetId !== estimateSnapshot.destinationPlanetId ||
+      selectedGroup.id !== estimateSnapshot.orbitalGroupId ||
+      selectedGroup.currentPlanetId !== estimateSnapshot.currentPlanetId ||
+      effectiveDestinationPlanetId !== estimateSnapshot.destinationPlanetId
     ) {
       return null;
     }
 
-    const fuelReady = response.fuelReadiness?.isFuelReady ?? true;
-    const canPrepare = response.canAfford && fuelReady;
-    const missingResources = response.insufficientResources.map(
+    return response;
+  }, [effectiveDestinationPlanetId, estimateApiResult, estimateSnapshot, selectedGroup]);
+  const createTransferConfirmationState = useMemo(() => {
+    if (
+      !liveEstimateResponse ||
+      !selectedGroup ||
+      !effectiveDestinationPlanetId
+    ) {
+      return null;
+    }
+
+    const fuelReady = liveEstimateResponse.fuelReadiness?.isFuelReady ?? true;
+    const canPrepare = liveEstimateResponse.canAfford && fuelReady;
+    const missingResources = liveEstimateResponse.insufficientResources.map(
       (resource) =>
         `${formatResourceType(resource.resourceType)}: faltan ${
           resource.requiredQuantity - resource.availableQuantity
@@ -203,35 +228,53 @@ export function FleetsPage() {
 
     return {
       canPrepare,
-      blockReason: !response.canAfford
+      blockReason: !liveEstimateResponse.canAfford
         ? "La estimacion indica que faltan recursos para esta transferencia."
         : !fuelReady
-          ? response.fuelReadiness?.notReadyReason ?? "La metadata de fuel readiness sigue bloqueando la accion."
+          ? liveEstimateResponse.fuelReadiness?.notReadyReason ?? "La metadata de fuel readiness sigue bloqueando la accion."
           : null,
-      routeSummary: `${formatPlanetReference(selectedGroup.currentPlanetId)} -> ${formatPlanetReference(response.destinationPlanetId ?? effectiveDestinationPlanetId)}`,
-      costSummary: response.resourceCosts.length
-        ? response.resourceCosts
+      routeSummary: `${formatPlanetReference(selectedGroup.currentPlanetId)} -> ${formatPlanetReference(liveEstimateResponse.destinationPlanetId ?? effectiveDestinationPlanetId)}`,
+      costSummary: liveEstimateResponse.resourceCosts.length
+        ? liveEstimateResponse.resourceCosts
             .map((cost) => `${formatResourceType(cost.resourceType)} ${cost.quantity}`)
             .join(", ")
         : "Sin coste proyectado.",
       details: [
-        `Distancia abstracta ${response.abstractDistanceUnits}`,
-        `Duracion estimada ${response.estimatedDuration ?? "desconocida"}`,
-        ...(response.routeProfile
+        `Distancia abstracta ${liveEstimateResponse.abstractDistanceUnits}`,
+        `Duracion estimada ${liveEstimateResponse.estimatedDuration ?? "desconocida"}`,
+        ...(liveEstimateResponse.routeProfile
           ? [
-              `Clase de ruta ${response.routeProfile.routeClass}`,
-              `Riesgo ${response.routeProfile.riskBand}`,
+              `Clase de ruta ${liveEstimateResponse.routeProfile.routeClass}`,
+              `Riesgo ${liveEstimateResponse.routeProfile.riskBand}`,
             ]
           : []),
-        ...(response.fuelReadiness
+        ...(liveEstimateResponse.fuelReadiness
           ? [
-              `Fuel readiness ${response.fuelReadiness.isFuelReady ? "lista" : "bloqueada"}`,
+              `Fuel readiness ${liveEstimateResponse.fuelReadiness.isFuelReady ? "lista" : "bloqueada"}`,
             ]
           : []),
         ...missingResources,
       ],
     };
-  }, [effectiveDestinationPlanetId, estimateApiResult, selectedGroup]);
+  }, [effectiveDestinationPlanetId, liveEstimateResponse, selectedGroup]);
+
+  function clearEstimateState() {
+    setEstimateApiResult(null);
+    setEstimateResult(null);
+    setEstimateNetworkError(null);
+    setEstimateSnapshot(null);
+  }
+
+  function invalidateEstimate(reason: string) {
+    if (estimateSnapshot || estimateApiResult || estimateResult) {
+      clearEstimateState();
+      setEstimateStaleMessage(reason);
+    } else {
+      setEstimateStaleMessage(null);
+    }
+
+    resetCreateTransferAcknowledgement();
+  }
 
   function resetCreateTransferAcknowledgement() {
     setHasCreateTransferAcknowledgement(false);
@@ -249,6 +292,35 @@ export function FleetsPage() {
     setUiState(uiStateResponse.uiState);
   }
 
+  useEffect(() => {
+    if (!estimateSnapshot) {
+      return;
+    }
+
+    if (!selectedGroup || selectedGroup.id !== estimateSnapshot.orbitalGroupId) {
+      invalidateEstimate("El grupo estimado ya no esta disponible. Calcula una nueva estimacion.");
+      return;
+    }
+
+    if (
+      selectedGroup.status !== "Stationed" ||
+      selectedGroup.hasActiveTransfer ||
+      !selectedGroup.commands?.canCreateTransfer
+    ) {
+      invalidateEstimate("El grupo estimado ya no puede crear transferencias. Recalcula antes de continuar.");
+      return;
+    }
+
+    if (selectedGroup.currentPlanetId !== estimateSnapshot.currentPlanetId) {
+      invalidateEstimate("El grupo estimado cambio de planeta. Calcula una nueva estimacion.");
+      return;
+    }
+
+    if (effectiveDestinationPlanetId !== estimateSnapshot.destinationPlanetId) {
+      invalidateEstimate("El destino cambio desde la ultima estimacion. Calcula una nueva estimacion.");
+    }
+  }, [effectiveDestinationPlanetId, estimateSnapshot, selectedGroup]);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -261,10 +333,13 @@ export function FleetsPage() {
 
     setIsLoading(true);
     setError(null);
-    setEstimateApiResult(null);
-    setEstimateResult(null);
-    setEstimateNetworkError(null);
-    resetCreateTransferAcknowledgement();
+    if (uiState && estimateSnapshot) {
+      invalidateEstimate("La UI de flotas se actualizo. La estimacion anterior ya no es valida.");
+    } else {
+      clearEstimateState();
+      setEstimateStaleMessage(null);
+      resetCreateTransferAcknowledgement();
+    }
 
     try {
       const [uiStateResponse, fleetManifestResponse, strategicMapManifestResponse] =
@@ -299,15 +374,14 @@ export function FleetsPage() {
     event.preventDefault();
 
     if (!uiState?.civilizationId || !effectiveGroupId || !effectiveDestinationPlanetId) {
-      setEstimateApiResult(null);
-      setEstimateResult(null);
+      clearEstimateState();
       setEstimateNetworkError("Selecciona grupo y destino antes de calcular la estimacion.");
       return;
     }
 
     setIsEstimating(true);
-    setEstimateApiResult(null);
-    setEstimateResult(null);
+    clearEstimateState();
+    setEstimateStaleMessage(null);
     setEstimateNetworkError(null);
     resetCreateTransferAcknowledgement();
 
@@ -320,6 +394,15 @@ export function FleetsPage() {
 
       setEstimateApiResult(result);
       setEstimateResult(presentEstimateResult(result));
+      setEstimateSnapshot(
+        result.httpStatus === 200 && result.response?.succeeded && selectedGroup
+          ? {
+              orbitalGroupId: selectedGroup.id,
+              currentPlanetId: selectedGroup.currentPlanetId,
+              destinationPlanetId: effectiveDestinationPlanetId,
+            }
+          : null,
+      );
     } catch (requestError) {
       const message =
         requestError instanceof Error
@@ -332,11 +415,27 @@ export function FleetsPage() {
   }
 
   async function handleCreateTransfer() {
+    if (createTransferInFlightRef.current || isCreatingTransfer) {
+      setCreateTransferNetworkError("Ya hay una solicitud de create transfer en curso.");
+      return;
+    }
+
     if (!uiState?.civilizationId || !selectedGroup || !effectiveDestinationPlanetId) {
       setCreateTransferNetworkError("Falta contexto valido para crear la transferencia.");
       return;
     }
 
+    if (!liveEstimateResponse || !estimateSnapshot) {
+      setCreateTransferNetworkError("Necesitas una estimacion vigente para este grupo y destino antes de crear la transferencia.");
+      return;
+    }
+
+    if (!hasCreateTransferAcknowledgement) {
+      setCreateTransferNetworkError("Confirma la accion explicita antes de enviar create transfer.");
+      return;
+    }
+
+    createTransferInFlightRef.current = true;
     setIsCreatingTransfer(true);
     setCreateTransferResult(null);
     setCreateTransferNetworkError(null);
@@ -352,9 +451,8 @@ export function FleetsPage() {
       setCreateTransferResult(presentCreateTransferResult(result));
 
       if ((result.httpStatus === 200 || result.httpStatus === 201) && result.response?.succeeded) {
-        setEstimateApiResult(null);
-        setEstimateResult(null);
-        setEstimateNetworkError(null);
+        clearEstimateState();
+        setEstimateStaleMessage("La transferencia actualizo la UI. Calcula una nueva estimacion antes de volver a crear otra transferencia.");
         setSelectedGroupId("");
         setSelectedDestinationPlanetId("");
         setHasCreateTransferAcknowledgement(false);
@@ -384,6 +482,7 @@ export function FleetsPage() {
           : "Network error while creating the transfer.";
       setCreateTransferNetworkError(message);
     } finally {
+      createTransferInFlightRef.current = false;
       setIsCreatingTransfer(false);
     }
   }
@@ -470,10 +569,7 @@ export function FleetsPage() {
                 value={effectiveGroupId}
                 onChange={(event) => {
                   setSelectedGroupId(event.target.value);
-                  setEstimateApiResult(null);
-                  setEstimateResult(null);
-                  setEstimateNetworkError(null);
-                  resetCreateTransferAcknowledgement();
+                  invalidateEstimate("El grupo cambio. Calcula una nueva estimacion antes de crear la transferencia.");
                 }}
                 disabled={isEstimating || estimateEligibleGroups.length === 0}
                 aria-label="Grupo elegible"
@@ -495,10 +591,7 @@ export function FleetsPage() {
                 value={effectiveDestinationPlanetId}
                 onChange={(event) => {
                   setSelectedDestinationPlanetId(event.target.value);
-                  setEstimateApiResult(null);
-                  setEstimateResult(null);
-                  setEstimateNetworkError(null);
-                  resetCreateTransferAcknowledgement();
+                  invalidateEstimate("El destino cambio. Calcula una nueva estimacion antes de crear la transferencia.");
                 }}
                 disabled={isEstimating || destinationOptions.length === 0}
                 aria-label="Planeta destino"
@@ -530,6 +623,7 @@ export function FleetsPage() {
             <UiBadge tone="good">Solo lectura</UiBadge>
             <UiBadge tone="warn">No ejecuta movimiento</UiBadge>
           </div>
+          {estimateStaleMessage ? <p className="error-text">{estimateStaleMessage}</p> : null}
           {estimateNetworkError ? <p className="error-text">Network error: {estimateNetworkError}</p> : null}
           {createTransferNetworkError ? <p className="error-text">{createTransferNetworkError}</p> : null}
           {estimateResult ? (
@@ -603,7 +697,7 @@ export function FleetsPage() {
                   </button>
                 </div>
                 <p className="figma-panel-note">
-                  La accion sigue marcada como desarrollo y nunca se ejecuta sin esta confirmacion explicita.
+                  La accion sigue marcada como desarrollo, exige una estimacion vigente, y nunca se ejecuta sin esta confirmacion explicita.
                 </p>
               </div>
             </section>

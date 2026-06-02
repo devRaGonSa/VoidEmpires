@@ -3,7 +3,7 @@
 ---
 id: TASK-11P
 title: Phase 11P - Create transfer double-submit and stale execution guard
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
