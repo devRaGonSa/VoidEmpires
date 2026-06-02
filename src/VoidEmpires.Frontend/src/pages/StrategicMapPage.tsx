@@ -488,8 +488,8 @@ export function StrategicMapPage() {
                 <div className="figma-mini-card">
                   <div className="figma-section-header">
                     <div>
-                      <p className="eyebrow">Active focus</p>
-                      <h4>{selectedSystem.systemName ?? "Unknown system"}</h4>
+                      <p className="eyebrow">Foco activo</p>
+                      <h4>{selectedSystem.systemName ?? "Sistema desconocido"}</h4>
                     </div>
                     <UiBadge tone={getVisibilityTone(selectedSystem.visibilityLevel)}>
                       {formatVisibilityLevel(selectedSystem.visibilityLevel)}
@@ -497,21 +497,12 @@ export function StrategicMapPage() {
                   </div>
                   <div className="figma-data-list">
                     <DataRow
-                      label="Coordinates"
+                      label="Coordenadas"
                       value={`${formatCoordinate(selectedSystem.coordinateX)}, ${formatCoordinate(selectedSystem.coordinateY)}, ${formatCoordinate(selectedSystem.coordinateZ)}`}
                     />
-                    <DataRow
-                      label="Planets"
-                      value={String(selectedSystem.planets?.length ?? 0)}
-                    />
-                    <DataRow
-                      label="Fleet markers"
-                      value={String(selectedSystem.fleetPresence?.length ?? 0)}
-                    />
-                    <DataRow
-                      label="Transfers"
-                      value={String(selectedSystem.transferOverlays?.length ?? 0)}
-                    />
+                    <DataRow label="Planetas" value={String(selectedSystem.planets?.length ?? 0)} />
+                    <DataRow label="Flotas" value={String(selectedSystem.fleetPresence?.length ?? 0)} />
+                    <DataRow label="Transferencias" value={String(selectedSystem.transferOverlays?.length ?? 0)} />
                   </div>
                 </div>
               )}
@@ -520,10 +511,10 @@ export function StrategicMapPage() {
                 <div className="figma-mini-card">
                   <div className="figma-section-header">
                     <div>
-                      <p className="eyebrow">Overlay traffic</p>
-                      <h4>Transfer lanes</h4>
+                      <p className="eyebrow">Transito orbital</p>
+                      <h4>Rutas de transferencia</h4>
                     </div>
-                    <UiBadge>{selectedSystem.transferOverlays?.length ?? 0} lanes</UiBadge>
+                    <UiBadge>{selectedSystem.transferOverlays?.length ?? 0} rutas</UiBadge>
                   </div>
                   {selectedSystem.transferOverlays?.length ? (
                     <ul className="stack-list compact-list strategic-overlay-list">
@@ -535,7 +526,7 @@ export function StrategicMapPage() {
                     </ul>
                   ) : (
                     <p className="figma-panel-note">
-                      No transfer overlays are exposed for this system.
+                      Este sistema no expone superposiciones de transferencia.
                     </p>
                   )}
                 </div>
@@ -570,11 +561,11 @@ export function StrategicMapPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">System navigation</p>
-                <h3>Sector focus</h3>
-                <p>Switch systems from the operational rail before drilling into local detail.</p>
+                <p className="eyebrow">Navegacion estelar</p>
+                <h3>Foco del sistema</h3>
+                <p>Cambia de sistema desde la banda operativa y deja el detalle tecnico en segundo plano.</p>
               </div>
-              <UiBadge tone="warn">Read-only selection</UiBadge>
+              <UiBadge tone="warn">Seleccion de lectura</UiBadge>
             </div>
 
             <div className="selection-chip-row">
@@ -595,8 +586,8 @@ export function StrategicMapPage() {
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">System overview</p>
-                    <h4>{selectedSystem.systemName ?? "Unknown system"}</h4>
+                    <p className="eyebrow">Resumen del sistema</p>
+                    <h4>{selectedSystem.systemName ?? "Sistema desconocido"}</h4>
                   </div>
                   <UiBadge tone={getVisibilityTone(selectedSystem.visibilityLevel)}>
                     {formatVisibilityReason(selectedSystem.visibilityReason)}
@@ -604,23 +595,23 @@ export function StrategicMapPage() {
                 </div>
                 <div className="figma-data-list">
                   <DataRow
-                    label="Coordinates"
+                    label="Coordenadas"
                     value={`${formatCoordinate(selectedSystem.coordinateX)}, ${formatCoordinate(selectedSystem.coordinateY)}, ${formatCoordinate(selectedSystem.coordinateZ)}`}
                   />
                   {readDomainValue(selectedSystemRecord ?? {}, "starType") && (
                     <DataRow
-                      label="Star type"
+                      label="Tipo estelar"
                       value={formatStarType(
                         readDomainValue(selectedSystemRecord ?? {}, "starType"),
                       )}
                     />
                   )}
                   <DataRow
-                    label="Owned by requester"
+                    label="Bajo control"
                     value={Boolean(selectedSystemRecord?.isOwnedByRequestingCivilization) ? "Si" : "No"}
                   />
                   <DataRow
-                    label="Sensor summaries"
+                    label="Lecturas tacticas"
                     value={String(
                       (selectedSystem.sensorProfiles?.length ?? 0) +
                         (selectedSystem.detectionCoverage?.length ?? 0),
@@ -632,10 +623,10 @@ export function StrategicMapPage() {
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Command advisory</p>
-                    <h4>System actions</h4>
+                    <p className="eyebrow">Estado operativo</p>
+                    <h4>Acciones del sistema</h4>
                   </div>
-                  <UiBadge>{systemCommands.length} items</UiBadge>
+                  <UiBadge>{systemCommands.length} lecturas</UiBadge>
                 </div>
                 {systemCommands.length > 0 ? (
                   <div className="figma-command-list">
@@ -655,7 +646,7 @@ export function StrategicMapPage() {
                   </div>
                 ) : (
                   <p className="figma-panel-note">
-                    No system command metadata is exposed for this selection.
+                    No hay metadatos de acciones visibles para este sistema.
                   </p>
                 )}
               </section>
@@ -776,6 +767,19 @@ export function StrategicMapPage() {
             )}
           </UiCard>
         </div>
+      )}
+
+      {result && !selectedSystem && result.systems.length > 0 && (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Sin sistema activo</p>
+              <h3>Selecciona un sistema del mapa</h3>
+              <p>La vista tactica esta lista, pero todavia no hay un foco de inspeccion activo.</p>
+            </div>
+            <UiBadge tone="warn">Sin seleccion</UiBadge>
+          </div>
+        </UiCard>
       )}
 
       {result && (
