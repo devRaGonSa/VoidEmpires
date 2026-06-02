@@ -3,7 +3,7 @@
 ---
 id: TASK-11F
 title: Phase 11F - Fleet command execution guardrails
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

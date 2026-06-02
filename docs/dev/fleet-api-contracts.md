@@ -233,6 +233,8 @@ Frontend readiness guidance:
 
 - Treat `commands` and `routeFuelReadiness.canRequestTravelEstimate` as readiness metadata only. Render them as `Ready` or `Blocked` labels instead of executable controls.
 - Keep read-only inspection actions such as `estimate`, `overview`, `ui-state`, and manifest reads visually distinct from mutation contracts, even when an inspection route uses `POST`.
+- Keep mutation contracts in clearly marked development or prototype sections. Current Fleet page work must not wire split, merge, create, cancel, or complete-due to ordinary gameplay-style buttons or click handlers.
+- If a prototype later executes a mutation contract, require an explicit development-only affordance and show the route as a contract boundary rather than presenting it as routine gameplay UI.
 
 ### Fleet Action Manifest
 
@@ -245,6 +247,7 @@ Current action keys: `fleet.overview.read`, `fleet.uiState.read`, `fleet.interce
 `fleet.uiState.read` notes that UI state includes route/fuel capability hints but no destination-specific estimates. `fleet.interception.readiness.read` cross-links the strategic-map interception-readiness endpoint for direct transfer-readiness inspection. `fleet.travel.estimate` is read-only in the manifest and is the source of route profile and fuel readiness previews when a UI has an explicit destination.
 
 Restrictions: read-only and deterministic. This endpoint is a dev metadata surface for frontend tooling and does not require persistence beyond development-route gating.
+Mutation entries exposed through this manifest remain documentation and prototype alignment aids only until a later task introduces an explicit dev-only execution workflow.
 
 ## Lifecycle Example
 

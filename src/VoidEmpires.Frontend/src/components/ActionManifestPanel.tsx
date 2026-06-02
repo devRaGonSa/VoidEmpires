@@ -65,6 +65,11 @@ export function ActionManifestPanel({
           <h4>{groupTitle}</h4>
           <StatusBadge tone={tone}>{groupActions.length}</StatusBadge>
         </div>
+        {tone === "warn" ? (
+          <p className="figma-panel-note">
+            Development-only mutation contracts are documented here for prototype alignment. This panel never executes them.
+          </p>
+        ) : null}
 
         <div className="manifest-list">
           {groupActions.map((action) => (
@@ -80,7 +85,7 @@ export function ActionManifestPanel({
                   </p>
                 </div>
                 <StatusBadge tone={action.isReadOnly ? "good" : "warn"}>
-                  {action.isReadOnly ? "Read-only metadata" : "Mutation metadata"}
+                  {action.isReadOnly ? "Read-only metadata" : "Prototype-only mutation metadata"}
                 </StatusBadge>
               </div>
 
@@ -136,13 +141,13 @@ export function ActionManifestPanel({
       <div className="section-heading">
         <div>
           <h3>{title}</h3>
-          <p>Read-only manifest metadata for current development contracts.</p>
+          <p>Contract metadata for current development routes. This panel is intentionally non-executable.</p>
         </div>
         <StatusBadge>{actions.length} actions</StatusBadge>
       </div>
 
       {renderActionGroup("Read-only actions", readOnlyActions, "good")}
-      {renderActionGroup("Mutation actions", mutatingActions, "warn")}
+      {renderActionGroup("Prototype mutation actions", mutatingActions, "warn")}
     </article>
   );
 }

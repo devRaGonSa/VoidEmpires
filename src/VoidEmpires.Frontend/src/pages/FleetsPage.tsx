@@ -158,11 +158,12 @@ export function FleetsPage() {
           <p>
             Fleet groups, active transfers, and route/readiness metadata are
             grouped into compact Figma-style cards while mutating actions remain
-            visible but unwired.
+            visible as development-only contracts and remain unwired.
           </p>
         </div>
         <div className="figma-badge-row">
           <UiBadge>Manifest metadata only</UiBadge>
+          <UiBadge tone="warn">Prototype-only mutation contracts</UiBadge>
           <UiBadge>Progress bars for active transfers</UiBadge>
           <UiBadge tone="warn">No command execution</UiBadge>
         </div>
@@ -206,7 +207,7 @@ export function FleetsPage() {
           </div>
           <ul className="stack-list">
             <li>Action manifests remain documentation and readiness metadata only.</li>
-            <li>Mutating routes are labeled but never executed from this page.</li>
+            <li>Mutating routes are development-only contracts and can never be executed from this page.</li>
             <li>Route/fuel and interception details remain non-authoritative hints.</li>
             <li>All responses are development tooling, not production gameplay APIs.</li>
           </ul>
@@ -341,9 +342,9 @@ export function FleetsPage() {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Command readiness</p>
-                    <h4>Metadata-only command state</h4>
+                    <h4>Read-only command planning state</h4>
                   </div>
-                  <UiBadge>Contracts only</UiBadge>
+                  <UiBadge tone="warn">Inspection only</UiBadge>
                 </div>
 
                 <div className="figma-data-list">
@@ -365,6 +366,10 @@ export function FleetsPage() {
                     )}
                   </ul>
                 ) : null}
+
+                <p className="figma-panel-note">
+                  Future command execution must stay behind explicit development or prototype affordances. This Fleet page does not send mutation requests.
+                </p>
 
                 {group.routeFuelReadiness?.fuelReadinessPolicy && (
                   <div className="figma-badge-row">
