@@ -3,7 +3,7 @@
 ---
 id: TASK-11Y
 title: Phase 11Y - Fleet selected group command panel
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

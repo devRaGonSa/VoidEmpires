@@ -3,7 +3,7 @@
 ---
 id: TASK-11Z
 title: Phase 11Z - Fleet transfer timeline and feedback UI
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
