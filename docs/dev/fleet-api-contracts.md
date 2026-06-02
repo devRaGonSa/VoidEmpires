@@ -108,6 +108,7 @@ Use this checklist for the current frontend preparation block. Manual visual QA 
 
 Manual browser review is not required for the current controlled fleet mutation block unless a clear frontend regression appears. The intended evidence for this block is successful build and test execution plus optional API-level contract checks.
 For the current estimate -> confirm -> create-transfer -> confirm -> cancel-transfer path, use [fleet-controlled-mutation-checklist.md](./fleet-controlled-mutation-checklist.md) as the focused non-visual regression pass.
+For the Fleet cockpit gameplay milestone, pair that checklist with [frontend-foundation-smoke-checklist.md](./frontend-foundation-smoke-checklist.md) and confirm a mostly Spanish gameplay-style screen with a scannable squad rail, readable selected-group panel, simple order flow, visible active transfers, readable resource support, and collapsed secondary technical panels.
 
 ## Endpoint Summary
 

@@ -3,7 +3,7 @@
 ---
 id: TASK-12L
 title: Phase 12L - Fleet gameplay cockpit visual validation docs
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

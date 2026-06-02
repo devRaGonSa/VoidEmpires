@@ -55,13 +55,16 @@ Manual visual validation is deferred for the current fleet execution block unles
    - mutating manifest actions remain labeled but unavailable from the frontend
 12. For the polished Fleet cockpit visual review, confirm:
    - the screen reads mostly in Spanish and no mixed English labels dominate the main flow
-   - the rail, selected-group panel, and main action column feel like a simple playable fleet screen rather than a dev console
-   - the action column reads in this order: escuadra, destino, estimacion, confirmacion de create o cancel
+   - the rail, selected-group panel, active-transfer panel, and main action column feel like a simple playable fleet screen rather than a dev console
+   - the squad rail is compact and scannable, with ship type, quantity, location, destination, status, and readiness visible before compact ids
+   - the action column reads in this order: escuadra, destino, calcular, revisar, confirmar
    - create and cancel remain the only executable mutation paths and both still require explicit confirmation
    - `complete-due`, `split`, and `merge` remain visible only as disabled or prototype-only controls
    - technical ids remain available for development use, but compact ids stay secondary to ship names, planet references, and route summaries
    - resource contexts stay readable by planet and do not get buried behind technical metadata
+   - active transfers remain visible at a glance with route, status, timeline, progress, and cancel readiness
    - result and error feedback remain readable at a glance, and no raw enum numbers or `NetworkError` text dominates the panel
+   - technical manifests and future mutation metadata stay collapsed or clearly secondary under development details
 13. Confirm no buttons other than the explicit `create transfer` and `cancel transfer` confirmation paths execute mutating dev endpoints from either route.
 
 ## Repository validation

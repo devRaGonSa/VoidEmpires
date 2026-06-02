@@ -71,7 +71,7 @@ npm run build
 ## Current fleet behavior
 
 - Loads the fleet UI-state read model for a civilization id.
-- Renders a Fleet command cockpit with a top summary deck, orbital-group rail, selected-group detail panel, command column, and prototype-only mutation manifest.
+- Renders a Fleet command cockpit with a top summary deck, compact orbital-group rail, selected-group detail panel, simplified order flow, active-transfer status panel, readable resource support, and collapsed development details.
 - Executes only the read-only travel estimate preview at `POST /api/dev/fleets/orbital-travel/estimate`.
 - Executes `POST /api/dev/fleets/orbital-transfers/create` only after an explicit development-only confirmation tied to the latest matching estimate.
 - Executes `POST /api/dev/fleets/orbital-transfers/cancel` only after an explicit development-only confirmation tied to a currently visible active transfer.
@@ -156,3 +156,4 @@ If a previous local run already mutated fleet state, inspect `ui-state` first. R
 Manual browser review is deferred for this block unless a clear regression appears. See `docs/dev/frontend-foundation-smoke-checklist.md`.
 
 For the Fleet cockpit milestone, use the manual visual checklist there after the required non-visual validation commands succeed. Focus the browser review on mostly Spanish copy, a readable rail + selected-group + action-column hierarchy, explicit create/cancel confirmations, secondary compact ids, readable resource context, and readable result or error feedback without dominant raw enum numbers or `NetworkError` text.
+Also confirm the active-transfer panel remains obvious, progress-aware, and cancel-ready, while technical manifests stay collapsed behind development details by default.

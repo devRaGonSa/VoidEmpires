@@ -38,7 +38,9 @@ If a manual browser pass is needed for this milestone, confirm:
 2. `create transfer` and `cancel transfer` are still the only executable mutation actions and both remain behind explicit confirmation.
 3. `complete-due`, `split`, and `merge` stay visible only as prototype-only or disabled controls.
 4. Friendly ship or planet labels stay visually primary while compact ids remain secondary development metadata.
-5. Success, warning, and network failure feedback stay readable without raw JSON, dominant enum numbers, or `NetworkError` wording taking over the panel.
+5. The order panel reads as a simple gameplay flow: escuadra, destino, calcular, revisar, confirmar.
+6. The active-transfer panel stays readable with route, status, timestamps, progress, and cancel readiness.
+7. Success, warning, and network failure feedback stay readable without raw JSON, dominant enum numbers, or `NetworkError` wording taking over the panel.
 
 ## Guard checks
 
