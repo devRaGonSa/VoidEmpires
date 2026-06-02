@@ -3,7 +3,7 @@
 ---
 id: TASK-10O
 title: Phase 10O - Cancel and complete transfer endpoint contract hardening
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

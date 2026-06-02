@@ -219,6 +219,26 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
     }
 
     [Fact]
+    public async Task CompleteOrbitalTransfersReturnsBadRequestForNonUtcRequest()
+    {
+        using var client = CreateConfiguredClient(completionService: new FakeOrbitalTransferCompletionService(SuccessfulCompletionResult()));
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/complete-due", new
+        {
+            nowUtc = new DateTime(2026, 5, 29, 13, 0, 0, DateTimeKind.Local)
+        });
+        var payload = await response.Content.ReadFromJsonAsync<CompleteOrbitalTransfersResponse>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload.Succeeded);
+        Assert.Equal(0, payload.CompletedCount);
+        Assert.Empty(payload.CompletedTransferIds);
+        Assert.Empty(payload.CompletedOrbitalGroupIds);
+        Assert.Contains("Current date must be UTC.", payload.Errors);
+    }
+
+    [Fact]
     public async Task CompleteOrbitalTransfersReturnsCompletedTransferAndGroupIds()
     {
         using var client = CreateConfiguredClient(completionService: new FakeOrbitalTransferCompletionService(SuccessfulCompletionResult()));
@@ -232,6 +252,23 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
         Assert.Equal(1, payload.CompletedCount);
         Assert.Contains(TransferId, payload.CompletedTransferIds);
         Assert.Contains(OrbitalGroupId, payload.CompletedOrbitalGroupIds);
+        Assert.Empty(payload.Errors);
+    }
+
+    [Fact]
+    public async Task CompleteOrbitalTransfersReturnsOkWithEmptyCompletionSetForIdempotentRepeat()
+    {
+        using var client = CreateConfiguredClient(completionService: new FakeOrbitalTransferCompletionService(new CompleteOrbitalTransfersResult(0, [], [])));
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/complete-due", ValidCompleteRequest());
+        var payload = await response.Content.ReadFromJsonAsync<CompleteOrbitalTransfersResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.True(payload.Succeeded);
+        Assert.Equal(0, payload.CompletedCount);
+        Assert.Empty(payload.CompletedTransferIds);
+        Assert.Empty(payload.CompletedOrbitalGroupIds);
         Assert.Empty(payload.Errors);
     }
 
@@ -293,8 +330,14 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
             cancelService: new FakeOrbitalTransferCancelService(CancelOrbitalTransferResult.NotFound("Orbital transfer was not found.")));
 
         using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/cancel", ValidCancelRequest());
+        var payload = await response.Content.ReadFromJsonAsync<CancelOrbitalTransferResponse>();
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload.Succeeded);
+        Assert.Null(payload.OrbitalTransferId);
+        Assert.Null(payload.OrbitalGroupId);
+        Assert.Contains("Orbital transfer was not found.", payload.Errors);
     }
 
     [Fact]
@@ -310,6 +353,21 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
         Assert.NotNull(payload);
         Assert.False(payload.Succeeded);
         Assert.Contains("Completed orbital transfers cannot be cancelled.", payload.Errors);
+    }
+
+    [Fact]
+    public async Task CancelOrbitalTransferReturnsConflictForOwnershipRejection()
+    {
+        using var client = CreateConfiguredClient(
+            cancelService: new FakeOrbitalTransferCancelService(CancelOrbitalTransferResult.Conflict("Orbital transfer does not belong to the civilization.")));
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/cancel", ValidCancelRequest());
+        var payload = await response.Content.ReadFromJsonAsync<CancelOrbitalTransferResponse>();
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload.Succeeded);
+        Assert.Contains("Orbital transfer does not belong to the civilization.", payload.Errors);
     }
 
     private HttpClient CreateConfiguredClient(
