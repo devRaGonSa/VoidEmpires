@@ -52,6 +52,7 @@ export interface FleetCommandPresentationItem {
   tone: CommandTone;
   summary: string;
   details: string[];
+  facts?: FleetEstimateFact[];
 }
 
 export interface FleetSquadListPresentationItem {
@@ -240,15 +241,17 @@ export function buildFleetEstimateReviewCard(
     title: "Estimacion de traslado",
     statusLabel: isReady ? "Lista para confirmar" : "Requiere ajustes",
     summary: isSuccess
-      ? "Revision previa completada. Comprueba ruta, coste y disponibilidad antes de confirmar."
+      ? "Simulacion completada. Revisa la ruta antes de comprometer la orden orbital."
       : response?.errors[0] ?? `La solicitud devolvio ${result.httpStatus}.`,
     facts: isSuccess
       ? [
           { label: "Escuadra", value: squadLabel },
           { label: "Origen", value: formatPlanetReference(response.currentPlanetId ?? currentPlanetId ?? "") },
           { label: "Destino", value: formatPlanetReference(response.destinationPlanetId ?? destinationPlanetId ?? "") },
+          { label: "Distancia", value: `${response.abstractDistanceUnits} tramos` },
           { label: "Duracion", value: response.estimatedDuration ?? "Sin duracion visible" },
-          { label: "Coste", value: costLabel },
+          { label: "Coste", value: costLabel || "Sin coste proyectado" },
+          { label: "Perfil", value: response.routeProfile?.routeClass ? `Ruta ${response.routeProfile.routeClass}` : "Perfil no disponible" },
           { label: "Disponibilidad", value: isReady ? "Lista" : "Bloqueada" },
         ]
       : [
@@ -512,10 +515,20 @@ export function presentCreateTransferResult(result: FleetCommandApiResult<Create
         : "warn",
     summary:
       isSuccess
-        ? `El estado de desarrollo cambio correctamente. Distancia ${response.abstractDistanceUnits} hacia ${response.destinationPlanetId ? formatPlanetReference(response.destinationPlanetId) : "destino desconocido"}.`
+        ? `Orden orbital registrada. La escuadra ya tiene un traslado planificado hacia ${response.destinationPlanetId ? formatPlanetReference(response.destinationPlanetId) : "destino desconocido"}.`
         : hasExpectedErrorPayload && response.errors[0]
           ? response.errors[0]
           : defaultSummary,
+    facts: isSuccess
+      ? [
+          { label: "Origen", value: response.originPlanetId ? formatPlanetReference(response.originPlanetId) : "Origen no visible" },
+          { label: "Destino", value: response.destinationPlanetId ? formatPlanetReference(response.destinationPlanetId) : "Destino no visible" },
+          { label: "Distancia", value: `${response.abstractDistanceUnits} tramos` },
+          { label: "Salida", value: response.departureAtUtc ?? "Salida pendiente de confirmar" },
+          { label: "Llegada", value: response.arrivalAtUtc ?? "Llegada pendiente de confirmar" },
+          { label: "Estado", value: "Traslado planificado" },
+        ]
+      : undefined,
     details: [
       ...(isSuccess ? ["La mutacion reservo el grupo y persistio una transferencia planificada."] : []),
       ...(response?.originPlanetId ? [`Origen ${formatPlanetReference(response.originPlanetId)}`] : []),
@@ -540,6 +553,7 @@ export function presentCreateTransferNetworkFailure(message: string): FleetComma
     tone: "warn",
     summary: "No se pudo completar crear traslado porque la solicitud no llego a la API.",
     details: [message],
+    facts: undefined,
   };
 }
 
@@ -578,6 +592,7 @@ export function presentCancelTransferResult(result: FleetCommandApiResult<Cancel
         : hasExpectedErrorPayload && response.errors[0]
           ? response.errors[0]
           : defaultSummary,
+    facts: undefined,
     details: [
       ...(isSuccess ? ["La cancelacion no reembolsa los recursos ya cobrados por el create transfer."] : []),
       ...(!isSuccess && result.httpStatus === 404
@@ -601,6 +616,7 @@ export function presentCancelTransferNetworkFailure(message: string): FleetComma
     tone: "warn",
     summary: "No se pudo completar anular traslado porque la solicitud no llego a la API.",
     details: [message],
+    facts: undefined,
   };
 }
 

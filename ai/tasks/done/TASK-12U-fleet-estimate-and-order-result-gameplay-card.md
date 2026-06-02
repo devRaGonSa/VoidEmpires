@@ -3,7 +3,7 @@
 ---
 id: TASK-12U
 title: Phase 12U - Fleet estimate and order result gameplay card
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

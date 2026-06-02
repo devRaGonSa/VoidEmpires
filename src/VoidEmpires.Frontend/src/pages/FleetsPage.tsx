@@ -978,7 +978,7 @@ export function FleetsPage() {
                 <section className="subpanel figma-subpanel fleet-action-primary-card">
                   <div className="figma-section-header">
                     <div>
-                      <p className="eyebrow">Resultado de accion</p>
+                      <p className="eyebrow">Orden confirmada</p>
                       <h4>{createTransferResult.label}</h4>
                     </div>
                     <UiBadge tone={createTransferResult.tone}>
@@ -986,6 +986,13 @@ export function FleetsPage() {
                     </UiBadge>
                   </div>
                   <p>{createTransferResult.summary}</p>
+                  {createTransferResult.facts?.length ? (
+                    <div className="fleet-estimate-facts fleet-estimate-review-grid">
+                      {createTransferResult.facts.map((fact) => (
+                        <FleetDataRow key={`create-result-${fact.label}`} label={fact.label} value={fact.value} />
+                      ))}
+                    </div>
+                  ) : null}
                   {createTransferResult.details.length > 0 ? (
                     <ul className="stack-list compact-list">
                       {createTransferResult.details.map((detail) => (
@@ -1007,6 +1014,13 @@ export function FleetsPage() {
                     </UiBadge>
                   </div>
                   <p>{cancelTransferResult.summary}</p>
+                  {cancelTransferResult.facts?.length ? (
+                    <div className="fleet-estimate-facts fleet-estimate-review-grid">
+                      {cancelTransferResult.facts.map((fact) => (
+                        <FleetDataRow key={`cancel-result-${fact.label}`} label={fact.label} value={fact.value} />
+                      ))}
+                    </div>
+                  ) : null}
                   {cancelTransferResult.details.length > 0 ? (
                     <ul className="stack-list compact-list">
                       {cancelTransferResult.details.map((detail) => (
