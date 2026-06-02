@@ -3,7 +3,7 @@
 ---
 id: TASK-9V
 title: Phase 9V - Planet visual profile and intensity calculator
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
