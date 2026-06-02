@@ -3,7 +3,7 @@
 ---
 id: TASK-11U
 title: Phase 11U - Cancel transfer UI execution
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

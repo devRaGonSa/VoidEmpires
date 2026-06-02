@@ -25,6 +25,8 @@ import {
 import {
   buildFleetCommandReadiness,
   buildFleetMutationConfirmations,
+  presentCancelTransferNetworkFailure,
+  presentCancelTransferResult,
   presentCreateTransferNetworkFailure,
   presentCreateTransferResult,
   presentEstimateResult,
@@ -133,6 +135,9 @@ export function FleetsPage() {
   const [hasCreateTransferAcknowledgement, setHasCreateTransferAcknowledgement] = useState(false);
   const [preparedCancelTransferId, setPreparedCancelTransferId] = useState("");
   const [hasCancelTransferAcknowledgement, setHasCancelTransferAcknowledgement] = useState(false);
+  const [isCancellingTransfer, setIsCancellingTransfer] = useState(false);
+  const [cancelTransferResult, setCancelTransferResult] = useState<FleetCommandPresentationItem | null>(null);
+  const [cancelTransferNetworkError, setCancelTransferNetworkError] = useState<string | null>(null);
   const [isCreatingTransfer, setIsCreatingTransfer] = useState(false);
   const [createTransferResult, setCreateTransferResult] = useState<FleetCommandPresentationItem | null>(null);
   const [createTransferNetworkError, setCreateTransferNetworkError] = useState<string | null>(null);
@@ -519,6 +524,71 @@ export function FleetsPage() {
       currentValue === orbitalTransferId ? "" : orbitalTransferId,
     );
     setHasCancelTransferAcknowledgement(false);
+    setCancelTransferResult(null);
+    setCancelTransferNetworkError(null);
+  }
+
+  async function handleCancelTransfer(group: FleetGroupSummary) {
+    const transferId = group.activeTransfer?.id;
+
+    if (isCancellingTransfer) {
+      setCancelTransferNetworkError("Ya hay una solicitud de cancel transfer en curso.");
+      return;
+    }
+
+    if (!uiState?.civilizationId || !transferId || preparedCancelTransferId !== transferId) {
+      setCancelTransferNetworkError("Falta contexto visible y confirmado para cancelar la transferencia.");
+      return;
+    }
+
+    if (!hasCancelTransferAcknowledgement) {
+      setCancelTransferNetworkError("Confirma la accion explicita antes de enviar cancel transfer.");
+      return;
+    }
+
+    setIsCancellingTransfer(true);
+    setCancelTransferResult(null);
+    setCancelTransferNetworkError(null);
+
+    try {
+      const result = await voidEmpiresApi.cancelOrbitalTransfer({
+        civilizationId: uiState.civilizationId,
+        orbitalTransferId: transferId,
+      });
+
+      setCancelTransferResult(presentCancelTransferResult(result));
+
+      if (result.httpStatus === 200 && result.response?.succeeded) {
+        setPreparedCancelTransferId("");
+        setHasCancelTransferAcknowledgement(false);
+
+        try {
+          await refreshFleetUiState(uiState.civilizationId);
+          setCancelTransferResult((currentResult) =>
+            currentResult
+              ? {
+                  ...currentResult,
+                  details: ["Estado actualizado desde la API.", ...currentResult.details],
+                }
+              : currentResult,
+          );
+        } catch (refreshError) {
+          setCancelTransferNetworkError(
+            refreshError instanceof Error
+              ? `Cancelacion aplicada, pero no se pudo refrescar la UI: ${refreshError.message}`
+              : "Cancelacion aplicada, pero no se pudo refrescar la UI.",
+          );
+        }
+      }
+    } catch (requestError) {
+      const message =
+        requestError instanceof Error
+          ? requestError.message
+          : "Network error while cancelling the transfer.";
+      setCancelTransferResult(presentCancelTransferNetworkFailure(message));
+    } finally {
+      setIsCancellingTransfer(false);
+    }
   }
 
   return (
@@ -660,6 +730,7 @@ export function FleetsPage() {
           {estimateStaleMessage ? <p className="error-text">{estimateStaleMessage}</p> : null}
           {estimateNetworkError ? <p className="error-text">Network error: {estimateNetworkError}</p> : null}
           {createTransferNetworkError ? <p className="error-text">{createTransferNetworkError}</p> : null}
+          {cancelTransferNetworkError ? <p className="error-text">{cancelTransferNetworkError}</p> : null}
           {estimateResult ? (
             <section className="subpanel figma-subpanel">
               <div className="figma-section-header">
@@ -751,6 +822,27 @@ export function FleetsPage() {
               {createTransferResult.details.length > 0 ? (
                 <ul className="stack-list compact-list">
                   {createTransferResult.details.map((detail) => (
+                    <li key={detail}>{detail}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+          ) : null}
+          {cancelTransferResult ? (
+            <section className="subpanel figma-subpanel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Resultado de mutacion</p>
+                  <h4>{cancelTransferResult.label}</h4>
+                </div>
+                <UiBadge tone={cancelTransferResult.tone}>
+                  {cancelTransferResult.tone === "good" ? "Mutacion aplicada" : "No aplicada"}
+                </UiBadge>
+              </div>
+              <p>{cancelTransferResult.summary}</p>
+              {cancelTransferResult.details.length > 0 ? (
+                <ul className="stack-list compact-list">
+                  {cancelTransferResult.details.map((detail) => (
                     <li key={detail}>{detail}</li>
                   ))}
                 </ul>
@@ -1055,14 +1147,22 @@ export function FleetsPage() {
                             <span>Requiere confirmacion explicita</span>
                           </label>
                           <div className="transfer-confirmation-actions">
-                            <button type="button" disabled>
-                              {hasCancelTransferAcknowledgement
-                                ? "Cancelar transferencia orbital pendiente"
+                            <button
+                              type="button"
+                              onClick={() => handleCancelTransfer(group)}
+                              disabled={
+                                isCancellingTransfer ||
+                                !hasCancelTransferAcknowledgement ||
+                                preparedCancelTransferId !== group.activeTransfer.id
+                              }
+                            >
+                              {isCancellingTransfer
+                                ? "Cancelando..."
                                 : "Cancelar transferencia orbital"}
                             </button>
                           </div>
                           <p className="figma-panel-note">
-                            No reembolsa recursos y todavia no llama a `fleet.transfer.cancel`.
+                            No reembolsa recursos y solo ejecuta la solicitud cuando esta transferencia visible sigue confirmada.
                           </p>
                         </div>
                       </section>

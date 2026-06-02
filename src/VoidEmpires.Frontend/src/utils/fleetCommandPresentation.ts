@@ -1,4 +1,5 @@
 import type {
+  CancelOrbitalTransferResponse,
   CompleteOrbitalTransfersResponse,
   CreateOrbitalTransferResponse,
   EstimateOrbitalTravelResponse,
@@ -284,6 +285,64 @@ export function presentCreateTransferNetworkFailure(message: string): FleetComma
     label: "Error de red",
     tone: "warn",
     summary: "No se pudo completar create transfer porque la solicitud no llego a la API.",
+    details: [message],
+  };
+}
+
+export function presentCancelTransferResult(result: FleetCommandApiResult<CancelOrbitalTransferResponse>): FleetCommandPresentationItem {
+  const response = result.response;
+  const isSuccess = result.httpStatus === 200 && response?.succeeded;
+  const hasExpectedErrorPayload = response && Array.isArray(response.errors);
+  const defaultSummary =
+    result.httpStatus === 400
+      ? "La API rechazo la cancelacion. Revisa civilizationId y orbitalTransferId antes de reenviar."
+      : result.httpStatus === 404
+        ? "La transferencia activa ya no existe en el estado de desarrollo actual."
+        : result.httpStatus === 409
+          ? "Conflicto detectado: la transferencia ya no esta activa o el grupo ya no esta reservado."
+          : result.httpStatus === 503
+            ? "La persistencia no esta configurada para este entorno de desarrollo."
+            : getUnexpectedResponseSummary(result);
+
+  return {
+    key: "cancel-transfer-result",
+    label: isSuccess
+      ? "Transferencia orbital cancelada"
+      : result.httpStatus === 400
+        ? "Validacion rechazada"
+        : result.httpStatus === 404
+          ? "Datos no encontrados"
+          : result.httpStatus === 409
+            ? "Conflicto de estado"
+            : result.httpStatus === 503
+              ? "Persistencia no disponible"
+              : "Respuesta inesperada",
+    tone: isSuccess ? "good" : "warn",
+    summary:
+      isSuccess
+        ? "La transferencia activa se cancelo y el grupo vuelve a quedar disponible en el estado de desarrollo."
+        : hasExpectedErrorPayload && response.errors[0]
+          ? response.errors[0]
+          : defaultSummary,
+    details: [
+      ...(isSuccess ? ["La cancelacion no reembolsa los recursos ya cobrados por el create transfer."] : []),
+      ...(response?.orbitalTransferId ? [`Transfer ${response.orbitalTransferId}`] : []),
+      ...(response?.orbitalGroupId ? [`Grupo ${response.orbitalGroupId}`] : []),
+      ...(!isSuccess && result.httpStatus === 409
+        ? ["Recarga la UI de flotas antes de reintentar si otra accion ya cambio esta transferencia."]
+        : []),
+      ...(!isSuccess && !hasExpectedErrorPayload ? ["La UI no recibio el payload JSON esperado para este comando."] : []),
+      ...(response?.errors.slice(1) ?? []),
+    ],
+  };
+}
+
+export function presentCancelTransferNetworkFailure(message: string): FleetCommandPresentationItem {
+  return {
+    key: "cancel-transfer-network-error",
+    label: "Error de red",
+    tone: "warn",
+    summary: "No se pudo completar cancel transfer porque la solicitud no llego a la API.",
     details: [message],
   };
 }
