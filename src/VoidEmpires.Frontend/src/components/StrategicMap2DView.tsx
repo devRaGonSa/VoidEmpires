@@ -107,6 +107,18 @@ export function StrategicMap2DView({
           >
             <title>{system.systemName ?? "Unknown system"}</title>
             <circle r="30" className="map-node-halo" />
+            {(system.transferOverlays?.length ?? 0) > 0 && (
+              <>
+                <path
+                  d="M -24 -18 L -10 -4"
+                  className="map-node-transfer-line"
+                />
+                <path
+                  d="M -24 -4 L -10 10"
+                  className="map-node-transfer-line"
+                />
+              </>
+            )}
             <circle r="20" className="map-node-ring" />
             <circle r="7" className="map-node-core" />
             {(system.fleetPresence?.length ?? 0) > 0 && (

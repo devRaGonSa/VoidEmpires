@@ -891,6 +891,14 @@ select {
   box-shadow: 0 0 14px currentColor;
 }
 
+.figma-legend-line {
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--ve-color-warning);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--ve-color-warning) 72%, white);
+}
+
 .figma-legend-owned {
   color: var(--ve-color-resource-deuterium);
 }
@@ -901,6 +909,10 @@ select {
 
 .figma-legend-unknown {
   color: var(--ve-color-warning);
+}
+
+.figma-legend-fleet {
+  color: var(--ve-color-accent-cyan);
 }
 
 .figma-preview-actions {
@@ -1096,6 +1108,14 @@ select {
   fill: var(--ve-color-accent-cyan);
   stroke: #f4f8ff;
   stroke-width: 1.25;
+}
+
+.map-node-transfer-line {
+  fill: none;
+  stroke: var(--ve-color-warning);
+  stroke-linecap: round;
+  stroke-width: 2.25;
+  opacity: 0.9;
 }
 
 .map-node-owned {

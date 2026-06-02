@@ -482,6 +482,16 @@ export function StrategicMapPage() {
                     <strong>Desconocido</strong>
                     <small>Sanitized contact</small>
                   </div>
+                  <div className="figma-legend-item">
+                    <span className="figma-legend-dot figma-legend-fleet" />
+                    <strong>Flota</strong>
+                    <small>Marcador orbital</small>
+                  </div>
+                  <div className="figma-legend-item">
+                    <span className="figma-legend-line" />
+                    <strong>Transferencia</strong>
+                    <small>Ruta superpuesta</small>
+                  </div>
                 </div>
               </div>
 
