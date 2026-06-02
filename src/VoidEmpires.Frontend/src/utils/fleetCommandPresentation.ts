@@ -226,45 +226,67 @@ export function presentFleetActiveTransferItem(group: FleetGroupSummary): FleetA
 }
 
 export function buildFleetCommandReadiness(group: FleetGroupSummary, actionHints: FleetActionHint[]) {
+  const estimateSummary = group.routeFuelReadiness?.canRequestTravelEstimate
+    ? "Disponible"
+    : group.routeFuelReadiness?.requiresDestination
+      ? "Falta elegir destino."
+      : group.hasActiveTransfer
+        ? "La escuadra esta reservada."
+        : "No disponible";
+  const createTransferSummary = group.commands?.canCreateTransfer
+    ? "Lista para ordenar"
+    : group.hasActiveTransfer
+      ? "Ya existe un traslado activo."
+      : "Requiere una estimacion valida.";
+  const splitSummary = group.commands?.canSplit
+    ? "Divisible"
+    : group.hasActiveTransfer
+      ? "La escuadra esta reservada."
+      : "No disponible";
+  const mergeSummary = group.commands?.canMerge
+    ? "Fusionable"
+    : group.hasActiveTransfer
+      ? "La escuadra esta reservada."
+      : "No disponible";
+
   return [
     {
       key: "estimate",
-      label: getActionLabel("fleet.travel.estimate", actionHints, "Vista de ruta"),
+      label: getActionLabel("fleet.travel.estimate", actionHints, "Estimacion de ruta"),
       tone: group.routeFuelReadiness?.canRequestTravelEstimate ? "good" : "warn",
-      summary: group.routeFuelReadiness?.canRequestTravelEstimate ? "Vista lista" : "Vista bloqueada",
+      summary: estimateSummary,
       details: [
-        ...(group.routeFuelReadiness?.requiresDestination ? ["Falta elegir destino."] : []),
-        ...(group.routeFuelReadiness?.estimateRoute ? [`Ruta ${group.routeFuelReadiness.estimateRoute}`] : []),
+        ...(group.routeFuelReadiness?.estimateRoute ? [`Ruta tecnica ${group.routeFuelReadiness.estimateRoute}`] : []),
         ...(group.routeFuelReadiness?.fuelReadinessPolicy ? [`Politica ${group.routeFuelReadiness.fuelReadinessPolicy}`] : []),
         ...(group.routeFuelReadiness?.notes ?? []),
       ],
     },
     {
       key: "create-transfer",
-      label: getActionLabel("fleet.transfer.create", actionHints, "Crear traslado"),
+      label: getActionLabel("fleet.transfer.create", actionHints, "Orden de traslado"),
       tone: group.commands?.canCreateTransfer ? "good" : "warn",
-      summary: group.commands?.canCreateTransfer ? "Lista para trazar" : "Bloqueada por el estado actual",
-      details: group.hasActiveTransfer ? ["La escuadra ya tiene un traslado activo."] : [],
+      summary: createTransferSummary,
+      details: group.hasActiveTransfer ? ["No puede abrir otra orden mientras el traslado actual siga activo."] : [],
     },
     {
       key: "split",
-      label: getActionLabel("fleet.group.split", actionHints, "Dividir escuadra"),
+      label: getActionLabel("fleet.group.split", actionHints, "Division"),
       tone: group.commands?.canSplit ? "good" : "warn",
-      summary: group.commands?.canSplit ? "La cantidad puede separarse" : "Division no disponible",
+      summary: splitSummary,
       details: group.hasActiveTransfer ? ["Un traslado activo impide dividir con seguridad."] : [],
     },
     {
       key: "merge",
-      label: getActionLabel("fleet.group.merge", actionHints, "Fusionar escuadras"),
+      label: getActionLabel("fleet.group.merge", actionHints, "Fusion"),
       tone: group.commands?.canMerge ? "good" : "warn",
-      summary: group.commands?.canMerge ? "Las escuadras compatibles pueden unirse" : "Fusion no disponible",
+      summary: mergeSummary,
       details: group.hasActiveTransfer ? ["Un traslado activo impide fusionar con seguridad."] : [],
     },
     {
       key: "cancel-transfer",
-      label: getActionLabel("fleet.transfer.cancel", actionHints, "Anular traslado"),
+      label: getActionLabel("fleet.transfer.cancel", actionHints, "Cancelar traslado"),
       tone: group.commands?.canCancelTransfer ? "good" : "neutral",
-      summary: group.commands?.canCancelTransfer ? "El traslado activo puede anularse" : "No hay traslados anulables",
+      summary: group.commands?.canCancelTransfer ? "Disponible" : "Sin traslado anulable",
       details: group.activeTransfer ? [`ID de traslado ${formatTechnicalId(group.activeTransfer.id)}`] : [],
     },
   ] satisfies FleetCommandPresentationItem[];

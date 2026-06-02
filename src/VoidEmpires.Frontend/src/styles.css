@@ -1172,6 +1172,19 @@ select {
   gap: 10px;
 }
 
+.fleet-readiness-details {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--ve-color-border) 28%, transparent);
+}
+
+.fleet-readiness-details summary {
+  cursor: pointer;
+  color: color-mix(in srgb, var(--ve-color-text) 74%, var(--ve-color-muted));
+  font-size: 0.84rem;
+  letter-spacing: 0.04em;
+}
+
 .prototype-control-grid-compact {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }

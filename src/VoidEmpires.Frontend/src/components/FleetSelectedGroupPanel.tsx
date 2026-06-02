@@ -118,9 +118,9 @@ export function FleetSelectedGroupPanel({
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Capacidad</p>
-              <h4>Lectura de mando</h4>
+              <h4>Disponibilidad de mando</h4>
             </div>
-            <UiBadge tone="warn">Solo inspeccion</UiBadge>
+            <UiBadge tone="warn">Resumen jugable</UiBadge>
           </div>
           <div className="figma-data-list">
             {readinessItems.map((item) => (
@@ -131,13 +131,16 @@ export function FleetSelectedGroupPanel({
             ))}
           </div>
           {readinessItems.some((item) => item.details.length > 0) ? (
-            <ul className="stack-list compact-list">
-              {readinessItems.flatMap((item) =>
-                item.details.map((detail) => (
-                  <li key={`${group.id}-${item.key}-${detail}`}>{item.label}: {detail}</li>
-                )),
-              )}
-            </ul>
+            <details className="fleet-readiness-details">
+              <summary>Detalles tecnicos</summary>
+              <ul className="stack-list compact-list">
+                {readinessItems.flatMap((item) =>
+                  item.details.map((detail) => (
+                    <li key={`${group.id}-${item.key}-${detail}`}>{item.label}: {detail}</li>
+                  )),
+                )}
+              </ul>
+            </details>
           ) : null}
         </section>
       </div>

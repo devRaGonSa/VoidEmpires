@@ -3,7 +3,7 @@
 ---
 id: TASK-12O
 title: Phase 12O - Fleet command readiness Spanish labels
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
