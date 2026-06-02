@@ -13,20 +13,20 @@ export function DevEndpointNotice({
   return (
     <UiCard className="dev-endpoint-notice">
       <div className="dev-endpoint-notice-head">
-        <h3>Development endpoint surface</h3>
-        <UiBadge tone="warn">Read-only prototype</UiBadge>
+        <h3>Superficie de endpoints de desarrollo</h3>
+        <UiBadge tone="warn">Prototipo en solo lectura</UiBadge>
       </div>
       <p>
-        Current frontend routes remain conservative and do not execute gameplay
-        mutations or production authentication flows.
+        Las rutas actuales del frontend siguen siendo conservadoras y no
+        ejecutan mutaciones de juego ni flujos de autenticacion de produccion.
       </p>
       <dl className="dev-endpoint-meta">
         <div>
-          <dt>Backend base URL</dt>
+          <dt>URL base del backend</dt>
           <dd>{apiBaseUrl}</dd>
         </div>
         <div>
-          <dt>Expected backend profile</dt>
+          <dt>Perfil esperado del backend</dt>
           <dd>{backendProfile}</dd>
         </div>
       </dl>

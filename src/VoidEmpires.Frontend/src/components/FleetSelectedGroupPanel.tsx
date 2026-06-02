@@ -195,7 +195,7 @@ export function FleetSelectedGroupPanel({
                   <h4>Cancelar transferencia orbital</h4>
                   <p>La anulacion sigue protegida y no reembolsa recursos ya cobrados.</p>
                   <p className="dev-meta">
-                    Traslado {formatCompactGuid(group.activeTransfer.id)} · Escuadra {formatCompactGuid(group.id)}
+                    Traslado {formatCompactGuid(group.activeTransfer.id)} | Escuadra {formatCompactGuid(group.id)}
                   </p>
                 </div>
                 <div className="figma-badge-row">

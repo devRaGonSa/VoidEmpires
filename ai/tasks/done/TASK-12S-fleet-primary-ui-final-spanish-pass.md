@@ -3,7 +3,7 @@
 ---
 id: TASK-12S
 title: Phase 12S - Fleet primary UI final Spanish pass
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

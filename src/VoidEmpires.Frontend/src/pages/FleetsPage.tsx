@@ -96,7 +96,7 @@ function formatSquadIdentity(group: FleetGroupSummary) {
 }
 
 function formatSquadOptionLabel(group: FleetGroupSummary) {
-  return `${formatSquadIdentity(group)} · ${group.quantity} unidades`;
+  return `${formatSquadIdentity(group)} | ${group.quantity} unidades`;
 }
 
 export function FleetsPage() {
@@ -677,7 +677,7 @@ export function FleetsPage() {
             <li>La estimacion sigue en solo lectura y nunca reserva escuadras ni gasta recursos.</li>
             <li>Crear traslado exige una estimacion vigente y una confirmacion explicita.</li>
             <li>Anular traslado exige un traslado activo visible y una confirmacion explicita.</li>
-            <li>Complete-due, split y merge siguen visibles solo como metadata de prototipo.</li>
+            <li>Completar vencidos, dividir y fusionar siguen visibles solo como metadata de prototipo.</li>
           </ul>
         </UiCard>
       </div>

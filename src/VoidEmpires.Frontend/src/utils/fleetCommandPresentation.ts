@@ -378,7 +378,7 @@ export function buildFleetMutationConfirmations(
           readinessTone: activeTransfers > 0 ? "warn" : "neutral",
           requiresConfirmation: true,
           confirmationText: "Requeriria una confirmacion de riesgo antes de completar traslados vencidos por lote.",
-          disabledReason: "Complete-due sigue desactivado porque es una mutacion global, no una accion rutinaria de cabina.",
+          disabledReason: "Completar vencidos sigue desactivado porque es una mutacion global, no una accion rutinaria de cabina.",
         };
       }
 
