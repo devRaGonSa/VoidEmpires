@@ -97,18 +97,15 @@ The `minimal-validation` seed is additive and idempotent, not a destructive rese
 
 ## Non-Visual Validation Checklist
 
-Use this checklist for the current frontend preparation block. Manual visual QA is intentionally deferred until a later interface milestone.
+Use this checklist as the non-visual baseline for Fleet cockpit v1 before manual browser QA.
 
 1. Run `dotnet build --no-restore` from the repository root.
 2. Run `dotnet test --no-build` from the repository root.
 3. Run `npm run build --prefix src/VoidEmpires.Frontend`.
 4. Optionally apply the `minimal-validation` seed, inspect `GET /api/dev/fleets/ui-state`, and then call `POST /api/dev/fleets/orbital-travel/estimate` when you need non-visual confirmation that readiness metadata and estimate shapes still match the documented contracts.
 5. Treat frontend mutation controls as development-only affordances. The current Fleet page may execute only `create` and `cancel`, each behind an explicit confirmation flow; `complete-due`, `split`, and `merge` must stay disabled or metadata-only.
-6. Keep manual browser review deferred unless a clear frontend regression appears; this milestone relies on build, test, and optional API-only checks rather than visual sign-off.
-
-Manual browser review is not required for the current controlled fleet mutation block unless a clear frontend regression appears. The intended evidence for this block is successful build and test execution plus optional API-level contract checks.
-For the current estimate -> confirm -> create-transfer -> confirm -> cancel-transfer path, use [fleet-controlled-mutation-checklist.md](./fleet-controlled-mutation-checklist.md) as the focused non-visual regression pass.
-For the Fleet cockpit gameplay milestone, pair that checklist with [frontend-foundation-smoke-checklist.md](./frontend-foundation-smoke-checklist.md) and confirm a mostly Spanish gameplay-style screen with a scannable squad rail, readable selected-group panel, simple order flow, visible active transfers, readable resource support, and collapsed secondary technical panels.
+6. For the estimate -> confirm -> create-transfer -> confirm -> cancel-transfer path, use [fleet-controlled-mutation-checklist.md](./fleet-controlled-mutation-checklist.md) as the focused non-visual regression pass.
+7. For final manual browser QA, pair that checklist with [frontend-foundation-smoke-checklist.md](./frontend-foundation-smoke-checklist.md) and confirm a mostly Spanish gameplay-style screen with a scannable squad rail, readable selected-group panel, simple order flow, visible active transfers, readable resource support, explicit create/cancel confirmations, and collapsed secondary technical panels.
 
 ## Endpoint Summary
 

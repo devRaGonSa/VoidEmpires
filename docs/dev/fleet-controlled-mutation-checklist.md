@@ -2,9 +2,9 @@
 
 Use this checklist for the current non-visual regression pass around the Fleet page estimate -> confirm -> create-transfer -> confirm -> cancel-transfer flow.
 
-Manual browser review is not required for this block unless a clear frontend regression appears.
+Use this checklist as the non-visual mutation baseline for Fleet cockpit v1.
 
-For the polished Fleet cockpit milestone, pair this checklist with the manual visual review section in `docs/dev/frontend-foundation-smoke-checklist.md`.
+For final manual QA, pair it with the Fleet cockpit v1 visual review section in `docs/dev/frontend-foundation-smoke-checklist.md`.
 
 ## Required validation
 
@@ -32,7 +32,7 @@ For the polished Fleet cockpit milestone, pair this checklist with the manual vi
 
 ## Visual QA focus
 
-If a manual browser pass is needed for this milestone, confirm:
+For the final manual browser pass, confirm:
 
 1. The main Fleet action column stays readable in this order: escuadra, destino, estimacion, confirmacion, resultado.
 2. `create transfer` and `cancel transfer` are still the only executable mutation actions and both remain behind explicit confirmation.

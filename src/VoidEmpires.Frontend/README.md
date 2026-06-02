@@ -153,7 +153,6 @@ Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/fleets/orbita
 
 If a previous local run already mutated fleet state, inspect `ui-state` first. Re-applying `minimal-validation` restores missing baseline rows only; use a fresh disposable local database when you need the original transfer/resource baseline back.
 
-Manual browser review is deferred for this block unless a clear regression appears. See `docs/dev/frontend-foundation-smoke-checklist.md`.
-
-For the Fleet cockpit milestone, use the manual visual checklist there after the required non-visual validation commands succeed. Focus the browser review on mostly Spanish copy, a readable rail + selected-group + action-column hierarchy, explicit create/cancel confirmations, secondary compact ids, readable resource context, and readable result or error feedback without dominant raw enum numbers or `NetworkError` text.
-Also confirm the active-transfer panel remains obvious, progress-aware, and cancel-ready, while technical manifests stay collapsed behind development details by default.
+For Fleet cockpit v1, use `docs/dev/frontend-foundation-smoke-checklist.md` as the final manual visual QA checklist after the required non-visual validation commands succeed.
+Focus the browser review on mostly Spanish shell labels, a readable rail + selected-group + action-column hierarchy, explicit create/cancel confirmations, secondary compact ids, readable resource context, readable estimate results, and readable result or error feedback without dominant raw enum numbers or `NetworkError` text.
+Also confirm the active-transfer panel remains obvious, progress-aware, and cancel-ready, while technical manifests stay collapsed behind development details by default and `complete-due`, `split`, and `merge` remain prototype-only.

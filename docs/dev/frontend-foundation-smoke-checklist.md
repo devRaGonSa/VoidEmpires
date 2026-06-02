@@ -12,7 +12,7 @@ For the specific Fleet estimate -> confirm -> create-transfer -> confirm -> canc
 
 ## Frontend checks
 
-Manual visual validation is deferred for the current fleet execution block unless a clear regression appears. Use the steps below only when you need extra local confidence after the required non-visual validation commands succeed.
+Use the steps below as the final manual QA checklist for Fleet cockpit v1 after the required non-visual validation commands succeed.
 
 1. Run `npm install` in `src/VoidEmpires.Frontend`.
 2. Run `npm run build`.
@@ -53,7 +53,7 @@ Manual visual validation is deferred for the current fleet execution block unles
    - feedback areas for estimate, create-transfer, and cancel-transfer results render readable success, warning, or error messaging rather than JSON-first output
    - fleet and strategic-map manifests render as read-only contract panels
    - mutating manifest actions remain labeled but unavailable from the frontend
-12. For the polished Fleet cockpit visual review, confirm:
+12. For the final Fleet cockpit v1 visual review, confirm:
    - the screen reads mostly in Spanish and no mixed English labels dominate the main flow
    - the rail, selected-group panel, active-transfer panel, and main action column feel like a simple playable fleet screen rather than a dev console
    - the squad rail is compact and scannable, with ship type, quantity, location, destination, status, and readiness visible before compact ids

@@ -3,7 +3,7 @@
 ---
 id: TASK-12R
 title: Phase 12R - Fleet cockpit final visual QA docs
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
