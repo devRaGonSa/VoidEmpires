@@ -103,7 +103,7 @@ Use this checklist for the current frontend preparation block. Manual visual QA 
 2. Run `dotnet test --no-build` from the repository root.
 3. Run `npm run build --prefix src/VoidEmpires.Frontend`.
 4. Optionally apply the `minimal-validation` seed, inspect `GET /api/dev/fleets/ui-state`, and then call `POST /api/dev/fleets/orbital-travel/estimate` when you need non-visual confirmation that readiness metadata and estimate shapes still match the documented contracts.
-5. Treat frontend mutation controls as development-only affordances. The current Fleet page may execute only `create` behind an explicit confirmation flow; `cancel`, `complete-due`, `split`, and `merge` must remain non-executable.
+5. Treat frontend mutation controls as development-only affordances. The current Fleet page may execute only `create` behind an explicit confirmation flow; `cancel` may expose a local confirmation summary for a visible active transfer but must remain non-executable, and `complete-due`, `split`, and `merge` must stay disabled or metadata-only.
 6. Keep manual browser review deferred unless a clear frontend regression appears; this milestone relies on build, test, and optional API-only checks rather than visual sign-off.
 
 Manual browser review is not required for Phase 11H through 11K unless a clear frontend regression appears. The intended evidence for this block is successful build and test execution plus optional API-level contract checks.
@@ -257,11 +257,12 @@ Frontend readiness guidance:
 - Treat `commands` and `routeFuelReadiness.canRequestTravelEstimate` as readiness metadata only. Render them as `Ready` or `Blocked` labels instead of executable controls.
 - Keep read-only inspection actions such as `estimate`, `overview`, `ui-state`, and manifest reads visually distinct from mutation contracts, even when an inspection route uses `POST`.
 - The current frontend prototype may execute `POST /api/dev/fleets/orbital-travel/estimate` plus the explicitly confirmed development-only `POST /api/dev/fleets/orbital-transfers/create`.
+- A cancel-transfer prototype may summarize `transfer id`, `group id`, origin, current planet, destination, arrival, and progress for a visible active transfer before confirmation, but it must not call `POST /api/dev/fleets/orbital-transfers/cancel` in this preparation phase.
 - `create transfer` should remain behind the latest matching estimate context, summarize route and cost before submission, and clear or mark stale estimate data after a successful mutation refresh with an `estado actualizado` style cue.
 - Frontend guards should invalidate the pending estimate when fleet UI state refreshes, when the selected group changes, when the destination changes, or when the estimated group is no longer stationed and create-ready.
 - Frontend guards should block duplicate `create transfer` submissions while the request is in flight and should reject submission unless the currently selected group and destination still match the latest successful estimate.
 - Frontend result feedback should distinguish success, validation (`400`), missing data (`404`), stale or already-active conflicts (`409`), persistence gating (`503`), network failures, and unexpected non-JSON or malformed JSON responses.
-- Keep mutation contracts in clearly marked development or prototype sections. Current Fleet page work must not wire split, merge, create, cancel, or complete-due to ordinary gameplay-style buttons or click handlers.
+- Keep mutation contracts in clearly marked development or prototype sections. Current Fleet page work must not wire split, merge, cancel, or complete-due to ordinary gameplay-style buttons or click handlers, and only the guarded create-transfer flow may execute.
 - Disabled prototype controls are allowed for discoverability only when they stay visibly guarded, non-submitting, and non-executable.
 - If a prototype later executes a mutation contract, require an explicit development-only affordance and show the route as a contract boundary rather than presenting it as routine gameplay UI.
 

@@ -3,7 +3,7 @@
 ---
 id: TASK-11T
 title: Phase 11T - Cancel transfer confirmation flow
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

@@ -925,6 +925,10 @@ input {
   margin-top: 14px;
 }
 
+.transfer-prepare-button {
+  width: 100%;
+}
+
 .transfer-confirmation-actions button {
   justify-self: start;
   padding: var(--ve-space-3) var(--ve-space-4);

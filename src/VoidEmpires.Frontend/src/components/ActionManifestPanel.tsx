@@ -139,6 +139,14 @@ export function ActionManifestPanel({
               {!action.isReadOnly && confirmation ? (
                 <dl className="meta-list">
                   <div>
+                    <dt>Surface</dt>
+                    <dd>{confirmation.surfaceLabel}</dd>
+                  </div>
+                  <div>
+                    <dt>Readiness</dt>
+                    <dd>{confirmation.readinessLabel}</dd>
+                  </div>
+                  <div>
                     <dt>Prototype level</dt>
                     <dd>{confirmation.prototypeLevel}</dd>
                   </div>

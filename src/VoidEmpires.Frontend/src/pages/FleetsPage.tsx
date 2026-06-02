@@ -61,6 +61,11 @@ function getTransferProgress(group: FleetGroupSummary) {
   return Math.max(0, Math.min(100, ((now - departure) / (arrival - departure)) * 100));
 }
 
+function formatTransferProgressLabel(group: FleetGroupSummary) {
+  const progress = getTransferProgress(group);
+  return progress === null ? null : `${Math.round(progress)}% completado`;
+}
+
 function getGroupTone(group: FleetGroupSummary): "good" | "warn" | "neutral" {
   if (group.hasActiveTransfer) {
     return "warn";
@@ -126,6 +131,8 @@ export function FleetsPage() {
   const [estimateSnapshot, setEstimateSnapshot] = useState<EstimateSnapshot | null>(null);
   const [estimateStaleMessage, setEstimateStaleMessage] = useState<string | null>(null);
   const [hasCreateTransferAcknowledgement, setHasCreateTransferAcknowledgement] = useState(false);
+  const [preparedCancelTransferId, setPreparedCancelTransferId] = useState("");
+  const [hasCancelTransferAcknowledgement, setHasCancelTransferAcknowledgement] = useState(false);
   const [isCreatingTransfer, setIsCreatingTransfer] = useState(false);
   const [createTransferResult, setCreateTransferResult] = useState<FleetCommandPresentationItem | null>(null);
   const [createTransferNetworkError, setCreateTransferNetworkError] = useState<string | null>(null);
@@ -184,6 +191,14 @@ export function FleetsPage() {
   const mutationConfirmations = useMemo(
     () => buildFleetMutationConfirmations(fleetManifest, uiState),
     [fleetManifest, uiState],
+  );
+  const visiblePreparedCancelTransfer = useMemo(
+    () =>
+      uiState?.groups.find(
+        (group) =>
+          group.activeTransfer?.id === preparedCancelTransferId && group.commands?.canCancelTransfer,
+      ) ?? null,
+    [preparedCancelTransferId, uiState],
   );
   const liveEstimateResponse = useMemo(() => {
     const response = estimateApiResult?.response;
@@ -321,6 +336,17 @@ export function FleetsPage() {
       invalidateEstimate("El destino cambio desde la ultima estimacion. Calcula una nueva estimacion.");
     }
   }, [effectiveDestinationPlanetId, estimateSnapshot, selectedGroup]);
+
+  useEffect(() => {
+    if (!preparedCancelTransferId) {
+      return;
+    }
+
+    if (!visiblePreparedCancelTransfer) {
+      setPreparedCancelTransferId("");
+      setHasCancelTransferAcknowledgement(false);
+    }
+  }, [preparedCancelTransferId, visiblePreparedCancelTransfer]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -488,6 +514,13 @@ export function FleetsPage() {
     }
   }
 
+  function handlePrepareCancelTransfer(orbitalTransferId: string) {
+    setPreparedCancelTransferId((currentValue) =>
+      currentValue === orbitalTransferId ? "" : orbitalTransferId,
+    );
+    setHasCancelTransferAcknowledgement(false);
+  }
+
   return (
     <section className="page-grid">
       <UiCard className="panel panel-hero figma-hero-card">
@@ -504,7 +537,7 @@ export function FleetsPage() {
           <UiBadge>Manifest metadata only</UiBadge>
           <UiBadge tone="warn">Prototype-only mutation contracts</UiBadge>
           <UiBadge>Progress bars for active transfers</UiBadge>
-          <UiBadge tone="warn">No command execution</UiBadge>
+          <UiBadge tone="warn">Create transfer guarded</UiBadge>
         </div>
       </UiCard>
 
@@ -546,7 +579,7 @@ export function FleetsPage() {
           </div>
           <ul className="stack-list">
             <li>Action manifests remain documentation and readiness metadata only.</li>
-            <li>Mutating routes are development-only contracts and can never be executed from this page.</li>
+            <li>Create transfer stays behind explicit confirmation, while cancel remains preparation-only.</li>
             <li>Route/fuel and interception details remain non-authoritative hints.</li>
             <li>All responses are development tooling, not production gameplay APIs.</li>
           </ul>
@@ -944,6 +977,10 @@ export function FleetsPage() {
                     )}
                     <div className="figma-data-list">
                       <FleetDataRow
+                        label="Transfer"
+                        value={formatCompactGuid(group.activeTransfer.id)}
+                      />
+                      <FleetDataRow
                         label="Destination"
                         value={formatPlanetReference(group.activeTransfer.destinationPlanetId)}
                       />
@@ -955,7 +992,81 @@ export function FleetsPage() {
                         label="Arrival"
                         value={group.activeTransfer.arrivalAtUtc}
                       />
+                      {transferProgress !== null ? (
+                        <FleetDataRow
+                          label="Progress"
+                          value={formatTransferProgressLabel(group) ?? "Sin progreso"}
+                        />
+                      ) : null}
                     </div>
+                    <div className="transfer-confirmation-actions">
+                      <button
+                        type="button"
+                        className="prototype-control-button transfer-prepare-button"
+                        onClick={() => handlePrepareCancelTransfer(group.activeTransfer?.id ?? "")}
+                        disabled={!group.activeTransfer?.id || !group.commands?.canCancelTransfer}
+                      >
+                        {preparedCancelTransferId === group.activeTransfer.id
+                          ? "Ocultar confirmacion"
+                          : "Preparar cancelacion"}
+                      </button>
+                    </div>
+                    {preparedCancelTransferId === group.activeTransfer.id && (
+                      <section className="subpanel transfer-confirmation-panel">
+                        <div className="figma-section-header">
+                          <div>
+                            <p className="eyebrow">Accion de desarrollo</p>
+                            <h4>Cancelar transferencia orbital</h4>
+                            <p>Mutara datos de desarrollo cuando la ejecucion controlada se habilite.</p>
+                          </div>
+                          <div className="figma-badge-row">
+                            <UiBadge tone="warn">Accion de desarrollo</UiBadge>
+                            <UiBadge tone="warn">No reembolsa recursos</UiBadge>
+                          </div>
+                        </div>
+                        <div className="figma-data-list">
+                          <FleetDataRow label="Transfer" value={formatCompactGuid(group.activeTransfer.id)} />
+                          <FleetDataRow label="Grupo" value={formatCompactGuid(group.id)} />
+                          <FleetDataRow label="Origen" value={formatPlanetReference(group.originPlanetId)} />
+                          <FleetDataRow label="Planeta actual" value={formatPlanetReference(group.currentPlanetId)} />
+                          <FleetDataRow label="Destino" value={formatPlanetReference(group.activeTransfer.destinationPlanetId)} />
+                          <FleetDataRow label="Llegada" value={group.activeTransfer.arrivalAtUtc} />
+                          {transferProgress !== null ? (
+                            <FleetDataRow
+                              label="Progreso"
+                              value={formatTransferProgressLabel(group) ?? "Sin progreso"}
+                            />
+                          ) : null}
+                        </div>
+                        <ul className="stack-list compact-list">
+                          <li>Transfer id conocido y visible antes de confirmar.</li>
+                          <li>Requiere confirmacion explicita.</li>
+                          <li>La ejecucion del endpoint sigue bloqueada en esta fase.</li>
+                        </ul>
+                        <div className="transfer-confirmation-flow">
+                          <label className="confirmation-checkbox">
+                            <input
+                              type="checkbox"
+                              checked={hasCancelTransferAcknowledgement}
+                              onChange={(event) =>
+                                setHasCancelTransferAcknowledgement(event.target.checked)
+                              }
+                            />
+                            <span>Requiere confirmacion explicita</span>
+                          </label>
+                          <div className="transfer-confirmation-actions">
+                            <button type="button" disabled>
+                              {hasCancelTransferAcknowledgement
+                                ? "Cancelar transferencia orbital pendiente"
+                                : "Cancelar transferencia orbital"}
+                            </button>
+                          </div>
+                          <p className="figma-panel-note">
+                            No reembolsa recursos y todavia no llama a `fleet.transfer.cancel`.
+                          </p>
+                        </div>
+                      </section>
+                    )}
                     {group.activeTransfer.interceptionReadiness?.readinessNote && (
                       <p className="figma-panel-note">
                         {group.activeTransfer.interceptionReadiness.readinessNote}

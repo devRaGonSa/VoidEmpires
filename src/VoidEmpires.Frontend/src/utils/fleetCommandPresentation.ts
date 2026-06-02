@@ -34,6 +34,7 @@ export interface FleetMutationConfirmationModel {
   label: string;
   prototypeLevel: "prototype" | "danger";
   mutationSummary: string;
+  surfaceLabel: string;
   readinessLabel: string;
   readinessTone: CommandTone;
   requiresConfirmation: boolean;
@@ -118,6 +119,7 @@ export function buildFleetMutationConfirmations(
           label: action.displayName,
           prototypeLevel: "danger",
           mutationSummary,
+          surfaceLabel: "Solo metadata protegida",
           readinessLabel: activeTransfers > 0 ? "Global batch guarded" : "Waiting for due transfers",
           readinessTone: activeTransfers > 0 ? "warn" : "neutral",
           requiresConfirmation: true,
@@ -131,7 +133,7 @@ export function buildFleetMutationConfirmations(
           ? "A dedicated local confirmation flow is available, but route execution remains disabled on the Fleet page."
           : "No stationed groups are currently available to prepare a transfer.",
         "fleet.transfer.cancel": activeTransfers > 0
-          ? "Execution remains disabled on the Fleet page even when active transfers exist."
+          ? "A dedicated local confirmation flow can prepare cancellation, but endpoint execution remains disabled on the Fleet page."
           : "No active transfers are currently available to cancel.",
         "fleet.group.split": splitReadyGroups > 0
           ? "Execution remains disabled on the Fleet page even when split-ready groups exist."
@@ -146,6 +148,12 @@ export function buildFleetMutationConfirmations(
         label: action.displayName,
         prototypeLevel: "prototype",
         mutationSummary,
+        surfaceLabel:
+          action.actionKey === "fleet.transfer.create"
+            ? "Confirmacion local con ejecucion controlada"
+            : action.actionKey === "fleet.transfer.cancel"
+              ? "Confirmacion local sin ejecucion"
+              : "Solo metadata protegida",
         readinessLabel:
           action.actionKey === "fleet.transfer.create"
             ? stationedGroups > 0 ? "Ready in metadata" : "Blocked"
