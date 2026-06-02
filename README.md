@@ -90,7 +90,12 @@ Invoke-RestMethod `
 Current convention notes:
 
 - The `minimal-validation` profile is the stable profile name for development validation data.
-- Phase `9Y` introduces only the explicit trigger and contract; later tasks extend the same profile with actual dataset rows.
+- The profile currently seeds a deterministic strategic-map dataset for civilization `00000000-0000-0000-0000-000000000001`.
+- Deterministic IDs:
+- System `20000000-0000-0000-0000-000000000001`
+- Planet `40000000-0000-0000-0000-000000000001` (`Aurelia`, owned)
+- Planet `40000000-0000-0000-0000-000000000002` (`Cinder Reach`)
+- Planet `40000000-0000-0000-0000-000000000003` (`Frost Hollow`)
 - Re-running the same profile should remain safe and idempotent as later seed tasks add data.
 - Keep seed execution in `Development`, or explicitly set `VoidEmpires:DevEndpoints:Enabled=true` for non-production validation environments only.
 

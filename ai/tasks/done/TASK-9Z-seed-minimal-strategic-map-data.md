@@ -3,7 +3,7 @@
 ---
 id: TASK-9Z
 title: Phase 9Z - Seed minimal strategic map development data
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
