@@ -46,6 +46,7 @@ public class DevOrbitalGroupMergeEndpointTests(WebApplicationFactory<Program> fa
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(MergeOrbitalGroupsResultStatus.ValidationFailed, payload.Status);
         Assert.False(payload.Succeeded);
         Assert.Contains("Civilization id is required.", payload.Errors);
         Assert.Contains("Target orbital group id is required.", payload.Errors);
@@ -62,11 +63,42 @@ public class DevOrbitalGroupMergeEndpointTests(WebApplicationFactory<Program> fa
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(MergeOrbitalGroupsResultStatus.Succeeded, payload.Status);
         Assert.True(payload.Succeeded);
         Assert.Equal(TargetOrbitalGroupId, payload.TargetOrbitalGroupId);
         Assert.Equal(SourceOrbitalGroupId, payload.SourceOrbitalGroupId);
         Assert.Equal(5, payload.TargetQuantity);
         Assert.Empty(payload.Errors);
+    }
+
+    [Fact]
+    public async Task MergeOrbitalGroupsReturnsNotFoundWhenServiceCannotFindGroup()
+    {
+        using var client = CreateConfiguredClient(MergeOrbitalGroupsResult.Failure("Target orbital group was not found."));
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-groups/merge", ValidRequest());
+        var payload = await response.Content.ReadFromJsonAsync<MergeOrbitalGroupsResponse>();
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.Equal(MergeOrbitalGroupsResultStatus.NotFound, payload.Status);
+        Assert.False(payload.Succeeded);
+        Assert.Contains("Target orbital group was not found.", payload.Errors);
+    }
+
+    [Fact]
+    public async Task MergeOrbitalGroupsReturnsConflictForWrongCivilizationRejection()
+    {
+        using var client = CreateConfiguredClient(MergeOrbitalGroupsResult.Failure("Both orbital groups must belong to the civilization."));
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-groups/merge", ValidRequest());
+        var payload = await response.Content.ReadFromJsonAsync<MergeOrbitalGroupsResponse>();
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.Equal(MergeOrbitalGroupsResultStatus.Conflict, payload.Status);
+        Assert.False(payload.Succeeded);
+        Assert.Contains("Both orbital groups must belong to the civilization.", payload.Errors);
     }
 
     [Fact]
@@ -79,6 +111,7 @@ public class DevOrbitalGroupMergeEndpointTests(WebApplicationFactory<Program> fa
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(MergeOrbitalGroupsResultStatus.Conflict, payload.Status);
         Assert.False(payload.Succeeded);
         Assert.Contains("Target orbital group already has an active transfer.", payload.Errors);
     }
@@ -116,9 +149,18 @@ public class DevOrbitalGroupMergeEndpointTests(WebApplicationFactory<Program> fa
     }
 
     private sealed record MergeOrbitalGroupsResponse(
+        MergeOrbitalGroupsResultStatus Status,
         bool Succeeded,
         Guid? TargetOrbitalGroupId,
         Guid? SourceOrbitalGroupId,
         int TargetQuantity,
         string[] Errors);
+
+    private enum MergeOrbitalGroupsResultStatus
+    {
+        Succeeded = 0,
+        ValidationFailed = 1,
+        NotFound = 2,
+        Conflict = 3
+    }
 }

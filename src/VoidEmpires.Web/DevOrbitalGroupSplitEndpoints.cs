@@ -29,6 +29,7 @@ internal static class DevOrbitalGroupSplitEndpoints
                 request.Quantity!.Value), cancellationToken);
 
             var response = new SplitOrbitalGroupApiResponse(
+                GetStatus(result),
                 result.Succeeded,
                 result.SourceOrbitalGroupId,
                 result.NewOrbitalGroupId,
@@ -36,9 +37,13 @@ internal static class DevOrbitalGroupSplitEndpoints
                 result.NewQuantity,
                 result.Errors);
 
-            return result.Succeeded
-                ? Results.Created($"/api/dev/fleets/orbital-groups/{result.NewOrbitalGroupId}", response)
-                : Results.Conflict(response);
+            return response.Status switch
+            {
+                SplitOrbitalGroupApiResultStatus.Succeeded => Results.Created($"/api/dev/fleets/orbital-groups/{result.NewOrbitalGroupId}", response),
+                SplitOrbitalGroupApiResultStatus.ValidationFailed => Results.BadRequest(response),
+                SplitOrbitalGroupApiResultStatus.NotFound => Results.NotFound(response),
+                _ => Results.Conflict(response)
+            };
         });
     }
 
@@ -66,6 +71,26 @@ internal static class DevOrbitalGroupSplitEndpoints
 
         return errors;
     }
+
+    private static SplitOrbitalGroupApiResultStatus GetStatus(SplitOrbitalGroupResult result)
+    {
+        if (result.Succeeded)
+        {
+            return SplitOrbitalGroupApiResultStatus.Succeeded;
+        }
+
+        return result.Errors.Any(error => error.Contains("was not found", StringComparison.Ordinal))
+            ? SplitOrbitalGroupApiResultStatus.NotFound
+            : SplitOrbitalGroupApiResultStatus.Conflict;
+    }
+}
+
+internal enum SplitOrbitalGroupApiResultStatus
+{
+    Succeeded = 0,
+    ValidationFailed = 1,
+    NotFound = 2,
+    Conflict = 3
 }
 
 internal sealed record SplitOrbitalGroupApiRequest(
@@ -74,6 +99,7 @@ internal sealed record SplitOrbitalGroupApiRequest(
     int? Quantity);
 
 internal sealed record SplitOrbitalGroupApiResponse(
+    SplitOrbitalGroupApiResultStatus Status,
     bool Succeeded,
     Guid? SourceOrbitalGroupId,
     Guid? NewOrbitalGroupId,
@@ -82,5 +108,5 @@ internal sealed record SplitOrbitalGroupApiResponse(
     IReadOnlyList<string> Errors)
 {
     public static SplitOrbitalGroupApiResponse Failure(IReadOnlyList<string> errors) =>
-        new(false, null, null, 0, 0, errors);
+        new(SplitOrbitalGroupApiResultStatus.ValidationFailed, false, null, null, 0, 0, errors);
 }

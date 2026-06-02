@@ -3,7 +3,7 @@
 ---
 id: TASK-10W
 title: Phase 10W - Split and merge endpoint contract hardening
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

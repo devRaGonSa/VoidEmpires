@@ -46,6 +46,7 @@ public class DevOrbitalGroupSplitEndpointTests(WebApplicationFactory<Program> fa
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(SplitOrbitalGroupResultStatus.ValidationFailed, payload.Status);
         Assert.False(payload.Succeeded);
         Assert.Contains("Civilization id is required.", payload.Errors);
         Assert.Contains("Source orbital group id is required.", payload.Errors);
@@ -62,12 +63,43 @@ public class DevOrbitalGroupSplitEndpointTests(WebApplicationFactory<Program> fa
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(SplitOrbitalGroupResultStatus.Succeeded, payload.Status);
         Assert.True(payload.Succeeded);
         Assert.Equal(SourceOrbitalGroupId, payload.SourceOrbitalGroupId);
         Assert.Equal(NewOrbitalGroupId, payload.NewOrbitalGroupId);
         Assert.Equal(3, payload.SourceQuantity);
         Assert.Equal(2, payload.NewQuantity);
         Assert.Empty(payload.Errors);
+    }
+
+    [Fact]
+    public async Task SplitOrbitalGroupReturnsNotFoundWhenServiceCannotFindSourceGroup()
+    {
+        using var client = CreateConfiguredClient(SplitOrbitalGroupResult.Failure("Source orbital group was not found."));
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-groups/split", ValidRequest());
+        var payload = await response.Content.ReadFromJsonAsync<SplitOrbitalGroupResponse>();
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.Equal(SplitOrbitalGroupResultStatus.NotFound, payload.Status);
+        Assert.False(payload.Succeeded);
+        Assert.Contains("Source orbital group was not found.", payload.Errors);
+    }
+
+    [Fact]
+    public async Task SplitOrbitalGroupReturnsConflictForWrongCivilizationRejection()
+    {
+        using var client = CreateConfiguredClient(SplitOrbitalGroupResult.Failure("Source orbital group does not belong to the civilization."));
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-groups/split", ValidRequest());
+        var payload = await response.Content.ReadFromJsonAsync<SplitOrbitalGroupResponse>();
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.Equal(SplitOrbitalGroupResultStatus.Conflict, payload.Status);
+        Assert.False(payload.Succeeded);
+        Assert.Contains("Source orbital group does not belong to the civilization.", payload.Errors);
     }
 
     [Fact]
@@ -80,6 +112,7 @@ public class DevOrbitalGroupSplitEndpointTests(WebApplicationFactory<Program> fa
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(SplitOrbitalGroupResultStatus.Conflict, payload.Status);
         Assert.False(payload.Succeeded);
         Assert.Contains("Source orbital group already has an active transfer.", payload.Errors);
     }
@@ -117,10 +150,19 @@ public class DevOrbitalGroupSplitEndpointTests(WebApplicationFactory<Program> fa
     }
 
     private sealed record SplitOrbitalGroupResponse(
+        SplitOrbitalGroupResultStatus Status,
         bool Succeeded,
         Guid? SourceOrbitalGroupId,
         Guid? NewOrbitalGroupId,
         int SourceQuantity,
         int NewQuantity,
         string[] Errors);
+
+    private enum SplitOrbitalGroupResultStatus
+    {
+        Succeeded = 0,
+        ValidationFailed = 1,
+        NotFound = 2,
+        Conflict = 3
+    }
 }

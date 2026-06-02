@@ -29,15 +29,20 @@ internal static class DevOrbitalGroupMergeEndpoints
                 request.SourceOrbitalGroupId!.Value), cancellationToken);
 
             var response = new MergeOrbitalGroupsApiResponse(
+                GetStatus(result),
                 result.Succeeded,
                 result.TargetOrbitalGroupId,
                 result.SourceOrbitalGroupId,
                 result.TargetQuantity,
                 result.Errors);
 
-            return result.Succeeded
-                ? Results.Ok(response)
-                : Results.Conflict(response);
+            return response.Status switch
+            {
+                MergeOrbitalGroupsApiResultStatus.Succeeded => Results.Ok(response),
+                MergeOrbitalGroupsApiResultStatus.ValidationFailed => Results.BadRequest(response),
+                MergeOrbitalGroupsApiResultStatus.NotFound => Results.NotFound(response),
+                _ => Results.Conflict(response)
+            };
         });
     }
 
@@ -70,6 +75,26 @@ internal static class DevOrbitalGroupMergeEndpoints
 
         return errors;
     }
+
+    private static MergeOrbitalGroupsApiResultStatus GetStatus(MergeOrbitalGroupsResult result)
+    {
+        if (result.Succeeded)
+        {
+            return MergeOrbitalGroupsApiResultStatus.Succeeded;
+        }
+
+        return result.Errors.Any(error => error.Contains("was not found", StringComparison.Ordinal))
+            ? MergeOrbitalGroupsApiResultStatus.NotFound
+            : MergeOrbitalGroupsApiResultStatus.Conflict;
+    }
+}
+
+internal enum MergeOrbitalGroupsApiResultStatus
+{
+    Succeeded = 0,
+    ValidationFailed = 1,
+    NotFound = 2,
+    Conflict = 3
 }
 
 internal sealed record MergeOrbitalGroupsApiRequest(
@@ -78,6 +103,7 @@ internal sealed record MergeOrbitalGroupsApiRequest(
     Guid? SourceOrbitalGroupId);
 
 internal sealed record MergeOrbitalGroupsApiResponse(
+    MergeOrbitalGroupsApiResultStatus Status,
     bool Succeeded,
     Guid? TargetOrbitalGroupId,
     Guid? SourceOrbitalGroupId,
@@ -85,5 +111,5 @@ internal sealed record MergeOrbitalGroupsApiResponse(
     IReadOnlyList<string> Errors)
 {
     public static MergeOrbitalGroupsApiResponse Failure(IReadOnlyList<string> errors) =>
-        new(false, null, null, 0, errors);
+        new(MergeOrbitalGroupsApiResultStatus.ValidationFailed, false, null, null, 0, errors);
 }
