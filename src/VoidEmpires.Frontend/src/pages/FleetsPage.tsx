@@ -767,7 +767,7 @@ export function FleetsPage() {
         <div className="figma-hero-copy">
           <UiBadge tone="resource">Cabina fase 11X</UiBadge>
           <h2>Cabina de mando orbital</h2>
-          <p>Revisa la huella de flota, enfoca una escuadra cada vez y deja las acciones de desarrollo tras confirmacion explicita.</p>
+          <p>Revisa tu flota, elige una escuadra y confirma cada orden importante antes de moverla.</p>
         </div>
         <div className="figma-badge-row">
           <UiBadge>Resumen tactico</UiBadge>
@@ -819,7 +819,7 @@ export function FleetsPage() {
             <li>La estimacion sigue en solo lectura y nunca reserva escuadras ni gasta recursos.</li>
             <li>Crear traslado exige una estimacion vigente y una confirmacion explicita.</li>
             <li>Anular traslado exige un traslado activo visible y una confirmacion explicita.</li>
-            <li>Completar vencidos, dividir y fusionar siguen visibles solo como metadata de prototipo.</li>
+            <li>Cerrar llegadas, dividir y fusionar siguen visibles solo como referencia de prototipo.</li>
           </ul>
         </UiCard>
       </div>
@@ -867,7 +867,7 @@ export function FleetsPage() {
             <div>
               <p className="eyebrow">Traslados activos</p>
               <h3>Movimientos en curso</h3>
-              <p>Carga primero una cabina para ver traslados activos, rutas anulables y llegadas vencidas.</p>
+              <p>Carga primero una flota para ver rutas activas, cancelaciones disponibles y llegadas vencidas.</p>
             </div>
             <UiBadge tone="neutral">Sin datos</UiBadge>
           </div>
@@ -882,7 +882,7 @@ export function FleetsPage() {
               <div>
                 <p className="eyebrow">Lista orbital</p>
                 <h3>Escuadras</h3>
-                <p>La cabina principal siempre se centra en una escuadra operativa a la vez.</p>
+                <p>Esta vista siempre se centra en una sola escuadra operativa.</p>
               </div>
               <UiBadge>{uiState.groups.length} seguidas</UiBadge>
             </div>
@@ -1219,7 +1219,7 @@ export function FleetsPage() {
                 </div>
               ) : null}
               {activeTransferGroups.length > 0 && cancellableTransferCount === 0 ? (
-                <p className="figma-panel-note">Ningun traslado visible puede anularse ahora mismo segun la API.</p>
+                <p className="figma-panel-note">Ninguna ruta visible puede cancelarse ahora mismo.</p>
               ) : null}
               {activeTransferGroups.length > 0 && dueTransferGroups.length === 0 ? (
                 <p className="figma-panel-note">No hay llegadas vencidas; completar vencidos seguira oculto hasta que alguna ruta llegue a tiempo.</p>

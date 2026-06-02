@@ -3,7 +3,7 @@
 ---
 id: TASK-13B
 title: Phase 13B - Fleet technical copy collapse
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

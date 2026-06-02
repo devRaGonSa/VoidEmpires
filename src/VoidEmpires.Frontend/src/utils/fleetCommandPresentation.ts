@@ -567,7 +567,7 @@ export function presentCreateTransferNetworkFailure(message: string): FleetComma
     key: "create-transfer-network-error",
     label: "Error de red",
     tone: "warn",
-    summary: "No se pudo completar crear traslado porque la solicitud no llego a la API.",
+    summary: "No se pudo enviar la flota por un problema de conexion.",
     details: [message],
     facts: undefined,
   };
@@ -630,7 +630,7 @@ export function presentCancelTransferNetworkFailure(message: string): FleetComma
     key: "cancel-transfer-network-error",
     label: "Error de red",
     tone: "warn",
-    summary: "No se pudo completar anular traslado porque la solicitud no llego a la API.",
+    summary: "No se pudo cancelar la ruta por un problema de conexion.",
     details: [message],
     facts: undefined,
   };

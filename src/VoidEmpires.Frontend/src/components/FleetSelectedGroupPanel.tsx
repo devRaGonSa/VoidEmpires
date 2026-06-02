@@ -259,7 +259,7 @@ export function FleetSelectedGroupPanel({
               </div>
             </div>
             {!canCompleteDueTransfers ? (
-              <p className="figma-panel-note">La accion de cierre sigue oculta porque este entorno no expone ese contrato.</p>
+              <p className="figma-panel-note">Esta accion todavia no esta disponible en esta pantalla.</p>
             ) : null}
             {!isDueTransferReady ? (
               <p className="figma-panel-note">Todavia no hay una llegada vencida para habilitar este cierre.</p>
@@ -294,7 +294,7 @@ export function FleetSelectedGroupPanel({
             ) : null}
           </section>
           {!canCancelTransfer ? (
-            <p className="figma-panel-note">La anulacion solo aparece cuando la API marca este traslado como anulable.</p>
+            <p className="figma-panel-note">La cancelacion solo aparece cuando esta ruta ya puede detenerse.</p>
           ) : null}
           {preparedCancelTransferId === group.activeTransfer.id ? (
             <section className="subpanel transfer-confirmation-panel">
