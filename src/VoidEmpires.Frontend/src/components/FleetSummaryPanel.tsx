@@ -27,10 +27,10 @@ export function FleetSummaryPanel({
   return (
     <article className={`subpanel figma-subpanel fleet-summary-card${isSelected ? " fleet-summary-card-selected" : ""}`}>
       <div className="figma-section-header">
-        <div>
+        <div className="fleet-identity-block">
           <p className="eyebrow">Escuadra orbital</p>
           <h4>{formatSpaceAssetType(group.assetType)}</h4>
-          <p>{formatCompactGuid(group.id)}</p>
+          <p className="dev-meta">ID tactico {formatCompactGuid(group.id)}</p>
         </div>
         <UiBadge tone={group.hasActiveTransfer ? "warn" : group.commands?.canCreateTransfer ? "good" : "neutral"}>
           {formatOrbitalGroupStatus(group.status)}

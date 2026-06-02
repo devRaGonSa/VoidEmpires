@@ -3,7 +3,7 @@
 ---
 id: TASK-12D
 title: Phase 12D - Fleet cockpit technical ID demotion
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

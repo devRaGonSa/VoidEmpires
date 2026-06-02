@@ -7,6 +7,7 @@ import type {
 } from "../api/fleetCommandTypes";
 import type { ActionManifestAction } from "../api/actionManifestTypes";
 import type { FleetActionHint, FleetGroupSummary, FleetUiState } from "../api/fleetTypes";
+import { formatCompactGuid, formatPlanetReference } from "./domainPresentation";
 
 type CommandTone = "neutral" | "good" | "warn";
 
@@ -55,6 +56,10 @@ function normalizeNotes(notes: ActionManifestAction["notes"]) {
   return Array.isArray(notes) ? notes : [notes];
 }
 
+function formatTechnicalId(value?: string | null) {
+  return value ? formatCompactGuid(value) : null;
+}
+
 export function buildFleetCommandReadiness(group: FleetGroupSummary, actionHints: FleetActionHint[]) {
   return [
     {
@@ -95,7 +100,7 @@ export function buildFleetCommandReadiness(group: FleetGroupSummary, actionHints
       label: getActionLabel("fleet.transfer.cancel", actionHints, "Anular traslado"),
       tone: group.commands?.canCancelTransfer ? "good" : "neutral",
       summary: group.commands?.canCancelTransfer ? "El traslado activo puede anularse" : "No hay traslados anulables",
-      details: group.activeTransfer ? [`Traslado ${group.activeTransfer.id}`] : [],
+      details: group.activeTransfer ? [`ID de traslado ${formatTechnicalId(group.activeTransfer.id)}`] : [],
     },
   ] satisfies FleetCommandPresentationItem[];
 }
@@ -258,16 +263,16 @@ export function presentCreateTransferResult(result: FleetCommandApiResult<Create
         : "warn",
     summary:
       isSuccess
-        ? `El estado de desarrollo cambio correctamente. Distancia ${response.abstractDistanceUnits} hacia ${response.destinationPlanetId ?? "destino desconocido"}.`
+        ? `El estado de desarrollo cambio correctamente. Distancia ${response.abstractDistanceUnits} hacia ${response.destinationPlanetId ? formatPlanetReference(response.destinationPlanetId) : "destino desconocido"}.`
         : hasExpectedErrorPayload && response.errors[0]
           ? response.errors[0]
           : defaultSummary,
     details: [
       ...(isSuccess ? ["La mutacion reservo el grupo y persistio una transferencia planificada."] : []),
-      ...(response?.orbitalTransferId ? [`Traslado ${response.orbitalTransferId}`] : []),
-      ...(response?.orbitalGroupId ? [`Grupo ${response.orbitalGroupId}`] : []),
-      ...(response?.originPlanetId ? [`Origen ${response.originPlanetId}`] : []),
-      ...(response?.destinationPlanetId ? [`Destino ${response.destinationPlanetId}`] : []),
+      ...(response?.orbitalTransferId ? [`ID de traslado ${formatTechnicalId(response.orbitalTransferId)}`] : []),
+      ...(response?.orbitalGroupId ? [`ID tactico ${formatTechnicalId(response.orbitalGroupId)}`] : []),
+      ...(response?.originPlanetId ? [`Origen ${formatPlanetReference(response.originPlanetId)}`] : []),
+      ...(response?.destinationPlanetId ? [`Destino ${formatPlanetReference(response.destinationPlanetId)}`] : []),
       ...(response?.departureAtUtc ? [`Salida ${response.departureAtUtc}`] : []),
       ...(response?.arrivalAtUtc ? [`Llegada ${response.arrivalAtUtc}`] : []),
       ...(!isSuccess && result.httpStatus === 409
@@ -326,8 +331,8 @@ export function presentCancelTransferResult(result: FleetCommandApiResult<Cancel
           : defaultSummary,
     details: [
       ...(isSuccess ? ["La cancelacion no reembolsa los recursos ya cobrados por el create transfer."] : []),
-      ...(response?.orbitalTransferId ? [`Traslado ${response.orbitalTransferId}`] : []),
-      ...(response?.orbitalGroupId ? [`Grupo ${response.orbitalGroupId}`] : []),
+      ...(response?.orbitalTransferId ? [`ID de traslado ${formatTechnicalId(response.orbitalTransferId)}`] : []),
+      ...(response?.orbitalGroupId ? [`ID tactico ${formatTechnicalId(response.orbitalGroupId)}`] : []),
       ...(!isSuccess && result.httpStatus === 404
         ? ["La confirmacion local puede estar obsoleta. Recarga la UI si otra accion ya elimino esta transferencia activa."]
         : []),

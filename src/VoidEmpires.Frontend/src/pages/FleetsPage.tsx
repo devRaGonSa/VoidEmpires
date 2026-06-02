@@ -647,12 +647,13 @@ export function FleetsPage() {
       {summary && (
         <UiCard className="panel fleet-summary-deck">
           <div className="figma-section-header">
-            <div>
+            <div className="fleet-identity-block">
               <p className="eyebrow">Resumen operativo</p>
               <h3>Puente de mando</h3>
               <p>Estado compacto de la civilizacion cargada y su situacion orbital.</p>
+              <p className="dev-meta">ID de civilizacion {formatCompactGuid(uiState?.civilizationId)}</p>
             </div>
-            <UiBadge>{formatCompactGuid(uiState?.civilizationId)}</UiBadge>
+            <UiBadge>Civilizacion cargada</UiBadge>
           </div>
           <div className="figma-stat-grid">
             <SummaryMetric label="Escuadras" value={summary.groups} />
@@ -745,7 +746,7 @@ export function FleetsPage() {
                     ) : (
                       estimateEligibleGroups.map((group) => (
                         <option key={group.id} value={group.id}>
-                          {formatSpaceAssetType(group.assetType)} - {formatPlanetReference(group.currentPlanetId)} - {formatCompactGuid(group.id)}
+                          {formatSpaceAssetType(group.assetType)} - {formatPlanetReference(group.currentPlanetId)}
                         </option>
                       ))
                     )}
@@ -822,7 +823,15 @@ export function FleetsPage() {
                     </div>
                   </div>
                   <div className="figma-data-list">
-                    <FleetDataRow label="Grupo" value={formatCompactGuid(selectedGroup?.id ?? "")} />
+                    <FleetDataRow
+                      label="Escuadra"
+                      value={
+                        selectedGroup
+                          ? `${formatSpaceAssetType(selectedGroup.assetType)} en ${formatPlanetReference(selectedGroup.currentPlanetId)}`
+                          : "Sin escuadra"
+                      }
+                    />
+                    <FleetDataRow label="ID tactico" value={formatCompactGuid(selectedGroup?.id ?? "")} />
                     <FleetDataRow label="Ruta" value={createTransferConfirmationState.routeSummary} />
                     <FleetDataRow label="Coste estimado" value={createTransferConfirmationState.costSummary} />
                   </div>

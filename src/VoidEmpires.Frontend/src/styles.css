@@ -547,6 +547,19 @@ select {
   transform: translateY(-1px);
 }
 
+.fleet-identity-block {
+  display: grid;
+  gap: 4px;
+}
+
+.dev-meta {
+  margin: 0;
+  color: color-mix(in srgb, var(--ve-color-muted) 92%, white);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .fleet-summary-select-button {
   width: 100%;
   min-height: 42px;

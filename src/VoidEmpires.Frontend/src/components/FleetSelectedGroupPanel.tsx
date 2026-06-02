@@ -64,10 +64,10 @@ export function FleetSelectedGroupPanel({
   return (
     <UiCard className="panel">
       <div className="figma-section-header">
-        <div>
+        <div className="fleet-identity-block">
           <p className="eyebrow">Escuadra enfocada</p>
           <h3>{formatSpaceAssetType(group.assetType)}</h3>
-          <p>{formatCompactGuid(group.id)}</p>
+          <p className="dev-meta">ID tactico {formatCompactGuid(group.id)}</p>
         </div>
         <div className="figma-badge-row">
           <UiBadge tone={groupTone}>{formatOrbitalGroupStatus(group.status)}</UiBadge>
@@ -153,7 +153,7 @@ export function FleetSelectedGroupPanel({
           {transferProgress !== null ? <UiProgressBar value={transferProgress} tone="neutral" /> : null}
           <div className="figma-data-list">
             <div className="figma-data-row">
-              <span>Traslado</span>
+              <span>ID de traslado</span>
               <strong>{formatCompactGuid(group.activeTransfer.id)}</strong>
             </div>
             <div className="figma-data-row">
@@ -200,11 +200,11 @@ export function FleetSelectedGroupPanel({
               </div>
               <div className="figma-data-list">
                 <div className="figma-data-row">
-                  <span>Traslado</span>
+                  <span>ID de traslado</span>
                   <strong>{formatCompactGuid(group.activeTransfer.id)}</strong>
                 </div>
                 <div className="figma-data-row">
-                  <span>Grupo</span>
+                  <span>ID tactico</span>
                   <strong>{formatCompactGuid(group.id)}</strong>
                 </div>
                 <div className="figma-data-row">
