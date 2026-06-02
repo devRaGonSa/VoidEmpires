@@ -3,7 +3,7 @@
 ---
 id: TASK-10R
 title: Phase 10R - Seeded create transfer API scenario
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
