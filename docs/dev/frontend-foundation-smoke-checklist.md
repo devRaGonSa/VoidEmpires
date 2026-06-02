@@ -2,7 +2,7 @@
 
 Use this checklist to validate the current frontend prototype without confusing it with production UI.
 
-For the specific Fleet estimate -> confirm -> create-transfer -> confirm -> cancel-transfer path, pair this document with `docs/dev/fleet-controlled-mutation-checklist.md`.
+For the current Fleet estimate -> confirm -> create-transfer -> confirm -> cancel-transfer or complete-due paths, pair this document with `docs/dev/fleet-controlled-mutation-checklist.md`.
 
 ## Backend prerequisites
 
@@ -45,12 +45,14 @@ Use the steps below as the final manual QA checklist for Fleet cockpit v1 after 
    - the read-only estimate flow can submit `POST /api/dev/fleets/orbital-travel/estimate` and render loading, success, validation, not-found, conflict, or network-error feedback without creating a transfer
    - `create transfer` remains clearly labeled as a development action, requires explicit confirmation, and can submit only `POST /api/dev/fleets/orbital-transfers/create`
    - a successful create-transfer refresh clears stale estimate state and surfaces an `Estado actualizado desde la API.` cue in the mutation result area
-   - `cancel transfer` remains clearly labeled as a development action, requires explicit confirmation for a visible active transfer, and can submit only `POST /api/dev/fleets/orbital-transfers/cancel`
+   - `cancel transfer` remains clearly labeled as a development action, appears only when the focused active transfer is actually cancellable, and can submit only `POST /api/dev/fleets/orbital-transfers/cancel`
    - a successful cancel-transfer refresh clears stale cancel context, surfaces an `estado actualizado` cue, and keeps the no-refund rule visible
-   - active transfers show route, timestamps, progress when available, and cancel readiness in the selected-group transfer panel
+   - `complete due` remains clearly labeled as a development-only batch action, appears only when the UI shows a due transfer, and can submit only `POST /api/dev/fleets/orbital-transfers/complete-due`
+   - a successful complete-due refresh surfaces an `estado actualizado` cue and removes the resolved due transfer from the active-transfer views
+   - active transfers show route, timestamps, progress when available, due or in-flight state, and only the actions currently available in the selected-group and overview panels
    - route/fuel and interception readiness notes render as metadata only
-   - prototype mutation controls for `complete-due`, `split`, and `merge` are visible but disabled, clearly marked as prototype-only, and never execute mutation endpoints
-   - feedback areas for estimate, create-transfer, and cancel-transfer results render readable success, warning, or error messaging rather than JSON-first output
+   - prototype mutation controls for `split` and `merge` are visible but disabled, clearly marked as prototype-only, and never execute mutation endpoints
+   - feedback areas for estimate, create-transfer, cancel-transfer, and complete-due results render readable success, warning, or error messaging rather than JSON-first output
    - fleet and strategic-map manifests render as read-only contract panels
    - mutating manifest actions remain labeled but unavailable from the frontend
 12. For the final Fleet cockpit v1 visual review, confirm:
@@ -58,14 +60,14 @@ Use the steps below as the final manual QA checklist for Fleet cockpit v1 after 
    - the rail, selected-group panel, active-transfer panel, and main action column feel like a simple playable fleet screen rather than a dev console
    - the squad rail is compact and scannable, with ship type, quantity, location, destination, status, and readiness visible before compact ids
    - the action column reads in this order: escuadra, destino, calcular, revisar, confirmar
-   - create and cancel remain the only executable mutation paths and both still require explicit confirmation
-   - `complete-due`, `split`, and `merge` remain visible only as disabled or prototype-only controls
+   - create, cancel, and complete-due remain the only executable mutation paths and all three still require explicit confirmation
+   - `split` and `merge` remain visible only as disabled or prototype-only controls
    - technical ids remain available for development use, but compact ids stay secondary to ship names, planet references, and route summaries
    - resource contexts stay readable by planet and do not get buried behind technical metadata
-   - active transfers remain visible at a glance with route, status, timeline, progress, and cancel readiness
+   - active transfers remain visible at a glance with route, status, timeline, progress, due-state cues, and only the currently available controlled actions
    - result and error feedback remain readable at a glance, and no raw enum numbers or `NetworkError` text dominates the panel
    - technical manifests and future mutation metadata stay collapsed or clearly secondary under development details
-13. Confirm no buttons other than the explicit `create transfer` and `cancel transfer` confirmation paths execute mutating dev endpoints from either route.
+13. Confirm no buttons other than the explicit `create transfer`, `cancel transfer`, and `complete due` confirmation paths execute mutating dev endpoints from either route.
 
 ## Repository validation
 

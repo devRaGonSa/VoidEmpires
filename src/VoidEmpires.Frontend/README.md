@@ -75,8 +75,9 @@ npm run build
 - Executes only the read-only travel estimate preview at `POST /api/dev/fleets/orbital-travel/estimate`.
 - Executes `POST /api/dev/fleets/orbital-transfers/create` only after an explicit development-only confirmation tied to the latest matching estimate.
 - Executes `POST /api/dev/fleets/orbital-transfers/cancel` only after an explicit development-only confirmation tied to a currently visible active transfer.
-- Renders readable selected-group readiness, transfer status, resource contexts, interception notes, active-transfer progress bars, feedback panels, read-only action manifests, mutation confirmation metadata, and disabled prototype mutation controls.
-- Keeps `complete-due`, `split`, and `merge` visibly guarded and non-executable from the UI.
+- Executes `POST /api/dev/fleets/orbital-transfers/complete-due` only after an explicit development-only confirmation tied to a currently visible due transfer.
+- Renders readable selected-group readiness, transfer status, due-state cues, resource contexts, interception notes, active-transfer progress bars, feedback panels, read-only action manifests, mutation confirmation metadata, and disabled prototype mutation controls.
+- Keeps `split` and `merge` visibly guarded and non-executable from the UI.
 
 ## Figma token foundation
 
@@ -126,7 +127,7 @@ Only `Galaxia` and `Flotas` are active routes in the sidebar today. Other labels
 - `create transfer` mutates development data and is allowed only behind the explicit confirmation flow.
 - `cancel transfer` also mutates development data, is allowed only behind the explicit confirmation flow, and does not refund previously charged travel resources.
 - Re-applying the `minimal-validation` seed is additive and idempotent, but it does not remove extra transfers, reset group state, or refill already-existing stockpiles after a mutation run.
-- `complete-due`, `split`, `merge`, and exploration creation remain manifest metadata only.
+- `split`, `merge`, and exploration creation remain manifest metadata only.
 - No production authentication is implemented.
 - No polling, WebSockets, or final renderer pipeline is implemented.
 - No final game UI styling or 3D map is implemented.
@@ -155,4 +156,4 @@ If a previous local run already mutated fleet state, inspect `ui-state` first. R
 
 For Fleet cockpit v1, use `docs/dev/frontend-foundation-smoke-checklist.md` as the final manual visual QA checklist after the required non-visual validation commands succeed.
 Focus the browser review on mostly Spanish shell labels, a readable rail + selected-group + action-column hierarchy, explicit create/cancel confirmations, secondary compact ids, readable resource context, readable estimate results, and readable result or error feedback without dominant raw enum numbers or `NetworkError` text.
-Also confirm the active-transfer panel remains obvious, progress-aware, and cancel-ready, while technical manifests stay collapsed behind development details by default and `complete-due`, `split`, and `merge` remain prototype-only.
+Also confirm the active-transfer panel remains obvious, progress-aware, due-aware, and action-aware, while technical manifests stay collapsed behind development details by default and only `split` and `merge` remain prototype-only.

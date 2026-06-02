@@ -138,7 +138,8 @@ Current frontend mutation boundary:
 - `POST /api/dev/fleets/orbital-travel/estimate` may execute from the frontend as a read-only preview.
 - `POST /api/dev/fleets/orbital-transfers/create` may execute from the frontend only after explicit development-only confirmation and mutates development data.
 - `POST /api/dev/fleets/orbital-transfers/cancel` may execute from the frontend only after explicit development-only confirmation for a visible active transfer, mutates development data, and does not refund previously charged travel resources.
-- `complete-due`, `split`, and `merge` remain disabled or prototype-only in the frontend.
+- `POST /api/dev/fleets/orbital-transfers/complete-due` may execute from the frontend only after explicit development-only confirmation for a visible due transfer and refreshes the cockpit after success.
+- `split` and `merge` remain disabled or prototype-only in the frontend.
 
 Recommended recovery flow after `create transfer` or `cancel transfer` mutates local validation data:
 
@@ -146,9 +147,9 @@ Recommended recovery flow after `create transfer` or `cancel transfer` mutates l
 2. Re-apply `POST /api/dev/seeds/apply` with `{"profile":"minimal-validation"}` only when you need to restore missing baseline rows.
 3. If fleet state, transfer rows, or resource balances must return to the original baseline, use a fresh disposable local database and then apply `minimal-validation` again.
 4. Re-run `dotnet build --no-restore`, `dotnet test --no-build`, and `npm run build --prefix src/VoidEmpires.Frontend`.
-5. Use `docs/dev/fleet-controlled-mutation-checklist.md` as the non-visual regression baseline for the estimate -> confirm -> create-transfer -> confirm -> cancel-transfer path.
-6. For Fleet cockpit v1 manual browser QA, use `docs/dev/frontend-foundation-smoke-checklist.md` and confirm the command deck, group rail, selected-group detail, guarded command column, disabled prototype controls, and readable feedback areas on the `Flotas` route.
-7. For the completed Fleet cockpit milestone, also confirm the final visual gameplay checklist: mostly Spanish UI, compact scannable squad rail, readable selected-group panel, simple estimate/create/cancel order flow, visible active transfers with progress, readable resources, secondary compact ids, readable estimate results, and collapsed development details.
+5. Use `docs/dev/fleet-controlled-mutation-checklist.md` as the non-visual regression baseline for the estimate -> confirm -> create-transfer -> confirm -> cancel-transfer or complete-due paths.
+6. For Fleet cockpit v1 manual browser QA, use `docs/dev/frontend-foundation-smoke-checklist.md` and confirm the command deck, group rail, selected-group detail, guarded command column, prototype-only split or merge controls, and readable feedback areas on the `Flotas` route.
+7. For the completed Fleet cockpit milestone, also confirm the final visual gameplay checklist: mostly Spanish UI, compact scannable squad rail, readable selected-group panel, simple estimate/create/cancel/complete-due order flow, visible active transfers with progress and due-state cues, readable resources, secondary compact ids, readable estimate results, and collapsed development details.
 
 ### Database Configuration
 

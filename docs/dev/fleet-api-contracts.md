@@ -103,9 +103,10 @@ Use this checklist as the non-visual baseline for Fleet cockpit v1 before manual
 2. Run `dotnet test --no-build` from the repository root.
 3. Run `npm run build --prefix src/VoidEmpires.Frontend`.
 4. Optionally apply the `minimal-validation` seed, inspect `GET /api/dev/fleets/ui-state`, and then call `POST /api/dev/fleets/orbital-travel/estimate` when you need non-visual confirmation that readiness metadata and estimate shapes still match the documented contracts.
-5. Treat frontend mutation controls as development-only affordances. The current Fleet page may execute only `create` and `cancel`, each behind an explicit confirmation flow; `complete-due`, `split`, and `merge` must stay disabled or metadata-only.
-6. For the estimate -> confirm -> create-transfer -> confirm -> cancel-transfer path, use [fleet-controlled-mutation-checklist.md](./fleet-controlled-mutation-checklist.md) as the focused non-visual regression pass.
-7. For final manual browser QA, pair that checklist with [frontend-foundation-smoke-checklist.md](./frontend-foundation-smoke-checklist.md) and confirm a mostly Spanish gameplay-style screen with a scannable squad rail, readable selected-group panel, simple order flow, visible active transfers, readable resource support, explicit create/cancel confirmations, and collapsed secondary technical panels.
+5. Treat frontend mutation controls as development-only affordances. The current Fleet page may execute `create`, `cancel`, and a guarded `complete-due` flow, each behind an explicit confirmation path; `split` and `merge` must stay disabled or metadata-only.
+6. The frontend should expose `complete-due` only when the current UI shows a due transfer and should refresh state after success instead of pretending a stale transfer already resolved locally.
+7. For the estimate -> confirm -> create-transfer -> confirm -> cancel-transfer or complete-due paths, use [fleet-controlled-mutation-checklist.md](./fleet-controlled-mutation-checklist.md) as the focused non-visual regression pass.
+8. For final manual browser QA, pair that checklist with [frontend-foundation-smoke-checklist.md](./frontend-foundation-smoke-checklist.md) and confirm a mostly Spanish gameplay-style screen with a scannable squad rail, readable selected-group panel, clear active-transfer states, explicit create/cancel/complete-due confirmations, readable resource support, and collapsed secondary technical panels.
 
 ## Endpoint Summary
 
@@ -261,9 +262,9 @@ Frontend readiness guidance:
 - Frontend guards should invalidate the pending estimate when fleet UI state refreshes, when the selected group changes, when the destination changes, or when the estimated group is no longer stationed and create-ready.
 - Frontend guards should block duplicate `create transfer` submissions while the request is in flight and should reject submission unless the currently selected group and destination still match the latest successful estimate.
 - Frontend result feedback should distinguish success, validation (`400`), missing data (`404`), stale or already-active conflicts (`409`), persistence gating (`503`), network failures, and unexpected non-JSON or malformed JSON responses.
-- Keep mutation contracts in clearly marked development or prototype sections. Current Fleet page work must not wire split, merge, or complete-due to ordinary gameplay-style buttons or click handlers, and only the guarded create-transfer and cancel-transfer flows may execute.
+- Keep mutation contracts in clearly marked development or prototype sections. Current Fleet page work must not wire split or merge to ordinary gameplay-style buttons or click handlers, and only the guarded create-transfer, cancel-transfer, and complete-due flows may execute.
 - Disabled prototype controls are allowed for discoverability only when they stay visibly guarded, non-submitting, and non-executable.
-- If a prototype later executes a mutation contract, require an explicit development-only affordance and show the route as a contract boundary rather than presenting it as routine gameplay UI.
+- When complete-due executes, require an explicit development-only affordance, show that it is a batch contract boundary, and refresh UI state before treating the due transfer as resolved in the cockpit.
 
 ### Fleet Action Manifest
 
