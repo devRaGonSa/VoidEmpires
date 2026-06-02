@@ -3,7 +3,7 @@
 ---
 id: TASK-10Z
 title: Phase 10Z - Fleet quantity conservation invariants
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

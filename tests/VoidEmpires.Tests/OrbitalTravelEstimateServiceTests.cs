@@ -34,6 +34,7 @@ public class OrbitalTravelEstimateServiceTests
         dbContext.PlanetResourceStockpiles.Add(stockpile);
         await dbContext.SaveChangesAsync();
         var service = CreateService(dbContext);
+        var quantityBefore = await GetCivilizationQuantityAsync(dbContext, civilizationId);
 
         var result = await service.EstimateAsync(new EstimateOrbitalTravelRequest(
             civilizationId,
@@ -66,6 +67,7 @@ public class OrbitalTravelEstimateServiceTests
         Assert.Equal(OrbitalGroupStatus.Stationed, (await dbContext.Set<OrbitalGroup>().SingleAsync()).Status);
         Assert.Equal(10, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Credits);
         Assert.Equal(5, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Gas);
+        Assert.Equal(quantityBefore, await GetCivilizationQuantityAsync(dbContext, civilizationId));
     }
 
     [Fact]
@@ -258,6 +260,8 @@ public class OrbitalTravelEstimateServiceTests
         dbContext.Set<Planet>().Add(CreatePlanet(destinationPlanetId));
         await dbContext.SaveChangesAsync();
         var service = CreateService(dbContext);
+        var quantityBefore = await GetCivilizationQuantityAsync(dbContext, civilizationId);
+        var transferCountBefore = await dbContext.Set<OrbitalTransfer>().CountAsync();
 
         var result = await service.EstimateAsync(new EstimateOrbitalTravelRequest(
             civilizationId,
@@ -266,6 +270,8 @@ public class OrbitalTravelEstimateServiceTests
 
         Assert.False(result.Succeeded);
         Assert.Contains("Orbital group already has an active transfer.", result.Errors);
+        Assert.Equal(quantityBefore, await GetCivilizationQuantityAsync(dbContext, civilizationId));
+        Assert.Equal(transferCountBefore, await dbContext.Set<OrbitalTransfer>().CountAsync());
     }
 
     private static Planet CreatePlanet(Guid planetId) =>
@@ -290,6 +296,11 @@ public class OrbitalTravelEstimateServiceTests
 
         return new VoidEmpiresDbContext(options);
     }
+
+    private static Task<int> GetCivilizationQuantityAsync(VoidEmpiresDbContext dbContext, Guid civilizationId) =>
+        dbContext.Set<OrbitalGroup>()
+            .Where(x => x.CivilizationId == civilizationId)
+            .SumAsync(x => x.Quantity);
 
     private static OrbitalTravelEstimateService CreateService(VoidEmpiresDbContext dbContext) =>
         new(dbContext, new ResourceSpendService(dbContext), new OrbitalRouteProfileService(), new OrbitalFuelReadinessService());

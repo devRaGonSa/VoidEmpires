@@ -48,6 +48,7 @@ public class FleetLifecycleSmokeTests
         dbContext.Set<OrbitalGroup>().AddRange(group, mergeCandidate);
         dbContext.PlanetResourceStockpiles.Add(stockpile);
         await dbContext.SaveChangesAsync();
+        var quantityBeforeEstimate = await GetCivilizationQuantityAsync(dbContext, civilizationId);
 
         var resourceSpendService = new ResourceSpendService(dbContext);
         var estimateService = new OrbitalTravelEstimateService(
@@ -80,6 +81,7 @@ public class FleetLifecycleSmokeTests
         Assert.Equal(8, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Gas);
         Assert.Empty(await dbContext.Set<OrbitalTransfer>().ToListAsync());
         AssertNoRouteFuelPersistence(dbContext);
+        await AssertCivilizationQuantityAsync(dbContext, civilizationId, quantityBeforeEstimate);
 
         var uiStateBeforeTransfer = await new DevFleetUiStateService(
                 dbContext,
@@ -100,10 +102,12 @@ public class FleetLifecycleSmokeTests
         Assert.True(firstTransfer.Succeeded);
         Assert.Equal(15, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Credits);
         Assert.Equal(6, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Gas);
+        await AssertCivilizationQuantityAsync(dbContext, civilizationId, quantityBeforeEstimate);
 
         var activeSplit = await splitService.SplitAsync(new SplitOrbitalGroupRequest(civilizationId, group.Id, 1));
         Assert.False(activeSplit.Succeeded);
         Assert.Contains("Source orbital group already has an active transfer.", activeSplit.Errors);
+        await AssertCivilizationQuantityAsync(dbContext, civilizationId, quantityBeforeEstimate);
 
         var activeMerge = await mergeService.MergeAsync(new MergeOrbitalGroupsRequest(
             civilizationId,
@@ -111,6 +115,7 @@ public class FleetLifecycleSmokeTests
             mergeCandidate.Id));
         Assert.False(activeMerge.Succeeded);
         Assert.Contains("Target orbital group already has an active transfer.", activeMerge.Errors);
+        await AssertCivilizationQuantityAsync(dbContext, civilizationId, quantityBeforeEstimate);
 
         var cancel = await cancelService.CancelAsync(new CancelOrbitalTransferRequest(
             civilizationId,
@@ -120,15 +125,18 @@ public class FleetLifecycleSmokeTests
         Assert.Equal(15, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Credits);
         Assert.Equal(6, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Gas);
         AssertNoRouteFuelPersistence(dbContext);
+        await AssertCivilizationQuantityAsync(dbContext, civilizationId, quantityBeforeEstimate);
 
         var split = await splitService.SplitAsync(new SplitOrbitalGroupRequest(civilizationId, group.Id, 2));
         Assert.True(split.Succeeded);
+        await AssertCivilizationQuantityAsync(dbContext, civilizationId, quantityBeforeEstimate);
         var merge = await mergeService.MergeAsync(new MergeOrbitalGroupsRequest(
             civilizationId,
             group.Id,
             split.NewOrbitalGroupId!.Value));
         Assert.True(merge.Succeeded);
         Assert.Equal(4, merge.TargetQuantity);
+        await AssertCivilizationQuantityAsync(dbContext, civilizationId, quantityBeforeEstimate);
 
         var secondTransfer = await transferService.PersistAsync(new PersistOrbitalTransferRequest(
             civilizationId,
@@ -138,11 +146,13 @@ public class FleetLifecycleSmokeTests
         Assert.True(secondTransfer.Succeeded);
         Assert.Equal(10, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Credits);
         Assert.Equal(4, (await dbContext.PlanetResourceStockpiles.SingleAsync()).Gas);
+        await AssertCivilizationQuantityAsync(dbContext, civilizationId, quantityBeforeEstimate);
 
         var completion = await completionService.CompleteDueAsync(secondTransfer.ArrivalAtUtc!.Value);
         Assert.Equal(1, completion.CompletedCount);
         Assert.Contains(secondTransfer.OrbitalTransferId!.Value, completion.CompletedTransferIds);
         Assert.Contains(group.Id, completion.CompletedOrbitalGroupIds);
+        await AssertCivilizationQuantityAsync(dbContext, civilizationId, quantityBeforeEstimate);
 
         var overview = await overviewService.GetAsync(new GetFleetOperationalOverviewRequest(civilizationId));
         var finalGroup = overview.Groups.Single(x => x.Id == group.Id);
@@ -173,6 +183,17 @@ public class FleetLifecycleSmokeTests
         new(new DbContextOptionsBuilder<VoidEmpiresDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options);
+
+    private static Task<int> GetCivilizationQuantityAsync(VoidEmpiresDbContext dbContext, Guid civilizationId) =>
+        dbContext.Set<OrbitalGroup>()
+            .Where(x => x.CivilizationId == civilizationId)
+            .SumAsync(x => x.Quantity);
+
+    private static async Task AssertCivilizationQuantityAsync(
+        VoidEmpiresDbContext dbContext,
+        Guid civilizationId,
+        int expectedQuantity) =>
+        Assert.Equal(expectedQuantity, await GetCivilizationQuantityAsync(dbContext, civilizationId));
 
     private static void AssertNoRouteFuelPersistence(VoidEmpiresDbContext dbContext)
     {
