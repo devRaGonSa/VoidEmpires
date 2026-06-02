@@ -3,7 +3,7 @@
 ---
 id: TASK-12T
 title: Phase 12T - Fleet planet identity final cleanup
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

@@ -5,7 +5,8 @@ import {
   formatCompactGuid,
   formatFuelReadinessPolicy,
   formatOrbitalGroupStatus,
-  formatPlanetReference,
+  formatPlanetPrimaryLabel,
+  formatPlanetSecondaryLabel,
   formatSpaceAssetType,
   formatTransferStatus,
 } from "../utils/domainPresentation";
@@ -67,7 +68,7 @@ export function FleetSelectedGroupPanel({
         <div className="fleet-identity-block">
           <p className="eyebrow">Escuadra seleccionada</p>
           <h3>{formatSpaceAssetType(group.assetType)}</h3>
-          <p>Orbita en {formatPlanetReference(group.currentPlanetId)} y concentra posicion, disponibilidad y cualquier traslado activo.</p>
+          <p>Orbita en {formatPlanetPrimaryLabel(group.currentPlanetId)} y concentra posicion, disponibilidad y cualquier traslado activo.</p>
           <p className="dev-meta">ID tactico {formatCompactGuid(group.id)}</p>
         </div>
         <div className="figma-badge-row">
@@ -101,17 +102,20 @@ export function FleetSelectedGroupPanel({
           <div className="figma-data-list">
             <div className="figma-data-row">
               <span>Planeta actual</span>
-              <strong>{formatPlanetReference(group.currentPlanetId)}</strong>
+              <strong>{formatPlanetPrimaryLabel(group.currentPlanetId)}</strong>
             </div>
             <div className="figma-data-row">
               <span>Planeta de origen</span>
-              <strong>{formatPlanetReference(group.originPlanetId)}</strong>
+              <strong>{formatPlanetPrimaryLabel(group.originPlanetId)}</strong>
             </div>
             <div className="figma-data-row">
               <span>Lejos del origen</span>
               <strong>{formatBooleanLabel(group.isStationedAwayFromOrigin)}</strong>
             </div>
           </div>
+          <p className="dev-meta">
+            {formatPlanetSecondaryLabel(group.currentPlanetId) ?? "Sin ID actual"} | {formatPlanetSecondaryLabel(group.originPlanetId) ?? "Sin ID de origen"}
+          </p>
         </section>
 
         <section className="subpanel figma-subpanel">
@@ -150,17 +154,17 @@ export function FleetSelectedGroupPanel({
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Traslado activo</p>
-              <h4>Rumbo a {formatPlanetReference(group.activeTransfer.destinationPlanetId)}</h4>
+              <h4>Rumbo a {formatPlanetPrimaryLabel(group.activeTransfer.destinationPlanetId)}</h4>
               <p>{formatTransferStatus(group.activeTransfer.status)}. La anulacion sigue protegida y solo aparece cuando la escuadra activa esta en foco.</p>
               <p className="dev-meta">ID de traslado {formatCompactGuid(group.activeTransfer.id)}</p>
             </div>
-            <UiBadge tone="warn">{formatPlanetReference(group.activeTransfer.destinationPlanetId)}</UiBadge>
+            <UiBadge tone="warn">{formatPlanetPrimaryLabel(group.activeTransfer.destinationPlanetId)}</UiBadge>
           </div>
           {transferProgress !== null ? <UiProgressBar value={transferProgress} tone="neutral" /> : null}
           <div className="figma-data-list">
             <div className="figma-data-row">
               <span>Destino</span>
-              <strong>{formatPlanetReference(group.activeTransfer.destinationPlanetId)}</strong>
+              <strong>{formatPlanetPrimaryLabel(group.activeTransfer.destinationPlanetId)}</strong>
             </div>
             <div className="figma-data-row">
               <span>Salida</span>
@@ -177,6 +181,9 @@ export function FleetSelectedGroupPanel({
               </div>
             ) : null}
           </div>
+          {formatPlanetSecondaryLabel(group.activeTransfer.destinationPlanetId) ? (
+            <p className="dev-meta">{formatPlanetSecondaryLabel(group.activeTransfer.destinationPlanetId)}</p>
+          ) : null}
           <div className="transfer-confirmation-actions">
             <button
               type="button"
@@ -206,15 +213,15 @@ export function FleetSelectedGroupPanel({
               <div className="figma-data-list">
                 <div className="figma-data-row">
                   <span>Origen</span>
-                  <strong>{formatPlanetReference(group.originPlanetId)}</strong>
+                  <strong>{formatPlanetPrimaryLabel(group.originPlanetId)}</strong>
                 </div>
                 <div className="figma-data-row">
                   <span>Planeta actual</span>
-                  <strong>{formatPlanetReference(group.currentPlanetId)}</strong>
+                  <strong>{formatPlanetPrimaryLabel(group.currentPlanetId)}</strong>
                 </div>
                 <div className="figma-data-row">
                   <span>Destino</span>
-                  <strong>{formatPlanetReference(group.activeTransfer.destinationPlanetId)}</strong>
+                  <strong>{formatPlanetPrimaryLabel(group.activeTransfer.destinationPlanetId)}</strong>
                 </div>
                 <div className="figma-data-row">
                   <span>Llegada</span>

@@ -10,6 +10,7 @@ import type { FleetActionHint, FleetGroupSummary, FleetUiState } from "../api/fl
 import {
   formatCompactGuid,
   formatOrbitalGroupStatus,
+  formatPlanetPrimaryLabel,
   formatPlanetReference,
   formatResourceType,
   formatSpaceAssetType,
@@ -151,9 +152,9 @@ export function presentFleetSquadListItem(
   return {
     title: formatSpaceAssetType(group.assetType),
     quantityLabel: `${group.quantity} unidades`,
-    locationLabel: formatPlanetReference(group.currentPlanetId),
+    locationLabel: formatPlanetPrimaryLabel(group.currentPlanetId),
     destinationLabel: isTravelling && group.activeTransfer
-      ? formatPlanetReference(group.activeTransfer.destinationPlanetId)
+      ? formatPlanetPrimaryLabel(group.activeTransfer.destinationPlanetId)
       : "Sin destino activo",
     statusLabel: formatOrbitalGroupStatus(group.status),
     statusTone: isTravelling ? "warn" : canOrder ? "good" : "neutral",
@@ -275,8 +276,8 @@ export function presentFleetActiveTransferItem(group: FleetGroupSummary): FleetA
   return {
     title: formatSpaceAssetType(group.assetType),
     statusLabel: formatTransferStatus(transfer.status),
-    originLabel: formatPlanetReference(group.originPlanetId),
-    destinationLabel: formatPlanetReference(transfer.destinationPlanetId),
+    originLabel: formatPlanetPrimaryLabel(group.originPlanetId),
+    destinationLabel: formatPlanetPrimaryLabel(transfer.destinationPlanetId),
     departureLabel: transfer.departureAtUtc,
     arrivalLabel: transfer.arrivalAtUtc,
     progressValue,

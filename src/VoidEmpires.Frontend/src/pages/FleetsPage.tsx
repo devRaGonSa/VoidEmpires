@@ -15,7 +15,9 @@ import { UiCard } from "../components/ui/UiCard";
 import { UiProgressBar } from "../components/ui/UiProgressBar";
 import {
   formatCompactGuid,
-  formatPlanetReference,
+  formatPlanetOptionLabel,
+  formatPlanetPrimaryLabel,
+  formatPlanetSecondaryLabel,
   formatResourceType,
   formatSpaceAssetType,
 } from "../utils/domainPresentation";
@@ -92,11 +94,11 @@ interface EstimateSnapshot {
 }
 
 function formatSquadIdentity(group: FleetGroupSummary) {
-  return `${formatSpaceAssetType(group.assetType)} en ${formatPlanetReference(group.currentPlanetId)}`;
+  return `${formatSpaceAssetType(group.assetType)} en ${formatPlanetPrimaryLabel(group.currentPlanetId)}`;
 }
 
 function formatSquadOptionLabel(group: FleetGroupSummary) {
-  return `${formatSquadIdentity(group)} | ${group.quantity} unidades`;
+  return `${formatSquadIdentity(group)} | ${group.quantity} unidades | ID tactico ${formatCompactGuid(group.id)}`;
 }
 
 export function FleetsPage() {
@@ -196,7 +198,7 @@ export function FleetsPage() {
     return [...candidates]
       .filter((planetId) => planetId && planetId !== selectedGroup?.currentPlanetId)
       .sort((left, right) =>
-        formatPlanetReference(left).localeCompare(formatPlanetReference(right)),
+        formatPlanetPrimaryLabel(left).localeCompare(formatPlanetPrimaryLabel(right)),
       );
   }, [selectedGroup?.currentPlanetId, uiState]);
 
@@ -265,7 +267,7 @@ export function FleetsPage() {
         : !fuelReady
           ? liveEstimateResponse.fuelReadiness?.notReadyReason ?? "La regla de combustible sigue bloqueando la accion."
           : null,
-      routeSummary: `${formatPlanetReference(selectedGroup.currentPlanetId)} -> ${formatPlanetReference(liveEstimateResponse.destinationPlanetId ?? effectiveDestinationPlanetId)}`,
+      routeSummary: `${formatPlanetPrimaryLabel(selectedGroup.currentPlanetId)} -> ${formatPlanetPrimaryLabel(liveEstimateResponse.destinationPlanetId ?? effectiveDestinationPlanetId)}`,
       costSummary: liveEstimateResponse.resourceCosts.length
         ? liveEstimateResponse.resourceCosts
             .map((cost) => `${formatResourceType(cost.resourceType)} ${cost.quantity}`)
@@ -818,7 +820,7 @@ export function FleetsPage() {
                   />
                   <FleetDataRow
                     label="Destino previsto"
-                    value={effectiveDestinationPlanetId ? formatPlanetReference(effectiveDestinationPlanetId) : "Sin destino"}
+                    value={effectiveDestinationPlanetId ? formatPlanetOptionLabel(effectiveDestinationPlanetId) : "Sin destino"}
                   />
                 </div>
               </div>
@@ -862,7 +864,7 @@ export function FleetsPage() {
                     ) : (
                       destinationOptions.map((planetId) => (
                         <option key={planetId} value={planetId}>
-                          {formatPlanetReference(planetId)}
+                          {formatPlanetOptionLabel(planetId)}
                         </option>
                       ))
                     )}
@@ -1086,7 +1088,10 @@ export function FleetsPage() {
                       <div className="figma-section-header">
                         <div>
                           <p className="eyebrow">Planeta actual</p>
-                          <h4>{formatPlanetReference(context.planetId)}</h4>
+                          <h4>{formatPlanetPrimaryLabel(context.planetId)}</h4>
+                          {formatPlanetSecondaryLabel(context.planetId) ? (
+                            <p className="dev-meta">{formatPlanetSecondaryLabel(context.planetId)}</p>
+                          ) : null}
                         </div>
                         <UiBadge tone="resource">{(context.balances ?? []).length} balances</UiBadge>
                       </div>

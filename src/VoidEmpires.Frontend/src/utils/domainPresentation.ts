@@ -332,9 +332,30 @@ export function formatSeedPlanetName(value: string | null | undefined) {
   return seededPlanetNames[trimmed] ?? null;
 }
 
-export function formatPlanetReference(value: string | null | undefined) {
+function resolvePlanetLabels(value: string | null | undefined) {
   const friendlyName = formatSeedPlanetName(value);
   const compactId = formatCompactGuid(value);
+
+  return { friendlyName, compactId };
+}
+
+export function formatPlanetPrimaryLabel(value: string | null | undefined) {
+  const { friendlyName, compactId } = resolvePlanetLabels(value);
+  return friendlyName ?? compactId;
+}
+
+export function formatPlanetSecondaryLabel(value: string | null | undefined) {
+  const { friendlyName, compactId } = resolvePlanetLabels(value);
+  return friendlyName ? `ID ${compactId}` : null;
+}
+
+export function formatPlanetOptionLabel(value: string | null | undefined) {
+  const { friendlyName, compactId } = resolvePlanetLabels(value);
+  return friendlyName ? `${friendlyName} | ID ${compactId}` : compactId;
+}
+
+export function formatPlanetReference(value: string | null | undefined) {
+  const { friendlyName, compactId } = resolvePlanetLabels(value);
 
   return friendlyName ? `${friendlyName} (${compactId})` : compactId;
 }
