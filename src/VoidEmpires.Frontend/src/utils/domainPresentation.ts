@@ -187,6 +187,12 @@ const fuelReadinessPolicyLabels: LabelCatalog = {
   },
 };
 
+const seededPlanetNames: Record<string, string> = {
+  "40000000-0000-0000-0000-000000000001": "Aurelia",
+  "40000000-0000-0000-0000-000000000002": "Cinder Reach",
+  "40000000-0000-0000-0000-000000000003": "Aether Crown",
+};
+
 function normalizeName(value: string) {
   return value.replace(/[\s_-]+/g, "").toLowerCase();
 }
@@ -315,4 +321,20 @@ export function formatCompactGuid(value: string | null | undefined, friendlyName
   }
 
   return /^[0-9a-f]{8}-/i.test(trimmed) ? trimmed.slice(0, 8) : trimmed;
+}
+
+export function formatSeedPlanetName(value: string | null | undefined) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim().toLowerCase();
+  return seededPlanetNames[trimmed] ?? null;
+}
+
+export function formatPlanetReference(value: string | null | undefined) {
+  const friendlyName = formatSeedPlanetName(value);
+  const compactId = formatCompactGuid(value);
+
+  return friendlyName ? `${friendlyName} (${compactId})` : compactId;
 }

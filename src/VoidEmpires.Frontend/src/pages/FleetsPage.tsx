@@ -12,6 +12,7 @@ import {
   formatCompactGuid,
   formatFuelReadinessPolicy,
   formatOrbitalGroupStatus,
+  formatPlanetReference,
   formatResourceType,
   formatSpaceAssetType,
   formatTransferStatus,
@@ -281,7 +282,7 @@ export function FleetsPage() {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Current planet</p>
-                    <h4>{formatCompactGuid(context.planetId)}</h4>
+                    <h4>{formatPlanetReference(context.planetId)}</h4>
                   </div>
                   <UiBadge tone="resource">
                     {(context.balances ?? []).length} balances
@@ -327,8 +328,8 @@ export function FleetsPage() {
                 </div>
 
                 <div className="figma-data-list">
-                  <FleetDataRow label="Current planet" value={formatCompactGuid(group.currentPlanetId)} />
-                  <FleetDataRow label="Origin planet" value={formatCompactGuid(group.originPlanetId)} />
+                  <FleetDataRow label="Current planet" value={formatPlanetReference(group.currentPlanetId)} />
+                  <FleetDataRow label="Origin planet" value={formatPlanetReference(group.originPlanetId)} />
                   <FleetDataRow
                     label="Stationed away"
                     value={formatBooleanLabel(group.isStationedAwayFromOrigin)}
@@ -336,11 +337,11 @@ export function FleetsPage() {
                 </div>
 
                 <div className="figma-badge-row">
-                  {group.commands?.canCreateTransfer && <UiBadge tone="good">Transfer available</UiBadge>}
-                  {group.commands?.canSplit && <UiBadge>Split ready</UiBadge>}
-                  {group.commands?.canMerge && <UiBadge>Merge ready</UiBadge>}
+                  {group.commands?.canCreateTransfer && <UiBadge tone="good">Traslado disponible</UiBadge>}
+                  {group.commands?.canSplit && <UiBadge>Division lista</UiBadge>}
+                  {group.commands?.canMerge && <UiBadge>Fusion lista</UiBadge>}
                   {group.commands?.canCancelTransfer && (
-                    <UiBadge tone="warn">Cancellation available</UiBadge>
+                    <UiBadge tone="warn">Cancelacion disponible</UiBadge>
                   )}
                   {group.routeFuelReadiness?.fuelReadinessPolicy && (
                     <UiBadge>{formatFuelReadinessPolicy(group.routeFuelReadiness.fuelReadinessPolicy)}</UiBadge>
@@ -354,12 +355,16 @@ export function FleetsPage() {
                         <p className="eyebrow">Active transfer</p>
                         <h4>{formatTransferStatus(group.activeTransfer.status)}</h4>
                       </div>
-                      <UiBadge tone="warn">{formatCompactGuid(group.activeTransfer.destinationPlanetId)}</UiBadge>
+                      <UiBadge tone="warn">{formatPlanetReference(group.activeTransfer.destinationPlanetId)}</UiBadge>
                     </div>
                     {transferProgress !== null && (
                       <UiProgressBar value={transferProgress} tone="neutral" />
                     )}
                     <div className="figma-data-list">
+                      <FleetDataRow
+                        label="Destino"
+                        value={formatPlanetReference(group.activeTransfer.destinationPlanetId)}
+                      />
                       <FleetDataRow
                         label="Departure"
                         value={group.activeTransfer.departureAtUtc}
