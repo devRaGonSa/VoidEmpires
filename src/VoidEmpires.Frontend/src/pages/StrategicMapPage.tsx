@@ -353,16 +353,17 @@ export function StrategicMapPage() {
       <UiCard className="panel panel-hero figma-hero-card">
         <div className="figma-hero-copy">
           <UiBadge tone="resource">Phase 13E cockpit foundation</UiBadge>
-          <h2>Galaxia strategic cockpit</h2>
+          <h2>Cabina estrategica de Galaxia</h2>
           <p>
-            The read-only strategic map now prioritizes command input, theater
-            visibility, system focus, and planet intelligence before technical payloads.
+            La vista tactica en modo lectura prioriza entrada de mando, visibilidad
+            del teatro, foco de sistema e inteligencia planetaria antes que los
+            payloads tecnicos.
           </p>
         </div>
         <div className="figma-badge-row">
-          <UiBadge>Backend coordinates preserved</UiBadge>
-          <UiBadge>Read-only contract surface</UiBadge>
-          <UiBadge tone="warn">No gameplay mutations</UiBadge>
+          <UiBadge>Coordenadas del backend intactas</UiBadge>
+          <UiBadge>Superficie de solo lectura</UiBadge>
+          <UiBadge tone="warn">Sin mutaciones jugables</UiBadge>
         </div>
       </UiCard>
 
@@ -370,10 +371,10 @@ export function StrategicMapPage() {
         <UiCard className="panel strategic-loader-panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Command uplink</p>
-              <h3>Load cockpit state</h3>
+              <p className="eyebrow">Enlace de mando</p>
+              <h3>Cargar estado de cabina</h3>
             </div>
-            <UiBadge>Read-only</UiBadge>
+            <UiBadge>Solo lectura</UiBadge>
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
@@ -388,7 +389,7 @@ export function StrategicMapPage() {
               />
             </label>
             <button type="submit" disabled={isLoading}>
-              {isLoading ? "Loading..." : "Sync Galaxia"}
+              {isLoading ? "Cargando..." : "Sincronizar Galaxia"}
             </button>
           </form>
           {error && <p className="error-text">{error}</p>}
@@ -397,11 +398,11 @@ export function StrategicMapPage() {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Strategic snapshot</p>
-              <h3>Battlefield picture</h3>
+              <p className="eyebrow">Panorama estrategico</p>
+              <h3>Estado del frente</h3>
             </div>
             <UiBadge>
-              {summary ? formatCompactGuid(result?.civilizationId) : "Awaiting map"}
+              {summary ? formatCompactGuid(result?.civilizationId) : "Esperando mapa"}
             </UiBadge>
           </div>
           {summary ? (
@@ -413,8 +414,8 @@ export function StrategicMapPage() {
             </div>
           ) : (
             <p className="figma-panel-note">
-              Load a civilization to populate the strategic summary and activate
-              system intelligence panels.
+              Carga una civilizacion para poblar el resumen estrategico y activar
+              los paneles de inteligencia del sistema.
             </p>
           )}
         </UiCard>
@@ -422,16 +423,16 @@ export function StrategicMapPage() {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Current limits</p>
-              <h3>Rules of engagement</h3>
+              <p className="eyebrow">Limites actuales</p>
+              <h3>Reglas de lectura</h3>
             </div>
-            <UiBadge tone="warn">Inspection only</UiBadge>
+            <UiBadge tone="warn">Inspeccion segura</UiBadge>
           </div>
           <ul className="stack-list strategic-rules-list">
-            <li>Endpoint may return `404` or `503` outside dev-ready backend runs.</li>
-            <li>Data remains read-only and does not grant gameplay authorization.</li>
-            <li>Readiness and command metadata are advisory, not authority.</li>
-            <li>Mutations, polling, WebSockets, and renderer execution stay out of scope.</li>
+            <li>El endpoint puede devolver `404` o `503` fuera de ejecuciones backend preparadas para desarrollo.</li>
+            <li>Los datos siguen en solo lectura y no otorgan autorizacion de juego.</li>
+            <li>La disponibilidad y los metadatos de mando son orientativos, no autoridad.</li>
+            <li>Mutaciones, polling, WebSockets y ejecucion de renderer siguen fuera de alcance.</li>
           </ul>
         </UiCard>
       </div>
@@ -470,17 +471,17 @@ export function StrategicMapPage() {
                   <div className="figma-legend-item">
                     <span className="figma-legend-dot figma-legend-owned" />
                     <strong>Propio</strong>
-                    <small>Direct control</small>
+                    <small>Control directo</small>
                   </div>
                   <div className="figma-legend-item">
                     <span className="figma-legend-dot figma-legend-visible" />
                     <strong>Visible</strong>
-                    <small>Observed system</small>
+                    <small>Sistema observado</small>
                   </div>
                   <div className="figma-legend-item">
                     <span className="figma-legend-dot figma-legend-unknown" />
                     <strong>Desconocido</strong>
-                    <small>Sanitized contact</small>
+                    <small>Contacto saneado</small>
                   </div>
                   <div className="figma-legend-item">
                     <span className="figma-legend-dot figma-legend-fleet" />
@@ -554,15 +555,16 @@ export function StrategicMapPage() {
               <p className="eyebrow">Empty development state</p>
               <h3>No relevant systems found yet</h3>
               <p>
-                The current civilization has no owned or discovered systems in this
-                development dataset, so Galaxia stays on a safe read-only zero state.
+                La civilizacion actual no tiene sistemas propios ni descubiertos en
+                este conjunto de desarrollo, por lo que Galaxia permanece en un
+                estado cero seguro.
               </p>
             </div>
-            <UiBadge tone="warn">0 visible systems</UiBadge>
+            <UiBadge tone="warn">0 sistemas visibles</UiBadge>
           </div>
           <ul className="stack-list">
-            <li>System, planet, fleet-marker, and transfer counters remain at zero.</li>
-            <li>The map preview is visual-only and does not create data.</li>
+            <li>Los contadores de sistemas, planetas, flotas y transferencias permanecen en cero.</li>
+            <li>La vista del mapa es solo visual y no crea datos.</li>
           </ul>
         </UiCard>
       )}
@@ -645,7 +647,7 @@ export function StrategicMapPage() {
                       <div key={command.actionKey} className="figma-command-item">
                         <div>
                           <strong>{readText(command.actionKey, "unknown.command")}</strong>
-                          <p>{readText(command.note, "Read-only metadata")}</p>
+                          <p>{readText(command.note, "Metadato solo lectura")}</p>
                         </div>
                         <UiBadge tone={command.isAvailable ? "good" : "warn"}>
                           {command.isAvailable
@@ -764,7 +766,7 @@ export function StrategicMapPage() {
                         <div key={command.actionKey} className="figma-command-item">
                           <div>
                             <strong>{readText(command.actionKey, "unknown.command")}</strong>
-                            <p>{readText(command.note, "Read-only metadata")}</p>
+                            <p>{readText(command.note, "Metadato solo lectura")}</p>
                           </div>
                           <UiBadge tone={command.isAvailable ? "good" : "warn"}>
                             {command.isAvailable
@@ -806,9 +808,9 @@ export function StrategicMapPage() {
           <summary>
             <div>
               <p className="eyebrow">Secondary diagnostics</p>
-              <strong>Technical readouts and renderer payloads</strong>
+              <strong>Lecturas tecnicas y payloads de renderer</strong>
             </div>
-            <UiBadge tone="warn">Collapsed by default</UiBadge>
+            <UiBadge tone="warn">Contraido por defecto</UiBadge>
           </summary>
 
           <div className="technical-disclosure-body">
@@ -821,7 +823,7 @@ export function StrategicMapPage() {
                     Readiness hints stay informative and never bypass backend validation.
                   </p>
                 </div>
-                <UiBadge>Inspection only</UiBadge>
+                <UiBadge>Solo inspeccion</UiBadge>
               </div>
               <div className="figma-detail-grid strategic-detail-grid">
                 <section className="subpanel figma-subpanel">
