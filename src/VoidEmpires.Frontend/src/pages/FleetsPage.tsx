@@ -8,20 +8,16 @@ import type { FleetCommandPresentationItem } from "../utils/fleetCommandPresenta
 import type { FleetGroupSummary, FleetUiState } from "../api/fleetTypes";
 import type { ReadinessNote } from "../api/strategicMapTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
+import { FleetSelectedGroupPanel } from "../components/FleetSelectedGroupPanel";
 import { ActionManifestPanel } from "../components/ActionManifestPanel";
 import { FleetSummaryPanel } from "../components/FleetSummaryPanel";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
-import { UiProgressBar } from "../components/ui/UiProgressBar";
 import {
-  formatBooleanLabel,
   formatCompactGuid,
-  formatFuelReadinessPolicy,
-  formatOrbitalGroupStatus,
   formatPlanetReference,
   formatResourceType,
   formatSpaceAssetType,
-  formatTransferStatus,
 } from "../utils/domainPresentation";
 import {
   buildFleetCommandReadiness,
@@ -45,28 +41,6 @@ function formatNote(note: ReadinessNote) {
   }
 
   return note.note ?? "Readiness metadata present.";
-}
-
-function getTransferProgress(group: FleetGroupSummary) {
-  const activeTransfer = group.activeTransfer;
-  if (!activeTransfer) {
-    return null;
-  }
-
-  const departure = Date.parse(activeTransfer.departureAtUtc);
-  const arrival = Date.parse(activeTransfer.arrivalAtUtc);
-  const now = Date.now();
-
-  if (Number.isNaN(departure) || Number.isNaN(arrival) || arrival <= departure) {
-    return null;
-  }
-
-  return Math.max(0, Math.min(100, ((now - departure) / (arrival - departure)) * 100));
-}
-
-function formatTransferProgressLabel(group: FleetGroupSummary) {
-  const progress = getTransferProgress(group);
-  return progress === null ? null : `${Math.round(progress)}% completado`;
 }
 
 function getGroupTone(group: FleetGroupSummary): "good" | "warn" | "neutral" {
@@ -731,158 +705,17 @@ export function FleetsPage() {
 
           <div className="fleet-command-column">
             {inspectedGroup ? (
-              <UiCard className="panel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Selected group</p>
-                    <h3>{formatSpaceAssetType(inspectedGroup.assetType)}</h3>
-                    <p>{formatCompactGuid(inspectedGroup.id)}</p>
-                  </div>
-                  <div className="figma-badge-row">
-                    <UiBadge tone={getGroupTone(inspectedGroup)}>{formatOrbitalGroupStatus(inspectedGroup.status)}</UiBadge>
-                    {inspectedGroup.routeFuelReadiness?.fuelReadinessPolicy ? (
-                      <UiBadge>{formatFuelReadinessPolicy(inspectedGroup.routeFuelReadiness.fuelReadinessPolicy)}</UiBadge>
-                    ) : null}
-                  </div>
-                </div>
-
-                <div className="figma-stat-grid">
-                  <SummaryMetric label="Quantity" value={inspectedGroup.quantity} />
-                  <SummaryMetric label="Transfer distance" value={inspectedGroup.activeTransfer?.abstractDistanceUnits ?? 0} />
-                </div>
-
-                <div className="fleet-selected-grid">
-                  <section className="subpanel figma-subpanel">
-                    <div className="figma-section-header">
-                      <div>
-                        <p className="eyebrow">Position</p>
-                        <h4>Deployment context</h4>
-                      </div>
-                      <UiBadge>Live UI state</UiBadge>
-                    </div>
-                    <div className="figma-data-list">
-                      <FleetDataRow label="Current planet" value={formatPlanetReference(inspectedGroup.currentPlanetId)} />
-                      <FleetDataRow label="Origin planet" value={formatPlanetReference(inspectedGroup.originPlanetId)} />
-                      <FleetDataRow label="Stationed away" value={formatBooleanLabel(inspectedGroup.isStationedAwayFromOrigin)} />
-                    </div>
-                  </section>
-
-                  <section className="subpanel figma-subpanel">
-                    <div className="figma-section-header">
-                      <div>
-                        <p className="eyebrow">Command readiness</p>
-                        <h4>Read-only planning state</h4>
-                      </div>
-                      <UiBadge tone="warn">Inspection only</UiBadge>
-                    </div>
-                    <div className="figma-data-list">
-                      {inspectedReadinessItems.map((item) => (
-                        <FleetDataRow key={`${inspectedGroup.id}-${item.key}`} label={item.label} value={item.summary} />
-                      ))}
-                    </div>
-                    {inspectedReadinessItems.some((item) => item.details.length > 0) ? (
-                      <ul className="stack-list compact-list">
-                        {inspectedReadinessItems.flatMap((item) =>
-                          item.details.map((detail) => (
-                            <li key={`${inspectedGroup.id}-${item.key}-${detail}`}>{item.label}: {detail}</li>
-                          )),
-                        )}
-                      </ul>
-                    ) : null}
-                  </section>
-                </div>
-
-                {inspectedGroup.activeTransfer ? (
-                  <div className="figma-transfer-card">
-                    <div className="figma-section-header">
-                      <div>
-                        <p className="eyebrow">Transfer status</p>
-                        <h4>{formatTransferStatus(inspectedGroup.activeTransfer.status)}</h4>
-                      </div>
-                      <UiBadge tone="warn">{formatPlanetReference(inspectedGroup.activeTransfer.destinationPlanetId)}</UiBadge>
-                    </div>
-                    {getTransferProgress(inspectedGroup) !== null ? (
-                      <UiProgressBar value={getTransferProgress(inspectedGroup) ?? 0} tone="neutral" />
-                    ) : null}
-                    <div className="figma-data-list">
-                      <FleetDataRow label="Transfer" value={formatCompactGuid(inspectedGroup.activeTransfer.id)} />
-                      <FleetDataRow label="Destination" value={formatPlanetReference(inspectedGroup.activeTransfer.destinationPlanetId)} />
-                      <FleetDataRow label="Departure" value={inspectedGroup.activeTransfer.departureAtUtc} />
-                      <FleetDataRow label="Arrival" value={inspectedGroup.activeTransfer.arrivalAtUtc} />
-                      {formatTransferProgressLabel(inspectedGroup) ? (
-                        <FleetDataRow label="Progress" value={formatTransferProgressLabel(inspectedGroup) ?? "Sin progreso"} />
-                      ) : null}
-                    </div>
-                    <div className="transfer-confirmation-actions">
-                      <button
-                        type="button"
-                        className="prototype-control-button transfer-prepare-button"
-                        onClick={() => handlePrepareCancelTransfer(inspectedGroup.activeTransfer?.id ?? "")}
-                        disabled={!inspectedGroup.activeTransfer?.id || !inspectedGroup.commands?.canCancelTransfer}
-                      >
-                        {preparedCancelTransferId === inspectedGroup.activeTransfer.id ? "Ocultar confirmacion" : "Preparar cancelacion"}
-                      </button>
-                    </div>
-                    {preparedCancelTransferId === inspectedGroup.activeTransfer.id && (
-                      <section className="subpanel transfer-confirmation-panel">
-                        <div className="figma-section-header">
-                          <div>
-                            <p className="eyebrow">Accion de desarrollo</p>
-                            <h4>Cancelar transferencia orbital</h4>
-                            <p>La cancelacion sigue protegida y no reembolsa recursos ya cobrados.</p>
-                          </div>
-                          <div className="figma-badge-row">
-                            <UiBadge tone="warn">Accion de desarrollo</UiBadge>
-                            <UiBadge tone="warn">No reembolsa recursos</UiBadge>
-                          </div>
-                        </div>
-                        <div className="figma-data-list">
-                          <FleetDataRow label="Transfer" value={formatCompactGuid(inspectedGroup.activeTransfer.id)} />
-                          <FleetDataRow label="Grupo" value={formatCompactGuid(inspectedGroup.id)} />
-                          <FleetDataRow label="Origen" value={formatPlanetReference(inspectedGroup.originPlanetId)} />
-                          <FleetDataRow label="Planeta actual" value={formatPlanetReference(inspectedGroup.currentPlanetId)} />
-                          <FleetDataRow label="Destino" value={formatPlanetReference(inspectedGroup.activeTransfer.destinationPlanetId)} />
-                          <FleetDataRow label="Llegada" value={inspectedGroup.activeTransfer.arrivalAtUtc} />
-                        </div>
-                        <div className="transfer-confirmation-flow">
-                          <label className="confirmation-checkbox">
-                            <input
-                              type="checkbox"
-                              checked={hasCancelTransferAcknowledgement}
-                              onChange={(event) => setHasCancelTransferAcknowledgement(event.target.checked)}
-                            />
-                            <span>Requiere confirmacion explicita</span>
-                          </label>
-                          <div className="transfer-confirmation-actions">
-                            <button
-                              type="button"
-                              onClick={() => handleCancelTransfer(inspectedGroup)}
-                              disabled={
-                                isCancellingTransfer ||
-                                !hasCancelTransferAcknowledgement ||
-                                preparedCancelTransferId !== inspectedGroup.activeTransfer.id
-                              }
-                            >
-                              {isCancellingTransfer ? "Cancelando..." : "Cancelar transferencia orbital"}
-                            </button>
-                          </div>
-                        </div>
-                      </section>
-                    )}
-                    {inspectedGroup.activeTransfer.interceptionReadiness?.readinessNote ? (
-                      <p className="figma-panel-note">{inspectedGroup.activeTransfer.interceptionReadiness.readinessNote}</p>
-                    ) : null}
-                  </div>
-                ) : null}
-
-                {inspectedGroup.routeFuelReadiness?.notes?.length ? (
-                  <ul className="stack-list compact-list">
-                    {inspectedGroup.routeFuelReadiness.notes.map((note) => (
-                      <li key={note}>{note}</li>
-                    ))}
-                  </ul>
-                ) : null}
-              </UiCard>
+              <FleetSelectedGroupPanel
+                group={inspectedGroup}
+                readinessItems={inspectedReadinessItems}
+                groupTone={getGroupTone(inspectedGroup)}
+                preparedCancelTransferId={preparedCancelTransferId}
+                hasCancelTransferAcknowledgement={hasCancelTransferAcknowledgement}
+                isCancellingTransfer={isCancellingTransfer}
+                onPrepareCancelTransfer={handlePrepareCancelTransfer}
+                onCancelAcknowledgementChange={setHasCancelTransferAcknowledgement}
+                onCancelTransfer={handleCancelTransfer}
+              />
             ) : null}
 
             <UiCard className="panel">

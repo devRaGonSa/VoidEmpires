@@ -3,7 +3,7 @@
 ---
 id: TASK-12B
 title: Phase 12B - Fleet cockpit component extraction
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
