@@ -3,7 +3,7 @@
 ---
 id: TASK-10S
 title: Phase 10S - Seeded cancel transfer API scenario
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

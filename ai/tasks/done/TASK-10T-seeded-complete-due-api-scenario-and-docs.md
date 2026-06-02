@@ -3,7 +3,7 @@
 ---
 id: TASK-10T
 title: Phase 10T - Seeded complete-due API scenario and docs
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

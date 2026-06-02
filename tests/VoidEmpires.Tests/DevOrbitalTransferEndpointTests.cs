@@ -19,7 +19,9 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
     private static readonly Guid SeededCivilizationId = Guid.Parse("00000000-0000-0000-0000-000000000001");
     private static readonly Guid SeededOwnedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
     private static readonly Guid SeededDestinationPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000002");
+    private static readonly Guid SeededFutureDestinationPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000003");
     private static readonly DateTime SeededRequestedAtUtc = new(2026, 6, 2, 9, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime SeededCompletionNowUtc = new(2026, 6, 2, 12, 0, 0, DateTimeKind.Utc);
     private static readonly Guid CivilizationId = Guid.Parse("3659791b-71b4-4582-b9cd-ee396930d075");
     private static readonly Guid OrbitalGroupId = Guid.Parse("4a332c10-5a76-407e-8fb5-d1a29ad568bc");
     private static readonly Guid TransferId = Guid.Parse("76d909dc-d854-4714-a9e9-b070fa1fa932");
@@ -493,6 +495,223 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
         Assert.Equal(CancelOrbitalTransferResultStatus.Conflict, payload.Status);
         Assert.False(payload.Succeeded);
         Assert.Contains("Orbital transfer does not belong to the civilization.", payload.Errors);
+    }
+
+    [Fact]
+    public async Task CancelOrbitalTransferReturnsSeededStateToStationedWithoutRefund()
+    {
+        const string databaseName = "dev-orbital-transfer-cancel-seeded-scenario";
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: databaseName);
+        using var client = configuredFactory.CreateClient();
+
+        using (var seedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "minimal-validation" }))
+        {
+            Assert.Equal(HttpStatusCode.OK, seedResponse.StatusCode);
+        }
+
+        using var scope = configuredFactory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+        var seededTransfer = await dbContext.Set<OrbitalTransfer>()
+            .AsNoTracking()
+            .SingleAsync(x =>
+                x.CivilizationId == SeededCivilizationId &&
+                x.OriginPlanetId == SeededOwnedPlanetId &&
+                x.DestinationPlanetId == SeededDestinationPlanetId &&
+                x.Status == OrbitalTransferStatus.Planned);
+        var seededGroup = await dbContext.Set<OrbitalGroup>()
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == seededTransfer.OrbitalGroupId);
+        var stockpileBefore = await dbContext.PlanetResourceStockpiles
+            .AsNoTracking()
+            .SingleAsync(x => x.PlanetId == SeededOwnedPlanetId);
+
+        using (var initialUiStateResponse = await client.GetAsync($"/api/dev/fleets/ui-state?civilizationId={SeededCivilizationId}"))
+        {
+            var initialUiState = await initialUiStateResponse.Content.ReadFromJsonAsync<DevFleetUiStateResponse>();
+            Assert.Equal(HttpStatusCode.OK, initialUiStateResponse.StatusCode);
+            Assert.NotNull(initialUiState?.UiState);
+            Assert.Contains(initialUiState.UiState.Groups, x =>
+                x.Id == seededGroup.Id &&
+                x.Status == OrbitalGroupStatus.Reserved &&
+                x.HasActiveTransfer &&
+                x.ActiveTransfer is not null &&
+                x.ActiveTransfer.Id == seededTransfer.Id);
+        }
+
+        using (var cancelResponse = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/cancel", new
+        {
+            civilizationId = SeededCivilizationId,
+            orbitalTransferId = seededTransfer.Id
+        }))
+        {
+            var cancelPayload = await cancelResponse.Content.ReadFromJsonAsync<CancelOrbitalTransferResponse>();
+            Assert.Equal(HttpStatusCode.OK, cancelResponse.StatusCode);
+            Assert.NotNull(cancelPayload);
+            Assert.Equal(CancelOrbitalTransferResultStatus.Succeeded, cancelPayload.Status);
+            Assert.True(cancelPayload.Succeeded);
+            Assert.Equal(seededTransfer.Id, cancelPayload.OrbitalTransferId);
+            Assert.Equal(seededGroup.Id, cancelPayload.OrbitalGroupId);
+        }
+
+        using (var repeatedCancelResponse = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/cancel", new
+        {
+            civilizationId = SeededCivilizationId,
+            orbitalTransferId = seededTransfer.Id
+        }))
+        {
+            var repeatedPayload = await repeatedCancelResponse.Content.ReadFromJsonAsync<CancelOrbitalTransferResponse>();
+            Assert.Equal(HttpStatusCode.Conflict, repeatedCancelResponse.StatusCode);
+            Assert.NotNull(repeatedPayload);
+            Assert.Equal(CancelOrbitalTransferResultStatus.Conflict, repeatedPayload.Status);
+            Assert.False(repeatedPayload.Succeeded);
+            Assert.Contains("Orbital transfer is already cancelled.", repeatedPayload.Errors);
+        }
+
+        using (var followUpUiStateResponse = await client.GetAsync($"/api/dev/fleets/ui-state?civilizationId={SeededCivilizationId}"))
+        {
+            var followUpUiState = await followUpUiStateResponse.Content.ReadFromJsonAsync<DevFleetUiStateResponse>();
+            Assert.Equal(HttpStatusCode.OK, followUpUiStateResponse.StatusCode);
+            Assert.NotNull(followUpUiState?.UiState);
+            Assert.Contains(followUpUiState.UiState.Groups, x =>
+                x.Id == seededGroup.Id &&
+                x.Status == OrbitalGroupStatus.Stationed &&
+                !x.HasActiveTransfer &&
+                x.ActiveTransfer is null);
+        }
+
+        var persistedTransfer = await dbContext.Set<OrbitalTransfer>()
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == seededTransfer.Id);
+        var persistedGroup = await dbContext.Set<OrbitalGroup>()
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == seededGroup.Id);
+        var stockpileAfter = await dbContext.PlanetResourceStockpiles
+            .AsNoTracking()
+            .SingleAsync(x => x.PlanetId == SeededOwnedPlanetId);
+
+        Assert.Equal(OrbitalTransferStatus.Cancelled, persistedTransfer.Status);
+        Assert.Equal(OrbitalGroupStatus.Stationed, persistedGroup.Status);
+        Assert.Equal(stockpileBefore.Credits, stockpileAfter.Credits);
+        Assert.Equal(stockpileBefore.Gas, stockpileAfter.Gas);
+    }
+
+    [Fact]
+    public async Task CompleteDueProcessesSeededDueTransferWithoutCompletingFutureTransferEarly()
+    {
+        const string databaseName = "dev-orbital-transfer-complete-seeded-scenario";
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: databaseName);
+        using var client = configuredFactory.CreateClient();
+
+        using (var seedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "minimal-validation" }))
+        {
+            Assert.Equal(HttpStatusCode.OK, seedResponse.StatusCode);
+        }
+
+        using var scope = configuredFactory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+        var dueTransfer = await dbContext.Set<OrbitalTransfer>()
+            .AsNoTracking()
+            .SingleAsync(x =>
+                x.CivilizationId == SeededCivilizationId &&
+                x.OriginPlanetId == SeededOwnedPlanetId &&
+                x.DestinationPlanetId == SeededDestinationPlanetId &&
+                x.Status == OrbitalTransferStatus.Planned);
+        var dueGroup = await dbContext.Set<OrbitalGroup>()
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == dueTransfer.OrbitalGroupId);
+        var futureGroup = await dbContext.Set<OrbitalGroup>()
+            .AsNoTracking()
+            .Where(x =>
+                x.CivilizationId == SeededCivilizationId &&
+                x.CurrentPlanetId == SeededOwnedPlanetId &&
+                x.Status == OrbitalGroupStatus.Stationed)
+            .OrderByDescending(x => x.Quantity)
+            .FirstAsync();
+
+        Guid futureTransferId;
+        using (var futureCreateResponse = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/create", new
+        {
+            civilizationId = SeededCivilizationId,
+            orbitalGroupId = futureGroup.Id,
+            destinationPlanetId = SeededFutureDestinationPlanetId,
+            requestedAtUtc = SeededCompletionNowUtc.AddHours(1)
+        }))
+        {
+            var futureCreatePayload = await futureCreateResponse.Content.ReadFromJsonAsync<CreateOrbitalTransferResponse>();
+            Assert.Equal(HttpStatusCode.Created, futureCreateResponse.StatusCode);
+            Assert.NotNull(futureCreatePayload?.OrbitalTransferId);
+            futureTransferId = futureCreatePayload.OrbitalTransferId.Value;
+        }
+
+        using (var completeResponse = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/complete-due", new
+        {
+            nowUtc = SeededCompletionNowUtc
+        }))
+        {
+            var completePayload = await completeResponse.Content.ReadFromJsonAsync<CompleteOrbitalTransfersResponse>();
+            Assert.Equal(HttpStatusCode.OK, completeResponse.StatusCode);
+            Assert.NotNull(completePayload);
+            Assert.True(completePayload.Succeeded);
+            Assert.Equal(1, completePayload.CompletedCount);
+            Assert.Contains(dueTransfer.Id, completePayload.CompletedTransferIds);
+            Assert.Contains(dueGroup.Id, completePayload.CompletedOrbitalGroupIds);
+            Assert.DoesNotContain(futureTransferId, completePayload.CompletedTransferIds);
+            Assert.DoesNotContain(futureGroup.Id, completePayload.CompletedOrbitalGroupIds);
+        }
+
+        using (var repeatedCompleteResponse = await client.PostAsJsonAsync("/api/dev/fleets/orbital-transfers/complete-due", new
+        {
+            nowUtc = SeededCompletionNowUtc
+        }))
+        {
+            var repeatedPayload = await repeatedCompleteResponse.Content.ReadFromJsonAsync<CompleteOrbitalTransfersResponse>();
+            Assert.Equal(HttpStatusCode.OK, repeatedCompleteResponse.StatusCode);
+            Assert.NotNull(repeatedPayload);
+            Assert.True(repeatedPayload.Succeeded);
+            Assert.Equal(0, repeatedPayload.CompletedCount);
+            Assert.Empty(repeatedPayload.CompletedTransferIds);
+            Assert.Empty(repeatedPayload.CompletedOrbitalGroupIds);
+        }
+
+        using (var followUpUiStateResponse = await client.GetAsync($"/api/dev/fleets/ui-state?civilizationId={SeededCivilizationId}"))
+        {
+            var followUpUiState = await followUpUiStateResponse.Content.ReadFromJsonAsync<DevFleetUiStateResponse>();
+            Assert.Equal(HttpStatusCode.OK, followUpUiStateResponse.StatusCode);
+            Assert.NotNull(followUpUiState?.UiState);
+            Assert.Contains(followUpUiState.UiState.Groups, x =>
+                x.Id == dueGroup.Id &&
+                x.CurrentPlanetId == SeededDestinationPlanetId &&
+                x.Status == OrbitalGroupStatus.Stationed &&
+                !x.HasActiveTransfer &&
+                x.ActiveTransfer is null);
+            Assert.Contains(followUpUiState.UiState.Groups, x =>
+                x.Id == futureGroup.Id &&
+                x.CurrentPlanetId == SeededOwnedPlanetId &&
+                x.Status == OrbitalGroupStatus.Reserved &&
+                x.HasActiveTransfer &&
+                x.ActiveTransfer is not null &&
+                x.ActiveTransfer.Id == futureTransferId);
+        }
+
+        var persistedDueTransfer = await dbContext.Set<OrbitalTransfer>()
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == dueTransfer.Id);
+        var persistedDueGroup = await dbContext.Set<OrbitalGroup>()
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == dueGroup.Id);
+        var persistedFutureTransfer = await dbContext.Set<OrbitalTransfer>()
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == futureTransferId);
+        var persistedFutureGroup = await dbContext.Set<OrbitalGroup>()
+            .AsNoTracking()
+            .SingleAsync(x => x.Id == futureGroup.Id);
+
+        Assert.Equal(OrbitalTransferStatus.Completed, persistedDueTransfer.Status);
+        Assert.Equal(SeededDestinationPlanetId, persistedDueGroup.CurrentPlanetId);
+        Assert.Equal(OrbitalGroupStatus.Stationed, persistedDueGroup.Status);
+        Assert.Equal(OrbitalTransferStatus.Planned, persistedFutureTransfer.Status);
+        Assert.Equal(SeededOwnedPlanetId, persistedFutureGroup.CurrentPlanetId);
+        Assert.Equal(OrbitalGroupStatus.Reserved, persistedFutureGroup.Status);
     }
 
     private HttpClient CreateConfiguredClient(
