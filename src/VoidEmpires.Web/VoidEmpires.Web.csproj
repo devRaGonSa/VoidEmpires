@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <ProjectReference Include="..\VoidEmpires.Application\VoidEmpires.Application.csproj" />
@@ -16,6 +16,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>23a9a3e7-090a-4800-928f-0c25d2d743e8</UserSecretsId>
   </PropertyGroup>
 
 </Project>
