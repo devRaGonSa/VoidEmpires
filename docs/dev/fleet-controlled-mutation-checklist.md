@@ -1,6 +1,6 @@
 # Fleet Controlled Mutation Checklist
 
-Use this checklist for the current non-visual regression pass around the Fleet page estimate -> confirm -> create-transfer flow.
+Use this checklist for the current non-visual regression pass around the Fleet page estimate -> confirm -> create-transfer -> confirm -> cancel-transfer flow.
 
 Manual browser review is not required for this block unless a clear frontend regression appears.
 
@@ -24,6 +24,9 @@ Manual browser review is not required for this block unless a clear frontend reg
 3. Submit `POST /api/dev/fleets/orbital-transfers/create` only with the latest matching estimate and an explicit UTC `requestedAtUtc`.
 4. Confirm the result identifies the created transfer and group, and that success clearly indicates development state mutated.
 5. Read `GET /api/dev/fleets/ui-state` again and confirm the refreshed state reflects the planned transfer or reserved group change.
+6. Submit `POST /api/dev/fleets/orbital-transfers/cancel` only for the currently visible active transfer and only after explicit confirmation.
+7. Confirm the result identifies the cancelled transfer or group, clearly reports `estado actualizado`, and keeps the no-refund rule visible.
+8. Read `GET /api/dev/fleets/ui-state` again and confirm the cancelled transfer no longer appears active and the group is back in a stationed or available state.
 
 ## Guard checks
 
@@ -31,9 +34,12 @@ Manual browser review is not required for this block unless a clear frontend reg
 2. Refresh fleet UI state and confirm the previous estimate is no longer accepted for create-transfer.
 3. While a create-transfer request is already in flight, confirm the frontend blocks duplicate submissions.
 4. When the API returns `409`, treat it as stale or already-active fleet state and recalculate the estimate before retrying.
+5. After a successful cancel refresh, confirm the frontend clears the prepared cancel context and does not let the same transfer be re-submitted automatically.
+6. When cancel returns `404`, `409`, or a network failure, confirm the frontend leaves the previous fleet UI state intact until an explicit refresh.
 
 ## Recovery notes
 
 1. `minimal-validation` is additive and idempotent. It restores missing baseline rows only.
 2. Re-applying it does not delete extra transfers, reset reserved groups, or refund spent resources after create-transfer.
-3. If you need the original baseline exactly, switch to a fresh disposable local database and then apply the seed again.
+3. Re-applying it also does not remove already-cancelled transfer rows or reconstruct spent travel resources after a cancel-transfer cycle.
+4. If you need the original baseline exactly, switch to a fresh disposable local database and then apply the seed again.

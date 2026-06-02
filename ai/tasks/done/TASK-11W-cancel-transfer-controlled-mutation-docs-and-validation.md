@@ -3,7 +3,7 @@
 ---
 id: TASK-11W
 title: Phase 11W - Cancel transfer controlled mutation docs and validation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

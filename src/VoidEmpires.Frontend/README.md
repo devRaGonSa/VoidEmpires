@@ -73,8 +73,9 @@ npm run build
 - Loads the fleet UI-state read model for a civilization id.
 - Executes only the read-only travel estimate preview at `POST /api/dev/fleets/orbital-travel/estimate`.
 - Executes `POST /api/dev/fleets/orbital-transfers/create` only after an explicit development-only confirmation tied to the latest matching estimate.
+- Executes `POST /api/dev/fleets/orbital-transfers/cancel` only after an explicit development-only confirmation tied to a currently visible active transfer.
 - Renders compact fleet cards, resource contexts, interception notes, active-transfer progress bars, read-only action manifests, mutation confirmation metadata, and disabled prototype mutation controls.
-- Keeps `cancel`, `complete-due`, `split`, and `merge` visibly guarded and non-executable from the UI.
+- Keeps `complete-due`, `split`, and `merge` visibly guarded and non-executable from the UI.
 
 ## Figma token foundation
 
@@ -122,8 +123,9 @@ Only `Galaxia` and `Flotas` are active routes in the sidebar today. Other labels
 - Readiness metadata is not gameplay authorization.
 - Visual-state previews are renderer-facing dev contracts, not final rendering.
 - `create transfer` mutates development data and is allowed only behind the explicit confirmation flow.
+- `cancel transfer` also mutates development data, is allowed only behind the explicit confirmation flow, and does not refund previously charged travel resources.
 - Re-applying the `minimal-validation` seed is additive and idempotent, but it does not remove extra transfers, reset group state, or refill already-existing stockpiles after a mutation run.
-- `cancel`, `complete-due`, `split`, `merge`, and exploration creation remain manifest metadata only.
+- `complete-due`, `split`, `merge`, and exploration creation remain manifest metadata only.
 - No production authentication is implemented.
 - No polling, WebSockets, or final renderer pipeline is implemented.
 - No final game UI styling or 3D map is implemented.
@@ -145,6 +147,7 @@ Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" 
 Invoke-RestMethod -Method Get -Uri "http://localhost:5142/api/dev/fleets/ui-state?civilizationId=00000000-0000-0000-0000-000000000001"
 Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/fleets/orbital-travel/estimate" -ContentType "application/json" -Body '{"civilizationId":"00000000-0000-0000-0000-000000000001","orbitalGroupId":"<stationed-group-id>","destinationPlanetId":"40000000-0000-0000-0000-000000000002"}'
 Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/fleets/orbital-transfers/create" -ContentType "application/json" -Body '{"civilizationId":"00000000-0000-0000-0000-000000000001","orbitalGroupId":"<stationed-group-id>","destinationPlanetId":"40000000-0000-0000-0000-000000000002","requestedAtUtc":"2026-06-02T13:00:00Z"}'
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/fleets/orbital-transfers/cancel" -ContentType "application/json" -Body '{"civilizationId":"00000000-0000-0000-0000-000000000001","orbitalTransferId":"<active-transfer-id>"}'
 ```
 
 If a previous local run already mutated fleet state, inspect `ui-state` first. Re-applying `minimal-validation` restores missing baseline rows only; use a fresh disposable local database when you need the original transfer/resource baseline back.

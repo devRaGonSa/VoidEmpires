@@ -137,14 +137,16 @@ Current frontend mutation boundary:
 
 - `POST /api/dev/fleets/orbital-travel/estimate` may execute from the frontend as a read-only preview.
 - `POST /api/dev/fleets/orbital-transfers/create` may execute from the frontend only after explicit development-only confirmation and mutates development data.
-- `cancel`, `complete-due`, `split`, and `merge` remain disabled or prototype-only in the frontend.
+- `POST /api/dev/fleets/orbital-transfers/cancel` may execute from the frontend only after explicit development-only confirmation for a visible active transfer, mutates development data, and does not refund previously charged travel resources.
+- `complete-due`, `split`, and `merge` remain disabled or prototype-only in the frontend.
 
-Recommended recovery flow after `create transfer` mutates local validation data:
+Recommended recovery flow after `create transfer` or `cancel transfer` mutates local validation data:
 
 1. Inspect `GET /api/dev/fleets/ui-state?civilizationId=00000000-0000-0000-0000-000000000001` to confirm the current stationed groups, active transfers, and resource context.
 2. Re-apply `POST /api/dev/seeds/apply` with `{"profile":"minimal-validation"}` only when you need to restore missing baseline rows.
 3. If fleet state, transfer rows, or resource balances must return to the original baseline, use a fresh disposable local database and then apply `minimal-validation` again.
 4. Re-run `dotnet build --no-restore`, `dotnet test --no-build`, and `npm run build --prefix src/VoidEmpires.Frontend`.
+5. Keep manual browser review deferred unless a clear frontend regression appears; the current fleet mutation path is validated primarily through build, test, and optional API-level checks.
 
 ### Database Configuration
 
@@ -203,7 +205,7 @@ Do not commit real Brevo API keys, SMTP credentials, verified sender addresses, 
 - `ai/reports/solution-bootstrap-plan.md`: actionable plan for the first implementation task
 - `src/VoidEmpires.Frontend/README.md`: frontend prototype setup, routes, and limitations
 - `docs/dev/frontend-foundation-smoke-checklist.md`: frontend smoke validation steps
-- `docs/dev/fleet-controlled-mutation-checklist.md`: focused non-visual regression steps for the Fleet estimate and create-transfer flow
+- `docs/dev/fleet-controlled-mutation-checklist.md`: focused non-visual regression steps for the Fleet estimate, create-transfer, and cancel-transfer flows
 
 ## Workflow
 

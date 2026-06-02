@@ -106,8 +106,8 @@ Use this checklist for the current frontend preparation block. Manual visual QA 
 5. Treat frontend mutation controls as development-only affordances. The current Fleet page may execute only `create` and `cancel`, each behind an explicit confirmation flow; `complete-due`, `split`, and `merge` must stay disabled or metadata-only.
 6. Keep manual browser review deferred unless a clear frontend regression appears; this milestone relies on build, test, and optional API-only checks rather than visual sign-off.
 
-Manual browser review is not required for Phase 11H through 11K unless a clear frontend regression appears. The intended evidence for this block is successful build and test execution plus optional API-level contract checks.
-For the current estimate -> confirm -> create-transfer path, use [fleet-controlled-mutation-checklist.md](./fleet-controlled-mutation-checklist.md) as the focused non-visual regression pass.
+Manual browser review is not required for the current controlled fleet mutation block unless a clear frontend regression appears. The intended evidence for this block is successful build and test execution plus optional API-level contract checks.
+For the current estimate -> confirm -> create-transfer -> confirm -> cancel-transfer path, use [fleet-controlled-mutation-checklist.md](./fleet-controlled-mutation-checklist.md) as the focused non-visual regression pass.
 
 ## Endpoint Summary
 
