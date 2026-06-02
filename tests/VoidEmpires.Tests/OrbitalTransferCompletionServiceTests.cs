@@ -147,6 +147,49 @@ public class OrbitalTransferCompletionServiceTests
     }
 
     [Fact]
+    public async Task CompleteDueAsyncProcessesDueTransfersAcrossCivilizationsByDesign()
+    {
+        await using var dbContext = CreateDbContext();
+        var nowUtc = new DateTime(2026, 5, 28, 12, 0, 0, DateTimeKind.Utc);
+        var firstGroup = CreateReservedGroup(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+        var secondGroup = CreateReservedGroup(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+        var firstDestinationPlanetId = Guid.NewGuid();
+        var secondDestinationPlanetId = Guid.NewGuid();
+        var firstTransfer = CreateTransfer(firstGroup, firstDestinationPlanetId, nowUtc.AddHours(-1), nowUtc);
+        var secondTransfer = CreateTransfer(secondGroup, secondDestinationPlanetId, nowUtc.AddHours(-2), nowUtc);
+        dbContext.Set<OrbitalGroup>().AddRange(firstGroup, secondGroup);
+        dbContext.Set<OrbitalTransfer>().AddRange(firstTransfer, secondTransfer);
+        await dbContext.SaveChangesAsync();
+
+        var result = await new OrbitalTransferCompletionService(dbContext).CompleteDueAsync(nowUtc);
+
+        Assert.Equal(2, result.CompletedCount);
+        Assert.Contains(firstTransfer.Id, result.CompletedTransferIds);
+        Assert.Contains(secondTransfer.Id, result.CompletedTransferIds);
+        Assert.Contains(firstGroup.Id, result.CompletedOrbitalGroupIds);
+        Assert.Contains(secondGroup.Id, result.CompletedOrbitalGroupIds);
+
+        var persistedTransfers = await dbContext.Set<OrbitalTransfer>()
+            .OrderBy(x => x.Id)
+            .ToListAsync();
+        Assert.All(persistedTransfers, transfer => Assert.Equal(OrbitalTransferStatus.Completed, transfer.Status));
+
+        var persistedGroups = await dbContext.Set<OrbitalGroup>()
+            .OrderBy(x => x.Id)
+            .ToListAsync();
+        Assert.Contains(persistedGroups, group =>
+            group.Id == firstGroup.Id &&
+            group.CivilizationId == firstGroup.CivilizationId &&
+            group.CurrentPlanetId == firstDestinationPlanetId &&
+            group.Status == OrbitalGroupStatus.Stationed);
+        Assert.Contains(persistedGroups, group =>
+            group.Id == secondGroup.Id &&
+            group.CivilizationId == secondGroup.CivilizationId &&
+            group.CurrentPlanetId == secondDestinationPlanetId &&
+            group.Status == OrbitalGroupStatus.Stationed);
+    }
+
+    [Fact]
     public async Task CompleteDueAsyncSkipsDueTransferWhenGroupIsNotReserved()
     {
         await using var dbContext = CreateDbContext();

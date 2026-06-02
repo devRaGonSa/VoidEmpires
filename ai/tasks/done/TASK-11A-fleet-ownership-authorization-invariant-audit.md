@@ -3,7 +3,7 @@
 ---
 id: TASK-11A
 title: Phase 11A - Fleet ownership and authorization invariant audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

@@ -116,19 +116,41 @@ public class OrbitalTransferPersistenceServiceTests
     }
 
     [Fact]
-    public async Task PersistAsyncRejectsUnknownGroupForCivilization()
+    public async Task PersistAsyncRejectsForeignGroupWithoutMutatingState()
     {
         await using var dbContext = CreateDbContext();
-        var service = CreateService(dbContext);
+        var foreignCivilizationId = Guid.NewGuid();
+        var requestingCivilizationId = Guid.NewGuid();
+        var currentPlanetId = Guid.NewGuid();
+        var destinationPlanetId = Guid.NewGuid();
+        var foreignGroup = OrbitalGroup.CreateStationed(
+            foreignCivilizationId,
+            Guid.NewGuid(),
+            currentPlanetId,
+            SpaceAssetType.ScoutCraft,
+            2);
+        var stockpile = PlanetResourceStockpile.Create(currentPlanetId);
+        stockpile.Increase(ResourceType.Credits, 5);
+        stockpile.Increase(ResourceType.Gas, 2);
+        dbContext.Set<OrbitalGroup>().Add(foreignGroup);
+        dbContext.PlanetResourceStockpiles.Add(stockpile);
+        await dbContext.SaveChangesAsync();
 
-        var result = await service.PersistAsync(new PersistOrbitalTransferRequest(
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            Guid.NewGuid(),
+        var result = await CreateService(dbContext).PersistAsync(new PersistOrbitalTransferRequest(
+            requestingCivilizationId,
+            foreignGroup.Id,
+            destinationPlanetId,
             new DateTime(2026, 5, 28, 12, 0, 0, DateTimeKind.Utc)));
 
         Assert.False(result.Succeeded);
         Assert.Contains("Orbital group was not found for the civilization.", result.Errors);
+        Assert.Empty(await dbContext.Set<OrbitalTransfer>().ToListAsync());
+        var persistedGroup = await dbContext.Set<OrbitalGroup>().SingleAsync(x => x.Id == foreignGroup.Id);
+        Assert.Equal(foreignCivilizationId, persistedGroup.CivilizationId);
+        Assert.Equal(OrbitalGroupStatus.Stationed, persistedGroup.Status);
+        var persistedStockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == currentPlanetId);
+        Assert.Equal(5, persistedStockpile.Credits);
+        Assert.Equal(2, persistedStockpile.Gas);
     }
 
     [Fact]

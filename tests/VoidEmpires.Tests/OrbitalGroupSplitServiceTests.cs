@@ -46,6 +46,10 @@ public class OrbitalGroupSplitServiceTests
 
         Assert.False(result.Succeeded);
         Assert.Contains("Source orbital group does not belong to the civilization.", result.Errors);
+        var persistedGroup = await dbContext.Set<OrbitalGroup>().SingleAsync(x => x.Id == group.Id);
+        Assert.Equal(3, persistedGroup.Quantity);
+        Assert.Equal(OrbitalGroupStatus.Stationed, persistedGroup.Status);
+        Assert.Equal(1, await dbContext.Set<OrbitalGroup>().CountAsync());
     }
 
     [Fact]

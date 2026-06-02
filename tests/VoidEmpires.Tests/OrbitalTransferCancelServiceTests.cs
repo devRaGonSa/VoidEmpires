@@ -28,10 +28,15 @@ public class OrbitalTransferCancelServiceTests
     public async Task CancelAsyncRejectsCivilizationMismatch()
     {
         await using var dbContext = CreateDbContext();
-        var group = CreateReservedGroup(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+        var currentPlanetId = Guid.NewGuid();
+        var group = CreateReservedGroup(Guid.NewGuid(), Guid.NewGuid(), currentPlanetId);
         var transfer = CreateTransfer(group, Guid.NewGuid());
+        var stockpile = PlanetResourceStockpile.Create(currentPlanetId);
+        stockpile.Increase(ResourceType.Credits, 7);
+        stockpile.Increase(ResourceType.Gas, 3);
         dbContext.Set<OrbitalGroup>().Add(group);
         dbContext.Set<OrbitalTransfer>().Add(transfer);
+        dbContext.PlanetResourceStockpiles.Add(stockpile);
         await dbContext.SaveChangesAsync();
 
         var result = await new OrbitalTransferCancelService(dbContext).CancelAsync(new CancelOrbitalTransferRequest(
@@ -43,6 +48,9 @@ public class OrbitalTransferCancelServiceTests
         Assert.Contains("Orbital transfer does not belong to the civilization.", result.Errors);
         Assert.Equal(OrbitalTransferStatus.Planned, transfer.Status);
         Assert.Equal(OrbitalGroupStatus.Reserved, group.Status);
+        var persistedStockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == currentPlanetId);
+        Assert.Equal(7, persistedStockpile.Credits);
+        Assert.Equal(3, persistedStockpile.Gas);
     }
 
     [Fact]
