@@ -80,4 +80,82 @@ public class OrbitalTransferTests
             departureAtUtc,
             departureAtUtc));
     }
+
+    [Fact]
+    public void CompleteChangesPlannedTransferStatusToCompleted()
+    {
+        var departureAtUtc = new DateTime(2026, 5, 28, 12, 0, 0, DateTimeKind.Utc);
+        var arrivalAtUtc = departureAtUtc.AddHours(1);
+        var transfer = OrbitalTransfer.CreatePlanned(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            1,
+            departureAtUtc,
+            arrivalAtUtc);
+
+        transfer.Complete(arrivalAtUtc);
+
+        Assert.Equal(OrbitalTransferStatus.Completed, transfer.Status);
+    }
+
+    [Fact]
+    public void CancelChangesPlannedTransferStatusToCancelled()
+    {
+        var departureAtUtc = new DateTime(2026, 5, 28, 12, 0, 0, DateTimeKind.Utc);
+        var arrivalAtUtc = departureAtUtc.AddHours(1);
+        var transfer = OrbitalTransfer.CreatePlanned(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            1,
+            departureAtUtc,
+            arrivalAtUtc);
+
+        transfer.Cancel();
+
+        Assert.Equal(OrbitalTransferStatus.Cancelled, transfer.Status);
+    }
+
+    [Fact]
+    public void CancelRejectsCompletedTransfer()
+    {
+        var departureAtUtc = new DateTime(2026, 5, 28, 12, 0, 0, DateTimeKind.Utc);
+        var arrivalAtUtc = departureAtUtc.AddHours(1);
+        var transfer = OrbitalTransfer.CreatePlanned(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            1,
+            departureAtUtc,
+            arrivalAtUtc);
+        transfer.Complete(arrivalAtUtc);
+
+        var exception = Assert.Throws<InvalidOperationException>(() => transfer.Cancel());
+
+        Assert.Equal("Completed orbital transfers cannot be cancelled.", exception.Message);
+    }
+
+    [Fact]
+    public void CompleteRejectsCancelledTransfer()
+    {
+        var departureAtUtc = new DateTime(2026, 5, 28, 12, 0, 0, DateTimeKind.Utc);
+        var arrivalAtUtc = departureAtUtc.AddHours(1);
+        var transfer = OrbitalTransfer.CreatePlanned(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            1,
+            departureAtUtc,
+            arrivalAtUtc);
+        transfer.Cancel();
+
+        var exception = Assert.Throws<InvalidOperationException>(() => transfer.Complete(arrivalAtUtc));
+
+        Assert.Equal("Only planned or in-transit orbital transfers can be completed.", exception.Message);
+    }
 }

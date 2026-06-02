@@ -25,6 +25,27 @@ Error payloads include `succeeded: false` and `errors[]` except for unmapped rou
 
 Phase 6W reviewed the fleet development endpoints and kept the existing response behavior unchanged. The current surface already uses the expected lightweight conventions for frontend tooling: validation failures return `400`, missing persistence returns `503`, disabled development routes return `404`, canceling a missing transfer returns `404`, state or invariant conflicts return `409`, successful reads return `200`, and successful mutating commands retain their nearby endpoint conventions of `200` or `201`.
 
+## Current Status Transition Matrix
+
+These matrices describe the statuses that the current fleet commands can observe or produce. They document the current implementation only; they do not introduce new statuses or future lifecycle steps.
+
+### Orbital Group Status
+
+| Current status | Estimate | Create transfer | Cancel transfer | Complete due | Split | Merge |
+|---|---|---|---|---|---|---|
+| `Stationed` | Allowed, no status change | Allowed, becomes `Reserved` | Rejected | Rejected | Allowed, remains `Stationed` | Allowed when both groups are compatible, target remains `Stationed` |
+| `Reserved` | Rejected | Rejected | Allowed when the matching transfer belongs to the civilization, becomes `Stationed` | Allowed only through the global due-completion batch, becomes `Stationed` at destination | Rejected | Rejected |
+| `Decommissioned` | Rejected by current stationed-only checks | Rejected | Rejected | Rejected | Rejected | Rejected |
+
+### Orbital Transfer Status
+
+| Current status | Create | Cancel | Complete due |
+|---|---|---|---|
+| `Planned` | New transfers start here | Allowed, becomes `Cancelled` | Allowed once `arrivalAtUtc` is due, becomes `Completed` |
+| `InTransit` | Not currently created by these commands | Allowed, becomes `Cancelled` | Allowed once `arrivalAtUtc` is due, becomes `Completed` |
+| `Completed` | Rejected for the same group because the group is no longer reserved or active | Rejected | Ignored on repeat completion |
+| `Cancelled` | Rejected for the same active transfer because it is no longer active | Rejected | Ignored by due completion |
+
 ## Local Validation Flow
 
 Use this flow only against a disposable local development database. These routes are development-only validation surfaces for backend and prototype work. They are not gameplay UI, combat execution, or interception execution contracts.

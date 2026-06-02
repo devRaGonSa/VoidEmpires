@@ -3,7 +3,7 @@
 ---
 id: TASK-11B
 title: Phase 11B - Fleet status transition matrix and tests
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

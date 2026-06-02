@@ -57,4 +57,40 @@ public class OrbitalGroupTests
 
         Assert.Equal(OrbitalGroupStatus.Reserved, group.Status);
     }
+
+    [Fact]
+    public void ArriveAtMovesReservedGroupToDestinationAndStationed()
+    {
+        var originPlanetId = Guid.NewGuid();
+        var destinationPlanetId = Guid.NewGuid();
+        var group = OrbitalGroup.CreateStationed(
+            Guid.NewGuid(),
+            originPlanetId,
+            originPlanetId,
+            SpaceAssetType.ScoutCraft,
+            1);
+        group.Reserve();
+
+        group.ArriveAt(destinationPlanetId);
+
+        Assert.Equal(destinationPlanetId, group.CurrentPlanetId);
+        Assert.Equal(OrbitalGroupStatus.Stationed, group.Status);
+        Assert.True(group.IsStationedAwayFromOrigin);
+    }
+
+    [Fact]
+    public void SplitOffRejectsReservedGroup()
+    {
+        var group = OrbitalGroup.CreateStationed(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            SpaceAssetType.EscortCraft,
+            3);
+        group.Reserve();
+
+        var exception = Assert.Throws<InvalidOperationException>(() => group.SplitOff(1));
+
+        Assert.Equal("Only stationed orbital groups can be split.", exception.Message);
+    }
 }

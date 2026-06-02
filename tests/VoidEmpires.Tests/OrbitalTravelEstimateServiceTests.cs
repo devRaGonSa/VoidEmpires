@@ -274,6 +274,36 @@ public class OrbitalTravelEstimateServiceTests
         Assert.Equal(transferCountBefore, await dbContext.Set<OrbitalTransfer>().CountAsync());
     }
 
+    [Fact]
+    public async Task EstimateAsyncRejectsReservedGroupWithoutActiveTransfer()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = await AddCivilizationAsync(dbContext);
+        var currentPlanetId = Guid.NewGuid();
+        var destinationPlanetId = Guid.NewGuid();
+        var group = OrbitalGroup.CreateStationed(
+            civilizationId,
+            Guid.NewGuid(),
+            currentPlanetId,
+            SpaceAssetType.ScoutCraft,
+            1);
+        group.Reserve();
+        dbContext.Set<OrbitalGroup>().Add(group);
+        dbContext.Set<Planet>().Add(CreatePlanet(destinationPlanetId));
+        await dbContext.SaveChangesAsync();
+        var quantityBefore = await GetCivilizationQuantityAsync(dbContext, civilizationId);
+
+        var result = await CreateService(dbContext).EstimateAsync(new EstimateOrbitalTravelRequest(
+            civilizationId,
+            group.Id,
+            destinationPlanetId));
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Only stationed orbital groups can be estimated for travel.", result.Errors);
+        Assert.Equal(quantityBefore, await GetCivilizationQuantityAsync(dbContext, civilizationId));
+        Assert.Equal(OrbitalGroupStatus.Reserved, (await dbContext.Set<OrbitalGroup>().SingleAsync()).Status);
+    }
+
     private static Planet CreatePlanet(Guid planetId) =>
         new(planetId, Guid.NewGuid(), "Asterion", 1, PlanetType.Terran, 100);
 
