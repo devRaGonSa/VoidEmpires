@@ -79,6 +79,13 @@ npm run build
 - Renders readable selected-group readiness, transfer status, due-state cues, resource contexts, interception notes, active-transfer progress bars, feedback panels, read-only action manifests, mutation confirmation metadata, and disabled prototype mutation controls.
 - Keeps `split` and `merge` visibly guarded and non-executable from the UI.
 
+Fleet cockpit v1 acceptance summary:
+
+- The first viewport should prioritize gameplay panels while keeping development context visible but secondary.
+- Primary labels should read mostly in Spanish and favor ship names, planet names, route summaries, and clear action wording over ids or API language.
+- The main action flow should read in this order: escuadra, destino, calcular, revisar, confirmar.
+- Executable mutation paths are limited to guarded `create transfer`, `cancel transfer`, and `complete-due`; `split` and `merge` remain prototype-only.
+
 ## Figma token foundation
 
 Phase 9K adds a frontend token layer derived from `Xuniverse UI v1 - Modern Simple`.
@@ -157,3 +164,4 @@ If a previous local run already mutated fleet state, inspect `ui-state` first. R
 For Fleet cockpit v1, use `docs/dev/frontend-foundation-smoke-checklist.md` as the final manual visual QA checklist after the required non-visual validation commands succeed.
 Focus the browser review on mostly Spanish shell labels, a readable rail + selected-group + action-column hierarchy, explicit create/cancel confirmations, secondary compact ids, readable resource context, readable estimate results, and readable result or error feedback without dominant raw enum numbers or `NetworkError` text.
 Also confirm the active-transfer panel remains obvious, progress-aware, due-aware, and action-aware, while technical manifests stay collapsed behind development details by default and only `split` and `merge` remain prototype-only.
+Also confirm the compact development header, cleaned primary labels, and visually distinct step states across the five-step order flow.

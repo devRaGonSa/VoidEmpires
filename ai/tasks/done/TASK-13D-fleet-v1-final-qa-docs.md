@@ -3,7 +3,7 @@
 ---
 id: TASK-13D
 title: Phase 13D - Fleet v1 final QA docs
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

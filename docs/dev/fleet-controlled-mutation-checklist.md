@@ -4,6 +4,12 @@ Use this checklist for the current non-visual regression pass around the Fleet p
 
 Use this checklist as the non-visual mutation baseline for Fleet cockpit v1.
 
+Accepted Fleet v1 command set:
+
+- Read-only: `GET /api/dev/fleets/ui-state`, `GET /api/dev/fleets/action-manifest`, `POST /api/dev/fleets/orbital-travel/estimate`
+- Controlled mutations: `POST /api/dev/fleets/orbital-transfers/create`, `POST /api/dev/fleets/orbital-transfers/cancel`, `POST /api/dev/fleets/orbital-transfers/complete-due`
+- Prototype-only from the frontend: `split` and `merge`
+
 For final manual QA, pair it with the Fleet cockpit v1 visual review section in `docs/dev/frontend-foundation-smoke-checklist.md`.
 
 ## Required validation
@@ -41,9 +47,10 @@ For the final manual browser pass, confirm:
 3. `split` and `merge` stay visible only as prototype-only or disabled controls.
 4. Friendly ship or planet labels stay visually primary while compact ids remain secondary development metadata.
 5. The order panel reads as a simple gameplay flow: escuadra, destino, calcular, revisar, confirmar.
-6. The active-transfer panel stays readable with route, status, timestamps, progress, due-state cues, and only the currently available controlled actions.
-7. Success, warning, and network failure feedback stay readable without raw JSON, dominant enum numbers, or `NetworkError` wording taking over the panel.
-8. Empty states explain unloaded data, no active transfers, no cancellable transfers, and no due transfers without falling back to raw API wording.
+6. The order flow visually distinguishes pending, current, and completed steps without adding extra controls or modal layers.
+7. The active-transfer panel stays readable with route, status, timestamps, progress, due-state cues, and only the currently available controlled actions.
+8. Success, warning, and network failure feedback stay readable without raw JSON, dominant enum numbers, or `NetworkError` wording taking over the panel.
+9. Empty states explain unloaded data, no active transfers, no cancellable transfers, and no due transfers without falling back to raw API wording.
 
 ## Guard checks
 

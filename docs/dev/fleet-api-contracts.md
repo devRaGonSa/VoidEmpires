@@ -4,6 +4,12 @@
 
 These contracts document the current development-only fleet API surface for frontend and sandbox work. They are not production gameplay contracts.
 
+Fleet cockpit v1 acceptance summary:
+
+- Executable frontend flows: `estimate`, `create transfer`, `cancel transfer`, and guarded `complete-due`
+- Prototype-only frontend flows: `split` and `merge`
+- Visual goal: a mostly Spanish gameplay-first screen with compact development context, secondary technical ids, and a clear five-step order flow
+
 Development fleet routes are mapped when the web host runs in `Development` or `VoidEmpires:DevEndpoints:Enabled=true`. If the development surface is disabled, routes return `404 Not Found`. If the route is mapped but `ConnectionStrings:DefaultConnection` is empty, persistence-backed endpoints return `503 Service Unavailable`.
 
 JSON payloads use current .NET enum names such as `ScoutCraft`, `Stationed`, `Reserved`, `Planned`, `InTransit`, `Completed`, and `Cancelled`.
@@ -109,6 +115,17 @@ Use this checklist as the non-visual baseline for Fleet cockpit v1 before manual
 8. For final manual browser QA, pair that checklist with [frontend-foundation-smoke-checklist.md](./frontend-foundation-smoke-checklist.md) and confirm a mostly Spanish gameplay-style screen with a scannable squad rail, readable selected-group panel, clear active-transfer states, explicit create/cancel/complete-due confirmations, readable resource support, and collapsed secondary technical panels.
 
 ## Endpoint Summary
+
+Frontend execution status:
+
+| Route | Frontend v1 status |
+|---|---|
+| `POST /api/dev/fleets/orbital-travel/estimate` | Executable as read-only route preview |
+| `POST /api/dev/fleets/orbital-transfers/create` | Executable behind explicit confirmation |
+| `POST /api/dev/fleets/orbital-transfers/cancel` | Executable behind explicit confirmation |
+| `POST /api/dev/fleets/orbital-transfers/complete-due` | Executable behind explicit confirmation when a due transfer is visible |
+| `POST /api/dev/fleets/orbital-groups/split` | Prototype-only, not executable from the current frontend |
+| `POST /api/dev/fleets/orbital-groups/merge` | Prototype-only, not executable from the current frontend |
 
 | Method | Route | Mode | Main side effect |
 |---|---|---|---|

@@ -14,6 +14,12 @@ For the current Fleet estimate -> confirm -> create-transfer -> confirm -> cance
 
 Use the steps below as the final manual QA checklist for Fleet cockpit v1 after the required non-visual validation commands succeed.
 
+Fleet cockpit v1 acceptance boundary:
+
+- Supported executable flows: `estimate`, `create transfer`, `cancel transfer`, and guarded `complete due`
+- Prototype-only flows: `split` and `merge`
+- Required validation commands: `dotnet build --no-restore`, `dotnet test --no-build`, and `npm run build --prefix src/VoidEmpires.Frontend`
+
 1. Run `npm install` in `src/VoidEmpires.Frontend`.
 2. Run `npm run build`.
 3. Run `npm run dev`.
@@ -56,10 +62,14 @@ Use the steps below as the final manual QA checklist for Fleet cockpit v1 after 
    - fleet and strategic-map manifests render as read-only contract panels
    - mutating manifest actions remain labeled but unavailable from the frontend
 12. For the final Fleet cockpit v1 visual review, confirm:
+   - the development entry and endpoint context stay visible but compact, so gameplay panels appear in the first viewport earlier than before
    - the screen reads mostly in Spanish and no mixed English labels dominate the main flow
+   - primary action labels read like gameplay actions, while cockpit or technical flavor stays secondary
    - the rail, selected-group panel, active-transfer panel, and main action column feel like a simple playable fleet screen rather than a dev console
    - the squad rail is compact and scannable, with ship type, quantity, location, destination, status, and readiness visible before compact ids
+   - ids remain available as secondary metadata only and do not dominate selectors, headings, or route summaries
    - the action column reads in this order: escuadra, destino, calcular, revisar, confirmar
+   - the five-step flow visually distinguishes pending, current, and completed states clearly enough to scan without reading every paragraph
    - create, cancel, and complete-due remain the only executable mutation paths and all three still require explicit confirmation
    - `split` and `merge` remain visible only as disabled or prototype-only controls
    - technical ids remain available for development use, but compact ids stay secondary to ship names, planet references, and route summaries
