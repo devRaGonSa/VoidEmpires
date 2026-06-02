@@ -3,7 +3,7 @@
 ---
 id: TASK-10X
 title: Phase 10X - Seeded split and merge API scenarios
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
