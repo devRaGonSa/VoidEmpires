@@ -81,11 +81,11 @@ export function FleetSelectedGroupPanel({
   const canCancelTransfer = Boolean(group.activeTransfer?.id && group.commands?.canCancelTransfer);
   const dueTransferSummary = isDueTransferReady
     ? dueTransferCount > 1
-      ? `La llegada visible ya vencio y hay ${dueTransferCount} traslados vencidos en esta cabina.`
-      : "La llegada visible ya vencio y puede usarse como prueba local para ejecutar el lote controlado."
+      ? `La llegada visible ya vencio y hay ${dueTransferCount} llegadas listas para cerrar.`
+      : "La llegada visible ya vencio y ya puede cerrarse desde esta pantalla."
     : group.activeTransfer
-      ? "Este traslado sigue en curso. La ejecucion controlada solo se habilita cuando la llegada ya vencio."
-      : "No hay traslado activo en foco para justificar completar vencidos.";
+      ? "Este traslado sigue en curso. Solo podras cerrarlo cuando la llegada ya haya vencido."
+      : "No hay un traslado activo seleccionado para cerrar llegadas vencidas.";
 
   return (
     <UiCard className="panel fleet-selected-panel">
@@ -147,7 +147,7 @@ export function FleetSelectedGroupPanel({
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Capacidad</p>
-              <h4>Disponibilidad de mando</h4>
+              <h4>Acciones disponibles</h4>
             </div>
             <UiBadge tone="warn">Resumen jugable</UiBadge>
           </div>
@@ -216,7 +216,7 @@ export function FleetSelectedGroupPanel({
                 className="prototype-control-button transfer-prepare-button"
                 onClick={() => onPrepareCompleteDueTransfer(group.id)}
               >
-                {preparedCompleteDueGroupId === group.id ? "Ocultar completar vencidos" : "Preparar completar vencidos"}
+                {preparedCompleteDueGroupId === group.id ? "Ocultar cierre" : "Cerrar llegadas"}
               </button>
             ) : null}
             {canCancelTransfer ? (
@@ -225,7 +225,7 @@ export function FleetSelectedGroupPanel({
                 className="prototype-control-button transfer-prepare-button"
                 onClick={() => onPrepareCancelTransfer(group.activeTransfer?.id ?? "")}
               >
-                {preparedCancelTransferId === group.activeTransfer.id ? "Ocultar confirmacion" : "Preparar anulacion"}
+                {preparedCancelTransferId === group.activeTransfer.id ? "Ocultar cancelacion" : "Cancelar ruta"}
               </button>
             ) : null}
           </div>
@@ -233,7 +233,7 @@ export function FleetSelectedGroupPanel({
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Completar vencidos</p>
-                <h4>Ejecutar lote controlado</h4>
+                <h4>Cerrar llegadas vencidas</h4>
                 <p>{dueTransferSummary}</p>
                 <p className="dev-meta">
                   {group.activeTransfer
@@ -259,10 +259,10 @@ export function FleetSelectedGroupPanel({
               </div>
             </div>
             {!canCompleteDueTransfers ? (
-              <p className="figma-panel-note">La accion completar vencidos sigue oculta porque este entorno no expone ese contrato.</p>
+              <p className="figma-panel-note">La accion de cierre sigue oculta porque este entorno no expone ese contrato.</p>
             ) : null}
             {!isDueTransferReady ? (
-              <p className="figma-panel-note">Todavia no hay una llegada vencida para habilitar completar vencidos desde esta cabina.</p>
+              <p className="figma-panel-note">Todavia no hay una llegada vencida para habilitar este cierre.</p>
             ) : null}
             {preparedCompleteDueGroupId === group.id ? (
               <div className="transfer-confirmation-flow">
@@ -273,7 +273,7 @@ export function FleetSelectedGroupPanel({
                     onChange={(event) => onCompleteDueAcknowledgementChange(event.target.checked)}
                     disabled={!canCompleteDueTransfers || !isDueTransferReady}
                   />
-                  <span>Confirmo completar ahora los traslados vencidos de desarrollo</span>
+                  <span>Confirmo cerrar ahora estas llegadas vencidas</span>
                 </label>
                 <div className="transfer-confirmation-actions">
                   <button
@@ -287,7 +287,7 @@ export function FleetSelectedGroupPanel({
                       preparedCompleteDueGroupId !== group.id
                     }
                   >
-                    {isCompletingDueTransfers ? "Completando..." : "Completar traslados vencidos"}
+                    {isCompletingDueTransfers ? "Cerrando..." : "Cerrar llegadas vencidas"}
                   </button>
                 </div>
               </div>
@@ -301,7 +301,7 @@ export function FleetSelectedGroupPanel({
               <div className="figma-section-header">
                 <div>
                   <p className="eyebrow">Confirmar anulacion</p>
-                  <h4>Cancelar transferencia orbital</h4>
+                  <h4>Cancelar ruta</h4>
                   <p>La anulacion sigue protegida y no reembolsa recursos ya cobrados.</p>
                   <p className="dev-meta">
                     Traslado {formatCompactGuid(group.activeTransfer.id)} | Escuadra {formatCompactGuid(group.id)}
@@ -349,7 +349,7 @@ export function FleetSelectedGroupPanel({
                       preparedCancelTransferId !== group.activeTransfer.id
                     }
                   >
-                    {isCancellingTransfer ? "Cancelando..." : "Cancelar transferencia orbital"}
+                    {isCancellingTransfer ? "Cancelando..." : "Cancelar ruta"}
                   </button>
                 </div>
               </div>

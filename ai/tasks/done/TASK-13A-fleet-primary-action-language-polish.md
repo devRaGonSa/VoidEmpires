@@ -3,7 +3,7 @@
 ---
 id: TASK-13A
 title: Phase 13A - Fleet primary action language polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

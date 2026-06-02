@@ -20,10 +20,10 @@ import {
 type CommandTone = "neutral" | "good" | "warn";
 
 const userFacingActionLabels: Record<string, string> = {
-  "fleet.travel.estimate": "Estimar viaje orbital",
-  "fleet.transfer.create": "Crear transferencia orbital",
-  "fleet.transfer.cancel": "Cancelar transferencia orbital",
-  "fleet.transfer.complete": "Completar traslados vencidos",
+  "fleet.travel.estimate": "Calcular ruta",
+  "fleet.transfer.create": "Enviar flota",
+  "fleet.transfer.cancel": "Cancelar ruta",
+  "fleet.transfer.complete": "Cerrar llegadas vencidas",
   "fleet.group.split": "Dividir escuadra orbital",
   "fleet.group.merge": "Fusionar escuadras orbitales",
   "fleet.uiState.read": "Leer estado de la cabina de flotas",
@@ -166,7 +166,7 @@ export function presentFleetSquadListItem(
     readinessLabel: isTravelling
       ? getActionLabel("fleet.transfer.cancel", actionHints, "Mision en curso")
       : canOrder
-        ? "Lista para ordenar"
+        ? "Lista para mover"
         : canEstimate
           ? "Lista para estimar"
           : "En espera",
@@ -242,10 +242,10 @@ export function buildFleetEstimateReviewCard(
 
   return {
     tone: isReady ? "good" : "warn",
-    title: "Estimacion de traslado",
+    title: "Ruta prevista",
     statusLabel: isReady ? "Lista para confirmar" : "Requiere ajustes",
     summary: isSuccess
-      ? "Simulacion completada. Revisa la ruta antes de comprometer la orden orbital."
+      ? "Simulacion completada. Revisa la ruta antes de enviar la flota."
       : response?.errors[0] ?? `La solicitud devolvio ${result.httpStatus}.`,
     facts: isSuccess
       ? [
@@ -315,7 +315,7 @@ export function buildFleetCommandReadiness(group: FleetGroupSummary, actionHints
         ? "La escuadra esta reservada."
         : "No disponible";
   const createTransferSummary = group.commands?.canCreateTransfer
-    ? "Lista para ordenar"
+    ? "Lista para mover"
     : group.hasActiveTransfer
       ? "Ya existe un traslado activo."
       : "Requiere una estimacion valida.";
@@ -333,7 +333,7 @@ export function buildFleetCommandReadiness(group: FleetGroupSummary, actionHints
   return [
     {
       key: "estimate",
-      label: getActionLabel("fleet.travel.estimate", actionHints, "Estimacion de ruta"),
+      label: getActionLabel("fleet.travel.estimate", actionHints, "Calcular ruta"),
       tone: group.routeFuelReadiness?.canRequestTravelEstimate ? "good" : "warn",
       summary: estimateSummary,
       details: [
@@ -344,7 +344,7 @@ export function buildFleetCommandReadiness(group: FleetGroupSummary, actionHints
     },
     {
       key: "create-transfer",
-      label: getActionLabel("fleet.transfer.create", actionHints, "Orden de traslado"),
+      label: getActionLabel("fleet.transfer.create", actionHints, "Enviar flota"),
       tone: group.commands?.canCreateTransfer ? "good" : "warn",
       summary: createTransferSummary,
       details: group.hasActiveTransfer ? ["No puede abrir otra orden mientras el traslado actual siga activo."] : [],
@@ -365,7 +365,7 @@ export function buildFleetCommandReadiness(group: FleetGroupSummary, actionHints
     },
     {
       key: "cancel-transfer",
-      label: getActionLabel("fleet.transfer.cancel", actionHints, "Cancelar traslado"),
+      label: getActionLabel("fleet.transfer.cancel", actionHints, "Cancelar ruta"),
       tone: group.commands?.canCancelTransfer ? "good" : "neutral",
       summary: group.commands?.canCancelTransfer ? "Disponible" : "Sin traslado anulable",
       details: group.activeTransfer ? [`ID de traslado ${formatTechnicalId(group.activeTransfer.id)}`] : [],

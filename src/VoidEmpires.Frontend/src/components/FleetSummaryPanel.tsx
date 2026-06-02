@@ -49,7 +49,7 @@ export function FleetSummaryPanel({
       </div>
 
       <button type="button" className="fleet-summary-select-button" onClick={() => onSelect(group.id)}>
-        {isSelected ? "Cabina enfocada" : "Abrir cabina"}
+        {isSelected ? "Escuadra abierta" : "Ver escuadra"}
       </button>
     </article>
   );

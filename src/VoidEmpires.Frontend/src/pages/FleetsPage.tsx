@@ -773,7 +773,7 @@ export function FleetsPage() {
           <UiBadge>Resumen tactico</UiBadge>
           <UiBadge>Rail de escuadras</UiBadge>
           <UiBadge>Detalle enfocado</UiBadge>
-          <UiBadge tone="warn">Crear y anular protegidos</UiBadge>
+          <UiBadge tone="warn">Ordenes protegidas</UiBadge>
         </div>
       </UiCard>
 
@@ -800,7 +800,7 @@ export function FleetsPage() {
               />
             </label>
             <button type="submit" disabled={isLoading}>
-              {isLoading ? "Cargando..." : "Cargar paneles"}
+              {isLoading ? "Cargando..." : "Cargar flotas"}
             </button>
           </form>
           {error && <p className="error-text">{error}</p>}
@@ -829,7 +829,7 @@ export function FleetsPage() {
           <div className="figma-section-header">
             <div className="fleet-identity-block">
               <p className="eyebrow">Resumen operativo</p>
-              <h3>Puente de mando</h3>
+              <h3>Resumen de flota</h3>
               <p>Estado compacto de la civilizacion cargada y su situacion orbital.</p>
               <p className="dev-meta">ID de civilizacion {formatCompactGuid(uiState?.civilizationId)}</p>
             </div>
@@ -881,7 +881,7 @@ export function FleetsPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Lista orbital</p>
-                <h3>Rail de escuadras</h3>
+                <h3>Escuadras</h3>
                 <p>La cabina principal siempre se centra en una escuadra operativa a la vez.</p>
               </div>
               <UiBadge>{uiState.groups.length} seguidas</UiBadge>
@@ -927,10 +927,10 @@ export function FleetsPage() {
               <div className="figma-section-header">
                 <div>
                   <p className="eyebrow">Secuencia de orden</p>
-                  <h3>Seleccion, estimacion y confirmacion</h3>
+                  <h3>Mover una escuadra</h3>
                   <p>El flujo de juego queda en cinco pasos: eliges escuadra, eliges destino, calculas, revisas y confirmas.</p>
                 </div>
-                <UiBadge tone="good">Cabina principal</UiBadge>
+                <UiBadge tone="good">Flujo principal</UiBadge>
               </div>
               <div className="fleet-action-stage">
                 <div className="fleet-order-step-grid">
@@ -1002,7 +1002,7 @@ export function FleetsPage() {
                   </select>
                 </label>
                 <button type="submit" disabled={isEstimating || estimateEligibleGroups.length === 0 || destinationOptions.length === 0}>
-                  {isEstimating ? "Calculando..." : "Calcular estimacion"}
+                  {isEstimating ? "Calculando..." : "Calcular ruta"}
                 </button>
               </form>
               <div className="figma-badge-row">
@@ -1051,7 +1051,7 @@ export function FleetsPage() {
                   <div className="figma-section-header">
                     <div>
                       <p className="eyebrow">Paso 5</p>
-                      <h4>Confirmar transferencia orbital</h4>
+                      <h4>Enviar flota</h4>
                       <p>Solo se habilita cuando la ultima estimacion sigue vigente para este grupo y destino.</p>
                     </div>
                     <div className="figma-badge-row">
@@ -1088,7 +1088,7 @@ export function FleetsPage() {
                           onChange={(event) => setHasCreateTransferAcknowledgement(event.target.checked)}
                           disabled={!createTransferConfirmationState.canPrepare}
                         />
-                        <span>Confirmo esta orden de traslado</span>
+                        <span>Confirmo el envio de esta flota</span>
                       </label>
                     <div className="transfer-confirmation-actions">
                       <button
@@ -1100,7 +1100,7 @@ export function FleetsPage() {
                           !hasCreateTransferAcknowledgement
                         }
                       >
-                        {isCreatingTransfer ? "Creando..." : "Crear transferencia orbital"}
+                        {isCreatingTransfer ? "Enviando..." : "Enviar flota"}
                       </button>
                     </div>
                     <p className="figma-panel-note">Sigue siendo una accion protegida de prototipo y nunca se ejecuta sin esta confirmacion.</p>
@@ -1250,8 +1250,8 @@ export function FleetsPage() {
                         <FleetDataRow label="Avance" value={presentation.progressLabel} />
                       </div>
                       <div className="figma-badge-row">
-                        {presentation.canCancel ? <UiBadge tone="good">Anular desde cabina</UiBadge> : null}
-                        {presentation.canCompleteDue ? <UiBadge tone="warn">Completar vencido desde cabina</UiBadge> : null}
+                        {presentation.canCancel ? <UiBadge tone="good">Cancelar ruta</UiBadge> : null}
+                        {presentation.canCompleteDue ? <UiBadge tone="warn">Cerrar llegada</UiBadge> : null}
                       </div>
                       {presentation.hasTimingGap ? (
                         <p className="figma-panel-note">Faltan marcas horarias legibles para decidir progreso o completado desde esta tarjeta.</p>
@@ -1267,7 +1267,7 @@ export function FleetsPage() {
                             setSelectedGroupId(group.id);
                           }}
                         >
-                          Enfocar escuadra
+                          Ver escuadra
                         </button>
                       </div>
                     </section>
