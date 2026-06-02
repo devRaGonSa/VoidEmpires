@@ -19,7 +19,7 @@ JSON payloads use current .NET enum names such as `ScoutCraft`, `Stationed`, `Re
 | `409 Conflict` | Valid request shape rejected by current persisted state. |
 | `503 Service Unavailable` | Persistence is not configured. |
 
-Error payloads include `succeeded: false` and `errors[]` except for unmapped routes and persistence-gating responses.
+Error payloads include `succeeded: false` and `errors[]` except for unmapped routes and persistence-gating responses. The transfer estimate, transfer create, and transfer cancel commands also expose a `status` field so clients can distinguish validation, not-found, conflict, and success outcomes without parsing error strings.
 
 ## Consistency Review Notes
 
@@ -132,7 +132,7 @@ Restrictions: target and source must differ, belong to the civilization, be stat
 
 Request: `civilizationId`, `orbitalGroupId`, `destinationPlanetId`.
 
-Response: `succeeded`, `orbitalGroupId`, `currentPlanetId`, `destinationPlanetId`, `abstractDistanceUnits`, `estimatedDuration`, `routeProfile`, `fuelReadiness`, `resourceCosts[]`, `canAfford`, `insufficientResources[]`, `errors`. Cost components contain `resourceType` and `quantity`; insufficient resources contain `resourceType`, `requiredQuantity`, and `availableQuantity`.
+Response: `status`, `succeeded`, `orbitalGroupId`, `currentPlanetId`, `destinationPlanetId`, `abstractDistanceUnits`, `estimatedDuration`, `routeProfile`, `fuelReadiness`, `resourceCosts[]`, `canAfford`, `insufficientResources[]`, `errors`. Cost components contain `resourceType` and `quantity`; insufficient resources contain `resourceType`, `requiredQuantity`, and `availableQuantity`.
 
 `routeProfile` contains `routeClass`, `distanceBand`, `riskBand`, `fuelMultiplier`, `complexityNotes[]`, and `isSupported`. Current deterministic distance bands are `LocalOrbit` for distance `1`, `InnerSystem` for distances `2-3`, `OuterSystem` for distances `4-6`, and `LongRange` for distances `7+`. Risk and fuel values are placeholders for future movement systems; the current fuel multiplier is `1.0` and supported route profiles are read-only metadata.
 
@@ -146,7 +146,7 @@ Restrictions: read-only. The endpoint does not persist an estimate, reserve a gr
 
 Request: `civilizationId`, `orbitalGroupId`, `destinationPlanetId`, `requestedAtUtc`.
 
-Response: `succeeded`, `orbitalTransferId`, `orbitalGroupId`, `originPlanetId`, `destinationPlanetId`, `abstractDistanceUnits`, `departureAtUtc`, `arrivalAtUtc`, `errors`.
+Response: `status`, `succeeded`, `orbitalTransferId`, `orbitalGroupId`, `originPlanetId`, `destinationPlanetId`, `abstractDistanceUnits`, `departureAtUtc`, `arrivalAtUtc`, `errors`.
 
 Restrictions and side effects: `requestedAtUtc` must be UTC. The service calculates travel cost, spends those resources from the group's current planet, reserves the orbital group, and persists a planned transfer. It rejects missing groups, non-stationed groups, groups with active transfers, and destinations equal to the current planet. Cancellation does not refund charged resources.
 
@@ -166,7 +166,7 @@ Restrictions: read-only. Missing `civilizationId` returns `400 Bad Request`.
 
 Request: `civilizationId`, `orbitalTransferId`.
 
-Response: `succeeded`, `orbitalTransferId`, `orbitalGroupId`, `errors`.
+Response: `status`, `succeeded`, `orbitalTransferId`, `orbitalGroupId`, `errors`.
 
 Restrictions and side effects: marks the transfer cancelled and releases the reserved group back to stationed status. It rejects completed transfers, already cancelled transfers, ownership mismatches, and non-reserved groups. It does not refund travel resources.
 

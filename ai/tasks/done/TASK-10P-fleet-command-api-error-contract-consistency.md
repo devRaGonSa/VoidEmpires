@@ -3,7 +3,7 @@
 ---
 id: TASK-10P
 title: Phase 10P - Fleet command API error contract consistency
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

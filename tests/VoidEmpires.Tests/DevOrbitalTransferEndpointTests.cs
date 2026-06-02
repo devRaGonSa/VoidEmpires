@@ -302,6 +302,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(CancelOrbitalTransferResultStatus.ValidationFailed, payload.Status);
         Assert.False(payload.Succeeded);
         Assert.Contains("Civilization id is required.", payload.Errors);
         Assert.Contains("Orbital transfer id is required.", payload.Errors);
@@ -317,6 +318,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(CancelOrbitalTransferResultStatus.Succeeded, payload.Status);
         Assert.True(payload.Succeeded);
         Assert.Equal(TransferId, payload.OrbitalTransferId);
         Assert.Equal(OrbitalGroupId, payload.OrbitalGroupId);
@@ -334,6 +336,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(CancelOrbitalTransferResultStatus.NotFound, payload.Status);
         Assert.False(payload.Succeeded);
         Assert.Null(payload.OrbitalTransferId);
         Assert.Null(payload.OrbitalGroupId);
@@ -351,6 +354,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(CancelOrbitalTransferResultStatus.Conflict, payload.Status);
         Assert.False(payload.Succeeded);
         Assert.Contains("Completed orbital transfers cannot be cancelled.", payload.Errors);
     }
@@ -366,6 +370,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.NotNull(payload);
+        Assert.Equal(CancelOrbitalTransferResultStatus.Conflict, payload.Status);
         Assert.False(payload.Succeeded);
         Assert.Contains("Orbital transfer does not belong to the civilization.", payload.Errors);
     }
@@ -514,6 +519,7 @@ public class DevOrbitalTransferEndpointTests(WebApplicationFactory<Program> fact
         string[] Errors);
 
     private sealed record CancelOrbitalTransferResponse(
+        CancelOrbitalTransferResultStatus Status,
         bool Succeeded,
         Guid? OrbitalTransferId,
         Guid? OrbitalGroupId,

@@ -28,6 +28,7 @@ internal static class DevOrbitalTransferCancelEndpoints
                 request.OrbitalTransferId!.Value), cancellationToken);
 
             var response = new CancelOrbitalTransferApiResponse(
+                result.Status,
                 result.Succeeded,
                 result.OrbitalTransferId,
                 result.OrbitalGroupId,
@@ -69,11 +70,12 @@ internal sealed record CancelOrbitalTransferApiRequest(
     Guid? OrbitalTransferId);
 
 internal sealed record CancelOrbitalTransferApiResponse(
+    CancelOrbitalTransferResultStatus Status,
     bool Succeeded,
     Guid? OrbitalTransferId,
     Guid? OrbitalGroupId,
     IReadOnlyList<string> Errors)
 {
     public static CancelOrbitalTransferApiResponse Failure(IReadOnlyList<string> errors) =>
-        new(false, null, null, errors);
+        new(CancelOrbitalTransferResultStatus.ValidationFailed, false, null, null, errors);
 }
