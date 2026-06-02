@@ -10,6 +10,8 @@ Use this checklist to validate the current frontend prototype without confusing 
 
 ## Frontend checks
 
+Manual visual validation is deferred for the current fleet execution block unless a clear regression appears. Use the steps below only when you need extra local confidence after the required non-visual validation commands succeed.
+
 1. Run `npm install` in `src/VoidEmpires.Frontend`.
 2. Run `npm run build`.
 3. Run `npm run dev`.
@@ -32,8 +34,10 @@ Use this checklist to validate the current frontend prototype without confusing 
 10. Enter the same civilization id and confirm:
    - loading state appears
    - fleet group summaries render as compact cards on success
+   - the read-only estimate flow can submit `POST /api/dev/fleets/orbital-travel/estimate` and render loading, success, validation, not-found, conflict, or network-error feedback without creating a transfer
    - active transfers show a progress bar when departure and arrival timestamps are available
    - route/fuel and interception readiness notes render as metadata only
+   - prototype mutation controls are visible but disabled, clearly marked as prototype-only, and never execute mutation endpoints
    - fleet and strategic-map manifests render as read-only contract panels
    - mutating manifest actions remain labeled but unavailable from the frontend
 11. Confirm there are no buttons that execute mutating dev endpoints from either route.
@@ -46,6 +50,7 @@ Run from repository root:
 dotnet restore
 dotnet build --no-restore
 dotnet test --no-build
+npm run build --prefix src/VoidEmpires.Frontend
 ```
 
 If npm registry access is unavailable in the current environment, record that limitation explicitly rather than claiming the frontend build passed.

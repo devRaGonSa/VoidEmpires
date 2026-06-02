@@ -90,13 +90,13 @@ Expected validation outcomes:
 
 Use this checklist for the current frontend preparation block. Manual visual QA is intentionally deferred until a later interface milestone.
 
-1. Run `npm run build` in `src/VoidEmpires.Frontend` to validate TypeScript contracts, presentation helpers, and route wiring.
-2. Run `dotnet build VoidEmpires.sln` to validate backend and shared contract compilation.
-3. Run `dotnet test VoidEmpires.sln` to validate the current automated fleet and development-endpoint coverage.
+1. Run `dotnet build --no-restore` from the repository root.
+2. Run `dotnet test --no-build` from the repository root.
+3. Run `npm run build --prefix src/VoidEmpires.Frontend`.
 4. Optionally apply the `minimal-validation` seed and call `GET /api/dev/fleets/ui-state` plus `POST /api/dev/fleets/orbital-travel/estimate` when you need non-visual confirmation that readiness metadata and estimate shapes still match the documented contracts.
-5. Treat `create`, `cancel`, `complete-due`, `split`, and `merge` as development or prototype endpoints only. They are valid for contract verification but are not part of ordinary gameplay UI validation in this block.
+5. Treat frontend mutation controls as documentation-only prototype affordances. The current Fleet page must not execute `create`, `cancel`, `complete-due`, `split`, or `merge`.
 
-Manual browser review is not required for Phase 11D through 11G. The intended evidence for this block is successful build and test execution plus optional API-level contract checks.
+Manual browser review is not required for Phase 11H through 11K unless a clear frontend regression appears. The intended evidence for this block is successful build and test execution plus optional API-level contract checks.
 
 ## Endpoint Summary
 
@@ -245,7 +245,9 @@ Frontend readiness guidance:
 
 - Treat `commands` and `routeFuelReadiness.canRequestTravelEstimate` as readiness metadata only. Render them as `Ready` or `Blocked` labels instead of executable controls.
 - Keep read-only inspection actions such as `estimate`, `overview`, `ui-state`, and manifest reads visually distinct from mutation contracts, even when an inspection route uses `POST`.
+- The current frontend prototype may execute only `POST /api/dev/fleets/orbital-travel/estimate`, and that path remains explicitly read-only.
 - Keep mutation contracts in clearly marked development or prototype sections. Current Fleet page work must not wire split, merge, create, cancel, or complete-due to ordinary gameplay-style buttons or click handlers.
+- Disabled prototype controls are allowed for discoverability only when they stay visibly guarded, non-submitting, and non-executable.
 - If a prototype later executes a mutation contract, require an explicit development-only affordance and show the route as a contract boundary rather than presenting it as routine gameplay UI.
 
 ### Fleet Action Manifest

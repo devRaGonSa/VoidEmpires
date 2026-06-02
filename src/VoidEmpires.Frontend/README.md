@@ -71,8 +71,9 @@ npm run build
 ## Current fleet behavior
 
 - Loads the fleet UI-state read model for a civilization id.
-- Renders compact fleet cards, resource contexts, interception notes, active-transfer progress bars, and read-only action manifests.
-- Does not execute any manifest-listed mutating actions.
+- Executes only the read-only travel estimate preview at `POST /api/dev/fleets/orbital-travel/estimate`.
+- Renders compact fleet cards, resource contexts, interception notes, active-transfer progress bars, read-only action manifests, mutation confirmation metadata, and disabled prototype mutation controls.
+- Keeps `create`, `cancel`, `complete-due`, `split`, and `merge` visibly guarded and non-executable from the UI.
 
 ## Figma token foundation
 
@@ -127,4 +128,19 @@ Only `Galaxia` and `Flotas` are active routes in the sidebar today. Other labels
 
 ## Smoke validation
 
-See `docs/dev/frontend-foundation-smoke-checklist.md`.
+Required non-visual validation for the current fleet execution block:
+
+```powershell
+dotnet build --no-restore
+dotnet test --no-build
+npm run build --prefix src/VoidEmpires.Frontend
+```
+
+Optional seed and API confirmation:
+
+```powershell
+Invoke-RestMethod -Method Get -Uri "http://localhost:5142/api/dev/fleets/ui-state?civilizationId=00000000-0000-0000-0000-000000000001"
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/fleets/orbital-travel/estimate" -ContentType "application/json" -Body '{"civilizationId":"00000000-0000-0000-0000-000000000001","orbitalGroupId":"<stationed-group-id>","destinationPlanetId":"40000000-0000-0000-0000-000000000002"}'
+```
+
+Manual browser review is deferred for this block unless a clear regression appears. See `docs/dev/frontend-foundation-smoke-checklist.md`.
