@@ -3,7 +3,7 @@
 ---
 id: TASK-12Z
 title: Phase 12Z - Fleet primary label ID cleanup
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

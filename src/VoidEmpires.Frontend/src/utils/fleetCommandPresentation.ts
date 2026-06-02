@@ -250,8 +250,8 @@ export function buildFleetEstimateReviewCard(
     facts: isSuccess
       ? [
           { label: "Escuadra", value: squadLabel },
-          { label: "Origen", value: formatPlanetReference(response.currentPlanetId ?? currentPlanetId ?? "") },
-          { label: "Destino", value: formatPlanetReference(response.destinationPlanetId ?? destinationPlanetId ?? "") },
+          { label: "Origen", value: formatPlanetPrimaryLabel(response.currentPlanetId ?? currentPlanetId ?? "") },
+          { label: "Destino", value: formatPlanetPrimaryLabel(response.destinationPlanetId ?? destinationPlanetId ?? "") },
           { label: "Distancia", value: `${response.abstractDistanceUnits} tramos` },
           { label: "Duracion", value: response.estimatedDuration ?? "Sin duracion visible" },
           { label: "Coste", value: costLabel || "Sin coste proyectado" },
@@ -260,7 +260,7 @@ export function buildFleetEstimateReviewCard(
         ]
       : [
           { label: "Escuadra", value: squadLabel },
-          { label: "Ruta", value: `${formatPlanetReference(currentPlanetId ?? "")} -> ${formatPlanetReference(destinationPlanetId ?? "")}` },
+          { label: "Ruta", value: `${formatPlanetPrimaryLabel(currentPlanetId ?? "")} -> ${formatPlanetPrimaryLabel(destinationPlanetId ?? "")}` },
         ],
     warnings,
   };

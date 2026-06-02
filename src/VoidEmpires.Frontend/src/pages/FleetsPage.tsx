@@ -16,7 +16,6 @@ import { UiCard } from "../components/ui/UiCard";
 import { UiProgressBar } from "../components/ui/UiProgressBar";
 import {
   formatCompactGuid,
-  formatPlanetOptionLabel,
   formatPlanetPrimaryLabel,
   formatPlanetSecondaryLabel,
   formatResourceType,
@@ -100,7 +99,14 @@ function formatSquadIdentity(group: FleetGroupSummary) {
 }
 
 function formatSquadOptionLabel(group: FleetGroupSummary) {
-  return `${formatSquadIdentity(group)} | ${group.quantity} unidades | ID tactico ${formatCompactGuid(group.id)}`;
+  return `${formatSquadIdentity(group)} | ${group.quantity} unidades | ref. ${formatCompactGuid(group.id)}`;
+}
+
+function formatFleetDestinationOptionLabel(planetId: string) {
+  const primaryLabel = formatPlanetPrimaryLabel(planetId);
+  const secondaryLabel = formatPlanetSecondaryLabel(planetId);
+
+  return secondaryLabel ? `${primaryLabel} | ${secondaryLabel}` : primaryLabel;
 }
 
 function isTransferDueForUi(group: FleetGroupSummary) {
@@ -945,7 +951,7 @@ export function FleetsPage() {
                   />
                   <FleetDataRow
                     label="Destino previsto"
-                    value={effectiveDestinationPlanetId ? formatPlanetOptionLabel(effectiveDestinationPlanetId) : "Sin destino"}
+                    value={effectiveDestinationPlanetId ? formatPlanetPrimaryLabel(effectiveDestinationPlanetId) : "Sin destino"}
                   />
                 </div>
               </div>
@@ -989,7 +995,7 @@ export function FleetsPage() {
                     ) : (
                       destinationOptions.map((planetId) => (
                         <option key={planetId} value={planetId}>
-                          {formatPlanetOptionLabel(planetId)}
+                          {formatFleetDestinationOptionLabel(planetId)}
                         </option>
                       ))
                     )}
