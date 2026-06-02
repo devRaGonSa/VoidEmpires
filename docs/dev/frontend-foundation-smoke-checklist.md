@@ -2,7 +2,7 @@
 
 Use this checklist to validate the current frontend prototype without confusing it with production UI.
 
-For the specific Fleet estimate -> confirm -> create-transfer path, pair this document with `docs/dev/fleet-controlled-mutation-checklist.md`.
+For the specific Fleet estimate -> confirm -> create-transfer -> confirm -> cancel-transfer path, pair this document with `docs/dev/fleet-controlled-mutation-checklist.md`.
 
 ## Backend prerequisites
 
@@ -39,12 +39,14 @@ Manual visual validation is deferred for the current fleet execution block unles
    - the read-only estimate flow can submit `POST /api/dev/fleets/orbital-travel/estimate` and render loading, success, validation, not-found, conflict, or network-error feedback without creating a transfer
    - `create transfer` remains clearly labeled as a development action, requires explicit confirmation, and can submit only `POST /api/dev/fleets/orbital-transfers/create`
    - a successful create-transfer refresh clears stale estimate state and surfaces an `Estado actualizado desde la API.` cue in the mutation result area
+   - `cancel transfer` remains clearly labeled as a development action, requires explicit confirmation for a visible active transfer, and can submit only `POST /api/dev/fleets/orbital-transfers/cancel`
+   - a successful cancel-transfer refresh clears stale cancel context, surfaces an `estado actualizado` cue, and keeps the no-refund rule visible
    - active transfers show a progress bar when departure and arrival timestamps are available
    - route/fuel and interception readiness notes render as metadata only
-   - prototype mutation controls for `cancel`, `complete-due`, `split`, and `merge` are visible but disabled, clearly marked as prototype-only, and never execute mutation endpoints
+   - prototype mutation controls for `complete-due`, `split`, and `merge` are visible but disabled, clearly marked as prototype-only, and never execute mutation endpoints
    - fleet and strategic-map manifests render as read-only contract panels
    - mutating manifest actions remain labeled but unavailable from the frontend
-11. Confirm no buttons other than the explicit `create transfer` confirmation path execute mutating dev endpoints from either route.
+11. Confirm no buttons other than the explicit `create transfer` and `cancel transfer` confirmation paths execute mutating dev endpoints from either route.
 
 ## Repository validation
 
@@ -61,7 +63,7 @@ If npm registry access is unavailable in the current environment, record that li
 
 ## Recovery notes
 
-1. `POST /api/dev/fleets/orbital-transfers/create` mutates development data, so repeated validation runs can begin from a changed fleet/resource state.
+1. `POST /api/dev/fleets/orbital-transfers/create` and `POST /api/dev/fleets/orbital-transfers/cancel` mutate development data, so repeated validation runs can begin from a changed fleet/resource state.
 2. Inspect `GET /api/dev/fleets/ui-state?civilizationId=00000000-0000-0000-0000-000000000001` before re-running mutation checks.
 3. Re-apply `POST /api/dev/seeds/apply` with `{"profile":"minimal-validation"}` only to restore missing baseline rows.
 4. The current `minimal-validation` seed is additive and idempotent. It does not delete extra transfers or groups, reset reserved/stationed state, or refill an existing stockpile after resources were spent.
