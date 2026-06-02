@@ -29,15 +29,19 @@ public class DevPlanetVisualStateEndpointTests(WebApplicationFactory<Program> fa
     [Fact]
     public async Task PlanetVisualStateReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
-        using var client = factory.WithWebHostBuilder(builder =>
-        {
-            builder.UseEnvironment("Development");
-            builder.ConfigureAppConfiguration((_, configurationBuilder) =>
-                configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["ConnectionStrings:DefaultConnection"] = string.Empty
-                }));
-        }).CreateClient();
+        using var client = CreateClientWithPersistenceDisabled("Development");
+
+        using var response = await client.GetAsync($"/api/dev/planets/{PlanetId}/visual-state");
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PlanetVisualStateReturnsServiceUnavailableOutsideDevelopmentWhenConfigOptInIsEnabled()
+    {
+        using var client = CreateClientWithPersistenceDisabled(
+            "Production",
+            devEndpointsEnabled: true);
 
         using var response = await client.GetAsync($"/api/dev/planets/{PlanetId}/visual-state");
 
@@ -92,6 +96,20 @@ public class DevPlanetVisualStateEndpointTests(WebApplicationFactory<Program> fa
                     ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=voidempires_visual_endpoint_tests"
                 }));
             builder.ConfigureTestServices(services => services.AddSingleton(visualStateService));
+        }).CreateClient();
+
+    private HttpClient CreateClientWithPersistenceDisabled(
+        string environment,
+        bool devEndpointsEnabled = false) =>
+        factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment(environment);
+            builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:DefaultConnection"] = string.Empty,
+                    ["VoidEmpires:DevEndpoints:Enabled"] = devEndpointsEnabled.ToString()
+                }));
         }).CreateClient();
 
     private static PlanetVisualStateDto CreateVisualState() =>
