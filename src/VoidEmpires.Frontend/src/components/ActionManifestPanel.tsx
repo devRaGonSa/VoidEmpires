@@ -1,5 +1,6 @@
 import type { ActionManifestAction } from "../api/actionManifestTypes";
 import type { FleetMutationConfirmationModel } from "../utils/fleetCommandPresentation";
+import { getUserFacingActionLabel } from "../utils/fleetCommandPresentation";
 import { StatusBadge } from "./StatusBadge";
 
 interface ActionManifestPanelProps {
@@ -22,7 +23,7 @@ function safeCompactJson(value: unknown) {
 
 function formatHttpMethod(method: string) {
   const normalizedMethod = method.trim().toUpperCase();
-  return normalizedMethod || "N/A";
+  return normalizedMethod || "N/D";
 }
 
 function formatRequiredField(field: unknown) {
@@ -38,7 +39,7 @@ function formatRequiredField(field: unknown) {
 
     if (name || type) {
       const label = [name, type ? `(${type})` : null].filter(Boolean).join(" ");
-      return isRequired ? label : `${label} optional`;
+      return isRequired ? label : `${label} opcional`;
     }
   }
 
@@ -46,7 +47,7 @@ function formatRequiredField(field: unknown) {
 }
 
 function formatRequiredFields(fields: ActionManifestAction["requiredFields"]) {
-  return fields?.length ? fields.map(formatRequiredField) : ["None"];
+  return fields?.length ? fields.map(formatRequiredField) : ["Ninguno"];
 }
 
 export function ActionManifestPanel({
@@ -70,7 +71,7 @@ export function ActionManifestPanel({
         </div>
         {tone === "warn" ? (
           <p className="figma-panel-note">
-            Development-only mutation contracts are documented here for prototype alignment. This panel never executes them.
+            Los contratos de mutacion siguen visibles para la alineacion del prototipo. Este panel nunca los ejecuta.
           </p>
         ) : null}
 
@@ -85,19 +86,19 @@ export function ActionManifestPanel({
               >
               <div className="manifest-header">
                 <div>
-                  <h4>{action.displayName}</h4>
+                  <h4>{getUserFacingActionLabel(action.actionKey, action.displayName)}</h4>
                   <p className="manifest-keyline" translate="no">
                     {action.actionKey}
                   </p>
                 </div>
                 <StatusBadge tone={action.isReadOnly ? "good" : "warn"}>
-                  {action.isReadOnly ? "Read-only metadata" : "Prototype-only mutation metadata"}
+                  {action.isReadOnly ? "Metadatos de solo lectura" : "Metadatos de mutacion de prototipo"}
                 </StatusBadge>
               </div>
 
               <dl className="meta-list">
                 <div>
-                  <dt>Method</dt>
+                  <dt>Metodo</dt>
                   <dd>
                     <code className="manifest-code" translate="no">
                       {formatHttpMethod(action.method)}
@@ -105,7 +106,7 @@ export function ActionManifestPanel({
                   </dd>
                 </div>
                 <div>
-                  <dt>Route</dt>
+                  <dt>Ruta</dt>
                   <dd>
                     <code className="manifest-code" translate="no">
                       {action.route}
@@ -113,7 +114,7 @@ export function ActionManifestPanel({
                   </dd>
                 </div>
                 <div>
-                  <dt>Required fields</dt>
+                  <dt>Campos requeridos</dt>
                   <dd>
                     <ul className="manifest-required-list">
                       {formatRequiredFields(action.requiredFields).map((field) => (
@@ -123,8 +124,8 @@ export function ActionManifestPanel({
                   </dd>
                 </div>
                 <div>
-                  <dt>Success</dt>
-                  <dd>{action.successStatus ?? "n/a"}</dd>
+                  <dt>Exito</dt>
+                  <dd>{action.successStatus ?? "n/d"}</dd>
                 </div>
               </dl>
 
@@ -139,27 +140,27 @@ export function ActionManifestPanel({
               {!action.isReadOnly && confirmation ? (
                 <dl className="meta-list">
                   <div>
-                    <dt>Surface</dt>
+                    <dt>Superficie</dt>
                     <dd>{confirmation.surfaceLabel}</dd>
                   </div>
                   <div>
-                    <dt>Readiness</dt>
+                    <dt>Disponibilidad</dt>
                     <dd>{confirmation.readinessLabel}</dd>
                   </div>
                   <div>
-                    <dt>Prototype level</dt>
+                    <dt>Nivel de prototipo</dt>
                     <dd>{confirmation.prototypeLevel}</dd>
                   </div>
                   <div>
-                    <dt>Mutation summary</dt>
+                    <dt>Resumen de mutacion</dt>
                     <dd>{confirmation.mutationSummary}</dd>
                   </div>
                   <div>
-                    <dt>Confirmation</dt>
+                    <dt>Confirmacion</dt>
                     <dd>{confirmation.confirmationText}</dd>
                   </div>
                   <div>
-                    <dt>Disabled reason</dt>
+                    <dt>Motivo del bloqueo</dt>
                     <dd>{confirmation.disabledReason}</dd>
                   </div>
                 </dl>
@@ -177,13 +178,13 @@ export function ActionManifestPanel({
       <div className="section-heading">
         <div>
           <h3>{title}</h3>
-          <p>Contract metadata for current development routes. This panel is intentionally non-executable.</p>
+          <p>Metadatos de contrato para las rutas actuales de desarrollo. Este panel es intencionadamente no ejecutable.</p>
         </div>
-        <StatusBadge>{actions.length} actions</StatusBadge>
+        <StatusBadge>{actions.length} acciones</StatusBadge>
       </div>
 
-      {renderActionGroup("Read-only actions", readOnlyActions, "good")}
-      {renderActionGroup("Prototype mutation actions", mutatingActions, "warn")}
+      {renderActionGroup("Acciones de solo lectura", readOnlyActions, "good")}
+      {renderActionGroup("Acciones de mutacion de prototipo", mutatingActions, "warn")}
     </article>
   );
 }

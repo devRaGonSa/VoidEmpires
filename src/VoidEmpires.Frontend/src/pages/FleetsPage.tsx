@@ -43,7 +43,7 @@ function formatNote(note: ReadinessNote) {
     return note;
   }
 
-  return note.note ?? "Readiness metadata present.";
+  return note.note ?? "Hay metadatos de disponibilidad.";
 }
 
 function getGroupTone(group: FleetGroupSummary): "good" | "warn" | "neutral" {
@@ -528,7 +528,7 @@ export function FleetsPage() {
       const message =
         requestError instanceof Error
           ? requestError.message
-          : "Network error while creating the transfer.";
+          : "Error de red al crear la transferencia.";
       setCreateTransferResult(presentCreateTransferNetworkFailure(message));
     } finally {
       createTransferInFlightRef.current = false;

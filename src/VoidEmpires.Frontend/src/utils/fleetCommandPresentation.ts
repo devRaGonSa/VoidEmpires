@@ -18,6 +18,33 @@ import {
 
 type CommandTone = "neutral" | "good" | "warn";
 
+const userFacingActionLabels: Record<string, string> = {
+  "fleet.travel.estimate": "Estimar viaje orbital",
+  "fleet.transfer.create": "Crear transferencia orbital",
+  "fleet.transfer.cancel": "Cancelar transferencia orbital",
+  "fleet.transfer.complete": "Completar traslados vencidos",
+  "fleet.group.split": "Dividir escuadra orbital",
+  "fleet.group.merge": "Fusionar escuadras orbitales",
+  "fleet.uiState.read": "Leer estado de la cabina de flotas",
+  "fleet.actionManifest.read": "Leer manifiesto de acciones de flota",
+  "strategicMap.actionManifest.read": "Leer manifiesto del mapa estrategico",
+  "strategicMap.read": "Leer mapa estrategico",
+  "strategicMap.explorationPreview.read": "Leer vista previa de exploracion",
+  "exploration.preview.read": "Leer vista previa de exploracion",
+  "exploration.mission.create": "Crear mision de exploracion",
+  "exploration.mission.completeDue": "Completar misiones de exploracion vencidas",
+  "exploration.mission.list": "Listar misiones de exploracion",
+  "exploration.knowledge.read": "Leer conocimiento de exploracion",
+  "sensor.profile.read": "Leer perfiles de sensores",
+  "detection.coverage.read": "Leer cobertura de deteccion",
+  "interception.opportunity.read": "Leer oportunidades de intercepcion",
+  "alliance.readiness.read": "Leer preparacion de alianzas",
+  "alliance.pact.readiness.read": "Leer preparacion de pactos de alianza",
+  "diplomacy.contact.read": "Leer contactos diplomaticos",
+  "visual.system.read": "Leer estado visual del sistema",
+  "visual.planet.read": "Leer estado visual del planeta",
+};
+
 export interface FleetCommandPresentationItem {
   key: string;
   label: string;
@@ -81,8 +108,15 @@ export interface FleetMutationConfirmationModel {
   disabledReason: string;
 }
 
+export function getUserFacingActionLabel(actionKey: string, fallback: string) {
+  return userFacingActionLabels[actionKey] ?? fallback;
+}
+
 function getActionLabel(actionKey: string, actionHints: FleetActionHint[], fallback: string) {
-  return actionHints.find((hint) => hint.actionKey === actionKey)?.displayName ?? fallback;
+  return getUserFacingActionLabel(
+    actionKey,
+    actionHints.find((hint) => hint.actionKey === actionKey)?.displayName ?? fallback,
+  );
 }
 
 function normalizeNotes(notes: ActionManifestAction["notes"]) {
@@ -253,7 +287,7 @@ export function buildFleetMutationConfirmations(
       if (action.actionKey === "fleet.transfer.complete") {
         return {
           actionKey: action.actionKey,
-          label: action.displayName,
+          label: getUserFacingActionLabel(action.actionKey, action.displayName),
           prototypeLevel: "danger",
           mutationSummary,
           surfaceLabel: "Solo metadata protegida",
@@ -282,7 +316,7 @@ export function buildFleetMutationConfirmations(
 
       return {
         actionKey: action.actionKey,
-        label: action.displayName,
+        label: getUserFacingActionLabel(action.actionKey, action.displayName),
         prototypeLevel: "prototype",
         mutationSummary,
         surfaceLabel:
@@ -312,7 +346,7 @@ export function buildFleetMutationConfirmations(
                   ? mergeReadyGroups > 0 ? "good" : "warn"
                   : "neutral",
         requiresConfirmation: true,
-        confirmationText: `Se requeriria confirmacion de prototipo antes de ${action.displayName.toLowerCase()}.`,
+        confirmationText: `Se requeriria confirmacion de prototipo antes de ${getUserFacingActionLabel(action.actionKey, action.displayName).toLowerCase()}.`,
         disabledReason: disabledReasonByAction[action.actionKey]
           ?? "Este contrato de mutacion se muestra solo como metadata en la cabina.",
       };
@@ -324,7 +358,7 @@ export function presentEstimateResult(result: FleetCommandApiResult<EstimateOrbi
   const errors = response?.errors ?? [];
   const costSummary = response?.resourceCosts.length
     ? response.resourceCosts.map((cost) => `${cost.resourceType} ${cost.quantity}`).join(", ")
-    : "No projected cost components.";
+    : "Sin costes proyectados visibles.";
   const defaultSummary =
     result.httpStatus === 400
       ? "Validacion rechazada por la API de desarrollo."
@@ -491,15 +525,15 @@ export function presentCompletionResult(result: FleetCommandApiResult<CompleteOr
 
   return {
     key: "complete-result",
-    label: "Complete due transfers",
+    label: "Completar traslados vencidos",
     tone: result.httpStatus === 200 && response?.succeeded ? "good" : "warn",
     summary:
       result.httpStatus === 200 && response?.succeeded
-        ? `${response.completedCount} transfer${response.completedCount === 1 ? "" : "s"} completed.`
-        : response?.errors[0] ?? `Request returned ${result.httpStatus}.`,
+        ? `${response.completedCount} traslado${response.completedCount === 1 ? "" : "s"} completado${response.completedCount === 1 ? "" : "s"}.`
+        : response?.errors[0] ?? `La solicitud devolvio ${result.httpStatus}.`,
     details: [
-      ...(response?.completedTransferIds.length ? [`Transfers ${response.completedTransferIds.join(", ")}`] : []),
-      ...(response?.completedOrbitalGroupIds.length ? [`Groups ${response.completedOrbitalGroupIds.join(", ")}`] : []),
+      ...(response?.completedTransferIds.length ? [`Traslados ${response.completedTransferIds.join(", ")}`] : []),
+      ...(response?.completedOrbitalGroupIds.length ? [`Escuadras ${response.completedOrbitalGroupIds.join(", ")}`] : []),
       ...(response?.errors.slice(1) ?? []),
     ],
   };

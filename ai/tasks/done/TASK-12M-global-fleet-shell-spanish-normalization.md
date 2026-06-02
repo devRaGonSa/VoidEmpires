@@ -3,7 +3,7 @@
 ---
 id: TASK-12M
 title: Phase 12M - Global fleet shell Spanish normalization
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

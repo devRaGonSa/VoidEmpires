@@ -28,7 +28,7 @@ export function AppShell({
           <span className="app-topbar-brand-mark">VE</span>
           <div>
             <strong>VoidEmpires</strong>
-            <p>Figma shell alignment prototype</p>
+            <p>Prototipo de cabina alineado con Figma</p>
           </div>
         </div>
         <TopResourceBar resources={resources} userLabel={userLabel} />
@@ -37,9 +37,9 @@ export function AppShell({
       <div className="app-shell-frame">
         <aside className="app-sidebar">
           <div className="app-sidebar-head">
-            <p className="eyebrow">Empire surface</p>
-            <h2>Command map</h2>
-            <p>Only implemented read routes are enabled.</p>
+            <p className="eyebrow">Superficie imperial</p>
+            <h2>Mapa de mando</h2>
+            <p>Solo estan habilitadas las rutas de lectura ya implementadas.</p>
           </div>
           <SidebarNav items={sidebarItems} />
         </aside>
@@ -47,12 +47,12 @@ export function AppShell({
         <div className="app-main-column">
           <section className="shell-intro-grid">
             <UiCard className="shell-intro-card">
-              <p className="eyebrow">VoidEmpires frontend prototype</p>
-              <h1>Development-only command surface</h1>
+              <p className="eyebrow">Prototipo frontend de VoidEmpires</p>
+              <h1>Superficie de mando solo para desarrollo</h1>
               <p className="lede">
-                Figma-aligned shell for inspecting current backend readiness
-                contracts without enabling gameplay mutations or production
-                authentication.
+                Cabina alineada con Figma para inspeccionar los contratos de
+                disponibilidad actuales del backend sin habilitar mutaciones de
+                juego ni autenticacion de produccion.
               </p>
             </UiCard>
             <DevEndpointNotice
