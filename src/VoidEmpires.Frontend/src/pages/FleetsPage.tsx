@@ -760,6 +760,51 @@ export function FleetsPage() {
   const inspectedReadinessItems = inspectedGroup
     ? buildFleetCommandReadiness(inspectedGroup, uiState?.actionHints ?? [])
     : [];
+  const orderSteps = [
+    {
+      number: "1",
+      label: "Escuadra",
+      state: selectedGroup ? (effectiveDestinationPlanetId ? "complete" : "current") : "pending",
+    },
+    {
+      number: "2",
+      label: "Destino",
+      state: effectiveDestinationPlanetId
+        ? (estimateReviewCard || isEstimating ? "complete" : "current")
+        : selectedGroup
+          ? "current"
+          : "pending",
+    },
+    {
+      number: "3",
+      label: "Calcular",
+      state: isEstimating
+        ? "current"
+        : estimateReviewCard
+          ? "complete"
+          : selectedGroup && effectiveDestinationPlanetId
+            ? "current"
+            : "pending",
+    },
+    {
+      number: "4",
+      label: "Revisar",
+      state: createTransferConfirmationState || createTransferResult
+        ? "complete"
+        : estimateReviewCard
+          ? "current"
+          : "pending",
+    },
+    {
+      number: "5",
+      label: "Confirmar",
+      state: createTransferResult
+        ? "complete"
+        : createTransferConfirmationState
+          ? "current"
+          : "pending",
+    },
+  ] as const;
 
   return (
     <section className="page-grid">
@@ -934,11 +979,15 @@ export function FleetsPage() {
               </div>
               <div className="fleet-action-stage">
                 <div className="fleet-order-step-grid">
-                  <div className="fleet-order-step"><strong>1</strong><span>Escuadra</span></div>
-                  <div className="fleet-order-step"><strong>2</strong><span>Destino</span></div>
-                  <div className="fleet-order-step"><strong>3</strong><span>Calcular</span></div>
-                  <div className="fleet-order-step"><strong>4</strong><span>Revisar</span></div>
-                  <div className="fleet-order-step fleet-order-step-warn"><strong>5</strong><span>Confirmar</span></div>
+                  {orderSteps.map((step) => (
+                    <div
+                      key={step.number}
+                      className={`fleet-order-step fleet-order-step-${step.state}${step.number === "5" ? " fleet-order-step-warn" : ""}`}
+                    >
+                      <strong>{step.number}</strong>
+                      <span>{step.label}</span>
+                    </div>
+                  ))}
                 </div>
                 <div className="subpanel fleet-action-context">
                   <FleetDataRow
@@ -1025,7 +1074,10 @@ export function FleetsPage() {
                         <h4>{estimateReviewCard.title}</h4>
                         <p>{estimateReviewCard.summary}</p>
                       </div>
-                      <UiBadge tone={estimateReviewCard.tone}>{estimateReviewCard.statusLabel}</UiBadge>
+                      <div className="figma-badge-row">
+                        <UiBadge tone={estimateReviewCard.tone}>{estimateReviewCard.statusLabel}</UiBadge>
+                        {selectedGroup ? <UiBadge tone="neutral">{selectedGroup.quantity} unidades</UiBadge> : null}
+                      </div>
                     </div>
                     <div className="fleet-estimate-facts fleet-estimate-review-grid">
                       {estimateReviewCard.facts.map((fact) => (
