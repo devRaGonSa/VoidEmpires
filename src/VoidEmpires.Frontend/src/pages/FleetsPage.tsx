@@ -361,6 +361,14 @@ export function FleetsPage() {
 
         try {
           await refreshFleetUiState(uiState.civilizationId);
+          setCreateTransferResult((currentResult) =>
+            currentResult
+              ? {
+                  ...currentResult,
+                  details: ["Estado actualizado.", ...currentResult.details],
+                }
+              : currentResult,
+          );
         } catch (refreshError) {
           setCreateTransferNetworkError(
             refreshError instanceof Error

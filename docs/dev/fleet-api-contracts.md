@@ -246,7 +246,7 @@ Frontend readiness guidance:
 - Treat `commands` and `routeFuelReadiness.canRequestTravelEstimate` as readiness metadata only. Render them as `Ready` or `Blocked` labels instead of executable controls.
 - Keep read-only inspection actions such as `estimate`, `overview`, `ui-state`, and manifest reads visually distinct from mutation contracts, even when an inspection route uses `POST`.
 - The current frontend prototype may execute `POST /api/dev/fleets/orbital-travel/estimate` plus the explicitly confirmed development-only `POST /api/dev/fleets/orbital-transfers/create`.
-- `create transfer` should remain behind the latest matching estimate context, summarize route and cost before submission, and clear or mark stale estimate data after a successful mutation refresh.
+- `create transfer` should remain behind the latest matching estimate context, summarize route and cost before submission, and clear or mark stale estimate data after a successful mutation refresh with an `estado actualizado` style cue.
 - Keep mutation contracts in clearly marked development or prototype sections. Current Fleet page work must not wire split, merge, create, cancel, or complete-due to ordinary gameplay-style buttons or click handlers.
 - Disabled prototype controls are allowed for discoverability only when they stay visibly guarded, non-submitting, and non-executable.
 - If a prototype later executes a mutation contract, require an explicit development-only affordance and show the route as a contract boundary rather than presenting it as routine gameplay UI.
