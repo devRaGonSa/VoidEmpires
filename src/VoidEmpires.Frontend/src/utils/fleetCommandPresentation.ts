@@ -13,6 +13,7 @@ import {
   formatPlanetReference,
   formatResourceType,
   formatSpaceAssetType,
+  formatTransferStatus,
 } from "./domainPresentation";
 
 type CommandTone = "neutral" | "good" | "warn";
@@ -40,6 +41,19 @@ export interface FleetSquadListPresentationItem {
 export interface FleetEstimateFact {
   label: string;
   value: string;
+}
+
+export interface FleetActiveTransferPresentationItem {
+  title: string;
+  statusLabel: string;
+  originLabel: string;
+  destinationLabel: string;
+  departureLabel: string;
+  arrivalLabel: string;
+  progressValue: number | null;
+  progressLabel: string;
+  cancelLabel: string;
+  cancelTone: CommandTone;
 }
 
 function getUnexpectedResponseSummary(result: FleetCommandApiResult<unknown>) {
@@ -147,6 +161,34 @@ export function buildFleetEstimateFacts(
       value: response.canAfford && (response.fuelReadiness?.isFuelReady ?? true) ? "Si" : "No",
     },
   ];
+}
+
+export function presentFleetActiveTransferItem(group: FleetGroupSummary): FleetActiveTransferPresentationItem | null {
+  const transfer = group.activeTransfer;
+  if (!transfer) {
+    return null;
+  }
+
+  const departure = Date.parse(transfer.departureAtUtc);
+  const arrival = Date.parse(transfer.arrivalAtUtc);
+  const now = Date.now();
+  const progressValue =
+    Number.isNaN(departure) || Number.isNaN(arrival) || arrival <= departure
+      ? null
+      : Math.max(0, Math.min(100, ((now - departure) / (arrival - departure)) * 100));
+
+  return {
+    title: formatSpaceAssetType(group.assetType),
+    statusLabel: formatTransferStatus(transfer.status),
+    originLabel: formatPlanetReference(group.originPlanetId),
+    destinationLabel: formatPlanetReference(transfer.destinationPlanetId),
+    departureLabel: transfer.departureAtUtc,
+    arrivalLabel: transfer.arrivalAtUtc,
+    progressValue,
+    progressLabel: progressValue === null ? "Avance no disponible" : `${Math.round(progressValue)}% completado`,
+    cancelLabel: group.commands?.canCancelTransfer ? "Anulacion disponible" : "Sin anulacion visible",
+    cancelTone: group.commands?.canCancelTransfer ? "good" : "neutral",
+  };
 }
 
 export function buildFleetCommandReadiness(group: FleetGroupSummary, actionHints: FleetActionHint[]) {

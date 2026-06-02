@@ -12,6 +12,7 @@ import { FleetSelectedGroupPanel } from "../components/FleetSelectedGroupPanel";
 import { ActionManifestPanel } from "../components/ActionManifestPanel";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
+import { UiProgressBar } from "../components/ui/UiProgressBar";
 import {
   formatCompactGuid,
   formatPlanetReference,
@@ -22,6 +23,7 @@ import {
   buildFleetCommandReadiness,
   buildFleetEstimateFacts,
   buildFleetMutationConfirmations,
+  presentFleetActiveTransferItem,
   presentFleetSquadListItem,
   presentCancelTransferNetworkFailure,
   presentCancelTransferResult,
@@ -141,6 +143,15 @@ export function FleetsPage() {
   const activeTransferGroups = useMemo(
     () => uiState?.groups.filter((group) => group.activeTransfer) ?? [],
     [uiState],
+  );
+  const activeTransferItems = useMemo(
+    () =>
+      activeTransferGroups
+        .flatMap((group) => {
+          const presentation = presentFleetActiveTransferItem(group);
+          return presentation ? [{ group, presentation }] : [];
+        }),
+    [activeTransferGroups],
   );
   const squadListItems = useMemo(
     () =>
@@ -1017,27 +1028,30 @@ export function FleetsPage() {
                   {activeTransferGroups.length > 0 ? `${activeTransferGroups.length} en ruta` : "Sin movimientos"}
                 </UiBadge>
               </div>
-              {activeTransferGroups.length > 0 ? (
+              {activeTransferItems.length > 0 ? (
                 <div className="fleet-transfer-overview-grid">
-                  {activeTransferGroups.map((group) => (
+                  {activeTransferItems.map(({ group, presentation }) => (
                     <section key={group.id} className="subpanel figma-subpanel fleet-transfer-overview-card">
                       <div className="figma-section-header">
                         <div>
                           <p className="eyebrow">Escuadra en transito</p>
-                          <h4>{formatSpaceAssetType(group.assetType)}</h4>
+                          <h4>{presentation.title}</h4>
                           <p className="dev-meta">ID tactico {formatCompactGuid(group.id)}</p>
                         </div>
-                        <UiBadge tone="warn">
-                          {formatPlanetReference(group.activeTransfer?.destinationPlanetId ?? "")}
-                        </UiBadge>
+                        <UiBadge tone="warn">{presentation.statusLabel}</UiBadge>
                       </div>
+                      {presentation.progressValue !== null ? (
+                        <UiProgressBar value={presentation.progressValue} tone="neutral" />
+                      ) : null}
                       <div className="figma-data-list">
-                        <FleetDataRow label="Origen" value={formatPlanetReference(group.originPlanetId)} />
-                        <FleetDataRow label="Planeta actual" value={formatPlanetReference(group.currentPlanetId)} />
-                        <FleetDataRow
-                          label="Llegada"
-                          value={group.activeTransfer?.arrivalAtUtc ?? "Sin llegada visible"}
-                        />
+                        <FleetDataRow label="Origen" value={presentation.originLabel} />
+                        <FleetDataRow label="Destino" value={presentation.destinationLabel} />
+                        <FleetDataRow label="Salida" value={presentation.departureLabel} />
+                        <FleetDataRow label="Llegada" value={presentation.arrivalLabel} />
+                        <FleetDataRow label="Avance" value={presentation.progressLabel} />
+                      </div>
+                      <div className="figma-badge-row">
+                        <UiBadge tone={presentation.cancelTone}>{presentation.cancelLabel}</UiBadge>
                       </div>
                       <div className="transfer-confirmation-actions">
                         <button

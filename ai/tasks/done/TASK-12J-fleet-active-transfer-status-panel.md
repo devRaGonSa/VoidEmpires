@@ -3,7 +3,7 @@
 ---
 id: TASK-12J
 title: Phase 12J - Fleet active transfer status panel
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
