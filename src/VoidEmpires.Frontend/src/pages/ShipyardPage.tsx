@@ -47,6 +47,11 @@ function formatRequirementLabel(asset: ShipyardAssetOption) {
   return `Astillero ${asset.requirements.buildingLevel}+ | tripulacion ${asset.requirements.operatorCapacity}`;
 }
 
+interface ShipyardReviewSelection {
+  asset: ShipyardAssetOption;
+  bucket: "available" | "blocked" | "unsupported";
+}
+
 export function ShipyardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
@@ -55,6 +60,7 @@ export function ShipyardPage() {
   const [error, setError] = useState<string | null>(null);
   const [technicalErrorDetail, setTechnicalErrorDetail] = useState<string | null>(null);
   const [uiState, setUiState] = useState<ShipyardViewModel | null>(null);
+  const [reviewSelection, setReviewSelection] = useState<ShipyardReviewSelection | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -198,6 +204,17 @@ export function ShipyardPage() {
     }
 
     setSearchParams(nextParams);
+  }
+
+  function handleReviewAsset(asset: ShipyardAssetOption) {
+    setReviewSelection({
+      asset,
+      bucket: getCatalogBucket(asset),
+    });
+  }
+
+  function handleCancelReview() {
+    setReviewSelection(null);
   }
 
   return (
@@ -540,12 +557,75 @@ export function ShipyardPage() {
                               <div className="figma-data-row"><span>Requisitos</span><strong>{formatRequirementLabel(asset)}</strong></div>
                             </div>
                             <p>{bucket === "available" ? "Lista para preparar produccion cuando la tarea de mutacion quede habilitada." : asset.reasonLabel}</p>
+                            <div className="selection-chip-row">
+                              <button
+                                type="button"
+                                className="selection-chip"
+                                onClick={() => handleReviewAsset(asset)}
+                              >
+                                {bucket === "available" ? "Revisar produccion" : bucket === "blocked" ? "Revisar bloqueo" : "Revisar limite"}
+                              </button>
+                            </div>
                           </article>
                         );
                       })}
                     </div>
                   </section>
                 ))}
+
+                {reviewSelection ? (
+                  <UiCard className="panel">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">Revision controlada</p>
+                        <h3>Confirmacion de produccion orbital</h3>
+                        <p>La cabina revisa el impacto visible antes de habilitar cualquier mutacion real.</p>
+                      </div>
+                      <UiBadge tone={reviewSelection.bucket === "available" ? "good" : "warn"}>
+                        {reviewSelection.bucket === "available" ? "Lista para futura cola" : "No enviable"}
+                      </UiBadge>
+                    </div>
+                    <div className="readiness-grid">
+                      <section className="subpanel figma-subpanel">
+                        <div className="figma-data-list">
+                          <div className="figma-data-row"><span>Planeta</span><strong>{shipyard.planetName}</strong></div>
+                          <div className="figma-data-row"><span>Activo</span><strong>{reviewSelection.asset.label}</strong></div>
+                          <div className="figma-data-row"><span>Salida</span><strong>{reviewSelection.asset.quantityLabel}</strong></div>
+                          <div className="figma-data-row"><span>Duracion</span><strong>{reviewSelection.asset.estimatedDurationLabel}</strong></div>
+                        </div>
+                      </section>
+                      <section className="subpanel figma-subpanel">
+                        <div className="figma-data-list">
+                          <div className="figma-data-row"><span>Coste</span><strong>{reviewSelection.asset.estimatedCostLabel}</strong></div>
+                          <div className="figma-data-row"><span>Readiness</span><strong>{reviewSelection.asset.statusLabel}</strong></div>
+                          <div className="figma-data-row"><span>Requisitos</span><strong>{formatRequirementLabel(reviewSelection.asset)}</strong></div>
+                          <div className="figma-data-row"><span>Motivo visible</span><strong>{reviewSelection.asset.reasonLabel}</strong></div>
+                        </div>
+                      </section>
+                    </div>
+                    <p>
+                      {reviewSelection.bucket === "available"
+                        ? "La opcion puede pasar a una confirmacion real cuando el endpoint de enqueue quede conectado. En esta tarea solo se revisa el contexto."
+                        : "Esta revision permanece en modo diagnostico. La cabina no intentara enviar nada mientras el estado siga bloqueado o no soportado."}
+                    </p>
+                    <div className="selection-chip-row">
+                      <button
+                        type="button"
+                        className="selection-chip"
+                        disabled
+                      >
+                        {reviewSelection.bucket === "available" ? "Confirmar pendiente de enqueue" : "Confirmacion no disponible"}
+                      </button>
+                      <button
+                        type="button"
+                        className="selection-chip"
+                        onClick={handleCancelReview}
+                      >
+                        Cancelar revision
+                      </button>
+                    </div>
+                  </UiCard>
+                ) : null}
               </>
             )}
           </UiCard>

@@ -3,7 +3,7 @@
 ---
 id: TASK-17K-shipyard-confirmation-modal-and-controlled-action-ux
 title: Shipyard confirmation modal and controlled action UX
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
