@@ -94,6 +94,7 @@ if (developmentEndpointsEnabled)
 {
     app.UseStaticFiles();
     app.MapDevEndpointMappings();
+    app.MapDevResearchUiStateEndpoints();
     app.MapDevFleetUiStateEndpoints();
     app.MapDevPlanetUiStateEndpoints();
     app.MapDevFleetActionManifestEndpoints();
