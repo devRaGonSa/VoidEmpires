@@ -167,6 +167,38 @@ function getVisibilityTone(level: string): "good" | "warn" | "neutral" {
   return "warn";
 }
 
+function isOwnedRecord(value: unknown) {
+  return typeof value === "object" && value !== null
+    ? Boolean((value as Record<string, unknown>).isOwnedByRequestingCivilization)
+    : false;
+}
+
+function pickPreferredSystem(
+  systems: StrategicMapSystem[],
+  requestedSystemId: string | null,
+) {
+  return (
+    systems.find((system) => system.systemId === requestedSystemId) ??
+    systems.find((system) => isOwnedRecord(system)) ??
+    systems.find((system) => system.isVisible) ??
+    systems[0] ??
+    null
+  );
+}
+
+function pickPreferredPlanet(
+  planets: StrategicMapSystem["planets"],
+  requestedPlanetId: string | null,
+) {
+  return (
+    planets?.find((planet) => planet.planetId === requestedPlanetId) ??
+    planets?.find((planet) => isOwnedRecord(planet)) ??
+    planets?.find((planet) => planet.isVisible) ??
+    planets?.[0] ??
+    null
+  );
+}
+
 interface SummaryMetricProps {
   label: string;
   value: number;
@@ -304,10 +336,7 @@ export function StrategicMapPage() {
   }, [result]);
 
   const selectedSystem = useMemo(
-    () =>
-      result?.systems.find((system) => system.systemId === selectedSystemId) ??
-      result?.systems[0] ??
-      null,
+    () => (result ? pickPreferredSystem(result.systems, selectedSystemId) : null),
     [result, selectedSystemId],
   );
 
@@ -321,10 +350,7 @@ export function StrategicMapPage() {
   }, [result]);
 
   const selectedPlanet = useMemo(
-    () =>
-      selectedSystem?.planets?.find((planet) => planet.planetId === selectedPlanetId) ??
-      selectedSystem?.planets?.[0] ??
-      null,
+    () => pickPreferredPlanet(selectedSystem?.planets, selectedPlanetId),
     [selectedPlanetId, selectedSystem],
   );
 
@@ -342,8 +368,9 @@ export function StrategicMapPage() {
   const selectedPlanetRecord = selectedPlanet ? readRecord(selectedPlanet) : null;
 
   function selectSystem(system: StrategicMapSystem) {
+    const preferredPlanet = pickPreferredPlanet(system.planets, null);
     setSelectedSystemId(system.systemId);
-    setSelectedPlanetId(system.planets?.[0]?.planetId ?? null);
+    setSelectedPlanetId(preferredPlanet?.planetId ?? null);
     setSystemVisualState(null);
     setSystemVisualError(null);
     setPlanetVisualState(null);
@@ -353,8 +380,8 @@ export function StrategicMapPage() {
       const nextParams = new URLSearchParams();
       nextParams.set("civilizationId", result.civilizationId);
       nextParams.set("systemId", system.systemId);
-      if (system.planets?.[0]?.planetId) {
-        nextParams.set("planetId", system.planets[0].planetId);
+      if (preferredPlanet?.planetId) {
+        nextParams.set("planetId", preferredPlanet.planetId);
       }
       setSearchParams(nextParams, { replace: true });
     }
@@ -394,14 +421,11 @@ export function StrategicMapPage() {
           return;
         }
 
-        const requestedSystem =
-          response.map.systems.find((system) => system.systemId === querySystemId) ??
-          response.map.systems[0] ??
-          null;
-        const requestedPlanet =
-          requestedSystem?.planets?.find((planet) => planet.planetId === queryPlanetId) ??
-          requestedSystem?.planets?.[0] ??
-          null;
+        const requestedSystem = pickPreferredSystem(response.map.systems, querySystemId);
+        const requestedPlanet = pickPreferredPlanet(
+          requestedSystem?.planets,
+          queryPlanetId,
+        );
 
         setResult(response.map);
         setSelectedSystemId(requestedSystem?.systemId ?? null);

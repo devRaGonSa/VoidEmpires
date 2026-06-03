@@ -3,7 +3,7 @@
 ---
 id: TASK-18S-galaxy-main-cockpit-render-restore
 title: Galaxy main cockpit render restore
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
