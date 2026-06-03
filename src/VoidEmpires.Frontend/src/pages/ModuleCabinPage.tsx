@@ -8,6 +8,17 @@ import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { formatPlanetIdentity, formatPlanetOverviewLine, formatPlanetOwnerLabel, formatPlanetShortReference } from "../utils/planetPresentation";
 import {
+  formatAssetProductionDuration,
+  formatAssetQuantity,
+  getAssetCategoryLabel,
+  getAssetRoleLabel,
+  getAssetTypeLabel,
+  getShipyardActionCatalog,
+  getShipyardActionLabel,
+  getShipyardAssetCatalog,
+  getShipyardProductionStatusCatalog,
+} from "../utils/shipyardPresentation";
+import {
   buildConstructionUrl,
   buildDevelopmentHelperUrl,
   buildFleetsUrl,
@@ -36,6 +47,9 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
   const planet = uiState?.planet ?? null;
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
+  const shipyardAssets = getShipyardAssetCatalog();
+  const shipyardActions = getShipyardActionCatalog();
+  const shipyardStatuses = getShipyardProductionStatusCatalog();
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -205,6 +219,73 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
           </ul>
         </UiCard>
       </div>
+
+      {route.module === "Shipyard" ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Taxonomia orbital</p>
+              <h3>Vocabulario jugable del astillero</h3>
+              <p>Los nombres visibles priorizan lectura de cabina y dejan las claves tecnicas fuera del flujo principal.</p>
+            </div>
+            <UiBadge tone="resource">{shipyardAssets.length} clases</UiBadge>
+          </div>
+          <div className="readiness-grid">
+            {shipyardAssets.map((asset) => (
+              <section key={asset.key} className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">{getAssetCategoryLabel(asset.key)}</p>
+                    <h4>{getAssetTypeLabel(asset.key)}</h4>
+                  </div>
+                  <UiBadge tone="good">{formatAssetQuantity(1, asset.key)}</UiBadge>
+                </div>
+                <div className="figma-data-list">
+                  <PlanetDataRow label="Rol" value={getAssetRoleLabel(asset.key)} />
+                  <PlanetDataRow label="Categoria" value={getAssetCategoryLabel(asset.key)} />
+                  <PlanetDataRow label="Duracion base visible" value={formatAssetProductionDuration(3)} />
+                </div>
+              </section>
+            ))}
+          </div>
+          <div className="figma-section-header module-boundary-spacer">
+            <div>
+              <p className="eyebrow">Estados y acciones</p>
+              <h4>Terminos listos para reutilizar</h4>
+            </div>
+          </div>
+          <div className="readiness-grid">
+            <section className="subpanel figma-subpanel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Cola orbital</p>
+                  <h4>Estados visibles</h4>
+                </div>
+                <UiBadge>{shipyardStatuses.length} estados</UiBadge>
+              </div>
+              <ul className="stack-list compact-list">
+                {shipyardStatuses.map((status) => (
+                  <li key={status.key}>{status.label}</li>
+                ))}
+              </ul>
+            </section>
+            <section className="subpanel figma-subpanel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Flujo controlado</p>
+                  <h4>Acciones del modulo</h4>
+                </div>
+                <UiBadge tone="warn">Dev-safe</UiBadge>
+              </div>
+              <ul className="stack-list compact-list">
+                {shipyardActions.map((action) => (
+                  <li key={action.key}>{getShipyardActionLabel(action.key)}</li>
+                ))}
+              </ul>
+            </section>
+          </div>
+        </UiCard>
+      ) : null}
 
       {isSuspiciousContext ? (
         <UiCard className="panel">

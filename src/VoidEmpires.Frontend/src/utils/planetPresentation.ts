@@ -327,14 +327,14 @@ export const specializedPlanetModuleRoutes: readonly PlanetModuleRouteInfo[] = [
     path: "/shipyard",
     label: "Astillero",
     title: "Cabina de Astillero",
-    purpose: "Preparada para la produccion orbital y el seguimiento de capacidad naval.",
+    purpose: "Preparada para la produccion orbital, la lectura de taxonomia naval y el futuro seguimiento de stock y colas.",
     belongsTo: [
-      "Produccion de flotas, hangares y soporte orbital.",
-      "Capacidad de construccion naval y lectura de colas futuras.",
+      "Catalogo orbital, etiquetas de nave y lectura de roles navales.",
+      "Produccion orbital controlada, stock local y colas futuras.",
     ],
     excludes: [
-      "Investigacion y gestion terrestre.",
-      "Defensa planetaria pura.",
+      "Investigacion, gestion terrestre y defensa planetaria pura.",
+      "Movimiento, division, fusion o ejecucion tactica de flotas.",
     ],
   },
   {

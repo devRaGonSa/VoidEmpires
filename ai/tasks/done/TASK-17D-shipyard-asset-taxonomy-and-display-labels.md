@@ -3,7 +3,7 @@
 ---
 id: TASK-17D-shipyard-asset-taxonomy-and-display-labels
 title: Shipyard asset taxonomy and display labels
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
