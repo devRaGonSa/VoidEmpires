@@ -16,6 +16,15 @@ public sealed record DevelopmentSeedProfileMetadata(
     IReadOnlyList<string> RecommendedQaUrls,
     IReadOnlyList<DevelopmentSeedProfileKeyId> KeyIds);
 
+public sealed record DevelopmentSeedProfileSummary(
+    string Name,
+    string Description,
+    bool Destructive,
+    bool Deterministic,
+    IReadOnlyList<string> IntendedCockpits,
+    IReadOnlyList<string> RecommendedQaUrls,
+    IReadOnlyList<DevelopmentSeedProfileKeyId> KeyIds);
+
 public sealed record ApplyDevelopmentSeedResult(
     bool Succeeded,
     string Profile,
@@ -41,6 +50,16 @@ public sealed record ApplyDevelopmentSeedResult(
 
 public static class DevelopmentSeedProfiles
 {
+    public static DevelopmentSeedProfileSummary ToSummary(DevelopmentSeedProfileMetadata metadata) =>
+        new(
+            metadata.Name,
+            metadata.AvailabilityNote,
+            false,
+            true,
+            metadata.IntendedCockpits,
+            metadata.RecommendedQaUrls,
+            metadata.KeyIds);
+
     public static readonly DevelopmentSeedProfileMetadata MinimalValidation = new(
         "minimal-validation",
         true,

@@ -13,6 +13,47 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
     : IClassFixture<WebApplicationFactory<Program>>
 {
     [Fact]
+    public async Task GetSeedProfilesReturnsNotFoundOutsideDevelopmentByDefault()
+    {
+        using var client = factory.WithWebHostBuilder(builder => builder.UseEnvironment("Production")).CreateClient();
+
+        using var response = await client.GetAsync("/api/dev/seeds/profiles");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetSeedProfilesReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
+    {
+        using var client = factory.CreateClientWithPersistenceDisabled();
+
+        using var response = await client.GetAsync("/api/dev/seeds/profiles");
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetSeedProfilesReturnsKnownProfilesForDevelopmentDiscovery()
+    {
+        using var client = CreateConfiguredClient(ApplyDevelopmentSeedResult.Success(
+            "minimal-validation",
+            [],
+            DevelopmentSeedProfiles.MinimalValidation,
+            DevelopmentSeedProfiles.All));
+
+        using var response = await client.GetAsync("/api/dev/seeds/profiles");
+        var payload = await response.Content.ReadFromJsonAsync<DevelopmentSeedProfilesResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.True(payload.Succeeded);
+        Assert.Contains(payload.Profiles, x => x.Name == "minimal-validation" && !x.Destructive && x.Deterministic);
+        Assert.Contains(payload.Profiles, x => x.Name == "cockpit-validation" && x.IntendedCockpits.Contains("Research"));
+        Assert.Contains(payload.Profiles, x => x.Name == "research-validation" && x.RecommendedQaUrls.Contains("/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001"));
+        Assert.Empty(payload.Errors);
+    }
+
+    [Fact]
     public async Task ApplySeedReturnsNotFoundOutsideDevelopmentByDefault()
     {
         using var client = factory.WithWebHostBuilder(builder => builder.UseEnvironment("Production")).CreateClient();
@@ -69,7 +110,7 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
         Assert.Contains("Seed profile acknowledged.", payload.AppliedSteps);
         Assert.NotNull(payload.ProfileMetadata);
         Assert.Equal("minimal-validation", payload.ProfileMetadata.Name);
-        Assert.Contains(payload.KnownProfiles, x => x.Name == "research-validation" && !x.IsImplemented);
+        Assert.Contains(payload.KnownProfiles, x => x.Name == "research-validation" && x.IsImplemented);
         Assert.Empty(payload.Errors);
     }
 
@@ -100,4 +141,9 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
         string[] Errors,
         DevelopmentSeedProfileMetadata? ProfileMetadata,
         DevelopmentSeedProfileMetadata[] KnownProfiles);
+
+    private sealed record DevelopmentSeedProfilesResponse(
+        bool Succeeded,
+        DevelopmentSeedProfileSummary[] Profiles,
+        string[] Errors);
 }

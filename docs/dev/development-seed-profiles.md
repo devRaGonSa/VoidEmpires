@@ -16,6 +16,7 @@ This document is the current source of truth for the development-only `minimal-v
 | `planet-full-validation` | Implemented | Planet and Construction richer baseline with extra general buildings and completed queue history |
 
 - Endpoint: `POST /api/dev/seeds/apply`
+- Discovery endpoint: `GET /api/dev/seeds/profiles`
 - Request body:
 
 ```json
@@ -25,6 +26,36 @@ This document is the current source of truth for the development-only `minimal-v
 ```
 
 Unsupported profile requests fail safely. The current response now includes the requested profile name, the applied profile metadata when successful, and the known profile catalog so PowerShell or JSON callers can discover the supported naming contract directly.
+
+The discovery endpoint is Development-only and returns a concise list of all known profiles with:
+
+- `name`
+- `description`
+- `destructive` set to `false`
+- `deterministic` set to `true`
+- intended cockpits
+- recommended QA URLs
+- key ids
+
+Example:
+
+```json
+{
+  "succeeded": true,
+  "profiles": [
+    {
+      "name": "minimal-validation",
+      "description": "Implemented today. Use this for the current deterministic QA baseline.",
+      "destructive": false,
+      "deterministic": true,
+      "intendedCockpits": ["Galaxy", "Planet", "Construction", "Research", "Shipyard", "Fleets"],
+      "recommendedQaUrls": ["/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001"],
+      "keyIds": []
+    }
+  ],
+  "errors": []
+}
+```
 
 ## Dependency map
 

@@ -19,6 +19,20 @@ internal static class DevEndpointMappings
 {
     public static void MapDevEndpointMappings(this WebApplication app)
     {
+        app.MapGet("/api/dev/seeds/profiles", (
+            [FromServices] IConfiguration configuration) =>
+        {
+            if (!IsPersistenceConfigured(configuration))
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            return Results.Ok(new DevelopmentSeedProfilesApiResponse(
+                true,
+                DevelopmentSeedProfiles.All.Select(DevelopmentSeedProfiles.ToSummary).ToArray(),
+                []));
+        });
+
         app.MapPost("/api/dev/seeds/apply", async (
             ApplyDevelopmentSeedApiRequest request,
             [FromServices] IServiceProvider services,
@@ -684,6 +698,11 @@ internal static class DevEndpointMappings
 }
 
 internal sealed record ApplyDevelopmentSeedApiRequest(string? Profile);
+
+internal sealed record DevelopmentSeedProfilesApiResponse(
+    bool Succeeded,
+    IReadOnlyList<DevelopmentSeedProfileSummary> Profiles,
+    IReadOnlyList<string> Errors);
 
 internal sealed record ApplyDevelopmentSeedApiResponse(
     bool Succeeded,
