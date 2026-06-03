@@ -139,6 +139,39 @@ export function formatConstructionStatus(value: PlanetValue) {
   return resolveLabel(value, constructionStatusLabels);
 }
 
+export function formatConstructionQueuePhase(
+  status: PlanetValue,
+  isDue: boolean,
+) {
+  if (isDue) {
+    return "Pendiente de cierre";
+  }
+
+  switch (status) {
+    case "Pending":
+    case 1:
+      return "En espera de inicio";
+    case "Active":
+    case 2:
+      return "En desarrollo";
+    case "Completed":
+    case 3:
+      return "Finalizada";
+    case "Cancelled":
+    case 4:
+      return "Cancelada";
+    default:
+      return "Estado no disponible";
+  }
+}
+
+export function formatConstructionEnqueueSuccess(
+  buildingType: PlanetValue,
+  targetLevel: number,
+) {
+  return `${formatBuildingType(buildingType)} en cola para nivel ${targetLevel}. La cabina se actualizo con el estado confirmado por la API.`;
+}
+
 export function formatConstructionAvailability(value: string) {
   return constructionAvailabilityLabels[value] ?? value;
 }

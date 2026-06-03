@@ -3,7 +3,7 @@
 ---
 id: TASK-14J
 title: Phase 14J - Construction enqueue result and queue refresh
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

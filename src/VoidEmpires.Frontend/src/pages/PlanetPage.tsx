@@ -23,7 +23,9 @@ import {
   formatBuildingType,
   formatConstructionAction,
   formatConstructionActionButtonLabel,
+  formatConstructionEnqueueSuccess,
   formatConstructionAvailability,
+  formatConstructionQueuePhase,
   formatConstructionStatus,
   formatCompactResourceCost,
   formatMissingPlanetResources,
@@ -267,12 +269,17 @@ export function PlanetPage() {
       if (result.httpStatus !== 201 || !result.response?.succeeded) {
         setConstructionError(
           result.response?.errors[0] ??
-            "La cola de construccion rechazo la orden preparada.",
+            "La orden no pudo entrar en la cola de construccion.",
         );
         return;
       }
 
-      setConstructionFeedback("Orden enviada. Estado actualizado desde la API.");
+      setConstructionFeedback(
+        formatConstructionEnqueueSuccess(
+          preparedAction.buildingType,
+          preparedAction.targetLevel,
+        ),
+      );
       setPreparedActionKey("");
       setHasConstructionAcknowledgement(false);
 
@@ -283,6 +290,11 @@ export function PlanetPage() {
 
       if (refreshed.succeeded && refreshed.uiState) {
         setUiState(refreshed.uiState);
+      } else {
+        setConstructionError(
+          refreshed.errors[0] ??
+          "La orden se envio, pero la cabina no pudo recargar el estado actualizado.",
+        );
       }
     } catch (requestError) {
       setConstructionError(
@@ -612,26 +624,29 @@ export function PlanetPage() {
                     <section key={item.orderId} className="subpanel figma-subpanel">
                       <div className="figma-section-header">
                         <div>
-                          <p className="eyebrow">Secuencia {item.sequence}</p>
+                          <p className="eyebrow">Orden {item.sequence}</p>
                           <h4>{item.display?.buildingTypeLabel ?? formatBuildingType(item.buildingType)}</h4>
+                          <p className="figma-panel-note">
+                            {formatConstructionQueuePhase(item.status, item.isDue)}
+                          </p>
                         </div>
                         <UiBadge tone={item.isDue ? "warn" : "neutral"}>
                           {item.display?.statusLabel ?? formatQueueState(item)}
                         </UiBadge>
                       </div>
+                      <div className="planet-action-facts">
+                        <div className="planet-action-stat">
+                          <span>Accion</span>
+                          <strong>{item.display?.actionLabel ?? formatConstructionAction(item.action)}</strong>
+                        </div>
+                        <div className="planet-action-stat">
+                          <span>Nivel objetivo</span>
+                          <strong>{item.targetLevel}</strong>
+                        </div>
+                      </div>
                       <div className="figma-data-list">
-                        <PlanetDataRow
-                          label="Accion"
-                          value={`${item.display?.actionLabel ?? formatConstructionAction(item.action)} a nivel ${item.targetLevel}`}
-                        />
-                        <PlanetDataRow
-                          label="Inicio"
-                          value={formatDateTime(item.startsAtUtc)}
-                        />
-                        <PlanetDataRow
-                          label="Fin"
-                          value={formatDateTime(item.endsAtUtc)}
-                        />
+                        <PlanetDataRow label="Comienza" value={formatDateTime(item.startsAtUtc)} />
+                        <PlanetDataRow label="Termina" value={formatDateTime(item.endsAtUtc)} />
                         <PlanetDataRow label="Coste" value={formatCompactResourceCost(item.cost)} />
                       </div>
                       <p className="dev-meta">{formatCompactGuid(item.orderId)}</p>
@@ -681,6 +696,12 @@ export function PlanetPage() {
                 value={planet.actionSummary.display?.completeDueActionReasonLabel ?? planet.actionSummary.completeDueActionReason}
               />
             </div>
+            {!planet.actionSummary.completeDueSupported ? (
+              <p className="figma-panel-note">
+                El cierre de construcciones vencidas sigue fuera de esta cabina porque
+                el backend actual resuelve ese paso en lote global.
+              </p>
+            ) : null}
 
             <div className="planet-action-groups">
               {Object.entries(actionsByCategory).map(([category, actions]) => (

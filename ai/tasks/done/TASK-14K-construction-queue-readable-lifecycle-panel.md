@@ -3,7 +3,7 @@
 ---
 id: TASK-14K
 title: Phase 14K - Construction queue readable lifecycle panel
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
