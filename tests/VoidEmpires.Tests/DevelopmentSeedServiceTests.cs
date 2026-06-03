@@ -49,6 +49,11 @@ public class DevelopmentSeedServiceTests
         Assert.Equal(80, stockpile.Metal);
         Assert.Equal(35, stockpile.Crystal);
         Assert.Equal(20, stockpile.Gas);
+        var productionProfile = await dbContext.PlanetProductionProfiles.SingleAsync(x => x.PlanetId == OwnedPlanetId);
+        Assert.Equal(18, productionProfile.CreditsPerHour);
+        Assert.Equal(14, productionProfile.MetalPerHour);
+        Assert.Equal(6, productionProfile.CrystalPerHour);
+        Assert.Equal(3, productionProfile.GasPerHour);
         Assert.True(await dbContext.Set<OrbitalAssetStock>().AnyAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == SpaceAssetType.EscortCraft && x.Quantity == 4));
         Assert.Equal(4, await dbContext.Set<OrbitalGroup>().CountAsync(x => x.CivilizationId == CivilizationId));
         Assert.True(await dbContext.Set<OrbitalGroup>().AnyAsync(
@@ -76,6 +81,7 @@ public class DevelopmentSeedServiceTests
         Assert.Equal(3, await dbContext.Set<Planet>().CountAsync(x => x.SolarSystemId == SystemId));
         Assert.Equal(1, await dbContext.Set<PlanetOwnership>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.CivilizationId == CivilizationId));
         Assert.Equal(1, await dbContext.PlanetResourceStockpiles.CountAsync(x => x.PlanetId == OwnedPlanetId));
+        Assert.Equal(1, await dbContext.PlanetProductionProfiles.CountAsync(x => x.PlanetId == OwnedPlanetId));
         Assert.Equal(1, await dbContext.Set<OrbitalAssetStock>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == SpaceAssetType.EscortCraft));
         Assert.Equal(4, await dbContext.Set<OrbitalGroup>().CountAsync(x => x.CivilizationId == CivilizationId));
         Assert.Equal(1, await dbContext.Set<OrbitalTransfer>().CountAsync(x => x.CivilizationId == CivilizationId && x.Status == OrbitalTransferStatus.Planned));

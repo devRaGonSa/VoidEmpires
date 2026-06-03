@@ -91,11 +91,12 @@ Current convention notes:
 
 - The `minimal-validation` profile is the stable profile name for development validation data.
 - The profile currently seeds a deterministic strategic-map dataset for civilization `00000000-0000-0000-0000-000000000001`.
+- The owned validation planet now also includes a small production profile plus construction-ready stockpile and buildings so QA can compare at least one affordable action against at least one blocked action on first load.
 - Deterministic IDs:
 - System `20000000-0000-0000-0000-000000000001`
 - Planet `40000000-0000-0000-0000-000000000001` (`Aurelia`, owned)
 - Planet `40000000-0000-0000-0000-000000000002` (`Cinder Reach`)
-- Planet `40000000-0000-0000-0000-000000000003` (`Frost Hollow`)
+- Planet `40000000-0000-0000-0000-000000000003` (`Aether Crown`)
 - Re-running the same profile should remain safe and idempotent as later seed tasks add data.
 - Re-applying `minimal-validation` validates that the baseline rows exist, but it does not wipe later mutations, delete extra transfers or groups, refund spent resources, or rebuild stockpiles that already exist.
 - If `create transfer` or other dev-only mutations changed the local validation state and you need a true clean slate, switch to a fresh disposable local database before applying the seed again. The repository does not currently provide a destructive reset command.

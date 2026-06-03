@@ -70,8 +70,10 @@ public class DevPlanetUiStateEndpointTests(WebApplicationFactory<Program> factor
         Assert.Equal("Aurelia", payload.UiState.Planet.PlanetName);
         Assert.True(payload.UiState.Planet.IsOwnedByRequestingCivilization);
         Assert.NotEmpty(payload.UiState.Planet.Stockpile);
+        Assert.NotNull(payload.UiState.Planet.ProductionSummary);
         Assert.Contains(payload.UiState.Planet.Buildings, x => x.BuildingType.ToString() == "CommandCenter");
         Assert.Contains(payload.UiState.Planet.ConstructionActions, x => x.AvailabilityStatus == "Available");
+        Assert.Contains(payload.UiState.Planet.ConstructionActions, x => x.AvailabilityStatus == "InsufficientResources");
         Assert.Equal("Available", payload.UiState.Planet.ActionSummary.QueueActionStatus);
         Assert.Contains(payload.UiState.Planet.Buildings, x => x.Display?.BuildingTypeLabel == "Centro de mando");
         Assert.Contains(payload.UiState.Planet.ConstructionActions, x => x.Display?.ActionLabel is "Construir" or "Mejorar");

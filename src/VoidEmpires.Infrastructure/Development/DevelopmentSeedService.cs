@@ -48,7 +48,8 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
         return ApplyDevelopmentSeedResult.Success(profile, [
             $"Validated strategic-map seed for civilization {SeedCivilizationId}.",
             $"System {SeedSystemId} includes planets {SeedOwnedPlanetId}, {SeedOuterPlanetId}, and {SeedIcePlanetId}.",
-            "Fleet validation rows include stationed groups, one active own transfer, and owned-planet resource context."
+            "Fleet validation rows include stationed groups, one active own transfer, and owned-planet resource context.",
+            "Owned planet construction validation includes visible stockpile, existing buildings, a readable economy summary, and both affordable and blocked actions."
         ]);
     }
 
@@ -136,6 +137,16 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
             stockpile.Increase(ResourceType.Crystal, 35);
             stockpile.Increase(ResourceType.Gas, 20);
             dbContext.PlanetResourceStockpiles.Add(stockpile);
+        }
+
+        if (!await dbContext.PlanetProductionProfiles.AnyAsync(x => x.PlanetId == SeedOwnedPlanetId, cancellationToken))
+        {
+            dbContext.PlanetProductionProfiles.Add(PlanetProductionProfile.Create(
+                SeedOwnedPlanetId,
+                18,
+                14,
+                6,
+                3));
         }
 
         if (!await dbContext.Set<PlanetBuilding>().AnyAsync(
