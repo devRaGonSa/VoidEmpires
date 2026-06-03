@@ -3,7 +3,7 @@
 ---
 id: TASK-19C-cross-cockpit-visual-regression-checklist
 title: Cross cockpit visual regression checklist
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

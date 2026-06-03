@@ -7,6 +7,63 @@ For the current Galaxy, Planet, Construction, Research, and Shipyard cockpit rev
 For the current module boundary model and placeholder responsibilities, also pair this document with `docs/dev/planet-module-boundaries.md`.
 For deterministic local QA setup, use `docs/dev/development-seed-profiles.md` instead of manual SQL.
 
+## Final Cross-Cockpit Visual Pass
+
+Use this block as the one-stop manual QA pass for the accepted shared cockpit suite after the non-visual validation commands succeed.
+
+Shared constraints for this pass:
+
+- Do not use manual SQL.
+- Do not introduce 3D or WebGL expectations.
+- Do not treat combat as supported.
+- Galaxy remains read-only.
+- Mutations are allowed only in dedicated cockpits and still require explicit confirmation.
+
+Start by reapplying the richer shared seed twice so reused local databases recover their documented baseline rows before you compare screens:
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:5142/api/dev/seeds/apply" `
+  -ContentType "application/json" `
+  -Body '{"profile":"cockpit-validation"}'
+
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:5142/api/dev/seeds/apply" `
+  -ContentType "application/json" `
+  -Body '{"profile":"cockpit-validation"}'
+```
+
+Then open and compare these deterministic routes:
+
+1. Galaxy
+   URL: `/galaxy?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+   Minimum non-empty result: `Helios Gate` loads with visible `Aurelia`, `Cinder Reach`, and `Aether Crown`, fleet markers and one transfer overlay are visible, and the cockpit stays read-only.
+2. Planet
+   URL: `/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+   Minimum non-empty result: `Aurelia` loads with readable resources, grouped buildings, queue state, and handoffs back to Galaxy and toward Fleets.
+3. Construction
+   URL: `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+   Minimum non-empty result: `Aurelia` loads with reserves, local economy, queue context, at least one available construction action, and at least one blocked action.
+4. Research
+   URL: `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+   Minimum non-empty result: `Aurelia` loads with summary cards, queue history, `Ingenieria planetaria` available, and at least one blocked comparison card.
+5. Shipyard
+   URL: `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+   Minimum non-empty result: `Aurelia` loads with readiness, stock, queue context, one available orbital option, and blocked comparison options.
+6. Fleets
+   URL: `/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+   Minimum non-empty result: the command deck, group rail, selected-group detail, active-transfer context, and the read-only estimate flow all render with seeded groups and transfers.
+
+Cross-cockpit comparison checks:
+
+- Galaxy, Planet, Construction, Research, Shipyard, and Fleets all open from the shared `cockpit-validation` baseline without shell-only or near-empty regressions.
+- Route helpers preserve `civilizationId` and `planetId` when moving between the accepted cockpit links.
+- Galaxy remains read-only while Planet, Construction, Research, Shipyard, and Fleets keep their current guarded mutation boundaries.
+- Diagnostics stay collapsed or clearly secondary across the cockpit routes.
+- Ground Army and Defenses remain placeholders and are not part of the accepted full-cockpit suite.
+
 ## Backend prerequisites
 
 1. Start `VoidEmpires.Web` with development endpoints enabled.
