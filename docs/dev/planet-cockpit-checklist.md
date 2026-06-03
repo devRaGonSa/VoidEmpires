@@ -10,6 +10,18 @@ Planet cockpit v1 is the first playable 2D colony-management surface for the cur
 - Construction enqueue is allowed only through an explicit confirmation flow.
 - Completing due constructions remains disabled in this build because the current backend endpoint is global rather than planet-scoped.
 
+## Seeded QA scenario
+
+Use the current `minimal-validation` seed for deterministic Planet checks:
+
+- Civilization id: `00000000-0000-0000-0000-000000000001`
+- Owned planet id: `40000000-0000-0000-0000-000000000001`
+- Owned planet name: `Aurelia`
+- Expected comparison baseline:
+  - At least one construction option is immediately available.
+  - At least one construction option is blocked by `Recursos insuficientes`.
+  - Existing visible buildings include `Centro de mando` and `Distrito habitacional`.
+
 ## Final manual QA
 
 Run first:
@@ -22,13 +34,15 @@ npm run build --prefix src/VoidEmpires.Frontend
 
 Then confirm on `/planet`:
 
+- The deterministic seeded scenario can open as `/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`.
 - The route loads with Spanish loading, error, and empty states.
 - When `civilizationId` is present and `planetId` is omitted, the primary or first owned planet is selected.
 - The page header prioritizes planet identity, system, ownership, type, and colony state.
-- Resources and production are readable without leading with raw DTO names.
+- Resources, production, and building capacity are readable without leading with raw DTO names.
 - Buildings are grouped into readable categories.
 - The construction queue is readable and uses `No hay construcciones en cola.` when empty.
-- Construction candidates show readable availability states such as available, blocked, insufficient resources, or missing capacity data.
+- Construction candidates show readable names, categories, availability badges, and next-step language rather than raw backend errors.
+- The seeded `Aurelia` scenario exposes both an available action and at least one blocked action for direct comparison.
 - The enqueue flow requires explicit confirmation and refreshes the cockpit after success.
 - The complete-due area stays visibly disabled and reads `No disponible en esta build`.
 - Links back to Galaxy and toward Fleets preserve context without introducing shared global state.
