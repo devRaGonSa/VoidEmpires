@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 18R - Cockpit validation seed idempotency runtime hardening`.
+The repository is consolidated through `Phase 19A - Strategic map checklist and seed documentation alignment`.
 
 ## Repository Reality
 
@@ -26,7 +26,7 @@ The repository contains `VoidEmpires.sln` with:
 
 Current frontend cockpit baseline:
 
-- Galaxy v1 remains read-only and now prioritizes gameplay hierarchy over technical metadata, keeping diagnostics collapsed by default.
+- Galaxy v1 remains read-only and has been restored as the accepted seeded cockpit baseline: `/galaxy` is now the canonical route, `/` remains a compatibility alias, shared navigation stays active on both paths, missing or invalid or failed or empty context now renders explicit Spanish states, seeded focus falls back to owned or visible systems instead of leaving the screen blank, diagnostics now expose a compact state summary when context exists, and cross-cockpit handoffs preserve owning Fleet context without exposing gameplay mutations from Galaxy.
 - Planet v1 now exists at `/planet` as a 2D dashboard and context hub with a development-only UI-state read endpoint, Spanish-first presentation helpers, deterministic seeded economy and construction context, readable resources or production or capacity sections, grouped buildings, queue visibility, guarded construction enqueue, and dashboard handoff cards for Construction, Fleets, Galaxy, and the specialized placeholders.
 - Construction v1 now exists at `/construction` as a focused general-infrastructure route for the same owned-planet construction state, with catalog readability, safe explicit confirmations, Spanish error guidance, queue refresh feedback, and secondary handoff cards for Research, Ground Army, Shipyard, and Defenses.
 - Research v1 now exists at `/research` as a development-safe cockpit foundation upgraded from the earlier placeholder route, with a deterministic seeded QA path that exposes at least one available item (`Ingenieria planetaria`), visible blocked items with meaningful Spanish reasons, category-grouped catalog state, truthful summary counts and recommendation fallback, visible requirements, costs, durations, queue and completed-project summaries, guarded enqueue confirmation when the safe dev endpoint is available, aligned read-model and enqueue contract metadata for the seeded available technology, successful Development enqueue with visible queue refresh, specific Spanish error mapping with secondary diagnostics, non-mutating blocked research cards, and a conservative disabled complete-due placeholder when the backend route is not scoped safely to the cockpit.
@@ -36,7 +36,7 @@ Current frontend cockpit baseline:
 - Query-context helpers now centralize `civilizationId` and `planetId` navigation so the cockpit links stop rebuilding URLs by hand.
 - Module-specific catalog duplication has been reduced by extracting shared planet layout components and route builders.
 - Development-only seed profiles now provide the standard QA setup path for Galaxy, Planet, Construction, Research, Shipyard, and Fleets without manual SQL.
-- `minimal-validation` remains the deterministic shared baseline, `cockpit-validation` is the richer cross-cockpit baseline, and the current cockpit-specific richer profiles are `shipyard-validation`, `fleet-validation`, `research-validation`, and `planet-full-validation`.
+- `minimal-validation` remains the deterministic shared baseline, `cockpit-validation` is now the accepted richer cross-cockpit baseline for Galaxy, Planet, Construction, Research, Shipyard, and Fleets together, and the current cockpit-specific richer profiles are `shipyard-validation`, `fleet-validation`, `research-validation`, and `planet-full-validation`.
 - Seed profiles are additive, deterministic, idempotent, and Development-only. They restore documented baseline rows and minimums but do not destructively clear queues, extra transfers, or other user mutations.
 - Richer development seed profiles now reserve deterministic high sequence ranges for their completed queue-history rows, preventing runtime collisions when `cockpit-validation` is applied over reused development databases that already contain manual QA queue activity.
 - The development seed apply endpoint now converts persisted-state write conflicts into `409 Conflict` responses with diagnostic details instead of surfacing an unhandled runtime failure.
@@ -273,10 +273,10 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 18R:
+Current validated baseline after Phase 19A:
 
 - backend: `dotnet build --no-restore` succeeded
-- tests: `dotnet test --no-build` succeeded with `624` passing tests
+- tests: `dotnet test --no-build` succeeded with `627` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
 
 Current validated cockpit QA seed baseline:
@@ -284,6 +284,8 @@ Current validated cockpit QA seed baseline:
 - `POST /api/dev/seeds/apply` supports `minimal-validation`, `cockpit-validation`, `shipyard-validation`, `fleet-validation`, `research-validation`, and `planet-full-validation`.
 - `GET /api/dev/seeds/profiles` exposes the current profile catalog for Development-only discovery.
 - Standard manual QA should start from the documented seed profiles rather than ad hoc SQL.
+- The documented canonical seeded Galaxy QA path is `/galaxy?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`, while `/?...` remains a compatibility alias.
+- `cockpit-validation` now restores a non-empty, focusable, read-only Galaxy baseline alongside the accepted Planet, Construction, Research, Shipyard, and Fleets cockpit flows.
 - Reapplying richer seed profiles after manual QA queue activity is now supported without colliding on persisted queue `Sequence` uniqueness.
 - Ground Army and Defenses remain placeholder/readiness cabins even though the shared seed context preserves route navigation for them.
 

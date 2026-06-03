@@ -3,7 +3,7 @@
 ---
 id: TASK-19B-current-state-update-galaxy-regression-fix
 title: Current state update galaxy regression fix
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
