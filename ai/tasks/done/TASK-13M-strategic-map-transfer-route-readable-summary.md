@@ -3,7 +3,7 @@
 ---
 id: TASK-13M
 title: Phase 13M - Strategic map transfer route readable summary
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

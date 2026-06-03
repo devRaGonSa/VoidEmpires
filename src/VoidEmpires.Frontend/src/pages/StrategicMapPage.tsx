@@ -19,8 +19,10 @@ import {
   formatColonizationStatus,
   formatCommandBlockReason,
   formatCompactGuid,
+  formatPlanetPrimaryLabel,
   formatPlanetType,
   formatStarType,
+  formatTransferStatus,
   formatVisibilityLevel,
   formatVisibilityReason,
   isOwnedVisibilityLevel,
@@ -81,6 +83,16 @@ function readDomainValue(record: Record<string, unknown>, key: string) {
   return typeof value === "string" || typeof value === "number" ? value : null;
 }
 
+function readNumberValue(record: Record<string, unknown>, key: string) {
+  const value = record[key];
+  return typeof value === "number" && !Number.isNaN(value) ? value : null;
+}
+
+function readStringValue(record: Record<string, unknown>, key: string) {
+  const value = record[key];
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
 function formatReadinessItem(value: unknown) {
   if (typeof value === "string") {
     return value;
@@ -123,6 +135,17 @@ function formatStrategicCommandSummary(
     typeof blockReason === "string" ? blockReason : null,
     "Bloqueado",
   ).toLowerCase()}.`;
+}
+
+function formatTransferPlanetLabel(
+  planetId: string | null,
+  planetNamesById: Map<string, string>,
+) {
+  if (!planetId) {
+    return "Destino no identificado";
+  }
+
+  return planetNamesById.get(planetId) ?? formatPlanetPrimaryLabel(planetId);
 }
 
 function getVisibilityTone(level: string): "good" | "warn" | "neutral" {
@@ -235,6 +258,15 @@ export function StrategicMapPage() {
       null,
     [result, selectedSystemId],
   );
+
+  const planetNamesById = useMemo(() => {
+    const entries = result?.systems.flatMap((system) =>
+      (system.planets ?? []).flatMap((planet) =>
+        planet.planetName ? [[planet.planetId, planet.planetName] as const] : [],
+      ),
+    ) ?? [];
+    return new Map(entries);
+  }, [result]);
 
   const selectedPlanet = useMemo(
     () =>
@@ -565,15 +597,61 @@ export function StrategicMapPage() {
                     <ul className="stack-list compact-list strategic-overlay-list">
                       {selectedSystem.transferOverlays.map((overlay, index) => (
                         <li key={`transfer-overlay-${index}`}>
-                          {formatReadinessItem(overlay)}
+                          {(() => {
+                            const overlayRecord = readRecord(overlay);
+                            const originPlanetId = readStringValue(
+                              overlayRecord,
+                              "originPlanetId",
+                            );
+                            const destinationPlanetId = readStringValue(
+                              overlayRecord,
+                              "destinationPlanetId",
+                            );
+                            const distance = readNumberValue(
+                              overlayRecord,
+                              "abstractDistanceUnits",
+                            );
+                            const status = readStringValue(overlayRecord, "status");
+                            const routeLabel = `${formatTransferPlanetLabel(
+                              originPlanetId,
+                              planetNamesById,
+                            )} -> ${formatTransferPlanetLabel(
+                              destinationPlanetId,
+                              planetNamesById,
+                            )}`;
+                            const detailParts = [
+                              formatTransferStatus(status, "Estado no disponible"),
+                              typeof distance === "number"
+                                ? `${distance} tramos orbitales`
+                                : null,
+                            ].filter((value): value is string => Boolean(value));
+
+                            return (
+                              <>
+                                <strong>{routeLabel}</strong>
+                                <br />
+                                <span className="figma-panel-note">
+                                  {detailParts.join(" · ")}. Revisa Flotas para el
+                                  detalle completo.
+                                </span>
+                              </>
+                            );
+                          })()}
                         </li>
                       ))}
                     </ul>
                   ) : (
                     <p className="figma-panel-note">
-                      Este sistema no expone superposiciones de transferencia.
+                      No hay rutas activas visibles en este sistema. Si detectas una
+                      salida parcial, revisa Flotas para confirmar origen, destino y
+                      estado.
                     </p>
                   )}
+                  <div className="selection-chip-row">
+                    <Link className="selection-chip" to="/fleets">
+                      Revisar transferencias en Flotas
+                    </Link>
+                  </div>
                 </div>
               )}
             </aside>
