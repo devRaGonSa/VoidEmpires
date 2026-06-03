@@ -3,7 +3,7 @@
 ---
 id: TASK-17B-research-regression-check-planet-construction-galaxy-fleets
 title: Research regression check for Planet Construction Galaxy Fleets
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

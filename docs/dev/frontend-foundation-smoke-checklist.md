@@ -120,6 +120,12 @@ Fleet cockpit v1 acceptance boundary:
    - technical manifests and future mutation metadata stay collapsed or clearly secondary under development details
 17. Confirm no buttons other than the explicit `create transfer`, `cancel transfer`, `complete due`, Planet or Construction `enqueue construction`, and guarded Research `enqueue research` confirmation paths execute mutating dev endpoints from any route.
 
+Neighbor cockpit regression checkpoints:
+
+- Confirm the seeded `Galaxy`, `Planet`, `Construction`, `Research`, and `Fleets` routes still load with the same local development context used in this block.
+- Confirm the current route helpers still preserve `civilizationId` and `planetId` when moving between `Galaxy`, `Planet`, `Construction`, `Research`, and `Fleets`.
+- Confirm `Galaxy` remains read-only while `Planet`, `Construction`, and `Fleets` keep their accepted cockpit boundaries and `Research` remains the only newly aligned mutation path in this block.
+
 Strategic map cockpit v1 visual review:
 
 - Confirm the first viewport feels like a playable map cockpit rather than a raw dev readout.
