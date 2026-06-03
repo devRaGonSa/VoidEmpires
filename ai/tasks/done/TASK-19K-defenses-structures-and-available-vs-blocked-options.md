@@ -3,7 +3,7 @@
 ---
 id: TASK-19K-defenses-structures-and-available-vs-blocked-options
 title: Defenses structures and available vs blocked options
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

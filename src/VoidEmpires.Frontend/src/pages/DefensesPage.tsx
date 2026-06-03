@@ -99,6 +99,8 @@ export function DefensesPage() {
   const protectionPosture = useMemo(() => getProtectionPosture(defenses), [defenses]);
   const recommendedNextStep = useMemo(() => getRecommendedNextStep(defenses), [defenses]);
   const resourcePressureSummary = useMemo(() => getResourcePressureSummary(defenses), [defenses]);
+  const availableOptions = useMemo(() => (defenses?.options ?? []).filter((option) => option.statusKey === "Available"), [defenses?.options]);
+  const blockedOptions = useMemo(() => (defenses?.options ?? []).filter((option) => option.statusKey !== "Available"), [defenses?.options]);
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -330,34 +332,110 @@ export function DefensesPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Readiness inicial</p>
-                <h3>Opciones cargadas por categoria</h3>
-                <p>La shell ya entiende el contrato tipado, aunque los paneles detallados llegaran en los siguientes pasos.</p>
+                <p className="eyebrow">Estructuras y preparacion</p>
+                <h3>Lo que ya protege y lo que falta preparar</h3>
+                <p>Las cartas separan defensa desplegada, opciones viables y bloqueos visibles sin fingir que toda accion se ejecuta desde aqui.</p>
               </div>
               <UiBadge tone="resource">{defenses.options.length} opciones</UiBadge>
             </div>
-            {optionGroups.length > 0 ? (
+            {defenses.structures.length > 0 ? (
+              <>
+                <div className="figma-section-header module-boundary-spacer">
+                  <div>
+                    <p className="eyebrow">Proteccion actual</p>
+                    <h4>Estructuras desplegadas</h4>
+                  </div>
+                </div>
+                <div className="readiness-grid">
+                  {defenses.structures.map((structure) => (
+                    <article key={`${structure.buildingType}-${structure.level}`} className="subpanel figma-subpanel">
+                      <div className="figma-section-header">
+                        <div>
+                          <p className="eyebrow">{structure.categoryLabel}</p>
+                          <h4>{structure.label}</h4>
+                        </div>
+                        <UiBadge tone="good">Nivel {structure.level}</UiBadge>
+                      </div>
+                      <div className="figma-data-list">
+                        <div className="figma-data-row"><span>Estado</span><strong>Ya desplegada</strong></div>
+                        <div className="figma-data-row"><span>Huella</span><strong>{structure.footprint}</strong></div>
+                        <div className="figma-data-row"><span>Lectura primaria</span><strong>Proteccion estructural</strong></div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="figma-panel-note">Todavia no hay estructuras defensivas visibles en esta colonia. La cabina enfoca la preparacion y los bloqueos reales del siguiente paso.</p>
+            )}
+            <div className="figma-section-header module-boundary-spacer">
+              <div>
+                <p className="eyebrow">Preparaciones disponibles</p>
+                <h4>Opciones viables en esta lectura</h4>
+              </div>
+              <UiBadge tone={availableOptions.length > 0 ? "good" : "neutral"}>{availableOptions.length}</UiBadge>
+            </div>
+            {availableOptions.length > 0 ? (
               <div className="readiness-grid">
-                {optionGroups.map((group) => (
-                  <section key={group.key} className="subpanel figma-subpanel">
+                {availableOptions.map((option) => (
+                  <article key={`${option.buildingType}-${option.targetLevel}`} className="subpanel figma-subpanel">
                     <div className="figma-section-header">
                       <div>
-                        <p className="eyebrow">Categoria</p>
-                        <h4>{group.label}</h4>
+                        <p className="eyebrow">{option.categoryLabel}</p>
+                        <h4>{option.structureLabel}</h4>
                       </div>
-                      <UiBadge>{group.options.length} items</UiBadge>
+                      <UiBadge tone="good">{option.statusLabel}</UiBadge>
                     </div>
-                    <ul className="stack-list compact-list">
-                      {group.options.map((option) => (
-                        <li key={`${option.buildingType}-${option.targetLevel}`}>{option.structureLabel}: {option.reasonLabel}</li>
-                      ))}
-                    </ul>
-                  </section>
+                    <div className="figma-data-list">
+                      <div className="figma-data-row"><span>Accion</span><strong>{option.actionLabel}</strong></div>
+                      <div className="figma-data-row"><span>Objetivo</span><strong>Nivel {option.targetLevel}</strong></div>
+                      <div className="figma-data-row"><span>Coste</span><strong>{option.estimatedCostLabel}</strong></div>
+                      <div className="figma-data-row"><span>Duracion</span><strong>{option.estimatedDurationLabel}</strong></div>
+                    </div>
+                    <p>{option.reasonLabel}</p>
+                    <div className="selection-chip-row">
+                      <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
+                        Gestionar construccion desde Construccion
+                      </Link>
+                    </div>
+                  </article>
                 ))}
               </div>
             ) : (
-              <p className="figma-panel-note">El backend no expone una lista defensiva mas amplia todavia. La cabina conserva el contexto y explica el limite con honestidad.</p>
+              <p className="figma-panel-note">No hay una preparacion defensiva habilitada en este momento. Revisa la cola, los recursos o el ownership del planeta.</p>
             )}
+            <div className="figma-section-header module-boundary-spacer">
+              <div>
+                <p className="eyebrow">Bloqueos visibles</p>
+                <h4>Preparaciones que aun no pueden avanzar</h4>
+              </div>
+              <UiBadge tone={blockedOptions.length > 0 ? "warn" : "neutral"}>{blockedOptions.length}</UiBadge>
+            </div>
+            {blockedOptions.length > 0 ? (
+              <div className="readiness-grid">
+                {blockedOptions.map((option) => (
+                  <article key={`${option.buildingType}-${option.targetLevel}`} className="subpanel figma-subpanel figma-mini-card-warn">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">{option.categoryLabel}</p>
+                        <h4>{option.structureLabel}</h4>
+                      </div>
+                      <UiBadge tone="warn">{option.statusLabel}</UiBadge>
+                    </div>
+                    <div className="figma-data-list">
+                      <div className="figma-data-row"><span>Accion</span><strong>{option.actionLabel}</strong></div>
+                      <div className="figma-data-row"><span>Objetivo</span><strong>Nivel {option.targetLevel}</strong></div>
+                      <div className="figma-data-row"><span>Coste</span><strong>{option.estimatedCostLabel}</strong></div>
+                      <div className="figma-data-row"><span>Duracion</span><strong>{option.estimatedDurationLabel}</strong></div>
+                    </div>
+                    <p>{option.reasonLabel}</p>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+            {optionGroups.length === 0 ? (
+              <p className="figma-panel-note">El backend no expone una lista defensiva mas amplia todavia. La cabina conserva el contexto y explica el limite con honestidad.</p>
+            ) : null}
           </UiCard>
 
           {defenses.diagnostics.playerFacing.length > 0 || defenses.diagnostics.limitations.length > 0 ? (
