@@ -397,6 +397,9 @@ export function ResearchPage() {
                         : visualState === "ready"
                           ? "research-action-button-ready"
                           : "planet-action-button-secondary";
+                      const blockedReasonLabel = technology.availability.reasonKey === "InsufficientResources"
+                        ? `Recursos insuficientes en ${uiState.selectedPlanetName ?? "el planeta seleccionado"}.`
+                        : technology.availability.reasonLabel;
 
                       return (
                       <article
@@ -442,7 +445,7 @@ export function ResearchPage() {
                           <p className="figma-panel-note">
                             {technology.availability.canCompleteDue
                               ? "El cierre manual de investigaciones vencidas sigue fuera de esta cabina."
-                              : `No se puede iniciar: ${technology.availability.reasonLabel}.`}
+                              : `No se puede iniciar: ${blockedReasonLabel}`}
                           </p>
                         ) : !hasSafeResearchEnqueue ? (
                           <p className="figma-panel-note">

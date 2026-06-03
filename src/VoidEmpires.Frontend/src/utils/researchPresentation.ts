@@ -132,8 +132,8 @@ const researchStatusCatalog: LabelCatalog = {
 };
 
 const researchRequirementCatalog: LabelCatalog = {
-  names: { SourcePlanet: "Planeta de origen", Civilization: "Civilizacion", ResearchLab: "Laboratorio de investigacion", ResourceStockpile: "Reservas de recursos", ResearchQueueSlot: "Hueco en cola", PlanetaryEngineering: "Ingenieria planetaria", ResourceExtraction: "Extraccion de recursos", EnergySystems: "Sistemas energeticos", ConstructionAutomation: "Automatizacion de construccion", Propulsion: "Propulsion", ShipWeapons: "Armas de nave", Shielding: "Escudos", Espionage: "Espionaje" },
-  numbers: { 1: "Planeta de origen", 2: "Civilizacion", 3: "Laboratorio de investigacion", 4: "Reservas de recursos", 5: "Hueco en cola", 6: "Ingenieria planetaria", 7: "Extraccion de recursos", 8: "Sistemas energeticos", 9: "Automatizacion de construccion", 10: "Propulsion", 11: "Armas de nave", 12: "Escudos", 13: "Espionaje" },
+  names: { SourcePlanet: "Planeta de origen", Civilization: "Civilizacion", ResearchLab: "Laboratorio de investigacion", ResourceStockpile: "Reservas del planeta", ResearchQueueSlot: "Hueco en cola", PlanetaryEngineering: "Ingenieria planetaria", ResourceExtraction: "Extraccion de recursos", EnergySystems: "Sistemas energeticos", ConstructionAutomation: "Automatizacion de construccion", Propulsion: "Propulsion", ShipWeapons: "Armas de nave", Shielding: "Escudos", Espionage: "Espionaje" },
+  numbers: { 1: "Planeta de origen", 2: "Civilizacion", 3: "Laboratorio de investigacion", 4: "Reservas del planeta", 5: "Hueco en cola", 6: "Ingenieria planetaria", 7: "Extraccion de recursos", 8: "Sistemas energeticos", 9: "Automatizacion de construccion", 10: "Propulsion", 11: "Armas de nave", 12: "Escudos", 13: "Espionaje" },
 };
 
 const researchAvailabilityReasonCatalog: LabelCatalog = {

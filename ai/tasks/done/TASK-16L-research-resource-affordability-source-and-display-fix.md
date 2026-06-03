@@ -3,7 +3,7 @@
 ---
 id: TASK-16L-research-resource-affordability-source-and-display-fix
 title: Research resource affordability source and display fix
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
