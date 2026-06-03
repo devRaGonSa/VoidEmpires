@@ -3,7 +3,7 @@
 ---
 id: TASK-15T-research-confirmation-and-safe-mutation-gating
 title: Research confirmation and safe mutation gating
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

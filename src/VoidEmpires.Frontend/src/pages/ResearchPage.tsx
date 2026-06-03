@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { fetchResearchUiState } from "../api/researchApi";
-import type { ResearchUiState } from "../utils/researchPresentation";
+import { enqueueResearchOrder, fetchResearchUiState } from "../api/researchApi";
+import type { ResearchTechnology, ResearchUiState } from "../utils/researchPresentation";
 import {
   getResearchPrimaryAction,
   groupResearchTechnologiesByCategory,
@@ -20,12 +20,18 @@ function formatDateTime(value: string) {
 }
 
 export function ResearchPage() {
+  const hasSafeResearchEnqueue = true;
   const [searchParams, setSearchParams] = useSearchParams();
   const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
   const [planetIdInput, setPlanetIdInput] = useState(searchParams.get("planetId") ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uiState, setUiState] = useState<ResearchUiState | null>(null);
+  const [preparedResearchType, setPreparedResearchType] = useState("");
+  const [hasEnqueueAcknowledgement, setHasEnqueueAcknowledgement] = useState(false);
+  const [isSubmittingEnqueue, setIsSubmittingEnqueue] = useState(false);
+  const [enqueueFeedback, setEnqueueFeedback] = useState<string | null>(null);
+  const [enqueueError, setEnqueueError] = useState<string | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -34,6 +40,10 @@ export function ResearchPage() {
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
   const recommendedResearch = useMemo(() => selectRecommendedResearch(uiState?.catalog ?? []), [uiState?.catalog]);
   const catalogGroups = useMemo(() => groupResearchTechnologiesByCategory(uiState?.catalog ?? []), [uiState?.catalog]);
+  const preparedResearch = useMemo(
+    () => uiState?.catalog.find((item) => item.researchType === preparedResearchType) ?? null,
+    [preparedResearchType, uiState?.catalog],
+  );
   const availableResearchCount = useMemo(
     () => uiState?.catalog.filter((item) => item.availability.canEnqueue).length ?? 0,
     [uiState?.catalog],
@@ -46,6 +56,27 @@ export function ResearchPage() {
     () => uiState?.queue.filter((item) => item.isDue).length ?? 0,
     [uiState?.queue],
   );
+
+  async function reloadResearchState(civilizationId: string, planetId?: string | null, replaceParams = false) {
+    const response = await fetchResearchUiState(civilizationId, planetId);
+    if (!response.succeeded || !response.uiState) {
+      setUiState(null);
+      setError(response.errors[0] ?? "La cabina de investigacion no pudo cargarse.");
+      return null;
+    }
+
+    const nextState = mapResearchUiStateToViewModel(response.uiState);
+    setUiState(nextState);
+
+    if (nextState.selectedPlanetId && nextState.selectedPlanetId !== planetId) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("civilizationId", civilizationId);
+      nextParams.set("planetId", nextState.selectedPlanetId);
+      setSearchParams(nextParams, { replace: replaceParams });
+    }
+
+    return nextState;
+  }
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -62,22 +93,7 @@ export function ResearchPage() {
       setError(null);
 
       try {
-        const response = await fetchResearchUiState(queryCivilizationId, queryPlanetId);
-        if (!response.succeeded || !response.uiState) {
-          setUiState(null);
-          setError(response.errors[0] ?? "La cabina de investigacion no pudo cargarse.");
-          return;
-        }
-
-        const nextState = mapResearchUiStateToViewModel(response.uiState);
-        setUiState(nextState);
-
-        if (nextState.selectedPlanetId && nextState.selectedPlanetId !== queryPlanetId) {
-          const nextParams = new URLSearchParams(searchParams);
-          nextParams.set("civilizationId", queryCivilizationId);
-          nextParams.set("planetId", nextState.selectedPlanetId);
-          setSearchParams(nextParams, { replace: true });
-        }
+        await reloadResearchState(queryCivilizationId, queryPlanetId, true);
       } catch (requestError) {
         setUiState(null);
         setError(requestError instanceof Error ? requestError.message : "La cabina de investigacion no pudo cargarse.");
@@ -107,6 +123,80 @@ export function ResearchPage() {
     setSearchParams(nextParams);
   }
 
+  async function handleResearchSubmit() {
+    if (
+      !preparedResearch ||
+      !preparedResearch.availability.canEnqueue ||
+      !uiState?.civilizationId ||
+      !uiState.selectedPlanetId ||
+      !hasSafeResearchEnqueue
+    ) {
+      return;
+    }
+
+    setIsSubmittingEnqueue(true);
+    setEnqueueFeedback(null);
+    setEnqueueError(null);
+
+    try {
+      const result = await enqueueResearchOrder({
+        civilizationId: uiState.civilizationId,
+        sourcePlanetId: uiState.selectedPlanetId,
+        researchType: preparedResearch.researchType,
+        requestedAtUtc: new Date().toISOString(),
+      });
+
+      if (result.httpStatus !== 201 || !result.response?.succeeded) {
+        const backendError = result.response?.errors[0] ?? null;
+        if (backendError === "Civilization already has an open research order.") {
+          setEnqueueError("Ya existe una investigacion abierta para esta civilizacion. Cierra o espera la orden actual antes de iniciar otra.");
+        } else if (backendError === "Planet resource stockpile was not found.") {
+          setEnqueueError("El planeta no tiene reservas disponibles para sostener esta investigacion.");
+        } else if (backendError === "Insufficient resources.") {
+          setEnqueueError("No hay recursos suficientes para iniciar esta investigacion ahora mismo.");
+        } else if (result.httpStatus === 503) {
+          setEnqueueError("La ruta segura de investigacion no esta disponible en este entorno de desarrollo.");
+        } else {
+          setEnqueueError("La orden no pudo enviarse a la cola de investigacion. Recarga la cabina y vuelve a intentarlo.");
+        }
+        return;
+      }
+
+      setEnqueueFeedback(`${preparedResearch.label} entro en cola para nivel ${preparedResearch.nextLevel}. La cabina se actualizo con el estado confirmado por la API.`);
+      setPreparedResearchType("");
+      setHasEnqueueAcknowledgement(false);
+
+      const refreshed = await reloadResearchState(uiState.civilizationId, uiState.selectedPlanetId);
+      if (!refreshed) {
+        setEnqueueError(
+          "La orden se envio, pero la cabina no pudo recargar el estado actualizado. Refresca la vista para confirmar el resultado final.",
+        );
+      }
+    } catch (requestError) {
+      setEnqueueError(
+        requestError instanceof Error && requestError.message
+          ? `No se pudo enviar la orden de investigacion. ${requestError.message}`
+          : "No se pudo enviar la orden de investigacion. Comprueba la conexion con la API local y vuelve a intentarlo.",
+      );
+    } finally {
+      setIsSubmittingEnqueue(false);
+    }
+  }
+
+  function handleResearchPreparation(technology: ResearchTechnology) {
+    setPreparedResearchType(technology.researchType);
+    setHasEnqueueAcknowledgement(false);
+    setEnqueueFeedback(null);
+    setEnqueueError(null);
+  }
+
+  function handleResearchCancel() {
+    setPreparedResearchType("");
+    setHasEnqueueAcknowledgement(false);
+    setEnqueueFeedback(null);
+    setEnqueueError(null);
+  }
+
   return (
     <section className="page-grid">
       <UiCard className="panel panel-hero figma-hero-card">
@@ -117,7 +207,9 @@ export function ResearchPage() {
         </div>
         <div className="figma-badge-row">
           <UiBadge>Cabina de lectura</UiBadge>
-          <UiBadge tone="warn">Sin mutaciones por ahora</UiBadge>
+          <UiBadge tone={hasSafeResearchEnqueue ? "good" : "warn"}>
+            {hasSafeResearchEnqueue ? "Mutacion dev protegida" : "Sin mutacion segura"}
+          </UiBadge>
           <UiBadge tone="warn">Contexto conservado entre saltos</UiBadge>
         </div>
       </UiCard>
@@ -180,7 +272,7 @@ export function ResearchPage() {
           <ul className="stack-list strategic-rules-list">
             <li>La cabina prioriza lectura de catalogo, cola y proyectos completados.</li>
             <li>La navegacion conserva `civilizationId` y `planetId` siempre que existen.</li>
-            <li>Las mutaciones y la confirmacion de ordenes quedan para tareas posteriores.</li>
+            <li>Las altas a cola requieren confirmacion explicita y solo usan una ruta dev segura.</li>
             <li>El diagnostico tecnico se mantiene aparte para no ensuciar la vista principal.</li>
           </ul>
         </UiCard>
@@ -253,6 +345,34 @@ export function ResearchPage() {
                           <div className="figma-data-row"><span>Duracion</span><strong>{technology.estimatedDurationLabel}</strong></div>
                           <div className="figma-data-row"><span>Accion</span><strong>{getResearchPrimaryAction(technology)}</strong></div>
                         </div>
+                        <div className="transfer-confirmation-actions">
+                          <button
+                            type="button"
+                            onClick={() => handleResearchPreparation(technology)}
+                            disabled={!hasSafeResearchEnqueue || !technology.availability.canEnqueue}
+                          >
+                            {preparedResearchType === technology.researchType
+                              ? "Revision preparada"
+                              : technology.availability.canEnqueue
+                                ? "Revisar inicio"
+                                : "Accion bloqueada"}
+                          </button>
+                        </div>
+                        {!technology.availability.canEnqueue ? (
+                          <p className="figma-panel-note">
+                            {technology.availability.canCompleteDue
+                              ? "El cierre manual de investigaciones vencidas sigue fuera de esta cabina."
+                              : `No se puede iniciar: ${technology.availability.reasonLabel}.`}
+                          </p>
+                        ) : !hasSafeResearchEnqueue ? (
+                          <p className="figma-panel-note">
+                            Esta build no expone una ruta segura para iniciar investigacion desde la cabina.
+                          </p>
+                        ) : (
+                          <p className="figma-panel-note">
+                            La investigacion no se enviara hasta que confirmes la orden en el paso final.
+                          </p>
+                        )}
                       </article>
                     ))}
                   </div>
@@ -260,6 +380,60 @@ export function ResearchPage() {
               ))}
             </div>
           </UiCard>
+
+          {preparedResearch && preparedResearch.availability.canEnqueue ? (
+            <UiCard className="panel transfer-confirmation-panel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Paso final</p>
+                  <h3>Confirmar inicio de investigacion</h3>
+                  <p>Esta accion enviara una unica orden segura de investigacion para el planeta seleccionado.</p>
+                </div>
+                <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
+              </div>
+              <div className="figma-data-list">
+                <div className="figma-data-row"><span>Planeta</span><strong>{uiState.selectedPlanetName ?? "Sin planeta"}</strong></div>
+                <div className="figma-data-row"><span>Tecnologia</span><strong>{preparedResearch.label}</strong></div>
+                <div className="figma-data-row"><span>Categoria</span><strong>{preparedResearch.categoryLabel}</strong></div>
+                <div className="figma-data-row"><span>Nivel objetivo</span><strong>{preparedResearch.nextLevel}</strong></div>
+                <div className="figma-data-row"><span>Coste</span><strong>{preparedResearch.estimatedCostLabel}</strong></div>
+                <div className="figma-data-row"><span>Duracion</span><strong>{preparedResearch.estimatedDurationLabel}</strong></div>
+              </div>
+              <p className="figma-panel-note">
+                {preparedResearch.availability.reasonLabel === "Hueco en cola"
+                  ? "La orden esta lista para enviarse cuando confirmes."
+                  : `La cabina validara tambien: ${preparedResearch.availability.reasonLabel}.`}
+              </p>
+              <label className="confirmation-checkbox">
+                <input
+                  type="checkbox"
+                  checked={hasEnqueueAcknowledgement}
+                  onChange={(event) => setHasEnqueueAcknowledgement(event.target.checked)}
+                />
+                <span>Confirmo que quiero iniciar esta investigacion</span>
+              </label>
+              <div className="transfer-confirmation-actions">
+                <button
+                  type="button"
+                  className="planet-action-button-secondary"
+                  onClick={handleResearchCancel}
+                  disabled={isSubmittingEnqueue}
+                >
+                  Cancelar revision
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleResearchSubmit()}
+                  disabled={isSubmittingEnqueue || !hasEnqueueAcknowledgement}
+                >
+                  {isSubmittingEnqueue ? "Enviando..." : "Enviar orden"}
+                </button>
+              </div>
+            </UiCard>
+          ) : null}
+
+          {enqueueFeedback ? <p>{enqueueFeedback}</p> : null}
+          {enqueueError ? <p className="error-text">{enqueueError}</p> : null}
 
           <UiCard className="panel">
             <div className="figma-section-header">
