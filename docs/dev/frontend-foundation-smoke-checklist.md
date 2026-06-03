@@ -131,6 +131,20 @@ Construction cockpit v1 visual review:
 - Confirm blocked cards remain visually quieter than available actions.
 - Confirm technical details for command failures remain secondary to the primary Spanish guidance.
 
+## Final Block Checklist
+
+- `dotnet build --no-restore` passes.
+- `dotnet test --no-build` passes.
+- `npm run build --prefix src/VoidEmpires.Frontend` passes.
+- `ai/tasks/pending` contains only `.gitkeep`.
+- `/planet` behaves as a dashboard, not a full construction catalog.
+- `/construction` stays scoped to general construction.
+- `/research`, `/ground-army`, `/shipyard`, and `/defenses` open placeholders only.
+- `Galaxy` remains read-only.
+- `Fleets` still preserves context and read-only command flow.
+- No 3D/WebGL renderer is introduced.
+- Diagnostics stay collapsed by default on the cockpit routes.
+
 ## Repository validation
 
 Run from repository root:

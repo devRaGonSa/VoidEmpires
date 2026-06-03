@@ -3,7 +3,7 @@
 ---
 id: TASK-15L
 title: Final QA checklist and task block closure
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
