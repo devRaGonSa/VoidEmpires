@@ -3,7 +3,7 @@
 ---
 id: TASK-15D
 title: Construction related modules handoff panel
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

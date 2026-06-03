@@ -38,10 +38,10 @@ import {
   formatPlanetShortReference,
   getPlanetModuleLabel,
   getPlanetModuleForBuilding,
+  getConstructionHandoffModuleInfo,
   groupActionsByModule,
   groupBuildingsByModule,
   isGeneralConstructionAction,
-  isSpecializedModuleAction,
   specializedPlanetModuleRoutes,
   toPlanetCatalogId,
 } from "../utils/planetPresentation";
@@ -241,8 +241,8 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
     [actionsByModule],
   );
 
-  const specializedActionCount = useMemo(
-    () => (planet?.constructionActions ?? []).filter(isSpecializedModuleAction).length,
+  const constructionHandoffModules = useMemo(
+    () => getConstructionHandoffModuleInfo(planet?.constructionActions ?? []),
     [planet?.constructionActions],
   );
 
@@ -845,34 +845,29 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
               </p>
             ) : null}
 
-            {isConstructionRoute && specializedActionCount > 0 ? (
-              <p className="figma-panel-note">
-                Las acciones de Investigacion, Ejercito Tierra, Astillero y Defensas se gestionan desde sus cabinas dedicadas.
-              </p>
-            ) : null}
-
-            {isConstructionRoute && specializedActionCount > 0 ? (
-              <UiCard className="panel planet-related-modules-panel">
+            {isConstructionRoute ? (
+              <UiCard className="panel planet-related-modules-panel construction-handoff-panel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Cabinas relacionadas</p>
-                    <h3>Handoff de modulos especializados</h3>
+                    <p className="eyebrow">Gestion avanzada</p>
+                    <h3>Cabinas especializadas</h3>
                   </div>
-                  <UiBadge tone="warn">Pronto</UiBadge>
+                  <UiBadge tone="warn">Solo lectura</UiBadge>
                 </div>
                 <p className="figma-panel-note">
-                  Estas superficies conservan el mismo planeta activo, pero siguen separadas de la construccion general.
+                  La construccion general no ejecuta investigacion, ejercito terrestre, astillero ni defensas. Estas cabinas conservan el mismo contexto y explican donde sigue cada flujo.
                 </p>
                 <div className="planet-related-modules-grid">
-                  {specializedPlanetModuleRoutes.map((module) => (
+                  {constructionHandoffModules.map((module) => (
                     <Link
                       key={module.path}
-                      className="planet-related-module-card"
+                      className="planet-related-module-card construction-handoff-card"
                       to={`${module.path}?civilizationId=${activeCivilizationId}&planetId=${planet.planetId}`}
                     >
                       <strong>{module.title}</strong>
                       <span>{module.label}</span>
-                      <span>Proximamente</span>
+                      <span>{module.statusLabel}</span>
+                      <small>{module.summary}</small>
                     </Link>
                   ))}
                 </div>

@@ -855,6 +855,11 @@ select {
     linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 84%, transparent), color-mix(in srgb, var(--ve-color-panel) 92%, transparent));
 }
 
+.construction-handoff-panel {
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 36%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ve-color-bg) 50%, transparent);
+}
+
 .planet-related-modules-grid {
   display: grid;
   gap: 12px;
@@ -892,6 +897,16 @@ select {
   transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 24%, transparent);
   background: color-mix(in srgb, var(--ve-color-accent-blue) 12%, var(--ve-color-bg));
+}
+
+.construction-handoff-card {
+  background: color-mix(in srgb, var(--ve-color-bg) 30%, transparent);
+}
+
+.construction-handoff-card small {
+  color: color-mix(in srgb, var(--ve-color-text) 66%, var(--ve-color-muted));
+  font-size: 0.72rem;
+  line-height: 1.4;
 }
 
 .module-boundary-spacer {

@@ -255,6 +255,12 @@ export interface PlanetModuleRouteInfo {
   excludes: string[];
 }
 
+export interface ConstructionHandoffModuleInfo extends PlanetModuleRouteInfo {
+  actionCount: number;
+  statusLabel: string;
+  summary: string;
+}
+
 export const specializedPlanetModuleRoutes: readonly PlanetModuleRouteInfo[] = [
   {
     module: "Research",
@@ -317,6 +323,23 @@ export const specializedPlanetModuleRoutes: readonly PlanetModuleRouteInfo[] = [
     ],
   },
 ] as const;
+
+export function getConstructionHandoffModuleInfo(
+  actions: PlanetConstructionActionDto[],
+) {
+  return specializedPlanetModuleRoutes.map((route) => {
+    const actionCount = actions.filter((action) => resolveModuleByAction(action) === route.module).length;
+
+    return {
+      ...route,
+      actionCount,
+      statusLabel: actionCount > 0 ? "Solo lectura" : "Proximamente",
+      summary: actionCount > 0
+        ? `${actionCount} elementos gestionados en ${route.label}.`
+        : `Sin elementos gestionados para ${route.label} por ahora.`,
+    };
+  });
+}
 
 export function formatConstructionStatus(value: PlanetValue) {
   return resolveLabel(value, constructionStatusLabels);
