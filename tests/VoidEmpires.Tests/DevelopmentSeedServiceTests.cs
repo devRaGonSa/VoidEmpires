@@ -24,6 +24,9 @@ public class DevelopmentSeedServiceTests
     private static readonly Guid GalaxyId = Guid.Parse("10000000-0000-0000-0000-000000000001");
     private static readonly Guid SystemId = Guid.Parse("20000000-0000-0000-0000-000000000001");
     private static readonly Guid OwnedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
+    private const int SeededConstructionSequenceStart = 10_000;
+    private const int SeededResearchSequenceStart = 20_000;
+    private const int SeededAssetProductionSequenceStart = 30_000;
 
     [Fact]
     public async Task ApplyAsyncCreatesExpectedStrategicMapDataset()
@@ -98,6 +101,92 @@ public class DevelopmentSeedServiceTests
         Assert.Equal(1, await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == CivilizationId && x.ResearchType == ResearchType.EnergySystems && x.Status == ResearchQueueItemStatus.Completed));
         Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.SpaceAssetType == SpaceAssetType.ScoutCraft && x.Status == AssetProductionOrderStatus.Completed));
         Assert.True(await dbContext.Set<OrbitalAssetStock>().AnyAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == SpaceAssetType.ScoutCraft && x.Quantity == 1));
+    }
+
+    [Fact]
+    public async Task ApplyAsyncSupportsCockpitValidationAfterExistingResearchQueueState()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new DevelopmentSeedService(dbContext);
+
+        _ = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("minimal-validation"));
+        dbContext.Set<ResearchOrder>().Add(ResearchOrder.Create(
+            CivilizationId,
+            OwnedPlanetId,
+            ResearchType.PlanetaryEngineering,
+            1,
+            1,
+            new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 1, 1, 12, 10, 0, DateTimeKind.Utc),
+            ResearchQueueItemStatus.Active));
+        await dbContext.SaveChangesAsync();
+
+        var firstApply = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+        var secondApply = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+
+        Assert.True(firstApply.Succeeded);
+        Assert.True(secondApply.Succeeded);
+        Assert.Equal(2, await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == CivilizationId));
+        Assert.Equal(1, await dbContext.Set<ResearchOrder>().CountAsync(x =>
+            x.CivilizationId == CivilizationId &&
+            x.ResearchType == ResearchType.EnergySystems &&
+            x.TargetLevel == 1 &&
+            x.Status == ResearchQueueItemStatus.Completed));
+        Assert.Equal(1, await dbContext.Set<ResearchOrder>().CountAsync(x =>
+            x.CivilizationId == CivilizationId &&
+            x.Sequence == 1));
+        Assert.Equal(1, await dbContext.Set<ResearchOrder>().CountAsync(x =>
+            x.CivilizationId == CivilizationId &&
+            x.Sequence >= SeededResearchSequenceStart));
+    }
+
+    [Fact]
+    public async Task ApplyAsyncSupportsCockpitValidationAfterExistingConstructionAndProductionQueueState()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new DevelopmentSeedService(dbContext);
+
+        _ = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("minimal-validation"));
+        dbContext.Set<PlanetConstructionOrder>().Add(PlanetConstructionOrder.Create(
+            OwnedPlanetId,
+            ConstructionQueueItemAction.Upgrade,
+            BuildingType.CommandCenter,
+            5,
+            1,
+            new DateTime(2026, 1, 2, 8, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 1, 2, 8, 5, 0, DateTimeKind.Utc),
+            ConstructionQueueItemStatus.Active));
+        dbContext.Set<AssetProductionOrder>().Add(AssetProductionOrder.Create(
+            OwnedPlanetId,
+            AssetProductionTarget.Orbital,
+            null,
+            SpaceAssetType.CargoCraft,
+            1,
+            1,
+            new DateTime(2026, 1, 2, 9, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 1, 2, 9, 3, 0, DateTimeKind.Utc),
+            AssetProductionOrderStatus.Active));
+        await dbContext.SaveChangesAsync();
+
+        var firstApply = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+        var secondApply = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+
+        Assert.True(firstApply.Succeeded);
+        Assert.True(secondApply.Succeeded);
+        Assert.Equal(2, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId));
+        Assert.Equal(2, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId));
+        Assert.Equal(1, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x =>
+            x.PlanetId == OwnedPlanetId &&
+            x.Sequence == 1));
+        Assert.Equal(1, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x =>
+            x.PlanetId == OwnedPlanetId &&
+            x.Sequence >= SeededConstructionSequenceStart));
+        Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
+            x.PlanetId == OwnedPlanetId &&
+            x.Sequence == 1));
+        Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
+            x.PlanetId == OwnedPlanetId &&
+            x.Sequence >= SeededAssetProductionSequenceStart));
     }
 
     [Fact]

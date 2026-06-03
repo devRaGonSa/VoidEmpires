@@ -63,6 +63,9 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
     private static readonly DateTime CockpitValidationResearchEndAtUtc = new(2026, 5, 31, 9, 12, 0, DateTimeKind.Utc);
     private static readonly DateTime CockpitValidationProductionStartAtUtc = new(2026, 5, 31, 10, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime CockpitValidationProductionEndAtUtc = new(2026, 5, 31, 10, 3, 0, DateTimeKind.Utc);
+    private const int SeededConstructionSequenceStart = 10_000;
+    private const int SeededResearchSequenceStart = 20_000;
+    private const int SeededAssetProductionSequenceStart = 30_000;
 
     public async Task<ApplyDevelopmentSeedResult> ApplyAsync(
         ApplyDevelopmentSeedRequest request,
@@ -435,23 +438,16 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
 
         EnsureCockpitValidationStockpile(stockpile);
 
-        if (!await dbContext.Set<PlanetConstructionOrder>().AnyAsync(
-                x => x.PlanetId == SeedOwnedPlanetId &&
-                    x.BuildingType == BuildingType.SolarPlant &&
-                    x.TargetLevel == 1 &&
-                    x.Status == ConstructionQueueItemStatus.Completed,
-                cancellationToken))
-        {
-            dbContext.Set<PlanetConstructionOrder>().Add(PlanetConstructionOrder.Create(
-                SeedOwnedPlanetId,
-                ConstructionQueueItemAction.Construct,
-                BuildingType.SolarPlant,
-                1,
-                1,
-                CockpitValidationConstructionStartAtUtc,
-                CockpitValidationConstructionEndAtUtc,
-                ConstructionQueueItemStatus.Completed));
-        }
+        await EnsureSeededConstructionOrderAsync(
+            SeedOwnedPlanetId,
+            ConstructionQueueItemAction.Construct,
+            BuildingType.SolarPlant,
+            1,
+            CockpitValidationConstructionStartAtUtc,
+            CockpitValidationConstructionEndAtUtc,
+            ConstructionQueueItemStatus.Completed,
+            SeededConstructionSequenceStart,
+            cancellationToken);
 
         if (!await dbContext.Set<ResearchProject>().AnyAsync(
                 x => x.CivilizationId == SeedCivilizationId && x.ResearchType == ResearchType.EnergySystems,
@@ -460,44 +456,28 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
             dbContext.Set<ResearchProject>().Add(ResearchProject.Create(SeedCivilizationId, ResearchType.EnergySystems));
         }
 
-        if (!await dbContext.Set<ResearchOrder>().AnyAsync(
-                x => x.CivilizationId == SeedCivilizationId &&
-                    x.SourcePlanetId == SeedOwnedPlanetId &&
-                    x.ResearchType == ResearchType.EnergySystems &&
-                    x.TargetLevel == 1 &&
-                    x.Status == ResearchQueueItemStatus.Completed,
-                cancellationToken))
-        {
-            dbContext.Set<ResearchOrder>().Add(ResearchOrder.Create(
-                SeedCivilizationId,
-                SeedOwnedPlanetId,
-                ResearchType.EnergySystems,
-                1,
-                1,
-                CockpitValidationResearchStartAtUtc,
-                CockpitValidationResearchEndAtUtc,
-                ResearchQueueItemStatus.Completed));
-        }
+        await EnsureSeededResearchOrderAsync(
+            SeedCivilizationId,
+            SeedOwnedPlanetId,
+            ResearchType.EnergySystems,
+            1,
+            CockpitValidationResearchStartAtUtc,
+            CockpitValidationResearchEndAtUtc,
+            ResearchQueueItemStatus.Completed,
+            SeededResearchSequenceStart,
+            cancellationToken);
 
-        if (!await dbContext.Set<AssetProductionOrder>().AnyAsync(
-                x => x.PlanetId == SeedOwnedPlanetId &&
-                    x.Target == AssetProductionTarget.Orbital &&
-                    x.SpaceAssetType == SpaceAssetType.ScoutCraft &&
-                    x.Quantity == 1 &&
-                    x.Status == AssetProductionOrderStatus.Completed,
-                cancellationToken))
-        {
-            dbContext.Set<AssetProductionOrder>().Add(AssetProductionOrder.Create(
-                SeedOwnedPlanetId,
-                AssetProductionTarget.Orbital,
-                null,
-                SpaceAssetType.ScoutCraft,
-                1,
-                1,
-                CockpitValidationProductionStartAtUtc,
-                CockpitValidationProductionEndAtUtc,
-                AssetProductionOrderStatus.Completed));
-        }
+        await EnsureSeededAssetProductionOrderAsync(
+            SeedOwnedPlanetId,
+            AssetProductionTarget.Orbital,
+            null,
+            SpaceAssetType.ScoutCraft,
+            1,
+            CockpitValidationProductionStartAtUtc,
+            CockpitValidationProductionEndAtUtc,
+            AssetProductionOrderStatus.Completed,
+            SeededAssetProductionSequenceStart,
+            cancellationToken);
 
         if (!await dbContext.Set<OrbitalAssetStock>().AnyAsync(
                 x => x.PlanetId == SeedOwnedPlanetId && x.AssetType == SpaceAssetType.ScoutCraft,
@@ -541,25 +521,17 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
 
         EnsureShipyardValidationStockpile(stockpile);
 
-        if (!await dbContext.Set<AssetProductionOrder>().AnyAsync(
-                x => x.PlanetId == SeedOwnedPlanetId &&
-                    x.Target == AssetProductionTarget.Orbital &&
-                    x.SpaceAssetType == SpaceAssetType.ScoutCraft &&
-                    x.Quantity == 1 &&
-                    x.Status == AssetProductionOrderStatus.Completed,
-                cancellationToken))
-        {
-            dbContext.Set<AssetProductionOrder>().Add(AssetProductionOrder.Create(
-                SeedOwnedPlanetId,
-                AssetProductionTarget.Orbital,
-                null,
-                SpaceAssetType.ScoutCraft,
-                1,
-                1,
-                CockpitValidationProductionStartAtUtc,
-                CockpitValidationProductionEndAtUtc,
-                AssetProductionOrderStatus.Completed));
-        }
+        await EnsureSeededAssetProductionOrderAsync(
+            SeedOwnedPlanetId,
+            AssetProductionTarget.Orbital,
+            null,
+            SpaceAssetType.ScoutCraft,
+            1,
+            CockpitValidationProductionStartAtUtc,
+            CockpitValidationProductionEndAtUtc,
+            AssetProductionOrderStatus.Completed,
+            SeededAssetProductionSequenceStart,
+            cancellationToken);
 
         if (!await dbContext.Set<OrbitalAssetStock>().AnyAsync(
                 x => x.PlanetId == SeedOwnedPlanetId && x.AssetType == SpaceAssetType.ScoutCraft,
@@ -706,24 +678,16 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
             dbContext.Set<ResearchProject>().Add(ResearchProject.Create(SeedCivilizationId, ResearchType.EnergySystems));
         }
 
-        if (!await dbContext.Set<ResearchOrder>().AnyAsync(
-                x => x.CivilizationId == SeedCivilizationId &&
-                    x.SourcePlanetId == SeedOwnedPlanetId &&
-                    x.ResearchType == ResearchType.EnergySystems &&
-                    x.TargetLevel == 1 &&
-                    x.Status == ResearchQueueItemStatus.Completed,
-                cancellationToken))
-        {
-            dbContext.Set<ResearchOrder>().Add(ResearchOrder.Create(
-                SeedCivilizationId,
-                SeedOwnedPlanetId,
-                ResearchType.EnergySystems,
-                1,
-                1,
-                CockpitValidationResearchStartAtUtc,
-                CockpitValidationResearchEndAtUtc,
-                ResearchQueueItemStatus.Completed));
-        }
+        await EnsureSeededResearchOrderAsync(
+            SeedCivilizationId,
+            SeedOwnedPlanetId,
+            ResearchType.EnergySystems,
+            1,
+            CockpitValidationResearchStartAtUtc,
+            CockpitValidationResearchEndAtUtc,
+            ResearchQueueItemStatus.Completed,
+            SeededResearchSequenceStart,
+            cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -760,23 +724,16 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
             dbContext.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOwnedPlanetId, BuildingType.MetalMine, 2, 1));
         }
 
-        if (!await dbContext.Set<PlanetConstructionOrder>().AnyAsync(
-                x => x.PlanetId == SeedOwnedPlanetId &&
-                    x.BuildingType == BuildingType.SolarPlant &&
-                    x.TargetLevel == 2 &&
-                    x.Status == ConstructionQueueItemStatus.Completed,
-                cancellationToken))
-        {
-            dbContext.Set<PlanetConstructionOrder>().Add(PlanetConstructionOrder.Create(
-                SeedOwnedPlanetId,
-                ConstructionQueueItemAction.Upgrade,
-                BuildingType.SolarPlant,
-                2,
-                1,
-                CockpitValidationConstructionStartAtUtc,
-                CockpitValidationConstructionEndAtUtc,
-                ConstructionQueueItemStatus.Completed));
-        }
+        await EnsureSeededConstructionOrderAsync(
+            SeedOwnedPlanetId,
+            ConstructionQueueItemAction.Upgrade,
+            BuildingType.SolarPlant,
+            2,
+            CockpitValidationConstructionStartAtUtc,
+            CockpitValidationConstructionEndAtUtc,
+            ConstructionQueueItemStatus.Completed,
+            SeededConstructionSequenceStart + 100,
+            cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -802,5 +759,177 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
         {
             stockpile.Increase(ResourceType.Gas, PlanetValidationGas - stockpile.Gas);
         }
+    }
+
+    private async Task EnsureSeededResearchOrderAsync(
+        Guid civilizationId,
+        Guid sourcePlanetId,
+        ResearchType researchType,
+        int targetLevel,
+        DateTime startsAtUtc,
+        DateTime endsAtUtc,
+        ResearchQueueItemStatus status,
+        int preferredSequence,
+        CancellationToken cancellationToken)
+    {
+        var existingLogicalOrder = await dbContext.Set<ResearchOrder>()
+            .SingleOrDefaultAsync(
+                x => x.CivilizationId == civilizationId &&
+                    x.SourcePlanetId == sourcePlanetId &&
+                    x.ResearchType == researchType &&
+                    x.TargetLevel == targetLevel &&
+                    x.StartsAtUtc == startsAtUtc &&
+                    x.EndsAtUtc == endsAtUtc &&
+                    x.Status == status,
+                cancellationToken);
+
+        if (existingLogicalOrder is not null)
+        {
+            return;
+        }
+
+        var sequence = await GetNextAvailableResearchSequenceAsync(civilizationId, preferredSequence, cancellationToken);
+        dbContext.Set<ResearchOrder>().Add(ResearchOrder.Create(
+            civilizationId,
+            sourcePlanetId,
+            researchType,
+            targetLevel,
+            sequence,
+            startsAtUtc,
+            endsAtUtc,
+            status));
+    }
+
+    private async Task EnsureSeededConstructionOrderAsync(
+        Guid planetId,
+        ConstructionQueueItemAction action,
+        BuildingType buildingType,
+        int targetLevel,
+        DateTime startsAtUtc,
+        DateTime endsAtUtc,
+        ConstructionQueueItemStatus status,
+        int preferredSequence,
+        CancellationToken cancellationToken)
+    {
+        var existingLogicalOrder = await dbContext.Set<PlanetConstructionOrder>()
+            .SingleOrDefaultAsync(
+                x => x.PlanetId == planetId &&
+                    x.Action == action &&
+                    x.BuildingType == buildingType &&
+                    x.TargetLevel == targetLevel &&
+                    x.StartsAtUtc == startsAtUtc &&
+                    x.EndsAtUtc == endsAtUtc &&
+                    x.Status == status,
+                cancellationToken);
+
+        if (existingLogicalOrder is not null)
+        {
+            return;
+        }
+
+        var sequence = await GetNextAvailableConstructionSequenceAsync(planetId, preferredSequence, cancellationToken);
+        dbContext.Set<PlanetConstructionOrder>().Add(PlanetConstructionOrder.Create(
+            planetId,
+            action,
+            buildingType,
+            targetLevel,
+            sequence,
+            startsAtUtc,
+            endsAtUtc,
+            status));
+    }
+
+    private async Task EnsureSeededAssetProductionOrderAsync(
+        Guid planetId,
+        AssetProductionTarget target,
+        PlanetaryAssetType? planetaryAssetType,
+        SpaceAssetType? spaceAssetType,
+        int quantity,
+        DateTime startsAtUtc,
+        DateTime endsAtUtc,
+        AssetProductionOrderStatus status,
+        int preferredSequence,
+        CancellationToken cancellationToken)
+    {
+        var existingLogicalOrder = await dbContext.Set<AssetProductionOrder>()
+            .SingleOrDefaultAsync(
+                x => x.PlanetId == planetId &&
+                    x.Target == target &&
+                    x.PlanetaryAssetType == planetaryAssetType &&
+                    x.SpaceAssetType == spaceAssetType &&
+                    x.Quantity == quantity &&
+                    x.StartsAtUtc == startsAtUtc &&
+                    x.EndsAtUtc == endsAtUtc &&
+                    x.Status == status,
+                cancellationToken);
+
+        if (existingLogicalOrder is not null)
+        {
+            return;
+        }
+
+        var sequence = await GetNextAvailableAssetProductionSequenceAsync(planetId, preferredSequence, cancellationToken);
+        dbContext.Set<AssetProductionOrder>().Add(AssetProductionOrder.Create(
+            planetId,
+            target,
+            planetaryAssetType,
+            spaceAssetType,
+            quantity,
+            sequence,
+            startsAtUtc,
+            endsAtUtc,
+            status));
+    }
+
+    private async Task<int> GetNextAvailableResearchSequenceAsync(
+        Guid civilizationId,
+        int preferredSequence,
+        CancellationToken cancellationToken)
+    {
+        var usedSequences = await dbContext.Set<ResearchOrder>()
+            .Where(x => x.CivilizationId == civilizationId && x.Sequence >= preferredSequence)
+            .Select(x => x.Sequence)
+            .ToListAsync(cancellationToken);
+
+        return GetNextAvailableSequence(usedSequences, preferredSequence);
+    }
+
+    private async Task<int> GetNextAvailableConstructionSequenceAsync(
+        Guid planetId,
+        int preferredSequence,
+        CancellationToken cancellationToken)
+    {
+        var usedSequences = await dbContext.Set<PlanetConstructionOrder>()
+            .Where(x => x.PlanetId == planetId && x.Sequence >= preferredSequence)
+            .Select(x => x.Sequence)
+            .ToListAsync(cancellationToken);
+
+        return GetNextAvailableSequence(usedSequences, preferredSequence);
+    }
+
+    private async Task<int> GetNextAvailableAssetProductionSequenceAsync(
+        Guid planetId,
+        int preferredSequence,
+        CancellationToken cancellationToken)
+    {
+        var usedSequences = await dbContext.Set<AssetProductionOrder>()
+            .Where(x => x.PlanetId == planetId && x.Sequence >= preferredSequence)
+            .Select(x => x.Sequence)
+            .ToListAsync(cancellationToken);
+
+        return GetNextAvailableSequence(usedSequences, preferredSequence);
+    }
+
+    private static int GetNextAvailableSequence(IEnumerable<int> usedSequences, int preferredSequence)
+    {
+        var used = usedSequences.ToHashSet();
+        var candidate = preferredSequence;
+
+        while (used.Contains(candidate))
+        {
+            candidate++;
+        }
+
+        return candidate;
     }
 }

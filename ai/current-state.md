@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 18F - Development simulation data profiles and cockpit QA seeds`.
+The repository is consolidated through `Phase 18R - Cockpit validation seed idempotency runtime hardening`.
 
 ## Repository Reality
 
@@ -38,6 +38,8 @@ Current frontend cockpit baseline:
 - Development-only seed profiles now provide the standard QA setup path for Galaxy, Planet, Construction, Research, Shipyard, and Fleets without manual SQL.
 - `minimal-validation` remains the deterministic shared baseline, `cockpit-validation` is the richer cross-cockpit baseline, and the current cockpit-specific richer profiles are `shipyard-validation`, `fleet-validation`, `research-validation`, and `planet-full-validation`.
 - Seed profiles are additive, deterministic, idempotent, and Development-only. They restore documented baseline rows and minimums but do not destructively clear queues, extra transfers, or other user mutations.
+- Richer development seed profiles now reserve deterministic high sequence ranges for their completed queue-history rows, preventing runtime collisions when `cockpit-validation` is applied over reused development databases that already contain manual QA queue activity.
+- The development seed apply endpoint now converts persisted-state write conflicts into `409 Conflict` responses with diagnostic details instead of surfacing an unhandled runtime failure.
 - The current frontend boundary model is documented in `docs/dev/planet-module-boundaries.md`.
 - The current Research cockpit QA flow and acceptance boundaries are documented in `docs/dev/research-cockpit-checklist.md`.
 - The current Shipyard cockpit QA flow and accepted Fleet boundary are documented in `docs/dev/shipyard-cockpit-checklist.md`.
@@ -271,10 +273,10 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 18F:
+Current validated baseline after Phase 18R:
 
 - backend: `dotnet build --no-restore` succeeded
-- tests: `dotnet test --no-build` succeeded with `600` passing tests
+- tests: `dotnet test --no-build` succeeded with `624` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
 
 Current validated cockpit QA seed baseline:
@@ -282,6 +284,7 @@ Current validated cockpit QA seed baseline:
 - `POST /api/dev/seeds/apply` supports `minimal-validation`, `cockpit-validation`, `shipyard-validation`, `fleet-validation`, `research-validation`, and `planet-full-validation`.
 - `GET /api/dev/seeds/profiles` exposes the current profile catalog for Development-only discovery.
 - Standard manual QA should start from the documented seed profiles rather than ad hoc SQL.
+- Reapplying richer seed profiles after manual QA queue activity is now supported without colliding on persisted queue `Sequence` uniqueness.
 - Ground Army and Defenses remain placeholder/readiness cabins even though the shared seed context preserves route navigation for them.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, the minimal exploration mission lifecycle, the current Planet or Construction cockpit readability baseline, the minimal-validation Research seed readiness path, the development Research UI-state endpoint baseline, the full seeded Research enqueue smoke path through queue refresh, the development Shipyard UI-state endpoint baseline, the scoped Shipyard enqueue endpoint path, and the strengthened minimal-validation Shipyard seed expectations.

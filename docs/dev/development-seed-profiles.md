@@ -27,6 +27,7 @@ Use these profiles instead of manual SQL for standard cockpit QA.
 ```
 
 Unsupported profile requests fail safely. The current response now includes the requested profile name, the applied profile metadata when successful, and the known profile catalog so PowerShell or JSON callers can discover the supported naming contract directly.
+If persisted development state still triggers a database write conflict, the endpoint now returns `409 Conflict` with diagnostic error text instead of an unhandled runtime failure.
 
 ## Quick start
 
@@ -52,6 +53,8 @@ Operational guidance:
 
 - Seed profiles are Development-only, deterministic, and idempotent.
 - Reapply the documented profile when local QA state becomes confusing.
+- Reapplying `cockpit-validation`, `shipyard-validation`, `research-validation`, or `planet-full-validation` is supported on reused development databases even after manual QA has already created queue rows.
+- Richer profiles reserve high sequence ranges for their completed queue-history seed rows, avoiding collisions with pre-existing manual queue activity without resetting the database.
 - Do not use manual SQL for the standard Galaxy, Planet, Construction, Research, Shipyard, or Fleet QA flows.
 - Use a fresh disposable local database only when you need the exact original pre-mutation baseline.
 
@@ -314,6 +317,7 @@ Expected Planet and Construction result:
 | Research queue | preserved |
 | Research projects | preserved |
 | Orbital production queue | preserved |
+| Completed queue-history rows added by richer profiles | inserted only when the matching logical history row is missing; reserved high sequence ranges avoid collisions with manual QA rows |
 | Orbital asset stock | inserts missing `EscortCraft` row only; existing quantity is preserved |
 | Stationed orbital groups | inserts a new baseline row if the exact expected row is no longer present |
 | Cargo transfer group | reserves the matching stationed cargo group when found; creates a new reserved baseline cargo group if the expected match is gone |

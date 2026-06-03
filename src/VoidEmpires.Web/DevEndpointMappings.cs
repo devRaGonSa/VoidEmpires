@@ -57,18 +57,37 @@ internal static class DevEndpointMappings
             }
 
             var service = services.GetRequiredService<IDevelopmentSeedService>();
-            var result = await service.ApplyAsync(new ApplyDevelopmentSeedRequest(request.Profile!.Trim()), cancellationToken);
-            var response = new ApplyDevelopmentSeedApiResponse(
-                result.Succeeded,
-                result.Profile,
-                result.AppliedSteps,
-                result.Errors,
-                result.ProfileMetadata,
-                result.KnownProfiles);
 
-            return result.Succeeded
-                ? Results.Ok(response)
-                : Results.BadRequest(response);
+            try
+            {
+                var result = await service.ApplyAsync(new ApplyDevelopmentSeedRequest(request.Profile!.Trim()), cancellationToken);
+                var response = new ApplyDevelopmentSeedApiResponse(
+                    result.Succeeded,
+                    result.Profile,
+                    result.AppliedSteps,
+                    result.Errors,
+                    result.ProfileMetadata,
+                    result.KnownProfiles);
+
+                return result.Succeeded
+                    ? Results.Ok(response)
+                    : Results.BadRequest(response);
+            }
+            catch (DbUpdateException ex)
+            {
+                var diagnostic = ex.InnerException?.Message ?? ex.Message;
+
+                return Results.Conflict(new ApplyDevelopmentSeedApiResponse(
+                    false,
+                    request.Profile,
+                    [],
+                    [
+                        "Development seed apply failed due to persisted state conflict.",
+                        diagnostic
+                    ],
+                    null,
+                    DevelopmentSeedProfiles.All));
+            }
         });
 
         app.MapPost("/api/dev/galaxies/generate", async (
