@@ -3,7 +3,7 @@
 ---
 id: TASK-16D-current-state-update-research-cockpit-v1
 title: Current state update Research cockpit v1
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

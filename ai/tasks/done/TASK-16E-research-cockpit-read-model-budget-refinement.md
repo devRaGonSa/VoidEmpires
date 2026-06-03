@@ -3,7 +3,7 @@
 ---
 id: TASK-16E-research-cockpit-read-model-budget-refinement
 title: Refine Research cockpit read model to fit repository budget
-status: pending
+status: obsolete
 type: platform
 team: platform
 supporting_teams: []
@@ -36,4 +36,3 @@ The first Research read-model pass is functional, but the implementation grew la
 - The Research read model remains stable.
 - The task size is reduced to a safer boundary.
 - Validation still passes.
-

@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 15L - Planet module boundaries and construction scope separation`.
+The repository is consolidated through `Phase 16D - Research cockpit playable foundation v1`.
 
 ## Repository Reality
 
@@ -29,11 +29,13 @@ Current frontend cockpit baseline:
 - Galaxy v1 remains read-only and now prioritizes gameplay hierarchy over technical metadata, keeping diagnostics collapsed by default.
 - Planet v1 now exists at `/planet` as a 2D dashboard and context hub with a development-only UI-state read endpoint, Spanish-first presentation helpers, deterministic seeded economy and construction context, readable resources or production or capacity sections, grouped buildings, queue visibility, guarded construction enqueue, and dashboard handoff cards for Construction, Fleets, Galaxy, and the specialized placeholders.
 - Construction v1 now exists at `/construction` as a focused general-infrastructure route for the same owned-planet construction state, with catalog readability, safe explicit confirmations, Spanish error guidance, queue refresh feedback, and secondary handoff cards for Research, Ground Army, Shipyard, and Defenses.
-- Research, Ground Army, Shipyard, and Defenses now have dedicated placeholder routes that keep their boundaries explicit even before specialized gameplay exists.
+- Research v1 now exists at `/research` as a development-safe cockpit foundation upgraded from the earlier placeholder route, with category-grouped catalog state, readiness badges, visible requirements, costs, durations, queue and completed-project summaries, guarded enqueue confirmation when the safe dev endpoint is available, success refresh feedback, Spanish error mapping with secondary diagnostics, and a conservative complete-due placeholder when the backend route is not scoped safely to the cockpit.
+- Ground Army, Shipyard, and Defenses still have dedicated placeholder routes that keep their boundaries explicit even before specialized gameplay exists.
 - Fleets remains the accepted dev-cockpit foundation and now supports simple URL-based context links into both Planet and Construction while keeping destination context optional.
 - Query-context helpers now centralize `civilizationId` and `planetId` navigation so the cockpit links stop rebuilding URLs by hand.
 - Module-specific catalog duplication has been reduced by extracting shared planet layout components and route builders.
 - The current frontend boundary model is documented in `docs/dev/planet-module-boundaries.md`.
+- The current Research cockpit QA flow and acceptance boundaries are documented in `docs/dev/research-cockpit-checklist.md`.
 
 Current intentional exclusions:
 
@@ -42,7 +44,7 @@ Current intentional exclusions:
 - no real interception execution
 - no espionage gameplay
 - no production authentication
-- no real specialized module execution yet
+- no real specialized module execution yet outside the current backend-supported Research queue state and the accepted Fleets flow
 
 Current implemented foundations:
 
@@ -260,13 +262,13 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 14T:
+Current validated baseline after Phase 16D:
 
 - backend: `dotnet build --no-restore` succeeded
-- tests: `dotnet test --no-build` succeeded with `579` passing tests
+- tests: `dotnet test --no-build` succeeded with `585` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
 
-Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, the minimal exploration mission lifecycle, and the current Planet or Construction cockpit readability baseline.
+Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, the minimal exploration mission lifecycle, the current Planet or Construction cockpit readability baseline, the minimal-validation Research seed readiness path, and the development Research UI-state endpoint baseline.
 
 ## Recommended Next Work
 
