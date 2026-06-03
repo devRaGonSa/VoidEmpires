@@ -1,5 +1,5 @@
-import { FormEvent, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import type {
   ReadinessNote,
   StrategicMapResult,
@@ -219,6 +219,7 @@ function IntensityRow({ label, value }: IntensityRowProps) {
 }
 
 export function StrategicMapPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [civilizationId, setCivilizationId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -233,6 +234,9 @@ export function StrategicMapPage() {
   const [planetVisualError, setPlanetVisualError] = useState<string | null>(null);
   const [planetVisualState, setPlanetVisualState] =
     useState<PlanetVisualStateResponse["visualState"]>(null);
+  const queryCivilizationId = searchParams.get("civilizationId") ?? "";
+  const querySystemId = searchParams.get("systemId");
+  const queryPlanetId = searchParams.get("planetId");
 
   const summary = useMemo(() => {
     if (!result) {
@@ -330,7 +334,73 @@ export function StrategicMapPage() {
     setSystemVisualError(null);
     setPlanetVisualState(null);
     setPlanetVisualError(null);
+
+    if (result?.civilizationId) {
+      const nextParams = new URLSearchParams();
+      nextParams.set("civilizationId", result.civilizationId);
+      nextParams.set("systemId", system.systemId);
+      if (system.planets?.[0]?.planetId) {
+        nextParams.set("planetId", system.planets[0].planetId);
+      }
+      setSearchParams(nextParams, { replace: true });
+    }
   }
+
+  useEffect(() => {
+    setCivilizationId(queryCivilizationId);
+  }, [queryCivilizationId]);
+
+  useEffect(() => {
+    async function loadStrategicMapFromQuery() {
+      if (!queryCivilizationId) {
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await voidEmpiresApi.getStrategicMap(queryCivilizationId);
+        if (!response.succeeded || !response.map) {
+          setResult(null);
+          setSelectedSystemId(null);
+          setSelectedPlanetId(null);
+          setError(response.errors[0] ?? "Strategic map request failed.");
+          return;
+        }
+
+        const requestedSystem =
+          response.map.systems.find((system) => system.systemId === querySystemId) ??
+          response.map.systems[0] ??
+          null;
+        const requestedPlanet =
+          requestedSystem?.planets?.find((planet) => planet.planetId === queryPlanetId) ??
+          requestedSystem?.planets?.[0] ??
+          null;
+
+        setResult(response.map);
+        setSelectedSystemId(requestedSystem?.systemId ?? null);
+        setSelectedPlanetId(requestedPlanet?.planetId ?? null);
+        setSystemVisualState(null);
+        setSystemVisualError(null);
+        setPlanetVisualState(null);
+        setPlanetVisualError(null);
+      } catch (requestError) {
+        const message =
+          requestError instanceof Error
+            ? requestError.message
+            : "Strategic map request failed.";
+        setResult(null);
+        setSelectedSystemId(null);
+        setSelectedPlanetId(null);
+        setError(message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    void loadStrategicMapFromQuery();
+  }, [queryCivilizationId, querySystemId, queryPlanetId]);
 
   async function loadSystemVisualState() {
     if (!selectedSystem) {
@@ -404,46 +474,15 @@ export function StrategicMapPage() {
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await voidEmpiresApi.getStrategicMap(trimmedCivilizationId);
-      if (!response.succeeded || !response.map) {
-        setResult(null);
-        setSelectedSystemId(null);
-        setSelectedPlanetId(null);
-        setSystemVisualState(null);
-        setSystemVisualError(null);
-        setPlanetVisualState(null);
-        setPlanetVisualError(null);
-        setError(response.errors[0] ?? "Strategic map request failed.");
-        return;
-      }
-
-      setResult(response.map);
-      setSelectedSystemId(response.map.systems[0]?.systemId ?? null);
-      setSelectedPlanetId(response.map.systems[0]?.planets?.[0]?.planetId ?? null);
-      setSystemVisualState(null);
-      setSystemVisualError(null);
-      setPlanetVisualState(null);
-      setPlanetVisualError(null);
-    } catch (requestError) {
-      const message =
-        requestError instanceof Error
-          ? requestError.message
-          : "Strategic map request failed.";
-      setResult(null);
-      setSelectedSystemId(null);
-      setSelectedPlanetId(null);
-      setSystemVisualState(null);
-      setSystemVisualError(null);
-      setPlanetVisualState(null);
-      setPlanetVisualError(null);
-      setError(message);
-    } finally {
-      setIsLoading(false);
+    const nextParams = new URLSearchParams();
+    nextParams.set("civilizationId", trimmedCivilizationId);
+    if (selectedSystemId) {
+      nextParams.set("systemId", selectedSystemId);
     }
+    if (selectedPlanetId) {
+      nextParams.set("planetId", selectedPlanetId);
+    }
+    setSearchParams(nextParams);
   }
 
   return (
@@ -806,9 +845,10 @@ export function StrategicMapPage() {
                   <div>
                     <p className="eyebrow">Resumen del sistema</p>
                     <h4>{selectedSystem.systemName ?? "Sistema desconocido"}</h4>
+                    <p>La lectura principal prioriza posicion, control y presencia operativa sobre los metadatos de implementacion.</p>
                   </div>
                   <UiBadge tone={getVisibilityTone(selectedSystem.visibilityLevel)}>
-                    {formatVisibilityReason(selectedSystem.visibilityReason)}
+                    {formatVisibilityLevel(selectedSystem.visibilityLevel)}
                   </UiBadge>
                 </div>
                 <div className="figma-data-list">
@@ -825,17 +865,38 @@ export function StrategicMapPage() {
                     />
                   )}
                   <DataRow
-                    label="Bajo control"
-                    value={Boolean(selectedSystemRecord?.isOwnedByRequestingCivilization) ? "Si" : "No"}
+                    label="Control"
+                    value={
+                      Boolean(selectedSystemRecord?.isOwnedByRequestingCivilization)
+                        ? "Sistema propio"
+                        : formatVisibilityReason(selectedSystem.visibilityReason)
+                    }
                   />
                   <DataRow
-                    label="Lecturas tacticas"
-                    value={String(
-                      (selectedSystem.sensorProfiles?.length ?? 0) +
-                        (selectedSystem.detectionCoverage?.length ?? 0),
-                    )}
+                    label="Presencia operativa"
+                    value={`${selectedSystem.planets?.length ?? 0} planetas | ${selectedSystem.fleetPresence?.length ?? 0} flotas | ${selectedSystem.transferOverlays?.length ?? 0} rutas`}
                   />
                 </div>
+                <details className="json-details">
+                  <summary>Diagnostico tecnico del sistema</summary>
+                  <div className="figma-data-list">
+                    <DataRow
+                      label="Id breve"
+                      value={formatCompactGuid(selectedSystem.systemId)}
+                    />
+                    <DataRow
+                      label="Motivo de visibilidad"
+                      value={formatVisibilityReason(selectedSystem.visibilityReason)}
+                    />
+                    <DataRow
+                      label="Lecturas tacticas"
+                      value={String(
+                        (selectedSystem.sensorProfiles?.length ?? 0) +
+                          (selectedSystem.detectionCoverage?.length ?? 0),
+                      )}
+                    />
+                  </div>
+                </details>
               </section>
 
               <section className="subpanel figma-subpanel">
@@ -882,7 +943,7 @@ export function StrategicMapPage() {
               <div>
                 <p className="eyebrow">Inteligencia planetaria</p>
                 <h3>Colonias y mundos</h3>
-                <p>La lista planetaria deja claro que mundos puedes inspeccionar ahora y a que vista puedes saltar despues.</p>
+                <p>La lista planetaria deja claro que mundos puedes inspeccionar ahora y a que cabina de gestion podras saltar despues.</p>
               </div>
               <UiBadge>{selectedSystem.planets?.length ?? 0} planetas</UiBadge>
             </div>
@@ -897,6 +958,13 @@ export function StrategicMapPage() {
                     setSelectedPlanetId(planet.planetId);
                     setPlanetVisualState(null);
                     setPlanetVisualError(null);
+                    if (result?.civilizationId && selectedSystem) {
+                      const nextParams = new URLSearchParams();
+                      nextParams.set("civilizationId", result.civilizationId);
+                      nextParams.set("systemId", selectedSystem.systemId);
+                      nextParams.set("planetId", planet.planetId);
+                      setSearchParams(nextParams, { replace: true });
+                    }
                   }}
                   aria-pressed={selectedPlanet?.planetId === planet.planetId}
                   title={planet.planetId}
@@ -926,6 +994,7 @@ export function StrategicMapPage() {
                     <div>
                       <p className="eyebrow">Planeta seleccionado</p>
                       <h4>{selectedPlanet.planetName ?? "Planeta desconocido"}</h4>
+                      <p>El foco principal muestra tipo, control y estado colonial antes que claves de diagnostico.</p>
                     </div>
                     <UiBadge tone={getVisibilityTone(selectedPlanet.visibilityLevel)}>
                       {Boolean(selectedPlanetRecord?.isOwnedByRequestingCivilization)
@@ -949,18 +1018,45 @@ export function StrategicMapPage() {
                       )}
                     />
                     <DataRow
-                      label="Id breve"
-                      value={formatCompactGuid(selectedPlanet.planetId)}
+                      label="Acceso"
+                      value={
+                        selectedPlanet.isVisible
+                          ? "Inspeccion disponible"
+                          : "Pendiente de visibilidad"
+                      }
                     />
                   </div>
                   <div className="selection-chip-row">
-                    <Link className="selection-chip selection-chip-active" to="/fleets">
+                    <Link
+                      className="selection-chip selection-chip-active"
+                      to={`/fleets?civilizationId=${result.civilizationId}&planetId=${selectedPlanet.planetId}`}
+                    >
                       Ir a Flotas
                     </Link>
-                    <span className="selection-chip" aria-disabled="true">
-                      Vista Planeta en preparacion
-                    </span>
+                    <Link
+                      className="selection-chip"
+                      to={`/planet?civilizationId=${result.civilizationId}&planetId=${selectedPlanet.planetId}`}
+                    >
+                      Abrir Planeta
+                    </Link>
                   </div>
+                  <details className="json-details">
+                    <summary>Diagnostico tecnico del planeta</summary>
+                    <div className="figma-data-list">
+                      <DataRow
+                        label="Id breve"
+                        value={formatCompactGuid(selectedPlanet.planetId)}
+                      />
+                      <DataRow
+                        label="Motivo de visibilidad"
+                        value={formatVisibilityReason(selectedPlanet.visibilityReason)}
+                      />
+                      <DataRow
+                        label="Metadatos de mando"
+                        value={`${planetCommands.length} lecturas disponibles`}
+                      />
+                    </div>
+                  </details>
                 </section>
 
                 <section className="subpanel figma-subpanel">

@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import type { ActionManifestAction } from "../api/actionManifestTypes";
 import type {
   EstimateOrbitalTravelResponse,
@@ -120,6 +121,7 @@ function isTransferDueForUi(group: FleetGroupSummary) {
 }
 
 export function FleetsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [civilizationId, setCivilizationId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -154,6 +156,8 @@ export function FleetsPage() {
   const [createTransferResult, setCreateTransferResult] = useState<FleetCommandPresentationItem | null>(null);
   const [createTransferNetworkError, setCreateTransferNetworkError] = useState<string | null>(null);
   const createTransferInFlightRef = useRef(false);
+  const queryCivilizationId = searchParams.get("civilizationId") ?? "";
+  const queryPlanetId = searchParams.get("planetId");
 
   const summary = useMemo(() => {
     if (!uiState) {
@@ -379,6 +383,66 @@ export function FleetsPage() {
   }
 
   useEffect(() => {
+    setCivilizationId(queryCivilizationId);
+  }, [queryCivilizationId]);
+
+  useEffect(() => {
+    async function loadFleetCockpit() {
+      if (!queryCivilizationId) {
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+      clearEstimateState();
+      setEstimateStaleMessage(null);
+      resetCreateTransferAcknowledgement();
+
+      try {
+        const [uiStateResponse, fleetManifestResponse, strategicMapManifestResponse] =
+          await Promise.all([
+            voidEmpiresApi.getFleetUiState(queryCivilizationId),
+            voidEmpiresApi.getFleetActionManifest(),
+            voidEmpiresApi.getStrategicMapActionManifest(),
+          ]);
+
+        if (!uiStateResponse.succeeded || !uiStateResponse.uiState) {
+          setUiState(null);
+          setError(uiStateResponse.errors[0] ?? "La solicitud del estado de flotas fallo.");
+          return;
+        }
+
+        const preferredGroup =
+          uiStateResponse.uiState.groups.find(
+            (group) =>
+              group.currentPlanetId === queryPlanetId ||
+              group.originPlanetId === queryPlanetId ||
+              group.activeTransfer?.destinationPlanetId === queryPlanetId,
+          ) ??
+          uiStateResponse.uiState.groups[0] ??
+          null;
+
+        setUiState(uiStateResponse.uiState);
+        setFleetManifest(fleetManifestResponse.manifest?.actions ?? []);
+        setStrategicMapManifest(strategicMapManifestResponse.manifest?.actions ?? []);
+        setInspectedGroupId(preferredGroup?.id ?? "");
+        setSelectedGroupId(preferredGroup?.id ?? "");
+      } catch (requestError) {
+        const message =
+          requestError instanceof Error
+            ? requestError.message
+            : "Las solicitudes de flota fallaron.";
+        setUiState(null);
+        setError(message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    void loadFleetCockpit();
+  }, [queryCivilizationId, queryPlanetId]);
+
+  useEffect(() => {
     if (!estimateSnapshot) {
       return;
     }
@@ -445,43 +509,12 @@ export function FleetsPage() {
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
-    if (uiState && estimateSnapshot) {
-      invalidateEstimate("La UI de flotas se actualizo. La estimacion anterior ya no es valida.");
-    } else {
-      clearEstimateState();
-      setEstimateStaleMessage(null);
-      resetCreateTransferAcknowledgement();
+    const nextParams = new URLSearchParams();
+    nextParams.set("civilizationId", trimmedCivilizationId);
+    if (queryPlanetId) {
+      nextParams.set("planetId", queryPlanetId);
     }
-
-    try {
-      const [uiStateResponse, fleetManifestResponse, strategicMapManifestResponse] =
-        await Promise.all([
-          voidEmpiresApi.getFleetUiState(trimmedCivilizationId),
-          voidEmpiresApi.getFleetActionManifest(),
-          voidEmpiresApi.getStrategicMapActionManifest(),
-        ]);
-
-      if (!uiStateResponse.succeeded || !uiStateResponse.uiState) {
-        setUiState(null);
-        setError(uiStateResponse.errors[0] ?? "La solicitud del estado de flotas fallo.");
-        return;
-      }
-
-      setUiState(uiStateResponse.uiState);
-      setFleetManifest(fleetManifestResponse.manifest?.actions ?? []);
-      setStrategicMapManifest(strategicMapManifestResponse.manifest?.actions ?? []);
-    } catch (requestError) {
-      const message =
-        requestError instanceof Error
-          ? requestError.message
-          : "Las solicitudes de flota fallaron.";
-      setUiState(null);
-      setError(message);
-    } finally {
-      setIsLoading(false);
-    }
+    setSearchParams(nextParams);
   }
 
   async function handleEstimateSubmit(event: FormEvent<HTMLFormElement>) {
@@ -946,6 +979,34 @@ export function FleetsPage() {
           </UiCard>
 
           <div className="fleet-command-column">
+            {inspectedGroup && uiState ? (
+              <UiCard className="panel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Contexto cruzado</p>
+                    <h3>Cabinas relacionadas</h3>
+                  </div>
+                  <UiBadge>Planeta y ruta</UiBadge>
+                </div>
+                <div className="selection-chip-row">
+                  <Link
+                    className="selection-chip selection-chip-active"
+                    to={`/planet?civilizationId=${uiState.civilizationId}&planetId=${inspectedGroup.currentPlanetId}`}
+                  >
+                    Abrir planeta actual
+                  </Link>
+                  {inspectedGroup.activeTransfer?.destinationPlanetId ? (
+                    <Link
+                      className="selection-chip"
+                      to={`/planet?civilizationId=${uiState.civilizationId}&planetId=${inspectedGroup.activeTransfer.destinationPlanetId}`}
+                    >
+                      Ver destino
+                    </Link>
+                  ) : null}
+                </div>
+              </UiCard>
+            ) : null}
+
             {inspectedGroup ? (
               <FleetSelectedGroupPanel
                 group={inspectedGroup}

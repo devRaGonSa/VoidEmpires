@@ -166,6 +166,20 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
             dbContext.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOuterPlanetId, BuildingType.Shipyard, 2, 1));
         }
 
+        if (!await dbContext.Set<PlanetBuildingCapacity>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId,
+                cancellationToken))
+        {
+            dbContext.Set<PlanetBuildingCapacity>().Add(PlanetBuildingCapacity.Create(SeedOwnedPlanetId, 120));
+        }
+
+        if (!await dbContext.Set<PlanetBuildingCapacity>().AnyAsync(
+                x => x.PlanetId == SeedOuterPlanetId,
+                cancellationToken))
+        {
+            dbContext.Set<PlanetBuildingCapacity>().Add(PlanetBuildingCapacity.Create(SeedOuterPlanetId, 120));
+        }
+
         if (!await dbContext.Set<OrbitalAssetStock>().AnyAsync(
                 x => x.PlanetId == SeedOwnedPlanetId && x.AssetType == SpaceAssetType.EscortCraft,
                 cancellationToken))

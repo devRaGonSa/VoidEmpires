@@ -16,6 +16,11 @@ import type {
   SplitOrbitalGroupResponse,
 } from "./fleetCommandTypes";
 import type { FleetUiStateResponse } from "./fleetTypes";
+import type {
+  EnqueuePlanetConstructionRequest,
+  EnqueuePlanetConstructionResponse,
+  PlanetUiStateResponse,
+} from "./planetTypes";
 import type { StrategicMapResponse } from "./strategicMapTypes";
 function buildUrl(path: string, query?: Record<string, string>) {
   const url = new URL(path, appConfig.apiBaseUrl);
@@ -156,6 +161,11 @@ export const voidEmpiresApi = {
       query: { civilizationId },
     });
   },
+  getPlanetUiState(civilizationId: string, planetId?: string | null) {
+    return requestJson<PlanetUiStateResponse>("/api/dev/planets/ui-state", {
+      query: planetId ? { civilizationId, planetId } : { civilizationId },
+    });
+  },
   getFleetActionManifest() {
     return requestJson<ActionManifestResponse>("/api/dev/fleets/action-manifest");
   },
@@ -167,6 +177,12 @@ export const voidEmpiresApi = {
   },
   getPlanetVisualState(planetId: string) {
     return requestJson<PlanetVisualStateResponse>(`/api/dev/planets/${planetId}/visual-state`);
+  },
+  enqueuePlanetConstruction(request: EnqueuePlanetConstructionRequest) {
+    return requestCommandJson<EnqueuePlanetConstructionResponse>(
+      "/api/dev/buildings/construction-orders/enqueue",
+      request,
+    );
   },
   estimateOrbitalTravel(request: EstimateOrbitalTravelRequest) {
     return requestCommandJson<EstimateOrbitalTravelResponse>(

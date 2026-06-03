@@ -743,6 +743,50 @@ select {
   margin-top: 14px;
 }
 
+.planet-header-panel,
+.planet-action-card,
+.planet-building-card {
+  background:
+    radial-gradient(circle at top right, rgba(82, 230, 167, 0.08), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 86%, transparent), color-mix(in srgb, var(--ve-color-panel) 92%, transparent));
+}
+
+.planet-overview-grid,
+.planet-building-grid,
+.planet-queue-grid,
+.planet-action-grid,
+.planet-action-groups,
+.planet-building-groups,
+.planet-inline-summary {
+  display: grid;
+  gap: var(--ve-space-4);
+}
+
+.planet-overview-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.planet-building-grid,
+.planet-queue-grid,
+.planet-action-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.planet-action-card,
+.planet-building-card {
+  align-content: start;
+}
+
+.planet-action-card .transfer-confirmation-actions button {
+  width: 100%;
+}
+
+.planet-inline-summary {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--ve-color-border) 28%, transparent);
+}
+
 .figma-map-layout {
   grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.7fr);
   align-items: start;
@@ -1678,6 +1722,12 @@ select {
   }
 
   .fleet-cockpit-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .planet-building-grid,
+  .planet-queue-grid,
+  .planet-action-grid {
     grid-template-columns: 1fr;
   }
 

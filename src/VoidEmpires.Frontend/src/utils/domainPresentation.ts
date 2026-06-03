@@ -41,6 +41,19 @@ const colonizationStatusLabels: LabelCatalog = {
   },
 };
 
+const planetControlStatusLabels: LabelCatalog = {
+  names: {
+    Active: "Activo",
+    Abandoned: "Abandonado",
+    Lost: "Perdido",
+  },
+  numbers: {
+    1: "Activo",
+    2: "Abandonado",
+    3: "Perdido",
+  },
+};
+
 const spaceAssetTypeLabels: LabelCatalog = {
   names: {
     ScoutCraft: "Nave exploradora",
@@ -250,6 +263,10 @@ export function formatPlanetType(value: DomainValue, fallback?: string) {
 
 export function formatColonizationStatus(value: DomainValue, fallback?: string) {
   return resolveLabel(value, colonizationStatusLabels, fallback);
+}
+
+export function formatPlanetControlStatus(value: DomainValue, fallback?: string) {
+  return resolveLabel(value, planetControlStatusLabels, fallback);
 }
 
 export function formatSpaceAssetType(value: DomainValue, fallback?: string) {

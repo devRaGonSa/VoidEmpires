@@ -2,11 +2,12 @@ import { Route, Routes } from "react-router-dom";
 import { appConfig } from "./config";
 import { AppShell } from "./components/ui/AppShell";
 import { FleetsPage } from "./pages/FleetsPage";
+import { PlanetPage } from "./pages/PlanetPage";
 import { StrategicMapPage } from "./pages/StrategicMapPage";
 
 const sidebarItems = [
   { label: "Resumen" },
-  { label: "Planeta" },
+  { label: "Planeta", to: "/planet" },
   { label: "Construccion" },
   { label: "Investigacion" },
   { label: "Ejercito Tierra" },
@@ -39,6 +40,7 @@ export default function App() {
     >
       <Routes>
         <Route path="/" element={<StrategicMapPage />} />
+        <Route path="/planet" element={<PlanetPage />} />
         <Route path="/fleets" element={<FleetsPage />} />
       </Routes>
     </AppShell>
