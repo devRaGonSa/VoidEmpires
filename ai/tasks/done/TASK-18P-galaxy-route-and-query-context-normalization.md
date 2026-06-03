@@ -3,7 +3,7 @@
 ---
 id: TASK-18P-galaxy-route-and-query-context-normalization
 title: Galaxy route and query context normalization
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

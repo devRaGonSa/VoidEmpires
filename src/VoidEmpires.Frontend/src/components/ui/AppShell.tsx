@@ -24,7 +24,8 @@ export function AppShell({
 }: AppShellProps) {
   const location = useLocation();
   const isFleetRoute = location.pathname === "/fleets";
-  const isStrategicMapRoute = location.pathname === "/";
+  const isStrategicMapRoute =
+    location.pathname === "/" || location.pathname === "/galaxy";
   const isCompactIntro = isFleetRoute || isStrategicMapRoute;
 
   return (

@@ -41,11 +41,11 @@ export function buildDefensesUrl(civilizationId: string, planetId?: string | nul
 }
 
 export function buildGalaxyUrl(
-  civilizationId: string,
+  civilizationId?: string | null,
   systemId?: string | null,
   planetId?: string | null,
 ) {
-  return buildUrl("/", { civilizationId, systemId, planetId });
+  return buildUrl("/galaxy", { civilizationId, systemId, planetId });
 }
 
 export function buildFleetsUrl(civilizationId: string, planetId?: string | null) {

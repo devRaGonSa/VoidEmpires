@@ -30,8 +30,10 @@ import {
 } from "../utils/domainPresentation";
 import {
   buildConstructionUrl,
+  buildDevelopmentHelperUrl,
   buildFleetsUrl,
   buildPlanetUrl,
+  isSuspiciousCabinContext,
 } from "../utils/routeUrls";
 import { getUserFacingActionLabel } from "../utils/fleetCommandPresentation";
 
@@ -242,6 +244,7 @@ export function StrategicMapPage() {
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const querySystemId = searchParams.get("systemId");
   const queryPlanetId = searchParams.get("planetId");
+  const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
 
   const summary = useMemo(() => {
     if (!result) {
@@ -358,6 +361,14 @@ export function StrategicMapPage() {
   useEffect(() => {
     async function loadStrategicMapFromQuery() {
       if (!queryCivilizationId) {
+        setResult(null);
+        setSelectedSystemId(null);
+        setSelectedPlanetId(null);
+        setError(null);
+        setSystemVisualState(null);
+        setSystemVisualError(null);
+        setPlanetVisualState(null);
+        setPlanetVisualError(null);
         return;
       }
 
@@ -535,6 +546,11 @@ export function StrategicMapPage() {
             </button>
           </form>
           {error && <p className="error-text">{error}</p>}
+          {!queryCivilizationId && (
+            <p className="figma-panel-note">
+              Carga un contexto de civilizacion para abrir Galaxia.
+            </p>
+          )}
         </UiCard>
 
         <UiCard className="panel">
@@ -578,6 +594,46 @@ export function StrategicMapPage() {
           </ul>
         </UiCard>
       </div>
+
+      {isSuspiciousContext && (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Contexto sospechoso</p>
+              <h3>El id de civilizacion no parece valido para abrir Galaxia.</h3>
+            </div>
+            <UiBadge tone="warn">Revisar contexto</UiBadge>
+          </div>
+          <p className="figma-panel-note">
+            Revisa que no hayas usado el id del planeta como civilizacion.
+          </p>
+          <div className="selection-chip-row">
+            <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>
+              Abrir contexto de desarrollo
+            </Link>
+          </div>
+        </UiCard>
+      )}
+
+      {!queryCivilizationId && !isSuspiciousContext && (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Contexto requerido</p>
+              <h3>Galaxia necesita una civilizacion activa</h3>
+            </div>
+            <UiBadge>Uso local</UiBadge>
+          </div>
+          <p className="figma-panel-note">
+            Carga un contexto de civilizacion para abrir Galaxia.
+          </p>
+          <p className="figma-panel-note">
+            Puedes introducir el `civilizationId` manualmente o llegar desde
+            Planeta, Construccion, Investigacion, Astillero o Flotas para conservar
+            el contexto actual.
+          </p>
+        </UiCard>
+      )}
 
       {result && (
         <UiCard className="panel strategic-map-panel">

@@ -9,6 +9,7 @@ import { ShipyardPage } from "./pages/ShipyardPage";
 import { PlanetPage } from "./pages/PlanetPage";
 import { StrategicMapPage } from "./pages/StrategicMapPage";
 import { specializedPlanetModuleRoutes } from "./utils/planetPresentation";
+import { buildGalaxyUrl } from "./utils/routeUrls";
 
 const sidebarItems = [
   { label: "Resumen" },
@@ -16,7 +17,7 @@ const sidebarItems = [
   { label: "Construccion", to: "/construction" },
   ...specializedPlanetModuleRoutes.map((route) => ({ label: route.label, to: route.path })),
   { label: "Flotas", to: "/fleets" },
-  { label: "Galaxia", to: "/" },
+  { label: "Galaxia", to: buildGalaxyUrl() },
   { label: "Espionaje" },
   { label: "Alianza" },
   { label: "Mercado" },
@@ -42,6 +43,7 @@ export default function App() {
     >
       <Routes>
         <Route path="/" element={<StrategicMapPage />} />
+        <Route path="/galaxy" element={<StrategicMapPage />} />
         <Route path="/planet" element={<PlanetPage />} />
         <Route path="/construction" element={<ConstructionPage />} />
         {specializedPlanetModuleRoutes.map((route) => (
