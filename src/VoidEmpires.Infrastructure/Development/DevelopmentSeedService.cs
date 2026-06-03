@@ -41,8 +41,14 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
     private const int ShipyardValidationMetal = 180;
     private const int ShipyardValidationCrystal = 110;
     private const int ShipyardValidationGas = 70;
+    private const int FleetValidationCredits = 260;
+    private const int FleetValidationMetal = 260;
+    private const int FleetValidationCrystal = 160;
+    private const int FleetValidationGas = 100;
     private static readonly DateTime SeedTransferDepartureAtUtc = new(2026, 6, 2, 8, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime SeedTransferArrivalAtUtc = new(2026, 6, 2, 12, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime FleetValidationTransferDepartureAtUtc = new(2026, 6, 1, 8, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime FleetValidationTransferArrivalAtUtc = new(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime CockpitValidationConstructionStartAtUtc = new(2026, 5, 31, 8, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime CockpitValidationConstructionEndAtUtc = new(2026, 5, 31, 8, 5, 0, DateTimeKind.Utc);
     private static readonly DateTime CockpitValidationResearchStartAtUtc = new(2026, 5, 31, 9, 0, 0, DateTimeKind.Utc);
@@ -95,6 +101,14 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
                     $"Validated shipyard-focused seed for civilization {SeedCivilizationId}.",
                     "Aurelia keeps one available basic hull, multiple blocked comparisons with distinct reasons, and richer local stock.",
                     "Shipyard queue history is seeded as completed-only so the primary enqueue path remains available."
+                ]);
+                break;
+            case "fleet-validation":
+                await SeedFleetValidationProfileAsync(cancellationToken);
+                appliedSteps.AddRange([
+                    $"Validated fleet-focused seed for civilization {SeedCivilizationId}.",
+                    "Aurelia keeps multiple stationed groups plus a stationed logistics example.",
+                    "Fleet state now includes one standard active transfer and one additional due transfer for complete-due QA."
                 ]);
                 break;
             default:
@@ -553,6 +567,101 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
         if (stockpile.Gas < ShipyardValidationGas)
         {
             stockpile.Increase(ResourceType.Gas, ShipyardValidationGas - stockpile.Gas);
+        }
+    }
+
+    private async Task SeedFleetValidationProfileAsync(CancellationToken cancellationToken)
+    {
+        await SeedMinimalValidationProfileAsync(cancellationToken);
+
+        var stockpile = await dbContext.PlanetResourceStockpiles
+            .SingleAsync(x => x.PlanetId == SeedOwnedPlanetId, cancellationToken);
+
+        EnsureFleetValidationStockpile(stockpile);
+
+        if (!await dbContext.Set<OrbitalGroup>().AnyAsync(
+                x => x.CivilizationId == SeedCivilizationId &&
+                    x.OriginPlanetId == SeedOwnedPlanetId &&
+                    x.CurrentPlanetId == SeedOwnedPlanetId &&
+                    x.AssetType == SpaceAssetType.CargoCraft &&
+                    x.Quantity == 1 &&
+                    x.Status == OrbitalGroupStatus.Stationed,
+                cancellationToken))
+        {
+            dbContext.Set<OrbitalGroup>().Add(OrbitalGroup.CreateStationed(
+                SeedCivilizationId,
+                SeedOwnedPlanetId,
+                SeedOwnedPlanetId,
+                SpaceAssetType.CargoCraft,
+                1));
+        }
+
+        var dueTransferGroup = await dbContext.Set<OrbitalGroup>()
+            .SingleOrDefaultAsync(
+                x => x.CivilizationId == SeedCivilizationId &&
+                    x.OriginPlanetId == SeedOwnedPlanetId &&
+                    x.CurrentPlanetId == SeedOwnedPlanetId &&
+                    x.AssetType == SpaceAssetType.CargoCraft &&
+                    x.Quantity == 1,
+                cancellationToken);
+
+        if (dueTransferGroup is null)
+        {
+            dueTransferGroup = OrbitalGroup.CreateStationed(
+                SeedCivilizationId,
+                SeedOwnedPlanetId,
+                SeedOwnedPlanetId,
+                SpaceAssetType.CargoCraft,
+                1);
+            dueTransferGroup.Reserve();
+            dbContext.Set<OrbitalGroup>().Add(dueTransferGroup);
+        }
+        else if (dueTransferGroup.Status == OrbitalGroupStatus.Stationed)
+        {
+            dueTransferGroup.Reserve();
+        }
+
+        if (!await dbContext.Set<OrbitalTransfer>().AnyAsync(
+                x => x.CivilizationId == SeedCivilizationId &&
+                    x.OrbitalGroupId == dueTransferGroup.Id &&
+                    x.OriginPlanetId == SeedOwnedPlanetId &&
+                    x.DestinationPlanetId == SeedIcePlanetId &&
+                    x.Status == OrbitalTransferStatus.Planned,
+                cancellationToken))
+        {
+            dbContext.Set<OrbitalTransfer>().Add(OrbitalTransfer.CreatePlanned(
+                SeedCivilizationId,
+                dueTransferGroup.Id,
+                SeedOwnedPlanetId,
+                SeedIcePlanetId,
+                2,
+                FleetValidationTransferDepartureAtUtc,
+                FleetValidationTransferArrivalAtUtc));
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static void EnsureFleetValidationStockpile(PlanetResourceStockpile stockpile)
+    {
+        if (stockpile.Credits < FleetValidationCredits)
+        {
+            stockpile.Increase(ResourceType.Credits, FleetValidationCredits - stockpile.Credits);
+        }
+
+        if (stockpile.Metal < FleetValidationMetal)
+        {
+            stockpile.Increase(ResourceType.Metal, FleetValidationMetal - stockpile.Metal);
+        }
+
+        if (stockpile.Crystal < FleetValidationCrystal)
+        {
+            stockpile.Increase(ResourceType.Crystal, FleetValidationCrystal - stockpile.Crystal);
+        }
+
+        if (stockpile.Gas < FleetValidationGas)
+        {
+            stockpile.Increase(ResourceType.Gas, FleetValidationGas - stockpile.Gas);
         }
     }
 }

@@ -212,6 +212,67 @@ public class DevFleetUiStateServiceTests
         Assert.Contains(result.ResourceContexts, x => x.Balances.Any(balance => balance.ResourceType == ResourceType.Credits && balance.Quantity == 125));
     }
 
+    [Fact]
+    public async Task GetAsyncReturnsRicherFleetStateForFleetValidationSeed()
+    {
+        await using var dbContext = CreateDbContext();
+        await new DevelopmentSeedService(dbContext).ApplyAsync(new ApplyDevelopmentSeedRequest("fleet-validation"));
+
+        var service = new DevFleetUiStateService(
+            dbContext,
+            new FleetOperationalOverviewService(dbContext),
+            new DevFleetActionManifestService(),
+            new InterceptionOpportunityService(
+                dbContext,
+                new MapVisibilityService(dbContext),
+                new DetectionCoverageService(dbContext, new SensorProfileService(dbContext)),
+                new FleetOperationalOverviewService(dbContext)));
+
+        var result = await service.GetAsync(new GetDevFleetUiStateRequest(Guid.Parse("00000000-0000-0000-0000-000000000001")));
+
+        Assert.True(result.Groups.Count >= 5);
+        Assert.True(result.Groups.Count(x => x.Status == OrbitalGroupStatus.Stationed) >= 3);
+        Assert.True(result.Groups.Count(x => x.HasActiveTransfer && x.ActiveTransfer is not null) >= 2);
+        Assert.Contains(result.Groups, x => x.AssetType == SpaceAssetType.CargoCraft && x.Status == OrbitalGroupStatus.Stationed);
+        Assert.Contains(result.Groups, x => x.ActiveTransfer is not null && x.ActiveTransfer.ArrivalAtUtc == new DateTime(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc));
+        Assert.Contains(result.Groups, x => x.CurrentPlanetId == Guid.Parse("40000000-0000-0000-0000-000000000003"));
+        Assert.Contains(result.ResourceContexts, x => x.PlanetId == Guid.Parse("40000000-0000-0000-0000-000000000001") && x.Balances.Any(balance => balance.ResourceType == ResourceType.Gas && balance.Quantity == 100));
+    }
+
+    [Fact]
+    public async Task ReapplyingFleetValidationSeedDoesNotDuplicateExtraTransferScenario()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new DevelopmentSeedService(dbContext);
+
+        _ = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("fleet-validation"));
+        _ = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("fleet-validation"));
+
+        var civilizationId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        var ownedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
+        var icePlanetId = Guid.Parse("40000000-0000-0000-0000-000000000003");
+
+        Assert.Equal(1, await dbContext.Set<OrbitalGroup>().CountAsync(x =>
+            x.CivilizationId == civilizationId &&
+            x.OriginPlanetId == ownedPlanetId &&
+            x.CurrentPlanetId == ownedPlanetId &&
+            x.AssetType == SpaceAssetType.CargoCraft &&
+            x.Quantity == 1 &&
+            x.Status == OrbitalGroupStatus.Reserved));
+        Assert.Equal(1, await dbContext.Set<OrbitalGroup>().CountAsync(x =>
+            x.CivilizationId == civilizationId &&
+            x.OriginPlanetId == ownedPlanetId &&
+            x.CurrentPlanetId == ownedPlanetId &&
+            x.AssetType == SpaceAssetType.CargoCraft &&
+            x.Quantity == 1 &&
+            x.Status == OrbitalGroupStatus.Stationed));
+        Assert.Equal(1, await dbContext.Set<OrbitalTransfer>().CountAsync(x =>
+            x.CivilizationId == civilizationId &&
+            x.OriginPlanetId == ownedPlanetId &&
+            x.DestinationPlanetId == icePlanetId &&
+            x.Status == OrbitalTransferStatus.Planned));
+    }
+
     private sealed class FakeFleetOperationalOverviewService(GetFleetOperationalOverviewResult result) : IFleetOperationalOverviewService
     {
         public Task<GetFleetOperationalOverviewResult> GetAsync(

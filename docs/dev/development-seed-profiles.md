@@ -11,7 +11,7 @@ This document is the current source of truth for the development-only `minimal-v
 | `minimal-validation` | Implemented | Current deterministic shared baseline for Galaxy, Planet, Construction, Research, Shipyard, and Fleets |
 | `cockpit-validation` | Implemented | Richer combined cockpit baseline with non-blocking completed history for Planet, Research, and Shipyard |
 | `shipyard-validation` | Implemented | Shipyard-focused richer baseline with completed queue history, two local stock rows, one available hull, and blocked comparisons |
-| `fleet-validation` | Planned only | Future fleet-focused richer baseline |
+| `fleet-validation` | Implemented | Fleet-focused richer baseline with one extra stationed cargo example and one additional due active transfer |
 | `research-validation` | Planned only | Future research-focused richer baseline |
 | `planet-full-validation` | Planned only | Future richer planet and construction baseline |
 
@@ -74,6 +74,18 @@ Expected Shipyard result:
 - `EscortCraft` and `ColonyCraft` remain blocked by missing building requirements.
 - Local orbital stock shows at least `EscortCraft x4` and `ScoutCraft x1`.
 - The queue shows one completed production row and no open order, so guarded enqueue remains available.
+
+## `fleet-validation` additions
+
+`fleet-validation` builds on `minimal-validation`, tops `Aurelia` up to at least `260` credits, `260` metal, `160` crystal, and `100` gas, adds one extra stationed `CargoCraft x1` at `Aurelia`, and adds one second active cargo transfer from `Aurelia` to `Aether Crown` with arrival `2026-06-01T10:00:00Z`.
+
+Expected Fleet result:
+
+- multiple stationed groups remain at `Aurelia`
+- one active transfer remains the standard in-flight baseline
+- one additional planned transfer is already due for `complete-due` QA
+- one controlled fleet group remains stationed away from `Aurelia`
+- origin-planet resource context remains visible for travel estimate and transfer actions
 
 ### Identity and ownership
 

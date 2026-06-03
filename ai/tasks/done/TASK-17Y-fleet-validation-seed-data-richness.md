@@ -3,7 +3,7 @@
 ---
 id: TASK-17Y-fleet-validation-seed-data-richness
 title: Fleet validation seed data richness
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

@@ -103,9 +103,21 @@ public static class DevelopmentSeedProfiles
             new("ownedPlanetId", "40000000-0000-0000-0000-000000000001", "Aurelia")
         ]);
 
-    public static readonly DevelopmentSeedProfileMetadata FleetValidation = CreatePlannedProfile(
+    public static readonly DevelopmentSeedProfileMetadata FleetValidation = new(
         "fleet-validation",
-        ["Fleets"]);
+        true,
+        "Implemented today. Use this for a fleet-focused richer QA baseline.",
+        "Additive and idempotent. Builds on minimal-validation, preserves current fleet command rules, and adds one extra stationed logistics example plus one due active transfer.",
+        ["Fleets"],
+        [
+            "/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001"
+        ],
+        [
+            new("civilizationId", "00000000-0000-0000-0000-000000000001", "Void Seed Civilization"),
+            new("ownedPlanetId", "40000000-0000-0000-0000-000000000001", "Aurelia"),
+            new("visiblePlanetId", "40000000-0000-0000-0000-000000000002", "Cinder Reach"),
+            new("visiblePlanetId", "40000000-0000-0000-0000-000000000003", "Aether Crown")
+        ]);
 
     public static readonly DevelopmentSeedProfileMetadata ResearchValidation = CreatePlannedProfile(
         "research-validation",

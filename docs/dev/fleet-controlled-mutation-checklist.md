@@ -21,7 +21,7 @@ For final manual QA, pair it with the Fleet cockpit v1 visual review section in 
 ## Local API preparation
 
 1. Start `VoidEmpires.Web` with development endpoints enabled and a disposable local database configured.
-2. Apply `POST /api/dev/seeds/apply` with `{"profile":"minimal-validation"}`.
+2. Apply `POST /api/dev/seeds/apply` with `{"profile":"fleet-validation"}` when you want the richer deterministic Fleet QA baseline. Use `minimal-validation` only for the smaller legacy baseline.
 3. Read `GET /api/dev/fleets/ui-state?civilizationId=00000000-0000-0000-0000-000000000001`.
 4. Copy a currently stationed scout-group id that can still request travel estimates.
 
@@ -35,7 +35,7 @@ For final manual QA, pair it with the Fleet cockpit v1 visual review section in 
 6. If validating the cancel path, submit `POST /api/dev/fleets/orbital-transfers/cancel` only for the currently visible active transfer and only after explicit confirmation.
 7. Confirm the cancel result identifies the cancelled transfer or group, clearly reports `estado actualizado`, and keeps the no-refund rule visible.
 8. Read `GET /api/dev/fleets/ui-state` again and confirm the cancelled transfer no longer appears active and the group is back in a stationed or available state.
-9. If validating the complete-due path instead, use a visible due transfer from `ui-state` or a seeded due-transfer scenario before submitting `POST /api/dev/fleets/orbital-transfers/complete-due` with an explicit UTC `nowUtc`.
+9. If validating the complete-due path instead, the richer `fleet-validation` seed already includes a visible due transfer scenario before submitting `POST /api/dev/fleets/orbital-transfers/complete-due` with an explicit UTC `nowUtc`.
 10. Confirm the complete-due result reports completed transfer and group ids, clearly reports `estado actualizado`, and removes the resolved due transfer from the active-transfer views after refresh.
 
 ## Visual QA focus
@@ -64,7 +64,7 @@ For the final manual browser pass, confirm:
 
 ## Recovery notes
 
-1. `minimal-validation` is additive and idempotent. It restores missing baseline rows only.
+1. `fleet-validation` is additive and idempotent. It restores its documented richer baseline rows only.
 2. Re-applying it does not delete extra transfers, reset reserved groups, or refund spent resources after create-transfer.
 3. Re-applying it also does not remove already-cancelled transfer rows or reconstruct spent travel resources after a cancel-transfer cycle.
 4. If you need the original baseline exactly, switch to a fresh disposable local database and then apply the seed again.
