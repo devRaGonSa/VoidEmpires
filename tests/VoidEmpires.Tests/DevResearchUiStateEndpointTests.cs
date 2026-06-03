@@ -127,7 +127,15 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
             payload.UiState.TechnologyHints,
             item => item.ResearchType == ResearchType.PlanetaryEngineering &&
                 item.CanEnqueue &&
-                item.StatusKey == "Available");
+                item.StatusKey == "Available" &&
+                item.EnqueueCommand is not null &&
+                item.EnqueueCommand.ActionKey == "research.order.enqueue" &&
+                item.EnqueueCommand.Method == "POST" &&
+                item.EnqueueCommand.Route == "/api/dev/research/orders/enqueue" &&
+                item.EnqueueCommand.CivilizationId == Guid.Parse(SeedCivilizationId) &&
+                item.EnqueueCommand.SourcePlanetId == Guid.Parse(SeedOwnedPlanetId) &&
+                item.EnqueueCommand.ResearchType == ResearchType.PlanetaryEngineering &&
+                item.EnqueueCommand.TargetLevel == 1);
         Assert.Contains(
             payload.UiState.TechnologyHints,
             item => item.ResearchType == ResearchType.ResourceExtraction &&
@@ -332,8 +340,19 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
         string AvailabilityReasonKey,
         bool CanEnqueue,
         bool CanCompleteDue,
+        TimeSpan EstimatedDuration,
         ResearchCost EstimatedCost,
+        DevResearchEnqueueCommandDto? EnqueueCommand,
         IReadOnlyList<string> RequirementKeys);
+
+    private sealed record DevResearchEnqueueCommandDto(
+        string ActionKey,
+        string Method,
+        string Route,
+        Guid CivilizationId,
+        Guid SourcePlanetId,
+        ResearchType ResearchType,
+        int TargetLevel);
 
     private sealed record EnqueueResearchOrderApiRequest(
         Guid? CivilizationId,

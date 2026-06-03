@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
-using System.Text.Json.Serialization;
 using VoidEmpires.Application.Identity;
 using VoidEmpires.Infrastructure;
 using VoidEmpires.Infrastructure.Email;
@@ -9,10 +8,6 @@ var builder = WebApplication.CreateBuilder(args);
 const string LocalFrontendDevelopmentCorsPolicy = "LocalFrontendDevelopment";
 
 builder.Services.Configure<BrevoEmailOptions>(builder.Configuration.GetSection(BrevoEmailOptions.SectionName));
-builder.Services.ConfigureHttpJsonOptions(options =>
-{
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
-});
 builder.Services.AddVoidEmpiresTransactionalEmail();
 builder.Services.AddVoidEmpiresGalaxyGeneration();
 builder.Services.AddCors(options =>

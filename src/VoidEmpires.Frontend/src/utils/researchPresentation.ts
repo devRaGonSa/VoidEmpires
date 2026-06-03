@@ -2,6 +2,7 @@ import { formatResourceType } from "./domainPresentation";
 import type {
   ResearchCost as ResearchCostDto,
   ResearchDefinitionDto,
+  ResearchEnqueueCommandDto,
   ResearchProjectDto,
   ResearchQueueItemDto,
   ResearchTechnologyHintDto,
@@ -37,6 +38,16 @@ export interface ResearchRequirement {
   label: string;
 }
 
+export interface ResearchEnqueueCommand {
+  actionKey: string;
+  method: string;
+  route: string;
+  civilizationId: string;
+  sourcePlanetId: string;
+  researchType: string;
+  targetLevel: number;
+}
+
 export type ResearchVisualState = "ready" | "blocked" | "active" | "completed";
 
 export interface ResearchTechnology {
@@ -51,6 +62,7 @@ export interface ResearchTechnology {
   availability: ResearchActionAvailability;
   estimatedDurationLabel: string;
   estimatedCostLabel: string;
+  enqueueCommand: ResearchEnqueueCommand | null;
   requirements: ResearchRequirement[];
   primaryActionLabel: string;
 }
@@ -512,6 +524,7 @@ function mapResearchTechnology(
     canEnqueue: hint?.canEnqueue ?? false,
     canCompleteDue: hint?.canCompleteDue ?? false,
   };
+  const enqueueCommand = mapResearchEnqueueCommand(hint?.enqueueCommand ?? null);
 
   return {
     researchType,
@@ -525,6 +538,7 @@ function mapResearchTechnology(
     availability,
     estimatedDurationLabel: formatResearchDuration(hint?.estimatedDuration),
     estimatedCostLabel: formatResearchCost(hint?.estimatedCost ?? definition.baseCost),
+    enqueueCommand,
     requirements: (hint?.requirementKeys ?? ["SourcePlanet", "ResearchQueueSlot", "ResourceStockpile"])
       .map((key) => ({ key: `${key}`, label: getResearchRequirementLabel(key) })),
     primaryActionLabel: getResearchPrimaryAction({
@@ -539,11 +553,28 @@ function mapResearchTechnology(
       availability,
       estimatedDurationLabel: formatResearchDuration(hint?.estimatedDuration),
       estimatedCostLabel: formatResearchCost(hint?.estimatedCost ?? definition.baseCost),
+      enqueueCommand,
       requirements: (hint?.requirementKeys ?? ["SourcePlanet", "ResearchQueueSlot", "ResourceStockpile"])
         .map((key) => ({ key: `${key}`, label: getResearchRequirementLabel(key) })),
       primaryActionLabel: "No disponible",
     }),
   } satisfies ResearchTechnology;
+}
+
+function mapResearchEnqueueCommand(command: ResearchEnqueueCommandDto | null): ResearchEnqueueCommand | null {
+  if (!command) {
+    return null;
+  }
+
+  return {
+    actionKey: command.actionKey,
+    method: command.method,
+    route: command.route,
+    civilizationId: command.civilizationId,
+    sourcePlanetId: command.sourcePlanetId,
+    researchType: `${command.researchType ?? ""}`.trim() || "Unknown",
+    targetLevel: command.targetLevel,
+  };
 }
 
 function mapResearchQueueItem(item: ResearchQueueItemDto) {
@@ -589,6 +620,7 @@ function mapResearchProject(item: ResearchProjectDto) {
     },
     estimatedDurationLabel: "No disponible",
     estimatedCostLabel: "Sin coste",
+    enqueueCommand: null,
     requirements: [],
     primaryActionLabel: "Completada",
   } satisfies ResearchTechnology;

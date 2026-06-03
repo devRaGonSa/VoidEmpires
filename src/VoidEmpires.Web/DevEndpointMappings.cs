@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json.Serialization;
 using VoidEmpires.Application.Development;
 using VoidEmpires.Application.Assets;
 using VoidEmpires.Application.Buildings;
@@ -704,6 +705,7 @@ internal sealed record ProcessAssetProductionApiResponse(
 internal sealed record EnqueueResearchOrderApiRequest(
     Guid? CivilizationId,
     Guid? SourcePlanetId,
+    [property: JsonConverter(typeof(JsonStringEnumConverter<ResearchType>))]
     ResearchType? ResearchType,
     DateTime? RequestedAtUtc);
 

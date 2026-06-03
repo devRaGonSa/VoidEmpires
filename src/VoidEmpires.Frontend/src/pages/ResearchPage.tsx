@@ -144,8 +144,7 @@ export function ResearchPage() {
     if (
       !preparedResearch ||
       !preparedResearch.availability.canEnqueue ||
-      !uiState?.civilizationId ||
-      !uiState.selectedPlanetId ||
+      !preparedResearch.enqueueCommand ||
       !hasSafeResearchEnqueue
     ) {
       return;
@@ -158,10 +157,11 @@ export function ResearchPage() {
     setTechnicalErrorDetail(null);
 
     try {
+      const { civilizationId, sourcePlanetId, researchType } = preparedResearch.enqueueCommand;
       const result = await enqueueResearchOrder({
-        civilizationId: uiState.civilizationId,
-        sourcePlanetId: uiState.selectedPlanetId,
-        researchType: preparedResearch.researchType,
+        civilizationId,
+        sourcePlanetId,
+        researchType,
         requestedAtUtc: new Date().toISOString(),
       });
 
@@ -181,7 +181,7 @@ export function ResearchPage() {
       setPreparedResearchType("");
       setHasEnqueueAcknowledgement(false);
 
-      const refreshed = await reloadResearchState(uiState.civilizationId, uiState.selectedPlanetId, false, true);
+      const refreshed = await reloadResearchState(civilizationId, sourcePlanetId, false, true);
       if (!refreshed) {
         setEnqueueError(
           "La orden se envio, pero la cabina no pudo recargar el estado actualizado. Refresca la vista para confirmar el resultado final.",

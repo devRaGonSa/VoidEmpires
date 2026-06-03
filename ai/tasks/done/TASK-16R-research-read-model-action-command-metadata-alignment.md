@@ -3,7 +3,7 @@
 ---
 id: TASK-16R-research-read-model-action-command-metadata-alignment
 title: Research read model action-command metadata alignment
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

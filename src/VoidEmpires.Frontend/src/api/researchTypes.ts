@@ -41,7 +41,18 @@ export interface ResearchTechnologyHintDto {
   canCompleteDue: boolean;
   estimatedDuration: string;
   estimatedCost: ResearchCost;
+  enqueueCommand?: ResearchEnqueueCommandDto | null;
   requirementKeys: readonly ResearchApiValue[];
+}
+
+export interface ResearchEnqueueCommandDto {
+  actionKey: string;
+  method: string;
+  route: string;
+  civilizationId: string;
+  sourcePlanetId: string;
+  researchType: ResearchApiValue;
+  targetLevel: number;
 }
 
 export interface ResearchUiStateDto {

@@ -126,6 +126,16 @@ internal static class DevResearchUiStateEndpoints
                         openOrder is not null && openOrder.EndsAtUtc <= DateTime.UtcNow,
                         estimatedDuration,
                         cost,
+                        selectedPlanet is not null
+                            ? new DevResearchEnqueueCommandDto(
+                                "research.order.enqueue",
+                                "POST",
+                                "/api/dev/research/orders/enqueue",
+                                civilizationId.Value,
+                                selectedPlanet.Id,
+                                researchType,
+                                nextLevel)
+                            : null,
                         ["SourcePlanet", "ResearchQueueSlot", "ResourceStockpile"]);
                 })
                 .ToArray();
@@ -202,5 +212,14 @@ internal sealed record DevResearchTechnologyHintDto(
     bool CanCompleteDue,
     TimeSpan EstimatedDuration,
     ResearchCost EstimatedCost,
+    DevResearchEnqueueCommandDto? EnqueueCommand,
     IReadOnlyList<string> RequirementKeys);
 
+internal sealed record DevResearchEnqueueCommandDto(
+    string ActionKey,
+    string Method,
+    string Route,
+    Guid CivilizationId,
+    Guid SourcePlanetId,
+    ResearchType ResearchType,
+    int TargetLevel);
