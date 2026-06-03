@@ -3,7 +3,7 @@
 ---
 id: TASK-15H
 title: Sidebar labels and module status consistency
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

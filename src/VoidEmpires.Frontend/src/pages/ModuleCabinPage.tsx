@@ -111,7 +111,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
         <div className="figma-badge-row">
           <UiBadge>Cabina preparada para futura implementación.</UiBadge>
           <UiBadge tone="warn">Esta sección no ejecuta órdenes todavía.</UiBadge>
-          <UiBadge tone="warn">Modulo especializado y seguro</UiBadge>
+          <UiBadge tone="warn">Proximamente</UiBadge>
         </div>
       </UiCard>
 
