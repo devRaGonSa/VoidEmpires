@@ -92,7 +92,7 @@ Example:
 
 Primary deterministic local QA routes:
 
-- Galaxy: `/?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Galaxy: `/galaxy?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Planet: `/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Construction: `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Research: `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
@@ -103,7 +103,7 @@ Primary deterministic local QA routes:
 
 Route note:
 
-- The current Galaxy cockpit uses the root route (`/`) rather than a separate `/galaxy` path.
+- `/galaxy` is the canonical Galaxy route. `/` remains supported as a compatibility alias.
 - Ground Army and Defenses remain placeholder/readiness cabins; seed profiles preserve navigation context for them but do not turn them into full gameplay cockpits.
 
 ## Dependency map
@@ -142,6 +142,15 @@ The seeded orbital groups, transfer row, and queue rows do not use fixed ids. In
 ## `cockpit-validation` additions
 
 `cockpit-validation` builds on `minimal-validation`, tops `Aurelia` up to at least `220` credits, `320` metal, `220` crystal, and `120` gas, and then adds one completed construction row, one completed `EnergySystems` research order plus project, and one completed orbital `ScoutCraft` production order plus local `ScoutCraft` stock. It stays non-destructive and avoids extra pending or active queue rows so the current executable cockpit actions remain available.
+
+Expected Galaxy result for screenshot QA:
+
+- one visible strategic system: `Helios Gate`
+- three visible planets in that system: owned `Aurelia`, visible comparison `Cinder Reach`, and visible comparison `Aether Crown`
+- one owned-system summary row with non-zero visible, owned, fleet-marker, and transfer-marker counts
+- three fleet markers from the seeded stationed groups
+- one transfer overlay from the seeded planned cargo route
+- enough read-state for the legend, focus panel, transfer summary, and collapsed diagnostics to render together without looking empty
 
 ## `shipyard-validation` additions
 
@@ -299,7 +308,7 @@ Expected Planet and Construction result:
 
 | Screen | Deterministic URL | Seeded rows it depends on | Queue expectation |
 |---|---|---|---|
-| Galaxy | `/?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` | civilization, `Helios Gate`, all three planets, `Aurelia` ownership, seeded orbital groups, planned transfer | no queue dependency |
+| Galaxy | `/galaxy?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` | civilization, `Helios Gate`, all three planets, `Aurelia` ownership, seeded orbital groups, planned transfer | no queue dependency |
 | Planet | `/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` | owned planet, stockpile, production profile, building capacity, seeded buildings, ownership, orbital counts derived from groups and transfer | construction queue should start empty in a fresh database |
 | Construction | `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` | same `Aurelia` colony rows as Planet, especially stockpile, buildings, and capacity | construction queue should start empty in a fresh database |
 | Research | `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` | civilization, owned planet, `Helios Gate` context, `Aurelia` stockpile | research queue and research projects should both start empty in a fresh database |

@@ -319,13 +319,31 @@ public class DevelopmentSeedServiceTests
         var system = Assert.Single(result.Systems);
         Assert.Equal(SystemId, system.SystemId);
         Assert.Equal("Helios Gate", system.SystemName);
+        Assert.Equal(MapVisibilityLevel.Visible, system.VisibilityLevel);
         Assert.True(system.IsVisible);
+        Assert.Equal(12, system.CoordinateX);
+        Assert.Equal(-4, system.CoordinateY);
+        Assert.Equal(3, system.CoordinateZ);
         Assert.Equal(3, system.Planets.Count);
-        Assert.Contains(system.Planets, x => x.PlanetId == OwnedPlanetId && x.IsOwnedByRequestingCivilization);
-        Assert.Contains(system.Planets, x => x.PlanetId == VisibleComparisonPlanetId && x.IsVisible && !x.IsOwnedByRequestingCivilization);
-        Assert.Contains(system.Planets, x => x.PlanetId == KnownComparisonPlanetId && x.IsVisible && !x.IsOwnedByRequestingCivilization);
-        Assert.NotEmpty(system.FleetPresence);
-        Assert.NotEmpty(system.TransferOverlays);
+        Assert.Contains(system.Planets, x =>
+            x.PlanetId == OwnedPlanetId &&
+            x.PlanetName == "Aurelia" &&
+            x.IsOwnedByRequestingCivilization &&
+            x.VisibilityLevel == MapVisibilityLevel.Owned);
+        Assert.Contains(system.Planets, x =>
+            x.PlanetId == VisibleComparisonPlanetId &&
+            x.PlanetName == "Cinder Reach" &&
+            x.IsVisible &&
+            !x.IsOwnedByRequestingCivilization &&
+            x.VisibilityLevel == MapVisibilityLevel.Visible);
+        Assert.Contains(system.Planets, x =>
+            x.PlanetId == KnownComparisonPlanetId &&
+            x.PlanetName == "Aether Crown" &&
+            x.IsVisible &&
+            !x.IsOwnedByRequestingCivilization &&
+            x.VisibilityLevel == MapVisibilityLevel.Visible);
+        Assert.Equal(3, system.FleetPresence.Count);
+        Assert.Single(system.TransferOverlays);
     }
 
     private static StrategicMapService CreateStrategicMapService(VoidEmpiresDbContext dbContext) =>

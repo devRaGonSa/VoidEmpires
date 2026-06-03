@@ -24,6 +24,7 @@ public class DevStrategicMapEndpointTests(WebApplicationFactory<Program> factory
     private static readonly Guid SeedSystemId = Guid.Parse("20000000-0000-0000-0000-000000000001");
     private static readonly Guid SeedOwnedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
     private static readonly Guid SeedVisibleComparisonPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000002");
+    private static readonly Guid SeedKnownComparisonPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000003");
     private static readonly Guid CivilizationId = Guid.Parse("5d6b762b-fdd9-453f-b6b4-67d36c7e2cb4");
     private static readonly Guid OtherCivilizationId = Guid.Parse("4921e837-a3e7-4b65-b7a3-5d3086851ed0");
 
@@ -133,10 +134,11 @@ public class DevStrategicMapEndpointTests(WebApplicationFactory<Program> factory
         Assert.Equal("Helios Gate", system.SystemName);
         Assert.True(system.IsVisible);
         Assert.True(system.Planets.Count >= 3);
-        Assert.Contains(system.Planets, x => x.PlanetId == SeedOwnedPlanetId && x.IsOwnedByRequestingCivilization);
-        Assert.Contains(system.Planets, x => x.PlanetId == SeedVisibleComparisonPlanetId && x.IsVisible && !x.IsOwnedByRequestingCivilization);
-        Assert.NotEmpty(system.FleetPresence);
-        Assert.NotEmpty(system.TransferOverlays);
+        Assert.Contains(system.Planets, x => x.PlanetId == SeedOwnedPlanetId && x.PlanetName == "Aurelia" && x.IsOwnedByRequestingCivilization);
+        Assert.Contains(system.Planets, x => x.PlanetId == SeedVisibleComparisonPlanetId && x.PlanetName == "Cinder Reach" && x.IsVisible && !x.IsOwnedByRequestingCivilization);
+        Assert.Contains(system.Planets, x => x.PlanetId == SeedKnownComparisonPlanetId && x.PlanetName == "Aether Crown" && x.IsVisible && !x.IsOwnedByRequestingCivilization);
+        Assert.Equal(3, system.FleetPresence.Count);
+        Assert.Single(system.TransferOverlays);
     }
 
     private HttpClient CreateConfiguredClient(GetStrategicMapResult result) =>

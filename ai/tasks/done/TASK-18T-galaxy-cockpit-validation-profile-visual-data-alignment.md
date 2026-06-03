@@ -3,7 +3,7 @@
 ---
 id: TASK-18T-galaxy-cockpit-validation-profile-visual-data-alignment
 title: Galaxy cockpit validation profile visual data alignment
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
