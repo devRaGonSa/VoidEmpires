@@ -476,7 +476,7 @@ export function ResearchPage() {
                 <div className="figma-data-row"><span>Duracion</span><strong>{preparedResearch.estimatedDurationLabel}</strong></div>
               </div>
               <p className="figma-panel-note">
-                {preparedResearch.availability.reasonLabel === "Hueco en cola"
+                {preparedResearch.availability.reasonKey === "Ready"
                   ? "La orden esta lista para enviarse cuando confirmes."
                   : `La cabina validara tambien: ${preparedResearch.availability.reasonLabel}.`}
               </p>

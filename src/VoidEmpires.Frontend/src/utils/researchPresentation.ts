@@ -27,6 +27,7 @@ export interface ResearchActionAvailability {
   label: string;
   reasonKey: string;
   reasonLabel: string;
+  reasonTechnicalDetail: string | null;
   canEnqueue: boolean;
   canCompleteDue: boolean;
 }
@@ -124,6 +125,17 @@ const researchStatusCatalog: LabelCatalog = {
 const researchRequirementCatalog: LabelCatalog = {
   names: { SourcePlanet: "Planeta de origen", Civilization: "Civilizacion", ResearchLab: "Laboratorio de investigacion", ResourceStockpile: "Reservas de recursos", ResearchQueueSlot: "Hueco en cola", PlanetaryEngineering: "Ingenieria planetaria", ResourceExtraction: "Extraccion de recursos", EnergySystems: "Sistemas energeticos", ConstructionAutomation: "Automatizacion de construccion", Propulsion: "Propulsion", ShipWeapons: "Armas de nave", Shielding: "Escudos", Espionage: "Espionaje" },
   numbers: { 1: "Planeta de origen", 2: "Civilizacion", 3: "Laboratorio de investigacion", 4: "Reservas de recursos", 5: "Hueco en cola", 6: "Ingenieria planetaria", 7: "Extraccion de recursos", 8: "Sistemas energeticos", 9: "Automatizacion de construccion", 10: "Propulsion", 11: "Armas de nave", 12: "Escudos", 13: "Espionaje" },
+};
+
+const researchAvailabilityReasonCatalog: LabelCatalog = {
+  names: {
+    Ready: "Lista para iniciar",
+    OpenQueueSlot: "Ya hay una investigacion activa en la cola",
+    SourcePlanetMissing: "Falta un planeta de origen valido",
+    InsufficientResources: "Recursos insuficientes",
+    RequirementPending: "Requisito no disponible en esta build",
+    NotAvailableInThisBuild: "No disponible en esta build",
+  },
 };
 
 const researchBonusCatalog: LabelCatalog = {
@@ -227,6 +239,22 @@ export function getResearchStatusLabel(value: ResearchValue, fallback = "Estado 
 
 export function getResearchRequirementLabel(value: ResearchValue, fallback = "Requisito pendiente de clasificar") {
   return resolveLabel(value, researchRequirementCatalog, fallback, true);
+}
+
+function resolveResearchAvailabilityReason(value: ResearchValue) {
+  const fallback = "Requisito no disponible en esta build";
+  const label = resolveLabel(value, researchAvailabilityReasonCatalog, fallback, true);
+  if (label !== fallback) {
+    return { label, technicalDetail: null };
+  }
+
+  const technicalDetail = typeof value === "string" && value.trim()
+    ? value.trim()
+    : typeof value === "number"
+      ? `${value}`
+      : null;
+
+  return { label: fallback, technicalDetail };
 }
 
 export function getResearchBonusLabel(value: ResearchValue, fallback = "Beneficio pendiente de clasificar") {
@@ -409,11 +437,13 @@ function mapResearchTechnology(
   const bonusLabel = getResearchBonusLabel(bonusKey);
   const currentLevel = hint?.currentLevel ?? projectLevel ?? 0;
   const nextLevel = hint?.nextLevel ?? currentLevel + 1;
+  const reason = resolveResearchAvailabilityReason(hint?.availabilityReasonKey ?? "SourcePlanetMissing");
   const availability: ResearchActionAvailability = {
     key: hint?.statusKey ?? (projectLevel ? "Completed" : "Blocked"),
     label: getResearchStatusLabel(hint?.statusKey ?? (projectLevel ? "Completed" : "Blocked")),
-    reasonKey: hint?.availabilityReasonKey ?? "SourcePlanet",
-    reasonLabel: getResearchRequirementLabel(hint?.availabilityReasonKey ?? "SourcePlanet"),
+    reasonKey: hint?.availabilityReasonKey ?? "SourcePlanetMissing",
+    reasonLabel: reason.label,
+    reasonTechnicalDetail: reason.technicalDetail,
     canEnqueue: hint?.canEnqueue ?? false,
     canCompleteDue: hint?.canCompleteDue ?? false,
   };
@@ -488,6 +518,7 @@ function mapResearchProject(item: ResearchProjectDto) {
       label: "Completada",
       reasonKey: "ResearchQueueSlot",
       reasonLabel: getResearchRequirementLabel("ResearchQueueSlot"),
+      reasonTechnicalDetail: null,
       canEnqueue: false,
       canCompleteDue: false,
     },
@@ -507,6 +538,11 @@ export function mapResearchUiStateToViewModel(state: ResearchUiStateDto): Resear
     projectLevels.get(`${definition.researchType}`) ?? null,
   ));
   const projects = state.projects.map((project) => mapResearchProject(project));
+  const unknownReasonCodes = Array.from(new Set(
+    catalog
+      .map((technology) => technology.availability.reasonTechnicalDetail)
+      .filter((detail): detail is string => Boolean(detail)),
+  ));
 
   return {
     civilizationId: state.civilizationId,
@@ -522,6 +558,7 @@ export function mapResearchUiStateToViewModel(state: ResearchUiStateDto): Resear
         `Catalogo: ${catalog.length} tecnologias.`,
         `Cola activa: ${state.queue.filter((item) => `${item.status}` === "1" || `${item.status}` === "2").length} ordenes.`,
         `Proyectos completados: ${projects.length}.`,
+        ...(unknownReasonCodes.length > 0 ? [`Motivos sin clasificar: ${unknownReasonCodes.join(", ")}.`] : []),
       ],
       limitations: [...state.limitations],
     },

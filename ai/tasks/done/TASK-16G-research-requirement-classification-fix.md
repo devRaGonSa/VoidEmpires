@@ -3,7 +3,7 @@
 ---
 id: TASK-16G-research-requirement-classification-fix
 title: Research requirement classification fix
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
