@@ -3,7 +3,7 @@
 ---
 id: TASK-15I
 title: Regression QA for galaxy fleets planet construction navigation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
