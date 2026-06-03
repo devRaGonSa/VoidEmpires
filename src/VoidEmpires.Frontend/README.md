@@ -2,7 +2,7 @@
 
 This project is the current development-only frontend shell for VoidEmpires.
 
-It is a Vite + React + TypeScript prototype that consumes backend readiness contracts and intentionally avoids production auth, gameplay mutation wiring, WebSockets, and 3D rendering. The current strategic map route is a read-only playable cockpit slice: it renders a simple 2D map, supports read-only system and planet selection, exposes fleet and transfer overlay cues, and keeps renderer-facing payloads behind secondary technical details.
+It is a Vite + React + TypeScript prototype that consumes backend readiness contracts and intentionally avoids production auth, gameplay mutation wiring beyond guarded development-safe construction enqueue and fleet transfer flows, WebSockets, and 3D rendering. The current cockpit set now includes a polished read-only strategic map, a first Planet colony-management surface, and the existing Fleet cockpit.
 `package-lock.json` is intentionally tracked for deterministic frontend installs in this repository.
 
 ## Prerequisites
@@ -53,11 +53,13 @@ npm run build
 ## Consumed backend endpoints
 
 - `GET /api/dev/strategic-map?civilizationId={id}`
+- `GET /api/dev/planets/ui-state?civilizationId={id}&planetId={optional}`
 - `GET /api/dev/fleets/ui-state?civilizationId={id}`
 - `GET /api/dev/fleets/action-manifest`
 - `GET /api/dev/strategic-map/action-manifest`
 - `GET /api/dev/solar-systems/{systemId}/visual-state`
 - `GET /api/dev/planets/{planetId}/visual-state`
+- `POST /api/dev/buildings/construction-orders/enqueue`
 
 ## Current strategic map behavior
 
@@ -68,7 +70,16 @@ npm run build
 - Shows fleet markers and transfer overlay cues directly in the map legend and stage.
 - Lets the user load system and visible-planet visual-state previews as renderer-facing development payloads from a collapsed technical drawer.
 - Keeps readiness metadata visibly non-authoritative and non-mutating.
-- Keeps `/fleets` as the only live navigation target from the strategic cockpit; Planet navigation remains a labeled placeholder.
+- Keeps Galaxy read-only while allowing links into `/planet` and `/fleets` with URL-based context.
+
+## Current planet behavior
+
+- Loads the Planet UI-state read model for a civilization id and optional `planetId`.
+- Defaults to the home or first owned planet when `planetId` is omitted.
+- Renders a 2D colony cockpit with identity, resources, production, buildings, queue, guarded construction options, and collapsed diagnostics.
+- Uses explicit confirmation before calling `POST /api/dev/buildings/construction-orders/enqueue`.
+- Keeps complete-due visibly disabled because the current backend completion endpoint is global and not planet-scoped.
+- Links back to Galaxy and toward Fleets with simple query-param context.
 
 ## Current fleet behavior
 
@@ -118,7 +129,7 @@ Phase 9L adds the first Figma-aligned shell layer:
 - `SidebarNav` for Figma navigation labels with safe disabled placeholders
 - `UiCard`, `UiBadge`, `UiProgressBar`, and `DevEndpointNotice` as reusable shell primitives
 
-Only `Galaxia` and `Flotas` are active routes in the sidebar today. Other labels mirror the Figma navigation vocabulary but remain disabled until those read surfaces exist.
+`Galaxia`, `Planeta`, and `Flotas` are active routes in the sidebar today. Other labels mirror the Figma navigation vocabulary but remain disabled until those read surfaces exist.
 
 ## Runtime assumptions
 
@@ -126,7 +137,7 @@ Only `Galaxia` and `Flotas` are active routes in the sidebar today. Other labels
   - `ASPNETCORE_ENVIRONMENT=Development`, or
   - `VoidEmpires:DevEndpoints:Enabled=true`
 - Persistence-backed reads still return `503` when `ConnectionStrings:DefaultConnection` is empty.
-- A valid civilization id is required for the strategic map and fleet UI state pages.
+- A valid civilization id is required for the strategic map, planet, and fleet pages.
 
 ## Current limitations
 
@@ -134,8 +145,10 @@ Only `Galaxia` and `Flotas` are active routes in the sidebar today. Other labels
 - Readiness metadata is not gameplay authorization.
 - Visual-state previews are renderer-facing dev contracts, not final rendering.
 - `create transfer` mutates development data and is allowed only behind the explicit confirmation flow.
+- `enqueue construction` mutates development data and is allowed only behind the explicit confirmation flow.
 - `cancel transfer` also mutates development data, is allowed only behind the explicit confirmation flow, and does not refund previously charged travel resources.
 - Re-applying the `minimal-validation` seed is additive and idempotent, but it does not remove extra transfers, reset group state, or refill already-existing stockpiles after a mutation run.
+- `complete-due` for planet construction is intentionally disabled from the Planet UI in this build because the current backend completion endpoint is global rather than planet-scoped.
 - `split`, `merge`, and exploration creation remain manifest metadata only.
 - No production authentication is implemented.
 - No polling, WebSockets, or final renderer pipeline is implemented.
@@ -163,9 +176,10 @@ Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/fleets/orbita
 
 If a previous local run already mutated fleet state, inspect `ui-state` first. Re-applying `minimal-validation` restores missing baseline rows only; use a fresh disposable local database when you need the original transfer/resource baseline back.
 
-For Fleet cockpit v1, use `docs/dev/frontend-foundation-smoke-checklist.md` as the final manual visual QA checklist after the required non-visual validation commands succeed.
+For Fleet, Galaxy, and Planet cockpit v1, use `docs/dev/frontend-foundation-smoke-checklist.md` as the combined manual visual QA checklist after the required non-visual validation commands succeed.
 Focus the browser review on mostly Spanish shell labels, a readable rail + selected-group + action-column hierarchy, explicit create/cancel confirmations, secondary compact ids, readable resource context, readable estimate results, and readable result or error feedback without dominant raw enum numbers or `NetworkError` text.
 Also confirm the active-transfer panel remains obvious, progress-aware, due-aware, and action-aware, while technical manifests stay collapsed behind development details by default and only `split` and `merge` remain prototype-only.
 Also confirm the compact development header, cleaned primary labels, and visually distinct step states across the five-step order flow.
 
 For the current Galaxia cockpit, also confirm the first viewport keeps the map as the dominant surface, the focused-system and planet panels stay readable without raw API language dominating, fleet and transfer overlays remain visually distinct, and the technical drawer stays secondary to the gameplay-like read surface.
+For the current Planet cockpit, also confirm the page feels like a colony-management surface rather than a debug dump, construction creation is the only executable Planet mutation path, and complete-due remains clearly disabled.

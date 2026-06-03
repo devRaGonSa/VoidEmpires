@@ -3,6 +3,7 @@
 Use this checklist to validate the current frontend prototype without confusing it with production UI.
 
 For the current Fleet estimate -> confirm -> create-transfer -> confirm -> cancel-transfer or complete-due paths, pair this document with `docs/dev/fleet-controlled-mutation-checklist.md`.
+For the current Galaxy and Planet cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md` and `docs/dev/planet-cockpit-checklist.md`.
 
 ## Backend prerequisites
 
@@ -35,20 +36,32 @@ Fleet cockpit v1 acceptance boundary:
    - selecting a system from the map updates the active focus rail and the focused-system panel
    - selecting a system from the chip list updates the same focused-system panel
    - the primary strategic surface reads mostly in Spanish and keeps technical or API-oriented language out of the first viewport where practical
-   - selecting a visible planet updates the planet details, keeps command metadata read-only, and shows the current navigation intent toward `Flotas`
-   - the `Vista Planeta en preparacion` placeholder stays visibly non-routable
+   - selecting a visible planet updates the planet details, keeps command metadata read-only, and shows the current navigation intent toward `Flotas` and `Planeta`
    - the technical drawer starts collapsed and keeps renderer payloads, readiness ledgers, and raw JSON secondary
    - `Load system visual state` returns a compact summary plus raw JSON details when the backend is running
    - `Load planet visual state` works for visible planets and stays read-only/dev-only
    - no button on the map page executes a gameplay mutation
-9. Open the `Fleets` route.
-10. Enter the same civilization id and confirm the new cockpit layout renders in clearly separated sections:
+9. Open the `Planet` route.
+10. Enter the same civilization id or arrive from Galaxy and confirm:
+   - `/planet` loads as a real cockpit route
+   - when `planetId` is omitted, the page defaults to the home or first owned planet
+   - the first viewport prioritizes identity, colony state, resources, buildings, queue, and guarded actions
+   - resources, production, and capacity read clearly in Spanish
+   - buildings are grouped into readable categories
+   - the queue shows readable timing and status cues, or `No hay construcciones en cola.`
+   - construction actions show readable availability states and only available actions can be prepared
+   - the enqueue flow requires explicit confirmation and refreshes after success
+   - the complete-due area stays disabled with `No disponible en esta build`
+   - links back to Galaxy and toward Fleets preserve context
+   - diagnostics remain collapsed by default
+11. Open the `Fleets` route.
+12. Enter the same civilization id and confirm the new cockpit layout renders in clearly separated sections:
    - a top command deck summarizes groups, active transfers, resource contexts, and action hints
    - an orbital group rail lists the available groups with readable asset type, current planet, and compact identifiers
    - a selected-group panel shows asset type, quantity, status, current planet, origin planet, readiness, and active transfer context when present
    - a command column groups estimate inputs, latest estimate state, guarded create-transfer confirmation, and guarded cancel-transfer confirmation together
    - prototype-only mutation controls remain separated from the executable command column
-11. Within the same Fleet cockpit, confirm:
+13. Within the same Fleet cockpit, confirm:
    - loading state appears
    - fleet group summaries render as readable rail cards and raw GUIDs stay secondary to ship or planet labels
    - the read-only estimate flow can submit `POST /api/dev/fleets/orbital-travel/estimate` and render loading, success, validation, not-found, conflict, or network-error feedback without creating a transfer
@@ -64,7 +77,7 @@ Fleet cockpit v1 acceptance boundary:
    - feedback areas for estimate, create-transfer, cancel-transfer, and complete-due results render readable success, warning, or error messaging rather than JSON-first output
    - fleet and strategic-map manifests render as read-only contract panels
    - mutating manifest actions remain labeled but unavailable from the frontend
-12. For the final Fleet cockpit v1 visual review, confirm:
+14. For the final Fleet cockpit v1 visual review, confirm:
    - the development entry and endpoint context stay visible but compact, so gameplay panels appear in the first viewport earlier than before
    - the screen reads mostly in Spanish and no mixed English labels dominate the main flow
    - primary action labels read like gameplay actions, while cockpit or technical flavor stays secondary
@@ -80,7 +93,7 @@ Fleet cockpit v1 acceptance boundary:
    - active transfers remain visible at a glance with route, status, timeline, progress, due-state cues, and only the currently available controlled actions
    - result and error feedback remain readable at a glance, and no raw enum numbers or `NetworkError` text dominates the panel
    - technical manifests and future mutation metadata stay collapsed or clearly secondary under development details
-13. Confirm no buttons other than the explicit `create transfer`, `cancel transfer`, and `complete due` confirmation paths execute mutating dev endpoints from either route.
+15. Confirm no buttons other than the explicit `create transfer`, `cancel transfer`, `complete due`, and Planet `enqueue construction` confirmation paths execute mutating dev endpoints from any route.
 
 Strategic map cockpit v1 visual review:
 
@@ -91,6 +104,14 @@ Strategic map cockpit v1 visual review:
 - Confirm ids remain secondary metadata only.
 - Confirm the read-only boundary is always visible and the page does not imply command authority.
 - Confirm technical diagnostics remain collapsed or clearly secondary after the cockpit loads.
+
+Planet cockpit v1 visual review:
+
+- Confirm the first viewport reads like a management cockpit rather than a debug payload dump.
+- Confirm identity, resources, buildings, queue, and actions appear in that order before diagnostics.
+- Confirm primary labels are Spanish-first and raw ids remain secondary.
+- Confirm construction creation is the only executable Planet mutation path and still requires explicit confirmation.
+- Confirm complete-due remains visibly disabled in this build.
 
 ## Repository validation
 
