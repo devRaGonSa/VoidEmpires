@@ -288,13 +288,13 @@ export function PlanetPage() {
           <h2>Gestion de colonia en 2D</h2>
           <p>
             La superficie de Planeta prioriza identidad colonial, recursos,
-            edificios y cola de construccion antes que payloads tecnicos.
+            edificios y cola de construccion antes que datos tecnicos.
           </p>
         </div>
         <div className="figma-badge-row">
           <UiBadge>Sin 3D</UiBadge>
-          <UiBadge>Mutaciones solo dev y confirmadas</UiBadge>
-          <UiBadge tone="warn">Galaxia sigue en solo lectura</UiBadge>
+          <UiBadge>Acciones seguras y confirmadas</UiBadge>
+          <UiBadge tone="warn">Galaxia permanece en observacion</UiBadge>
         </div>
       </UiCard>
 
@@ -305,7 +305,7 @@ export function PlanetPage() {
               <p className="eyebrow">Enlace planetario</p>
               <h3>Cargar cabina de planeta</h3>
             </div>
-            <UiBadge>Solo dev</UiBadge>
+            <UiBadge>Uso local</UiBadge>
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
@@ -366,15 +366,15 @@ export function PlanetPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Limites actuales</p>
-              <h3>Seguridad de la build</h3>
+              <h3>Seguridad operativa</h3>
             </div>
-            <UiBadge tone="warn">Guardrails activos</UiBadge>
+            <UiBadge tone="warn">Protecciones activas</UiBadge>
           </div>
           <ul className="stack-list strategic-rules-list">
-            <li>Solo la cola de construccion usa una mutacion dev y siempre requiere confirmacion explicita.</li>
-            <li>Completar construcciones vencidas sigue deshabilitado desde esta cabina porque el backend actual opera en lote global.</li>
-            <li>No se introducen renderer 3D, combate, WebSockets ni autenticacion de produccion.</li>
-            <li>Los ids, claves y notas tecnicas permanecen plegados como diagnostico secundario.</li>
+            <li>Solo puedes enviar una orden de construccion cuando la colonia esta lista y confirmas la accion.</li>
+            <li>El cierre de obras vencidas sigue fuera de esta cabina y se gestiona por separado.</li>
+            <li>Esta vista se centra en administracion colonial, no en combate ni maniobras espaciales.</li>
+            <li>Los ids y notas tecnicas quedan guardados en el diagnostico secundario.</li>
           </ul>
         </UiCard>
       </div>
@@ -521,7 +521,7 @@ export function PlanetPage() {
                 </div>
               ) : (
                 <p className="figma-panel-note">
-                  Sin perfil de produccion configurado para esta build o para este planeta.
+                  Este planeta todavia no muestra un perfil de produccion disponible.
                 </p>
               )}
             </UiCard>
@@ -624,10 +624,10 @@ export function PlanetPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Desarrollo disponible</p>
-                <h3>Acciones de construccion y guardrails</h3>
+                <h3>Acciones de construccion protegidas</h3>
                 <p>
-                  El panel solo permite preparar una orden cuando el backend actual la
-                  soporta y el estado local sigue siendo seguro.
+                  Solo puedes preparar una orden cuando la colonia cumple las
+                  condiciones actuales y la operacion sigue siendo segura.
                 </p>
               </div>
               <div className="figma-badge-row">
@@ -638,7 +638,7 @@ export function PlanetPage() {
                 <UiBadge tone="warn">
                   {planet.actionSummary.completeDueSupported
                     ? "Cierre disponible"
-                    : planet.actionSummary.display?.completeDueActionStatusLabel ?? "No disponible en esta build"}
+                    : planet.actionSummary.display?.completeDueActionStatusLabel ?? "No disponible en esta cabina"}
                 </UiBadge>
               </div>
             </div>
@@ -731,10 +731,10 @@ export function PlanetPage() {
                     <h4>{formatBuildingType(preparedAction.buildingType)}</h4>
                     <p>
                       Revisa coste, objetivo y duracion antes de enviar la orden a la
-                      cola de desarrollo.
+                      cola de construccion.
                     </p>
                   </div>
-                  <UiBadge tone="warn">Accion protegida</UiBadge>
+                  <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
                 </div>
                 <div className="figma-data-list">
                   <PlanetDataRow
@@ -759,7 +759,7 @@ export function PlanetPage() {
                       setHasConstructionAcknowledgement(event.target.checked)
                     }
                   />
-                  <span>Confirmo que quiero enviar esta orden de construccion dev</span>
+                  <span>Confirmo que quiero enviar esta orden de construccion</span>
                 </label>
                 <div className="transfer-confirmation-actions">
                   <button
@@ -781,7 +781,7 @@ export function PlanetPage() {
             <summary>
               <div>
                 <p className="eyebrow">Diagnostico secundario</p>
-                <strong>Ids, notas dev y pistas de backend</strong>
+                <strong>Ids, notas de soporte y lectura tecnica</strong>
               </div>
               <UiBadge tone="warn">Contraido por defecto</UiBadge>
             </summary>
@@ -793,7 +793,7 @@ export function PlanetPage() {
                     <p className="eyebrow">Metadatos tecnicos</p>
                     <h3>Lectura de soporte</h3>
                   </div>
-                  <UiBadge>Solo diagnostico</UiBadge>
+                  <UiBadge>Soporte tecnico</UiBadge>
                 </div>
                 <div className="figma-detail-grid strategic-detail-grid">
                   <section className="subpanel figma-subpanel">
@@ -816,7 +816,7 @@ export function PlanetPage() {
                   <section className="subpanel figma-subpanel">
                     <div className="figma-data-list">
                       <PlanetDataRow
-                        label="Stockpile persistido"
+                        label="Reserva persistida"
                         value={planet.diagnostics.hasResourceStockpile ? "Si" : "No"}
                       />
                       <PlanetDataRow

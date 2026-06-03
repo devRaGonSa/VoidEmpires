@@ -3,7 +3,7 @@
 ---
 id: TASK-14E
 title: Phase 14E - Planet primary copy Spanish and technical demotion
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
