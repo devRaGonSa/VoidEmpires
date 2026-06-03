@@ -76,6 +76,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IDevFleetActionManifestService, DevFleetActionManifestService>();
         services.AddScoped<IDevFleetUiStateService, DevFleetUiStateService>();
         services.AddScoped<IDevPlanetUiStateService, DevPlanetUiStateService>();
+        services.AddScoped<IDevDefenseUiStateService, DevDefenseUiStateService>();
         services.AddScoped<IPlanetVisualStateService, PlanetVisualStateService>();
         services.AddScoped<ISystemVisualStateService, SystemVisualStateService>();
         services.AddScoped<IStrategicMapService, StrategicMapService>();

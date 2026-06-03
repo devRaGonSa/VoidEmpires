@@ -12,7 +12,18 @@ public interface IDevPlanetUiStateService
         CancellationToken cancellationToken = default);
 }
 
+public interface IDevDefenseUiStateService
+{
+    Task<GetDevDefenseUiStateResult> GetAsync(
+        GetDevDefenseUiStateRequest request,
+        CancellationToken cancellationToken = default);
+}
+
 public sealed record GetDevPlanetUiStateRequest(
+    Guid CivilizationId,
+    Guid? PlanetId = null);
+
+public sealed record GetDevDefenseUiStateRequest(
     Guid CivilizationId,
     Guid? PlanetId = null);
 
@@ -21,6 +32,13 @@ public sealed record GetDevPlanetUiStateResult(
     Guid? SelectedPlanetId,
     IReadOnlyList<DevPlanetOptionDto> KnownPlanets,
     DevPlanetCockpitDto? Planet,
+    IReadOnlyList<string> Errors);
+
+public sealed record GetDevDefenseUiStateResult(
+    Guid CivilizationId,
+    Guid? SelectedPlanetId,
+    IReadOnlyList<DevPlanetOptionDto> KnownPlanets,
+    DevDefenseCockpitDto? Defenses,
     IReadOnlyList<string> Errors);
 
 public sealed record DevPlanetOptionDto(
@@ -52,6 +70,23 @@ public sealed record DevPlanetCockpitDto(
     IReadOnlyList<DevPlanetConstructionActionDto> ConstructionActions,
     DevPlanetOrbitalContextDto OrbitalContext,
     DevPlanetDiagnosticsDto Diagnostics);
+
+public sealed record DevDefenseCockpitDto(
+    Guid PlanetId,
+    string PlanetName,
+    Guid SolarSystemId,
+    string SolarSystemName,
+    bool IsOwnedByRequestingCivilization,
+    Guid? OwnerCivilizationId,
+    string? OwnerCivilizationName,
+    PlanetControlStatus? ControlStatus,
+    IReadOnlyList<DevPlanetResourceBalanceDto> ResourceStockpile,
+    IReadOnlyList<DevPlanetBuildingDto> DefenseStructures,
+    IReadOnlyList<DevPlanetConstructionActionDto> DefenseOptions,
+    IReadOnlyList<DevPlanetConstructionQueueItemDto> DefenseQueue,
+    DevDefenseProtectionSummaryDto ProtectionSummary,
+    DevPlanetConstructionActionSummaryDto ActionSummary,
+    DevDefenseDiagnosticsDto Diagnostics);
 
 public sealed record DevPlanetResourceBalanceDto(
     ResourceType ResourceType,
@@ -151,3 +186,20 @@ public sealed record DevPlanetDiagnosticsDto(
     bool HasBuildingCapacity,
     int OpenConstructionOrderCount,
     IReadOnlyList<string> Notes);
+
+public sealed record DevDefenseProtectionSummaryDto(
+    int StructureCount,
+    int TotalDefenseLevel,
+    int AvailableOptionCount,
+    int BlockedOptionCount,
+    int QueueItemCount,
+    int DueQueueItemCount);
+
+public sealed record DevDefenseDiagnosticsDto(
+    Guid? RequestPlanetId,
+    Guid SolarSystemId,
+    Guid? OwnerCivilizationId,
+    bool HasResourceStockpile,
+    bool HasDefenseStructure,
+    IReadOnlyList<string> Notes,
+    IReadOnlyList<string> Limitations);
