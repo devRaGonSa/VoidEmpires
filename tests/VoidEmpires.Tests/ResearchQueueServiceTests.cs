@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Application.Research;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Research;
@@ -20,6 +21,7 @@ public class ResearchQueueServiceTests
         stockpile.Increase(ResourceType.Metal, 500);
         stockpile.Increase(ResourceType.Crystal, 500);
         db.PlanetResourceStockpiles.Add(stockpile);
+        db.PlanetOwnerships.Add(PlanetOwnership.Create(sourcePlanetId, civilizationId));
         await db.SaveChangesAsync();
 
         var service = new ResearchQueueService(db);
@@ -63,6 +65,7 @@ public class ResearchQueueServiceTests
             requestedAtUtc.AddMinutes(10),
             ResearchQueueItemStatus.Active));
         db.PlanetResourceStockpiles.Add(PlanetResourceStockpile.Create(sourcePlanetId));
+        db.PlanetOwnerships.Add(PlanetOwnership.Create(sourcePlanetId, civilizationId));
         await db.SaveChangesAsync();
 
         var service = new ResearchQueueService(db);
@@ -89,6 +92,7 @@ public class ResearchQueueServiceTests
         stockpile.Increase(ResourceType.Crystal, 1000);
         db.ResearchProjects.Add(ResearchProject.Create(civilizationId, ResearchType.PlanetaryEngineering));
         db.PlanetResourceStockpiles.Add(stockpile);
+        db.PlanetOwnerships.Add(PlanetOwnership.Create(sourcePlanetId, civilizationId));
         await db.SaveChangesAsync();
 
         var service = new ResearchQueueService(db);

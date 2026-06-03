@@ -76,6 +76,7 @@ Fleet cockpit v1 acceptance boundary:
    - the confirmation panel shows civilizacion, planeta, tecnologia, categoria, coste, duracion, and readiness context
    - a successful enqueue refreshes the queue and catalog from the backend-confirmed read model
    - after exactly one successful enqueue, the queue count increases and the enqueued technology no longer appears ready
+   - any generic validation rejection during the guarded enqueue flow is treated as a failed smoke pass
    - `Completar vencidas no disponible` stays visibly disabled when the backend route is not scoped safely to this cabin
    - diagnostics remain collapsed and keep technical details secondary
 13. Open the `Fleets` route.

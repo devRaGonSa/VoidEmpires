@@ -39,6 +39,23 @@ POST /api/dev/seeds/apply
   - If `/research` shows `Disponibles: 0` after reapplying `minimal-validation`, the primary root cause is stale persisted stockpile state, not the research UI-state mapper. Earlier seed behavior only created the planet stockpile when missing, so consumed resources could survive reseeding and make all cards appear blocked.
   - The development seed now restores the owned-planet stockpile to at least the research QA baseline (`125` credits, `100` metal, `50` crystal, `20` gas) so `Ingenieria planetaria` remains the deterministic available item for the baseline scenario.
   - Reapplying the seed restores the owned-planet stockpile baseline, but it does not delete an already enqueued research order or rebuild the queue to an empty state. For an exact pre-enqueue baseline, use a fresh disposable local database before applying the seed.
+  - If you already confirmed one enqueue in the current database, reseeding alone may not restore the exact empty-queue baseline. Use a fresh disposable local database when you need the original pre-enqueue state exactly.
+
+## Browser checkpoints
+
+- Checkpoint 1: available card before enqueue
+  - `Ingenieria planetaria` is visible as the seeded available card.
+  - `Disponibles` is at least `1`.
+- Checkpoint 2: confirmation panel before submit
+  - The guarded confirmation panel is open for the selected available item.
+  - `Confirmar` is still blocked until the acknowledgement checkbox is checked.
+- Checkpoint 3: queue after one successful enqueue
+  - The queue shows one active research row with Spanish technology label, status, and close time.
+  - The primary feedback reads `Investigacion enviada a la cola.`
+- Checkpoint 4: blocked comparison card
+  - `Extraccion de recursos` remains blocked with readable Spanish guidance.
+- Checkpoint 5: complete-due placeholder
+  - `Completar vencidas no disponible` stays visibly disabled with its explanation text.
 
 ## Enqueue contract note
 
@@ -90,6 +107,7 @@ Then confirm on `/research`:
 - `Confirmar` and `Cancelar` appear before any enqueue mutation.
 - Sending the confirmed order refreshes the queue and updates the catalog from the read model instead of adding optimistic local entries.
 - After one successful enqueue, `Ingenieria planetaria` no longer appears as immediately available and the queue shows one active order.
+- Any generic validation rejection during this guarded enqueue flow is a QA failure, not an acceptable fallback state.
 - The success state can show order details returned by the API without exposing raw payloads in the main cockpit.
 - `Completar vencidas no disponible` stays disabled with a clear placeholder because the current backend route is not scoped safely to this cabin.
 - The diagnostics drawer starts collapsed and keeps technical details secondary.

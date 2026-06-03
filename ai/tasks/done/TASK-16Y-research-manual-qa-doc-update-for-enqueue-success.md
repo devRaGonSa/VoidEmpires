@@ -3,7 +3,7 @@
 ---
 id: TASK-16Y-research-manual-qa-doc-update-for-enqueue-success
 title: Research manual QA doc update for enqueue success
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
