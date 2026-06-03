@@ -25,6 +25,7 @@ import {
 import {
   buildConstructionUrl,
   buildPlanetUrl,
+  buildShipyardUrl,
 } from "../utils/routeUrls";
 import {
   buildFleetCommandReadiness,
@@ -1004,6 +1005,12 @@ export function FleetsPage() {
                     to={buildConstructionUrl(uiState.civilizationId, inspectedGroup.currentPlanetId)}
                   >
                     Abrir construccion
+                  </Link>
+                  <Link
+                    className="selection-chip"
+                    to={buildShipyardUrl(uiState.civilizationId, inspectedGroup.currentPlanetId)}
+                  >
+                    Abrir Astillero
                   </Link>
                   {inspectedGroup.activeTransfer?.destinationPlanetId ? (
                     <Link

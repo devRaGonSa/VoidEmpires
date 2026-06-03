@@ -17,6 +17,7 @@ import {
   buildFleetsUrl,
   buildGalaxyUrl,
   buildPlanetUrl,
+  buildResearchUrl,
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
 
@@ -1108,6 +1109,9 @@ export function ShipyardPage() {
           </Link>
           <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
             Abrir Construccion
+          </Link>
+          <Link className="selection-chip" to={buildResearchUrl(activeCivilizationId, selectedPlanetId)}>
+            Abrir Investigacion
           </Link>
           <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
             Abrir Flotas
