@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import { appConfig } from "./config";
 import { AppShell } from "./components/ui/AppShell";
 import { ConstructionPage } from "./pages/ConstructionPage";
+import { DefensesPage } from "./pages/DefensesPage";
 import { FleetsPage } from "./pages/FleetsPage";
 import { ModuleCabinPage } from "./pages/ModuleCabinPage";
 import { ResearchPage } from "./pages/ResearchPage";
@@ -53,6 +54,8 @@ export default function App() {
             element={
               route.module === "Research"
                 ? <ResearchPage />
+                : route.module === "Defenses"
+                  ? <DefensesPage />
                 : route.module === "Shipyard"
                   ? <ShipyardPage />
                   : <ModuleCabinPage route={route} />

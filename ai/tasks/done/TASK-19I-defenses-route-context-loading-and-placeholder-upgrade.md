@@ -3,7 +3,7 @@
 ---
 id: TASK-19I-defenses-route-context-loading-and-placeholder-upgrade
 title: Defenses route context loading and placeholder upgrade
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

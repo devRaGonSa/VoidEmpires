@@ -1,0 +1,362 @@
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { fetchDefensesUiState } from "../api/defenseApi";
+import { UiBadge } from "../components/ui/UiBadge";
+import { UiCard } from "../components/ui/UiCard";
+import {
+  getDefensePrimaryAction,
+  groupDefenseOptionsByCategory,
+  mapDefensesUiStateToViewModel,
+  selectRecommendedDefenseAction,
+  type DefensesViewModel,
+} from "../utils/defenseViewModel";
+import {
+  buildConstructionUrl,
+  buildFleetsUrl,
+  buildGalaxyUrl,
+  buildPlanetUrl,
+  buildShipyardUrl,
+  isSuspiciousCabinContext,
+} from "../utils/routeUrls";
+
+export function DefensesPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
+  const [planetIdInput, setPlanetIdInput] = useState(searchParams.get("planetId") ?? "");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [uiState, setUiState] = useState<DefensesViewModel | null>(null);
+
+  const queryCivilizationId = searchParams.get("civilizationId") ?? "";
+  const queryPlanetId = searchParams.get("planetId");
+  const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
+  const selectedPlanetId = uiState?.selectedPlanetId ?? queryPlanetId ?? null;
+  const defenses = uiState?.defenses ?? null;
+  const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
+  const optionGroups = useMemo(() => groupDefenseOptionsByCategory(defenses?.options ?? []), [defenses?.options]);
+  const recommendedAction = useMemo(() => selectRecommendedDefenseAction(defenses?.options ?? []), [defenses?.options]);
+
+  useEffect(() => {
+    setCivilizationIdInput(queryCivilizationId);
+    setPlanetIdInput(queryPlanetId ?? "");
+
+    async function load() {
+      if (!queryCivilizationId) {
+        setUiState(null);
+        setError(null);
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetchDefensesUiState(queryCivilizationId, queryPlanetId);
+        if (!response.succeeded || !response.uiState) {
+          setUiState(null);
+          setError(response.errors[0] ?? "La cabina de defensas no pudo cargarse.");
+          return;
+        }
+
+        const nextState = mapDefensesUiStateToViewModel(response.uiState);
+        setUiState(nextState);
+
+        if (nextState.selectedPlanetId && nextState.selectedPlanetId !== queryPlanetId) {
+          const nextParams = new URLSearchParams(searchParams);
+          nextParams.set("civilizationId", queryCivilizationId);
+          nextParams.set("planetId", nextState.selectedPlanetId);
+          setSearchParams(nextParams, { replace: true });
+        }
+      } catch (requestError) {
+        setUiState(null);
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "La cabina de defensas no pudo cargarse.",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    void load();
+  }, [queryCivilizationId, queryPlanetId, searchParams, setSearchParams]);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmedCivilizationId = civilizationIdInput.trim();
+
+    if (!trimmedCivilizationId) {
+      setError("El id de civilizacion es obligatorio.");
+      setUiState(null);
+      return;
+    }
+
+    const nextParams = new URLSearchParams();
+    nextParams.set("civilizationId", trimmedCivilizationId);
+
+    const trimmedPlanetId = planetIdInput.trim();
+    if (trimmedPlanetId) {
+      nextParams.set("planetId", trimmedPlanetId);
+    }
+
+    setSearchParams(nextParams);
+  }
+
+  return (
+    <section className="page-grid">
+      <UiCard className="panel panel-hero figma-hero-card">
+        <div className="figma-hero-copy">
+          <UiBadge tone="resource">Defensas v1</UiBadge>
+          <h2>Defensas</h2>
+          <p>Cabina de proteccion planetaria para leer readiness defensivo, estructuras locales y limites reales de esta build.</p>
+        </div>
+        <div className="figma-badge-row">
+          <UiBadge tone="good">Carga contexto real</UiBadge>
+          <UiBadge tone="warn">Sin combate ni intercepcion</UiBadge>
+          <UiBadge>Construccion sigue siendo el flujo seguro</UiBadge>
+        </div>
+      </UiCard>
+
+      <div className="strategic-cockpit-top">
+        <UiCard className="panel strategic-loader-panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Entrada de cabina</p>
+              <h3>Cargar contexto defensivo</h3>
+            </div>
+            <UiBadge>Uso local</UiBadge>
+          </div>
+          <form className="query-form" onSubmit={handleSubmit}>
+            <label className="field">
+              <span>Id de civilizacion</span>
+              <input
+                type="text"
+                value={civilizationIdInput}
+                onChange={(event) => setCivilizationIdInput(event.target.value)}
+                placeholder="00000000-0000-0000-0000-000000000000"
+                spellCheck={false}
+              />
+            </label>
+            <label className="field">
+              <span>Id de planeta opcional</span>
+              <input
+                type="text"
+                value={planetIdInput}
+                onChange={(event) => setPlanetIdInput(event.target.value)}
+                placeholder="40000000-0000-0000-0000-000000000000"
+                spellCheck={false}
+              />
+            </label>
+            <button type="submit" disabled={isLoading}>
+              {isLoading ? "Cargando..." : "Abrir defensas"}
+            </button>
+          </form>
+          {error ? <p className="error-text">{error}</p> : null}
+          {isLoading ? <p className="figma-panel-note">Cargando estructuras, opciones y limites defensivos...</p> : null}
+          {!queryCivilizationId && !isLoading ? (
+            <p className="figma-panel-note">Introduce un `civilizationId` valido para abrir la cabina de defensas.</p>
+          ) : null}
+        </UiCard>
+
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Contexto activo</p>
+              <h3>Planeta y ownership</h3>
+            </div>
+            <UiBadge>{defenses ? defenses.planetName : "Sin planeta"}</UiBadge>
+          </div>
+          {defenses ? (
+            <div className="figma-data-list">
+              <div className="figma-data-row"><span>Planeta</span><strong>{defenses.planetName}</strong></div>
+              <div className="figma-data-row"><span>Sistema</span><strong>{defenses.solarSystemName}</strong></div>
+              <div className="figma-data-row"><span>Control</span><strong>{defenses.isOwnedByRequestingCivilization ? "Colonia propia" : "Sin control local"}</strong></div>
+              <div className="figma-data-row"><span>Cabina</span><strong>Defensas</strong></div>
+            </div>
+          ) : (
+            <p className="figma-panel-note">La cabina mostrara el planeta seleccionado cuando el contexto incluya `civilizationId` y, si aplica, `planetId`.</p>
+          )}
+        </UiCard>
+
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Limite actual</p>
+              <h3>Que pertenece aqui</h3>
+            </div>
+            <UiBadge tone="warn">Readiness</UiBadge>
+          </div>
+          <ul className="stack-list strategic-rules-list">
+            <li>Preparacion de proteccion planetaria y lectura de estructuras defensivas.</li>
+            <li>Contexto de recursos, cola y capacidad para futuras fortificaciones.</li>
+            <li>Explicacion clara de limites y handoff hacia Construccion, Astillero y Flotas.</li>
+          </ul>
+          <div className="figma-section-header module-boundary-spacer">
+            <div>
+              <p className="eyebrow">Fuera de alcance</p>
+              <h4>Sin combate activo</h4>
+            </div>
+          </div>
+          <ul className="stack-list strategic-rules-list">
+            <li>Esta build no ejecuta combate, intercepcion, dano, bombardeo ni invasion.</li>
+            <li>La infraestructura general sigue perteneciendo a Construccion.</li>
+            <li>La movilidad y el stock orbital siguen perteneciendo a Flotas y Astillero.</li>
+          </ul>
+        </UiCard>
+      </div>
+
+      {isSuspiciousContext ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Contexto sospechoso</p>
+              <h3>El identificador de civilizacion no parece valido para esta cabina.</h3>
+            </div>
+            <UiBadge tone="warn">Revisar contexto</UiBadge>
+          </div>
+          <p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p>
+        </UiCard>
+      ) : null}
+
+      {defenses ? (
+        <>
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Resumen defensivo</p>
+                <h3>Estado de proteccion local</h3>
+                <p>La cabina resume readiness real sin inventar sistemas de combate no implementados.</p>
+              </div>
+              <UiBadge tone={recommendedAction?.statusKey === "Available" ? "good" : "neutral"}>
+                {getDefensePrimaryAction(recommendedAction)}
+              </UiBadge>
+            </div>
+            <div className="readiness-grid">
+              <section className="subpanel figma-subpanel">
+                <div className="figma-data-list">
+                  <div className="figma-data-row"><span>Estructuras</span><strong>{defenses.protectionSummary.structureCount}</strong></div>
+                  <div className="figma-data-row"><span>Nivel total</span><strong>{defenses.protectionSummary.totalDefenseLevel}</strong></div>
+                  <div className="figma-data-row"><span>Opciones disponibles</span><strong>{defenses.protectionSummary.availableOptionCount}</strong></div>
+                  <div className="figma-data-row"><span>Opciones bloqueadas</span><strong>{defenses.protectionSummary.blockedOptionCount}</strong></div>
+                </div>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-data-list">
+                  <div className="figma-data-row"><span>Cola defensiva</span><strong>{defenses.protectionSummary.queueItemCount}</strong></div>
+                  <div className="figma-data-row"><span>Vencidas</span><strong>{defenses.protectionSummary.dueQueueItemCount}</strong></div>
+                  <div className="figma-data-row"><span>Enqueue seguro</span><strong>{defenses.actionAvailability.enqueue.supported ? "Disponible" : "No disponible"}</strong></div>
+                  <div className="figma-data-row"><span>Cierre vencido</span><strong>{defenses.actionAvailability.completeDue.supported ? "Soportado" : "Deshabilitado"}</strong></div>
+                </div>
+              </section>
+            </div>
+            <p>
+              {recommendedAction
+                ? `${recommendedAction.structureLabel}: ${recommendedAction.reasonLabel}.`
+                : "Todavia no hay una accion defensiva recomendada para este contexto."}
+            </p>
+          </UiCard>
+
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Readiness inicial</p>
+                <h3>Opciones cargadas por categoria</h3>
+                <p>La shell ya entiende el contrato tipado, aunque los paneles detallados llegaran en los siguientes pasos.</p>
+              </div>
+              <UiBadge tone="resource">{defenses.options.length} opciones</UiBadge>
+            </div>
+            {optionGroups.length > 0 ? (
+              <div className="readiness-grid">
+                {optionGroups.map((group) => (
+                  <section key={group.key} className="subpanel figma-subpanel">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">Categoria</p>
+                        <h4>{group.label}</h4>
+                      </div>
+                      <UiBadge>{group.options.length} items</UiBadge>
+                    </div>
+                    <ul className="stack-list compact-list">
+                      {group.options.map((option) => (
+                        <li key={`${option.buildingType}-${option.targetLevel}`}>{option.structureLabel}: {option.reasonLabel}</li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+            ) : (
+              <p className="figma-panel-note">El backend no expone una lista defensiva mas amplia todavia. La cabina conserva el contexto y explica el limite con honestidad.</p>
+            )}
+          </UiCard>
+
+          {defenses.diagnostics.playerFacing.length > 0 || defenses.diagnostics.limitations.length > 0 ? (
+            <details className="fleet-technical-disclosure">
+              <summary>
+                <span>Diagnosticos de desarrollo</span>
+                <UiBadge tone="warn">Secundario</UiBadge>
+              </summary>
+              <UiCard className="panel fleet-technical-panel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Diagnosticos</p>
+                    <h3>Notas y limitaciones</h3>
+                  </div>
+                  <UiBadge tone="warn">Dev only</UiBadge>
+                </div>
+                <ul className="stack-list compact-list">
+                  {defenses.diagnostics.playerFacing.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                  {defenses.diagnostics.limitations.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </UiCard>
+            </details>
+          ) : null}
+        </>
+      ) : (
+        !isLoading && queryCivilizationId && !error ? (
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Estado vacio</p>
+                <h3>Sin datos defensivos</h3>
+              </div>
+              <UiBadge tone="warn">Readiness limitado</UiBadge>
+            </div>
+            <p className="figma-panel-note">El backend no devolvio un contexto defensivo util para este planeta. La shell mantiene acceso, contexto y explicacion de limites.</p>
+          </UiCard>
+        ) : null
+      )}
+
+      <UiCard className="panel">
+        <div className="figma-section-header">
+          <div>
+            <p className="eyebrow">Navegacion</p>
+            <h3>Siguientes cabinas</h3>
+          </div>
+          <UiBadge tone="warn">Contexto conservado</UiBadge>
+        </div>
+        <div className="selection-chip-row">
+          <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>
+            Volver a Planeta
+          </Link>
+          <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
+            Abrir Construccion
+          </Link>
+          <Link className="selection-chip" to={buildShipyardUrl(activeCivilizationId, selectedPlanetId)}>
+            Abrir Astillero
+          </Link>
+          <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
+            Abrir Flotas
+          </Link>
+          <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, undefined, selectedPlanetId)}>
+            Volver a Galaxia
+          </Link>
+        </div>
+      </UiCard>
+    </section>
+  );
+}
