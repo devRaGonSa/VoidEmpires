@@ -3,7 +3,7 @@
 ---
 id: TASK-13K
 title: Phase 13K - Strategic map Spanish copy and capability language
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

@@ -31,6 +31,8 @@ const userFacingActionLabels: Record<string, string> = {
   "strategicMap.actionManifest.read": "Leer manifiesto del mapa estrategico",
   "strategicMap.read": "Leer mapa estrategico",
   "strategicMap.explorationPreview.read": "Leer vista previa de exploracion",
+  "strategicMap.system.view": "Inspeccionar sistema",
+  "strategicMap.planet.viewDetail": "Ver detalles del planeta",
   "exploration.preview.read": "Leer vista previa de exploracion",
   "exploration.mission.create": "Crear mision de exploracion",
   "exploration.mission.completeDue": "Completar misiones de exploracion vencidas",

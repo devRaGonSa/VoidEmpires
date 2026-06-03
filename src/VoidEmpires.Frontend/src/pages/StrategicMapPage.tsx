@@ -26,14 +26,15 @@ import {
   isOwnedVisibilityLevel,
   isVisibleVisibilityLevel,
 } from "../utils/domainPresentation";
+import { getUserFacingActionLabel } from "../utils/fleetCommandPresentation";
 
 const readinessSections = [
-  { label: "Route and fuel notes", key: "routeFuelNotes" },
-  { label: "Sensor notes", key: "sensorNotes" },
-  { label: "Detection notes", key: "detectionNotes" },
-  { label: "Interception notes", key: "interceptionNotes" },
-  { label: "Alliance notes", key: "allianceNotes" },
-  { label: "Alliance pact notes", key: "alliancePactNotes" },
+  { label: "Notas de ruta y combustible", key: "routeFuelNotes" },
+  { label: "Notas de sensores", key: "sensorNotes" },
+  { label: "Notas de deteccion", key: "detectionNotes" },
+  { label: "Notas de intercepcion", key: "interceptionNotes" },
+  { label: "Notas de alianzas", key: "allianceNotes" },
+  { label: "Notas de pactos de alianza", key: "alliancePactNotes" },
 ] as const;
 
 function formatNote(note: ReadinessNote) {
@@ -41,10 +42,10 @@ function formatNote(note: ReadinessNote) {
     return note;
   }
 
-  return note.note ?? "Readiness metadata present.";
+  return note.note ?? "Hay metadatos de preparacion.";
 }
 
-function readText(value: unknown, fallback = "Unavailable") {
+function readText(value: unknown, fallback = "No disponible") {
   return typeof value === "string" && value.length > 0 ? value : fallback;
 }
 
@@ -87,10 +88,41 @@ function formatReadinessItem(value: unknown) {
 
   if (typeof value === "object" && value !== null) {
     const record = value as Record<string, unknown>;
-    return readText(record.note ?? record.name ?? record.tag, "Metadata available");
+    return readText(record.note ?? record.name ?? record.tag, "Hay metadatos disponibles");
   }
 
-  return "Metadata available";
+  return "Hay metadatos disponibles";
+}
+
+function formatStrategicCommandLabel(actionKey: unknown) {
+  const key = readText(actionKey, "unknown.command");
+  return getUserFacingActionLabel(key, "Accion disponible");
+}
+
+function formatStrategicCommandSummary(
+  actionKey: unknown,
+  isAvailable: boolean | undefined,
+  blockReason: unknown,
+) {
+  if (isAvailable) {
+    switch (readText(actionKey, "")) {
+      case "strategicMap.system.view":
+        return "La lectura del sistema esta disponible desde el foco actual.";
+      case "strategicMap.planet.viewDetail":
+        return "El detalle del planeta puede inspeccionarse desde esta cabina.";
+      case "fleet.travel.estimate":
+        return "La ruta puede revisarse desde la cabina de flotas sin mutar datos.";
+      case "fleet.transfer.create":
+        return "La cabina de flotas puede preparar esta ruta cuando exista contexto valido.";
+      default:
+        return "Lectura disponible en esta vista de solo inspeccion.";
+    }
+  }
+
+  return `No disponible en este momento: ${formatCommandBlockReason(
+    typeof blockReason === "string" ? blockReason : null,
+    "Bloqueado",
+  ).toLowerCase()}.`;
 }
 
 function getVisibilityTone(level: string): "good" | "warn" | "neutral" {
@@ -247,14 +279,14 @@ export function StrategicMapPage() {
       setSystemVisualError(
         response.succeeded
           ? null
-          : response.errors[0] ?? "System visual-state request failed.",
+          : response.errors[0] ?? "La lectura del estado visual del sistema fallo.",
       );
     } catch (requestError) {
       setSystemVisualState(null);
       setSystemVisualError(
         requestError instanceof Error
           ? requestError.message
-          : "System visual-state request failed.",
+          : "La lectura del estado visual del sistema fallo.",
       );
     } finally {
       setIsLoadingSystemVisual(false);
@@ -264,7 +296,7 @@ export function StrategicMapPage() {
   async function loadPlanetVisualState() {
     if (!selectedPlanet?.isVisible) {
       setPlanetVisualState(null);
-      setPlanetVisualError("Select a visible planet to inspect its visual state.");
+      setPlanetVisualError("Selecciona un planeta visible para inspeccionar su estado visual.");
       return;
     }
 
@@ -276,14 +308,14 @@ export function StrategicMapPage() {
       setPlanetVisualError(
         response.succeeded
           ? null
-          : response.errors[0] ?? "Planet visual-state request failed.",
+          : response.errors[0] ?? "La lectura del estado visual del planeta fallo.",
       );
     } catch (requestError) {
       setPlanetVisualState(null);
       setPlanetVisualError(
         requestError instanceof Error
           ? requestError.message
-          : "Planet visual-state request failed.",
+          : "La lectura del estado visual del planeta fallo.",
       );
     } finally {
       setIsLoadingPlanetVisual(false);
@@ -295,7 +327,7 @@ export function StrategicMapPage() {
 
     const trimmedCivilizationId = civilizationId.trim();
     if (!trimmedCivilizationId) {
-      setError("Civilization id is required.");
+      setError("El id de civilizacion es obligatorio.");
       setResult(null);
       setSelectedSystemId(null);
       setSelectedPlanetId(null);
@@ -378,14 +410,14 @@ export function StrategicMapPage() {
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
-              <span>Civilization id</span>
+              <span>Id de civilizacion</span>
               <input
                 type="text"
                 value={civilizationId}
                 onChange={(event) => setCivilizationId(event.target.value)}
                 placeholder="00000000-0000-0000-0000-000000000000"
                 spellCheck={false}
-                aria-label="Civilization id"
+                aria-label="Id de civilizacion"
               />
             </label>
             <button type="submit" disabled={isLoading}>
@@ -407,10 +439,10 @@ export function StrategicMapPage() {
           </div>
           {summary ? (
             <div className="figma-stat-grid">
-              <SummaryMetric label="Systems" value={summary.systems} />
-              <SummaryMetric label="Planets" value={summary.planets} />
-              <SummaryMetric label="Fleet markers" value={summary.fleets} />
-              <SummaryMetric label="Transfer overlays" value={summary.transfers} />
+              <SummaryMetric label="Sistemas" value={summary.systems} />
+              <SummaryMetric label="Planetas" value={summary.planets} />
+              <SummaryMetric label="Marcadores de flota" value={summary.fleets} />
+              <SummaryMetric label="Rutas activas" value={summary.transfers} />
             </div>
           ) : (
             <p className="figma-panel-note">
@@ -444,13 +476,14 @@ export function StrategicMapPage() {
               <div className="figma-section-header">
                 <div>
                   <p className="eyebrow">Galaxia</p>
-                  <h3>Primary theater map</h3>
+                  <h3>Mapa principal del teatro</h3>
                   <p>
-                    Backend coordinates project into a deterministic 2D chart so
-                    spatial context stays central during inspection.
+                    Las coordenadas del backend se proyectan en un plano 2D
+                    determinista para que el contexto espacial siga al frente de la
+                    inspeccion.
                   </p>
                 </div>
-                <UiBadge>SVG tactical plot</UiBadge>
+                <UiBadge>Plano tactico SVG</UiBadge>
               </div>
               <StrategicMap2DView
                 systems={result.systems}
@@ -466,7 +499,7 @@ export function StrategicMapPage() {
 
             <aside className="figma-map-sidebar">
               <div className="figma-mini-card">
-                <p className="eyebrow">Legend</p>
+                <p className="eyebrow">Leyenda</p>
                 <div className="figma-legend-grid">
                   <div className="figma-legend-item">
                     <span className="figma-legend-dot figma-legend-owned" />
@@ -552,8 +585,8 @@ export function StrategicMapPage() {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Empty development state</p>
-              <h3>No relevant systems found yet</h3>
+              <p className="eyebrow">Estado vacio de desarrollo</p>
+              <h3>No hay sistemas relevantes por ahora</h3>
               <p>
                 La civilizacion actual no tiene sistemas propios ni descubiertos en
                 este conjunto de desarrollo, por lo que Galaxia permanece en un
@@ -590,7 +623,7 @@ export function StrategicMapPage() {
                   onClick={() => selectSystem(system)}
                   aria-pressed={selectedSystem.systemId === system.systemId}
                 >
-                  {system.systemName ?? "Unknown system"}
+                  {system.systemName ?? "Sistema desconocido"}
                 </button>
               ))}
             </div>
@@ -646,8 +679,14 @@ export function StrategicMapPage() {
                     {systemCommands.map((command) => (
                       <div key={command.actionKey} className="figma-command-item">
                         <div>
-                          <strong>{readText(command.actionKey, "unknown.command")}</strong>
-                          <p>{readText(command.note, "Metadato solo lectura")}</p>
+                          <strong>{formatStrategicCommandLabel(command.actionKey)}</strong>
+                          <p>
+                            {formatStrategicCommandSummary(
+                              command.actionKey,
+                              command.isAvailable,
+                              command.blockReason,
+                            )}
+                          </p>
                         </div>
                         <UiBadge tone={command.isAvailable ? "good" : "warn"}>
                           {command.isAvailable
@@ -690,7 +729,7 @@ export function StrategicMapPage() {
                   aria-pressed={selectedPlanet?.planetId === planet.planetId}
                   title={planet.planetId}
                 >
-                  {planet.planetName ?? "Unknown planet"} -{" "}
+                  {planet.planetName ?? "Planeta desconocido"} -{" "}
                   {formatPlanetType(
                     readDomainValue(readRecord(planet), "planetType"),
                     "Tipo pendiente",
@@ -755,18 +794,24 @@ export function StrategicMapPage() {
                 <section className="subpanel figma-subpanel">
                   <div className="figma-section-header">
                     <div>
-                      <p className="eyebrow">Planet advisory</p>
-                      <h4>Surface actions</h4>
+                      <p className="eyebrow">Consejo planetario</p>
+                      <h4>Opciones de superficie</h4>
                     </div>
-                    <UiBadge>{planetCommands.length} items</UiBadge>
+                    <UiBadge>{planetCommands.length} lecturas</UiBadge>
                   </div>
                   {planetCommands.length > 0 ? (
                     <div className="figma-command-list">
                       {planetCommands.map((command) => (
                         <div key={command.actionKey} className="figma-command-item">
                           <div>
-                            <strong>{readText(command.actionKey, "unknown.command")}</strong>
-                            <p>{readText(command.note, "Metadato solo lectura")}</p>
+                            <strong>{formatStrategicCommandLabel(command.actionKey)}</strong>
+                            <p>
+                              {formatStrategicCommandSummary(
+                                command.actionKey,
+                                command.isAvailable,
+                                command.blockReason,
+                              )}
+                            </p>
                           </div>
                           <UiBadge tone={command.isAvailable ? "good" : "warn"}>
                             {command.isAvailable
@@ -778,13 +823,13 @@ export function StrategicMapPage() {
                     </div>
                   ) : (
                     <p className="figma-panel-note">
-                      No planet command metadata is exposed for this world.
+                      No hay metadatos de acciones visibles para este mundo.
                     </p>
                   )}
                 </section>
               </div>
             ) : (
-              <p>No planets are available for the selected system.</p>
+              <p>No hay planetas disponibles para el sistema seleccionado.</p>
             )}
           </UiCard>
         </div>
@@ -807,7 +852,7 @@ export function StrategicMapPage() {
         <details className="technical-disclosure">
           <summary>
             <div>
-              <p className="eyebrow">Secondary diagnostics</p>
+              <p className="eyebrow">Diagnostico secundario</p>
               <strong>Lecturas tecnicas y payloads de renderer</strong>
             </div>
             <UiBadge tone="warn">Contraido por defecto</UiBadge>
@@ -817,10 +862,11 @@ export function StrategicMapPage() {
             <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">Readiness scope</p>
-                  <h3>Metadata exposure</h3>
+                  <p className="eyebrow">Alcance de preparacion</p>
+                  <h3>Exposicion de metadatos</h3>
                   <p>
-                    Readiness hints stay informative and never bypass backend validation.
+                    Estas pistas siguen siendo informativas y nunca saltan la
+                    validacion del backend.
                   </p>
                 </div>
                 <UiBadge>Solo inspeccion</UiBadge>
@@ -829,26 +875,26 @@ export function StrategicMapPage() {
                 <section className="subpanel figma-subpanel">
                   <div className="figma-data-list">
                     <DataRow
-                      label="Alliance rows"
+                      label="Filas de alianzas"
                       value={String(result.allianceReadiness?.length ?? 0)}
                     />
                     <DataRow
-                      label="Alliance pact rows"
+                      label="Filas de pactos"
                       value={String(result.alliancePacts?.length ?? 0)}
                     />
                     <DataRow
-                      label="Fleet notes"
+                      label="Notas de flota"
                       value={String(result.interceptionNotes?.length ?? 0)}
                     />
                     <DataRow
-                      label="Route/fuel notes"
+                      label="Notas de ruta y combustible"
                       value={String(result.routeFuelNotes?.length ?? 0)}
                     />
                   </div>
                 </section>
 
                 <section className="subpanel figma-subpanel">
-                  <h4>Readiness annotations</h4>
+                  <h4>Anotaciones de preparacion</h4>
                   <div className="readiness-grid strategic-readiness-grid">
                     {readinessSections.map((section) => {
                       const notes = result[section.key];
@@ -875,22 +921,23 @@ export function StrategicMapPage() {
             <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">Renderer-facing contracts</p>
-                  <h3>Visual-state preview</h3>
+                  <p className="eyebrow">Contratos para renderer</p>
+                  <h3>Vista previa del estado visual</h3>
                   <p>
-                    These development-only reads stay available for renderer work,
-                    but no longer compete with the primary map flow.
+                    Estas lecturas de desarrollo siguen disponibles para el trabajo
+                    del renderer, pero ya no compiten con el flujo principal del
+                    mapa.
                   </p>
                 </div>
-                <UiBadge tone="warn">Dev-only payloads</UiBadge>
+                <UiBadge tone="warn">Payloads solo dev</UiBadge>
               </div>
 
               <div className="figma-detail-grid strategic-detail-grid">
                 <section className="subpanel figma-subpanel">
                   <div className="figma-preview-actions">
                     <div>
-                      <p className="eyebrow">System preview</p>
-                      <h4>System visual state</h4>
+                      <p className="eyebrow">Vista del sistema</p>
+                      <h4>Estado visual del sistema</h4>
                     </div>
                     <button
                       type="button"
@@ -898,7 +945,7 @@ export function StrategicMapPage() {
                       onClick={loadSystemVisualState}
                       disabled={!selectedSystem || isLoadingSystemVisual}
                     >
-                      {isLoadingSystemVisual ? "Loading..." : "Load system visual state"}
+                      {isLoadingSystemVisual ? "Cargando..." : "Cargar estado visual del sistema"}
                     </button>
                   </div>
                   {systemVisualError && <p className="error-text">{systemVisualError}</p>}
@@ -906,24 +953,24 @@ export function StrategicMapPage() {
                     <>
                       <div className="figma-data-list">
                         <DataRow
-                          label="Star class"
+                          label="Clase estelar"
                           value={readText(systemVisualState.star?.visualClass)}
                         />
                         <DataRow
-                          label="Star type"
+                          label="Tipo de estrella"
                           value={formatStarType(systemVisualState.star?.starType)}
                         />
                         <DataRow
-                          label="Layout hints"
+                          label="Pistas de disposicion"
                           value={String(systemVisualState.layoutHints?.length ?? 0)}
                         />
                         <DataRow
-                          label="Transfer overlays"
+                          label="Rutas activas"
                           value={String(systemVisualState.transferOverlays?.length ?? 0)}
                         />
                       </div>
                       <details className="json-details">
-                        <summary>Raw system payload</summary>
+                        <summary>Payload crudo del sistema</summary>
                         <pre className="json-preview">{formatJson(systemVisualState)}</pre>
                       </details>
                     </>
@@ -933,8 +980,8 @@ export function StrategicMapPage() {
                 <section className="subpanel figma-subpanel">
                   <div className="figma-preview-actions">
                     <div>
-                      <p className="eyebrow">Planet preview</p>
-                      <h4>Planet visual state</h4>
+                      <p className="eyebrow">Vista del planeta</p>
+                      <h4>Estado visual del planeta</h4>
                     </div>
                     <button
                       type="button"
@@ -942,22 +989,22 @@ export function StrategicMapPage() {
                       onClick={loadPlanetVisualState}
                       disabled={!selectedPlanet || isLoadingPlanetVisual}
                     >
-                      {isLoadingPlanetVisual ? "Loading..." : "Load planet visual state"}
+                      {isLoadingPlanetVisual ? "Cargando..." : "Cargar estado visual del planeta"}
                     </button>
                   </div>
                   {!selectedPlanet?.isVisible && (
-                    <p>Only visible planets should be inspected through this preview.</p>
+                    <p>Solo los planetas visibles deben inspeccionarse desde esta vista previa.</p>
                   )}
                   {planetVisualError && <p className="error-text">{planetVisualError}</p>}
                   {planetVisualState && (
                     <>
                       <div className="figma-data-list">
                         <DataRow
-                          label="Planet name"
+                          label="Nombre del planeta"
                           value={readText(planetVisualState.planetName)}
                         />
                         <DataRow
-                          label="Planet type"
+                          label="Tipo de planeta"
                           value={formatPlanetType(planetVisualState.planetType)}
                         />
                         <DataRow
@@ -965,41 +1012,41 @@ export function StrategicMapPage() {
                           value={formatColonizationStatus(planetVisualState.colonizationStatus)}
                         />
                         <DataRow
-                          label="Visual seed"
-                          value={String(planetVisualState.visualSeed ?? "Unavailable")}
+                          label="Semilla visual"
+                          value={String(planetVisualState.visualSeed ?? "No disponible")}
                         />
                         <DataRow
-                          label="Surface profile"
+                          label="Perfil de superficie"
                           value={readText(planetVisualState.profile?.surfaceProfile)}
                         />
                         <DataRow
-                          label="Light distribution"
+                          label="Distribucion de luz"
                           value={readText(planetVisualState.profile?.lightDistributionMode)}
                         />
                         <DataRow
-                          label="Platform mode"
+                          label="Modo de plataformas"
                           value={readText(planetVisualState.profile?.platformMode)}
                         />
                         <DataRow
-                          label="Atmosphere profile"
+                          label="Perfil atmosferico"
                           value={readText(planetVisualState.profile?.atmosphereProfile)}
                         />
                         <DataRow
-                          label="Cloud profile"
+                          label="Perfil de nubes"
                           value={readText(planetVisualState.profile?.cloudProfile)}
                         />
                         <DataRow
-                          label="Night lights"
+                          label="Luces nocturnas"
                           value={formatBooleanLabel(Boolean(planetVisualState.profile?.supportsNightLights))}
                         />
                         <DataRow
-                          label="Surface platforms"
+                          label="Plataformas de superficie"
                           value={formatBooleanLabel(
                             Boolean(planetVisualState.profile?.supportsSurfacePlatforms),
                           )}
                         />
                         <DataRow
-                          label="Orbital mega hints"
+                          label="Pistas de megastructuras orbitales"
                           value={formatBooleanLabel(
                             Boolean(
                               planetVisualState.profile?.supportsOrbitalMegastructureHints,
@@ -1008,44 +1055,44 @@ export function StrategicMapPage() {
                         />
                         {planetVisualState.profile?.paletteKey && (
                           <DataRow
-                            label="Palette profile"
+                            label="Perfil de paleta"
                             value={readText(planetVisualState.profile.paletteKey)}
                           />
                         )}
                       </div>
                       <div className="readiness-grid">
                         <section className="subpanel figma-subpanel">
-                          <h4>Intensities</h4>
+                          <h4>Intensidades</h4>
                           <div className="stack-list compact-list">
                             <IntensityRow
-                              label="Colonization intensity"
+                              label="Intensidad de colonizacion"
                               value={planetVisualState.colonizationIntensity}
                             />
                             <IntensityRow
-                              label="Urban intensity"
+                              label="Intensidad urbana"
                               value={planetVisualState.urbanIntensity}
                             />
                             <IntensityRow
-                              label="Industrial intensity"
+                              label="Intensidad industrial"
                               value={planetVisualState.industrialIntensity}
                             />
                             <IntensityRow
-                              label="Terraforming intensity"
+                              label="Intensidad de terraformacion"
                               value={planetVisualState.terraformingIntensity}
                             />
                             <IntensityRow
-                              label="Military intensity"
+                              label="Intensidad militar"
                               value={planetVisualState.militaryIntensity}
                             />
                             <IntensityRow
-                              label="Orbital presence intensity"
+                              label="Intensidad de presencia orbital"
                               value={planetVisualState.orbitalPresenceIntensity}
                             />
                           </div>
                         </section>
                       </div>
                       <details className="json-details">
-                        <summary>Raw planet payload</summary>
+                        <summary>Payload crudo del planeta</summary>
                         <pre className="json-preview">{formatJson(planetVisualState)}</pre>
                       </details>
                     </>
