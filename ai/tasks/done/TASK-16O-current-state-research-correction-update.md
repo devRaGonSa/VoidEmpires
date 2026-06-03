@@ -3,7 +3,7 @@
 ---
 id: TASK-16O-current-state-research-correction-update
 title: Current state Research correction update
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

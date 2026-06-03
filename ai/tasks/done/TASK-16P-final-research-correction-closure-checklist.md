@@ -3,7 +3,7 @@
 ---
 id: TASK-16P-final-research-correction-closure-checklist
 title: Final Research correction closure checklist
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

@@ -3,7 +3,7 @@
 ---
 id: TASK-16N-research-visual-qa-docs-update
 title: Research visual QA docs update
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

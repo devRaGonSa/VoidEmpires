@@ -68,11 +68,15 @@ Fleet cockpit v1 acceptance boundary:
    - the seeded research URL `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` opens the cockpit with deterministic context
    - the route keeps the `Aurelia` context tied to the seeded `Helios Gate` scenario
    - the top cockpit strip shows context, summary, and queue before the catalog
+   - the summary shows `Disponibles >= 1` and `Bloqueadas >= 1` before any enqueue
    - the catalog shows Spanish technology names, meaningful categories, and both available and blocked research cards
    - blocked cards keep readable Spanish guidance and their disabled buttons remain visually secondary
-   - preparing an available item opens the guarded confirmation panel before `Enviar orden`
+   - `Requisito pendiente de clasificar` does not appear in the primary seeded blocker text
+   - preparing an available item opens the guarded confirmation panel before `Confirmar`
+   - the confirmation panel shows civilizacion, planeta, tecnologia, categoria, coste, duracion, and readiness context
    - a successful enqueue refreshes the queue and catalog from the backend-confirmed read model
-   - `Completar investigaciones vencidas` stays visibly disabled when the backend route is not scoped safely to this cabin
+   - after exactly one successful enqueue, the queue count increases and the enqueued technology no longer appears ready
+   - `Completar vencidas no disponible` stays visibly disabled when the backend route is not scoped safely to this cabin
    - diagnostics remain collapsed and keep technical details secondary
 13. Open the `Fleets` route.
 14. Enter the same civilization id and confirm the new cockpit layout renders in clearly separated sections:
@@ -149,6 +153,7 @@ Research cockpit v1 visual review:
 - Confirm blocked cards remain visually quieter than available actions.
 - Confirm requirement chips, long technology names, and cost rows wrap cleanly without horizontal overflow.
 - Confirm guarded enqueue is the only executable Research mutation path and still requires explicit confirmation.
+- Confirm the summary recommendation never presents a blocked technology as immediately startable.
 - Confirm complete-due remains visibly disabled in this build.
 
 ## Final Block Checklist
@@ -160,6 +165,7 @@ Research cockpit v1 visual review:
 - `/planet` behaves as a dashboard, not a full construction catalog.
 - `/construction` stays scoped to general construction.
 - `/research` behaves as a development-safe cockpit foundation.
+- `/research` keeps the corrected QA path with one seeded available item, visible blocked items, guarded enqueue, and disabled complete-due placeholder.
 - `/ground-army`, `/shipyard`, and `/defenses` still open placeholders only.
 - `Galaxy` remains read-only.
 - `Fleets` still preserves context and read-only command flow.

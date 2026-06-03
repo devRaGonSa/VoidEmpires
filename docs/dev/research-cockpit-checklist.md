@@ -15,18 +15,30 @@ Use `docs/dev/planet-module-boundaries.md` to keep `/research` separate from the
 
 Use the current `minimal-validation` seed for deterministic Research checks:
 
+```powershell
+POST /api/dev/seeds/apply
+{"profile":"minimal-validation"}
+```
+
 - Civilization id: `00000000-0000-0000-0000-000000000001`
 - Owned planet id: `40000000-0000-0000-0000-000000000001`
 - Owned planet name: `Aurelia`
 - Seeded parent system: `Helios Gate`
 - Seeded QA URL: `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Expected summary baseline before enqueue:
+  - `Disponibles: 1`
+  - `Bloqueadas: 7`
+  - `Cola: 0`
+  - `En espera de cierre: 0`
+  - `Proyectos: 0`
 - Expected comparison baseline:
   - `Ingenieria planetaria` is immediately available.
-  - `Extraccion de recursos` remains blocked by `Recursos insuficientes`.
+  - `Extraccion de recursos` remains blocked by `Recursos insuficientes en Aurelia.`
   - The queue starts empty and should read `No hay ordenes activas en la cola.`
 - Audit note:
   - If `/research` shows `Disponibles: 0` after reapplying `minimal-validation`, the primary root cause is stale persisted stockpile state, not the research UI-state mapper. Earlier seed behavior only created the planet stockpile when missing, so consumed resources could survive reseeding and make all cards appear blocked.
   - The development seed now restores the owned-planet stockpile to at least the research QA baseline (`125` credits, `100` metal, `50` crystal, `20` gas) so `Ingenieria planetaria` remains the deterministic available item for the baseline scenario.
+  - Reapplying the seed restores the owned-planet stockpile baseline, but it does not delete an already enqueued research order or rebuild the queue to an empty state. For an exact pre-enqueue baseline, use a fresh disposable local database before applying the seed.
 
 ## Final manual QA
 
@@ -42,19 +54,40 @@ Then confirm on `/research`:
 
 - The deterministic seeded scenario opens from the exact QA URL above.
 - The active context corresponds to `Aurelia` in the seeded `Helios Gate` system.
+- The summary shows `Disponibles >= 1` and `Bloqueadas >= 1` before any enqueue.
 - The route loads with Spanish loading, error, and empty states.
 - The first viewport prioritizes cabina context, resumen, cola y progreso, and the catalog.
 - The catalog shows Spanish technology names and meaningful category groupings.
 - At least one available research card and at least one blocked card are visible together for comparison.
 - Blocked research shows a readable reason rather than raw backend text.
+- `Requisito pendiente de clasificar` does not appear in the main seeded blocker text.
 - Requirement chips, cost, duration, and next-level data wrap cleanly without horizontal overflow.
 - Preparing an available item opens the guarded confirmation panel before any mutation happens.
+- The confirmation panel shows civilizacion, planeta, tecnologia, categoria, coste, duracion, and `Requisitos: Listos para envio`.
+- `Confirmar` and `Cancelar` appear before any enqueue mutation.
 - Sending the confirmed order refreshes the queue and updates the catalog from the read model instead of adding optimistic local entries.
+- After one successful enqueue, `Ingenieria planetaria` no longer appears as immediately available and the queue shows one active order.
 - The success state can show order details returned by the API without exposing raw payloads in the main cockpit.
-- `Completar investigaciones vencidas` stays disabled with a clear placeholder because the current backend route is not scoped safely to this cabin.
+- `Completar vencidas no disponible` stays disabled with a clear placeholder because the current backend route is not scoped safely to this cabin.
 - The diagnostics drawer starts collapsed and keeps technical details secondary.
 - Links toward `Planeta`, `Construccion`, `Flotas`, and `Galaxia` preserve `civilizationId` and `planetId`.
 - No 3D, WebGL, production auth, combat, fleet effects, or espionage execution is introduced from this route.
+
+## Closure checklist
+
+- `dotnet build --no-restore` passes.
+- `dotnet test --no-build` passes.
+- `npm run build --prefix src/VoidEmpires.Frontend` passes.
+- `/research` loads from the seeded QA URL above.
+- The summary shows available `>= 1` before enqueue.
+- The summary shows blocked `>= 1`.
+- An available card shows `Revisar investigacion`.
+- A blocked card cannot mutate and keeps a visually secondary button.
+- `Requisito pendiente de clasificar` does not appear in primary seeded blocker text.
+- `Completar vencidas no disponible` stays disabled unless a safer cockpit-scoped path is implemented later.
+- Confirmation appears before enqueue.
+- After exactly one confirmed enqueue, the queue updates and the reviewed technology changes away from the ready state.
+- Diagnostics remain collapsed by default.
 
 ## Intentional exclusions
 
