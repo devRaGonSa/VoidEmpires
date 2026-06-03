@@ -6,6 +6,7 @@ using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Domain.Players;
 using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Persistence;
+using VoidEmpires.Infrastructure.Research;
 
 internal static class DevResearchUiStateEndpoints
 {
@@ -101,31 +102,25 @@ internal static class DevResearchUiStateEndpoints
                 {
                     var definition = ResearchCatalog.Get(researchType);
                     var currentLevel = projectLevels.GetValueOrDefault(researchType);
-                    var nextLevel = currentLevel + 1;
-                    var cost = ScaleCost(definition.BaseCost, nextLevel);
-                    var estimatedDuration = ResearchDurationCalculator.CalculateDuration(TimeSpan.FromMinutes(10 * nextLevel), energySystemsLevel);
+                    var estimatedDuration = ResearchDurationCalculator.CalculateDuration(TimeSpan.FromMinutes(10 * (currentLevel + 1)), energySystemsLevel);
                     var openOrder = queueDtos.FirstOrDefault(x => x.ResearchType == researchType && x.Status is ResearchQueueItemStatus.Pending or ResearchQueueItemStatus.Active);
-                    var canAfford = stockpile is not null && stockpile.CanSpend(cost.Credits, cost.Metal, cost.Crystal, cost.Gas);
-                    var status = openOrder is not null
-                        ? "InResearch"
-                        : selectedPlanet is null
-                            ? "Blocked"
-                            : stockpile is null
-                                ? "RequirementPending"
-                                : canAfford
-                                    ? "Available"
-                                    : "InsufficientResources";
+                    var readiness = ResearchEnqueueReadinessEvaluator.Evaluate(
+                        selectedPlanet is not null,
+                        openOrder is not null,
+                        stockpile,
+                        researchType,
+                        currentLevel);
 
                     return new DevResearchTechnologyHintDto(
                         researchType,
                         currentLevel,
-                        nextLevel,
-                        status,
-                        openOrder is not null ? "OpenQueueSlot" : canAfford ? "Ready" : selectedPlanet is null ? "SourcePlanetMissing" : "InsufficientResources",
-                        selectedPlanet is not null && openOrder is null && canAfford,
+                        readiness.TargetLevel,
+                        readiness.StatusKey,
+                        readiness.AvailabilityReasonKey,
+                        readiness.CanEnqueue,
                         openOrder is not null && openOrder.EndsAtUtc <= DateTime.UtcNow,
                         estimatedDuration,
-                        cost,
+                        readiness.Cost,
                         selectedPlanet is not null
                             ? new DevResearchEnqueueCommandDto(
                                 "research.order.enqueue",
@@ -134,7 +129,7 @@ internal static class DevResearchUiStateEndpoints
                                 civilizationId.Value,
                                 selectedPlanet.Id,
                                 researchType,
-                                nextLevel)
+                                readiness.TargetLevel)
                             : null,
                         ["SourcePlanet", "ResearchQueueSlot", "ResourceStockpile"]);
                 })
@@ -163,9 +158,6 @@ internal static class DevResearchUiStateEndpoints
                 []));
         });
     }
-
-    private static ResearchCost ScaleCost(ResearchCost baseCost, int level) =>
-        new(baseCost.Credits * level, baseCost.Metal * level, baseCost.Crystal * level, baseCost.Gas * level);
 }
 
 internal sealed record DevResearchUiStateApiResponse(

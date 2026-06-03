@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Application.Research;
 using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Persistence;
@@ -28,39 +29,36 @@ public sealed class ResearchQueueService(VoidEmpiresDbContext dbContext) : IRese
             return EnqueueResearchOrderResult.Failure("Requested date must be UTC.");
         }
 
+        var hasOwnedSourcePlanet = await dbContext.PlanetOwnerships
+            .AnyAsync(
+                x => x.PlanetId == request.SourcePlanetId &&
+                    x.CivilizationId == request.CivilizationId &&
+                    x.Status == PlanetControlStatus.Active,
+                cancellationToken);
+
         var hasOpenOrder = await dbContext.ResearchOrders
             .AnyAsync(x => x.CivilizationId == request.CivilizationId &&
                 (x.Status == ResearchQueueItemStatus.Pending || x.Status == ResearchQueueItemStatus.Active),
                 cancellationToken);
 
-        if (hasOpenOrder)
-        {
-            return EnqueueResearchOrderResult.Failure("Civilization already has an open research order.");
-        }
-
         var stockpile = await dbContext.PlanetResourceStockpiles
             .SingleOrDefaultAsync(x => x.PlanetId == request.SourcePlanetId, cancellationToken);
-
-        if (stockpile is null)
-        {
-            return EnqueueResearchOrderResult.Failure("Planet resource stockpile was not found.");
-        }
 
         var project = await dbContext.ResearchProjects
             .SingleOrDefaultAsync(
                 x => x.CivilizationId == request.CivilizationId && x.ResearchType == request.ResearchType,
                 cancellationToken);
 
-        var targetLevel = (project?.Level ?? 0) + 1;
-        var definition = ResearchCatalog.Get(request.ResearchType);
-        var credits = definition.BaseCost.Credits * targetLevel;
-        var metal = definition.BaseCost.Metal * targetLevel;
-        var crystal = definition.BaseCost.Crystal * targetLevel;
-        var gas = definition.BaseCost.Gas * targetLevel;
+        var readiness = ResearchEnqueueReadinessEvaluator.Evaluate(
+            hasOwnedSourcePlanet,
+            hasOpenOrder,
+            stockpile,
+            request.ResearchType,
+            project?.Level ?? 0);
 
-        if (!stockpile.CanSpend(credits, metal, crystal, gas))
+        if (!readiness.CanEnqueue)
         {
-            return EnqueueResearchOrderResult.Failure("Insufficient resources.");
+            return EnqueueResearchOrderResult.Failure(readiness.Error!);
         }
 
         var energySystemsLevel = await dbContext.ResearchProjects
@@ -69,7 +67,7 @@ public sealed class ResearchQueueService(VoidEmpiresDbContext dbContext) : IRese
             .SingleOrDefaultAsync(cancellationToken);
 
         var effectiveDuration = ResearchDurationCalculator.CalculateDuration(
-            BaseResearchDuration * targetLevel,
+            BaseResearchDuration * readiness.TargetLevel,
             energySystemsLevel);
 
         var startsAtUtc = request.RequestedAtUtc;
@@ -84,13 +82,17 @@ public sealed class ResearchQueueService(VoidEmpiresDbContext dbContext) : IRese
             request.CivilizationId,
             request.SourcePlanetId,
             request.ResearchType,
-            targetLevel,
+            readiness.TargetLevel,
             nextSequence + 1,
             startsAtUtc,
             endsAtUtc,
             ResearchQueueItemStatus.Active);
 
-        stockpile.Spend(credits, metal, crystal, gas);
+        stockpile!.Spend(
+            readiness.Cost.Credits,
+            readiness.Cost.Metal,
+            readiness.Cost.Crystal,
+            readiness.Cost.Gas);
         dbContext.ResearchOrders.Add(order);
         await dbContext.SaveChangesAsync(cancellationToken);
 

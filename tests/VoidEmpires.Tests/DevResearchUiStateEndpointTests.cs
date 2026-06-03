@@ -211,13 +211,17 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
         var availableResearch = Assert.Single(initialPayload.UiState.TechnologyHints.Where(x => x.CanEnqueue));
         Assert.Equal(ResearchType.PlanetaryEngineering, availableResearch.ResearchType);
 
+        Assert.NotNull(availableResearch.EnqueueCommand);
+
         using var enqueueResponse = await client.PostAsJsonAsync(
-            "/api/dev/research/orders/enqueue",
-            new EnqueueResearchOrderApiRequest(
-                Guid.Parse(SeedCivilizationId),
-                Guid.Parse(SeedOwnedPlanetId),
-                availableResearch.ResearchType,
-                new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc)));
+            availableResearch.EnqueueCommand!.Route,
+            new
+            {
+                civilizationId = availableResearch.EnqueueCommand.CivilizationId,
+                sourcePlanetId = availableResearch.EnqueueCommand.SourcePlanetId,
+                researchType = availableResearch.EnqueueCommand.ResearchType.ToString(),
+                requestedAtUtc = "2026-01-01T12:00:00Z"
+            });
         var enqueuePayload = await enqueueResponse.Content.ReadFromJsonAsync<EnqueueResearchOrderApiResponse>();
 
         Assert.Equal(HttpStatusCode.Created, enqueueResponse.StatusCode);
@@ -247,6 +251,43 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
                 !item.CanEnqueue &&
                 item.StatusKey == "InsufficientResources");
         Assert.Equal(0, followUpPayload.UiState.TechnologyHints.Count(x => x.CanEnqueue));
+    }
+
+    [Fact]
+    public async Task BlockedResearchCommandMetadataRejectsWithExpectedReason()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        await using var dbContext = CreateSeededDbContext(databaseName);
+        using var client = CreateConfiguredClient(databaseName);
+
+        using var response = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var payload = await response.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.UiState);
+
+        var blockedResearch = Assert.Single(payload.UiState.TechnologyHints.Where(x =>
+            x.ResearchType == ResearchType.ResourceExtraction &&
+            !x.CanEnqueue &&
+            x.StatusKey == "InsufficientResources"));
+
+        Assert.NotNull(blockedResearch.EnqueueCommand);
+
+        using var enqueueResponse = await client.PostAsJsonAsync(
+            blockedResearch.EnqueueCommand!.Route,
+            new
+            {
+                civilizationId = blockedResearch.EnqueueCommand.CivilizationId,
+                sourcePlanetId = blockedResearch.EnqueueCommand.SourcePlanetId,
+                researchType = blockedResearch.EnqueueCommand.ResearchType.ToString(),
+                requestedAtUtc = "2026-01-01T12:00:00Z"
+            });
+        var enqueuePayload = await enqueueResponse.Content.ReadFromJsonAsync<EnqueueResearchOrderApiResponse>();
+
+        Assert.Equal(HttpStatusCode.Conflict, enqueueResponse.StatusCode);
+        Assert.NotNull(enqueuePayload);
+        Assert.False(enqueuePayload!.Succeeded);
+        Assert.Equal(["Insufficient resources."], enqueuePayload.Errors);
     }
 
     [Fact]

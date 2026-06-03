@@ -3,7 +3,7 @@
 ---
 id: TASK-16T-research-enqueue-backend-validation-alignment
 title: Research enqueue backend validation alignment
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
