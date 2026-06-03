@@ -777,6 +777,13 @@ select {
   align-content: start;
 }
 
+.planet-action-card-blocked {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 74%, transparent), color-mix(in srgb, var(--ve-color-panel) 94%, transparent));
+  border-color: color-mix(in srgb, var(--ve-color-warning) 18%, transparent);
+  opacity: 0.86;
+}
+
 .planet-action-card .transfer-confirmation-actions button {
   width: 100%;
 }
@@ -1593,6 +1600,14 @@ select {
 .transfer-confirmation-actions button:disabled {
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+.planet-action-button-blocked:disabled {
+  background: color-mix(in srgb, var(--ve-color-bg) 76%, black);
+  color: color-mix(in srgb, var(--ve-color-text) 72%, var(--ve-color-muted));
+  border: 1px dashed color-mix(in srgb, var(--ve-color-border) 48%, transparent);
+  box-shadow: none;
+  opacity: 1;
 }
 
 .json-details {

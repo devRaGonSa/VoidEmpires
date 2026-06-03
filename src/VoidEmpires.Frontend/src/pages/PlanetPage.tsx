@@ -22,6 +22,7 @@ import {
   formatBuildingCategory,
   formatBuildingType,
   formatConstructionAction,
+  formatConstructionActionButtonLabel,
   formatConstructionAvailability,
   formatConstructionStatus,
   formatPlanetControlStatus,
@@ -232,7 +233,12 @@ export function PlanetPage() {
   }
 
   async function handleConstructionSubmit() {
-    if (!preparedAction || !planet || !uiState?.civilizationId) {
+    if (
+      !preparedAction ||
+      preparedAction.availabilityStatus !== "Available" ||
+      !planet ||
+      !uiState?.civilizationId
+    ) {
       return;
     }
 
@@ -673,9 +679,18 @@ export function PlanetPage() {
                       const actionKey = `${action.action}-${action.buildingType}`;
                       const isPrepared = preparedActionKey === actionKey;
                       const isAvailable = action.availabilityStatus === "Available";
+                      const actionButtonLabel = formatConstructionActionButtonLabel(
+                        action.availabilityStatus,
+                        isPrepared,
+                      );
 
                       return (
-                        <article key={actionKey} className="subpanel figma-subpanel planet-action-card">
+                        <article
+                          key={actionKey}
+                          className={`subpanel figma-subpanel planet-action-card${
+                            isAvailable ? "" : " planet-action-card-blocked"
+                          }`}
+                        >
                           <div className="figma-section-header">
                             <div>
                               <p className="eyebrow">{action.display?.categoryLabel ?? formatBuildingCategory(action.category)}</p>
@@ -704,7 +719,12 @@ export function PlanetPage() {
                           <div className="transfer-confirmation-actions">
                             <button
                               type="button"
+                              className={isAvailable ? "" : "planet-action-button-blocked"}
                               onClick={() => {
+                                if (!isAvailable) {
+                                  return;
+                                }
+
                                 setPreparedActionKey(actionKey);
                                 setHasConstructionAcknowledgement(false);
                                 setConstructionFeedback(null);
@@ -712,7 +732,7 @@ export function PlanetPage() {
                               }}
                               disabled={!isAvailable}
                             >
-                              {isPrepared ? "Orden preparada" : "Preparar construccion"}
+                              {actionButtonLabel}
                             </button>
                           </div>
                         </article>
@@ -723,7 +743,7 @@ export function PlanetPage() {
               ))}
             </div>
 
-            {preparedAction ? (
+            {preparedAction && preparedAction.availabilityStatus === "Available" ? (
               <section className="subpanel figma-subpanel transfer-confirmation-panel">
                 <div className="figma-section-header">
                   <div>

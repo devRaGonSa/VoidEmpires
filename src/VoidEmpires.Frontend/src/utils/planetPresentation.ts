@@ -143,6 +143,32 @@ export function formatConstructionAvailability(value: string) {
   return constructionAvailabilityLabels[value] ?? value;
 }
 
+export function formatConstructionActionButtonLabel(
+  availabilityStatus: string,
+  isPrepared: boolean,
+) {
+  if (availabilityStatus === "Available") {
+    return isPrepared ? "Orden preparada" : "Preparar construccion";
+  }
+
+  switch (availabilityStatus) {
+    case "InsufficientResources":
+      return "Faltan recursos";
+    case "CapacityExceeded":
+      return "Sin capacidad";
+    case "MissingResourceStockpile":
+      return "Sin reservas";
+    case "MissingCapacityData":
+      return "Capacidad no disponible";
+    case "Blocked":
+      return "Accion bloqueada";
+    case "Unsupported":
+      return "Solo consulta";
+    default:
+      return "No disponible";
+  }
+}
+
 export function formatPlanetControlStatus(value: PlanetValue) {
   return resolveLabel(value, controlStatusLabels, "Sin control");
 }

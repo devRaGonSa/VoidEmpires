@@ -3,7 +3,7 @@
 ---
 id: TASK-14F
 title: Phase 14F - Construction action availability button guards
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
