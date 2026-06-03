@@ -3,7 +3,7 @@
 ---
 id: TASK-19F-defenses-taxonomy-and-display-labels
 title: Defenses taxonomy and display labels
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

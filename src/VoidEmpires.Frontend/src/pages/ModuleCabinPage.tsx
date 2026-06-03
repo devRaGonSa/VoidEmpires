@@ -27,6 +27,15 @@ import {
   type ShipyardViewModel,
 } from "../utils/shipyardViewModel";
 import {
+  getDefenseActionCatalog,
+  getDefenseActionLabel,
+  getDefenseCategoryLabel,
+  getDefenseReadinessCatalog,
+  getDefenseReadinessLabel,
+  getDefenseStructureCatalog,
+  getDefenseStructureLabel,
+} from "../utils/defensePresentation";
+import {
   buildConstructionUrl,
   buildDevelopmentHelperUrl,
   buildFleetsUrl,
@@ -59,6 +68,9 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
   const shipyardAssets = getShipyardAssetCatalog();
   const shipyardActions = getShipyardActionCatalog();
   const shipyardStatuses = getShipyardProductionStatusCatalog();
+  const defenseStructures = getDefenseStructureCatalog();
+  const defenseReadinessStates = getDefenseReadinessCatalog();
+  const defenseActions = getDefenseActionCatalog();
   const shipyardCategoryGroups = groupAssetOptionsByCategory(shipyardState?.shipyard?.catalog ?? []);
   const recommendedShipyardAsset = selectRecommendedAssetProduction(shipyardState?.shipyard?.catalog ?? []);
 
@@ -303,6 +315,73 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
               <ul className="stack-list compact-list">
                 {shipyardActions.map((action) => (
                   <li key={action.key}>{getShipyardActionLabel(action.key)}</li>
+                ))}
+              </ul>
+            </section>
+          </div>
+        </UiCard>
+      ) : null}
+
+      {route.module === "Defenses" ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Taxonomia defensiva</p>
+              <h3>Vocabulario jugable de la cabina</h3>
+              <p>Los nombres visibles priorizan proteccion y readiness sin insinuar combate activo.</p>
+            </div>
+            <UiBadge tone="resource">{defenseStructures.length} estructuras</UiBadge>
+          </div>
+          <div className="readiness-grid">
+            {defenseStructures.map((structure) => (
+              <section key={structure.key} className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">{getDefenseCategoryLabel(structure.categoryKey)}</p>
+                    <h4>{getDefenseStructureLabel(structure.key)}</h4>
+                  </div>
+                  <UiBadge tone="good">{getDefenseReadinessLabel(structure.readinessKey)}</UiBadge>
+                </div>
+                <div className="figma-data-list">
+                  <PlanetDataRow label="Categoria" value={getDefenseCategoryLabel(structure.categoryKey)} />
+                  <PlanetDataRow label="Estado esperado" value={getDefenseReadinessLabel(structure.readinessKey)} />
+                  <PlanetDataRow label="Accion primaria" value={getDefenseActionLabel("construction.enqueue")} />
+                </div>
+              </section>
+            ))}
+          </div>
+          <div className="figma-section-header module-boundary-spacer">
+            <div>
+              <p className="eyebrow">Readiness y acciones</p>
+              <h4>Etiquetas listas para cockpit</h4>
+            </div>
+          </div>
+          <div className="readiness-grid">
+            <section className="subpanel figma-subpanel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Readiness</p>
+                  <h4>Estados visibles</h4>
+                </div>
+                <UiBadge>{defenseReadinessStates.length} estados</UiBadge>
+              </div>
+              <ul className="stack-list compact-list">
+                {defenseReadinessStates.map((state) => (
+                  <li key={state.key}>{getDefenseReadinessLabel(state.key)}</li>
+                ))}
+              </ul>
+            </section>
+            <section className="subpanel figma-subpanel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Flujo seguro</p>
+                  <h4>Acciones del modulo</h4>
+                </div>
+                <UiBadge tone="warn">Dev-safe</UiBadge>
+              </div>
+              <ul className="stack-list compact-list">
+                {defenseActions.map((action) => (
+                  <li key={action.key}>{getDefenseActionLabel(action.key)}</li>
                 ))}
               </ul>
             </section>
