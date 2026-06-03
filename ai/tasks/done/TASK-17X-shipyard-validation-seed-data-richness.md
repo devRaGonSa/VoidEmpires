@@ -3,7 +3,7 @@
 ---
 id: TASK-17X-shipyard-validation-seed-data-richness
 title: Shipyard validation seed data richness
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

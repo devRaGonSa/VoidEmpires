@@ -129,6 +129,63 @@ public class DevShipyardUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.Contains("Planet was not found.", payload.Errors);
     }
 
+    [Fact]
+    public async Task ShipyardValidationProfileReturnsRicherAvailableBlockedStockAndQueueState()
+    {
+        await using var dbContext = CreateSeededDbContext(profile: "shipyard-validation");
+        using var client = CreateConfiguredClient(dbContext);
+
+        using var response = await client.GetAsync($"/api/dev/shipyard/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var payload = await response.Content.ReadFromJsonAsync<DevShipyardUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.UiState?.Shipyard);
+        Assert.Single(payload.UiState.Shipyard.Queue);
+        Assert.Equal(2, payload.UiState.Shipyard.OrbitalStock.Count);
+        Assert.Contains(payload.UiState.Shipyard.OrbitalStock, x => x.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.ScoutCraft && x.Quantity == 1);
+        Assert.Contains(payload.UiState.Shipyard.OrbitalStock, x => x.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.EscortCraft && x.Quantity == 4);
+        Assert.Equal(1, payload.UiState.Shipyard.Catalog.Count(item => item.AvailabilityStatus == "Available"));
+        Assert.Equal(3, payload.UiState.Shipyard.Catalog.Count(item => item.AvailabilityStatus == "Blocked"));
+        Assert.Contains(payload.UiState.Shipyard.Catalog, item => item.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.ScoutCraft && item.AvailabilityStatus == "Available");
+        Assert.Contains(payload.UiState.Shipyard.Catalog, item => item.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.CargoCraft && item.AvailabilityReason == "InsufficientResources");
+        Assert.Equal(
+            2,
+            payload.UiState.Shipyard.Catalog
+                .Where(item => item.AvailabilityStatus == "Blocked")
+                .Select(item => item.AvailabilityReason)
+                .Distinct(StringComparer.Ordinal)
+                .Count());
+        Assert.True(payload.UiState.Shipyard.ActionSummary.EnqueueSupported);
+        Assert.Equal("Available", payload.UiState.Shipyard.ActionSummary.EnqueueActionStatus);
+    }
+
+    [Fact]
+    public async Task ReapplyingShipyardValidationProfileDoesNotDuplicateCompletedOrdersOrStockRows()
+    {
+        await using var dbContext = CreateSeededDbContext(profile: "shipyard-validation");
+        var service = new DevelopmentSeedService(dbContext);
+
+        _ = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("shipyard-validation"));
+
+        Assert.Equal(
+            1,
+            await dbContext.Set<VoidEmpires.Domain.Assets.AssetProductionOrder>().CountAsync(x =>
+                x.PlanetId == SeedOwnedPlanetId &&
+                x.Target == VoidEmpires.Domain.Assets.AssetProductionTarget.Orbital &&
+                x.SpaceAssetType == VoidEmpires.Domain.Assets.SpaceAssetType.ScoutCraft &&
+                x.Status == VoidEmpires.Domain.Assets.AssetProductionOrderStatus.Completed));
+        Assert.Equal(
+            1,
+            await dbContext.Set<VoidEmpires.Domain.Assets.OrbitalAssetStock>().CountAsync(x =>
+                x.PlanetId == SeedOwnedPlanetId &&
+                x.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.ScoutCraft));
+        Assert.Equal(
+            1,
+            await dbContext.Set<VoidEmpires.Domain.Assets.OrbitalAssetStock>().CountAsync(x =>
+                x.PlanetId == SeedOwnedPlanetId &&
+                x.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.EscortCraft));
+    }
+
     private HttpClient CreateConfiguredClient(VoidEmpiresDbContext dbContext) =>
         factory.WithWebHostBuilder(builder =>
         {
@@ -144,13 +201,13 @@ public class DevShipyardUiStateEndpointTests(WebApplicationFactory<Program> fact
             });
         }).CreateClient();
 
-    private static VoidEmpiresDbContext CreateSeededDbContext(Action<VoidEmpiresDbContext>? seedOverride = null)
+    private static VoidEmpiresDbContext CreateSeededDbContext(Action<VoidEmpiresDbContext>? seedOverride = null, string profile = "minimal-validation")
     {
         var dbContext = new VoidEmpiresDbContext(new DbContextOptionsBuilder<VoidEmpiresDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options);
 
-        new DevelopmentSeedService(dbContext).ApplyAsync(new ApplyDevelopmentSeedRequest("minimal-validation")).GetAwaiter().GetResult();
+        new DevelopmentSeedService(dbContext).ApplyAsync(new ApplyDevelopmentSeedRequest(profile)).GetAwaiter().GetResult();
         seedOverride?.Invoke(dbContext);
         dbContext.SaveChanges();
 

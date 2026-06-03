@@ -89,9 +89,19 @@ public static class DevelopmentSeedProfiles
             new("visiblePlanetId", "40000000-0000-0000-0000-000000000003", "Aether Crown")
         ]);
 
-    public static readonly DevelopmentSeedProfileMetadata ShipyardValidation = CreatePlannedProfile(
+    public static readonly DevelopmentSeedProfileMetadata ShipyardValidation = new(
         "shipyard-validation",
-        ["Shipyard"]);
+        true,
+        "Implemented today. Use this for a shipyard-focused richer QA baseline.",
+        "Additive and idempotent. Builds on minimal-validation, preserves open queue safety, and adds richer shipyard stock plus completed production history without seeding an active order.",
+        ["Shipyard"],
+        [
+            "/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001"
+        ],
+        [
+            new("civilizationId", "00000000-0000-0000-0000-000000000001", "Void Seed Civilization"),
+            new("ownedPlanetId", "40000000-0000-0000-0000-000000000001", "Aurelia")
+        ]);
 
     public static readonly DevelopmentSeedProfileMetadata FleetValidation = CreatePlannedProfile(
         "fleet-validation",

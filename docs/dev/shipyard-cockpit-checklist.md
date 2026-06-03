@@ -10,6 +10,19 @@ It must not absorb fleet movement, transfer lifecycle control, combat, or split/
 
 - `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 
+## Recommended richer seed
+
+Use `POST /api/dev/seeds/apply` with `{"profile":"shipyard-validation"}` when you want the richer deterministic Shipyard screenshot baseline.
+
+Expected richer baseline:
+
+- `Aurelia` remains the owned Shipyard context.
+- exactly one orbital option remains immediately available: `Nave exploradora`
+- `Nave de carga` stays blocked by insufficient resources
+- `Nave de escolta` and `Nave colonial` stay blocked by missing building requirements
+- local stock shows at least `Nave de escolta x4` and `Nave exploradora x1`
+- the queue shows one completed production row while enqueue remains available because there is no open production order
+
 ## Manual Smoke Checklist
 
 Use this after the required validation commands succeed.

@@ -37,6 +37,10 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
     private const int CockpitValidationMetal = 320;
     private const int CockpitValidationCrystal = 220;
     private const int CockpitValidationGas = 120;
+    private const int ShipyardValidationCredits = 180;
+    private const int ShipyardValidationMetal = 180;
+    private const int ShipyardValidationCrystal = 110;
+    private const int ShipyardValidationGas = 70;
     private static readonly DateTime SeedTransferDepartureAtUtc = new(2026, 6, 2, 8, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime SeedTransferArrivalAtUtc = new(2026, 6, 2, 12, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime CockpitValidationConstructionStartAtUtc = new(2026, 5, 31, 8, 0, 0, DateTimeKind.Utc);
@@ -56,9 +60,10 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
 
         if (!DevelopmentSeedProfiles.TryGetImplementedProfile(profile, out var profileMetadata))
         {
+            var implementedProfiles = string.Join(", ", DevelopmentSeedProfiles.All.Where(x => x.IsImplemented).Select(x => x.Name));
             return ApplyDevelopmentSeedResult.Failure(
                 profile,
-                [$"Unsupported development seed profile '{profile}'. Implemented profiles: minimal-validation."],
+                [$"Unsupported development seed profile '{profile}'. Implemented profiles: {implementedProfiles}."],
                 DevelopmentSeedProfiles.All);
         }
 
@@ -82,6 +87,14 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
                     $"System {SeedSystemId} keeps Aurelia plus visible comparison planets {SeedOuterPlanetId} and {SeedIcePlanetId}.",
                     "Planet and Construction gain completed queue history without blocking current actions.",
                     "Research and Shipyard gain richer completed history while preserving available and blocked read-state."
+                ]);
+                break;
+            case "shipyard-validation":
+                await SeedShipyardValidationProfileAsync(cancellationToken);
+                appliedSteps.AddRange([
+                    $"Validated shipyard-focused seed for civilization {SeedCivilizationId}.",
+                    "Aurelia keeps one available basic hull, multiple blocked comparisons with distinct reasons, and richer local stock.",
+                    "Shipyard queue history is seeded as completed-only so the primary enqueue path remains available."
                 ]);
                 break;
             default:
@@ -478,6 +491,68 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
         if (stockpile.Gas < CockpitValidationGas)
         {
             stockpile.Increase(ResourceType.Gas, CockpitValidationGas - stockpile.Gas);
+        }
+    }
+
+    private async Task SeedShipyardValidationProfileAsync(CancellationToken cancellationToken)
+    {
+        await SeedMinimalValidationProfileAsync(cancellationToken);
+
+        var stockpile = await dbContext.PlanetResourceStockpiles
+            .SingleAsync(x => x.PlanetId == SeedOwnedPlanetId, cancellationToken);
+
+        EnsureShipyardValidationStockpile(stockpile);
+
+        if (!await dbContext.Set<AssetProductionOrder>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId &&
+                    x.Target == AssetProductionTarget.Orbital &&
+                    x.SpaceAssetType == SpaceAssetType.ScoutCraft &&
+                    x.Quantity == 1 &&
+                    x.Status == AssetProductionOrderStatus.Completed,
+                cancellationToken))
+        {
+            dbContext.Set<AssetProductionOrder>().Add(AssetProductionOrder.Create(
+                SeedOwnedPlanetId,
+                AssetProductionTarget.Orbital,
+                null,
+                SpaceAssetType.ScoutCraft,
+                1,
+                1,
+                CockpitValidationProductionStartAtUtc,
+                CockpitValidationProductionEndAtUtc,
+                AssetProductionOrderStatus.Completed));
+        }
+
+        if (!await dbContext.Set<OrbitalAssetStock>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId && x.AssetType == SpaceAssetType.ScoutCraft,
+                cancellationToken))
+        {
+            dbContext.Set<OrbitalAssetStock>().Add(OrbitalAssetStock.Create(SeedOwnedPlanetId, SpaceAssetType.ScoutCraft, 1));
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static void EnsureShipyardValidationStockpile(PlanetResourceStockpile stockpile)
+    {
+        if (stockpile.Credits < ShipyardValidationCredits)
+        {
+            stockpile.Increase(ResourceType.Credits, ShipyardValidationCredits - stockpile.Credits);
+        }
+
+        if (stockpile.Metal < ShipyardValidationMetal)
+        {
+            stockpile.Increase(ResourceType.Metal, ShipyardValidationMetal - stockpile.Metal);
+        }
+
+        if (stockpile.Crystal < ShipyardValidationCrystal)
+        {
+            stockpile.Increase(ResourceType.Crystal, ShipyardValidationCrystal - stockpile.Crystal);
+        }
+
+        if (stockpile.Gas < ShipyardValidationGas)
+        {
+            stockpile.Increase(ResourceType.Gas, ShipyardValidationGas - stockpile.Gas);
         }
     }
 }

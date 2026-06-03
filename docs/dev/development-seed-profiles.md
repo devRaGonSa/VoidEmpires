@@ -10,7 +10,7 @@ This document is the current source of truth for the development-only `minimal-v
 |---|---|---|
 | `minimal-validation` | Implemented | Current deterministic shared baseline for Galaxy, Planet, Construction, Research, Shipyard, and Fleets |
 | `cockpit-validation` | Implemented | Richer combined cockpit baseline with non-blocking completed history for Planet, Research, and Shipyard |
-| `shipyard-validation` | Planned only | Future shipyard-focused richer baseline |
+| `shipyard-validation` | Implemented | Shipyard-focused richer baseline with completed queue history, two local stock rows, one available hull, and blocked comparisons |
 | `fleet-validation` | Planned only | Future fleet-focused richer baseline |
 | `research-validation` | Planned only | Future research-focused richer baseline |
 | `planet-full-validation` | Planned only | Future richer planet and construction baseline |
@@ -62,6 +62,18 @@ The seeded orbital groups, transfer row, and queue rows do not use fixed ids. In
 ## `cockpit-validation` additions
 
 `cockpit-validation` builds on `minimal-validation`, tops `Aurelia` up to at least `220` credits, `320` metal, `220` crystal, and `120` gas, and then adds one completed construction row, one completed `EnergySystems` research order plus project, and one completed orbital `ScoutCraft` production order plus local `ScoutCraft` stock. It stays non-destructive and avoids extra pending or active queue rows so the current executable cockpit actions remain available.
+
+## `shipyard-validation` additions
+
+`shipyard-validation` builds on `minimal-validation`, tops `Aurelia` up to at least `180` credits, `180` metal, `110` crystal, and `70` gas, adds one completed `ScoutCraft` production row, and adds a second local orbital stock type so Shipyard can show queue history plus richer stock.
+
+Expected Shipyard result:
+
+- `ScoutCraft` remains available.
+- `CargoCraft` is blocked by `InsufficientResources`.
+- `EscortCraft` and `ColonyCraft` remain blocked by missing building requirements.
+- Local orbital stock shows at least `EscortCraft x4` and `ScoutCraft x1`.
+- The queue shows one completed production row and no open order, so guarded enqueue remains available.
 
 ### Identity and ownership
 
