@@ -507,11 +507,14 @@ select {
 
 .page-frame {
   display: block;
+  min-width: 0;
+  overflow-x: clip;
 }
 
 .page-grid {
   display: grid;
   gap: 20px;
+  min-width: 0;
 }
 
 .figma-hero-card,
@@ -998,7 +1001,7 @@ select {
 }
 
 .figma-map-layout {
-  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.7fr);
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.8fr);
   align-items: start;
 }
 
@@ -1018,6 +1021,14 @@ select {
 
 .strategic-map-panel {
   overflow: hidden;
+}
+
+.strategic-map-panel,
+.technical-disclosure,
+.technical-disclosure-body > *,
+.strategic-map-view,
+.strategic-map-canvas {
+  max-width: 100%;
 }
 
 .figma-map-stage,
@@ -1503,6 +1514,7 @@ select {
 
 .selection-chip-row > * {
   min-width: 0;
+  max-width: 100%;
 }
 
 .technical-disclosure {
@@ -1936,6 +1948,17 @@ select {
 
   .strategic-system-layout {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1440px) {
+  .figma-map-layout {
+    gap: var(--ve-space-3);
+  }
+
+  .figma-mini-card,
+  .figma-transfer-card {
+    padding: 14px;
   }
 }
 

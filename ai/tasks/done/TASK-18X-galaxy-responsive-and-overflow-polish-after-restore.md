@@ -3,7 +3,7 @@
 ---
 id: TASK-18X-galaxy-responsive-and-overflow-polish-after-restore
 title: Galaxy responsive and overflow polish after restore
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
