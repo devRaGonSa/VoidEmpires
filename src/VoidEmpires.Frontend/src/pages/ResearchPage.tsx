@@ -334,7 +334,47 @@ export function ResearchPage() {
 
       {uiState ? (
         <>
-          <UiCard className="panel">
+          <UiCard className="panel research-queue-panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Cola y progreso</p>
+                <h3>Elementos activos y completados</h3>
+              </div>
+              <UiBadge tone="warn">Contexto conservado</UiBadge>
+            </div>
+            <div className="figma-two-column">
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div><p className="eyebrow">Cola</p><h4>Ordenes activas</h4></div>
+                  <UiBadge>{uiState.queue.length}</UiBadge>
+                </div>
+                {uiState.queue.length > 0 ? (
+                  <ul className="stack-list compact-list">
+                    {uiState.queue.map((item) => (
+                      <li key={item.orderId}>
+                        {item.label} nivel {item.targetLevel} | {item.isDue ? "Lista para cierre" : item.statusLabel} | cierre {formatDateTime(item.endsAtUtc)}
+                      </li>
+                    ))}
+                  </ul>
+                ) : <p className="figma-panel-note">No hay ordenes activas en la cola.</p>}
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div><p className="eyebrow">Completadas</p><h4>Proyectos cerrados</h4></div>
+                  <UiBadge>{uiState.projects.length}</UiBadge>
+                </div>
+                {uiState.projects.length > 0 ? (
+                  <ul className="stack-list compact-list">
+                    {uiState.projects.map((item) => (
+                      <li key={`${item.researchType}`}>{item.label} nivel {item.currentLevel}</li>
+                    ))}
+                  </ul>
+                ) : <p className="figma-panel-note">No hay proyectos completados para mostrar.</p>}
+              </section>
+            </div>
+          </UiCard>
+
+          <UiCard className="panel research-catalog-panel">
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Catalogo</p>
@@ -342,7 +382,7 @@ export function ResearchPage() {
               </div>
               <UiBadge tone="good">Vista normalizada</UiBadge>
             </div>
-            <div className="planet-building-groups">
+            <div className="planet-building-groups research-catalog-groups">
               {catalogGroups.map((group) => (
                 <section key={group.key} className="subpanel figma-subpanel">
                   <div className="figma-section-header">
@@ -352,9 +392,12 @@ export function ResearchPage() {
                     </div>
                     <UiBadge>{group.technologies.length}</UiBadge>
                   </div>
-                  <div className="planet-building-grid">
+                  <div className="planet-building-grid research-tech-grid">
                     {group.technologies.map((technology) => (
-                      <article key={`${technology.researchType}`} className="subpanel figma-subpanel">
+                      <article
+                        key={`${technology.researchType}`}
+                        className={`subpanel figma-subpanel research-tech-card ${technology.availability.canEnqueue ? "research-tech-card-ready" : "research-tech-card-blocked"}`}
+                      >
                         <div className="figma-section-header">
                           <div>
                             <p className="eyebrow">{technology.bonusLabel}</p>
@@ -367,6 +410,16 @@ export function ResearchPage() {
                           <div className="figma-data-row"><span>Coste</span><strong>{technology.estimatedCostLabel}</strong></div>
                           <div className="figma-data-row"><span>Duracion</span><strong>{technology.estimatedDurationLabel}</strong></div>
                           <div className="figma-data-row"><span>Accion</span><strong>{getResearchPrimaryAction(technology)}</strong></div>
+                        </div>
+                        <div className="research-requirements-block">
+                          <p className="research-card-caption">Requisitos visibles</p>
+                          <div className="selection-chip-row research-requirements-row">
+                            {technology.requirements.map((requirement) => (
+                              <span key={`${technology.researchType}-${requirement.key}`} className="selection-chip">
+                                {requirement.label}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                         <div className="transfer-confirmation-actions">
                           <button
@@ -405,7 +458,7 @@ export function ResearchPage() {
           </UiCard>
 
           {preparedResearch && preparedResearch.availability.canEnqueue ? (
-            <UiCard className="panel transfer-confirmation-panel">
+            <UiCard className="panel transfer-confirmation-panel research-confirmation-panel">
               <div className="figma-section-header">
                 <div>
                   <p className="eyebrow">Paso final</p>
@@ -474,7 +527,7 @@ export function ResearchPage() {
             </UiCard>
           ) : null}
 
-          <UiCard className="panel">
+          <UiCard className="panel research-action-panel">
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Cierre vencido</p>
@@ -491,46 +544,6 @@ export function ResearchPage() {
             <p className="figma-panel-note">
               Esta accion no esta disponible desde Investigacion en esta build porque el cierre seguro todavia no esta acotado al contexto visible.
             </p>
-          </UiCard>
-
-          <UiCard className="panel">
-            <div className="figma-section-header">
-              <div>
-                <p className="eyebrow">Cola y progreso</p>
-                <h3>Elementos activos y completados</h3>
-              </div>
-              <UiBadge tone="warn">Contexto conservado</UiBadge>
-            </div>
-            <div className="figma-two-column">
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div><p className="eyebrow">Cola</p><h4>Ordenes activas</h4></div>
-                  <UiBadge>{uiState.queue.length}</UiBadge>
-                </div>
-                {uiState.queue.length > 0 ? (
-                  <ul className="stack-list compact-list">
-                    {uiState.queue.map((item) => (
-                      <li key={item.orderId}>
-                        {item.label} nivel {item.targetLevel} | {item.isDue ? "Lista para cierre" : item.statusLabel} | cierre {formatDateTime(item.endsAtUtc)}
-                      </li>
-                    ))}
-                  </ul>
-                ) : <p className="figma-panel-note">No hay ordenes activas en la cola.</p>}
-              </section>
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div><p className="eyebrow">Completadas</p><h4>Proyectos cerrados</h4></div>
-                  <UiBadge>{uiState.projects.length}</UiBadge>
-                </div>
-                {uiState.projects.length > 0 ? (
-                  <ul className="stack-list compact-list">
-                    {uiState.projects.map((item) => (
-                      <li key={`${item.researchType}`}>{item.label} nivel {item.currentLevel}</li>
-                    ))}
-                  </ul>
-                ) : <p className="figma-panel-note">No hay proyectos completados para mostrar.</p>}
-              </section>
-            </div>
           </UiCard>
 
           <UiCard className="panel">

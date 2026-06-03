@@ -777,6 +777,76 @@ select {
   align-content: start;
 }
 
+.research-queue-panel,
+.research-catalog-panel,
+.research-action-panel,
+.research-confirmation-panel,
+.research-tech-card {
+  min-width: 0;
+}
+
+.research-catalog-groups {
+  align-content: start;
+}
+
+.research-tech-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.research-tech-card {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  overflow: hidden;
+}
+
+.research-tech-card-ready {
+  background:
+    radial-gradient(circle at top right, rgba(82, 230, 167, 0.08), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 86%, transparent), color-mix(in srgb, var(--ve-color-panel) 92%, transparent));
+  border-color: color-mix(in srgb, var(--ve-color-success) 20%, transparent);
+}
+
+.research-tech-card-blocked {
+  background:
+    radial-gradient(circle at top right, rgba(255, 200, 87, 0.08), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 78%, transparent), color-mix(in srgb, var(--ve-color-panel) 94%, transparent));
+  border-color: color-mix(in srgb, var(--ve-color-warning) 20%, transparent);
+}
+
+.research-tech-card h4,
+.research-tech-card strong,
+.research-tech-card .figma-panel-note {
+  overflow-wrap: anywhere;
+}
+
+.research-requirements-block {
+  display: grid;
+  gap: 8px;
+}
+
+.research-card-caption {
+  margin: 0;
+  color: color-mix(in srgb, var(--ve-color-text) 68%, var(--ve-color-muted));
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.research-requirements-row {
+  margin-top: 0;
+}
+
+.research-requirements-row .selection-chip {
+  background: color-mix(in srgb, var(--ve-color-bg) 58%, transparent);
+}
+
+.research-confirmation-panel .figma-data-row strong,
+.research-action-panel .figma-data-row strong,
+.research-queue-panel li {
+  overflow-wrap: anywhere;
+}
+
 .planet-action-card {
   gap: 14px;
   overflow: hidden;

@@ -3,7 +3,7 @@
 ---
 id: TASK-16B-research-responsive-visual-polish
 title: Research responsive visual polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
