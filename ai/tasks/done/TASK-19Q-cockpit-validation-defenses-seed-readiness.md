@@ -3,7 +3,7 @@
 ---
 id: TASK-19Q-cockpit-validation-defenses-seed-readiness
 title: Cockpit validation defenses seed readiness
-status: pending
+status: completed
 type: platform
 team: platform
 supporting_teams:

@@ -103,7 +103,8 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
                     $"Validated richer cockpit seed for civilization {SeedCivilizationId}.",
                     $"System {SeedSystemId} keeps Aurelia plus visible comparison planets {SeedOuterPlanetId} and {SeedIcePlanetId}.",
                     "Planet and Construction gain completed queue history without blocking current actions.",
-                    "Research and Shipyard gain richer completed history while preserving available and blocked read-state."
+                    "Research and Shipyard gain richer completed history while preserving available and blocked read-state.",
+                    "Defenses now include a visible Defense Grid readiness baseline without seeding combat or an active queue."
                 ]);
                 break;
             case "shipyard-validation":
@@ -437,6 +438,13 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
             .SingleAsync(x => x.PlanetId == SeedOwnedPlanetId, cancellationToken);
 
         EnsureCockpitValidationStockpile(stockpile);
+
+        if (!await dbContext.Set<PlanetBuilding>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId && x.BuildingType == BuildingType.DefenseGrid,
+                cancellationToken))
+        {
+            dbContext.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOwnedPlanetId, BuildingType.DefenseGrid, 1, 1));
+        }
 
         await EnsureSeededConstructionOrderAsync(
             SeedOwnedPlanetId,

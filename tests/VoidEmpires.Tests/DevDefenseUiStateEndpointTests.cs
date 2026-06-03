@@ -90,6 +90,8 @@ public class DevDefenseUiStateEndpointTests(WebApplicationFactory<Program> facto
         Assert.Equal("Aurelia", payload.UiState.Defenses.PlanetName);
         Assert.True(payload.UiState.Defenses.IsOwnedByRequestingCivilization);
         Assert.NotEmpty(payload.UiState.Defenses.ResourceStockpile);
+        Assert.Single(payload.UiState.Defenses.DefenseStructures);
+        Assert.Equal(BuildingType.DefenseGrid, payload.UiState.Defenses.DefenseStructures[0].BuildingType);
         Assert.Single(payload.UiState.Defenses.DefenseOptions);
         Assert.Equal(BuildingType.DefenseGrid, payload.UiState.Defenses.DefenseOptions[0].BuildingType);
         Assert.Contains("construction readiness", payload.UiState.Defenses.Diagnostics.Notes[1], StringComparison.OrdinalIgnoreCase);

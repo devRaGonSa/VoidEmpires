@@ -10,7 +10,7 @@ Use these profiles instead of manual SQL for standard cockpit QA.
 | Profile | Status | Intended QA use |
 |---|---|---|
 | `minimal-validation` | Implemented | Current deterministic shared baseline for Galaxy, Planet, Construction, Research, Shipyard, and Fleets |
-| `cockpit-validation` | Implemented | Richer combined cockpit baseline with non-blocking completed history for Planet, Research, and Shipyard |
+| `cockpit-validation` | Implemented | Richer combined cockpit baseline with non-blocking completed history plus visible Defenses readiness on Aurelia |
 | `shipyard-validation` | Implemented | Shipyard-focused richer baseline with completed queue history, two local stock rows, one available hull, and blocked comparisons |
 | `fleet-validation` | Implemented | Fleet-focused richer baseline with one extra stationed cargo example and one additional due active transfer |
 | `research-validation` | Implemented | Research-focused richer baseline with one deterministic available technology, completed history, and truthful resource-blocked comparisons |
@@ -100,12 +100,13 @@ Primary deterministic local QA routes:
 - Shipyard: `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Fleets: `/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Ground Army placeholder: `/ground-army?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
-- Defenses placeholder: `/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Defenses: `/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 
 Route note:
 
 - `/galaxy` is the canonical Galaxy route. `/` remains supported as a compatibility alias.
-- Ground Army and Defenses remain placeholder/readiness cabins; seed profiles preserve navigation context for them but do not turn them into full gameplay cockpits.
+- Ground Army remains a placeholder/readiness cabin.
+- Defenses now has a seeded cockpit-foundation readiness baseline, but it still does not execute combat or seed an active defensive queue.
 
 ## Dependency map
 
@@ -142,7 +143,7 @@ The seeded orbital groups, transfer row, and queue rows do not use fixed ids. In
 
 ## `cockpit-validation` additions
 
-`cockpit-validation` builds on `minimal-validation`, tops `Aurelia` up to at least `220` credits, `320` metal, `220` crystal, and `120` gas, and then adds one completed construction row, one completed `EnergySystems` research order plus project, and one completed orbital `ScoutCraft` production order plus local `ScoutCraft` stock. It stays non-destructive and avoids extra pending or active queue rows so the current executable cockpit actions remain available.
+`cockpit-validation` builds on `minimal-validation`, tops `Aurelia` up to at least `220` credits, `320` metal, `220` crystal, and `120` gas, adds a visible `DefenseGrid` level `1` on `Aurelia`, and then adds one completed construction row, one completed `EnergySystems` research order plus project, and one completed orbital `ScoutCraft` production order plus local `ScoutCraft` stock. It stays non-destructive and avoids extra pending or active queue rows so the current executable cockpit actions remain available.
 
 Expected Galaxy result for screenshot QA:
 
@@ -152,6 +153,14 @@ Expected Galaxy result for screenshot QA:
 - four fleet markers from the seeded stationed and reserved orbital groups
 - one transfer overlay from the seeded planned cargo route
 - enough read-state for the legend, focus panel, transfer summary, and collapsed diagnostics to render together without looking empty
+
+Expected Defenses result for screenshot QA:
+
+- `Aurelia` loads as the controlled planet with the richer cockpit-validation stockpile
+- one visible `DefenseGrid` structure appears in the deployed/readiness inventory
+- one deterministic defense readiness option remains visible for `DefenseGrid`
+- the baseline stays truthful about current scope: no seeded active defense queue and complete-due remains a limitation, not a fake action
+- blocked defense comparisons are not seeded in the default baseline because the current defensive catalog exposes only one real structure type; blocked-state coverage is validated through targeted low-resource tests instead
 
 ## `shipyard-validation` additions
 

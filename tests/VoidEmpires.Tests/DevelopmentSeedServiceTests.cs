@@ -98,6 +98,7 @@ public class DevelopmentSeedServiceTests
         Assert.Equal(320, stockpile.Metal);
         Assert.Equal(220, stockpile.Crystal);
         Assert.Equal(120, stockpile.Gas);
+        Assert.Equal(1, await dbContext.Set<PlanetBuilding>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.BuildingType == BuildingType.DefenseGrid && x.Level == 1));
         Assert.Equal(1, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.Status == ConstructionQueueItemStatus.Completed));
         Assert.Equal(1, await dbContext.Set<ResearchProject>().CountAsync(x => x.CivilizationId == CivilizationId && x.ResearchType == ResearchType.EnergySystems));
         Assert.Equal(1, await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == CivilizationId && x.ResearchType == ResearchType.EnergySystems && x.Status == ResearchQueueItemStatus.Completed));
@@ -258,6 +259,7 @@ public class DevelopmentSeedServiceTests
                     break;
                 case "cockpit-validation":
                     await AssertProfileCountsAsync(dbContext, constructionOrders: 1, researchOrders: 1, researchProjects: 1, assetProductionOrders: 1, orbitalAssetStocks: 2, orbitalGroups: 4, orbitalTransfers: 1);
+                    Assert.Equal(1, await dbContext.Set<PlanetBuilding>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.BuildingType == BuildingType.DefenseGrid));
                     break;
                 case "shipyard-validation":
                     await AssertProfileCountsAsync(dbContext, constructionOrders: 0, researchOrders: 0, researchProjects: 0, assetProductionOrders: 1, orbitalAssetStocks: 2, orbitalGroups: 4, orbitalTransfers: 1);
