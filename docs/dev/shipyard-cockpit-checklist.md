@@ -1,12 +1,42 @@
 # Shipyard Cockpit Checklist
 
-## Purpose
+This checklist documents the current `/shipyard` development cockpit, the seeded QA URL, and the intentional boundary with Fleet work.
 
-This note records the current backend surface that a future `/shipyard` cockpit can safely reuse.
-It is based on the code currently in `main`, not on planning assumptions.
-
-Shipyard v1 must stay a development-safe production cockpit.
+Shipyard v1 is a development-safe orbital production cockpit.
+It can inspect production context and enqueue one guarded orbital order through the current dev route.
 It must not absorb fleet movement, transfer lifecycle control, combat, or split/merge behavior.
+
+## Seeded QA URL
+
+- `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+
+## Manual Smoke Checklist
+
+Use this after the required validation commands succeed.
+
+1. Start `VoidEmpires.Web` with development endpoints enabled and with persistence configured.
+2. Open the seeded Shipyard URL.
+3. Confirm the page loads as a real `Astillero` cockpit route and not as a placeholder-only module shell.
+4. Confirm the `Aurelia` context is visible with civilization, planet, system, and local-control cues in the first viewport.
+5. Confirm local resources are visible and remain secondary to the cockpit summary instead of raw DTO output.
+6. Confirm the production catalog is visible with Spanish asset labels and category grouping.
+7. Confirm the seeded scenario shows both available and blocked asset options when the backend supports them.
+8. Confirm available options open a review step before enqueue and do not submit immediately.
+9. Confirm the guarded confirmation appears before enqueue when the dev action is enabled.
+10. Confirm one successful enqueue refreshes queue, catalog, and local reserves from backend-confirmed state.
+11. Confirm `Completar produccion vencida no disponible` stays disabled or placeholder-only unless a future planet-scoped safe route exists.
+12. Confirm the cockpit explains clearly that local stock is not the same thing as an operational fleet group.
+13. Confirm the links to `Planeta`, `Construccion`, `Investigacion`, `Flotas`, and `Galaxia` preserve `civilizationId` and `planetId`.
+14. Confirm diagnostics remain collapsed or visually secondary.
+15. Confirm no 3D or WebGL renderer is introduced.
+16. Confirm no combat, fleet movement, split, merge, or transfer action can be executed from Shipyard.
+
+## Boundary Summary
+
+- Shipyard owns orbital production context, catalog review, guarded enqueue, queue reading, and local stock reading.
+- Fleets owns orbital groups, transfer lifecycle, destination review, movement, cancellation, and due completion.
+- Shipyard may link to Fleets for already-visible groups, but it must not mutate Fleet state directly in this block.
+- The current complete-due affordance remains intentionally disabled because the backend route is still global and not safely scoped to the visible shipyard context.
 
 ## Development Gating
 
@@ -237,7 +267,7 @@ Shipyard v1 should currently be framed as:
 
 - a truthful orbital production catalog;
 - a development-only enqueue affordance only when the dev route is intentionally enabled;
-- a conservative, clearly disabled placeholder for queue and stock sections until read models exist;
+- a truthful queue and stock read surface backed by the current development UI-state endpoint;
 - a handoff surface to Fleets for existing orbital groups, not a replacement for fleet lifecycle management.
 
 Shipyard v1 should not currently be framed as:
@@ -247,12 +277,12 @@ Shipyard v1 should not currently be framed as:
 - a queue operations module;
 - a movement or command cockpit.
 
-## Recommended Follow-Up Work
+## Validation
 
-1. Add a read-only shipyard state endpoint that returns:
-   - orbital production catalog;
-   - local orbital asset stock;
-   - current open/completed orbital production queue items;
-   - conservative capability flags for enqueue and complete-due.
-2. Add focused tests for `AssetProductionQueueService` and `AssetOrderProcessor`.
-3. If Shipyard later needs stock-to-fleet execution, harden that flow first with ownership and locality validation before exposing it in the UI.
+Run from repository root:
+
+```powershell
+dotnet build --no-restore
+dotnet test --no-build
+npm run build --prefix src/VoidEmpires.Frontend
+```

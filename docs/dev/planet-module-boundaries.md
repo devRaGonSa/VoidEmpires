@@ -9,7 +9,7 @@ This guide documents the current frontend boundary model for the planet-related 
 - `/construction`: general civil, economic, and infrastructure construction only.
 - `/research`: specialized research cockpit foundation with guarded enqueue and read-model state.
 - `/ground-army`: specialized ground army placeholder.
-- `/shipyard`: specialized shipyard placeholder.
+- `/shipyard`: specialized shipyard cockpit foundation with guarded orbital enqueue, queue and stock reads, and a disabled complete-due placeholder.
 - `/defenses`: specialized defenses placeholder.
 - `/fleets`: fleet command cockpit and route context hub.
 
@@ -19,6 +19,7 @@ This guide documents the current frontend boundary model for the planet-related 
 - Do not put defense, army, shipyard, or research full catalogs in `/construction`.
 - Do not add mutations to `/galaxy`.
 - Do not enable unavailable specialized gameplay from placeholder cabinas.
+- Do not treat `/shipyard` as a fleet movement, transfer, split, merge, or combat surface.
 
 ## Current placeholder model
 
@@ -26,6 +27,7 @@ This guide documents the current frontend boundary model for the planet-related 
 - `Solo lectura` means the page can explain context and navigation but must not execute gameplay mutations.
 - `Activa` is reserved for routes that can already perform their intended read or controlled action.
 - `Investigacion v1` now sits between placeholder and full gameplay: it supports read-model browsing plus guarded development enqueue, but complete-due remains intentionally disabled in the cockpit.
+- `Astillero v1` now also sits between placeholder and full gameplay: it supports read-model browsing plus guarded development enqueue, but Fleet handoff stays explanatory only and complete-due remains intentionally disabled in the cockpit.
 
 ## Seeded QA URLs
 
@@ -33,5 +35,5 @@ This guide documents the current frontend boundary model for the planet-related 
 - Construction cockpit: `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Research cockpit: `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Ground army placeholder: `/ground-army?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
-- Shipyard placeholder: `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Shipyard cockpit: `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Defenses placeholder: `/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`

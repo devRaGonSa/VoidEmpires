@@ -3,7 +3,7 @@
 Use this checklist to validate the current frontend prototype without confusing it with production UI.
 
 For the current Fleet estimate -> confirm -> create-transfer -> confirm -> cancel-transfer or complete-due paths, pair this document with `docs/dev/fleet-controlled-mutation-checklist.md`.
-For the current Galaxy, Planet, Construction, and Research cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md`, `docs/dev/planet-cockpit-checklist.md`, `docs/dev/construction-cockpit-checklist.md`, and `docs/dev/research-cockpit-checklist.md`.
+For the current Galaxy, Planet, Construction, Research, and Shipyard cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md`, `docs/dev/planet-cockpit-checklist.md`, `docs/dev/construction-cockpit-checklist.md`, `docs/dev/research-cockpit-checklist.md`, and `docs/dev/shipyard-cockpit-checklist.md`.
 For the current module boundary model and placeholder responsibilities, also pair this document with `docs/dev/planet-module-boundaries.md`.
 
 ## Backend prerequisites
@@ -79,14 +79,25 @@ Fleet cockpit v1 acceptance boundary:
    - any generic validation rejection during the guarded enqueue flow is treated as a failed smoke pass
    - `Completar vencidas no disponible` stays visibly disabled when the backend route is not scoped safely to this cabin
    - diagnostics remain collapsed and keep technical details secondary
-13. Open the `Fleets` route.
-14. Enter the same civilization id and confirm the new cockpit layout renders in clearly separated sections:
+13. Open the `Shipyard` route with civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`, then confirm:
+   - the seeded shipyard URL `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` opens the cockpit with deterministic `Aurelia` context
+   - the top cockpit strip shows context, readiness, and stock or queue summaries before diagnostics
+   - resources, orbital stock, queue state, and production catalog are visible without exposing raw DTOs in the primary flow
+   - the catalog shows meaningful Spanish asset labels and visible available or blocked comparisons
+   - preparing an available item opens a guarded review step before `Confirmar produccion`
+   - one successful enqueue refreshes queue, stock, and catalog from the backend-confirmed state
+   - `Completar produccion vencida no disponible` stays visibly disabled while the backend route remains global
+   - the handoff to `Flotas` stays explanatory only and never mutates fleet groups
+   - links to `Planeta`, `Construccion`, `Investigacion`, `Flotas`, and `Galaxia` preserve context
+   - diagnostics remain collapsed or secondary and the page stays free of 3D, combat, and fleet movement actions
+14. Open the `Fleets` route.
+15. Enter the same civilization id and confirm the new cockpit layout renders in clearly separated sections:
    - a top command deck summarizes groups, active transfers, resource contexts, and action hints
    - an orbital group rail lists the available groups with readable asset type, current planet, and compact identifiers
    - a selected-group panel shows asset type, quantity, status, current planet, origin planet, readiness, and active transfer context when present
    - a command column groups estimate inputs, latest estimate state, guarded create-transfer confirmation, and guarded cancel-transfer confirmation together
    - prototype-only mutation controls remain separated from the executable command column
-15. Within the same Fleet cockpit, confirm:
+16. Within the same Fleet cockpit, confirm:
    - loading state appears
    - fleet group summaries render as readable rail cards and raw GUIDs stay secondary to ship or planet labels
    - the read-only estimate flow can submit `POST /api/dev/fleets/orbital-travel/estimate` and render loading, success, validation, not-found, conflict, or network-error feedback without creating a transfer
@@ -102,7 +113,7 @@ Fleet cockpit v1 acceptance boundary:
    - feedback areas for estimate, create-transfer, cancel-transfer, and complete-due results render readable success, warning, or error messaging rather than JSON-first output
    - fleet and strategic-map manifests render as read-only contract panels
    - mutating manifest actions remain labeled but unavailable from the frontend
-16. For the final Fleet cockpit v1 visual review, confirm:
+17. For the final Fleet cockpit v1 visual review, confirm:
    - the development entry and endpoint context stay visible but compact, so gameplay panels appear in the first viewport earlier than before
    - the screen reads mostly in Spanish and no mixed English labels dominate the main flow
    - primary action labels read like gameplay actions, while cockpit or technical flavor stays secondary
@@ -118,13 +129,13 @@ Fleet cockpit v1 acceptance boundary:
    - active transfers remain visible at a glance with route, status, timeline, progress, due-state cues, and only the currently available controlled actions
    - result and error feedback remain readable at a glance, and no raw enum numbers or `NetworkError` text dominates the panel
    - technical manifests and future mutation metadata stay collapsed or clearly secondary under development details
-17. Confirm no buttons other than the explicit `create transfer`, `cancel transfer`, `complete due`, Planet or Construction `enqueue construction`, and guarded Research `enqueue research` confirmation paths execute mutating dev endpoints from any route.
+18. Confirm no buttons other than the explicit `create transfer`, `cancel transfer`, `complete due`, Planet or Construction `enqueue construction`, guarded Research `enqueue research`, and guarded Shipyard `confirmar produccion` paths execute mutating dev endpoints from any route.
 
 Neighbor cockpit regression checkpoints:
 
-- Confirm the seeded `Galaxy`, `Planet`, `Construction`, `Research`, and `Fleets` routes still load with the same local development context used in this block.
-- Confirm the current route helpers still preserve `civilizationId` and `planetId` when moving between `Galaxy`, `Planet`, `Construction`, `Research`, and `Fleets`.
-- Confirm `Galaxy` remains read-only while `Planet`, `Construction`, and `Fleets` keep their accepted cockpit boundaries and `Research` remains the only newly aligned mutation path in this block.
+- Confirm the seeded `Galaxy`, `Planet`, `Construction`, `Research`, `Shipyard`, and `Fleets` routes still load with the same local development context used in this block.
+- Confirm the current route helpers still preserve `civilizationId` and `planetId` when moving between `Galaxy`, `Planet`, `Construction`, `Research`, `Shipyard`, and `Fleets`.
+- Confirm `Galaxy` remains read-only while `Planet`, `Construction`, `Research`, `Shipyard`, and `Fleets` keep their accepted cockpit boundaries.
 
 Strategic map cockpit v1 visual review:
 
@@ -163,6 +174,15 @@ Research cockpit v1 visual review:
 - Confirm the summary recommendation never presents a blocked technology as immediately startable.
 - Confirm complete-due remains visibly disabled in this build.
 
+Shipyard cockpit v1 visual review:
+
+- Confirm the first viewport reads like a specialized orbital-production cockpit rather than a placeholder or fleet console.
+- Confirm context, readiness, queue, stock, catalog, and diagnostics appear in that order before deep technical detail.
+- Confirm the seeded `Aurelia` scenario visibly includes at least one available item plus visible blocked or unsupported comparisons.
+- Confirm guarded enqueue is the only executable Shipyard mutation path and still requires explicit confirmation.
+- Confirm complete-due remains visibly disabled in this build.
+- Confirm the Fleet handoff copy stays explicit that Shipyard does not move or command fleets directly.
+
 ## Final Block Checklist
 
 - `dotnet build --no-restore` passes.
@@ -173,7 +193,8 @@ Research cockpit v1 visual review:
 - `/construction` stays scoped to general construction.
 - `/research` behaves as a development-safe cockpit foundation.
 - `/research` keeps the corrected QA path with one seeded available item, visible blocked items, guarded enqueue, and disabled complete-due placeholder.
-- `/ground-army`, `/shipyard`, and `/defenses` still open placeholders only.
+- `/ground-army` and `/defenses` still open placeholders only.
+- `/shipyard` behaves as a development-safe cockpit foundation with guarded enqueue, disabled complete-due, and explicit Fleet boundaries.
 - `Galaxy` remains read-only.
 - `Fleets` still preserves context and read-only command flow.
 - No 3D/WebGL renderer is introduced.
