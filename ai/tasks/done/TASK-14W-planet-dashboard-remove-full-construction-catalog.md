@@ -3,7 +3,7 @@
 ---
 id: TASK-14W
 title: Planet dashboard remove full construction catalog
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
