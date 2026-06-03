@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { fetchShipyardUiState } from "../api/shipyardApi";
 import type { PlanetUiStateResult } from "../api/planetTypes";
 import type { PlanetModuleRouteInfo } from "../utils/planetPresentation";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
@@ -18,6 +19,13 @@ import {
   getShipyardAssetCatalog,
   getShipyardProductionStatusCatalog,
 } from "../utils/shipyardPresentation";
+import {
+  getShipyardPrimaryAction,
+  groupAssetOptionsByCategory,
+  mapShipyardUiStateToViewModel,
+  selectRecommendedAssetProduction,
+  type ShipyardViewModel,
+} from "../utils/shipyardViewModel";
 import {
   buildConstructionUrl,
   buildDevelopmentHelperUrl,
@@ -41,6 +49,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uiState, setUiState] = useState<PlanetUiStateResult | null>(null);
+  const [shipyardState, setShipyardState] = useState<ShipyardViewModel | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -50,6 +59,8 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
   const shipyardAssets = getShipyardAssetCatalog();
   const shipyardActions = getShipyardActionCatalog();
   const shipyardStatuses = getShipyardProductionStatusCatalog();
+  const shipyardCategoryGroups = groupAssetOptionsByCategory(shipyardState?.shipyard?.catalog ?? []);
+  const recommendedShipyardAsset = selectRecommendedAssetProduction(shipyardState?.shipyard?.catalog ?? []);
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -66,20 +77,32 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
       setError(null);
 
       try {
-        const response = await voidEmpiresApi.getPlanetUiState(
-          queryCivilizationId,
-          queryPlanetId || undefined,
-        );
+        const [planetResponse, shipyardResponse] = await Promise.all([
+          voidEmpiresApi.getPlanetUiState(
+            queryCivilizationId,
+            queryPlanetId || undefined,
+          ),
+          route.module === "Shipyard"
+            ? fetchShipyardUiState(queryCivilizationId, queryPlanetId || undefined)
+            : Promise.resolve(null),
+        ]);
 
-        if (!response.succeeded || !response.uiState) {
+        if (!planetResponse.succeeded || !planetResponse.uiState) {
           setUiState(null);
-          setError(response.errors[0] ?? "La cabina especializada no pudo cargarse.");
+          setError(planetResponse.errors[0] ?? "La cabina especializada no pudo cargarse.");
           return;
         }
 
-        setUiState(response.uiState);
+        setUiState(planetResponse.uiState);
+
+        if (shipyardResponse?.succeeded && shipyardResponse.uiState) {
+          setShipyardState(mapShipyardUiStateToViewModel(shipyardResponse.uiState));
+        } else if (route.module === "Shipyard") {
+          setShipyardState(null);
+        }
       } catch (requestError) {
         setUiState(null);
+        setShipyardState(null);
         setError(
           requestError instanceof Error
             ? requestError.message
@@ -283,6 +306,83 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
                 ))}
               </ul>
             </section>
+          </div>
+        </UiCard>
+      ) : null}
+
+      {route.module === "Shipyard" && shipyardState?.shipyard ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Contrato tipado</p>
+              <h3>Estado normalizado del astillero</h3>
+              <p>La cabina ya consume un modelo frontend estable en lugar de depender del payload bruto del endpoint.</p>
+            </div>
+            <UiBadge tone={recommendedShipyardAsset?.statusKey === "Available" ? "good" : "warn"}>
+              {recommendedShipyardAsset ? getShipyardPrimaryAction(recommendedShipyardAsset) : "Sin recomendacion"}
+            </UiBadge>
+          </div>
+          <div className="readiness-grid">
+            <section className="subpanel figma-subpanel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Resumen orbital</p>
+                  <h4>{shipyardState.shipyard.planetName}</h4>
+                </div>
+                <UiBadge tone={shipyardState.shipyard.isOwnedByRequestingCivilization ? "good" : "warn"}>
+                  {shipyardState.shipyard.isOwnedByRequestingCivilization ? "Propio" : "Sin control"}
+                </UiBadge>
+              </div>
+              <div className="figma-data-list">
+                <PlanetDataRow label="Sistema" value={shipyardState.shipyard.solarSystemName} />
+                <PlanetDataRow label="Cola visible" value={`${shipyardState.shipyard.queue.length} ordenes`} />
+                <PlanetDataRow label="Stock orbital" value={`${shipyardState.shipyard.orbitalStock.length} filas`} />
+                <PlanetDataRow label="Accion principal" value={recommendedShipyardAsset ? getShipyardPrimaryAction(recommendedShipyardAsset) : getShipyardActionLabel("catalog.read")} />
+              </div>
+            </section>
+            <section className="subpanel figma-subpanel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Recomendacion</p>
+                  <h4>{recommendedShipyardAsset?.label ?? "Sin activo recomendado"}</h4>
+                </div>
+                <UiBadge tone={recommendedShipyardAsset?.statusKey === "Available" ? "good" : "neutral"}>
+                  {recommendedShipyardAsset?.statusLabel ?? "Pendiente"}
+                </UiBadge>
+              </div>
+              <div className="figma-data-list">
+                <PlanetDataRow label="Categoria" value={recommendedShipyardAsset?.categoryLabel ?? "Sin categoria"} />
+                <PlanetDataRow label="Rol" value={recommendedShipyardAsset?.roleLabel ?? "Sin rol"} />
+                <PlanetDataRow label="Coste" value={recommendedShipyardAsset?.estimatedCostLabel ?? "Sin coste visible"} />
+                <PlanetDataRow label="Duracion" value={recommendedShipyardAsset?.estimatedDurationLabel ?? "Sin duracion visible"} />
+              </div>
+            </section>
+          </div>
+          <div className="figma-section-header module-boundary-spacer">
+            <div>
+              <p className="eyebrow">Grupos de catalogo</p>
+              <h4>Colecciones listas para UI</h4>
+            </div>
+          </div>
+          <div className="readiness-grid">
+            {shipyardCategoryGroups.map((group) => (
+              <section key={group.key} className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Categoria</p>
+                    <h4>{group.label}</h4>
+                  </div>
+                  <UiBadge>{group.assets.length} activos</UiBadge>
+                </div>
+                <ul className="stack-list compact-list">
+                  {group.assets.map((asset) => (
+                    <li key={asset.assetType}>
+                      {asset.label}: {asset.reasonLabel}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
           </div>
         </UiCard>
       ) : null}

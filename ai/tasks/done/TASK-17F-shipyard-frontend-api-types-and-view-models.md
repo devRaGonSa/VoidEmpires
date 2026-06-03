@@ -3,7 +3,7 @@
 ---
 id: TASK-17F-shipyard-frontend-api-types-and-view-models
 title: Shipyard frontend API types and view models
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
