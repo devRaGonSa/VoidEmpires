@@ -3,7 +3,7 @@
 ---
 id: TASK-16E-research-availability-root-cause-audit
 title: Research availability root cause audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

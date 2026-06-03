@@ -24,6 +24,9 @@ Use the current `minimal-validation` seed for deterministic Research checks:
   - `Ingenieria planetaria` is immediately available.
   - `Extraccion de recursos` remains blocked by `Recursos insuficientes`.
   - The queue starts empty and should read `No hay ordenes activas en la cola.`
+- Audit note:
+  - If `/research` shows `Disponibles: 0` after reapplying `minimal-validation`, the primary root cause is stale persisted stockpile state, not the research UI-state mapper. Earlier seed behavior only created the planet stockpile when missing, so consumed resources could survive reseeding and make all cards appear blocked.
+  - The development seed now restores the owned-planet stockpile to at least the research QA baseline (`125` credits, `100` metal, `50` crystal, `20` gas) so `Ingenieria planetaria` remains the deterministic available item for the baseline scenario.
 
 ## Final manual QA
 

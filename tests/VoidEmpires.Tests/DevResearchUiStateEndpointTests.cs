@@ -140,6 +140,44 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
                 item.StatusKey == "InsufficientResources");
     }
 
+    [Fact]
+    public async Task ReapplyingMinimalValidationSeedRestoresResearchAvailabilityAfterStockpileConsumption()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        await using var dbContext = CreateSeededDbContext(databaseName);
+        var planetId = Guid.Parse(SeedOwnedPlanetId);
+        var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == planetId);
+        stockpile.Spend(stockpile.Credits, 25, 10, stockpile.Gas);
+        await dbContext.SaveChangesAsync();
+
+        using (var client = CreateConfiguredClient(databaseName))
+        using (var depletedResponse = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}"))
+        {
+            var depletedPayload = await depletedResponse.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+            Assert.Equal(HttpStatusCode.OK, depletedResponse.StatusCode);
+            Assert.NotNull(depletedPayload);
+            Assert.NotNull(depletedPayload!.UiState);
+            Assert.DoesNotContain(
+                depletedPayload.UiState.TechnologyHints,
+                item => item.ResearchType == ResearchType.PlanetaryEngineering && item.CanEnqueue);
+        }
+
+        await new DevelopmentSeedService(dbContext).ApplyAsync(new ApplyDevelopmentSeedRequest("minimal-validation"));
+
+        using var refreshedClient = CreateConfiguredClient(databaseName);
+        using var refreshedResponse = await refreshedClient.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var refreshedPayload = await refreshedResponse.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, refreshedResponse.StatusCode);
+        Assert.NotNull(refreshedPayload);
+        Assert.NotNull(refreshedPayload!.UiState);
+        Assert.Contains(
+            refreshedPayload.UiState.TechnologyHints,
+            item => item.ResearchType == ResearchType.PlanetaryEngineering &&
+                item.CanEnqueue &&
+                item.StatusKey == "Available");
+    }
+
     private HttpClient CreateConfiguredClient(string databaseName) =>
         factory.WithWebHostBuilder(builder =>
         {

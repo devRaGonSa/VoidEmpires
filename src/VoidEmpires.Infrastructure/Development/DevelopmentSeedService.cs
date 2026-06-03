@@ -27,6 +27,10 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
     private const string SeedGalaxyName = "Validation Galaxy";
     private const string SeedSystemName = "Helios Gate";
     private const string SeedStarName = "Helios Gate Star";
+    private const int SeedCredits = 125;
+    private const int SeedMetal = 100;
+    private const int SeedCrystal = 50;
+    private const int SeedGas = 20;
     private static readonly DateTime SeedTransferDepartureAtUtc = new(2026, 6, 2, 8, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime SeedTransferArrivalAtUtc = new(2026, 6, 2, 12, 0, 0, DateTimeKind.Utc);
 
@@ -129,15 +133,16 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
             dbContext.Set<Civilization>().Add(civilization);
         }
 
-        if (!await dbContext.PlanetResourceStockpiles.AnyAsync(x => x.PlanetId == SeedOwnedPlanetId, cancellationToken))
+        var stockpile = await dbContext.PlanetResourceStockpiles
+            .SingleOrDefaultAsync(x => x.PlanetId == SeedOwnedPlanetId, cancellationToken);
+
+        if (stockpile is null)
         {
-            var stockpile = PlanetResourceStockpile.Create(SeedOwnedPlanetId);
-            stockpile.Increase(ResourceType.Credits, 125);
-            stockpile.Increase(ResourceType.Metal, 100);
-            stockpile.Increase(ResourceType.Crystal, 50);
-            stockpile.Increase(ResourceType.Gas, 20);
+            stockpile = PlanetResourceStockpile.Create(SeedOwnedPlanetId);
             dbContext.PlanetResourceStockpiles.Add(stockpile);
         }
+
+        EnsureMinimumStockpile(stockpile);
 
         if (!await dbContext.PlanetProductionProfiles.AnyAsync(x => x.PlanetId == SeedOwnedPlanetId, cancellationToken))
         {
@@ -293,5 +298,28 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static void EnsureMinimumStockpile(PlanetResourceStockpile stockpile)
+    {
+        if (stockpile.Credits < SeedCredits)
+        {
+            stockpile.Increase(ResourceType.Credits, SeedCredits - stockpile.Credits);
+        }
+
+        if (stockpile.Metal < SeedMetal)
+        {
+            stockpile.Increase(ResourceType.Metal, SeedMetal - stockpile.Metal);
+        }
+
+        if (stockpile.Crystal < SeedCrystal)
+        {
+            stockpile.Increase(ResourceType.Crystal, SeedCrystal - stockpile.Crystal);
+        }
+
+        if (stockpile.Gas < SeedGas)
+        {
+            stockpile.Increase(ResourceType.Gas, SeedGas - stockpile.Gas);
+        }
     }
 }
