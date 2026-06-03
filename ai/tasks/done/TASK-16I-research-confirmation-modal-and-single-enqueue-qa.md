@@ -3,7 +3,7 @@
 ---
 id: TASK-16I-research-confirmation-modal-and-single-enqueue-qa
 title: Research confirmation modal and single enqueue QA
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

@@ -479,12 +479,14 @@ export function ResearchPage() {
                 <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
               </div>
               <div className="figma-data-list">
+                <div className="figma-data-row"><span>Civilizacion</span><strong>{uiState.civilizationId}</strong></div>
                 <div className="figma-data-row"><span>Planeta</span><strong>{uiState.selectedPlanetName ?? "Sin planeta"}</strong></div>
                 <div className="figma-data-row"><span>Tecnologia</span><strong>{preparedResearch.label}</strong></div>
                 <div className="figma-data-row"><span>Categoria</span><strong>{preparedResearch.categoryLabel}</strong></div>
                 <div className="figma-data-row"><span>Nivel objetivo</span><strong>{preparedResearch.nextLevel}</strong></div>
                 <div className="figma-data-row"><span>Coste</span><strong>{preparedResearch.estimatedCostLabel}</strong></div>
                 <div className="figma-data-row"><span>Duracion</span><strong>{preparedResearch.estimatedDurationLabel}</strong></div>
+                <div className="figma-data-row"><span>Requisitos</span><strong>{preparedResearch.availability.reasonKey === "Ready" ? "Listos para envio" : preparedResearch.availability.reasonLabel}</strong></div>
               </div>
               <p className="figma-panel-note">
                 {preparedResearch.availability.reasonKey === "Ready"
@@ -506,14 +508,14 @@ export function ResearchPage() {
                   onClick={handleResearchCancel}
                   disabled={isSubmittingEnqueue}
                 >
-                  Cancelar revision
+                  Cancelar
                 </button>
                 <button
                   type="button"
                   onClick={() => void handleResearchSubmit()}
                   disabled={isSubmittingEnqueue || !hasEnqueueAcknowledgement}
                 >
-                  {isSubmittingEnqueue ? "Enviando..." : "Enviar orden"}
+                  {isSubmittingEnqueue ? "Confirmando..." : "Confirmar"}
                 </button>
               </div>
             </UiCard>
