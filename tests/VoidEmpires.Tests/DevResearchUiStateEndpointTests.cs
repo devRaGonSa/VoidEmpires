@@ -178,6 +178,69 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
                 item.StatusKey == "Available");
     }
 
+    [Fact]
+    public async Task MinimalValidationResearchFlowEnqueueUpdatesQueueAndLeavesBlockedItemsBlocked()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        await using var dbContext = CreateSeededDbContext(databaseName);
+        var planetId = Guid.Parse(SeedOwnedPlanetId);
+        var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == planetId);
+        var metalBeforeRead = stockpile.Metal;
+        var crystalBeforeRead = stockpile.Crystal;
+
+        using var client = CreateConfiguredClient(databaseName);
+
+        using var initialResponse = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var initialPayload = await initialResponse.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
+        Assert.NotNull(initialPayload?.UiState);
+        Assert.Equal(metalBeforeRead, stockpile.Metal);
+        Assert.Equal(crystalBeforeRead, stockpile.Crystal);
+        Assert.True(initialPayload.UiState.TechnologyHints.Count(x => x.CanEnqueue) >= 1);
+        Assert.True(initialPayload.UiState.TechnologyHints.Count(x => !x.CanEnqueue && !x.CanCompleteDue) >= 1);
+
+        var availableResearch = Assert.Single(initialPayload.UiState.TechnologyHints.Where(x => x.CanEnqueue));
+        Assert.Equal(ResearchType.PlanetaryEngineering, availableResearch.ResearchType);
+
+        using var enqueueResponse = await client.PostAsJsonAsync(
+            "/api/dev/research/orders/enqueue",
+            new EnqueueResearchOrderApiRequest(
+                Guid.Parse(SeedCivilizationId),
+                Guid.Parse(SeedOwnedPlanetId),
+                availableResearch.ResearchType,
+                new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc)));
+        var enqueuePayload = await enqueueResponse.Content.ReadFromJsonAsync<EnqueueResearchOrderApiResponse>();
+
+        Assert.Equal(HttpStatusCode.Created, enqueueResponse.StatusCode);
+        Assert.NotNull(enqueuePayload);
+        Assert.True(enqueuePayload!.Succeeded);
+        Assert.NotNull(enqueuePayload.OrderId);
+
+        using var followUpResponse = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var followUpPayload = await followUpResponse.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, followUpResponse.StatusCode);
+        Assert.NotNull(followUpPayload?.UiState);
+        Assert.Single(followUpPayload.UiState.Queue);
+        Assert.Contains(
+            followUpPayload.UiState.TechnologyHints,
+            item => item.ResearchType == ResearchType.PlanetaryEngineering &&
+                !item.CanEnqueue &&
+                item.StatusKey == "InResearch");
+        Assert.Contains(
+            followUpPayload.UiState.TechnologyHints,
+            item => item.ResearchType == ResearchType.ResourceExtraction &&
+                !item.CanEnqueue &&
+                item.StatusKey == "InsufficientResources");
+        Assert.Contains(
+            followUpPayload.UiState.TechnologyHints,
+            item => item.ResearchType == ResearchType.EnergySystems &&
+                !item.CanEnqueue &&
+                item.StatusKey == "InsufficientResources");
+        Assert.Equal(0, followUpPayload.UiState.TechnologyHints.Count(x => x.CanEnqueue));
+    }
+
     private HttpClient CreateConfiguredClient(string databaseName) =>
         factory.WithWebHostBuilder(builder =>
         {
@@ -247,4 +310,17 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
         bool CanCompleteDue,
         ResearchCost EstimatedCost,
         IReadOnlyList<string> RequirementKeys);
+
+    private sealed record EnqueueResearchOrderApiRequest(
+        Guid? CivilizationId,
+        Guid? SourcePlanetId,
+        ResearchType? ResearchType,
+        DateTime? RequestedAtUtc);
+
+    private sealed record EnqueueResearchOrderApiResponse(
+        bool Succeeded,
+        Guid? OrderId,
+        DateTime? StartsAtUtc,
+        DateTime? EndsAtUtc,
+        IReadOnlyList<string> Errors);
 }

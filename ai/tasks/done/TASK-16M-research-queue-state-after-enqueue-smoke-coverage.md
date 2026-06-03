@@ -3,7 +3,7 @@
 ---
 id: TASK-16M-research-queue-state-after-enqueue-smoke-coverage
 title: Research queue state after enqueue smoke coverage
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
