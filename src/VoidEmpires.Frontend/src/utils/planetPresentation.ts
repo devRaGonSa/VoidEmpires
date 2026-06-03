@@ -245,6 +245,79 @@ export function getConstructionHandoffModules() {
   ] as const;
 }
 
+export interface PlanetModuleRouteInfo {
+  module: PlanetModule;
+  path: string;
+  label: string;
+  title: string;
+  purpose: string;
+  belongsTo: string[];
+  excludes: string[];
+}
+
+export const specializedPlanetModuleRoutes: readonly PlanetModuleRouteInfo[] = [
+  {
+    module: "Research",
+    path: "/research",
+    label: "Investigacion",
+    title: "Cabina de Investigacion",
+    purpose: "Preparada para la investigacion, la consulta de progreso y la futura gestion de tecnologia.",
+    belongsTo: [
+      "Laboratorios, proyectos y mejoras tecnologicas.",
+      "Lectura del estado de investigacion activa.",
+    ],
+    excludes: [
+      "Construccion general de edificios.",
+      "Produccion de tropas o flotas.",
+    ],
+  },
+  {
+    module: "GroundArmy",
+    path: "/ground-army",
+    label: "Ejercito Tierra",
+    title: "Cabina de Ejercito Tierra",
+    purpose: "Preparada para la organizacion terrestre y el seguimiento del estado de fuerza.",
+    belongsTo: [
+      "Entrenamiento, despliegue y lectura de fuerzas terrestres.",
+      "Estado y disponibilidad de estructuras de mando terrestre.",
+    ],
+    excludes: [
+      "Investigacion de tecnologia.",
+      "Produccion naval o defensa orbital.",
+    ],
+  },
+  {
+    module: "Shipyard",
+    path: "/shipyard",
+    label: "Astillero",
+    title: "Cabina de Astillero",
+    purpose: "Preparada para la produccion orbital y el seguimiento de capacidad naval.",
+    belongsTo: [
+      "Produccion de flotas, hangares y soporte orbital.",
+      "Capacidad de construccion naval y lectura de colas futuras.",
+    ],
+    excludes: [
+      "Investigacion y gestion terrestre.",
+      "Defensa planetaria pura.",
+    ],
+  },
+  {
+    module: "Defenses",
+    path: "/defenses",
+    label: "Defensas",
+    title: "Cabina de Defensas",
+    purpose: "Preparada para la lectura defensiva y la futura gestion de proteccion planetaria.",
+    belongsTo: [
+      "Estructuras defensivas, lectura de cobertura y proteccion del planeta.",
+      "Estado de seguridad y amenazas futuras.",
+    ],
+    excludes: [
+      "Construccion general de infraestructura.",
+      "Produccion naval o terrestre.",
+    ],
+  },
+] as const;
+
 export function formatConstructionStatus(value: PlanetValue) {
   return resolveLabel(value, constructionStatusLabels);
 }

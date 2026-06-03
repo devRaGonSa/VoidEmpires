@@ -3,7 +3,7 @@
 ---
 id: TASK-14X
 title: Module route foundation for specialized planet cabins
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

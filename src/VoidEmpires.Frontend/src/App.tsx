@@ -3,17 +3,16 @@ import { appConfig } from "./config";
 import { AppShell } from "./components/ui/AppShell";
 import { ConstructionPage } from "./pages/ConstructionPage";
 import { FleetsPage } from "./pages/FleetsPage";
+import { ModuleCabinPage } from "./pages/ModuleCabinPage";
 import { PlanetPage } from "./pages/PlanetPage";
 import { StrategicMapPage } from "./pages/StrategicMapPage";
+import { specializedPlanetModuleRoutes } from "./utils/planetPresentation";
 
 const sidebarItems = [
   { label: "Resumen" },
   { label: "Planeta", to: "/planet" },
   { label: "Construccion", to: "/construction" },
-  { label: "Investigacion" },
-  { label: "Ejercito Tierra" },
-  { label: "Astillero" },
-  { label: "Defensas" },
+  ...specializedPlanetModuleRoutes.map((route) => ({ label: route.label, to: route.path })),
   { label: "Flotas", to: "/fleets" },
   { label: "Galaxia", to: "/" },
   { label: "Espionaje" },
@@ -43,6 +42,9 @@ export default function App() {
         <Route path="/" element={<StrategicMapPage />} />
         <Route path="/planet" element={<PlanetPage />} />
         <Route path="/construction" element={<ConstructionPage />} />
+        {specializedPlanetModuleRoutes.map((route) => (
+          <Route key={route.path} path={route.path} element={<ModuleCabinPage route={route} />} />
+        ))}
         <Route path="/fleets" element={<FleetsPage />} />
       </Routes>
     </AppShell>

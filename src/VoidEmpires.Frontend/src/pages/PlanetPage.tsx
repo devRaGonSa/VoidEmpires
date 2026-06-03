@@ -36,13 +36,13 @@ import {
   formatPlanetOverviewLine,
   formatPlanetOwnerLabel,
   formatPlanetShortReference,
-  getConstructionHandoffModules,
   getPlanetModuleLabel,
   getPlanetModuleForBuilding,
   groupActionsByModule,
   groupBuildingsByModule,
   isGeneralConstructionAction,
   isSpecializedModuleAction,
+  specializedPlanetModuleRoutes,
   toPlanetCatalogId,
 } from "../utils/planetPresentation";
 
@@ -847,13 +847,14 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                   Estas superficies conservan el mismo planeta activo, pero siguen separadas de la construccion general.
                 </p>
                 <div className="planet-related-modules-grid">
-                  {getConstructionHandoffModules().map((module) => (
+                  {specializedPlanetModuleRoutes.map((module) => (
                     <Link
-                      key={module}
+                      key={module.path}
                       className="planet-related-module-card"
-                      to={`/construction?civilizationId=${activeCivilizationId}&planetId=${planet.planetId}&module=${module}`}
+                      to={`${module.path}?civilizationId=${activeCivilizationId}&planetId=${planet.planetId}`}
                     >
-                      <strong>{getPlanetModuleLabel(module)}</strong>
+                      <strong>{module.title}</strong>
+                      <span>{module.label}</span>
                       <span>Próximamente</span>
                     </Link>
                   ))}

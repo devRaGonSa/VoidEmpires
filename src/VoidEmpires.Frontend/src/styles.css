@@ -894,6 +894,10 @@ select {
   background: color-mix(in srgb, var(--ve-color-accent-blue) 12%, var(--ve-color-bg));
 }
 
+.module-boundary-spacer {
+  margin-top: 14px;
+}
+
 .figma-map-layout {
   grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.7fr);
   align-items: start;
