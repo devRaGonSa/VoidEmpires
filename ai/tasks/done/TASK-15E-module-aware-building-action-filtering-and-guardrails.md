@@ -3,7 +3,7 @@
 ---
 id: TASK-15E
 title: Module aware building action filtering and guardrails
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

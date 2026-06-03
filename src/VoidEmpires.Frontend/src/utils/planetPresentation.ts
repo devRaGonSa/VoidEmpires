@@ -236,6 +236,36 @@ export function isSpecializedModuleAction(action: PlanetConstructionActionDto) {
   );
 }
 
+export function canRenderActionInModule(
+  action: PlanetConstructionActionDto,
+  module: PlanetModule,
+) {
+  const actionModule = resolveModuleByAction(action);
+  if (module === "GeneralConstruction") {
+    return actionModule === "GeneralConstruction" || actionModule === "Logistics";
+  }
+
+  return actionModule === module;
+}
+
+export function getActionHandoffTarget(action: PlanetConstructionActionDto) {
+  const module = resolveModuleByAction(action);
+  if (module === "GeneralConstruction" || module === "Logistics" || module === "UnknownOrDiagnostics") {
+    return null;
+  }
+
+  return specializedPlanetModuleRoutes.find((route) => route.module === module) ?? null;
+}
+
+export function getWrongModuleMessage(action: PlanetConstructionActionDto) {
+  const module = resolveModuleByAction(action);
+  if (module === "UnknownOrDiagnostics") {
+    return "Disponible en una cabina futura.";
+  }
+
+  return `Esta orden pertenece a ${getPlanetModuleLabel(module)}.`;
+}
+
 export function getConstructionHandoffModules() {
   return [
     "Research",

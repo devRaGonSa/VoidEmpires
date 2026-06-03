@@ -36,6 +36,9 @@ import {
   formatPlanetOverviewLine,
   formatPlanetOwnerLabel,
   formatPlanetShortReference,
+  canRenderActionInModule,
+  getActionHandoffTarget,
+  getWrongModuleMessage,
   getPlanetModuleLabel,
   getPlanetModuleForBuilding,
   getConstructionHandoffModuleInfo,
@@ -945,6 +948,9 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                       const actionKey = `${action.action}-${action.buildingType}`;
                       const isPrepared = preparedActionKey === actionKey;
                       const isAvailable = action.availabilityStatus === "Available";
+                      const canRenderInModule = canRenderActionInModule(action, module.key as PlanetModule);
+                      const actionHandoffTarget = getActionHandoffTarget(action);
+                      const wrongModuleMessage = getWrongModuleMessage(action);
                       const actionButtonLabel = formatConstructionActionButtonLabel(
                         action.availabilityStatus,
                         isPrepared,
@@ -995,24 +1001,37 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                               : action.display?.availabilityReasonLabel ?? action.availabilityReason}
                           </p>
                           <div className="transfer-confirmation-actions">
-                            <button
-                              type="button"
-                              className={isAvailable ? "" : "planet-action-button-blocked"}
-                              onClick={() => {
-                                if (!isAvailable) {
-                                  return;
-                                }
+                            {canRenderInModule ? (
+                              <button
+                                type="button"
+                                className={isAvailable ? "" : "planet-action-button-blocked"}
+                                onClick={() => {
+                                  if (!isAvailable) {
+                                    return;
+                                  }
 
-                                setPreparedActionKey(actionKey);
-                                setHasConstructionAcknowledgement(false);
-                                setConstructionFeedback(null);
-                                setConstructionError(null);
-                                setConstructionTechnicalDetail(null);
-                              }}
-                              disabled={!isAvailable}
-                            >
-                              {isAvailable && !isPrepared ? "Revisar orden" : actionButtonLabel}
-                            </button>
+                                  setPreparedActionKey(actionKey);
+                                  setHasConstructionAcknowledgement(false);
+                                  setConstructionFeedback(null);
+                                  setConstructionError(null);
+                                  setConstructionTechnicalDetail(null);
+                                }}
+                                disabled={!isAvailable}
+                              >
+                                {isAvailable && !isPrepared ? "Revisar orden" : actionButtonLabel}
+                              </button>
+                            ) : actionHandoffTarget ? (
+                              <Link
+                                className="planet-action-button-secondary planet-action-handoff"
+                                to={`${actionHandoffTarget.path}?civilizationId=${activeCivilizationId}&planetId=${planet.planetId}`}
+                              >
+                                Gestionar desde {actionHandoffTarget.label}.
+                              </Link>
+                            ) : (
+                              <span className="planet-action-handoff-message">
+                                {wrongModuleMessage}
+                              </span>
+                            )}
                           </div>
                         </article>
                       );

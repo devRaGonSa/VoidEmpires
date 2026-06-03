@@ -1736,6 +1736,23 @@ select {
   box-shadow: none !important;
 }
 
+.planet-action-handoff {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 42px;
+  text-decoration: none;
+}
+
+.planet-action-handoff-message {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  color: color-mix(in srgb, var(--ve-color-text) 74%, var(--ve-color-muted));
+  font-size: 0.82rem;
+}
+
 .json-details {
   margin-top: 14px;
 }
