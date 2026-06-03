@@ -46,8 +46,8 @@ public class DevelopmentSeedServiceTests
         Assert.True(await dbContext.Set<PlanetOwnership>().AnyAsync(x => x.PlanetId == OwnedPlanetId && x.CivilizationId == CivilizationId));
         var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == OwnedPlanetId);
         Assert.Equal(125, stockpile.Credits);
-        Assert.Equal(80, stockpile.Metal);
-        Assert.Equal(35, stockpile.Crystal);
+        Assert.Equal(100, stockpile.Metal);
+        Assert.Equal(50, stockpile.Crystal);
         Assert.Equal(20, stockpile.Gas);
         var productionProfile = await dbContext.PlanetProductionProfiles.SingleAsync(x => x.PlanetId == OwnedPlanetId);
         Assert.Equal(18, productionProfile.CreditsPerHour);

@@ -133,8 +133,8 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
         {
             var stockpile = PlanetResourceStockpile.Create(SeedOwnedPlanetId);
             stockpile.Increase(ResourceType.Credits, 125);
-            stockpile.Increase(ResourceType.Metal, 80);
-            stockpile.Increase(ResourceType.Crystal, 35);
+            stockpile.Increase(ResourceType.Metal, 100);
+            stockpile.Increase(ResourceType.Crystal, 50);
             stockpile.Increase(ResourceType.Gas, 20);
             dbContext.PlanetResourceStockpiles.Add(stockpile);
         }

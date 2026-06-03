@@ -107,6 +107,39 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.Equal(metalBefore, stockpile.Metal);
     }
 
+    [Fact]
+    public async Task UiStateExposesAvailableAndBlockedResearchFromMinimalValidationSeed()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        await using var dbContext = CreateSeededDbContext(databaseName);
+        using var client = CreateConfiguredClient(databaseName);
+
+        using var response = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var payload = await response.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.True(payload!.Succeeded);
+        Assert.NotNull(payload.UiState);
+        Assert.Empty(payload.UiState.Queue);
+        Assert.Empty(payload.UiState.Projects);
+        Assert.Contains(
+            payload.UiState.TechnologyHints,
+            item => item.ResearchType == ResearchType.PlanetaryEngineering &&
+                item.CanEnqueue &&
+                item.StatusKey == "Available");
+        Assert.Contains(
+            payload.UiState.TechnologyHints,
+            item => item.ResearchType == ResearchType.ResourceExtraction &&
+                !item.CanEnqueue &&
+                item.StatusKey == "InsufficientResources");
+        Assert.Contains(
+            payload.UiState.TechnologyHints,
+            item => item.ResearchType == ResearchType.EnergySystems &&
+                !item.CanEnqueue &&
+                item.StatusKey == "InsufficientResources");
+    }
+
     private HttpClient CreateConfiguredClient(string databaseName) =>
         factory.WithWebHostBuilder(builder =>
         {

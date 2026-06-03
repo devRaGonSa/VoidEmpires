@@ -3,7 +3,7 @@
 ---
 id: TASK-16A-minimal-validation-seed-research-readiness
 title: Minimal validation seed research readiness
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
