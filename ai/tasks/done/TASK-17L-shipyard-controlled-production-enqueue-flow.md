@@ -3,7 +3,7 @@
 ---
 id: TASK-17L-shipyard-controlled-production-enqueue-flow
 title: Shipyard controlled production enqueue flow
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

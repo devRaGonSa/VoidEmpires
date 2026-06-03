@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using VoidEmpires.Application.Development;
 using VoidEmpires.Application.Assets;
@@ -9,8 +10,10 @@ using VoidEmpires.Application.Players;
 using VoidEmpires.Application.Research;
 using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Buildings;
+using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Players;
 using VoidEmpires.Domain.Research;
+using VoidEmpires.Infrastructure.Persistence;
 
 internal static class DevEndpointMappings
 {
@@ -201,6 +204,24 @@ internal static class DevEndpointMappings
             if (errors.Count > 0)
             {
                 return Results.BadRequest(new EnqueueAssetProductionApiResponse(false, null, null, null, errors));
+            }
+
+            var dbContext = services.GetRequiredService<VoidEmpiresDbContext>();
+            var hasOwnership = await dbContext.Set<PlanetOwnership>()
+                .AnyAsync(x =>
+                    x.PlanetId == request.PlanetId!.Value &&
+                    x.CivilizationId == request.CivilizationId!.Value &&
+                    x.Status == PlanetControlStatus.Active,
+                    cancellationToken);
+
+            if (!hasOwnership)
+            {
+                return Results.Conflict(new EnqueueAssetProductionApiResponse(
+                    false,
+                    null,
+                    null,
+                    null,
+                    ["Planet is not owned by the requesting civilization."]));
             }
 
             var service = services.GetRequiredService<IAssetProductionQueueService>();
@@ -516,6 +537,11 @@ internal static class DevEndpointMappings
     {
         var errors = new List<string>();
 
+        if (request.CivilizationId is null || request.CivilizationId == Guid.Empty)
+        {
+            errors.Add("Civilization id is required.");
+        }
+
         if (request.PlanetId is null || request.PlanetId == Guid.Empty)
         {
             errors.Add("Planet id is required.");
@@ -710,6 +736,7 @@ internal sealed record CompleteConstructionOrdersApiResponse(
     IReadOnlyList<string> Errors);
 
 internal sealed record EnqueueAssetProductionApiRequest(
+    Guid? CivilizationId,
     Guid? PlanetId,
     AssetProductionTarget? Target,
     PlanetaryAssetType? PlanetaryAssetType,

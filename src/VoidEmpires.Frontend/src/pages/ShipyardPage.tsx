@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { fetchShipyardUiState } from "../api/shipyardApi";
+import { enqueueShipyardProduction, fetchShipyardUiState } from "../api/shipyardApi";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { formatPlanetPrimaryLabel, formatPlanetSecondaryLabel, formatResourceType } from "../utils/domainPresentation";
@@ -52,6 +52,61 @@ interface ShipyardReviewSelection {
   bucket: "available" | "blocked" | "unsupported";
 }
 
+function formatShipyardCommandFailure(detail: string | null, planetName?: string | null) {
+  switch (detail) {
+    case "Civilization id is required.":
+      return {
+        primaryMessage: "La civilizacion es obligatoria para enviar produccion.",
+        technicalDetail: detail,
+      };
+    case "Planet id is required.":
+      return {
+        primaryMessage: "El planeta es obligatorio para enviar produccion.",
+        technicalDetail: detail,
+      };
+    case "Planet is not owned by the requesting civilization.":
+      return {
+        primaryMessage: "El planeta seleccionado no pertenece a la civilizacion cargada.",
+        technicalDetail: detail,
+      };
+    case "Asset type is required.":
+      return {
+        primaryMessage: "El activo orbital seleccionado no es valido para esta cabina.",
+        technicalDetail: detail,
+      };
+    case "Insufficient resources.":
+      return {
+        primaryMessage: `No hay recursos suficientes${planetName ? ` en ${planetName}` : ""} para enviar esta produccion.`,
+        technicalDetail: detail,
+      };
+    case "Planet already has an open asset production order.":
+      return {
+        primaryMessage: "Ya existe una orden orbital abierta en este planeta.",
+        technicalDetail: detail,
+      };
+    case "Required building is missing or below required level.":
+      return {
+        primaryMessage: "La infraestructura orbital requerida todavia no esta lista.",
+        technicalDetail: detail,
+      };
+    case "Planet population profile was not found.":
+      return {
+        primaryMessage: "Falta el perfil de tripulacion necesario para producir este activo.",
+        technicalDetail: detail,
+      };
+    case "Insufficient local operator capacity.":
+      return {
+        primaryMessage: "La capacidad local de tripulacion no alcanza para este activo.",
+        technicalDetail: detail,
+      };
+    default:
+      return {
+        primaryMessage: "La produccion orbital no pudo enviarse.",
+        technicalDetail: detail,
+      };
+  }
+}
+
 export function ShipyardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
@@ -61,6 +116,15 @@ export function ShipyardPage() {
   const [technicalErrorDetail, setTechnicalErrorDetail] = useState<string | null>(null);
   const [uiState, setUiState] = useState<ShipyardViewModel | null>(null);
   const [reviewSelection, setReviewSelection] = useState<ShipyardReviewSelection | null>(null);
+  const [hasEnqueueAcknowledgement, setHasEnqueueAcknowledgement] = useState(false);
+  const [isSubmittingEnqueue, setIsSubmittingEnqueue] = useState(false);
+  const [enqueueFeedback, setEnqueueFeedback] = useState<string | null>(null);
+  const [enqueueError, setEnqueueError] = useState<string | null>(null);
+  const [enqueueOrderDetails, setEnqueueOrderDetails] = useState<{
+    orderId: string | null;
+    startsAtUtc: string | null;
+    endsAtUtc: string | null;
+  } | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -68,6 +132,7 @@ export function ShipyardPage() {
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
   const shipyard = uiState?.shipyard ?? null;
+  const hasSafeShipyardEnqueue = true;
   const categoryGroups = useMemo(() => groupAssetOptionsByCategory(shipyard?.catalog ?? []), [shipyard?.catalog]);
   const recommendedAsset = useMemo(() => selectRecommendedAssetProduction(shipyard?.catalog ?? []), [shipyard?.catalog]);
   const catalogBuckets = useMemo(() => {
@@ -139,6 +204,37 @@ export function ShipyardPage() {
       ? `${recommendedAsset.label} puede entrar en cola con ${recommendedAsset.estimatedCostLabel} y ${recommendedAsset.estimatedDurationLabel}.`
       : `${recommendedAsset.label} sigue bloqueada: ${recommendedAsset.reasonLabel}.`;
 
+  async function reloadShipyardState(
+    civilizationId: string,
+    planetId?: string | null,
+    replaceParams = false,
+    preserveCurrentStateOnFailure = false,
+  ) {
+    const response = await fetchShipyardUiState(civilizationId, planetId);
+    if (!response.succeeded || !response.uiState) {
+      const failure = formatShipyardCommandFailure(response.errors[0] ?? null, shipyard?.planetName ?? null);
+      if (!preserveCurrentStateOnFailure) {
+        setUiState(null);
+      }
+      setError(failure.primaryMessage);
+      setTechnicalErrorDetail(failure.technicalDetail);
+      return null;
+    }
+
+    const nextState = mapShipyardUiStateToViewModel(response.uiState);
+    setTechnicalErrorDetail(null);
+    setUiState(nextState);
+
+    if (nextState.selectedPlanetId && nextState.selectedPlanetId !== planetId) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("civilizationId", civilizationId);
+      nextParams.set("planetId", nextState.selectedPlanetId);
+      setSearchParams(nextParams, { replace: replaceParams });
+    }
+
+    return nextState;
+  }
+
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
     setPlanetIdInput(queryPlanetId ?? "");
@@ -155,29 +251,12 @@ export function ShipyardPage() {
       setError(null);
 
       try {
-        const response = await fetchShipyardUiState(queryCivilizationId, queryPlanetId);
-        if (!response.succeeded || !response.uiState) {
-          setUiState(null);
-          setError(response.errors[0] ?? "La cabina del astillero no pudo cargarse.");
-          setTechnicalErrorDetail(response.errors[0] ?? null);
-          return;
-        }
-
-        const nextState = mapShipyardUiStateToViewModel(response.uiState);
-        setUiState(nextState);
-        setTechnicalErrorDetail(null);
-
-        if (nextState.selectedPlanetId && nextState.selectedPlanetId !== queryPlanetId) {
-          const nextParams = new URLSearchParams(searchParams);
-          nextParams.set("civilizationId", queryCivilizationId);
-          nextParams.set("planetId", nextState.selectedPlanetId);
-          setSearchParams(nextParams, { replace: true });
-        }
+        await reloadShipyardState(queryCivilizationId, queryPlanetId, true);
       } catch (requestError) {
-        const detail = requestError instanceof Error ? requestError.message : "La cabina del astillero no pudo cargarse.";
+        const failure = formatShipyardCommandFailure(requestError instanceof Error ? requestError.message : null, shipyard?.planetName ?? null);
         setUiState(null);
-        setError("No se pudo cargar el contexto del astillero.");
-        setTechnicalErrorDetail(detail);
+        setError(failure.primaryMessage);
+        setTechnicalErrorDetail(failure.technicalDetail);
       } finally {
         setIsLoading(false);
       }
@@ -207,6 +286,11 @@ export function ShipyardPage() {
   }
 
   function handleReviewAsset(asset: ShipyardAssetOption) {
+    setHasEnqueueAcknowledgement(false);
+    setEnqueueFeedback(null);
+    setEnqueueError(null);
+    setEnqueueOrderDetails(null);
+    setTechnicalErrorDetail(null);
     setReviewSelection({
       asset,
       bucket: getCatalogBucket(asset),
@@ -215,6 +299,65 @@ export function ShipyardPage() {
 
   function handleCancelReview() {
     setReviewSelection(null);
+    setHasEnqueueAcknowledgement(false);
+    setEnqueueError(null);
+    setEnqueueOrderDetails(null);
+  }
+
+  async function handleConfirmProduction() {
+    if (
+      !reviewSelection ||
+      reviewSelection.bucket !== "available" ||
+      !shipyard ||
+      !hasSafeShipyardEnqueue ||
+      isSubmittingEnqueue
+    ) {
+      return;
+    }
+
+    setIsSubmittingEnqueue(true);
+    setEnqueueFeedback(null);
+    setEnqueueError(null);
+    setEnqueueOrderDetails(null);
+    setTechnicalErrorDetail(null);
+
+    try {
+      const result = await enqueueShipyardProduction({
+        civilizationId: activeCivilizationId,
+        planetId: shipyard.planetId,
+        assetType: reviewSelection.asset.assetType,
+        quantity: 1,
+        requestedAtUtc: new Date().toISOString(),
+      });
+
+      if (result.httpStatus !== 201 || !result.response?.succeeded) {
+        const failure = formatShipyardCommandFailure(result.response?.errors[0] ?? null, shipyard.planetName);
+        setEnqueueError(failure.primaryMessage);
+        setTechnicalErrorDetail(failure.technicalDetail);
+        return;
+      }
+
+      setEnqueueOrderDetails({
+        orderId: result.response.orderId,
+        startsAtUtc: result.response.startsAtUtc,
+        endsAtUtc: result.response.endsAtUtc,
+      });
+      setEnqueueFeedback("Produccion enviada a la cola.");
+      setReviewSelection(null);
+      setHasEnqueueAcknowledgement(false);
+
+      const refreshed = await reloadShipyardState(activeCivilizationId, shipyard.planetId, false, true);
+      if (!refreshed) {
+        setEnqueueError("La orden se envio, pero la cabina no pudo recargar el estado actualizado.");
+        setTechnicalErrorDetail("Shipyard UI state refresh failed after a successful enqueue.");
+      }
+    } catch (requestError) {
+      const failure = formatShipyardCommandFailure(requestError instanceof Error ? requestError.message : null, shipyard.planetName);
+      setEnqueueError(failure.primaryMessage);
+      setTechnicalErrorDetail(failure.technicalDetail);
+    } finally {
+      setIsSubmittingEnqueue(false);
+    }
   }
 
   return (
@@ -605,23 +748,37 @@ export function ShipyardPage() {
                     </div>
                     <p>
                       {reviewSelection.bucket === "available"
-                        ? "La opcion puede pasar a una confirmacion real cuando el endpoint de enqueue quede conectado. En esta tarea solo se revisa el contexto."
+                        ? "La opcion ya puede enviarse por la ruta dev protegida si confirmas la revision."
                         : "Esta revision permanece en modo diagnostico. La cabina no intentara enviar nada mientras el estado siga bloqueado o no soportado."}
                     </p>
+                    {reviewSelection.bucket === "available" ? (
+                      <label className="confirmation-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={hasEnqueueAcknowledgement}
+                          onChange={(event) => setHasEnqueueAcknowledgement(event.target.checked)}
+                        />
+                        <span>Confirmo que quiero enviar esta produccion orbital a la cola</span>
+                      </label>
+                    ) : null}
                     <div className="selection-chip-row">
                       <button
                         type="button"
                         className="selection-chip"
-                        disabled
+                        onClick={() => void handleConfirmProduction()}
+                        disabled={reviewSelection.bucket !== "available" || !hasEnqueueAcknowledgement || isSubmittingEnqueue}
                       >
-                        {reviewSelection.bucket === "available" ? "Confirmar pendiente de enqueue" : "Confirmacion no disponible"}
+                        {reviewSelection.bucket === "available"
+                          ? isSubmittingEnqueue ? "Confirmando..." : "Confirmar produccion"
+                          : "Confirmacion no disponible"}
                       </button>
                       <button
                         type="button"
                         className="selection-chip"
                         onClick={handleCancelReview}
+                        disabled={isSubmittingEnqueue}
                       >
-                        Cancelar revision
+                        Cancelar
                       </button>
                     </div>
                   </UiCard>
@@ -765,6 +922,25 @@ export function ShipyardPage() {
           </UiCard>
         ) : null
       )}
+
+      {enqueueFeedback ? <p>{enqueueFeedback}</p> : null}
+      {enqueueError ? <p className="error-text">{enqueueError}</p> : null}
+      {enqueueOrderDetails ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Confirmacion registrada</p>
+              <h3>Orden orbital enviada</h3>
+            </div>
+            <UiBadge tone="good">Sin optimismo local</UiBadge>
+          </div>
+          <div className="figma-data-list">
+            <div className="figma-data-row"><span>Orden</span><strong>{enqueueOrderDetails.orderId ?? "No devuelto"}</strong></div>
+            <div className="figma-data-row"><span>Inicio</span><strong>{enqueueOrderDetails.startsAtUtc ? formatDateTime(enqueueOrderDetails.startsAtUtc) : "No devuelto"}</strong></div>
+            <div className="figma-data-row"><span>Cierre</span><strong>{enqueueOrderDetails.endsAtUtc ? formatDateTime(enqueueOrderDetails.endsAtUtc) : "No devuelto"}</strong></div>
+          </div>
+        </UiCard>
+      ) : null}
 
       <UiCard className="panel">
         <div className="figma-section-header">
