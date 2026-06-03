@@ -232,6 +232,14 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
           >
             Abrir Construccion
           </Link>
+          {route.module === "Shipyard" ? (
+            <Link
+              className="selection-chip"
+              to={`/fleets?civilizationId=${activeCivilizationId}${planet ? `&planetId=${planet.planetId}` : queryPlanetId ? `&planetId=${queryPlanetId}` : ""}`}
+            >
+              Abrir Flotas
+            </Link>
+          ) : null}
         </div>
       </UiCard>
     </section>

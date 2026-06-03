@@ -3,7 +3,7 @@
 ---
 id: TASK-14Y
 title: Research cabin boundary placeholder
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

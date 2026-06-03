@@ -3,7 +3,7 @@
 ---
 id: TASK-15A
 title: Ground army cabin boundary placeholder
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

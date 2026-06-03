@@ -3,7 +3,7 @@
 ---
 id: TASK-14Z
 title: Defenses cabin boundary placeholder
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
