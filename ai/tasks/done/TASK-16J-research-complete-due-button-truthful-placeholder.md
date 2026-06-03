@@ -3,7 +3,7 @@
 ---
 id: TASK-16J-research-complete-due-button-truthful-placeholder
 title: Research complete-due button truthful placeholder
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

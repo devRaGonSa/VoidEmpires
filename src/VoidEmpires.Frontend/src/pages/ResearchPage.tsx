@@ -550,8 +550,8 @@ export function ResearchPage() {
               <UiBadge tone="warn">{dueQueueCount} vencidas</UiBadge>
             </div>
             <div className="transfer-confirmation-actions">
-              <button type="button" disabled>
-                Completar investigaciones vencidas
+              <button type="button" className="planet-action-button-blocked" disabled>
+                Completar vencidas no disponible
               </button>
             </div>
             <p className="figma-panel-note">
