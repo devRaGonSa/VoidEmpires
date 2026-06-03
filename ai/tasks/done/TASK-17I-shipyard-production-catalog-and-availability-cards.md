@@ -3,7 +3,7 @@
 ---
 id: TASK-17I-shipyard-production-catalog-and-availability-cards
 title: Shipyard production catalog and availability cards
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
