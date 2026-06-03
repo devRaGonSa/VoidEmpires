@@ -5,6 +5,7 @@ import { ConstructionPage } from "./pages/ConstructionPage";
 import { FleetsPage } from "./pages/FleetsPage";
 import { ModuleCabinPage } from "./pages/ModuleCabinPage";
 import { ResearchPage } from "./pages/ResearchPage";
+import { ShipyardPage } from "./pages/ShipyardPage";
 import { PlanetPage } from "./pages/PlanetPage";
 import { StrategicMapPage } from "./pages/StrategicMapPage";
 import { specializedPlanetModuleRoutes } from "./utils/planetPresentation";
@@ -47,7 +48,13 @@ export default function App() {
           <Route
             key={route.path}
             path={route.path}
-            element={route.module === "Research" ? <ResearchPage /> : <ModuleCabinPage route={route} />}
+            element={
+              route.module === "Research"
+                ? <ResearchPage />
+                : route.module === "Shipyard"
+                  ? <ShipyardPage />
+                  : <ModuleCabinPage route={route} />
+            }
           />
         ))}
         <Route path="/fleets" element={<FleetsPage />} />
