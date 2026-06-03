@@ -3,7 +3,7 @@
 ---
 id: TASK-19T-final-defenses-cockpit-closure-and-regression-pass
 title: Final defenses cockpit closure and regression pass
-status: pending
+status: completed
 type: platform
 team: platform
 supporting_teams:
