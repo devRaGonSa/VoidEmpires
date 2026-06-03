@@ -3,7 +3,7 @@
 ---
 id: TASK-15C
 title: Planet module navigation panel
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

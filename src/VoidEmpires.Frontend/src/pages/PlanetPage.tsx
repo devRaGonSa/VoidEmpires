@@ -202,6 +202,23 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
     [constructionActions],
   );
 
+  const generalConstructionActions = useMemo(
+    () => (planet?.constructionActions ?? []).filter(isGeneralConstructionAction),
+    [planet?.constructionActions],
+  );
+
+  const blockedGeneralConstructionCount = useMemo(
+    () => generalConstructionActions.filter((action) => action.availabilityStatus !== "Available").length,
+    [generalConstructionActions],
+  );
+
+  const nextGeneralConstructionAction = useMemo(
+    () => generalConstructionActions.find((action) => action.availabilityStatus === "Available")
+      ?? generalConstructionActions[0]
+      ?? null,
+    [generalConstructionActions],
+  );
+
   const visibleBuildingGroups = useMemo(
     () => planetModuleCatalog
       .filter((module) => module.key !== "UnknownOrDiagnostics")
@@ -855,13 +872,69 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                     >
                       <strong>{module.title}</strong>
                       <span>{module.label}</span>
-                      <span>Próximamente</span>
+                      <span>Proximamente</span>
                     </Link>
                   ))}
                 </div>
               </UiCard>
             ) : null}
 
+            {!isConstructionRoute ? (
+              <section className="subpanel figma-subpanel planet-related-modules-panel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Modulos del planeta</p>
+                    <h3>Cabinas de gestion</h3>
+                  </div>
+                  <UiBadge tone="good">Resumen</UiBadge>
+                </div>
+                <p className="figma-panel-note">
+                  La cabina de planeta te guia hacia las superficies especializadas sin duplicar el catalogo completo.
+                </p>
+                <div className="planet-related-modules-grid">
+                  {[
+                    {
+                      label: "Construccion",
+                      path: `/construction?civilizationId=${activeCivilizationId}${planet ? `&planetId=${planet.planetId}` : ""}`,
+                      title: "Construccion",
+                      status: "Disponible",
+                      purpose: "Gestiona edificios civiles, economicos e infraestructura general.",
+                    },
+                    ...specializedPlanetModuleRoutes.map((module) => ({
+                      label: module.label,
+                      path: `${module.path}?civilizationId=${activeCivilizationId}${planet ? `&planetId=${planet.planetId}` : ""}`,
+                      title: module.title,
+                      status: "Proximamente",
+                      purpose: module.purpose,
+                    })),
+                    {
+                      label: "Flotas",
+                      path: `/fleets?civilizationId=${activeCivilizationId}${planet ? `&planetId=${planet.planetId}` : ""}`,
+                      title: "Flotas",
+                      status: "Disponible",
+                      purpose: "Consulta grupos orbitales, movimientos y despliegues.",
+                    },
+                    {
+                      label: "Galaxia",
+                      path: `/?civilizationId=${activeCivilizationId}&planetId=${planet?.planetId ?? queryPlanetId ?? ""}`,
+                      title: "Galaxia",
+                      status: "Disponible",
+                      purpose: "Regresa al mapa estrategico y cambia de contexto.",
+                    },
+                  ].map((entry) => (
+                    <Link key={entry.path} className="planet-related-module-card" to={entry.path}>
+                      <strong>{entry.title}</strong>
+                      <span>{entry.label}</span>
+                      <span>{entry.status}</span>
+                      <small>{entry.purpose}</small>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {isConstructionRoute ? (
+            <>
             <div className="planet-action-groups">
               {visibleActionGroups.length > 0 ? visibleActionGroups.map(({ module, items: actions }) => (
                 <section key={module.key} className="subpanel figma-subpanel">
@@ -1033,6 +1106,8 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
             {constructionFeedback ? <p>{constructionFeedback}</p> : null}
             {constructionError ? <p className="error-text">{constructionError}</p> : null}
+            </>
+          ) : null}
           </UiCard>
 
           <details className="technical-disclosure">
