@@ -177,7 +177,7 @@ export function ResearchPage() {
         startsAtUtc: result.response.startsAtUtc,
         endsAtUtc: result.response.endsAtUtc,
       });
-      setEnqueueFeedback(`${preparedResearch.label} entro en cola para nivel ${preparedResearch.nextLevel}. La cabina se actualizo con el estado confirmado por la API.`);
+      setEnqueueFeedback("Investigacion enviada a la cola.");
       setPreparedResearchType("");
       setHasEnqueueAcknowledgement(false);
 

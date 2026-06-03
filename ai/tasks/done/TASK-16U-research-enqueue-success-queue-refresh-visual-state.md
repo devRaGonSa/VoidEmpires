@@ -3,7 +3,7 @@
 ---
 id: TASK-16U-research-enqueue-success-queue-refresh-visual-state
 title: Research enqueue success queue refresh visual state
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
