@@ -24,6 +24,7 @@ import {
 } from "../utils/domainPresentation";
 import {
   buildConstructionUrl,
+  buildGalaxyUrl,
   buildPlanetUrl,
   buildShipyardUrl,
 } from "../utils/routeUrls";
@@ -996,6 +997,12 @@ export function FleetsPage() {
                 <div className="selection-chip-row">
                   <Link
                     className="selection-chip selection-chip-active"
+                    to={buildGalaxyUrl(uiState.civilizationId, undefined, inspectedGroup.currentPlanetId)}
+                  >
+                    Volver a Galaxia
+                  </Link>
+                  <Link
+                    className="selection-chip"
                     to={buildPlanetUrl(uiState.civilizationId, inspectedGroup.currentPlanetId)}
                   >
                     Abrir planeta actual

@@ -3,7 +3,7 @@
 ---
 id: TASK-18V-galaxy-cross-navigation-from-cockpits
 title: Galaxy cross navigation from cockpits
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
