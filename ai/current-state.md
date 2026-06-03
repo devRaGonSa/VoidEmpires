@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 14B - Galaxy polish and Planet cockpit foundation`.
+The repository is consolidated through `Phase 14T - Planet construction readability v1`.
 
 ## Repository Reality
 
@@ -27,8 +27,9 @@ The repository contains `VoidEmpires.sln` with:
 Current frontend cockpit baseline:
 
 - Galaxy v1 remains read-only and now prioritizes gameplay hierarchy over technical metadata, keeping diagnostics collapsed by default.
-- Planet v1 now exists at `/planet` as a 2D colony-management cockpit with a development-only UI-state read endpoint, Spanish-first presentation helpers, URL-based context transfer, resources, buildings, queue visibility, guarded construction enqueue, and a disabled complete-due placeholder.
-- Fleets now supports simple URL-based context links back into Planet.
+- Planet v1 now exists at `/planet` as a 2D colony-management cockpit with a development-only UI-state read endpoint, Spanish-first presentation helpers, deterministic seeded economy and construction context, readable resources or production or capacity sections, grouped buildings, queue visibility, guarded construction enqueue, and a disabled complete-due placeholder.
+- Construction v1 now exists at `/construction` as a focused command-center route for the same owned-planet construction state, with catalog readability, safe explicit confirmations, Spanish error guidance, queue refresh feedback, and context-preserving links across Galaxy, Planet, and Fleets.
+- Fleets remains the accepted dev-cockpit foundation and now supports simple URL-based context links into both Planet and Construction.
 
 Current implemented foundations:
 
@@ -246,13 +247,13 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 14B:
+Current validated baseline after Phase 14T:
 
-- backend: `dotnet build --no-restore` succeeded with `0` warnings and `0` errors
+- backend: `dotnet build --no-restore` succeeded
 - tests: `dotnet test --no-build` succeeded with `579` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
 
-Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, and the minimal exploration mission lifecycle.
+Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, the minimal exploration mission lifecycle, and the current Planet or Construction cockpit readability baseline.
 
 ## Recommended Next Work
 
