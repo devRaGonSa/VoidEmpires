@@ -44,6 +44,10 @@ interface PlanetDataRowProps {
   value: string;
 }
 
+interface PlanetPageProps {
+  variant?: "planet" | "construction";
+}
+
 function PlanetDataRow({ label, value }: PlanetDataRowProps) {
   return (
     <div className="figma-data-row">
@@ -132,7 +136,7 @@ function findPreparedAction(
   );
 }
 
-export function PlanetPage() {
+export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [civilizationIdInput, setCivilizationIdInput] = useState(
     searchParams.get("civilizationId") ?? "",
@@ -150,6 +154,7 @@ export function PlanetPage() {
   const queryPlanetId = searchParams.get("planetId");
   const planet = uiState?.planet ?? null;
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
+  const isConstructionRoute = variant === "construction";
 
   const preparedAction = useMemo(
     () => findPreparedAction(planet, preparedActionKey),
@@ -322,15 +327,18 @@ export function PlanetPage() {
     <section className="page-grid">
       <UiCard className="panel panel-hero figma-hero-card">
         <div className="figma-hero-copy">
-          <UiBadge tone="resource">Cabina Planetaria v1</UiBadge>
-          <h2>Gestion de colonia en 2D</h2>
+          <UiBadge tone="resource">
+            {isConstructionRoute ? "Centro de Construccion v1" : "Cabina Planetaria v1"}
+          </UiBadge>
+          <h2>{isConstructionRoute ? "Mando de construccion orbital" : "Gestion de colonia en 2D"}</h2>
           <p>
-            La superficie de Planeta prioriza identidad colonial, recursos,
-            edificios y cola de construccion antes que datos tecnicos.
+            {isConstructionRoute
+              ? "La superficie de Construccion prioriza planeta activo, reservas, catalogo, cola y confirmaciones seguras antes que datos tecnicos."
+              : "La superficie de Planeta prioriza identidad colonial, recursos, edificios y cola de construccion antes que datos tecnicos."}
           </p>
         </div>
         <div className="figma-badge-row">
-          <UiBadge>Sin 3D</UiBadge>
+          <UiBadge>{isConstructionRoute ? "Sin renderer 3D" : "Sin 3D"}</UiBadge>
           <UiBadge>Acciones seguras y confirmadas</UiBadge>
           <UiBadge tone="warn">Galaxia permanece en observacion</UiBadge>
         </div>
@@ -341,7 +349,7 @@ export function PlanetPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Enlace planetario</p>
-              <h3>Cargar cabina de planeta</h3>
+              <h3>{isConstructionRoute ? "Cargar centro de construccion" : "Cargar cabina de planeta"}</h3>
             </div>
             <UiBadge>Uso local</UiBadge>
           </div>
@@ -373,7 +381,7 @@ export function PlanetPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Estado de colonia</p>
-              <h3>Resumen de gestion</h3>
+              <h3>{isConstructionRoute ? "Contexto de construccion" : "Resumen de gestion"}</h3>
             </div>
             <UiBadge>
               {planet ? formatPlanetShortReference(planet.planetId) : "Sin planeta"}
@@ -404,7 +412,7 @@ export function PlanetPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Limites actuales</p>
-              <h3>Seguridad operativa</h3>
+              <h3>{isConstructionRoute ? "Reglas del centro de obra" : "Seguridad operativa"}</h3>
             </div>
             <UiBadge tone="warn">Protecciones activas</UiBadge>
           </div>
@@ -435,7 +443,7 @@ export function PlanetPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Sin colonia</p>
-              <h3>No hay un planeta jugable en este contexto</h3>
+              <h3>{isConstructionRoute ? "No hay un planeta listo para construir en este contexto" : "No hay un planeta jugable en este contexto"}</h3>
             </div>
             <UiBadge tone="warn">Estado vacio</UiBadge>
           </div>
@@ -480,8 +488,23 @@ export function PlanetPage() {
             </div>
 
             <div className="selection-chip-row">
+              {isConstructionRoute ? (
+                <Link
+                  className="selection-chip selection-chip-active"
+                  to={`/planet?civilizationId=${activeCivilizationId}&planetId=${planet.planetId}`}
+                >
+                  Abrir Planeta
+                </Link>
+              ) : (
+                <Link
+                  className="selection-chip selection-chip-active"
+                  to={`/construction?civilizationId=${activeCivilizationId}&planetId=${planet.planetId}`}
+                >
+                  Abrir Construccion
+                </Link>
+              )}
               <Link
-                className="selection-chip selection-chip-active"
+                className={`selection-chip${isConstructionRoute ? "" : " selection-chip-active"}`}
                 to={`/?civilizationId=${activeCivilizationId}&systemId=${planet.solarSystemId}&planetId=${planet.planetId}`}
               >
                 Volver a Galaxia
@@ -499,8 +522,8 @@ export function PlanetPage() {
             <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">Panorama colonial</p>
-                  <h3>Identidad y estado</h3>
+                  <p className="eyebrow">{isConstructionRoute ? "Planeta de trabajo" : "Panorama colonial"}</p>
+                  <h3>{isConstructionRoute ? "Contexto activo" : "Identidad y estado"}</h3>
                 </div>
                 <UiBadge>{formatPlanetShortReference(planet.planetId)}</UiBadge>
               </div>
@@ -598,53 +621,55 @@ export function PlanetPage() {
           </div>
 
           <div className="figma-two-column planet-overview-grid">
-            <UiCard className="panel">
-              <div className="figma-section-header">
-                <div>
-                  <p className="eyebrow">Infraestructura</p>
-                  <h3>Edificios actuales</h3>
+            {!isConstructionRoute ? (
+              <UiCard className="panel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Infraestructura</p>
+                    <h3>Edificios actuales</h3>
+                  </div>
+                  <UiBadge>{planet.buildings.length} activos</UiBadge>
                 </div>
-                <UiBadge>{planet.buildings.length} activos</UiBadge>
-              </div>
-              {planet.buildings.length > 0 ? (
-                <div className="planet-building-groups">
-                  {Object.entries(buildingsByCategory).map(([category, items]) => (
-                    <section key={category} className="subpanel figma-subpanel">
-                      <div className="figma-section-header">
-                        <div>
-                          <p className="eyebrow">Categoria</p>
-                          <h4>{category}</h4>
+                {planet.buildings.length > 0 ? (
+                  <div className="planet-building-groups">
+                    {Object.entries(buildingsByCategory).map(([category, items]) => (
+                      <section key={category} className="subpanel figma-subpanel">
+                        <div className="figma-section-header">
+                          <div>
+                            <p className="eyebrow">Categoria</p>
+                            <h4>{category}</h4>
+                          </div>
+                          <UiBadge>{items.length} edificios</UiBadge>
                         </div>
-                        <UiBadge>{items.length} edificios</UiBadge>
-                      </div>
-                      <div className="planet-building-grid">
-                        {items.map((building) => (
-                          <article
-                            key={`${String(building.buildingType)}-${building.level}`}
-                            className="subpanel figma-subpanel planet-building-card"
-                          >
-                            <strong>{building.display?.buildingTypeLabel ?? formatBuildingType(building.buildingType)}</strong>
-                            <p className="figma-panel-note">
-                              Nivel {building.level} | Huella {building.footprint}
-                            </p>
-                          </article>
-                        ))}
-                      </div>
-                    </section>
-                  ))}
-                </div>
-              ) : (
-                <p className="figma-panel-note">
-                  No hay edificios gestionables visibles para este planeta.
-                </p>
-              )}
-            </UiCard>
+                        <div className="planet-building-grid">
+                          {items.map((building) => (
+                            <article
+                              key={`${String(building.buildingType)}-${building.level}`}
+                              className="subpanel figma-subpanel planet-building-card"
+                            >
+                              <strong>{building.display?.buildingTypeLabel ?? formatBuildingType(building.buildingType)}</strong>
+                              <p className="figma-panel-note">
+                                Nivel {building.level} | Huella {building.footprint}
+                              </p>
+                            </article>
+                          ))}
+                        </div>
+                      </section>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="figma-panel-note">
+                    No hay edificios gestionables visibles para este planeta.
+                  </p>
+                )}
+              </UiCard>
+            ) : null}
 
             <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
                   <p className="eyebrow">Cola de construccion</p>
-                  <h3>Progreso legible</h3>
+                  <h3>{isConstructionRoute ? "Ciclo de ordenes" : "Progreso legible"}</h3>
                 </div>
                 <UiBadge tone={planet.constructionQueue.length > 0 ? "warn" : "good"}>
                   {planet.constructionQueue.length > 0
@@ -696,11 +721,12 @@ export function PlanetPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Desarrollo disponible</p>
-                <h3>Acciones de construccion protegidas</h3>
+                <p className="eyebrow">{isConstructionRoute ? "Catalogo de construccion" : "Desarrollo disponible"}</p>
+                <h3>{isConstructionRoute ? "Centro de mando de obra" : "Acciones de construccion protegidas"}</h3>
                 <p>
-                  Solo puedes preparar una orden cuando la colonia cumple las
-                  condiciones actuales y la operacion sigue siendo segura.
+                  {isConstructionRoute
+                    ? "Esta vista concentra catalogo, cola y confirmaciones seguras para una sola colonia activa."
+                    : "Solo puedes preparar una orden cuando la colonia cumple las condiciones actuales y la operacion sigue siendo segura."}
                 </p>
               </div>
               <div className="figma-badge-row">

@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import { appConfig } from "./config";
 import { AppShell } from "./components/ui/AppShell";
+import { ConstructionPage } from "./pages/ConstructionPage";
 import { FleetsPage } from "./pages/FleetsPage";
 import { PlanetPage } from "./pages/PlanetPage";
 import { StrategicMapPage } from "./pages/StrategicMapPage";
@@ -8,7 +9,7 @@ import { StrategicMapPage } from "./pages/StrategicMapPage";
 const sidebarItems = [
   { label: "Resumen" },
   { label: "Planeta", to: "/planet" },
-  { label: "Construccion" },
+  { label: "Construccion", to: "/construction" },
   { label: "Investigacion" },
   { label: "Ejercito Tierra" },
   { label: "Astillero" },
@@ -41,6 +42,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<StrategicMapPage />} />
         <Route path="/planet" element={<PlanetPage />} />
+        <Route path="/construction" element={<ConstructionPage />} />
         <Route path="/fleets" element={<FleetsPage />} />
       </Routes>
     </AppShell>

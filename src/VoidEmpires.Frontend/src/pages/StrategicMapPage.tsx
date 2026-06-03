@@ -1035,6 +1035,12 @@ export function StrategicMapPage() {
                     </Link>
                     <Link
                       className="selection-chip"
+                      to={`/construction?civilizationId=${result.civilizationId}&planetId=${selectedPlanet.planetId}`}
+                    >
+                      Abrir Construccion
+                    </Link>
+                    <Link
+                      className="selection-chip"
                       to={`/planet?civilizationId=${result.civilizationId}&planetId=${selectedPlanet.planetId}`}
                     >
                       Abrir Planeta

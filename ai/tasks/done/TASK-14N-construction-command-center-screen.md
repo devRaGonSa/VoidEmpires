@@ -3,7 +3,7 @@
 ---
 id: TASK-14N
 title: Phase 14N - Construction command center screen
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

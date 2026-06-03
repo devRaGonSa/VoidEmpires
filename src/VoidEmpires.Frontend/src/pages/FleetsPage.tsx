@@ -995,6 +995,12 @@ export function FleetsPage() {
                   >
                     Abrir planeta actual
                   </Link>
+                  <Link
+                    className="selection-chip"
+                    to={`/construction?civilizationId=${uiState.civilizationId}&planetId=${inspectedGroup.currentPlanetId}`}
+                  >
+                    Abrir construccion
+                  </Link>
                   {inspectedGroup.activeTransfer?.destinationPlanetId ? (
                     <Link
                       className="selection-chip"

@@ -3,7 +3,7 @@
 ---
 id: TASK-14O
 title: Phase 14O - Planet construction cross navigation and state continuity
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

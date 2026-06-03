@@ -3,7 +3,7 @@
 ---
 id: TASK-14M
 title: Phase 14M - Construction route foundation and context loading
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
