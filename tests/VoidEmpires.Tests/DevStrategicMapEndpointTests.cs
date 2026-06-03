@@ -137,7 +137,7 @@ public class DevStrategicMapEndpointTests(WebApplicationFactory<Program> factory
         Assert.Contains(system.Planets, x => x.PlanetId == SeedOwnedPlanetId && x.PlanetName == "Aurelia" && x.IsOwnedByRequestingCivilization);
         Assert.Contains(system.Planets, x => x.PlanetId == SeedVisibleComparisonPlanetId && x.PlanetName == "Cinder Reach" && x.IsVisible && !x.IsOwnedByRequestingCivilization);
         Assert.Contains(system.Planets, x => x.PlanetId == SeedKnownComparisonPlanetId && x.PlanetName == "Aether Crown" && x.IsVisible && !x.IsOwnedByRequestingCivilization);
-        Assert.Equal(3, system.FleetPresence.Count);
+        Assert.Equal(4, system.FleetPresence.Count);
         Assert.Single(system.TransferOverlays);
     }
 

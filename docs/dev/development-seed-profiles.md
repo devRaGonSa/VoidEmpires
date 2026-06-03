@@ -148,7 +148,7 @@ Expected Galaxy result for screenshot QA:
 - one visible strategic system: `Helios Gate`
 - three visible planets in that system: owned `Aurelia`, visible comparison `Cinder Reach`, and visible comparison `Aether Crown`
 - one owned-system summary row with non-zero visible, owned, fleet-marker, and transfer-marker counts
-- three fleet markers from the seeded stationed groups
+- four fleet markers from the seeded stationed and reserved orbital groups
 - one transfer overlay from the seeded planned cargo route
 - enough read-state for the legend, focus panel, transfer summary, and collapsed diagnostics to render together without looking empty
 

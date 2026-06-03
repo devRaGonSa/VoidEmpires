@@ -342,7 +342,7 @@ public class DevelopmentSeedServiceTests
             x.IsVisible &&
             !x.IsOwnedByRequestingCivilization &&
             x.VisibilityLevel == MapVisibilityLevel.Visible);
-        Assert.Equal(3, system.FleetPresence.Count);
+        Assert.Equal(4, system.FleetPresence.Count);
         Assert.Single(system.TransferOverlays);
     }
 
