@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 17B - Research enqueue contract alignment and usable flow closure`.
+The repository is consolidated through `Phase 17T - Shipyard cockpit playable foundation v1`.
 
 ## Repository Reality
 
@@ -30,12 +30,14 @@ Current frontend cockpit baseline:
 - Planet v1 now exists at `/planet` as a 2D dashboard and context hub with a development-only UI-state read endpoint, Spanish-first presentation helpers, deterministic seeded economy and construction context, readable resources or production or capacity sections, grouped buildings, queue visibility, guarded construction enqueue, and dashboard handoff cards for Construction, Fleets, Galaxy, and the specialized placeholders.
 - Construction v1 now exists at `/construction` as a focused general-infrastructure route for the same owned-planet construction state, with catalog readability, safe explicit confirmations, Spanish error guidance, queue refresh feedback, and secondary handoff cards for Research, Ground Army, Shipyard, and Defenses.
 - Research v1 now exists at `/research` as a development-safe cockpit foundation upgraded from the earlier placeholder route, with a deterministic seeded QA path that exposes at least one available item (`Ingenieria planetaria`), visible blocked items with meaningful Spanish reasons, category-grouped catalog state, truthful summary counts and recommendation fallback, visible requirements, costs, durations, queue and completed-project summaries, guarded enqueue confirmation when the safe dev endpoint is available, aligned read-model and enqueue contract metadata for the seeded available technology, successful Development enqueue with visible queue refresh, specific Spanish error mapping with secondary diagnostics, non-mutating blocked research cards, and a conservative disabled complete-due placeholder when the backend route is not scoped safely to the cockpit.
-- Ground Army, Shipyard, and Defenses still have dedicated placeholder routes that keep their boundaries explicit even before specialized gameplay exists.
-- Fleets remains the accepted dev-cockpit foundation and now supports simple URL-based context links into both Planet and Construction while keeping destination context optional.
+- Shipyard v1 now exists at `/shipyard` as a development-safe cockpit foundation upgraded from the earlier placeholder route, with deterministic seeded `Aurelia` context, visible resources, production capability and readiness summaries, categorized orbital asset options, visible queue and local stock reads, guarded development enqueue through the scoped orbital production endpoint, explicit success refresh feedback, a conservative disabled complete-due placeholder because the current backend route is still global, cross-navigation back to Planet, Construction, Research, Fleets, and Galaxy, and explicit copy that Fleet movement and command execution remain outside this cockpit.
+- Ground Army and Defenses still have dedicated placeholder routes that keep their boundaries explicit even before specialized gameplay exists.
+- Fleets remains the accepted dev-cockpit foundation and now supports simple URL-based context links into Planet, Construction, and Shipyard while keeping destination context optional.
 - Query-context helpers now centralize `civilizationId` and `planetId` navigation so the cockpit links stop rebuilding URLs by hand.
 - Module-specific catalog duplication has been reduced by extracting shared planet layout components and route builders.
 - The current frontend boundary model is documented in `docs/dev/planet-module-boundaries.md`.
 - The current Research cockpit QA flow and acceptance boundaries are documented in `docs/dev/research-cockpit-checklist.md`.
+- The current Shipyard cockpit QA flow and accepted Fleet boundary are documented in `docs/dev/shipyard-cockpit-checklist.md`.
 
 Current intentional exclusions:
 
@@ -44,7 +46,8 @@ Current intentional exclusions:
 - no real interception execution
 - no espionage gameplay
 - no production authentication
-- no real specialized module execution yet outside the current backend-supported Research queue state and the accepted Fleets flow
+- no Fleet movement, transfer creation, split, merge, or combat execution from Shipyard
+- no real specialized module execution yet outside the current backend-supported Research and Shipyard enqueue paths plus the accepted Fleets flow
 - no real research effects beyond queue and completion state
 
 Current implemented foundations:
@@ -263,13 +266,13 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 17B:
+Current validated baseline after Phase 17T:
 
 - backend: `dotnet build --no-restore` succeeded
-- tests: `dotnet test --no-build` succeeded with `589` passing tests
+- tests: `dotnet test --no-build` succeeded with `600` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
 
-Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, the minimal exploration mission lifecycle, the current Planet or Construction cockpit readability baseline, the minimal-validation Research seed readiness path, the development Research UI-state endpoint baseline, and the full seeded Research enqueue smoke path through queue refresh.
+Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, the minimal exploration mission lifecycle, the current Planet or Construction cockpit readability baseline, the minimal-validation Research seed readiness path, the development Research UI-state endpoint baseline, the full seeded Research enqueue smoke path through queue refresh, the development Shipyard UI-state endpoint baseline, the scoped Shipyard enqueue endpoint path, and the strengthened minimal-validation Shipyard seed expectations.
 
 ## Recommended Next Work
 
