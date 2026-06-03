@@ -3,7 +3,7 @@
 ---
 id: TASK-16H-research-available-card-primary-action-and-disabled-state
 title: Research available card primary action and disabled state
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

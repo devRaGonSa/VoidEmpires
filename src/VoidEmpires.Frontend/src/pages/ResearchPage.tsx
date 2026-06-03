@@ -6,6 +6,7 @@ import {
   formatResearchCommandFailure,
   formatResearchRequestFailure,
   getResearchPrimaryAction,
+  getResearchVisualState,
   groupResearchTechnologiesByCategory,
   mapResearchUiStateToViewModel,
   selectRecommendedResearch,
@@ -393,17 +394,27 @@ export function ResearchPage() {
                     <UiBadge>{group.technologies.length}</UiBadge>
                   </div>
                   <div className="planet-building-grid research-tech-grid">
-                    {group.technologies.map((technology) => (
+                    {group.technologies.map((technology) => {
+                      const visualState = getResearchVisualState(technology);
+                      const canPrepare = hasSafeResearchEnqueue && visualState === "ready";
+                      const cardClassName = `subpanel figma-subpanel research-tech-card research-tech-card-${visualState}`;
+                      const buttonClassName = visualState === "blocked"
+                        ? "planet-action-button-blocked"
+                        : visualState === "ready"
+                          ? "research-action-button-ready"
+                          : "planet-action-button-secondary";
+
+                      return (
                       <article
                         key={`${technology.researchType}`}
-                        className={`subpanel figma-subpanel research-tech-card ${technology.availability.canEnqueue ? "research-tech-card-ready" : "research-tech-card-blocked"}`}
+                        className={cardClassName}
                       >
                         <div className="figma-section-header">
                           <div>
                             <p className="eyebrow">{technology.bonusLabel}</p>
                             <h4>{technology.label}</h4>
                           </div>
-                          <UiBadge tone={technology.availability.canEnqueue ? "good" : "warn"}>{technology.availability.label}</UiBadge>
+                          <UiBadge tone={visualState === "ready" ? "good" : visualState === "blocked" ? "warn" : "resource"}>{technology.availability.label}</UiBadge>
                         </div>
                         <div className="figma-data-list">
                           <div className="figma-data-row"><span>Nivel</span><strong>{`${technology.currentLevel} -> ${technology.nextLevel}`}</strong></div>
@@ -424,17 +435,16 @@ export function ResearchPage() {
                         <div className="transfer-confirmation-actions">
                           <button
                             type="button"
+                            className={buttonClassName}
                             onClick={() => handleResearchPreparation(technology)}
-                            disabled={!hasSafeResearchEnqueue || !technology.availability.canEnqueue}
+                            disabled={!canPrepare}
                           >
                             {preparedResearchType === technology.researchType
                               ? "Revision preparada"
-                              : technology.availability.canEnqueue
-                                ? "Revisar inicio"
-                                : "Accion bloqueada"}
+                              : technology.primaryActionLabel}
                           </button>
                         </div>
-                        {!technology.availability.canEnqueue ? (
+                        {visualState !== "ready" ? (
                           <p className="figma-panel-note">
                             {technology.availability.canCompleteDue
                               ? "El cierre manual de investigaciones vencidas sigue fuera de esta cabina."
@@ -450,7 +460,8 @@ export function ResearchPage() {
                           </p>
                         )}
                       </article>
-                    ))}
+                      );
+                    })}
                   </div>
                 </section>
               ))}

@@ -37,6 +37,8 @@ export interface ResearchRequirement {
   label: string;
 }
 
+export type ResearchVisualState = "ready" | "blocked" | "active" | "completed";
+
 export interface ResearchTechnology {
   researchType: string;
   label: string;
@@ -396,13 +398,48 @@ function findResearchHint<T extends ResearchTechnologyHintDto | ResearchDefiniti
   return items.find((item) => item.researchType === value || `${item.researchType}` === `${value}`) ?? null;
 }
 
-export function getResearchPrimaryAction(technology: ResearchTechnology) {
-  if (technology.availability.canCompleteDue) {
-    return "Completar ahora";
+export function getResearchVisualState(technology: ResearchTechnology): ResearchVisualState {
+  if (technology.availability.key === "Completed") {
+    return "completed";
+  }
+
+  if (
+    technology.availability.key === "InResearch" ||
+    technology.availability.key === "Pending" ||
+    technology.availability.key === "Active" ||
+    technology.availability.canCompleteDue
+  ) {
+    return "active";
   }
 
   if (technology.availability.canEnqueue) {
-    return technology.currentLevel > 0 ? "Reinvestigar" : "Iniciar investigacion";
+    return "ready";
+  }
+
+  return "blocked";
+}
+
+export function getResearchPrimaryAction(technology: ResearchTechnology) {
+  const visualState = getResearchVisualState(technology);
+
+  if (visualState === "completed") {
+    return "Completada";
+  }
+
+  if (visualState === "active") {
+    return technology.availability.canCompleteDue ? "Lista para cierre" : "En investigacion";
+  }
+
+  if (visualState === "ready") {
+    return "Revisar investigacion";
+  }
+
+  if (technology.availability.reasonKey === "InsufficientResources") {
+    return "Faltan recursos";
+  }
+
+  if (technology.availability.reasonKey === "OpenQueueSlot") {
+    return "En cola";
   }
 
   return "Revisar requisitos";
