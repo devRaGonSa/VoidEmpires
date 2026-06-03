@@ -134,6 +134,24 @@ public class DevPlanetUiStateEndpointTests(WebApplicationFactory<Program> factor
     }
 
     [Fact]
+    public async Task CockpitValidationProfileReturnsOwnedPlanetResourcesAndCompletedConstructionHistory()
+    {
+        using var client = CreateConfiguredClient(CreateSeededDbContext("cockpit-validation"));
+
+        using var response = await client.GetAsync($"/api/dev/planets/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var payload = await response.Content.ReadFromJsonAsync<DevPlanetUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.UiState?.Planet);
+        Assert.True(payload.UiState.Planet.IsOwnedByRequestingCivilization);
+        Assert.NotEmpty(payload.UiState.Planet.Stockpile);
+        Assert.Single(payload.UiState.Planet.ConstructionQueue);
+        Assert.Equal("Completed", payload.UiState.Planet.ConstructionQueue[0].Status.ToString());
+        Assert.True(payload.UiState.Planet.ConstructionActions.Count(x => x.AvailabilityStatus == "Available") >= 1);
+        Assert.True(payload.UiState.Planet.ConstructionActions.Count(x => x.AvailabilityStatus != "Available") >= 1);
+    }
+
+    [Fact]
     public async Task ReapplyingPlanetFullValidationDoesNotDuplicateBuildingsOrCompletedQueueHistory()
     {
         await using var dbContext = CreateSeededDbContext("planet-full-validation");

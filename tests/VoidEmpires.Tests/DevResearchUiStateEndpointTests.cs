@@ -308,6 +308,25 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
     }
 
     [Fact]
+    public async Task CockpitValidationProfileReturnsAvailableBlockedAndCompletedResearchHistory()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        await using var dbContext = CreateSeededDbContext(databaseName, "cockpit-validation");
+        using var client = CreateConfiguredClient(databaseName);
+
+        using var response = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var payload = await response.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.UiState);
+        Assert.Single(payload.UiState.Queue, x => x.ResearchType == ResearchType.EnergySystems && x.Status == ResearchQueueItemStatus.Completed);
+        Assert.Single(payload.UiState.Projects, x => x.ResearchType == ResearchType.EnergySystems && x.Level == 1);
+        Assert.True(payload.UiState.TechnologyHints.Count(x => x.CanEnqueue) >= 1);
+        Assert.True(payload.UiState.TechnologyHints.Count(x => !x.CanEnqueue) >= 1);
+        Assert.Contains(payload.UiState.TechnologyHints, x => x.ResearchType == ResearchType.PlanetaryEngineering && x.CanEnqueue);
+    }
+
+    [Fact]
     public async Task ReapplyingResearchValidationSeedDoesNotDuplicateCompletedResearchHistory()
     {
         var databaseName = Guid.NewGuid().ToString("N");

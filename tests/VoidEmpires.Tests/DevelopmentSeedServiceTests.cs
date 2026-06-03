@@ -217,6 +217,20 @@ public class DevelopmentSeedServiceTests
         Assert.Contains(system.Planets, x => x.PlanetId == OwnedPlanetId && x.IsOwnedByRequestingCivilization);
     }
 
+    [Fact]
+    public async Task CockpitValidationSeedKeepsStrategicMapFleetContextVisible()
+    {
+        await using var dbContext = CreateDbContext();
+        await new DevelopmentSeedService(dbContext).ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+
+        var result = await CreateStrategicMapService(dbContext).GetAsync(new GetStrategicMapRequest(CivilizationId));
+
+        var system = Assert.Single(result.Systems);
+        Assert.True(system.IsVisible);
+        Assert.Equal(3, system.Planets.Count);
+        Assert.Contains(system.Planets, x => x.PlanetId == OwnedPlanetId && x.IsOwnedByRequestingCivilization);
+    }
+
     private static StrategicMapService CreateStrategicMapService(VoidEmpiresDbContext dbContext) =>
         new(
             dbContext,

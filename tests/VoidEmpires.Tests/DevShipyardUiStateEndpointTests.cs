@@ -160,6 +160,24 @@ public class DevShipyardUiStateEndpointTests(WebApplicationFactory<Program> fact
     }
 
     [Fact]
+    public async Task CockpitValidationProfileReturnsShipyardStockQueueAndCatalogSmokeState()
+    {
+        await using var dbContext = CreateSeededDbContext(profile: "cockpit-validation");
+        using var client = CreateConfiguredClient(dbContext);
+
+        using var response = await client.GetAsync($"/api/dev/shipyard/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var payload = await response.Content.ReadFromJsonAsync<DevShipyardUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.UiState?.Shipyard);
+        Assert.Single(payload.UiState.Shipyard.Queue);
+        Assert.Contains(payload.UiState.Shipyard.OrbitalStock, x => x.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.ScoutCraft && x.Quantity == 1);
+        Assert.True(payload.UiState.Shipyard.Catalog.Count(item => item.AvailabilityStatus == "Available") >= 1);
+        Assert.True(payload.UiState.Shipyard.Catalog.Count(item => item.AvailabilityStatus == "Blocked") >= 1);
+        Assert.True(payload.UiState.Shipyard.ActionSummary.EnqueueSupported);
+    }
+
+    [Fact]
     public async Task ReapplyingShipyardValidationProfileDoesNotDuplicateCompletedOrdersOrStockRows()
     {
         await using var dbContext = CreateSeededDbContext(profile: "shipyard-validation");

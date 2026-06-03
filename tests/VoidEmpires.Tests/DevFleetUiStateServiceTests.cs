@@ -240,6 +240,30 @@ public class DevFleetUiStateServiceTests
     }
 
     [Fact]
+    public async Task GetAsyncReturnsCrossCockpitSmokeStateForCockpitValidationSeed()
+    {
+        await using var dbContext = CreateDbContext();
+        await new DevelopmentSeedService(dbContext).ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+
+        var service = new DevFleetUiStateService(
+            dbContext,
+            new FleetOperationalOverviewService(dbContext),
+            new DevFleetActionManifestService(),
+            new InterceptionOpportunityService(
+                dbContext,
+                new MapVisibilityService(dbContext),
+                new DetectionCoverageService(dbContext, new SensorProfileService(dbContext)),
+                new FleetOperationalOverviewService(dbContext)));
+
+        var result = await service.GetAsync(new GetDevFleetUiStateRequest(Guid.Parse("00000000-0000-0000-0000-000000000001")));
+
+        Assert.True(result.Groups.Count >= 4);
+        Assert.Contains(result.Groups, x => x.Status == OrbitalGroupStatus.Stationed && x.Commands.CanCreateTransfer);
+        Assert.Contains(result.Groups, x => x.HasActiveTransfer && x.ActiveTransfer is not null);
+        Assert.Contains(result.ResourceContexts, x => x.PlanetId == Guid.Parse("40000000-0000-0000-0000-000000000001") && x.Balances.Any(balance => balance.ResourceType == ResourceType.Gas && balance.Quantity == 120));
+    }
+
+    [Fact]
     public async Task ReapplyingFleetValidationSeedDoesNotDuplicateExtraTransferScenario()
     {
         await using var dbContext = CreateDbContext();
