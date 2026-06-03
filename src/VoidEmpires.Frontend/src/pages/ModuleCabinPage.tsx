@@ -7,6 +7,13 @@ import { PlanetDataRow } from "../components/PlanetModuleLayout";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { formatPlanetIdentity, formatPlanetOverviewLine, formatPlanetOwnerLabel, formatPlanetShortReference } from "../utils/planetPresentation";
+import {
+  buildConstructionUrl,
+  buildDevelopmentHelperUrl,
+  buildFleetsUrl,
+  buildPlanetUrl,
+  isSuspiciousCabinContext,
+} from "../utils/routeUrls";
 
 interface ModuleCabinPageProps {
   route: PlanetModuleRouteInfo;
@@ -28,6 +35,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
   const queryPlanetId = searchParams.get("planetId");
   const planet = uiState?.planet ?? null;
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
+  const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -198,6 +206,26 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
         </UiCard>
       </div>
 
+      {isSuspiciousContext ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Contexto sospechoso</p>
+              <h3>El identificador de civilizacion no parece valido para esta cabina.</h3>
+            </div>
+            <UiBadge tone="warn">Revisar contexto</UiBadge>
+          </div>
+          <p className="figma-panel-note">
+            Revisa que no hayas usado el id del planeta como civilizacion.
+          </p>
+          <div className="selection-chip-row">
+            <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>
+              Abrir contexto de desarrollo
+            </Link>
+          </div>
+        </UiCard>
+      ) : null}
+
       <UiCard className="panel">
         <div className="figma-section-header">
           <div>
@@ -209,20 +237,20 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
         <div className="selection-chip-row">
           <Link
             className="selection-chip selection-chip-active"
-            to={`/planet?civilizationId=${activeCivilizationId}${planet ? `&planetId=${planet.planetId}` : queryPlanetId ? `&planetId=${queryPlanetId}` : ""}`}
+            to={buildPlanetUrl(activeCivilizationId, planet ? planet.planetId : queryPlanetId)}
           >
             Volver a Planeta
           </Link>
           <Link
             className="selection-chip"
-            to={`/construction?civilizationId=${activeCivilizationId}${planet ? `&planetId=${planet.planetId}` : queryPlanetId ? `&planetId=${queryPlanetId}` : ""}`}
+            to={buildConstructionUrl(activeCivilizationId, planet ? planet.planetId : queryPlanetId)}
           >
             Abrir Construccion
           </Link>
           {route.module === "Shipyard" ? (
             <Link
               className="selection-chip"
-              to={`/fleets?civilizationId=${activeCivilizationId}${planet ? `&planetId=${planet.planetId}` : queryPlanetId ? `&planetId=${queryPlanetId}` : ""}`}
+              to={buildFleetsUrl(activeCivilizationId, planet ? planet.planetId : queryPlanetId)}
             >
               Abrir Flotas
             </Link>

@@ -23,6 +23,10 @@ import {
   formatSpaceAssetType,
 } from "../utils/domainPresentation";
 import {
+  buildConstructionUrl,
+  buildPlanetUrl,
+} from "../utils/routeUrls";
+import {
   buildFleetCommandReadiness,
   buildFleetEstimateReviewCard,
   buildFleetMutationConfirmations,
@@ -991,20 +995,20 @@ export function FleetsPage() {
                 <div className="selection-chip-row">
                   <Link
                     className="selection-chip selection-chip-active"
-                    to={`/planet?civilizationId=${uiState.civilizationId}&planetId=${inspectedGroup.currentPlanetId}`}
+                    to={buildPlanetUrl(uiState.civilizationId, inspectedGroup.currentPlanetId)}
                   >
                     Abrir planeta actual
                   </Link>
                   <Link
                     className="selection-chip"
-                    to={`/construction?civilizationId=${uiState.civilizationId}&planetId=${inspectedGroup.currentPlanetId}`}
+                    to={buildConstructionUrl(uiState.civilizationId, inspectedGroup.currentPlanetId)}
                   >
                     Abrir construccion
                   </Link>
                   {inspectedGroup.activeTransfer?.destinationPlanetId ? (
                     <Link
                       className="selection-chip"
-                      to={`/planet?civilizationId=${uiState.civilizationId}&planetId=${inspectedGroup.activeTransfer.destinationPlanetId}`}
+                      to={buildPlanetUrl(uiState.civilizationId, inspectedGroup.activeTransfer.destinationPlanetId)}
                     >
                       Ver destino
                     </Link>

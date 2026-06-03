@@ -28,6 +28,11 @@ import {
   isOwnedVisibilityLevel,
   isVisibleVisibilityLevel,
 } from "../utils/domainPresentation";
+import {
+  buildConstructionUrl,
+  buildFleetsUrl,
+  buildPlanetUrl,
+} from "../utils/routeUrls";
 import { getUserFacingActionLabel } from "../utils/fleetCommandPresentation";
 
 const readinessSections = [
@@ -1029,19 +1034,19 @@ export function StrategicMapPage() {
                   <div className="selection-chip-row">
                     <Link
                       className="selection-chip selection-chip-active"
-                      to={`/fleets?civilizationId=${result.civilizationId}&planetId=${selectedPlanet.planetId}`}
+                      to={buildFleetsUrl(result.civilizationId, selectedPlanet.planetId)}
                     >
                       Ir a Flotas
                     </Link>
                     <Link
                       className="selection-chip"
-                      to={`/construction?civilizationId=${result.civilizationId}&planetId=${selectedPlanet.planetId}`}
+                      to={buildConstructionUrl(result.civilizationId, selectedPlanet.planetId)}
                     >
                       Abrir Construccion
                     </Link>
                     <Link
                       className="selection-chip"
-                      to={`/planet?civilizationId=${result.civilizationId}&planetId=${selectedPlanet.planetId}`}
+                      to={buildPlanetUrl(result.civilizationId, selectedPlanet.planetId)}
                     >
                       Abrir Planeta
                     </Link>

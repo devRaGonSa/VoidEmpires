@@ -49,6 +49,15 @@ import {
   specializedPlanetModuleRoutes,
   toPlanetCatalogId,
 } from "../utils/planetPresentation";
+import {
+  buildConstructionUrl,
+  buildDevelopmentHelperUrl,
+  buildFleetsUrl,
+  buildGalaxyUrl,
+  buildPlanetUrl,
+  buildSpecializedModuleUrl,
+  isSuspiciousCabinContext,
+} from "../utils/routeUrls";
 
 interface PlanetPageProps {
   variant?: "planet" | "construction";
@@ -153,6 +162,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
   const planet = uiState?.planet ?? null;
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const isConstructionRoute = variant === "construction";
+  const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
 
   const preparedAction = useMemo(
     () => findPreparedAction(planet, preparedActionKey),
@@ -497,6 +507,26 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         </UiCard>
       </div>
 
+      {isSuspiciousContext ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Contexto sospechoso</p>
+              <h3>El identificador de civilizacion no parece valido para esta cabina.</h3>
+            </div>
+            <UiBadge tone="warn">Revisar contexto</UiBadge>
+          </div>
+          <p className="figma-panel-note">
+            Revisa que no hayas usado el id del planeta como civilizacion.
+          </p>
+          <div className="selection-chip-row">
+            <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>
+              Abrir contexto de desarrollo
+            </Link>
+          </div>
+        </UiCard>
+      ) : null}
+
       {isLoading ? (
         <UiCard className="panel">
           <div className="figma-section-header">
@@ -563,27 +593,27 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
               {isConstructionRoute ? (
                 <Link
                   className="selection-chip selection-chip-active"
-                  to={`/planet?civilizationId=${activeCivilizationId}&planetId=${planet.planetId}`}
+                  to={buildPlanetUrl(activeCivilizationId, planet.planetId)}
                 >
                   Abrir Planeta
                 </Link>
               ) : (
                 <Link
                   className="selection-chip selection-chip-active"
-                  to={`/construction?civilizationId=${activeCivilizationId}&planetId=${planet.planetId}`}
+                  to={buildConstructionUrl(activeCivilizationId, planet.planetId)}
                 >
                   Abrir Construccion
                 </Link>
               )}
               <Link
                 className={`selection-chip${isConstructionRoute ? "" : " selection-chip-active"}`}
-                to={`/?civilizationId=${activeCivilizationId}&systemId=${planet.solarSystemId}&planetId=${planet.planetId}`}
+                to={buildGalaxyUrl(activeCivilizationId, planet.solarSystemId, planet.planetId)}
               >
                 Volver a Galaxia
               </Link>
               <Link
                 className="selection-chip"
-                to={`/fleets?civilizationId=${activeCivilizationId}&planetId=${planet.planetId}`}
+                to={buildFleetsUrl(activeCivilizationId, planet.planetId)}
               >
                 Abrir Flotas
               </Link>
@@ -852,7 +882,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                     <ModuleStatusCard
                       key={module.path}
                       className="construction-handoff-card"
-                      to={`${module.path}?civilizationId=${activeCivilizationId}&planetId=${planet.planetId}`}
+                      to={buildSpecializedModuleUrl(module.module, activeCivilizationId, planet.planetId)}
                       title={module.title}
                       label={module.label}
                       status={module.statusLabel}
@@ -879,28 +909,32 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                   {[
                     {
                       label: "Construccion",
-                      path: `/construction?civilizationId=${activeCivilizationId}${planet ? `&planetId=${planet.planetId}` : ""}`,
+                      path: buildConstructionUrl(activeCivilizationId, planet?.planetId),
                       title: "Construccion",
                       status: "Disponible",
                       purpose: "Gestiona edificios civiles, economicos e infraestructura general.",
                     },
                     ...specializedPlanetModuleRoutes.map((module) => ({
                       label: module.label,
-                      path: `${module.path}?civilizationId=${activeCivilizationId}${planet ? `&planetId=${planet.planetId}` : ""}`,
+                      path: buildSpecializedModuleUrl(module.module, activeCivilizationId, planet?.planetId),
                       title: module.title,
                       status: "Proximamente",
                       purpose: module.purpose,
                     })),
                     {
                       label: "Flotas",
-                      path: `/fleets?civilizationId=${activeCivilizationId}${planet ? `&planetId=${planet.planetId}` : ""}`,
+                      path: buildFleetsUrl(activeCivilizationId, planet?.planetId),
                       title: "Flotas",
                       status: "Disponible",
                       purpose: "Consulta grupos orbitales, movimientos y despliegues.",
                     },
                     {
                       label: "Galaxia",
-                      path: `/?civilizationId=${activeCivilizationId}&planetId=${planet?.planetId ?? queryPlanetId ?? ""}`,
+                      path: buildGalaxyUrl(
+                        activeCivilizationId,
+                        planet?.solarSystemId,
+                        planet?.planetId ?? queryPlanetId ?? null,
+                      ),
                       title: "Galaxia",
                       status: "Disponible",
                       purpose: "Regresa al mapa estrategico y cambia de contexto.",
@@ -1011,7 +1045,11 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                             ) : actionHandoffTarget ? (
                               <Link
                                 className="planet-action-button-secondary planet-action-handoff"
-                                to={`${actionHandoffTarget.path}?civilizationId=${activeCivilizationId}&planetId=${planet.planetId}`}
+                                to={buildSpecializedModuleUrl(
+                                  actionHandoffTarget.module,
+                                  activeCivilizationId,
+                                  planet.planetId,
+                                )}
                               >
                                 Gestionar desde {actionHandoffTarget.label}.
                               </Link>

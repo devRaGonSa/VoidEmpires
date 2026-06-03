@@ -3,7 +3,7 @@
 ---
 id: TASK-15G
 title: Route context safety and query param normalization
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
