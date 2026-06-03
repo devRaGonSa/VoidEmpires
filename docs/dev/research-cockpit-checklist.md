@@ -13,11 +13,11 @@ Use `docs/dev/planet-module-boundaries.md` to keep `/research` separate from the
 
 ## Seeded QA scenario
 
-Use the current `minimal-validation` seed for deterministic Research checks:
+Use the current `research-validation` seed for richer deterministic Research checks:
 
 ```powershell
 POST /api/dev/seeds/apply
-{"profile":"minimal-validation"}
+{"profile":"research-validation"}
 ```
 
 - Civilization id: `00000000-0000-0000-0000-000000000001`
@@ -28,18 +28,20 @@ POST /api/dev/seeds/apply
 - Expected summary baseline before enqueue:
   - `Disponibles: 1`
   - `Bloqueadas: 7`
-  - `Cola: 0`
+  - `Cola: 1`
   - `En espera de cierre: 0`
-  - `Proyectos: 0`
+  - `Proyectos: 1`
 - Expected comparison baseline:
   - `Ingenieria planetaria` is immediately available.
-  - `Extraccion de recursos` remains blocked by `Recursos insuficientes en Aurelia.`
-  - The queue starts empty and should read `No hay ordenes activas en la cola.`
+  - `Extraccion de recursos`, `Sistemas energeticos`, and other higher-cost technologies remain blocked by `Recursos insuficientes en Aurelia.`
+  - The queue shows one completed `Sistemas energeticos` history row and no active order.
+- Current backend limitation:
+  - The readiness evaluator only distinguishes `Available`, `InResearch`, `InsufficientResources`, and missing-planet fallback states.
+  - This seed does not invent hidden prerequisites or new blocker mechanics just to diversify labels.
 - Audit note:
-  - If `/research` shows `Disponibles: 0` after reapplying `minimal-validation`, the primary root cause is stale persisted stockpile state, not the research UI-state mapper. Earlier seed behavior only created the planet stockpile when missing, so consumed resources could survive reseeding and make all cards appear blocked.
-  - The development seed now restores the owned-planet stockpile to at least `125` credits, `160` metal, `100` crystal, and `50` gas so `Ingenieria planetaria` remains the deterministic available item for the baseline scenario.
-  - Reapplying the seed restores the owned-planet stockpile baseline, but it does not delete an already enqueued research order or rebuild the queue to an empty state. For an exact pre-enqueue baseline, use a fresh disposable local database before applying the seed.
-  - If you already confirmed one enqueue in the current database, reseeding alone may not restore the exact empty-queue baseline. Use a fresh disposable local database when you need the original pre-enqueue state exactly.
+  - If `/research` shows `Disponibles: 0` after reapplying `research-validation`, the primary root cause is usually an existing active research order, not the research UI-state mapper.
+  - The profile intentionally resets the owned-planet stockpile to `125` credits, `110` metal, `70` crystal, and `30` gas so `Ingenieria planetaria` remains the deterministic available item while higher-cost research stays blocked.
+  - Reapplying the seed preserves completed history but does not delete an already enqueued active research order. For an exact pre-enqueue baseline, use a fresh disposable local database before applying the seed.
 
 ## Browser checkpoints
 
@@ -53,7 +55,7 @@ POST /api/dev/seeds/apply
   - The queue shows one active research row with Spanish technology label, status, and close time.
   - The primary feedback reads `Investigacion enviada a la cola.`
 - Checkpoint 4: blocked comparison card
-  - `Extraccion de recursos` remains blocked with readable Spanish guidance.
+  - `Extraccion de recursos` remains blocked with readable Spanish guidance, and multiple higher-cost cards remain blocked for the same truthful resource reason.
 - Checkpoint 5: complete-due placeholder
   - `Completar vencidas no disponible` stays visibly disabled with its explanation text.
 
@@ -92,13 +94,13 @@ npm run build --prefix src/VoidEmpires.Frontend
 
 Then confirm on `/research`:
 
-- The deterministic seeded scenario opens from the exact QA URL above.
+- The deterministic seeded scenario opens from the exact QA URL above after applying `research-validation`.
 - The active context corresponds to `Aurelia` in the seeded `Helios Gate` system.
 - The summary shows `Disponibles >= 1` and `Bloqueadas >= 1` before any enqueue.
 - The route loads with Spanish loading, error, and empty states.
 - The first viewport prioritizes cabina context, resumen, cola y progreso, and the catalog.
 - The catalog shows Spanish technology names and meaningful category groupings.
-- At least one available research card and at least one blocked card are visible together for comparison.
+- At least one available research card and multiple blocked cards are visible together for comparison.
 - Blocked research shows a readable reason rather than raw backend text.
 - `Requisito pendiente de clasificar` does not appear in the main seeded blocker text.
 - Requirement chips, cost, duration, and next-level data wrap cleanly without horizontal overflow.

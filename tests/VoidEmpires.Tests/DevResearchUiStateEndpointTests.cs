@@ -259,6 +259,72 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
     }
 
     [Fact]
+    public async Task ResearchValidationProfileReturnsRicherCatalogWithoutBreakingPrimaryEnqueuePath()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        await using var dbContext = CreateSeededDbContext(databaseName, "research-validation");
+        using var client = CreateConfiguredClient(databaseName);
+
+        using var initialResponse = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var initialPayload = await initialResponse.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
+        Assert.NotNull(initialPayload?.UiState);
+        Assert.Empty(initialPayload.UiState.Queue.Where(x => x.Status is ResearchQueueItemStatus.Pending or ResearchQueueItemStatus.Active));
+        Assert.Single(initialPayload.UiState.Projects, x => x.ResearchType == ResearchType.EnergySystems && x.Level == 1);
+        Assert.Single(initialPayload.UiState.Queue, x => x.ResearchType == ResearchType.EnergySystems && x.Status == ResearchQueueItemStatus.Completed);
+        Assert.Single(initialPayload.UiState.TechnologyHints.Where(x => x.CanEnqueue));
+        Assert.True(initialPayload.UiState.TechnologyHints.Count(x => !x.CanEnqueue) >= 3);
+        Assert.All(
+            initialPayload.UiState.TechnologyHints.Where(x => !x.CanEnqueue),
+            item => Assert.Equal("InsufficientResources", item.StatusKey));
+
+        var availableResearch = Assert.Single(initialPayload.UiState.TechnologyHints.Where(x => x.CanEnqueue));
+        Assert.Equal(ResearchType.PlanetaryEngineering, availableResearch.ResearchType);
+
+        using var enqueueResponse = await client.PostAsJsonAsync(
+            availableResearch.EnqueueCommand!.Route,
+            new
+            {
+                civilizationId = availableResearch.EnqueueCommand.CivilizationId,
+                sourcePlanetId = availableResearch.EnqueueCommand.SourcePlanetId,
+                researchType = availableResearch.EnqueueCommand.ResearchType.ToString(),
+                requestedAtUtc = "2026-01-01T12:00:00Z"
+            });
+
+        Assert.Equal(HttpStatusCode.Created, enqueueResponse.StatusCode);
+
+        using var followUpResponse = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var followUpPayload = await followUpResponse.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, followUpResponse.StatusCode);
+        Assert.NotNull(followUpPayload?.UiState);
+        Assert.Single(followUpPayload.UiState.Queue.Where(x => x.Status is ResearchQueueItemStatus.Pending or ResearchQueueItemStatus.Active));
+        Assert.Contains(
+            followUpPayload.UiState.TechnologyHints,
+            item => item.ResearchType == ResearchType.PlanetaryEngineering &&
+                !item.CanEnqueue &&
+                item.StatusKey == "InResearch");
+    }
+
+    [Fact]
+    public async Task ReapplyingResearchValidationSeedDoesNotDuplicateCompletedResearchHistory()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        await using var dbContext = CreateSeededDbContext(databaseName, "research-validation");
+        var service = new DevelopmentSeedService(dbContext);
+
+        await service.ApplyAsync(new ApplyDevelopmentSeedRequest("research-validation"));
+
+        Assert.Equal(1, await dbContext.ResearchProjects.CountAsync(x => x.CivilizationId == Guid.Parse(SeedCivilizationId) && x.ResearchType == ResearchType.EnergySystems));
+        Assert.Equal(1, await dbContext.ResearchOrders.CountAsync(x =>
+            x.CivilizationId == Guid.Parse(SeedCivilizationId) &&
+            x.SourcePlanetId == Guid.Parse(SeedOwnedPlanetId) &&
+            x.ResearchType == ResearchType.EnergySystems &&
+            x.Status == ResearchQueueItemStatus.Completed));
+    }
+
+    [Fact]
     public async Task BlockedResearchCommandMetadataRejectsWithExpectedReason()
     {
         var databaseName = Guid.NewGuid().ToString("N");
@@ -337,12 +403,12 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
             });
         }).CreateClient();
 
-    private static VoidEmpiresDbContext CreateSeededDbContext(string databaseName)
+    private static VoidEmpiresDbContext CreateSeededDbContext(string databaseName, string profile = "minimal-validation")
     {
         var dbContext = new VoidEmpiresDbContext(new DbContextOptionsBuilder<VoidEmpiresDbContext>()
             .UseInMemoryDatabase(databaseName, SharedDatabaseRoot)
             .Options);
-        new DevelopmentSeedService(dbContext).ApplyAsync(new ApplyDevelopmentSeedRequest("minimal-validation")).GetAwaiter().GetResult();
+        new DevelopmentSeedService(dbContext).ApplyAsync(new ApplyDevelopmentSeedRequest(profile)).GetAwaiter().GetResult();
         return dbContext;
     }
 

@@ -119,9 +119,19 @@ public static class DevelopmentSeedProfiles
             new("visiblePlanetId", "40000000-0000-0000-0000-000000000003", "Aether Crown")
         ]);
 
-    public static readonly DevelopmentSeedProfileMetadata ResearchValidation = CreatePlannedProfile(
+    public static readonly DevelopmentSeedProfileMetadata ResearchValidation = new(
         "research-validation",
-        ["Research"]);
+        true,
+        "Implemented today. Use this for a research-focused richer QA baseline.",
+        "Additive and idempotent. Builds on minimal-validation, preserves the first enqueue path, and adds completed research history plus a tighter stockpile that keeps one deterministic available technology.",
+        ["Research"],
+        [
+            "/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001"
+        ],
+        [
+            new("civilizationId", "00000000-0000-0000-0000-000000000001", "Void Seed Civilization"),
+            new("ownedPlanetId", "40000000-0000-0000-0000-000000000001", "Aurelia")
+        ]);
 
     public static readonly DevelopmentSeedProfileMetadata PlanetFullValidation = new(
         "planet-full-validation",
@@ -157,17 +167,6 @@ public static class DevelopmentSeedProfiles
         return string.Equals(metadata.Name, profile, StringComparison.OrdinalIgnoreCase) && metadata.IsImplemented;
     }
 
-    private static DevelopmentSeedProfileMetadata CreatePlannedProfile(
-        string name,
-        IReadOnlyList<string> intendedCockpits) =>
-        new(
-            name,
-            false,
-            "Planned profile name only. Not executable in the current build.",
-            "No runtime behavior yet because this profile is not implemented.",
-            intendedCockpits,
-            [],
-            []);
 }
 
 public interface IDevelopmentSeedService

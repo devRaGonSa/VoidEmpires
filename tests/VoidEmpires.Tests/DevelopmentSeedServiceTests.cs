@@ -101,6 +101,29 @@ public class DevelopmentSeedServiceTests
     }
 
     [Fact]
+    public async Task ApplyAsyncSupportsResearchValidationProfileWithoutDuplicatingCompletedResearchHistory()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new DevelopmentSeedService(dbContext);
+
+        var result = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("research-validation"));
+        _ = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("research-validation"));
+
+        Assert.True(result.Succeeded);
+        Assert.Equal("research-validation", result.Profile);
+        Assert.NotNull(result.ProfileMetadata);
+        Assert.Contains(result.AppliedSteps, x => x.Contains("completed project", StringComparison.OrdinalIgnoreCase));
+
+        var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == OwnedPlanetId);
+        Assert.Equal(125, stockpile.Credits);
+        Assert.Equal(110, stockpile.Metal);
+        Assert.Equal(70, stockpile.Crystal);
+        Assert.Equal(30, stockpile.Gas);
+        Assert.Equal(1, await dbContext.Set<ResearchProject>().CountAsync(x => x.CivilizationId == CivilizationId && x.ResearchType == ResearchType.EnergySystems));
+        Assert.Equal(1, await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == CivilizationId && x.ResearchType == ResearchType.EnergySystems && x.Status == ResearchQueueItemStatus.Completed));
+    }
+
+    [Fact]
     public async Task ApplyAsyncIsIdempotent()
     {
         await using var dbContext = CreateDbContext();
@@ -130,13 +153,13 @@ public class DevelopmentSeedServiceTests
         await using var dbContext = CreateDbContext();
 
         var result = await new DevelopmentSeedService(dbContext)
-            .ApplyAsync(new ApplyDevelopmentSeedRequest("research-validation"));
+            .ApplyAsync(new ApplyDevelopmentSeedRequest("unknown-profile"));
 
         Assert.False(result.Succeeded);
         Assert.Null(result.ProfileMetadata);
-        Assert.Contains(result.Errors, x => x.Contains("Unsupported development seed profile 'research-validation'.", StringComparison.Ordinal));
+        Assert.Contains(result.Errors, x => x.Contains("Unsupported development seed profile 'unknown-profile'.", StringComparison.Ordinal));
         Assert.Contains(result.KnownProfiles, x => x.Name == "minimal-validation" && x.IsImplemented);
-        Assert.Contains(result.KnownProfiles, x => x.Name == "research-validation" && !x.IsImplemented);
+        Assert.Contains(result.KnownProfiles, x => x.Name == "research-validation" && x.IsImplemented);
     }
 
     [Fact]

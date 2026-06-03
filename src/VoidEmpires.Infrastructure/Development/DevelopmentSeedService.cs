@@ -45,6 +45,10 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
     private const int FleetValidationMetal = 260;
     private const int FleetValidationCrystal = 160;
     private const int FleetValidationGas = 100;
+    private const int ResearchValidationCredits = 125;
+    private const int ResearchValidationMetal = 110;
+    private const int ResearchValidationCrystal = 70;
+    private const int ResearchValidationGas = 30;
     private const int PlanetValidationCredits = 240;
     private const int PlanetValidationMetal = 220;
     private const int PlanetValidationCrystal = 140;
@@ -113,6 +117,14 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
                     $"Validated fleet-focused seed for civilization {SeedCivilizationId}.",
                     "Aurelia keeps multiple stationed groups plus a stationed logistics example.",
                     "Fleet state now includes one standard active transfer and one additional due transfer for complete-due QA."
+                ]);
+                break;
+            case "research-validation":
+                await SeedResearchValidationProfileAsync(cancellationToken);
+                appliedSteps.AddRange([
+                    $"Validated research-focused seed for civilization {SeedCivilizationId}.",
+                    "Aurelia keeps one deterministic available technology plus multiple insufficient-resource comparisons.",
+                    "Research history now includes one completed project and one completed order without seeding an active queue item."
                 ]);
                 break;
             case "planet-full-validation":
@@ -676,6 +688,53 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
         {
             stockpile.Increase(ResourceType.Gas, FleetValidationGas - stockpile.Gas);
         }
+    }
+
+    private async Task SeedResearchValidationProfileAsync(CancellationToken cancellationToken)
+    {
+        await SeedMinimalValidationProfileAsync(cancellationToken);
+
+        var stockpile = await dbContext.PlanetResourceStockpiles
+            .SingleAsync(x => x.PlanetId == SeedOwnedPlanetId, cancellationToken);
+
+        SetResearchValidationStockpile(stockpile);
+
+        if (!await dbContext.Set<ResearchProject>().AnyAsync(
+                x => x.CivilizationId == SeedCivilizationId && x.ResearchType == ResearchType.EnergySystems,
+                cancellationToken))
+        {
+            dbContext.Set<ResearchProject>().Add(ResearchProject.Create(SeedCivilizationId, ResearchType.EnergySystems));
+        }
+
+        if (!await dbContext.Set<ResearchOrder>().AnyAsync(
+                x => x.CivilizationId == SeedCivilizationId &&
+                    x.SourcePlanetId == SeedOwnedPlanetId &&
+                    x.ResearchType == ResearchType.EnergySystems &&
+                    x.TargetLevel == 1 &&
+                    x.Status == ResearchQueueItemStatus.Completed,
+                cancellationToken))
+        {
+            dbContext.Set<ResearchOrder>().Add(ResearchOrder.Create(
+                SeedCivilizationId,
+                SeedOwnedPlanetId,
+                ResearchType.EnergySystems,
+                1,
+                1,
+                CockpitValidationResearchStartAtUtc,
+                CockpitValidationResearchEndAtUtc,
+                ResearchQueueItemStatus.Completed));
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private void SetResearchValidationStockpile(PlanetResourceStockpile stockpile)
+    {
+        var entry = dbContext.Entry(stockpile);
+        entry.Property(x => x.Credits).CurrentValue = ResearchValidationCredits;
+        entry.Property(x => x.Metal).CurrentValue = ResearchValidationMetal;
+        entry.Property(x => x.Crystal).CurrentValue = ResearchValidationCrystal;
+        entry.Property(x => x.Gas).CurrentValue = ResearchValidationGas;
     }
 
     private async Task SeedPlanetFullValidationProfileAsync(CancellationToken cancellationToken)

@@ -12,7 +12,7 @@ This document is the current source of truth for the development-only `minimal-v
 | `cockpit-validation` | Implemented | Richer combined cockpit baseline with non-blocking completed history for Planet, Research, and Shipyard |
 | `shipyard-validation` | Implemented | Shipyard-focused richer baseline with completed queue history, two local stock rows, one available hull, and blocked comparisons |
 | `fleet-validation` | Implemented | Fleet-focused richer baseline with one extra stationed cargo example and one additional due active transfer |
-| `research-validation` | Planned only | Future research-focused richer baseline |
+| `research-validation` | Implemented | Research-focused richer baseline with one deterministic available technology, completed history, and truthful resource-blocked comparisons |
 | `planet-full-validation` | Implemented | Planet and Construction richer baseline with extra general buildings and completed queue history |
 
 - Endpoint: `POST /api/dev/seeds/apply`
@@ -86,6 +86,23 @@ Expected Fleet result:
 - one additional planned transfer is already due for `complete-due` QA
 - one controlled fleet group remains stationed away from `Aurelia`
 - origin-planet resource context remains visible for travel estimate and transfer actions
+
+## `research-validation` additions
+
+`research-validation` builds on `minimal-validation`, resets `Aurelia` to `125` credits, `110` metal, `70` crystal, and `30` gas, and adds one completed `EnergySystems` research project plus one matching completed research order history row.
+
+Expected Research result:
+
+- `PlanetaryEngineering` remains the single deterministic available technology
+- `ResourceExtraction`, `EnergySystems`, and other higher-cost entries remain blocked by `InsufficientResources`
+- the queue shows one completed history row and no active order before a manual enqueue
+- the projects list shows one completed `EnergySystems` project
+- the primary enqueue smoke path remains available for one successful `PlanetaryEngineering` order
+
+Current limitation:
+
+- Research readiness does not currently model hidden prerequisites or multiple gameplay blocker categories.
+- Richer research QA variety therefore comes from completed history plus truthful cost differences, not invented unlock mechanics.
 
 ## `planet-full-validation` additions
 
