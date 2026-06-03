@@ -3,7 +3,7 @@
 ---
 id: TASK-16Z-current-state-update-research-enqueue-alignment
 title: Current state Research enqueue alignment update
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
