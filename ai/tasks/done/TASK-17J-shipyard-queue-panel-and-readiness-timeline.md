@@ -3,7 +3,7 @@
 ---
 id: TASK-17J-shipyard-queue-panel-and-readiness-timeline
 title: Shipyard queue panel and readiness timeline
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

@@ -72,6 +72,7 @@ export function ShipyardPage() {
       unsupported: assets.filter((asset) => getCatalogBucket(asset) === "unsupported"),
     };
   }, [shipyard?.catalog]);
+  const dueQueueCount = useMemo(() => shipyard?.queue.filter((item) => item.isDue).length ?? 0, [shipyard?.queue]);
   const readinessNotes = useMemo(() => {
     if (!shipyard) {
       return [];
@@ -549,15 +550,57 @@ export function ShipyardPage() {
             )}
           </UiCard>
 
-          {shipyard.queue.length > 0 ? (
-            <UiCard className="panel">
-              <div className="figma-section-header">
-                <div>
-                  <p className="eyebrow">Cola orbital</p>
-                  <h3>Ordenes visibles</h3>
-                </div>
-                <UiBadge tone="warn">{shipyard.queue.length} activas</UiBadge>
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Cola orbital</p>
+                <h3>Produccion en curso y readiness temporal</h3>
+                <p>La cola muestra progreso visible y detecta vencimientos sin convertirlos todavia en una accion ejecutable.</p>
               </div>
+              <div className="figma-badge-row">
+                <UiBadge tone={shipyard.queue.length > 0 ? "warn" : "neutral"}>
+                  {shipyard.queue.length > 0 ? `${shipyard.queue.length} activas` : "Sin cola activa"}
+                </UiBadge>
+                <UiBadge tone={dueQueueCount > 0 ? "warn" : "neutral"}>
+                  {dueQueueCount > 0 ? `${dueQueueCount} vencidas` : "Sin vencidas"}
+                </UiBadge>
+              </div>
+            </div>
+            <div className="readiness-grid">
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Resumen de cola</p>
+                    <h4>Estado general</h4>
+                  </div>
+                  <UiBadge tone={shipyard.actionAvailability.completeDue.supported ? "warn" : "neutral"}>
+                    {shipyard.actionAvailability.completeDue.reasonLabel}
+                  </UiBadge>
+                </div>
+                <div className="figma-data-list">
+                  <div className="figma-data-row"><span>Ordenes visibles</span><strong>{formatCountLabel(shipyard.queue.length, "orden", "ordenes")}</strong></div>
+                  <div className="figma-data-row"><span>Produccion vencida</span><strong>{dueQueueCount > 0 ? `${dueQueueCount} detectadas` : "No detectada"}</strong></div>
+                  <div className="figma-data-row"><span>Affordance segura</span><strong>{shipyard.actionAvailability.completeDue.supported ? "Pendiente de tarea de cierre" : "No habilitada"}</strong></div>
+                </div>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Lectura temporal</p>
+                    <h4>Como interpretar la cola</h4>
+                  </div>
+                  <UiBadge tone="neutral">Solo lectura</UiBadge>
+                </div>
+                <ul className="stack-list compact-list">
+                  <li>Una orden vencida significa que el backend la detecta, no que esta cabina ya pueda completarla.</li>
+                  <li>Las fechas muestran la ventana visible de produccion para que un futuro refresh refleje cambios reales.</li>
+                  <li>La cola vacia sigue siendo un estado util y no se rellena con placeholders.</li>
+                </ul>
+              </section>
+            </div>
+            {shipyard.queue.length === 0 ? (
+              <p className="figma-panel-note">No hay ordenes orbitales activas en este planeta. Cuando llegue el enqueue, este panel sera el destino visible del refresh.</p>
+            ) : (
               <div className="readiness-grid">
                 {shipyard.queue.map((item) => (
                   <section key={item.orderId} className="subpanel figma-subpanel">
@@ -566,18 +609,22 @@ export function ShipyardPage() {
                         <p className="eyebrow">Orden {item.sequence}</p>
                         <h4>{item.label}</h4>
                       </div>
-                      <UiBadge tone={item.isDue ? "warn" : "neutral"}>{item.statusLabel}</UiBadge>
+                      <div className="figma-badge-row">
+                        <UiBadge tone={item.isDue ? "warn" : "neutral"}>{item.statusLabel}</UiBadge>
+                        {item.isDue ? <UiBadge tone="warn">Lista para cierre futuro</UiBadge> : null}
+                      </div>
                     </div>
                     <div className="figma-data-list">
-                      <div className="figma-data-row"><span>Cantidad</span><strong>{item.quantityLabel}</strong></div>
-                      <div className="figma-data-row"><span>Inicio</span><strong>{formatDateTime(item.startsAtUtc)}</strong></div>
-                      <div className="figma-data-row"><span>Fin</span><strong>{formatDateTime(item.endsAtUtc)}</strong></div>
+                      <div className="figma-data-row"><span>Salida</span><strong>{item.quantityLabel}</strong></div>
+                      <div className="figma-data-row"><span>Inicio visible</span><strong>{formatDateTime(item.startsAtUtc)}</strong></div>
+                      <div className="figma-data-row"><span>Fin visible</span><strong>{formatDateTime(item.endsAtUtc)}</strong></div>
                     </div>
+                    <p>{item.isDue ? "La orden ya vencio en la lectura actual. La cabina la mantiene visible sin completarla automaticamente." : "La orden sigue en progreso o pendiente dentro de la ventana temporal visible."}</p>
                   </section>
                 ))}
               </div>
-            </UiCard>
-          ) : null}
+            )}
+          </UiCard>
 
           {shipyard.stockpile.length > 0 ? (
             <UiCard className="panel">
