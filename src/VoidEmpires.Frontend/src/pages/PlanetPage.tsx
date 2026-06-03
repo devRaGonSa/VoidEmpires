@@ -25,6 +25,8 @@ import {
   formatConstructionActionButtonLabel,
   formatConstructionAvailability,
   formatConstructionStatus,
+  formatCompactResourceCost,
+  formatMissingPlanetResources,
   formatPlanetControlStatus,
   formatPlanetIdentity,
   formatPlanetOverviewLine,
@@ -89,9 +91,7 @@ function formatDuration(value: string) {
 }
 
 function formatCost(cost: PlanetCockpitDto["stockpile"]) {
-  return cost.length
-    ? cost.map((item) => `${formatResourceType(item.resourceType)} ${item.quantity}`).join(", ")
-    : "Sin coste";
+  return formatCompactResourceCost(cost);
 }
 
 function formatCompactCost(cost: PlanetCockpitDto["stockpile"]) {
@@ -500,17 +500,19 @@ export function PlanetPage() {
                   <h3>Economia local</h3>
                 </div>
                 <UiBadge tone="resource">
-                  {planet.stockpile.length > 0 ? `${planet.stockpile.length} balances` : "Sin reservas"}
+                  {planet.stockpile.length > 0 ? `${planet.stockpile.length} reservas visibles` : "Sin reservas"}
                 </UiBadge>
               </div>
               {planet.stockpile.length > 0 ? (
-                <div className="figma-data-list">
+                <div className="figma-stat-grid">
                   {planet.stockpile.map((balance) => (
-                    <PlanetDataRow
+                    <div
                       key={`${planet.planetId}-${balance.resourceType}`}
-                      label={formatResourceType(balance.resourceType)}
-                      value={String(balance.quantity)}
-                    />
+                      className="figma-stat"
+                    >
+                      <strong>{balance.quantity}</strong>
+                      <span>{formatResourceType(balance.resourceType)}</span>
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -623,7 +625,7 @@ export function PlanetPage() {
                           label="Fin"
                           value={formatDateTime(item.endsAtUtc)}
                         />
-                        <PlanetDataRow label="Coste" value={formatCost(item.cost)} />
+                        <PlanetDataRow label="Coste" value={formatCompactResourceCost(item.cost)} />
                       </div>
                       <p className="dev-meta">{formatCompactGuid(item.orderId)}</p>
                     </section>
@@ -692,6 +694,7 @@ export function PlanetPage() {
                         action.availabilityStatus,
                         isPrepared,
                       );
+                      const missingResources = formatMissingPlanetResources(planet.stockpile, action.cost);
 
                       return (
                         <article
@@ -729,10 +732,12 @@ export function PlanetPage() {
                           </div>
                           <div className="planet-action-cost-block">
                             <span>Coste previsto</span>
-                            <strong>{formatCompactCost(action.cost)}</strong>
+                            <strong>{formatCompactResourceCost(action.cost)}</strong>
                           </div>
                           <p className="figma-panel-note planet-action-reason">
-                            {action.display?.availabilityReasonLabel ?? action.availabilityReason}
+                            {action.availabilityStatus === "InsufficientResources" && missingResources
+                              ? missingResources
+                              : action.display?.availabilityReasonLabel ?? action.availabilityReason}
                           </p>
                           <div className="transfer-confirmation-actions">
                             <button
@@ -779,7 +784,7 @@ export function PlanetPage() {
                     label="Accion"
                     value={`${formatConstructionAction(preparedAction.action)} a nivel ${preparedAction.targetLevel}`}
                   />
-                  <PlanetDataRow label="Coste" value={formatCost(preparedAction.cost)} />
+                  <PlanetDataRow label="Coste" value={formatCompactResourceCost(preparedAction.cost)} />
                   <PlanetDataRow
                     label="Duracion"
                     value={formatDuration(preparedAction.estimatedDuration)}

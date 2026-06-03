@@ -209,6 +209,38 @@ export function formatResourceBalanceLine(resourceType: PlanetValue, quantity: n
   return `${formatResourceType(resourceType)} ${quantity}`;
 }
 
+export function formatCompactResourceCost(
+  cost: ReadonlyArray<{ resourceType: PlanetValue; quantity: number }>,
+) {
+  return cost.length
+    ? cost
+      .filter((item) => item.quantity > 0)
+      .map((item) => `${formatResourceType(item.resourceType)} ${item.quantity}`)
+      .join(" | ")
+    : "Sin coste";
+}
+
+export function formatMissingPlanetResources(
+  stockpile: ReadonlyArray<{ resourceType: PlanetValue; quantity: number }>,
+  cost: ReadonlyArray<{ resourceType: PlanetValue; quantity: number }>,
+) {
+  const missingResources = cost
+    .map((item) => {
+      const available = stockpile.find((balance) => balance.resourceType === item.resourceType)?.quantity ?? 0;
+      const missing = Math.max(0, item.quantity - available);
+
+      return {
+        resourceType: item.resourceType,
+        missing,
+      };
+    })
+    .filter((item) => item.missing > 0);
+
+  return missingResources.length > 0
+    ? `Faltan ${missingResources.map((item) => `${formatResourceType(item.resourceType)} ${item.missing}`).join(" | ")}`
+    : null;
+}
+
 export function groupBuildingsByCategory(buildings: PlanetBuildingDto[]) {
   return buildings.reduce<Record<string, PlanetBuildingDto[]>>((accumulator, building) => {
     const key = formatBuildingCategory(building.category);

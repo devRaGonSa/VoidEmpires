@@ -3,7 +3,7 @@
 ---
 id: TASK-14H
 title: Phase 14H - Resource affordability and cost presentation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
