@@ -16,6 +16,12 @@ export interface DefenseStructurePresentationEntry {
   readinessLabel: string;
 }
 
+export interface DefenseErrorFeedback {
+  primaryMessage: string;
+  followUp: string | null;
+  technicalDetail: string | null;
+}
+
 const unknownStructureFallback = "Defensa pendiente de clasificar";
 const unknownCategoryFallback = "Categoria defensiva pendiente de clasificar";
 const unknownReadinessFallback = "Readiness defensivo pendiente de clasificar";
@@ -203,4 +209,53 @@ export function formatDefenseDuration(value: string | number | null | undefined,
   }
 
   return parseDurationText(value) ?? fallback;
+}
+
+export function formatDefenseRequestFailure(rawError: string | null | undefined): DefenseErrorFeedback {
+  const technicalDetail = rawError?.trim() || null;
+
+  switch (technicalDetail) {
+    case "Civilization id is required.":
+      return {
+        primaryMessage: "Falta el id de civilizacion para abrir Defensas.",
+        followUp: "Revisa el contexto antes de cargar la cabina.",
+        technicalDetail,
+      };
+    case "Planet was not found.":
+      return {
+        primaryMessage: "El planeta solicitado no existe en esta build o ya no esta disponible.",
+        followUp: "Revisa el `planetId` o vuelve a entrar desde Planeta o Galaxia.",
+        technicalDetail,
+      };
+    case "Planet is not controlled by the requesting civilization.":
+      return {
+        primaryMessage: "La colonia seleccionada no pertenece a la civilizacion cargada.",
+        followUp: "Abre una colonia propia o vuelve a Planeta para corregir el contexto.",
+        technicalDetail,
+      };
+    case "Planet resource stockpile was not found.":
+      return {
+        primaryMessage: "La cabina no encontro reservas locales utilizables para esta lectura.",
+        followUp: "Aplica `cockpit-validation` o revisa la seed antes de continuar.",
+        technicalDetail,
+      };
+    case "Request failed with status 404.":
+      return {
+        primaryMessage: "La ruta de Defensas no esta disponible fuera del entorno de desarrollo.",
+        followUp: "Verifica que las dev endpoints sigan habilitadas en este entorno.",
+        technicalDetail,
+      };
+    case "Request failed with status 503.":
+      return {
+        primaryMessage: "La persistencia de desarrollo no esta disponible ahora mismo.",
+        followUp: "Comprueba la configuracion local antes de reintentar.",
+        technicalDetail,
+      };
+    default:
+      return {
+        primaryMessage: "La cabina de Defensas no pudo cargar el estado solicitado.",
+        followUp: "Revisa el contexto o abre Construccion si solo necesitas confirmar una obra defensiva.",
+        technicalDetail,
+      };
+  }
 }

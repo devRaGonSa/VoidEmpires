@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { fetchDefensesUiState } from "../api/defenseApi";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
+import { formatDefenseRequestFailure } from "../utils/defensePresentation";
 import {
   getDefensePrimaryAction,
   groupDefenseOptionsByCategory,
@@ -93,6 +94,8 @@ export function DefensesPage() {
   const [planetIdInput, setPlanetIdInput] = useState(searchParams.get("planetId") ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorFollowUp, setErrorFollowUp] = useState<string | null>(null);
+  const [technicalErrorDetail, setTechnicalErrorDetail] = useState<string | null>(null);
   const [uiState, setUiState] = useState<DefensesViewModel | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
@@ -117,17 +120,24 @@ export function DefensesPage() {
       if (!queryCivilizationId) {
         setUiState(null);
         setError(null);
+        setErrorFollowUp(null);
+        setTechnicalErrorDetail(null);
         return;
       }
 
       setIsLoading(true);
       setError(null);
+      setErrorFollowUp(null);
+      setTechnicalErrorDetail(null);
 
       try {
         const response = await fetchDefensesUiState(queryCivilizationId, queryPlanetId);
         if (!response.succeeded || !response.uiState) {
+          const failure = formatDefenseRequestFailure(response.errors[0] ?? null);
           setUiState(null);
-          setError(response.errors[0] ?? "La cabina de defensas no pudo cargarse.");
+          setError(failure.primaryMessage);
+          setErrorFollowUp(failure.followUp);
+          setTechnicalErrorDetail(failure.technicalDetail);
           return;
         }
 
@@ -141,12 +151,11 @@ export function DefensesPage() {
           setSearchParams(nextParams, { replace: true });
         }
       } catch (requestError) {
+        const failure = formatDefenseRequestFailure(requestError instanceof Error ? requestError.message : null);
         setUiState(null);
-        setError(
-          requestError instanceof Error
-            ? requestError.message
-            : "La cabina de defensas no pudo cargarse.",
-        );
+        setError(failure.primaryMessage);
+        setErrorFollowUp(failure.followUp);
+        setTechnicalErrorDetail(failure.technicalDetail);
       } finally {
         setIsLoading(false);
       }
@@ -160,7 +169,10 @@ export function DefensesPage() {
     const trimmedCivilizationId = civilizationIdInput.trim();
 
     if (!trimmedCivilizationId) {
-      setError("El id de civilizacion es obligatorio.");
+      const failure = formatDefenseRequestFailure("Civilization id is required.");
+      setError(failure.primaryMessage);
+      setErrorFollowUp(failure.followUp);
+      setTechnicalErrorDetail(failure.technicalDetail);
       setUiState(null);
       return;
     }
@@ -225,7 +237,12 @@ export function DefensesPage() {
               {isLoading ? "Cargando..." : "Abrir defensas"}
             </button>
           </form>
-          {error ? <p className="error-text">{error}</p> : null}
+          {error ? (
+            <div className="subpanel figma-subpanel figma-mini-card-warn">
+              <p className="error-text">{error}</p>
+              {errorFollowUp ? <p className="figma-panel-note">{errorFollowUp}</p> : null}
+            </div>
+          ) : null}
           {isLoading ? <p className="figma-panel-note">Cargando estructuras, opciones y limites defensivos...</p> : null}
           {!queryCivilizationId && !isLoading ? (
             <p className="figma-panel-note">Introduce un `civilizationId` valido para abrir la cabina de defensas.</p>
@@ -662,7 +679,7 @@ export function DefensesPage() {
             </div>
           </UiCard>
 
-          {defenses.diagnostics.playerFacing.length > 0 || defenses.diagnostics.limitations.length > 0 ? (
+          {defenses.diagnostics.playerFacing.length > 0 || defenses.diagnostics.limitations.length > 0 || technicalErrorDetail ? (
             <details className="fleet-technical-disclosure">
               <summary>
                 <span>Diagnosticos de desarrollo</span>
@@ -683,6 +700,7 @@ export function DefensesPage() {
                   {defenses.diagnostics.limitations.map((line) => (
                     <li key={line}>{line}</li>
                   ))}
+                  {technicalErrorDetail ? <li>{technicalErrorDetail}</li> : null}
                 </ul>
               </UiCard>
             </details>

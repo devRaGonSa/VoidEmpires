@@ -3,7 +3,7 @@
 ---
 id: TASK-19P-defenses-error-taxonomy-and-diagnostics
 title: Defenses error taxonomy and diagnostics
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
