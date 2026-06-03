@@ -3,7 +3,7 @@
 ---
 id: TASK-19J-defenses-dashboard-readiness-and-protection-summary
 title: Defenses dashboard readiness and protection summary
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

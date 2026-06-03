@@ -19,6 +19,67 @@ import {
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
 
+function getProtectionPosture(viewModel: DefensesViewModel["defenses"]) {
+  if (!viewModel) {
+    return "Sin contexto defensivo";
+  }
+
+  if (!viewModel.isOwnedByRequestingCivilization) {
+    return "Observacion externa";
+  }
+
+  if (viewModel.protectionSummary.structureCount > 0) {
+    return "Proteccion desplegada";
+  }
+
+  if (viewModel.protectionSummary.availableOptionCount > 0) {
+    return "Fortificacion lista";
+  }
+
+  if (viewModel.protectionSummary.queueItemCount > 0) {
+    return "Refuerzo en cola";
+  }
+
+  return "Proteccion inicial";
+}
+
+function getRecommendedNextStep(viewModel: DefensesViewModel["defenses"]) {
+  if (!viewModel) {
+    return "Cargar contexto defensivo";
+  }
+
+  if (!viewModel.isOwnedByRequestingCivilization) {
+    return "Volver a una colonia propia";
+  }
+
+  if (viewModel.protectionSummary.queueItemCount > 0) {
+    return "Revisar cola defensiva";
+  }
+
+  if (viewModel.protectionSummary.availableOptionCount > 0) {
+    return "Preparar fortificacion";
+  }
+
+  if (viewModel.options.length > 0) {
+    return "Resolver bloqueo visible";
+  }
+
+  return "Handoff a Construccion";
+}
+
+function getResourcePressureSummary(viewModel: DefensesViewModel["defenses"]) {
+  if (!viewModel || viewModel.stockpile.length === 0) {
+    return "Sin reservas visibles";
+  }
+
+  const ordered = [...viewModel.stockpile]
+    .sort((left, right) => right.quantity - left.quantity)
+    .slice(0, 3)
+    .map((entry) => `${entry.resourceType} ${entry.quantity}`);
+
+  return ordered.join(" | ");
+}
+
 export function DefensesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
@@ -35,6 +96,9 @@ export function DefensesPage() {
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
   const optionGroups = useMemo(() => groupDefenseOptionsByCategory(defenses?.options ?? []), [defenses?.options]);
   const recommendedAction = useMemo(() => selectRecommendedDefenseAction(defenses?.options ?? []), [defenses?.options]);
+  const protectionPosture = useMemo(() => getProtectionPosture(defenses), [defenses]);
+  const recommendedNextStep = useMemo(() => getRecommendedNextStep(defenses), [defenses]);
+  const resourcePressureSummary = useMemo(() => getResourcePressureSummary(defenses), [defenses]);
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -224,9 +288,9 @@ export function DefensesPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Resumen defensivo</p>
-                <h3>Estado de proteccion local</h3>
-                <p>La cabina resume readiness real sin inventar sistemas de combate no implementados.</p>
+                <p className="eyebrow">Dashboard defensivo</p>
+                <h3>Postura actual y siguiente paso</h3>
+                <p>La primera lectura resume proteccion real, presion visible y la siguiente accion segura para esta colonia.</p>
               </div>
               <UiBadge tone={recommendedAction?.statusKey === "Available" ? "good" : "neutral"}>
                 {getDefensePrimaryAction(recommendedAction)}
@@ -235,18 +299,19 @@ export function DefensesPage() {
             <div className="readiness-grid">
               <section className="subpanel figma-subpanel">
                 <div className="figma-data-list">
+                  <div className="figma-data-row"><span>Postura</span><strong>{protectionPosture}</strong></div>
                   <div className="figma-data-row"><span>Estructuras</span><strong>{defenses.protectionSummary.structureCount}</strong></div>
                   <div className="figma-data-row"><span>Nivel total</span><strong>{defenses.protectionSummary.totalDefenseLevel}</strong></div>
-                  <div className="figma-data-row"><span>Opciones disponibles</span><strong>{defenses.protectionSummary.availableOptionCount}</strong></div>
-                  <div className="figma-data-row"><span>Opciones bloqueadas</span><strong>{defenses.protectionSummary.blockedOptionCount}</strong></div>
+                  <div className="figma-data-row"><span>Siguiente paso</span><strong>{recommendedNextStep}</strong></div>
                 </div>
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-data-list">
+                  <div className="figma-data-row"><span>Presion de recursos</span><strong>{resourcePressureSummary}</strong></div>
                   <div className="figma-data-row"><span>Cola defensiva</span><strong>{defenses.protectionSummary.queueItemCount}</strong></div>
                   <div className="figma-data-row"><span>Vencidas</span><strong>{defenses.protectionSummary.dueQueueItemCount}</strong></div>
-                  <div className="figma-data-row"><span>Enqueue seguro</span><strong>{defenses.actionAvailability.enqueue.supported ? "Disponible" : "No disponible"}</strong></div>
-                  <div className="figma-data-row"><span>Cierre vencido</span><strong>{defenses.actionAvailability.completeDue.supported ? "Soportado" : "Deshabilitado"}</strong></div>
+                  <div className="figma-data-row"><span>Opciones disponibles</span><strong>{defenses.protectionSummary.availableOptionCount}</strong></div>
+                  <div className="figma-data-row"><span>Opciones bloqueadas</span><strong>{defenses.protectionSummary.blockedOptionCount}</strong></div>
                 </div>
               </section>
             </div>
@@ -254,6 +319,11 @@ export function DefensesPage() {
               {recommendedAction
                 ? `${recommendedAction.structureLabel}: ${recommendedAction.reasonLabel}.`
                 : "Todavia no hay una accion defensiva recomendada para este contexto."}
+            </p>
+            <p className="figma-panel-note">
+              {defenses.actionAvailability.completeDue.supported
+                ? "La lectura detecta obras vencidas, pero esta cabina no las cierra porque la accion global sigue fuera de alcance."
+                : "La proteccion actual sigue anclada a readiness, recursos y cola; no implica eficacia de combate ni mitigacion real."}
             </p>
           </UiCard>
 
