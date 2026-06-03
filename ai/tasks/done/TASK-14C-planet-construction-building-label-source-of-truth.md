@@ -3,7 +3,7 @@
 ---
 id: TASK-14C
 title: Phase 14C - Planet construction building label source of truth
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

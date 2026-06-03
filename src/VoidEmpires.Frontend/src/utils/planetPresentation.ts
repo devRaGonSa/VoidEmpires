@@ -1,7 +1,14 @@
 import type {
+  PlanetApiValue,
   PlanetBuildingDto,
   PlanetCockpitDto,
+  PlanetCatalogEntry,
   PlanetConstructionActionDto,
+} from "../api/planetTypes";
+import {
+  planetBuildingCategoryCatalog,
+  planetBuildingTypeCatalog,
+  planetConstructionActionCatalog,
 } from "../api/planetTypes";
 import {
   formatCompactGuid,
@@ -10,40 +17,7 @@ import {
   formatResourceType,
 } from "./domainPresentation";
 
-type PlanetValue = string | number | null | undefined;
-
-const buildingTypeLabels: Record<string, string> = {
-  CommandCenter: "Centro de mando",
-  MetalMine: "Mina de metal",
-  CrystalMine: "Mina de cristal",
-  GasExtractor: "Extractor de gas",
-  SolarPlant: "Planta solar",
-  ResearchLab: "Laboratorio de investigacion",
-  Shipyard: "Astillero",
-  DefenseGrid: "Malla defensiva",
-  HabitationDistrict: "Distrito habitacional",
-  MedicalCenter: "Centro medico",
-  MilitaryAcademy: "Academia militar",
-  Barracks: "Barracones",
-  CrewAcademy: "Academia de tripulacion",
-  FleetCommandCenter: "Mando de flota",
-  LogisticsHub: "Centro logistico",
-};
-
-const buildingCategoryLabels: Record<string, string> = {
-  Civilian: "Civil",
-  Industrial: "Industrial",
-  Research: "Investigacion",
-  MilitaryGround: "Militar terrestre",
-  MilitarySpace: "Militar espacial",
-  Defense: "Defensa",
-  Logistics: "Logistica",
-};
-
-const constructionActionLabels: Record<string, string> = {
-  Construct: "Construir",
-  Upgrade: "Mejorar",
-};
+type PlanetValue = PlanetApiValue | null | undefined;
 
 const constructionStatusLabels: Record<string, string> = {
   Pending: "Pendiente",
@@ -101,16 +75,64 @@ function resolveLabel(value: PlanetValue, labels: Record<string, string>, fallba
   return trimmed;
 }
 
+function findCatalogEntry(
+  value: PlanetValue,
+  catalog: readonly PlanetCatalogEntry[],
+) {
+  if (typeof value === "number") {
+    return catalog.find((entry) => entry.id === value) ?? null;
+  }
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return null;
+  }
+
+  const direct = catalog.find((entry) => entry.key === trimmed);
+  if (direct) {
+    return direct;
+  }
+
+  const normalized = normalizeName(trimmed);
+  return catalog.find((entry) => normalizeName(entry.key) === normalized) ?? null;
+}
+
+function resolveCatalogLabel(
+  value: PlanetValue,
+  catalog: readonly PlanetCatalogEntry[],
+  fallback = "No disponible",
+) {
+  const entry = findCatalogEntry(value, catalog);
+  if (entry) {
+    return entry.label;
+  }
+
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return fallback;
+  }
+
+  return trimmed;
+}
+
 export function formatBuildingType(value: PlanetValue) {
-  return resolveLabel(value, buildingTypeLabels);
+  return resolveCatalogLabel(value, planetBuildingTypeCatalog);
 }
 
 export function formatBuildingCategory(value: PlanetValue) {
-  return resolveLabel(value, buildingCategoryLabels, "Otras");
+  return resolveCatalogLabel(value, planetBuildingCategoryCatalog, "Otras");
 }
 
 export function formatConstructionAction(value: PlanetValue) {
-  return resolveLabel(value, constructionActionLabels);
+  return resolveCatalogLabel(value, planetConstructionActionCatalog);
 }
 
 export function formatConstructionStatus(value: PlanetValue) {
@@ -123,6 +145,14 @@ export function formatConstructionAvailability(value: string) {
 
 export function formatPlanetControlStatus(value: PlanetValue) {
   return resolveLabel(value, controlStatusLabels, "Sin control");
+}
+
+export function toPlanetCatalogId(
+  value: PlanetApiValue,
+  catalog: readonly PlanetCatalogEntry[],
+) {
+  const entry = findCatalogEntry(value, catalog);
+  return entry?.id ?? value;
 }
 
 export function formatPlanetOwnerLabel(planet: PlanetCockpitDto) {

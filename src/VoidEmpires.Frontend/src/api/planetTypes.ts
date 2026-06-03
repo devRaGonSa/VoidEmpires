@@ -1,5 +1,44 @@
 export type PlanetApiValue = string | number;
 
+export interface PlanetCatalogEntry {
+  id: number;
+  key: string;
+  label: string;
+}
+
+export const planetBuildingCategoryCatalog: readonly PlanetCatalogEntry[] = [
+  { id: 1, key: "Civilian", label: "Civil" },
+  { id: 2, key: "Industrial", label: "Industrial" },
+  { id: 3, key: "Research", label: "Investigacion" },
+  { id: 4, key: "MilitaryGround", label: "Militar terrestre" },
+  { id: 5, key: "MilitarySpace", label: "Militar espacial" },
+  { id: 6, key: "Defense", label: "Defensa" },
+  { id: 7, key: "Logistics", label: "Logistica" },
+] as const;
+
+export const planetBuildingTypeCatalog: readonly PlanetCatalogEntry[] = [
+  { id: 1, key: "CommandCenter", label: "Centro de mando" },
+  { id: 2, key: "MetalMine", label: "Mina de metal" },
+  { id: 3, key: "CrystalMine", label: "Mina de cristal" },
+  { id: 4, key: "GasExtractor", label: "Extractor de gas" },
+  { id: 5, key: "SolarPlant", label: "Planta solar" },
+  { id: 6, key: "ResearchLab", label: "Laboratorio de investigacion" },
+  { id: 7, key: "Shipyard", label: "Astillero" },
+  { id: 8, key: "DefenseGrid", label: "Malla defensiva" },
+  { id: 9, key: "HabitationDistrict", label: "Distrito habitacional" },
+  { id: 10, key: "MedicalCenter", label: "Centro medico" },
+  { id: 11, key: "MilitaryAcademy", label: "Academia militar" },
+  { id: 12, key: "Barracks", label: "Barracones" },
+  { id: 13, key: "CrewAcademy", label: "Academia de tripulacion" },
+  { id: 14, key: "FleetCommandCenter", label: "Mando de flota" },
+  { id: 15, key: "LogisticsHub", label: "Centro logistico" },
+] as const;
+
+export const planetConstructionActionCatalog: readonly PlanetCatalogEntry[] = [
+  { id: 1, key: "Construct", label: "Construir" },
+  { id: 2, key: "Upgrade", label: "Mejorar" },
+] as const;
+
 export interface PlanetUiStateResponse {
   succeeded: boolean;
   uiState: PlanetUiStateResult | null;

@@ -1,5 +1,9 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import {
+  planetBuildingTypeCatalog,
+  planetConstructionActionCatalog,
+} from "../api/planetTypes";
 import type {
   PlanetCockpitDto,
   PlanetConstructionActionDto,
@@ -27,30 +31,8 @@ import {
   formatPlanetShortReference,
   groupActionsByCategory,
   groupBuildingsByCategory,
+  toPlanetCatalogId,
 } from "../utils/planetPresentation";
-
-const buildingTypeNumbers: Record<string, number> = {
-  CommandCenter: 1,
-  MetalMine: 2,
-  CrystalMine: 3,
-  GasExtractor: 4,
-  SolarPlant: 5,
-  ResearchLab: 6,
-  Shipyard: 7,
-  DefenseGrid: 8,
-  HabitationDistrict: 9,
-  MedicalCenter: 10,
-  MilitaryAcademy: 11,
-  Barracks: 12,
-  CrewAcademy: 13,
-  FleetCommandCenter: 14,
-  LogisticsHub: 15,
-};
-
-const constructionActionNumbers: Record<string, number> = {
-  Construct: 1,
-  Upgrade: 2,
-};
 
 interface PlanetDataRowProps {
   label: string;
@@ -117,14 +99,6 @@ function formatQueueState(item: PlanetCockpitDto["constructionQueue"][number]) {
   }
 
   return formatConstructionStatus(item.status);
-}
-
-function normalizeEnumValue(value: string | number, labels: Record<string, number>) {
-  if (typeof value === "number") {
-    return value;
-  }
-
-  return labels[value] ?? value;
 }
 
 function findPreparedAction(
@@ -270,8 +244,8 @@ export function PlanetPage() {
       const result = await voidEmpiresApi.enqueuePlanetConstruction({
         planetId: planet.planetId,
         civilizationId: uiState.civilizationId,
-        action: normalizeEnumValue(preparedAction.action, constructionActionNumbers),
-        buildingType: normalizeEnumValue(preparedAction.buildingType, buildingTypeNumbers),
+        action: toPlanetCatalogId(preparedAction.action, planetConstructionActionCatalog),
+        buildingType: toPlanetCatalogId(preparedAction.buildingType, planetBuildingTypeCatalog),
         requestedAtUtc: new Date().toISOString(),
       });
 
