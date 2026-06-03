@@ -3,7 +3,7 @@
 ---
 id: TASK-18W-galaxy-readonly-action-guard-regression
 title: Galaxy readonly action guard regression
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

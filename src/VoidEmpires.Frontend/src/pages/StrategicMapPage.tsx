@@ -924,7 +924,13 @@ export function StrategicMapPage() {
                     </p>
                   )}
                   <div className="selection-chip-row">
-                    <Link className="selection-chip" to="/fleets">
+                    <Link
+                      className="selection-chip"
+                      to={buildFleetsUrl(
+                        cockpitResult.civilizationId,
+                        selectedPlanet?.planetId ?? selectedSystem?.planets?.[0]?.planetId ?? null,
+                      )}
+                    >
                       Revisar transferencias en Flotas
                     </Link>
                   </div>
@@ -1288,6 +1294,11 @@ export function StrategicMapPage() {
                 </div>
                 <UiBadge>Solo inspeccion</UiBadge>
               </div>
+              <p className="figma-panel-note">
+                Galaxia sigue siendo una cabina de solo lectura: estas vistas previas
+                y metadatos nunca ejecutan ordenes, y cualquier mutacion real debe
+                hacerse desde la cabina propietaria.
+              </p>
               <div className="figma-detail-grid strategic-detail-grid">
                 <section className="subpanel figma-subpanel">
                   <div className="figma-data-list">

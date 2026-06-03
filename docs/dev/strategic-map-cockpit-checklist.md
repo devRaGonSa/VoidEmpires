@@ -42,6 +42,10 @@ Reproduction notes used for this audit:
 
 - Galaxy remains read-only.
 - No Galaxy mutation buttons are enabled.
+- Galaxy may expose readiness, route, and command metadata, but never direct
+  mutation execution from the strategic cockpit itself.
+- Any actionable handoff from Galaxy must navigate into the owning cockpit with
+  preserved context instead of calling a mutating API directly.
 - No 3D renderer, WebGL, Three.js, Babylon.js, or similar runtime is introduced.
 - Technical diagnostics stay collapsed or clearly secondary.
 
