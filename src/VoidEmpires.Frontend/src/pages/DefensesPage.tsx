@@ -332,6 +332,21 @@ export function DefensesPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
+                <p className="eyebrow">Reservas locales</p>
+                <h3>Scope real de affordability</h3>
+                <p>Las preparaciones defensivas se comparan contra las reservas visibles del planeta activo, no contra una economia global inventada.</p>
+              </div>
+              <UiBadge tone="resource">{defenses.stockpile.length} recursos</UiBadge>
+            </div>
+            <div className="figma-data-list">
+              <div className="figma-data-row"><span>Scope</span><strong>{`Reservas de ${defenses.planetName}`}</strong></div>
+              <div className="figma-data-row"><span>Lectura</span><strong>{resourcePressureSummary}</strong></div>
+            </div>
+          </UiCard>
+
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
                 <p className="eyebrow">Estructuras y preparacion</p>
                 <h3>Lo que ya protege y lo que falta preparar</h3>
                 <p>Las cartas separan defensa desplegada, opciones viables y bloqueos visibles sin fingir que toda accion se ejecuta desde aqui.</p>
@@ -393,6 +408,7 @@ export function DefensesPage() {
                       <div className="figma-data-row"><span>Duracion</span><strong>{option.estimatedDurationLabel}</strong></div>
                     </div>
                     <p>{option.reasonLabel}</p>
+                    <p className="figma-panel-note">Reservas de {defenses.planetName}. Preparacion visible desde Defensas, gestion segura desde Construccion.</p>
                     <div className="selection-chip-row">
                       <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
                         Gestionar construccion desde Construccion
@@ -429,6 +445,8 @@ export function DefensesPage() {
                       <div className="figma-data-row"><span>Duracion</span><strong>{option.estimatedDurationLabel}</strong></div>
                     </div>
                     <p>{option.reasonLabel}</p>
+                    {option.affordabilityLabel ? <p className="figma-panel-note">{option.affordabilityLabel}</p> : null}
+                    {option.requirementLabel ? <p className="figma-panel-note">{option.requirementLabel}</p> : null}
                   </article>
                 ))}
               </div>

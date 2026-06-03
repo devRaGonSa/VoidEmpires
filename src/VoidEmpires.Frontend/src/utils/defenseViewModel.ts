@@ -47,6 +47,8 @@ export interface DefenseOption {
   reasonLabel: string;
   estimatedDurationLabel: string;
   estimatedCostLabel: string;
+  affordabilityLabel: string | null;
+  requirementLabel: string | null;
   cost: DefenseCost[];
 }
 
@@ -134,6 +136,24 @@ function mapCost(entries: readonly DefenseResourceStockpileItemDto[]): DefenseCo
   }));
 }
 
+function getMissingResourceLabel(
+  cost: DefenseCost[],
+  stockpile: DefenseCost[],
+) {
+  const missing = cost
+    .map((entry) => {
+      const available = stockpile.find((item) => item.resourceType === entry.resourceType)?.quantity ?? 0;
+      return {
+        resourceType: entry.resourceType,
+        quantity: Math.max(0, entry.quantity - available),
+      };
+    })
+    .filter((entry) => entry.quantity > 0)
+    .map((entry) => `Falta ${entry.resourceType} ${entry.quantity}`);
+
+  return missing.length > 0 ? missing.join(" | ") : null;
+}
+
 function getReasonLabel(rawReason: string, fallbackLabel?: string | null) {
   if (fallbackLabel?.trim()) {
     return fallbackLabel;
@@ -156,10 +176,12 @@ function mapStructure(item: DefenseStructureDto): DefenseStructure {
   };
 }
 
-function mapOption(item: DefenseOptionDto): DefenseOption {
+function mapOption(item: DefenseOptionDto, stockpile: DefenseCost[]): DefenseOption {
   const actionKey = `${item.action ?? ""}`;
   const buildingType = `${item.buildingType ?? ""}`;
   const categoryKey = `${item.category ?? ""}`;
+
+  const cost = mapCost(item.cost);
 
   return {
     actionKey,
@@ -176,7 +198,15 @@ function mapOption(item: DefenseOptionDto): DefenseOption {
     reasonLabel: getReasonLabel(item.availabilityReason, item.display?.availabilityReasonLabel),
     estimatedDurationLabel: formatDefenseDuration(item.estimatedDuration),
     estimatedCostLabel: formatDefenseCost(item.cost),
-    cost: mapCost(item.cost),
+    affordabilityLabel: item.availabilityReason === "Insufficient resources."
+      ? getMissingResourceLabel(cost, stockpile)
+      : null,
+    requirementLabel: item.availabilityReason === "Planet already has an open construction order."
+      ? "Requiere liberar la cola de construccion"
+      : item.availabilityReason === "Planet is not controlled by the requesting civilization."
+        ? "Requiere control local de la colonia"
+        : null,
+    cost,
   };
 }
 
@@ -252,6 +282,7 @@ function mapDiagnostics(diagnostics: DefenseDiagnosticsDto): DefenseDiagnostics 
 }
 
 function mapDefenseContext(defenses: DefensePlanetContextDto): DefensePlanetContext {
+  const stockpile = mapCost(defenses.resourceStockpile);
   const diagnostics = mapDiagnostics(defenses.diagnostics);
 
   return {
@@ -263,9 +294,9 @@ function mapDefenseContext(defenses: DefensePlanetContextDto): DefensePlanetCont
     ownerCivilizationId: defenses.ownerCivilizationId,
     ownerCivilizationName: defenses.ownerCivilizationName,
     controlStatus: defenses.controlStatus ? `${defenses.controlStatus}` : null,
-    stockpile: mapCost(defenses.resourceStockpile),
+    stockpile,
     structures: defenses.defenseStructures.map(mapStructure),
-    options: defenses.defenseOptions.map(mapOption),
+    options: defenses.defenseOptions.map((option) => mapOption(option, stockpile)),
     queue: defenses.defenseQueue.map(mapQueueItem),
     protectionSummary: defenses.protectionSummary,
     actionAvailability: {

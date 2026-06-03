@@ -3,7 +3,7 @@
 ---
 id: TASK-19L-defenses-resource-affordability-and-requirements-display
 title: Defenses resource affordability and requirements display
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
