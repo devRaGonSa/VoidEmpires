@@ -3,7 +3,7 @@
 ---
 id: TASK-16W-research-submit-integration-smoke-test
 title: Research submit integration smoke test
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
