@@ -9,12 +9,12 @@ Historical note:
 
 ## Regression audit - 2026-06-03
 
-Confirmed root cause for the reported "empty Galaxy screen" after the `cockpit-validation` seed:
+Resolved root cause for the reported "empty Galaxy screen" after the `cockpit-validation` seed:
 
-- The current frontend only mounts `StrategicMapPage` on `/`, not on `/galaxy`.
-- `src/VoidEmpires.Frontend/src/App.tsx` registers Galaxy at `Route path="/"`, and there is no `/galaxy` alias or fallback route.
-- `src/VoidEmpires.Frontend/src/components/ui/AppShell.tsx` also treats only `location.pathname === "/"` as the strategic-map route, so `/galaxy` falls back to the generic shell framing.
-- When a user opens `/galaxy`, the shared shell still renders, but no child route matches, so the accepted strategic cockpit body never mounts. This matches the "shell only" regression report more closely than a backend data failure.
+- `StrategicMapPage` now mounts on both `/galaxy` and `/`.
+- `/galaxy` is the canonical route and `/` remains a compatibility alias.
+- The shell now recognizes both paths as Galaxy and keeps the `Galaxia` navigation state highlighted.
+- Missing, invalid, API-error, and empty-read-model states now render explicit panels instead of degrading into a shell-only or near-empty experience.
 
 Related but separate behavior on `/`:
 
@@ -31,7 +31,7 @@ Seeded strategic data status:
 - `tests/VoidEmpires.Tests/DevelopmentSeedServiceTests.cs`
   - `StrategicMapServiceReturnsNonEmptySystemsFromSeededDataset`
   - `CockpitValidationSeedKeepsStrategicMapFleetContextVisible`
-- `docs/dev/development-seed-profiles.md` and `src/VoidEmpires.Application/Development/IDevelopmentSeedService.cs` still advertise the Galaxy QA URL on `/`, not `/galaxy`.
+- `docs/dev/development-seed-profiles.md` now advertises the canonical Galaxy QA URL on `/galaxy`.
 
 Reproduction notes used for this audit:
 
@@ -59,16 +59,36 @@ dotnet test --no-build
 npm run build --prefix src/VoidEmpires.Frontend
 ```
 
-Then confirm on `/`:
+Then apply the required seed profile and open the canonical route:
 
-- The first viewport reads like a playable strategic cockpit, not a raw dev panel.
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:5142/api/dev/seeds/apply" `
+  -ContentType "application/json" `
+  -Body '{"profile":"cockpit-validation"}'
+```
+
+- Canonical QA URL:
+  `/galaxy?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Compatibility alias:
+  `/?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+
+Then confirm:
+
+- The first viewport reads like a playable strategic cockpit, not a raw dev panel or a generic shell placeholder.
+- The page does not stop after the shared shell header and intro cards.
 - Spanish-first copy dominates the primary flow.
 - The 2D map remains the dominant surface.
+- The seeded `Helios Gate` system is visible and focusable from the map or system chip rail.
 - System focus prioritizes name, coordinates, control or visibility, star type, and counts.
 - Planet focus prioritizes name, type, ownership or control, and colonization state.
+- The seeded `Aurelia`, `Cinder Reach`, and `Aether Crown` planets are visible in the current cockpit context.
 - Fleet markers and transfer overlays are visually distinguishable.
+- The legend, focus system panel, planet intelligence list, and transfer summary all render together.
 - Galaxy quick links can open `/planet?civilizationId=...&planetId=...`.
 - Quick links toward `/fleets` preserve civilization or planet context.
+- The read-only boundary remains visible and Galaxy never exposes direct mutation execution.
 - Full ids, raw capability keys, request payloads, and renderer payloads remain secondary.
 - The technical drawer starts collapsed.
 

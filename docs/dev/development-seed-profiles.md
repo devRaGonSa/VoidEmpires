@@ -57,6 +57,7 @@ Operational guidance:
 - Richer profiles reserve high sequence ranges for their completed queue-history seed rows, avoiding collisions with pre-existing manual queue activity without resetting the database.
 - Do not use manual SQL for the standard Galaxy, Planet, Construction, Research, Shipyard, or Fleet QA flows.
 - Use a fresh disposable local database only when you need the exact original pre-mutation baseline.
+- Pair Galaxy QA with `docs/dev/strategic-map-cockpit-checklist.md` so the route, expected seeded names, and shell-only regression checks stay aligned.
 
 The discovery endpoint is Development-only and returns a concise list of all known profiles with:
 

@@ -3,7 +3,7 @@
 ---
 id: TASK-19A-strategic-map-checklist-and-seed-doc-update
 title: Strategic map checklist and seed doc update
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

@@ -31,6 +31,7 @@ Fleet cockpit v1 acceptance boundary:
 6. Confirm the header states that the frontend consumes development-only endpoints.
 7. Open the `Strategic Map` route.
 8. Enter a sample civilization id and confirm:
+   - the canonical seeded Galaxy URL `/galaxy?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` opens the real cockpit, not only the shared shell
    - loading state appears
    - request errors are rendered clearly when the backend rejects the request
    - the top cockpit strip renders command input, strategic summary, and read-only safety rules first
