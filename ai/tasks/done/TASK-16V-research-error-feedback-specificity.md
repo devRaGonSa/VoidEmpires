@@ -3,7 +3,7 @@
 ---
 id: TASK-16V-research-error-feedback-specificity
 title: Research error feedback specificity
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

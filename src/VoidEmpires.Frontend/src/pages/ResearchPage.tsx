@@ -158,6 +158,7 @@ export function ResearchPage() {
 
     try {
       const { civilizationId, sourcePlanetId, researchType } = preparedResearch.enqueueCommand;
+      const selectedPlanetName = uiState?.selectedPlanetName ?? null;
       const result = await enqueueResearchOrder({
         civilizationId,
         sourcePlanetId,
@@ -166,7 +167,11 @@ export function ResearchPage() {
       });
 
       if (result.httpStatus !== 201 || !result.response?.succeeded) {
-        const failure = formatResearchCommandFailure(result.response?.errors[0] ?? null, result.httpStatus);
+        const failure = formatResearchCommandFailure(
+          result.response?.errors[0] ?? null,
+          result.httpStatus,
+          selectedPlanetName,
+        );
         setEnqueueError(failure.primaryMessage);
         setTechnicalErrorDetail(failure.technicalDetail);
         return;

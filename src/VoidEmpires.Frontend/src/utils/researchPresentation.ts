@@ -285,8 +285,10 @@ export function getResearchBonusLabel(value: ResearchValue, fallback = "Benefici
 export function formatResearchCommandFailure(
   rawError: string | null | undefined,
   httpStatus?: number,
+  selectedPlanetName?: string | null,
 ): ResearchCommandFeedback {
   const technicalDetail = rawError?.trim() || null;
+  const scopedPlanetLabel = selectedPlanetName?.trim() || "el planeta seleccionado";
 
   switch (technicalDetail) {
     case "Civilization id is required.":
@@ -308,22 +310,22 @@ export function formatResearchCommandFailure(
     case "Planet was not found.":
     case "Planet resource stockpile was not found.":
       return {
-        primaryMessage: "El planeta ya no esta disponible para esta accion. Actualiza la cabina y vuelve a intentarlo.",
+        primaryMessage: "El planeta no pertenece a la civilizacion o ya no esta disponible. Actualiza la cabina y vuelve a prepararla.",
         technicalDetail,
       };
     case "Research type is required.":
       return {
-        primaryMessage: "La tecnologia seleccionada ya no es valida. Revisa el catalogo y vuelve a preparar la orden.",
+        primaryMessage: "Tecnologia no encontrada. Actualiza la cabina y vuelve a preparar la investigacion.",
         technicalDetail,
       };
     case "Insufficient resources.":
       return {
-        primaryMessage: "No hay recursos suficientes para esta investigacion. Revisa los requisitos.",
+        primaryMessage: `Recursos insuficientes en ${scopedPlanetLabel}. Revisa el coste o espera a que se reponga la reserva.`,
         technicalDetail,
       };
     case "Civilization already has an open research order.":
       return {
-        primaryMessage: "Ya existe una investigacion abierta para esta civilizacion. Espera a que la cola quede libre antes de enviar otra.",
+        primaryMessage: "La cola de investigacion no admite nuevas ordenes. Espera a que termine la investigacion actual.",
         technicalDetail,
       };
     case "Requested date is required.":
@@ -352,7 +354,7 @@ export function formatResearchCommandFailure(
 
   if (httpStatus === 400) {
     return {
-      primaryMessage: "La API rechazo la solicitud por validacion. Revisa los requisitos y vuelve a preparar la accion.",
+      primaryMessage: "El contrato de envio no coincide con la accion preparada. Actualiza la cabina y vuelve a preparar la investigacion.",
       technicalDetail,
     };
   }
