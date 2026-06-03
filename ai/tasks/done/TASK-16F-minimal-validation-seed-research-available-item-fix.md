@@ -3,7 +3,7 @@
 ---
 id: TASK-16F-minimal-validation-seed-research-available-item-fix
 title: Minimal validation seed research available item fix
-status: pending
+status: obsolete
 type: platform
 team: platform
 supporting_teams: []
@@ -78,6 +78,7 @@ The visual QA result contradicts the previous block: the seed was expected to gi
 - `npm run build --prefix src/VoidEmpires.Frontend` if frontend files are touched.
 
 ## Notes / Residual Risks
+- This task was satisfied by the deterministic stockpile restore added while completing `TASK-16E-research-availability-root-cause-audit`.
 - The chosen available Research should be simple and early-game, for example `Ingenieria planetaria` or `Extraccion de recursos`, depending on the actual catalog rules.
 - If the catalog or resource model changed since the last block, update the seed against the current contract rather than against the old expectation.
 - Keep the fix deterministic so browser QA can repeat it exactly.
