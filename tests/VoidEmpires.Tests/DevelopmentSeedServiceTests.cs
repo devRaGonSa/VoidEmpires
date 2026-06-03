@@ -33,6 +33,10 @@ public class DevelopmentSeedServiceTests
             .ApplyAsync(new ApplyDevelopmentSeedRequest("minimal-validation"));
 
         Assert.True(result.Succeeded);
+        Assert.NotNull(result.ProfileMetadata);
+        Assert.Equal("minimal-validation", result.ProfileMetadata.Name);
+        Assert.Contains(result.ProfileMetadata.IntendedCockpits, x => x == "Research");
+        Assert.Contains(result.ProfileMetadata.RecommendedQaUrls, x => x.StartsWith("/research?", StringComparison.Ordinal));
         Assert.Contains(result.AppliedSteps, x => x.Contains(CivilizationId.ToString(), StringComparison.Ordinal));
         var playerProfile = await dbContext.Set<PlayerProfile>().SingleAsync(x => x.Id == PlayerProfileId);
         var civilization = await dbContext.Set<Civilization>().SingleAsync(x => x.Id == CivilizationId);
@@ -91,6 +95,21 @@ public class DevelopmentSeedServiceTests
         Assert.Equal(1, await dbContext.Set<OrbitalAssetStock>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == SpaceAssetType.EscortCraft));
         Assert.Equal(4, await dbContext.Set<OrbitalGroup>().CountAsync(x => x.CivilizationId == CivilizationId));
         Assert.Equal(1, await dbContext.Set<OrbitalTransfer>().CountAsync(x => x.CivilizationId == CivilizationId && x.Status == OrbitalTransferStatus.Planned));
+    }
+
+    [Fact]
+    public async Task ApplyAsyncReturnsKnownProfilesForUnsupportedProfile()
+    {
+        await using var dbContext = CreateDbContext();
+
+        var result = await new DevelopmentSeedService(dbContext)
+            .ApplyAsync(new ApplyDevelopmentSeedRequest("research-validation"));
+
+        Assert.False(result.Succeeded);
+        Assert.Null(result.ProfileMetadata);
+        Assert.Contains(result.Errors, x => x.Contains("Unsupported development seed profile 'research-validation'.", StringComparison.Ordinal));
+        Assert.Contains(result.KnownProfiles, x => x.Name == "minimal-validation" && x.IsImplemented);
+        Assert.Contains(result.KnownProfiles, x => x.Name == "research-validation" && !x.IsImplemented);
     }
 
     [Fact]

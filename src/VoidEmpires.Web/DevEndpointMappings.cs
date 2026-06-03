@@ -33,7 +33,13 @@ internal static class DevEndpointMappings
             var errors = ValidateApplyDevelopmentSeed(request);
             if (errors.Count > 0)
             {
-                return Results.BadRequest(new ApplyDevelopmentSeedApiResponse(false, request.Profile, [], errors));
+                return Results.BadRequest(new ApplyDevelopmentSeedApiResponse(
+                    false,
+                    request.Profile,
+                    [],
+                    errors,
+                    null,
+                    DevelopmentSeedProfiles.All));
             }
 
             var service = services.GetRequiredService<IDevelopmentSeedService>();
@@ -42,7 +48,9 @@ internal static class DevEndpointMappings
                 result.Succeeded,
                 result.Profile,
                 result.AppliedSteps,
-                result.Errors);
+                result.Errors,
+                result.ProfileMetadata,
+                result.KnownProfiles);
 
             return result.Succeeded
                 ? Results.Ok(response)
@@ -681,7 +689,9 @@ internal sealed record ApplyDevelopmentSeedApiResponse(
     bool Succeeded,
     string? Profile,
     IReadOnlyList<string> AppliedSteps,
-    IReadOnlyList<string> Errors);
+    IReadOnlyList<string> Errors,
+    DevelopmentSeedProfileMetadata? ProfileMetadata,
+    IReadOnlyList<DevelopmentSeedProfileMetadata> KnownProfiles);
 
 internal sealed record GenerateGalaxyApiRequest(
     string? Name,

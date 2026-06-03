@@ -35,7 +35,11 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
     [Fact]
     public async Task ApplySeedReturnsBadRequestForMissingProfile()
     {
-        using var client = CreateConfiguredClient(ApplyDevelopmentSeedResult.Success("minimal-validation", []));
+        using var client = CreateConfiguredClient(ApplyDevelopmentSeedResult.Success(
+            "minimal-validation",
+            [],
+            DevelopmentSeedProfiles.MinimalValidation,
+            DevelopmentSeedProfiles.All));
 
         using var response = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "" });
         var payload = await response.Content.ReadFromJsonAsync<ApplyDevelopmentSeedResponse>();
@@ -51,7 +55,9 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
     {
         using var client = CreateConfiguredClient(ApplyDevelopmentSeedResult.Success(
             "minimal-validation",
-            ["Seed profile acknowledged."]));
+            ["Seed profile acknowledged."],
+            DevelopmentSeedProfiles.MinimalValidation,
+            DevelopmentSeedProfiles.All));
 
         using var response = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "minimal-validation" });
         var payload = await response.Content.ReadFromJsonAsync<ApplyDevelopmentSeedResponse>();
@@ -61,6 +67,9 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
         Assert.True(payload.Succeeded);
         Assert.Equal("minimal-validation", payload.Profile);
         Assert.Contains("Seed profile acknowledged.", payload.AppliedSteps);
+        Assert.NotNull(payload.ProfileMetadata);
+        Assert.Equal("minimal-validation", payload.ProfileMetadata.Name);
+        Assert.Contains(payload.KnownProfiles, x => x.Name == "research-validation" && !x.IsImplemented);
         Assert.Empty(payload.Errors);
     }
 
@@ -88,5 +97,7 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
         bool Succeeded,
         string? Profile,
         string[] AppliedSteps,
-        string[] Errors);
+        string[] Errors,
+        DevelopmentSeedProfileMetadata? ProfileMetadata,
+        DevelopmentSeedProfileMetadata[] KnownProfiles);
 }

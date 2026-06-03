@@ -3,7 +3,7 @@
 ---
 id: TASK-17V-development-seed-profile-contract-and-naming
 title: Development seed profile contract and naming
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

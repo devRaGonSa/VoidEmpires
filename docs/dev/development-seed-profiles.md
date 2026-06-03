@@ -2,9 +2,19 @@
 
 This document is the current source of truth for the development-only `minimal-validation` seed exposed by `POST /api/dev/seeds/apply`.
 
-## Current supported profile
+## Profile catalog
 
-- Profile key: `minimal-validation`
+`POST /api/dev/seeds/apply` remains Development-only and accepts exact profile names only. There are no undocumented aliases.
+
+| Profile | Status | Intended QA use |
+|---|---|---|
+| `minimal-validation` | Implemented | Current deterministic shared baseline for Galaxy, Planet, Construction, Research, Shipyard, and Fleets |
+| `cockpit-validation` | Planned only | Future richer combined cockpit baseline |
+| `shipyard-validation` | Planned only | Future shipyard-focused richer baseline |
+| `fleet-validation` | Planned only | Future fleet-focused richer baseline |
+| `research-validation` | Planned only | Future research-focused richer baseline |
+| `planet-full-validation` | Planned only | Future richer planet and construction baseline |
+
 - Endpoint: `POST /api/dev/seeds/apply`
 - Request body:
 
@@ -13,6 +23,8 @@ This document is the current source of truth for the development-only `minimal-v
   "profile": "minimal-validation"
 }
 ```
+
+Unsupported profile requests fail safely. The current response now includes the requested profile name, the applied profile metadata when successful, and the known profile catalog so PowerShell or JSON callers can discover the supported naming contract directly.
 
 ## Dependency map
 

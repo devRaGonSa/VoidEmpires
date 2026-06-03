@@ -43,19 +43,26 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
 
         var profile = request.Profile.Trim();
 
-        if (!string.Equals(profile, "minimal-validation", StringComparison.OrdinalIgnoreCase))
+        if (!DevelopmentSeedProfiles.TryGetImplementedProfile(profile, out var profileMetadata))
         {
-            return ApplyDevelopmentSeedResult.Failure(profile, ["Unsupported development seed profile."]);
+            return ApplyDevelopmentSeedResult.Failure(
+                profile,
+                [$"Unsupported development seed profile '{profile}'. Implemented profiles: minimal-validation."],
+                DevelopmentSeedProfiles.All);
         }
 
         await SeedMinimalValidationProfileAsync(cancellationToken);
 
-        return ApplyDevelopmentSeedResult.Success(profile, [
-            $"Validated strategic-map seed for civilization {SeedCivilizationId}.",
-            $"System {SeedSystemId} includes planets {SeedOwnedPlanetId}, {SeedOuterPlanetId}, and {SeedIcePlanetId}.",
-            "Fleet validation rows include stationed groups, one active own transfer, and owned-planet resource context.",
-            "Owned planet construction validation includes visible stockpile, existing buildings, a readable economy summary, and both affordable and blocked actions."
-        ]);
+        return ApplyDevelopmentSeedResult.Success(
+            profileMetadata.Name,
+            [
+                $"Validated strategic-map seed for civilization {SeedCivilizationId}.",
+                $"System {SeedSystemId} includes planets {SeedOwnedPlanetId}, {SeedOuterPlanetId}, and {SeedIcePlanetId}.",
+                "Fleet validation rows include stationed groups, one active own transfer, and owned-planet resource context.",
+                "Owned planet construction validation includes visible stockpile, existing buildings, a readable economy summary, and both affordable and blocked actions."
+            ],
+            profileMetadata,
+            DevelopmentSeedProfiles.All);
     }
 
     private async Task SeedMinimalValidationProfileAsync(CancellationToken cancellationToken)
