@@ -65,9 +65,29 @@ public static class DevelopmentSeedProfiles
             new("visiblePlanetId", "40000000-0000-0000-0000-000000000003", "Aether Crown")
         ]);
 
-    public static readonly DevelopmentSeedProfileMetadata CockpitValidation = CreatePlannedProfile(
+    public static readonly DevelopmentSeedProfileMetadata CockpitValidation = new(
         "cockpit-validation",
-        ["Galaxy", "Planet", "Construction", "Research", "Shipyard", "Fleets"]);
+        true,
+        "Implemented today. Use this for a richer cross-cockpit QA baseline.",
+        "Additive and idempotent. Builds on minimal-validation, preserves existing queues, and adds non-blocking completed history plus richer stockpile and stock context.",
+        ["Galaxy", "Planet", "Construction", "Research", "Shipyard", "Fleets"],
+        [
+            "/?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
+            "/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
+            "/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
+            "/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
+            "/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
+            "/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001"
+        ],
+        [
+            new("playerProfileId", "90000000-0000-0000-0000-000000000001", "Validation Commander / seed-user-minimal-validation"),
+            new("civilizationId", "00000000-0000-0000-0000-000000000001", "Void Seed Civilization"),
+            new("galaxyId", "10000000-0000-0000-0000-000000000001", "Validation Galaxy"),
+            new("systemId", "20000000-0000-0000-0000-000000000001", "Helios Gate"),
+            new("ownedPlanetId", "40000000-0000-0000-0000-000000000001", "Aurelia"),
+            new("visiblePlanetId", "40000000-0000-0000-0000-000000000002", "Cinder Reach"),
+            new("visiblePlanetId", "40000000-0000-0000-0000-000000000003", "Aether Crown")
+        ]);
 
     public static readonly DevelopmentSeedProfileMetadata ShipyardValidation = CreatePlannedProfile(
         "shipyard-validation",

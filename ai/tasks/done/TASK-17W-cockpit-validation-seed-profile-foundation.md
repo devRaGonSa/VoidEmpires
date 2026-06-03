@@ -3,7 +3,7 @@
 ---
 id: TASK-17W-cockpit-validation-seed-profile-foundation
 title: Cockpit validation seed profile foundation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

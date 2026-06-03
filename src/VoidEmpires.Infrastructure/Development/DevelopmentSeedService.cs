@@ -7,6 +7,7 @@ using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Domain.Players;
 using VoidEmpires.Domain.Population;
+using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,8 +33,18 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
     private const int SeedMetal = 160;
     private const int SeedCrystal = 100;
     private const int SeedGas = 50;
+    private const int CockpitValidationCredits = 220;
+    private const int CockpitValidationMetal = 320;
+    private const int CockpitValidationCrystal = 220;
+    private const int CockpitValidationGas = 120;
     private static readonly DateTime SeedTransferDepartureAtUtc = new(2026, 6, 2, 8, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime SeedTransferArrivalAtUtc = new(2026, 6, 2, 12, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime CockpitValidationConstructionStartAtUtc = new(2026, 5, 31, 8, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime CockpitValidationConstructionEndAtUtc = new(2026, 5, 31, 8, 5, 0, DateTimeKind.Utc);
+    private static readonly DateTime CockpitValidationResearchStartAtUtc = new(2026, 5, 31, 9, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime CockpitValidationResearchEndAtUtc = new(2026, 5, 31, 9, 12, 0, DateTimeKind.Utc);
+    private static readonly DateTime CockpitValidationProductionStartAtUtc = new(2026, 5, 31, 10, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime CockpitValidationProductionEndAtUtc = new(2026, 5, 31, 10, 3, 0, DateTimeKind.Utc);
 
     public async Task<ApplyDevelopmentSeedResult> ApplyAsync(
         ApplyDevelopmentSeedRequest request,
@@ -51,16 +62,35 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
                 DevelopmentSeedProfiles.All);
         }
 
-        await SeedMinimalValidationProfileAsync(cancellationToken);
+        var appliedSteps = new List<string>();
+
+        switch (profileMetadata.Name)
+        {
+            case "minimal-validation":
+                await SeedMinimalValidationProfileAsync(cancellationToken);
+                appliedSteps.AddRange([
+                    $"Validated strategic-map seed for civilization {SeedCivilizationId}.",
+                    $"System {SeedSystemId} includes planets {SeedOwnedPlanetId}, {SeedOuterPlanetId}, and {SeedIcePlanetId}.",
+                    "Fleet validation rows include stationed groups, one active own transfer, and owned-planet resource context.",
+                    "Owned planet construction validation includes visible stockpile, existing buildings, a readable economy summary, and both affordable and blocked actions."
+                ]);
+                break;
+            case "cockpit-validation":
+                await SeedCockpitValidationProfileAsync(cancellationToken);
+                appliedSteps.AddRange([
+                    $"Validated richer cockpit seed for civilization {SeedCivilizationId}.",
+                    $"System {SeedSystemId} keeps Aurelia plus visible comparison planets {SeedOuterPlanetId} and {SeedIcePlanetId}.",
+                    "Planet and Construction gain completed queue history without blocking current actions.",
+                    "Research and Shipyard gain richer completed history while preserving available and blocked read-state."
+                ]);
+                break;
+            default:
+                throw new InvalidOperationException($"Implemented seed profile '{profileMetadata.Name}' is not mapped.");
+        }
 
         return ApplyDevelopmentSeedResult.Success(
             profileMetadata.Name,
-            [
-                $"Validated strategic-map seed for civilization {SeedCivilizationId}.",
-                $"System {SeedSystemId} includes planets {SeedOwnedPlanetId}, {SeedOuterPlanetId}, and {SeedIcePlanetId}.",
-                "Fleet validation rows include stationed groups, one active own transfer, and owned-planet resource context.",
-                "Owned planet construction validation includes visible stockpile, existing buildings, a readable economy summary, and both affordable and blocked actions."
-            ],
+            appliedSteps,
             profileMetadata,
             DevelopmentSeedProfiles.All);
     }
@@ -342,6 +372,112 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
         if (stockpile.Gas < SeedGas)
         {
             stockpile.Increase(ResourceType.Gas, SeedGas - stockpile.Gas);
+        }
+    }
+
+    private async Task SeedCockpitValidationProfileAsync(CancellationToken cancellationToken)
+    {
+        await SeedMinimalValidationProfileAsync(cancellationToken);
+
+        var stockpile = await dbContext.PlanetResourceStockpiles
+            .SingleAsync(x => x.PlanetId == SeedOwnedPlanetId, cancellationToken);
+
+        EnsureCockpitValidationStockpile(stockpile);
+
+        if (!await dbContext.Set<PlanetConstructionOrder>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId &&
+                    x.BuildingType == BuildingType.SolarPlant &&
+                    x.TargetLevel == 1 &&
+                    x.Status == ConstructionQueueItemStatus.Completed,
+                cancellationToken))
+        {
+            dbContext.Set<PlanetConstructionOrder>().Add(PlanetConstructionOrder.Create(
+                SeedOwnedPlanetId,
+                ConstructionQueueItemAction.Construct,
+                BuildingType.SolarPlant,
+                1,
+                1,
+                CockpitValidationConstructionStartAtUtc,
+                CockpitValidationConstructionEndAtUtc,
+                ConstructionQueueItemStatus.Completed));
+        }
+
+        if (!await dbContext.Set<ResearchProject>().AnyAsync(
+                x => x.CivilizationId == SeedCivilizationId && x.ResearchType == ResearchType.EnergySystems,
+                cancellationToken))
+        {
+            dbContext.Set<ResearchProject>().Add(ResearchProject.Create(SeedCivilizationId, ResearchType.EnergySystems));
+        }
+
+        if (!await dbContext.Set<ResearchOrder>().AnyAsync(
+                x => x.CivilizationId == SeedCivilizationId &&
+                    x.SourcePlanetId == SeedOwnedPlanetId &&
+                    x.ResearchType == ResearchType.EnergySystems &&
+                    x.TargetLevel == 1 &&
+                    x.Status == ResearchQueueItemStatus.Completed,
+                cancellationToken))
+        {
+            dbContext.Set<ResearchOrder>().Add(ResearchOrder.Create(
+                SeedCivilizationId,
+                SeedOwnedPlanetId,
+                ResearchType.EnergySystems,
+                1,
+                1,
+                CockpitValidationResearchStartAtUtc,
+                CockpitValidationResearchEndAtUtc,
+                ResearchQueueItemStatus.Completed));
+        }
+
+        if (!await dbContext.Set<AssetProductionOrder>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId &&
+                    x.Target == AssetProductionTarget.Orbital &&
+                    x.SpaceAssetType == SpaceAssetType.ScoutCraft &&
+                    x.Quantity == 1 &&
+                    x.Status == AssetProductionOrderStatus.Completed,
+                cancellationToken))
+        {
+            dbContext.Set<AssetProductionOrder>().Add(AssetProductionOrder.Create(
+                SeedOwnedPlanetId,
+                AssetProductionTarget.Orbital,
+                null,
+                SpaceAssetType.ScoutCraft,
+                1,
+                1,
+                CockpitValidationProductionStartAtUtc,
+                CockpitValidationProductionEndAtUtc,
+                AssetProductionOrderStatus.Completed));
+        }
+
+        if (!await dbContext.Set<OrbitalAssetStock>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId && x.AssetType == SpaceAssetType.ScoutCraft,
+                cancellationToken))
+        {
+            dbContext.Set<OrbitalAssetStock>().Add(OrbitalAssetStock.Create(SeedOwnedPlanetId, SpaceAssetType.ScoutCraft, 1));
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static void EnsureCockpitValidationStockpile(PlanetResourceStockpile stockpile)
+    {
+        if (stockpile.Credits < CockpitValidationCredits)
+        {
+            stockpile.Increase(ResourceType.Credits, CockpitValidationCredits - stockpile.Credits);
+        }
+
+        if (stockpile.Metal < CockpitValidationMetal)
+        {
+            stockpile.Increase(ResourceType.Metal, CockpitValidationMetal - stockpile.Metal);
+        }
+
+        if (stockpile.Crystal < CockpitValidationCrystal)
+        {
+            stockpile.Increase(ResourceType.Crystal, CockpitValidationCrystal - stockpile.Crystal);
+        }
+
+        if (stockpile.Gas < CockpitValidationGas)
+        {
+            stockpile.Increase(ResourceType.Gas, CockpitValidationGas - stockpile.Gas);
         }
     }
 }

@@ -9,7 +9,7 @@ This document is the current source of truth for the development-only `minimal-v
 | Profile | Status | Intended QA use |
 |---|---|---|
 | `minimal-validation` | Implemented | Current deterministic shared baseline for Galaxy, Planet, Construction, Research, Shipyard, and Fleets |
-| `cockpit-validation` | Planned only | Future richer combined cockpit baseline |
+| `cockpit-validation` | Implemented | Richer combined cockpit baseline with non-blocking completed history for Planet, Research, and Shipyard |
 | `shipyard-validation` | Planned only | Future shipyard-focused richer baseline |
 | `fleet-validation` | Planned only | Future fleet-focused richer baseline |
 | `research-validation` | Planned only | Future research-focused richer baseline |
@@ -58,6 +58,10 @@ Deterministic transfer timestamps:
 The seeded orbital groups, transfer row, and queue rows do not use fixed ids. Inspect current read endpoints when a test or cockpit needs those runtime ids.
 
 ## Seed graph created today
+
+## `cockpit-validation` additions
+
+`cockpit-validation` builds on `minimal-validation`, tops `Aurelia` up to at least `220` credits, `320` metal, `220` crystal, and `120` gas, and then adds one completed construction row, one completed `EnergySystems` research order plus project, and one completed orbital `ScoutCraft` production order plus local `ScoutCraft` stock. It stays non-destructive and avoids extra pending or active queue rows so the current executable cockpit actions remain available.
 
 ### Identity and ownership
 

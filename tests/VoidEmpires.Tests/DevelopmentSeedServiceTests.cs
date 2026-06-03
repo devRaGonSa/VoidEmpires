@@ -9,6 +9,7 @@ using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Domain.Players;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Population;
+using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Development;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.StrategicMap;
@@ -71,6 +72,32 @@ public class DevelopmentSeedServiceTests
                 x.Quantity == 2 &&
                 x.Status == OrbitalGroupStatus.Reserved));
         Assert.True(await dbContext.Set<OrbitalTransfer>().AnyAsync(x => x.CivilizationId == CivilizationId && x.DestinationPlanetId != x.OriginPlanetId && x.Status == OrbitalTransferStatus.Planned));
+    }
+
+    [Fact]
+    public async Task ApplyAsyncSupportsCockpitValidationProfileWithoutDuplicatingRicherHistoryRows()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new DevelopmentSeedService(dbContext);
+
+        var result = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+        _ = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+
+        Assert.True(result.Succeeded);
+        Assert.Equal("cockpit-validation", result.Profile);
+        Assert.NotNull(result.ProfileMetadata);
+        Assert.Contains(result.AppliedSteps, x => x.Contains("completed queue history", StringComparison.OrdinalIgnoreCase));
+
+        var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == OwnedPlanetId);
+        Assert.Equal(220, stockpile.Credits);
+        Assert.Equal(320, stockpile.Metal);
+        Assert.Equal(220, stockpile.Crystal);
+        Assert.Equal(120, stockpile.Gas);
+        Assert.Equal(1, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.Status == ConstructionQueueItemStatus.Completed));
+        Assert.Equal(1, await dbContext.Set<ResearchProject>().CountAsync(x => x.CivilizationId == CivilizationId && x.ResearchType == ResearchType.EnergySystems));
+        Assert.Equal(1, await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == CivilizationId && x.ResearchType == ResearchType.EnergySystems && x.Status == ResearchQueueItemStatus.Completed));
+        Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.SpaceAssetType == SpaceAssetType.ScoutCraft && x.Status == AssetProductionOrderStatus.Completed));
+        Assert.True(await dbContext.Set<OrbitalAssetStock>().AnyAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == SpaceAssetType.ScoutCraft && x.Quantity == 1));
     }
 
     [Fact]
