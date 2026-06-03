@@ -148,6 +148,45 @@ public class DevelopmentSeedServiceTests
     }
 
     [Fact]
+    public async Task ApplyingEachImplementedProfileTwiceDoesNotDuplicateDeterministicSeedRows()
+    {
+        foreach (var profile in DevelopmentSeedProfiles.All.Where(x => x.IsImplemented).Select(x => x.Name))
+        {
+            await using var dbContext = CreateDbContext();
+            var service = new DevelopmentSeedService(dbContext);
+
+            _ = await service.ApplyAsync(new ApplyDevelopmentSeedRequest(profile));
+            _ = await service.ApplyAsync(new ApplyDevelopmentSeedRequest(profile));
+
+            await AssertCommonSeedCountsAsync(dbContext);
+
+            switch (profile)
+            {
+                case "minimal-validation":
+                    await AssertProfileCountsAsync(dbContext, constructionOrders: 0, researchOrders: 0, researchProjects: 0, assetProductionOrders: 0, orbitalAssetStocks: 1, orbitalGroups: 4, orbitalTransfers: 1);
+                    break;
+                case "cockpit-validation":
+                    await AssertProfileCountsAsync(dbContext, constructionOrders: 1, researchOrders: 1, researchProjects: 1, assetProductionOrders: 1, orbitalAssetStocks: 2, orbitalGroups: 4, orbitalTransfers: 1);
+                    break;
+                case "shipyard-validation":
+                    await AssertProfileCountsAsync(dbContext, constructionOrders: 0, researchOrders: 0, researchProjects: 0, assetProductionOrders: 1, orbitalAssetStocks: 2, orbitalGroups: 4, orbitalTransfers: 1);
+                    break;
+                case "fleet-validation":
+                    await AssertProfileCountsAsync(dbContext, constructionOrders: 0, researchOrders: 0, researchProjects: 0, assetProductionOrders: 0, orbitalAssetStocks: 1, orbitalGroups: 6, orbitalTransfers: 2);
+                    break;
+                case "research-validation":
+                    await AssertProfileCountsAsync(dbContext, constructionOrders: 0, researchOrders: 1, researchProjects: 1, assetProductionOrders: 0, orbitalAssetStocks: 1, orbitalGroups: 4, orbitalTransfers: 1);
+                    break;
+                case "planet-full-validation":
+                    await AssertProfileCountsAsync(dbContext, constructionOrders: 1, researchOrders: 0, researchProjects: 0, assetProductionOrders: 0, orbitalAssetStocks: 1, orbitalGroups: 4, orbitalTransfers: 1);
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unhandled profile '{profile}'.");
+            }
+        }
+    }
+
+    [Fact]
     public async Task ApplyAsyncReturnsKnownProfilesForUnsupportedProfile()
     {
         await using var dbContext = CreateDbContext();
@@ -183,6 +222,41 @@ public class DevelopmentSeedServiceTests
             dbContext,
             new SystemVisualStateService(dbContext, new PlanetVisualStateService(dbContext)),
             new MapVisibilityService(dbContext));
+
+    private static async Task AssertCommonSeedCountsAsync(VoidEmpiresDbContext dbContext)
+    {
+        Assert.Equal(1, await dbContext.Set<PlayerProfile>().CountAsync(x => x.Id == PlayerProfileId));
+        Assert.Equal(1, await dbContext.Set<Civilization>().CountAsync(x => x.Id == CivilizationId));
+        Assert.Equal(1, await dbContext.Galaxies.CountAsync(x => x.Id == GalaxyId));
+        Assert.Equal(1, await dbContext.Set<SolarSystem>().CountAsync(x => x.Id == SystemId));
+        Assert.Equal(3, await dbContext.Set<Planet>().CountAsync(x => x.SolarSystemId == SystemId));
+        Assert.Equal(1, await dbContext.Set<PlanetOwnership>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.CivilizationId == CivilizationId));
+        Assert.Equal(1, await dbContext.PlanetResourceStockpiles.CountAsync(x => x.PlanetId == OwnedPlanetId));
+        Assert.Equal(1, await dbContext.PlanetProductionProfiles.CountAsync(x => x.PlanetId == OwnedPlanetId));
+        Assert.Equal(1, await dbContext.Set<PlanetPopulationProfile>().CountAsync(x => x.PlanetId == OwnedPlanetId));
+        Assert.Equal(1, await dbContext.Set<PlanetBuilding>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.BuildingType == BuildingType.CommandCenter));
+        Assert.Equal(1, await dbContext.Set<PlanetBuilding>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.BuildingType == BuildingType.HabitationDistrict));
+        Assert.Equal(1, await dbContext.Set<PlanetBuilding>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.BuildingType == BuildingType.Shipyard));
+    }
+
+    private static async Task AssertProfileCountsAsync(
+        VoidEmpiresDbContext dbContext,
+        int constructionOrders,
+        int researchOrders,
+        int researchProjects,
+        int assetProductionOrders,
+        int orbitalAssetStocks,
+        int orbitalGroups,
+        int orbitalTransfers)
+    {
+        Assert.Equal(constructionOrders, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId));
+        Assert.Equal(researchOrders, await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == CivilizationId));
+        Assert.Equal(researchProjects, await dbContext.Set<ResearchProject>().CountAsync(x => x.CivilizationId == CivilizationId));
+        Assert.Equal(assetProductionOrders, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId));
+        Assert.Equal(orbitalAssetStocks, await dbContext.Set<OrbitalAssetStock>().CountAsync(x => x.PlanetId == OwnedPlanetId));
+        Assert.Equal(orbitalGroups, await dbContext.Set<OrbitalGroup>().CountAsync(x => x.CivilizationId == CivilizationId));
+        Assert.Equal(orbitalTransfers, await dbContext.Set<OrbitalTransfer>().CountAsync(x => x.CivilizationId == CivilizationId && x.Status == OrbitalTransferStatus.Planned));
+    }
 
     private static VoidEmpiresDbContext CreateDbContext() =>
         new(new DbContextOptionsBuilder<VoidEmpiresDbContext>()
