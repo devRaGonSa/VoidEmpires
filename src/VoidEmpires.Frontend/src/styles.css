@@ -849,6 +849,51 @@ select {
   border-top: 1px solid color-mix(in srgb, var(--ve-color-border) 28%, transparent);
 }
 
+.planet-related-modules-panel {
+  background:
+    radial-gradient(circle at top right, rgba(70, 239, 255, 0.08), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 84%, transparent), color-mix(in srgb, var(--ve-color-panel) 92%, transparent));
+}
+
+.planet-related-modules-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-top: 14px;
+}
+
+.planet-related-module-card {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 34%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 36%, transparent);
+  color: var(--ve-color-text);
+  text-decoration: none;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.planet-related-module-card strong {
+  font-size: 0.95rem;
+}
+
+.planet-related-module-card span {
+  color: color-mix(in srgb, var(--ve-color-text) 70%, var(--ve-color-muted));
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.planet-related-module-card:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 24%, transparent);
+  background: color-mix(in srgb, var(--ve-color-accent-blue) 12%, var(--ve-color-bg));
+}
+
 .figma-map-layout {
   grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.7fr);
   align-items: start;

@@ -222,7 +222,8 @@ export function getPlanetModuleForBuilding(
 }
 
 export function isGeneralConstructionAction(action: PlanetConstructionActionDto) {
-  return resolveModuleByAction(action) === "GeneralConstruction";
+  const module = resolveModuleByAction(action);
+  return module === "GeneralConstruction" || module === "Logistics";
 }
 
 export function isSpecializedModuleAction(action: PlanetConstructionActionDto) {
@@ -232,8 +233,16 @@ export function isSpecializedModuleAction(action: PlanetConstructionActionDto) {
     || module === "GroundArmy"
     || module === "Shipyard"
     || module === "Defenses"
-    || module === "Logistics"
   );
+}
+
+export function getConstructionHandoffModules() {
+  return [
+    "Research",
+    "GroundArmy",
+    "Shipyard",
+    "Defenses",
+  ] as const;
 }
 
 export function formatConstructionStatus(value: PlanetValue) {

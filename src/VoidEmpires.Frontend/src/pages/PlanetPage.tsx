@@ -36,6 +36,7 @@ import {
   formatPlanetOverviewLine,
   formatPlanetOwnerLabel,
   formatPlanetShortReference,
+  getConstructionHandoffModules,
   getPlanetModuleLabel,
   getPlanetModuleForBuilding,
   groupActionsByModule,
@@ -829,8 +830,35 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
             {isConstructionRoute && specializedActionCount > 0 ? (
               <p className="figma-panel-note">
-                Las acciones de Investigacion, Ejercito Tierra, Astillero, Defensas y Logistica se gestionan desde sus cabinas dedicadas.
+                Las acciones de Investigacion, Ejercito Tierra, Astillero y Defensas se gestionan desde sus cabinas dedicadas.
               </p>
+            ) : null}
+
+            {isConstructionRoute && specializedActionCount > 0 ? (
+              <UiCard className="panel planet-related-modules-panel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Cabinas relacionadas</p>
+                    <h3>Handoff de modulos especializados</h3>
+                  </div>
+                  <UiBadge tone="warn">Pronto</UiBadge>
+                </div>
+                <p className="figma-panel-note">
+                  Estas superficies conservan el mismo planeta activo, pero siguen separadas de la construccion general.
+                </p>
+                <div className="planet-related-modules-grid">
+                  {getConstructionHandoffModules().map((module) => (
+                    <Link
+                      key={module}
+                      className="planet-related-module-card"
+                      to={`/construction?civilizationId=${activeCivilizationId}&planetId=${planet.planetId}&module=${module}`}
+                    >
+                      <strong>{getPlanetModuleLabel(module)}</strong>
+                      <span>Próximamente</span>
+                    </Link>
+                  ))}
+                </div>
+              </UiCard>
             ) : null}
 
             <div className="planet-action-groups">

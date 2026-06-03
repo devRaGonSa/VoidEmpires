@@ -3,7 +3,7 @@
 ---
 id: TASK-14V
 title: Construction catalog general infrastructure filter
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
