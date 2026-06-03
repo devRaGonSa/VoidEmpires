@@ -52,56 +52,116 @@ interface ShipyardReviewSelection {
   bucket: "available" | "blocked" | "unsupported";
 }
 
+interface ShipyardErrorPresentation {
+  primaryMessage: string;
+  followUp: string | null;
+  technicalDetail: string | null;
+}
+
 function formatShipyardCommandFailure(detail: string | null, planetName?: string | null) {
+  const contextPlanetName = planetName ? `Usa el contexto de ${planetName}.` : "Revisa el contexto de planeta cargado.";
+
   switch (detail) {
     case "Civilization id is required.":
       return {
         primaryMessage: "La civilizacion es obligatoria para enviar produccion.",
+        followUp: "Carga una civilizacion valida antes de abrir esta cabina.",
         technicalDetail: detail,
       };
     case "Planet id is required.":
       return {
         primaryMessage: "El planeta es obligatorio para enviar produccion.",
+        followUp: contextPlanetName,
+        technicalDetail: detail,
+      };
+    case "Planet was not found.":
+      return {
+        primaryMessage: "El planeta solicitado no existe en esta build.",
+        followUp: contextPlanetName,
         technicalDetail: detail,
       };
     case "Planet is not owned by the requesting civilization.":
       return {
         primaryMessage: "El planeta seleccionado no pertenece a la civilizacion cargada.",
+        followUp: contextPlanetName,
         technicalDetail: detail,
       };
     case "Asset type is required.":
       return {
         primaryMessage: "El activo orbital seleccionado no es valido para esta cabina.",
+        followUp: "Vuelve a abrir la revision desde una carta orbital visible.",
         technicalDetail: detail,
       };
     case "Insufficient resources.":
       return {
         primaryMessage: `No hay recursos suficientes${planetName ? ` en ${planetName}` : ""} para enviar esta produccion.`,
+        followUp: "Revisa recursos.",
         technicalDetail: detail,
       };
     case "Planet already has an open asset production order.":
       return {
         primaryMessage: "Ya existe una orden orbital abierta en este planeta.",
+        followUp: "Espera a que la cola se libere antes de enviar otra produccion.",
         technicalDetail: detail,
       };
     case "Required building is missing or below required level.":
       return {
         primaryMessage: "La infraestructura orbital requerida todavia no esta lista.",
+        followUp: "Construye o mejora Astillero.",
         technicalDetail: detail,
       };
     case "Planet population profile was not found.":
       return {
         primaryMessage: "Falta el perfil de tripulacion necesario para producir este activo.",
+        followUp: "Completa la preparacion local antes de intentar producir.",
         technicalDetail: detail,
       };
     case "Insufficient local operator capacity.":
       return {
         primaryMessage: "La capacidad local de tripulacion no alcanza para este activo.",
+        followUp: "Mejora la capacidad orbital antes de reintentar.",
+        technicalDetail: detail,
+      };
+    case "Planet resource stockpile was not found.":
+      return {
+        primaryMessage: "El planeta no expone reservas locales utilizables para esta accion.",
+        followUp: "Esta accion no esta disponible en esta build.",
+        technicalDetail: detail,
+      };
+    case "Quantity must be positive.":
+      return {
+        primaryMessage: "La cantidad solicitada no es valida para esta produccion.",
+        followUp: "Vuelve a abrir la revision desde una carta orbital visible.",
+        technicalDetail: detail,
+      };
+    case "Requested date must be UTC.":
+      return {
+        primaryMessage: "La cabina no pudo preparar una fecha valida para esta orden.",
+        followUp: "Reintenta la accion.",
+        technicalDetail: detail,
+      };
+    case "Shipyard UI state refresh failed after a successful enqueue.":
+      return {
+        primaryMessage: "La orden se envio, pero la cabina no pudo recargar el estado actualizado.",
+        followUp: "Abre de nuevo el astillero para confirmar cola, stock y bloqueos.",
+        technicalDetail: detail,
+      };
+    case "Request failed with status 404.":
+      return {
+        primaryMessage: "Esta accion no esta disponible en esta build.",
+        followUp: "El endpoint de desarrollo no esta expuesto en este entorno.",
+        technicalDetail: detail,
+      };
+    case "Request failed with status 503.":
+      return {
+        primaryMessage: "La persistencia de desarrollo no esta disponible ahora mismo.",
+        followUp: "Comprueba la configuracion local antes de reintentar.",
         technicalDetail: detail,
       };
     default:
       return {
         primaryMessage: "La produccion orbital no pudo enviarse.",
+        followUp: "Consulta diagnosticos si el problema persiste.",
         technicalDetail: detail,
       };
   }
@@ -113,6 +173,7 @@ export function ShipyardPage() {
   const [planetIdInput, setPlanetIdInput] = useState(searchParams.get("planetId") ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorFollowUp, setErrorFollowUp] = useState<string | null>(null);
   const [technicalErrorDetail, setTechnicalErrorDetail] = useState<string | null>(null);
   const [uiState, setUiState] = useState<ShipyardViewModel | null>(null);
   const [reviewSelection, setReviewSelection] = useState<ShipyardReviewSelection | null>(null);
@@ -120,6 +181,7 @@ export function ShipyardPage() {
   const [isSubmittingEnqueue, setIsSubmittingEnqueue] = useState(false);
   const [enqueueFeedback, setEnqueueFeedback] = useState<string | null>(null);
   const [enqueueError, setEnqueueError] = useState<string | null>(null);
+  const [enqueueErrorFollowUp, setEnqueueErrorFollowUp] = useState<string | null>(null);
   const [enqueueOrderDetails, setEnqueueOrderDetails] = useState<{
     orderId: string | null;
     startsAtUtc: string | null;
@@ -218,6 +280,7 @@ export function ShipyardPage() {
         setUiState(null);
       }
       setError(failure.primaryMessage);
+      setErrorFollowUp(failure.followUp);
       setTechnicalErrorDetail(failure.technicalDetail);
       return null;
     }
@@ -244,12 +307,14 @@ export function ShipyardPage() {
       if (!queryCivilizationId) {
         setUiState(null);
         setError(null);
+        setErrorFollowUp(null);
         setTechnicalErrorDetail(null);
         return;
       }
 
       setIsLoading(true);
       setError(null);
+      setErrorFollowUp(null);
 
       try {
         await reloadShipyardState(queryCivilizationId, queryPlanetId, true);
@@ -257,6 +322,7 @@ export function ShipyardPage() {
         const failure = formatShipyardCommandFailure(requestError instanceof Error ? requestError.message : null, shipyard?.planetName ?? null);
         setUiState(null);
         setError(failure.primaryMessage);
+        setErrorFollowUp(failure.followUp);
         setTechnicalErrorDetail(failure.technicalDetail);
       } finally {
         setIsLoading(false);
@@ -272,6 +338,7 @@ export function ShipyardPage() {
 
     if (!trimmedCivilizationId) {
       setError("El id de civilizacion es obligatorio.");
+      setErrorFollowUp("Carga una civilizacion valida antes de abrir esta cabina.");
       setTechnicalErrorDetail("Civilization id is required.");
       setUiState(null);
       return;
@@ -290,6 +357,7 @@ export function ShipyardPage() {
     setHasEnqueueAcknowledgement(false);
     setEnqueueFeedback(null);
     setEnqueueError(null);
+    setEnqueueErrorFollowUp(null);
     setEnqueueOrderDetails(null);
     setTechnicalErrorDetail(null);
     setReviewSelection({
@@ -302,6 +370,7 @@ export function ShipyardPage() {
     setReviewSelection(null);
     setHasEnqueueAcknowledgement(false);
     setEnqueueError(null);
+    setEnqueueErrorFollowUp(null);
     setEnqueueOrderDetails(null);
   }
 
@@ -319,6 +388,7 @@ export function ShipyardPage() {
     setIsSubmittingEnqueue(true);
     setEnqueueFeedback(null);
     setEnqueueError(null);
+    setEnqueueErrorFollowUp(null);
     setEnqueueOrderDetails(null);
     setTechnicalErrorDetail(null);
 
@@ -334,6 +404,7 @@ export function ShipyardPage() {
       if (result.httpStatus !== 201 || !result.response?.succeeded) {
         const failure = formatShipyardCommandFailure(result.response?.errors[0] ?? null, shipyard.planetName);
         setEnqueueError(failure.primaryMessage);
+        setEnqueueErrorFollowUp(failure.followUp);
         setTechnicalErrorDetail(failure.technicalDetail);
         return;
       }
@@ -349,12 +420,15 @@ export function ShipyardPage() {
 
       const refreshed = await reloadShipyardState(activeCivilizationId, shipyard.planetId, false, true);
       if (!refreshed) {
-        setEnqueueError("La orden se envio, pero la cabina no pudo recargar el estado actualizado.");
-        setTechnicalErrorDetail("Shipyard UI state refresh failed after a successful enqueue.");
+        const failure = formatShipyardCommandFailure("Shipyard UI state refresh failed after a successful enqueue.", shipyard.planetName);
+        setEnqueueError(failure.primaryMessage);
+        setEnqueueErrorFollowUp(failure.followUp);
+        setTechnicalErrorDetail(failure.technicalDetail);
       }
     } catch (requestError) {
       const failure = formatShipyardCommandFailure(requestError instanceof Error ? requestError.message : null, shipyard.planetName);
       setEnqueueError(failure.primaryMessage);
+      setEnqueueErrorFollowUp(failure.followUp);
       setTechnicalErrorDetail(failure.technicalDetail);
     } finally {
       setIsSubmittingEnqueue(false);
@@ -410,7 +484,12 @@ export function ShipyardPage() {
               {isLoading ? "Cargando..." : "Abrir astillero"}
             </button>
           </form>
-          {error ? <p className="error-text">{error}</p> : null}
+          {error ? (
+            <div className="subpanel figma-subpanel figma-mini-card-warn">
+              <p className="error-text">{error}</p>
+              {errorFollowUp ? <p className="figma-panel-note">{errorFollowUp}</p> : null}
+            </div>
+          ) : null}
           {isLoading ? <p className="figma-panel-note">Cargando catalogo, cola, stock y capacidad orbital...</p> : null}
           {!queryCivilizationId && !isLoading ? (
             <p className="figma-panel-note">Introduce un `civilizationId` valido para abrir la cabina del astillero.</p>
@@ -1001,7 +1080,19 @@ export function ShipyardPage() {
           <p>{enqueueFeedback}</p>
         </UiCard>
       ) : null}
-      {enqueueError ? <p className="error-text">{enqueueError}</p> : null}
+      {enqueueError ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Validacion de produccion</p>
+              <h3>La accion no pudo completarse</h3>
+            </div>
+            <UiBadge tone="warn">Sin cambios locales</UiBadge>
+          </div>
+          <p className="error-text">{enqueueError}</p>
+          {enqueueErrorFollowUp ? <p>{enqueueErrorFollowUp}</p> : null}
+        </UiCard>
+      ) : null}
 
       <UiCard className="panel">
         <div className="figma-section-header">

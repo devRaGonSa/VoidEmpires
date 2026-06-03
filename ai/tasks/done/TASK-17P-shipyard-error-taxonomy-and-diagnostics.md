@@ -3,7 +3,7 @@
 ---
 id: TASK-17P-shipyard-error-taxonomy-and-diagnostics
 title: Shipyard error taxonomy and diagnostics
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
