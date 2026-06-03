@@ -3,7 +3,7 @@
 ---
 id: TASK-17H-shipyard-dashboard-overview-capacity-and-stock-summary
 title: Shipyard dashboard overview capacity and stock summary
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

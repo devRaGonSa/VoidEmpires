@@ -26,6 +26,10 @@ function formatDateTime(value: string) {
     : new Intl.DateTimeFormat("es-ES", { dateStyle: "short", timeStyle: "short" }).format(parsed);
 }
 
+function formatCountLabel(count: number, singular: string, plural: string) {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
 export function ShipyardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
@@ -43,6 +47,65 @@ export function ShipyardPage() {
   const shipyard = uiState?.shipyard ?? null;
   const categoryGroups = useMemo(() => groupAssetOptionsByCategory(shipyard?.catalog ?? []), [shipyard?.catalog]);
   const recommendedAsset = useMemo(() => selectRecommendedAssetProduction(shipyard?.catalog ?? []), [shipyard?.catalog]);
+  const readinessNotes = useMemo(() => {
+    if (!shipyard) {
+      return [];
+    }
+
+    const notes = new Set<string>();
+    if (!shipyard.isOwnedByRequestingCivilization) {
+      notes.add("El planeta no esta bajo control de la civilizacion cargada.");
+    }
+
+    if (!shipyard.buildingReadiness.hasPopulationProfile) {
+      notes.add("Falta perfil de tripulacion para sostener produccion orbital.");
+    }
+
+    if (!shipyard.actionAvailability.enqueue.supported) {
+      notes.add(shipyard.actionAvailability.enqueue.reasonLabel);
+    }
+
+    if (shipyard.actionAvailability.completeDue.supported) {
+      notes.add("Hay produccion vencida pendiente de completar.");
+    }
+
+    return [...notes];
+  }, [shipyard]);
+  const stockDigest = useMemo(() => {
+    if (!shipyard || shipyard.orbitalStock.length === 0) {
+      return "Sin reservas orbitales registradas";
+    }
+
+    const totalUnits = shipyard.orbitalStock.reduce((sum, entry) => sum + entry.quantity, 0);
+    const leadStock = [...shipyard.orbitalStock]
+      .sort((left, right) => right.quantity - left.quantity)
+      .slice(0, 2)
+      .map((entry) => `${entry.label} ${entry.quantityLabel}`);
+
+    return `${formatCountLabel(totalUnits, "unidad local", "unidades locales")} en ${formatCountLabel(shipyard.orbitalStock.length, "tipo", "tipos")}${leadStock.length > 0 ? ` · ${leadStock.join(" · ")}` : ""}`;
+  }, [shipyard]);
+  const resourceDigest = useMemo(() => {
+    if (!shipyard || shipyard.stockpile.length === 0) {
+      return "El backend todavia no expone reservas locales utiles.";
+    }
+
+    return shipyard.stockpile
+      .slice()
+      .sort((left, right) => right.quantity - left.quantity)
+      .slice(0, 3)
+      .map((entry) => `${formatResourceType(entry.resourceType)} ${entry.quantity}`)
+      .join(" · ");
+  }, [shipyard]);
+  const readinessTone = shipyard?.actionAvailability.enqueue.supported
+    ? "good"
+    : shipyard?.actionAvailability.completeDue.supported
+      ? "warn"
+      : "neutral";
+  const recommendedActionSummary = !recommendedAsset
+    ? "El catalogo orbital aun no ofrece una siguiente produccion clara."
+    : recommendedAsset.statusKey === "Available"
+      ? `${recommendedAsset.label} puede entrar en cola con ${recommendedAsset.estimatedCostLabel} y ${recommendedAsset.estimatedDurationLabel}.`
+      : `${recommendedAsset.label} sigue bloqueada: ${recommendedAsset.reasonLabel}.`;
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -218,6 +281,95 @@ export function ShipyardPage() {
 
       {shipyard ? (
         <>
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Overview orbital</p>
+                <h3>Resumen estrategico del astillero</h3>
+                <p>Lectura rapida de capacidad, cola, stock y accion recomendada antes de revisar el catalogo.</p>
+              </div>
+              <div className="figma-badge-row">
+                <UiBadge tone={readinessTone}>
+                  {shipyard.actionAvailability.enqueue.supported ? "Produccion habilitable" : "Produccion bloqueada"}
+                </UiBadge>
+                <UiBadge tone={shipyard.queue.length > 0 ? "warn" : "neutral"}>
+                  {shipyard.queue.length > 0 ? `${shipyard.queue.length} en cola` : "Cola vacia"}
+                </UiBadge>
+              </div>
+            </div>
+            <div className="readiness-grid">
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Mando actual</p>
+                    <h4>Contexto seleccionado</h4>
+                  </div>
+                  <UiBadge>{formatPlanetSecondaryLabel(shipyard.planetId) ?? "Planeta activo"}</UiBadge>
+                </div>
+                <div className="figma-data-list">
+                  <div className="figma-data-row"><span>Civilizacion</span><strong>{uiState?.civilizationId ?? activeCivilizationId}</strong></div>
+                  <div className="figma-data-row"><span>Planeta</span><strong>{shipyard.planetName}</strong></div>
+                  <div className="figma-data-row"><span>Sistema</span><strong>{shipyard.solarSystemName}</strong></div>
+                  <div className="figma-data-row"><span>Control</span><strong>{shipyard.isOwnedByRequestingCivilization ? "Propio" : shipyard.ownerCivilizationName ?? "Sin control local"}</strong></div>
+                </div>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Capacidad de produccion</p>
+                    <h4>Readiness orbital</h4>
+                  </div>
+                  <UiBadge tone={readinessTone}>{shipyard.actionAvailability.enqueue.reasonLabel}</UiBadge>
+                </div>
+                <div className="figma-data-list">
+                  <div className="figma-data-row"><span>Nivel astillero</span><strong>{shipyard.buildingReadiness.shipyardLevel}</strong></div>
+                  <div className="figma-data-row"><span>Mando de flota</span><strong>{shipyard.buildingReadiness.fleetCommandCenterLevel}</strong></div>
+                  <div className="figma-data-row"><span>Centro logistico</span><strong>{shipyard.buildingReadiness.logisticsHubLevel}</strong></div>
+                  <div className="figma-data-row"><span>Catalogo visible</span><strong>{formatCountLabel(shipyard.catalog.length, "activo", "activos")}</strong></div>
+                </div>
+                {readinessNotes.length > 0 ? (
+                  <ul className="stack-list compact-list">
+                    {readinessNotes.map((note) => (
+                      <li key={note}>{note}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="figma-panel-note">No hay bloqueos visibles en la lectura actual.</p>
+                )}
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Reservas y stock</p>
+                    <h4>Estado local</h4>
+                  </div>
+                  <UiBadge tone="resource">{formatCountLabel(shipyard.stockpile.length, "recurso", "recursos")}</UiBadge>
+                </div>
+                <div className="figma-data-list">
+                  <div className="figma-data-row"><span>Recursos clave</span><strong>{resourceDigest}</strong></div>
+                  <div className="figma-data-row"><span>Stock orbital</span><strong>{stockDigest}</strong></div>
+                  <div className="figma-data-row"><span>Cola activa</span><strong>{shipyard.queue.length > 0 ? formatCountLabel(shipyard.queue.length, "orden abierta", "ordenes abiertas") : "Sin ordenes abiertas"}</strong></div>
+                </div>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Siguiente paso</p>
+                    <h4>Accion recomendada</h4>
+                  </div>
+                  <UiBadge tone={recommendedAsset?.statusKey === "Available" ? "good" : "warn"}>
+                    {getShipyardPrimaryAction(recommendedAsset)}
+                  </UiBadge>
+                </div>
+                <p>{recommendedActionSummary}</p>
+                <div className="figma-data-list">
+                  <div className="figma-data-row"><span>Enqueue</span><strong>{shipyard.actionAvailability.enqueue.reasonLabel}</strong></div>
+                  <div className="figma-data-row"><span>Completar vencidas</span><strong>{shipyard.actionAvailability.completeDue.reasonLabel}</strong></div>
+                </div>
+              </section>
+            </div>
+          </UiCard>
+
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
