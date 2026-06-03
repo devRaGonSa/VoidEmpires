@@ -3,7 +3,7 @@
 ---
 id: TASK-15W-research-error-taxonomy-and-diagnostics
 title: Research error taxonomy and diagnostics
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

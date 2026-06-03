@@ -3,6 +3,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import { enqueueResearchOrder, fetchResearchUiState } from "../api/researchApi";
 import type { ResearchTechnology, ResearchUiState } from "../utils/researchPresentation";
 import {
+  formatResearchCommandFailure,
+  formatResearchRequestFailure,
   getResearchPrimaryAction,
   groupResearchTechnologiesByCategory,
   mapResearchUiStateToViewModel,
@@ -26,6 +28,7 @@ export function ResearchPage() {
   const [planetIdInput, setPlanetIdInput] = useState(searchParams.get("planetId") ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [technicalErrorDetail, setTechnicalErrorDetail] = useState<string | null>(null);
   const [uiState, setUiState] = useState<ResearchUiState | null>(null);
   const [preparedResearchType, setPreparedResearchType] = useState("");
   const [hasEnqueueAcknowledgement, setHasEnqueueAcknowledgement] = useState(false);
@@ -70,14 +73,17 @@ export function ResearchPage() {
   ) {
     const response = await fetchResearchUiState(civilizationId, planetId);
     if (!response.succeeded || !response.uiState) {
+      const failure = formatResearchCommandFailure(response.errors[0] ?? null);
       if (!preserveCurrentStateOnFailure) {
         setUiState(null);
       }
-      setError(response.errors[0] ?? "La cabina de investigacion no pudo cargarse.");
+      setError(failure.primaryMessage);
+      setTechnicalErrorDetail(failure.technicalDetail);
       return null;
     }
 
     const nextState = mapResearchUiStateToViewModel(response.uiState);
+    setTechnicalErrorDetail(null);
     setUiState(nextState);
 
     if (nextState.selectedPlanetId && nextState.selectedPlanetId !== planetId) {
@@ -98,6 +104,7 @@ export function ResearchPage() {
       if (!queryCivilizationId) {
         setUiState(null);
         setError(null);
+        setTechnicalErrorDetail(null);
         return;
       }
 
@@ -107,8 +114,10 @@ export function ResearchPage() {
       try {
         await reloadResearchState(queryCivilizationId, queryPlanetId, true);
       } catch (requestError) {
+        const failure = formatResearchRequestFailure(requestError instanceof Error ? requestError.message : null);
         setUiState(null);
-        setError(requestError instanceof Error ? requestError.message : "La cabina de investigacion no pudo cargarse.");
+        setError(failure.primaryMessage);
+        setTechnicalErrorDetail(failure.technicalDetail);
       } finally {
         setIsLoading(false);
       }
@@ -123,6 +132,7 @@ export function ResearchPage() {
 
     if (!trimmedCivilizationId) {
       setError("El id de civilizacion es obligatorio.");
+      setTechnicalErrorDetail("Civilization id is required.");
       setUiState(null);
       return;
     }
@@ -150,6 +160,7 @@ export function ResearchPage() {
     setEnqueueFeedback(null);
     setEnqueueError(null);
     setEnqueueOrderDetails(null);
+    setTechnicalErrorDetail(null);
 
     try {
       const result = await enqueueResearchOrder({
@@ -160,18 +171,9 @@ export function ResearchPage() {
       });
 
       if (result.httpStatus !== 201 || !result.response?.succeeded) {
-        const backendError = result.response?.errors[0] ?? null;
-        if (backendError === "Civilization already has an open research order.") {
-          setEnqueueError("Ya existe una investigacion abierta para esta civilizacion. Cierra o espera la orden actual antes de iniciar otra.");
-        } else if (backendError === "Planet resource stockpile was not found.") {
-          setEnqueueError("El planeta no tiene reservas disponibles para sostener esta investigacion.");
-        } else if (backendError === "Insufficient resources.") {
-          setEnqueueError("No hay recursos suficientes para iniciar esta investigacion ahora mismo.");
-        } else if (result.httpStatus === 503) {
-          setEnqueueError("La ruta segura de investigacion no esta disponible en este entorno de desarrollo.");
-        } else {
-          setEnqueueError("La orden no pudo enviarse a la cola de investigacion. Recarga la cabina y vuelve a intentarlo.");
-        }
+        const failure = formatResearchCommandFailure(result.response?.errors[0] ?? null, result.httpStatus);
+        setEnqueueError(failure.primaryMessage);
+        setTechnicalErrorDetail(failure.technicalDetail);
         return;
       }
 
@@ -189,13 +191,12 @@ export function ResearchPage() {
         setEnqueueError(
           "La orden se envio, pero la cabina no pudo recargar el estado actualizado. Refresca la vista para confirmar el resultado final.",
         );
+        setTechnicalErrorDetail("Research UI state refresh failed after a successful enqueue.");
       }
     } catch (requestError) {
-      setEnqueueError(
-        requestError instanceof Error && requestError.message
-          ? `No se pudo enviar la orden de investigacion. ${requestError.message}`
-          : "No se pudo enviar la orden de investigacion. Comprueba la conexion con la API local y vuelve a intentarlo.",
-      );
+      const failure = formatResearchRequestFailure(requestError instanceof Error ? requestError.message : null);
+      setEnqueueError(failure.primaryMessage);
+      setTechnicalErrorDetail(failure.technicalDetail);
     } finally {
       setIsSubmittingEnqueue(false);
     }
@@ -207,6 +208,7 @@ export function ResearchPage() {
     setEnqueueFeedback(null);
     setEnqueueError(null);
     setEnqueueOrderDetails(null);
+    setTechnicalErrorDetail(null);
   }
 
   function handleResearchCancel() {
@@ -215,6 +217,7 @@ export function ResearchPage() {
     setEnqueueFeedback(null);
     setEnqueueError(null);
     setEnqueueOrderDetails(null);
+    setTechnicalErrorDetail(null);
   }
 
   return (
@@ -567,6 +570,11 @@ export function ResearchPage() {
                   <ul className="stack-list compact-list">
                     {uiState.diagnostics.limitations.map((item) => <li key={item}>{item}</li>)}
                   </ul>
+                ) : null}
+                {technicalErrorDetail ? (
+                  <div className="figma-data-list">
+                    <div className="figma-data-row"><span>Detalle tecnico</span><strong>{technicalErrorDetail}</strong></div>
+                  </div>
                 ) : null}
               </UiCard>
             </div>

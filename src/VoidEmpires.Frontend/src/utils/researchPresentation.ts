@@ -78,6 +78,11 @@ export interface ResearchDiagnostics {
   limitations: string[];
 }
 
+export interface ResearchCommandFeedback {
+  primaryMessage: string;
+  technicalDetail: string | null;
+}
+
 export interface ResearchUiState {
   civilizationId: string;
   selectedPlanetId: string | null;
@@ -226,6 +231,91 @@ export function getResearchRequirementLabel(value: ResearchValue, fallback = "Re
 
 export function getResearchBonusLabel(value: ResearchValue, fallback = "Beneficio pendiente de clasificar") {
   return resolveLabel(value, researchBonusCatalog, fallback, true);
+}
+
+export function formatResearchCommandFailure(
+  rawError: string | null | undefined,
+  httpStatus?: number,
+): ResearchCommandFeedback {
+  const technicalDetail = rawError?.trim() || null;
+
+  switch (technicalDetail) {
+    case "Civilization id is required.":
+      return {
+        primaryMessage: "Falta el id de civilizacion. Actualiza la cabina o vuelve a entrar desde Galaxia.",
+        technicalDetail,
+      };
+    case "Civilization was not found.":
+      return {
+        primaryMessage: "La civilizacion no existe en esta seed. Usa el perfil de seed minimal-validation o revisa el contexto.",
+        technicalDetail,
+      };
+    case "Source planet id is required.":
+    case "Planet id is required.":
+      return {
+        primaryMessage: "Falta el planeta de origen. Revisa el contexto visible y vuelve a preparar la accion.",
+        technicalDetail,
+      };
+    case "Planet was not found.":
+    case "Planet resource stockpile was not found.":
+      return {
+        primaryMessage: "El planeta ya no esta disponible para esta accion. Actualiza la cabina y vuelve a intentarlo.",
+        technicalDetail,
+      };
+    case "Research type is required.":
+      return {
+        primaryMessage: "La tecnologia seleccionada ya no es valida. Revisa el catalogo y vuelve a preparar la orden.",
+        technicalDetail,
+      };
+    case "Insufficient resources.":
+      return {
+        primaryMessage: "No hay recursos suficientes para esta investigacion. Revisa los requisitos.",
+        technicalDetail,
+      };
+    case "Civilization already has an open research order.":
+      return {
+        primaryMessage: "Ya existe una investigacion abierta para esta civilizacion. Espera a que la cola quede libre antes de enviar otra.",
+        technicalDetail,
+      };
+    case "Requested date is required.":
+    case "Requested date must be UTC.":
+      return {
+        primaryMessage: "La orden llego incompleta a la API. Actualiza la cabina y vuelve a intentarlo.",
+        technicalDetail,
+      };
+    default:
+      break;
+  }
+
+  if (httpStatus === 503 || technicalDetail === "Request failed with status 503.") {
+    return {
+      primaryMessage: "La persistencia de desarrollo no esta disponible. Esta accion no esta disponible en esta build.",
+      technicalDetail,
+    };
+  }
+
+  if (httpStatus === 404 || technicalDetail === "Request failed with status 404.") {
+    return {
+      primaryMessage: "La ruta de investigacion no esta disponible fuera del entorno de desarrollo.",
+      technicalDetail,
+    };
+  }
+
+  if (httpStatus === 400) {
+    return {
+      primaryMessage: "La API rechazo la solicitud por validacion. Revisa los requisitos y vuelve a preparar la accion.",
+      technicalDetail,
+    };
+  }
+
+  return {
+    primaryMessage: "La cabina de investigacion no pudo completar la accion. Actualiza la cabina y vuelve a intentarlo.",
+    technicalDetail,
+  };
+}
+
+export function formatResearchRequestFailure(message: string | null | undefined): ResearchCommandFeedback {
+  return formatResearchCommandFailure(message, undefined);
 }
 
 export function formatResearchDuration(value: string | number | null | undefined, fallback = "Duracion no disponible") {
