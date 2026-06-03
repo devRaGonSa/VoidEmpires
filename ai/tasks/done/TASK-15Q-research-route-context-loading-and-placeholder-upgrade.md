@@ -3,7 +3,7 @@
 ---
 id: TASK-15Q-research-route-context-loading-and-placeholder-upgrade
 title: Research route context loading and placeholder upgrade
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

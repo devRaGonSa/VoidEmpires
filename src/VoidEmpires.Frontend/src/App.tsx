@@ -4,6 +4,7 @@ import { AppShell } from "./components/ui/AppShell";
 import { ConstructionPage } from "./pages/ConstructionPage";
 import { FleetsPage } from "./pages/FleetsPage";
 import { ModuleCabinPage } from "./pages/ModuleCabinPage";
+import { ResearchPage } from "./pages/ResearchPage";
 import { PlanetPage } from "./pages/PlanetPage";
 import { StrategicMapPage } from "./pages/StrategicMapPage";
 import { specializedPlanetModuleRoutes } from "./utils/planetPresentation";
@@ -43,7 +44,11 @@ export default function App() {
         <Route path="/planet" element={<PlanetPage />} />
         <Route path="/construction" element={<ConstructionPage />} />
         {specializedPlanetModuleRoutes.map((route) => (
-          <Route key={route.path} path={route.path} element={<ModuleCabinPage route={route} />} />
+          <Route
+            key={route.path}
+            path={route.path}
+            element={route.module === "Research" ? <ResearchPage /> : <ModuleCabinPage route={route} />}
+          />
         ))}
         <Route path="/fleets" element={<FleetsPage />} />
       </Routes>

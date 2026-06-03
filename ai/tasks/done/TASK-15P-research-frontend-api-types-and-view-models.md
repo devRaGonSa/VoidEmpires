@@ -3,7 +3,7 @@
 ---
 id: TASK-15P-research-frontend-api-types-and-view-models
 title: Research frontend API types and view models
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

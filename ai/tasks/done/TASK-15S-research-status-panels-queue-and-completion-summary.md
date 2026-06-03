@@ -3,7 +3,7 @@
 ---
 id: TASK-15S-research-status-panels-queue-and-completion-summary
 title: Research status panels queue and completion summary
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

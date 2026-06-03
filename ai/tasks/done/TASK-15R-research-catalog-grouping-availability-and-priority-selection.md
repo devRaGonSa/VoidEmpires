@@ -3,7 +3,7 @@
 ---
 id: TASK-15R-research-catalog-grouping-availability-and-priority-selection
 title: Research catalog grouping availability and priority selection
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
