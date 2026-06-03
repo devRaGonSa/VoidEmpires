@@ -97,7 +97,8 @@ Expected validation outcomes:
 The `minimal-validation` seed is additive and idempotent, not a destructive reset.
 
 - Re-applying it is safe when you only need missing baseline rows such as the sample civilization, seeded planets, baseline groups, or the owned-planet stockpile row to exist.
-- Re-applying it does not delete extra transfers or groups created during validation, reset a mutated group back to its original stationed state, cancel or remove planned transfers, refund spent travel resources, or top up stockpiles that already exist.
+- Re-applying it does not delete extra transfers or groups created during validation, reset a mutated group back to its original stationed state, cancel or remove planned transfers, or refund spent travel resources.
+- Re-applying it does top up the existing `Aurelia` resource stockpile to at least `125` credits, `160` metal, `100` crystal, and `50` gas, but it does not restore the exact pre-mutation balance when higher or lower values already exist.
 - If a previous local validation run already changed fleet, transfer, or resource state and you need the original baseline back exactly, point the app to a fresh disposable local database and then apply `minimal-validation` again.
 - Before re-running create-transfer validation, inspect `GET /api/dev/fleets/ui-state` to confirm the currently stationed groups, active transfers, and current-planet resource context that the next estimate or mutation will use.
 

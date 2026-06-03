@@ -217,5 +217,5 @@ If npm registry access is unavailable in the current environment, record that li
 1. `POST /api/dev/fleets/orbital-transfers/create` and `POST /api/dev/fleets/orbital-transfers/cancel` mutate development data, so repeated validation runs can begin from a changed fleet/resource state.
 2. Inspect `GET /api/dev/fleets/ui-state?civilizationId=00000000-0000-0000-0000-000000000001` before re-running mutation checks.
 3. Re-apply `POST /api/dev/seeds/apply` with `{"profile":"minimal-validation"}` only to restore missing baseline rows.
-4. The current `minimal-validation` seed is additive and idempotent. It does not delete extra transfers or groups, reset reserved/stationed state, or refill an existing stockpile after resources were spent.
+4. The current `minimal-validation` seed is additive and idempotent. It does not delete extra transfers or groups or reset reserved/stationed state, but it does top up the existing `Aurelia` resource stockpile to at least `125` credits, `160` metal, `100` crystal, and `50` gas.
 5. When you need the original baseline back exactly, use a fresh disposable local database and then re-apply the seed.

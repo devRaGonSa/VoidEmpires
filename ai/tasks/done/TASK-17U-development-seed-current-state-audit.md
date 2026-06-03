@@ -3,7 +3,7 @@
 ---
 id: TASK-17U-development-seed-current-state-audit
 title: Development seed current state audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

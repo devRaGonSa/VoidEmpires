@@ -37,7 +37,7 @@ POST /api/dev/seeds/apply
   - The queue starts empty and should read `No hay ordenes activas en la cola.`
 - Audit note:
   - If `/research` shows `Disponibles: 0` after reapplying `minimal-validation`, the primary root cause is stale persisted stockpile state, not the research UI-state mapper. Earlier seed behavior only created the planet stockpile when missing, so consumed resources could survive reseeding and make all cards appear blocked.
-  - The development seed now restores the owned-planet stockpile to at least the research QA baseline (`125` credits, `100` metal, `50` crystal, `20` gas) so `Ingenieria planetaria` remains the deterministic available item for the baseline scenario.
+  - The development seed now restores the owned-planet stockpile to at least `125` credits, `160` metal, `100` crystal, and `50` gas so `Ingenieria planetaria` remains the deterministic available item for the baseline scenario.
   - Reapplying the seed restores the owned-planet stockpile baseline, but it does not delete an already enqueued research order or rebuild the queue to an empty state. For an exact pre-enqueue baseline, use a fresh disposable local database before applying the seed.
   - If you already confirmed one enqueue in the current database, reseeding alone may not restore the exact empty-queue baseline. Use a fresh disposable local database when you need the original pre-enqueue state exactly.
 
