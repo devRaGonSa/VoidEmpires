@@ -198,6 +198,16 @@ export function ResearchPage() {
   }
 
   function handleResearchPreparation(technology: ResearchTechnology) {
+    if (!technology.enqueueCommand) {
+      setPreparedResearchType("");
+      setHasEnqueueAcknowledgement(false);
+      setEnqueueFeedback(null);
+      setEnqueueOrderDetails(null);
+      setEnqueueError("No se puede preparar esta investigacion en esta build.");
+      setTechnicalErrorDetail("Research enqueue command metadata is missing.");
+      return;
+    }
+
     setPreparedResearchType(technology.researchType);
     setHasEnqueueAcknowledgement(false);
     setEnqueueFeedback(null);
@@ -390,7 +400,7 @@ export function ResearchPage() {
                   <div className="planet-building-grid research-tech-grid">
                     {group.technologies.map((technology) => {
                       const visualState = getResearchVisualState(technology);
-                      const canPrepare = hasSafeResearchEnqueue && visualState === "ready";
+                      const canPrepare = hasSafeResearchEnqueue && visualState === "ready" && Boolean(technology.enqueueCommand);
                       const cardClassName = `subpanel figma-subpanel research-tech-card research-tech-card-${visualState}`;
                       const buttonClassName = visualState === "blocked"
                         ? "planet-action-button-blocked"
@@ -450,6 +460,10 @@ export function ResearchPage() {
                         ) : !hasSafeResearchEnqueue ? (
                           <p className="figma-panel-note">
                             Esta build no expone una ruta segura para iniciar investigacion desde la cabina.
+                          </p>
+                        ) : !technology.enqueueCommand ? (
+                          <p className="figma-panel-note">
+                            No se puede preparar esta investigacion en esta build.
                           </p>
                         ) : (
                           <p className="figma-panel-note">

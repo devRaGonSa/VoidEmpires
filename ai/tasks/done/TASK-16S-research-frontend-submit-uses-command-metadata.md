@@ -3,7 +3,7 @@
 ---
 id: TASK-16S-research-frontend-submit-uses-command-metadata
 title: Research frontend submit uses command metadata
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
