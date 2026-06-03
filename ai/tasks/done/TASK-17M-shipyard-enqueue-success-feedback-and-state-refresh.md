@@ -3,7 +3,7 @@
 ---
 id: TASK-17M-shipyard-enqueue-success-feedback-and-state-refresh
 title: Shipyard enqueue success feedback and state refresh
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

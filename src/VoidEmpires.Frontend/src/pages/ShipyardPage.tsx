@@ -884,7 +884,7 @@ export function ShipyardPage() {
             </UiCard>
           ) : null}
 
-          {shipyard.diagnostics.playerFacing.length > 0 || technicalErrorDetail ? (
+          {shipyard.diagnostics.playerFacing.length > 0 || technicalErrorDetail || enqueueOrderDetails ? (
             <details className="fleet-technical-disclosure">
               <summary>
                 <span>Diagnosticos de desarrollo</span>
@@ -904,6 +904,13 @@ export function ShipyardPage() {
                   ))}
                   {technicalErrorDetail ? <li>{technicalErrorDetail}</li> : null}
                 </ul>
+                {enqueueOrderDetails ? (
+                  <div className="figma-data-list">
+                    <div className="figma-data-row"><span>Orden</span><strong>{enqueueOrderDetails.orderId ?? "No devuelto"}</strong></div>
+                    <div className="figma-data-row"><span>Inicio</span><strong>{enqueueOrderDetails.startsAtUtc ? formatDateTime(enqueueOrderDetails.startsAtUtc) : "No devuelto"}</strong></div>
+                    <div className="figma-data-row"><span>Cierre</span><strong>{enqueueOrderDetails.endsAtUtc ? formatDateTime(enqueueOrderDetails.endsAtUtc) : "No devuelto"}</strong></div>
+                  </div>
+                ) : null}
               </UiCard>
             </details>
           ) : null}
@@ -923,24 +930,20 @@ export function ShipyardPage() {
         ) : null
       )}
 
-      {enqueueFeedback ? <p>{enqueueFeedback}</p> : null}
-      {enqueueError ? <p className="error-text">{enqueueError}</p> : null}
-      {enqueueOrderDetails ? (
+      {enqueueFeedback ? (
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Confirmacion registrada</p>
-              <h3>Orden orbital enviada</h3>
+              <h3>Produccion enviada</h3>
+              <p>La cabina recargo cola, catalogo y reservas con el estado confirmado por el backend.</p>
             </div>
-            <UiBadge tone="good">Sin optimismo local</UiBadge>
+            <UiBadge tone="good">Actualizada</UiBadge>
           </div>
-          <div className="figma-data-list">
-            <div className="figma-data-row"><span>Orden</span><strong>{enqueueOrderDetails.orderId ?? "No devuelto"}</strong></div>
-            <div className="figma-data-row"><span>Inicio</span><strong>{enqueueOrderDetails.startsAtUtc ? formatDateTime(enqueueOrderDetails.startsAtUtc) : "No devuelto"}</strong></div>
-            <div className="figma-data-row"><span>Cierre</span><strong>{enqueueOrderDetails.endsAtUtc ? formatDateTime(enqueueOrderDetails.endsAtUtc) : "No devuelto"}</strong></div>
-          </div>
+          <p>{enqueueFeedback}</p>
         </UiCard>
       ) : null}
+      {enqueueError ? <p className="error-text">{enqueueError}</p> : null}
 
       <UiCard className="panel">
         <div className="figma-section-header">
