@@ -923,6 +923,55 @@ export function ShipyardPage() {
               </UiCard>
             </details>
           ) : null}
+
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Handoff a Flotas</p>
+                <h3>Como se relacionan stock, cola y grupos orbitales</h3>
+                <p>Astillero produce y conserva stock local. Flotas inspecciona los grupos orbitales ya visibles y sus movimientos.</p>
+              </div>
+              <UiBadge tone="warn">Sin mutacion de flota</UiBadge>
+            </div>
+            <div className="readiness-grid">
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">En esta cabina</p>
+                    <h4>Produccion y reserva</h4>
+                  </div>
+                  <UiBadge tone="resource">{shipyard.orbitalStock.length} stocks</UiBadge>
+                </div>
+                <div className="figma-data-list">
+                  <div className="figma-data-row"><span>Cola orbital</span><strong>{shipyard.queue.length > 0 ? formatCountLabel(shipyard.queue.length, "orden activa", "ordenes activas") : "Sin ordenes activas"}</strong></div>
+                  <div className="figma-data-row"><span>Stock local</span><strong>{shipyard.orbitalStock.length > 0 ? formatCountLabel(shipyard.orbitalStock.length, "tipo en reserva", "tipos en reserva") : "Sin stock orbital visible"}</strong></div>
+                  <div className="figma-data-row"><span>Lectura de flota</span><strong>Fuera de este modulo</strong></div>
+                </div>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">En Flotas</p>
+                    <h4>Grupos orbitales y movimiento</h4>
+                  </div>
+                  <UiBadge>Cabina vecina</UiBadge>
+                </div>
+                <ul className="stack-list compact-list">
+                  <li>El stock orbital no equivale automaticamente a una escuadra visible en Flotas.</li>
+                  <li>Las ordenes en cola siguen en produccion hasta que el backend las complete y las convierta en stock util.</li>
+                  <li>La asignacion a flota se mantiene fuera de esta cabina en esta build.</li>
+                </ul>
+              </section>
+            </div>
+            <div className="selection-chip-row">
+              <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
+                Abrir Flotas
+              </Link>
+              <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
+                Ver grupos orbitales
+              </Link>
+            </div>
+          </UiCard>
         </>
       ) : (
         !isLoading && queryCivilizationId && !error ? (

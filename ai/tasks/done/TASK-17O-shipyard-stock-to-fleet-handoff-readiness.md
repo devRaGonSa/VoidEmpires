@@ -3,7 +3,7 @@
 ---
 id: TASK-17O-shipyard-stock-to-fleet-handoff-readiness
 title: Shipyard stock to Fleet handoff readiness
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
