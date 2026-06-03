@@ -3,7 +3,7 @@
 ---
 id: TASK-19R-defenses-cockpit-docs-and-smoke-checklist
 title: Defenses cockpit docs and smoke checklist
-status: pending
+status: completed
 type: platform
 team: platform
 supporting_teams:
