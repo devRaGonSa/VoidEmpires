@@ -1,65 +1,62 @@
-# Research Cockpit Backend Contract
+# Research Cockpit Checklist
 
-This note documents the current Research backend surface so later cockpit work can stay dev-safe and avoid inventing gameplay or endpoints.
+Research cockpit v1 is the current development-safe route for browsing technology readiness, queue state, and guarded enqueue actions.
+Use `docs/dev/planet-module-boundaries.md` to keep `/research` separate from the planet dashboard, construction flow, and unsupported gameplay systems.
 
-## Current backend reality
+## Acceptance boundary
 
-- `src/VoidEmpires.Domain/Research/ResearchType.cs` defines the stable research ids as an enum.
-- `src/VoidEmpires.Domain/Research/ResearchCatalog.cs` defines the current catalog entries with base costs and bonus keys.
-- The catalog does not currently expose display names, categories, prerequisites, or per-tech duration fields.
-- `src/VoidEmpires.Domain/Research/ResearchProject.cs` persists civilization research level state.
-- `src/VoidEmpires.Domain/Research/ResearchOrder.cs` persists queue state with civilization id, source planet id, research type, target level, sequence, start/end timestamps, and status.
-- `src/VoidEmpires.Application/Research/IResearchQueueService.cs` and `src/VoidEmpires.Infrastructure/Research/ResearchQueueService.cs` implement the dev-safe enqueue flow.
-- `src/VoidEmpires.Application/Research/IResearchOrderCompletionService.cs` and `src/VoidEmpires.Infrastructure/Research/ResearchOrderCompletionService.cs` implement due-order completion.
-- `src/VoidEmpires.Infrastructure/Research/ResearchUpgradeService.cs` exists as a persistence-backed upgrade service, but it is not exposed by a dev HTTP endpoint.
+- `/research` is a real route.
+- The route stays development-safe and 2D-only.
+- `enqueue research` is allowed only through an explicit confirmation flow when the development endpoint is available.
+- Completing due research remains disabled here because the current backend complete-due endpoint is global rather than cockpit-scoped.
+- Diagnostics stay collapsed unless explicitly opened.
 
-## What the backend can do today
+## Seeded QA scenario
 
-- Enqueue a research order for a civilization and source planet through `POST /api/dev/research/orders/enqueue`.
-- Complete due research orders through `POST /api/dev/research/orders/complete-due`.
-- Persist completed research levels in `ResearchProjects`.
-- Derive research bonuses through `ResearchBonusCalculator`.
+Use the current `minimal-validation` seed for deterministic Research checks:
 
-## What the backend cannot do yet
+- Civilization id: `00000000-0000-0000-0000-000000000001`
+- Owned planet id: `40000000-0000-0000-0000-000000000001`
+- Owned planet name: `Aurelia`
+- Seeded parent system: `Helios Gate`
+- Seeded QA URL: `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Expected comparison baseline:
+  - `Ingenieria planetaria` is immediately available.
+  - `Extraccion de recursos` remains blocked by `Recursos insuficientes`.
+  - The queue starts empty and should read `No hay ordenes activas en la cola.`
 
-- There is no research catalog read endpoint.
-- There is no list endpoint for the current queue.
-- There is no completed-items read endpoint.
-- There is no current-queue read model endpoint.
-- There is no research UI route that should claim to be fully playable on top of the backend alone.
+## Final manual QA
 
-## Safe v1 scope
+Run first:
 
-The first Research cockpit can safely present these pieces:
+```powershell
+dotnet build --no-restore
+dotnet test --no-build
+npm run build --prefix src/VoidEmpires.Frontend
+```
 
-- catalog rows from the known `ResearchType` values
-- visible requirements, costs, and estimated durations
-- readiness and availability as read-only guidance
-- explicit-confirmation enqueue only when the dev endpoint is available and tested
-- explicit-confirmation complete-due only when the dev endpoint is available and tested
+Then confirm on `/research`:
 
-The first Research cockpit must keep these boundaries:
+- The deterministic seeded scenario opens from the exact QA URL above.
+- The active context corresponds to `Aurelia` in the seeded `Helios Gate` system.
+- The route loads with Spanish loading, error, and empty states.
+- The first viewport prioritizes cabina context, resumen, cola y progreso, and the catalog.
+- The catalog shows Spanish technology names and meaningful category groupings.
+- At least one available research card and at least one blocked card are visible together for comparison.
+- Blocked research shows a readable reason rather than raw backend text.
+- Requirement chips, cost, duration, and next-level data wrap cleanly without horizontal overflow.
+- Preparing an available item opens the guarded confirmation panel before any mutation happens.
+- Sending the confirmed order refreshes the queue and updates the catalog from the read model instead of adding optimistic local entries.
+- The success state can show order details returned by the API without exposing raw payloads in the main cockpit.
+- `Completar investigaciones vencidas` stays disabled with a clear placeholder because the current backend route is not scoped safely to this cabin.
+- The diagnostics drawer starts collapsed and keeps technical details secondary.
+- Links toward `Planeta`, `Construccion`, `Flotas`, and `Galaxia` preserve `civilizationId` and `planetId`.
+- No 3D, WebGL, production auth, combat, fleet effects, or espionage execution is introduced from this route.
 
-- no fake or implied tech effects beyond the existing persisted research levels and bonus calculations
-- no hidden unlock logic
-- no production-only mutation routes
-- no claim that list, current queue, or completed items are available from the backend until a real read endpoint exists
+## Intentional exclusions
 
-## Known effects already wired in the codebase
-
-- `ResearchProject` levels are consumed by planet economy, construction, and building-capacity calculations.
-- `ResearchBonusCalculator` exposes the current bonus values for supported research types.
-- `ResearchQueueService` spends stockpile resources when an order is enqueued.
-- `ResearchOrderCompletionService` marks due orders completed and upgrades or creates the persisted project record.
-
-## Test coverage status
-
-- Service and domain tests already cover catalog behavior, duration math, enqueue validation, resource spending, and due-order completion.
-- No dedicated HTTP endpoint tests for the research dev routes were found during this audit.
-
-## Practical frontend guidance
-
-- Treat Research as a dev-only cockpit with explicit confirmation on mutating actions.
-- Keep unsupported queue/history views as placeholders until a read endpoint exists.
-- Prefer Spanish-first labels for player-facing text, but keep technical ids available as secondary metadata.
-
+- No 3D renderer.
+- No complete-due execution from this cockpit.
+- No combat, espionage, or alliance gameplay.
+- No production authentication changes.
+- No hidden technology effects beyond the current backend-supported queue and completion state.

@@ -3,7 +3,7 @@
 Use this checklist to validate the current frontend prototype without confusing it with production UI.
 
 For the current Fleet estimate -> confirm -> create-transfer -> confirm -> cancel-transfer or complete-due paths, pair this document with `docs/dev/fleet-controlled-mutation-checklist.md`.
-For the current Galaxy, Planet, and Construction cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md`, `docs/dev/planet-cockpit-checklist.md`, and `docs/dev/construction-cockpit-checklist.md`.
+For the current Galaxy, Planet, Construction, and Research cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md`, `docs/dev/planet-cockpit-checklist.md`, `docs/dev/construction-cockpit-checklist.md`, and `docs/dev/research-cockpit-checklist.md`.
 For the current module boundary model and placeholder responsibilities, also pair this document with `docs/dev/planet-module-boundaries.md`.
 
 ## Backend prerequisites
@@ -64,14 +64,24 @@ Fleet cockpit v1 acceptance boundary:
    - blocked actions keep readable Spanish guidance and their disabled buttons remain visually secondary
    - the confirmation flow still requires explicit acknowledgement before `Enviar orden`
    - a successful enqueue refreshes the queue and keeps diagnostics collapsed
-12. Open the `Fleets` route.
-13. Enter the same civilization id and confirm the new cockpit layout renders in clearly separated sections:
+12. Open the `Research` route with civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`, then confirm:
+   - the seeded research URL `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` opens the cockpit with deterministic context
+   - the route keeps the `Aurelia` context tied to the seeded `Helios Gate` scenario
+   - the top cockpit strip shows context, summary, and queue before the catalog
+   - the catalog shows Spanish technology names, meaningful categories, and both available and blocked research cards
+   - blocked cards keep readable Spanish guidance and their disabled buttons remain visually secondary
+   - preparing an available item opens the guarded confirmation panel before `Enviar orden`
+   - a successful enqueue refreshes the queue and catalog from the backend-confirmed read model
+   - `Completar investigaciones vencidas` stays visibly disabled when the backend route is not scoped safely to this cabin
+   - diagnostics remain collapsed and keep technical details secondary
+13. Open the `Fleets` route.
+14. Enter the same civilization id and confirm the new cockpit layout renders in clearly separated sections:
    - a top command deck summarizes groups, active transfers, resource contexts, and action hints
    - an orbital group rail lists the available groups with readable asset type, current planet, and compact identifiers
    - a selected-group panel shows asset type, quantity, status, current planet, origin planet, readiness, and active transfer context when present
    - a command column groups estimate inputs, latest estimate state, guarded create-transfer confirmation, and guarded cancel-transfer confirmation together
    - prototype-only mutation controls remain separated from the executable command column
-14. Within the same Fleet cockpit, confirm:
+15. Within the same Fleet cockpit, confirm:
    - loading state appears
    - fleet group summaries render as readable rail cards and raw GUIDs stay secondary to ship or planet labels
    - the read-only estimate flow can submit `POST /api/dev/fleets/orbital-travel/estimate` and render loading, success, validation, not-found, conflict, or network-error feedback without creating a transfer
@@ -87,7 +97,7 @@ Fleet cockpit v1 acceptance boundary:
    - feedback areas for estimate, create-transfer, cancel-transfer, and complete-due results render readable success, warning, or error messaging rather than JSON-first output
    - fleet and strategic-map manifests render as read-only contract panels
    - mutating manifest actions remain labeled but unavailable from the frontend
-15. For the final Fleet cockpit v1 visual review, confirm:
+16. For the final Fleet cockpit v1 visual review, confirm:
    - the development entry and endpoint context stay visible but compact, so gameplay panels appear in the first viewport earlier than before
    - the screen reads mostly in Spanish and no mixed English labels dominate the main flow
    - primary action labels read like gameplay actions, while cockpit or technical flavor stays secondary
@@ -103,7 +113,7 @@ Fleet cockpit v1 acceptance boundary:
    - active transfers remain visible at a glance with route, status, timeline, progress, due-state cues, and only the currently available controlled actions
    - result and error feedback remain readable at a glance, and no raw enum numbers or `NetworkError` text dominates the panel
    - technical manifests and future mutation metadata stay collapsed or clearly secondary under development details
-16. Confirm no buttons other than the explicit `create transfer`, `cancel transfer`, `complete due`, and Planet or Construction `enqueue construction` confirmation paths execute mutating dev endpoints from any route.
+17. Confirm no buttons other than the explicit `create transfer`, `cancel transfer`, `complete due`, Planet or Construction `enqueue construction`, and guarded Research `enqueue research` confirmation paths execute mutating dev endpoints from any route.
 
 Strategic map cockpit v1 visual review:
 
@@ -131,6 +141,16 @@ Construction cockpit v1 visual review:
 - Confirm blocked cards remain visually quieter than available actions.
 - Confirm technical details for command failures remain secondary to the primary Spanish guidance.
 
+Research cockpit v1 visual review:
+
+- Confirm the first viewport reads like a specialized management cockpit rather than a placeholder or debug page.
+- Confirm context, summary, queue, catalog, actions, and diagnostics appear in that order before deep technical detail.
+- Confirm the seeded `Aurelia` scenario visibly includes both available and blocked research cards.
+- Confirm blocked cards remain visually quieter than available actions.
+- Confirm requirement chips, long technology names, and cost rows wrap cleanly without horizontal overflow.
+- Confirm guarded enqueue is the only executable Research mutation path and still requires explicit confirmation.
+- Confirm complete-due remains visibly disabled in this build.
+
 ## Final Block Checklist
 
 - `dotnet build --no-restore` passes.
@@ -139,7 +159,8 @@ Construction cockpit v1 visual review:
 - `ai/tasks/pending` contains only `.gitkeep`.
 - `/planet` behaves as a dashboard, not a full construction catalog.
 - `/construction` stays scoped to general construction.
-- `/research`, `/ground-army`, `/shipyard`, and `/defenses` open placeholders only.
+- `/research` behaves as a development-safe cockpit foundation.
+- `/ground-army`, `/shipyard`, and `/defenses` still open placeholders only.
 - `Galaxy` remains read-only.
 - `Fleets` still preserves context and read-only command flow.
 - No 3D/WebGL renderer is introduced.

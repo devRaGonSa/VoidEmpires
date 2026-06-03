@@ -3,7 +3,7 @@
 ---
 id: TASK-16C-research-cockpit-docs-and-smoke-checklist
 title: Research cockpit docs and smoke checklist
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

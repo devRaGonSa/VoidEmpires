@@ -7,7 +7,7 @@ This guide documents the current frontend boundary model for the planet-related 
 - `/galaxy`: read-only strategic overview and route selection.
 - `/planet`: the planet dashboard and context hub.
 - `/construction`: general civil, economic, and infrastructure construction only.
-- `/research`: specialized research placeholder.
+- `/research`: specialized research cockpit foundation with guarded enqueue and read-model state.
 - `/ground-army`: specialized ground army placeholder.
 - `/shipyard`: specialized shipyard placeholder.
 - `/defenses`: specialized defenses placeholder.
@@ -25,13 +25,13 @@ This guide documents the current frontend boundary model for the planet-related 
 - `Cabina preparada` or `Proximamente` means the surface exists as a route but still acts as a placeholder.
 - `Solo lectura` means the page can explain context and navigation but must not execute gameplay mutations.
 - `Activa` is reserved for routes that can already perform their intended read or controlled action.
+- `Investigacion v1` now sits between placeholder and full gameplay: it supports read-model browsing plus guarded development enqueue, but complete-due remains intentionally disabled in the cockpit.
 
 ## Seeded QA URLs
 
 - Planet dashboard: `/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Construction cockpit: `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
-- Research placeholder: `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Research cockpit: `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Ground army placeholder: `/ground-army?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Shipyard placeholder: `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Defenses placeholder: `/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
-
