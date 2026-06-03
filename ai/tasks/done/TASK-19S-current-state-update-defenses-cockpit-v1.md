@@ -3,7 +3,7 @@
 ---
 id: TASK-19S-current-state-update-defenses-cockpit-v1
 title: Current state update defenses cockpit v1
-status: pending
+status: completed
 type: platform
 team: platform
 supporting_teams:
