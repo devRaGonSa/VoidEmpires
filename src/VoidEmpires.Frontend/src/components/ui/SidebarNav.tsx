@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 
 export interface SidebarNavItem {
   label: string;
@@ -10,6 +10,8 @@ interface SidebarNavProps {
 }
 
 export function SidebarNav({ items }: SidebarNavProps) {
+  const location = useLocation();
+
   return (
     <nav className="sidebar-nav" aria-label="Primary">
       {items.map((item) =>
@@ -18,11 +20,14 @@ export function SidebarNav({ items }: SidebarNavProps) {
             key={item.label}
             to={item.to}
             end={item.to === "/"}
-            className={({ isActive }) =>
-              isActive
+            className={({ isActive }) => {
+              const shouldHighlightGalaxyAlias =
+                item.to === "/galaxy" && location.pathname === "/";
+
+              return isActive || shouldHighlightGalaxyAlias
                 ? "sidebar-nav-item sidebar-nav-item-active"
-                : "sidebar-nav-item"
-            }
+                : "sidebar-nav-item";
+            }}
           >
             {item.label}
           </NavLink>

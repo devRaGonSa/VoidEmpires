@@ -3,7 +3,7 @@
 ---
 id: TASK-18U-galaxy-sidebar-and-shell-active-state-regression
 title: Galaxy sidebar and shell active state regression
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
