@@ -3,7 +3,7 @@
 ---
 id: TASK-13L
 title: Phase 13L - Strategic map layout overflow and responsive hardening
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
