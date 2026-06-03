@@ -833,6 +833,16 @@ select {
   width: 100%;
 }
 
+.planet-action-card-blocked .transfer-confirmation-actions {
+  justify-content: flex-start;
+}
+
+.planet-action-card-blocked .transfer-confirmation-actions button {
+  width: auto;
+  min-width: 0;
+  padding-inline: 12px;
+}
+
 .planet-inline-summary {
   margin-top: 14px;
   padding-top: 12px;
@@ -1756,6 +1766,52 @@ select {
 
   .strategic-system-layout {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1240px) {
+  .app-shell {
+    width: min(100% - 24px, var(--ve-layout-desktop-width));
+  }
+
+  .app-topbar {
+    grid-template-columns: minmax(0, 1fr);
+    padding-block: var(--ve-space-4);
+  }
+
+  .top-resource-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .top-resource-pill-row {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    width: 100%;
+  }
+
+  .shell-intro-grid-compact {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fleet-cockpit-layout,
+  .fleet-action-stage,
+  .fleet-selected-grid,
+  .figma-map-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .planet-building-grid,
+  .planet-queue-grid,
+  .planet-action-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .planet-action-facts {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  .planet-action-card .transfer-confirmation-actions {
+    align-items: flex-start;
   }
 }
 
