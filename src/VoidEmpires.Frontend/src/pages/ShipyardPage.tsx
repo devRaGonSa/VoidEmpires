@@ -133,6 +133,7 @@ export function ShipyardPage() {
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
   const shipyard = uiState?.shipyard ?? null;
   const hasSafeShipyardEnqueue = true;
+  const hasSafeShipyardCompleteDue = false;
   const categoryGroups = useMemo(() => groupAssetOptionsByCategory(shipyard?.catalog ?? []), [shipyard?.catalog]);
   const recommendedAsset = useMemo(() => selectRecommendedAssetProduction(shipyard?.catalog ?? []), [shipyard?.catalog]);
   const catalogBuckets = useMemo(() => {
@@ -817,8 +818,16 @@ export function ShipyardPage() {
                 <div className="figma-data-list">
                   <div className="figma-data-row"><span>Ordenes visibles</span><strong>{formatCountLabel(shipyard.queue.length, "orden", "ordenes")}</strong></div>
                   <div className="figma-data-row"><span>Produccion vencida</span><strong>{dueQueueCount > 0 ? `${dueQueueCount} detectadas` : "No detectada"}</strong></div>
-                  <div className="figma-data-row"><span>Affordance segura</span><strong>{shipyard.actionAvailability.completeDue.supported ? "Pendiente de tarea de cierre" : "No habilitada"}</strong></div>
+                  <div className="figma-data-row"><span>Affordance segura</span><strong>{hasSafeShipyardCompleteDue ? "Disponible con confirmacion" : "No habilitada"}</strong></div>
                 </div>
+                <div className="selection-chip-row">
+                  <button type="button" className="selection-chip" disabled>
+                    Completar produccion vencida no disponible
+                  </button>
+                </div>
+                <p className="figma-panel-note">
+                  El repositorio solo expone un cierre global de produccion vencida. Esta cabina no lo activa hasta que exista una ruta dev segura y acotada al contexto del planeta.
+                </p>
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">

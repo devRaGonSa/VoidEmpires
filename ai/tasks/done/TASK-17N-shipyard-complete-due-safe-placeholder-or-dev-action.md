@@ -3,7 +3,7 @@
 ---
 id: TASK-17N-shipyard-complete-due-safe-placeholder-or-dev-action
 title: Shipyard complete due safe placeholder or dev action
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
