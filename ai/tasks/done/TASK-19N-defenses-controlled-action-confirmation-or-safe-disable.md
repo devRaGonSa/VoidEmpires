@@ -3,7 +3,7 @@
 ---
 id: TASK-19N-defenses-controlled-action-confirmation-or-safe-disable
 title: Defenses controlled action confirmation or safe disable
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

@@ -420,6 +420,9 @@ export function DefensesPage() {
                       <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
                         Gestionar construccion desde Construccion
                       </Link>
+                      <button type="button" className="selection-chip" disabled>
+                        Confirmar defensa aqui no disponible
+                      </button>
                     </div>
                   </article>
                 ))}
@@ -454,6 +457,11 @@ export function DefensesPage() {
                     <p>{option.reasonLabel}</p>
                     {option.affordabilityLabel ? <p className="figma-panel-note">{option.affordabilityLabel}</p> : null}
                     {option.requirementLabel ? <p className="figma-panel-note">{option.requirementLabel}</p> : null}
+                    <div className="selection-chip-row">
+                      <button type="button" className="selection-chip" disabled>
+                        {option.statusKey === "Unsupported" ? "No disponible en esta build" : "Accion bloqueada"}
+                      </button>
+                    </div>
                   </article>
                 ))}
               </div>
@@ -461,6 +469,39 @@ export function DefensesPage() {
             {optionGroups.length === 0 ? (
               <p className="figma-panel-note">El backend no expone una lista defensiva mas amplia todavia. La cabina conserva el contexto y explica el limite con honestidad.</p>
             ) : null}
+          </UiCard>
+
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Ejecucion segura</p>
+                <h3>Como se trata cada accion visible</h3>
+                <p>Defensas no duplica el flujo de confirmacion de Construccion en esta build. La cabina clasifica cada opcion y aplica el tratamiento seguro correspondiente.</p>
+              </div>
+              <UiBadge tone="warn">Sin mutacion local</UiBadge>
+            </div>
+            <div className="readiness-grid">
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Disponible</p>
+                    <h4>Handoff a Construccion</h4>
+                  </div>
+                  <UiBadge tone="good">{availableOptions.length}</UiBadge>
+                </div>
+                <p>Las preparaciones viables se revisan aqui, pero la confirmacion y el enqueue siguen perteneciendo a Construccion.</p>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Bloqueada</p>
+                    <h4>Sin accion inmediata</h4>
+                  </div>
+                  <UiBadge tone="warn">{blockedOptions.length}</UiBadge>
+                </div>
+                <p>Las opciones bloqueadas permanecen visibles con motivo explicito y sin affordances engañosas de confirmacion.</p>
+              </section>
+            </div>
           </UiCard>
 
           <UiCard className="panel">
