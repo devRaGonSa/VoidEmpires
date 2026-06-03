@@ -3,7 +3,7 @@
 ---
 id: TASK-15U-research-queue-refresh-and-success-feedback
 title: Research queue refresh and success feedback
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

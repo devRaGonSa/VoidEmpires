@@ -32,6 +32,11 @@ export function ResearchPage() {
   const [isSubmittingEnqueue, setIsSubmittingEnqueue] = useState(false);
   const [enqueueFeedback, setEnqueueFeedback] = useState<string | null>(null);
   const [enqueueError, setEnqueueError] = useState<string | null>(null);
+  const [enqueueOrderDetails, setEnqueueOrderDetails] = useState<{
+    orderId: string | null;
+    startsAtUtc: string | null;
+    endsAtUtc: string | null;
+  } | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -57,10 +62,17 @@ export function ResearchPage() {
     [uiState?.queue],
   );
 
-  async function reloadResearchState(civilizationId: string, planetId?: string | null, replaceParams = false) {
+  async function reloadResearchState(
+    civilizationId: string,
+    planetId?: string | null,
+    replaceParams = false,
+    preserveCurrentStateOnFailure = false,
+  ) {
     const response = await fetchResearchUiState(civilizationId, planetId);
     if (!response.succeeded || !response.uiState) {
-      setUiState(null);
+      if (!preserveCurrentStateOnFailure) {
+        setUiState(null);
+      }
       setError(response.errors[0] ?? "La cabina de investigacion no pudo cargarse.");
       return null;
     }
@@ -137,6 +149,7 @@ export function ResearchPage() {
     setIsSubmittingEnqueue(true);
     setEnqueueFeedback(null);
     setEnqueueError(null);
+    setEnqueueOrderDetails(null);
 
     try {
       const result = await enqueueResearchOrder({
@@ -162,11 +175,16 @@ export function ResearchPage() {
         return;
       }
 
+      setEnqueueOrderDetails({
+        orderId: result.response.orderId,
+        startsAtUtc: result.response.startsAtUtc,
+        endsAtUtc: result.response.endsAtUtc,
+      });
       setEnqueueFeedback(`${preparedResearch.label} entro en cola para nivel ${preparedResearch.nextLevel}. La cabina se actualizo con el estado confirmado por la API.`);
       setPreparedResearchType("");
       setHasEnqueueAcknowledgement(false);
 
-      const refreshed = await reloadResearchState(uiState.civilizationId, uiState.selectedPlanetId);
+      const refreshed = await reloadResearchState(uiState.civilizationId, uiState.selectedPlanetId, false, true);
       if (!refreshed) {
         setEnqueueError(
           "La orden se envio, pero la cabina no pudo recargar el estado actualizado. Refresca la vista para confirmar el resultado final.",
@@ -188,6 +206,7 @@ export function ResearchPage() {
     setHasEnqueueAcknowledgement(false);
     setEnqueueFeedback(null);
     setEnqueueError(null);
+    setEnqueueOrderDetails(null);
   }
 
   function handleResearchCancel() {
@@ -195,6 +214,7 @@ export function ResearchPage() {
     setHasEnqueueAcknowledgement(false);
     setEnqueueFeedback(null);
     setEnqueueError(null);
+    setEnqueueOrderDetails(null);
   }
 
   return (
@@ -434,6 +454,22 @@ export function ResearchPage() {
 
           {enqueueFeedback ? <p>{enqueueFeedback}</p> : null}
           {enqueueError ? <p className="error-text">{enqueueError}</p> : null}
+          {enqueueOrderDetails ? (
+            <UiCard className="panel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Orden creada</p>
+                  <h3>Resultado confirmado por la API</h3>
+                </div>
+                <UiBadge tone="good">Sin optimismo local</UiBadge>
+              </div>
+              <div className="figma-data-list">
+                <div className="figma-data-row"><span>Orden</span><strong>{enqueueOrderDetails.orderId ?? "No devuelto"}</strong></div>
+                <div className="figma-data-row"><span>Inicio</span><strong>{enqueueOrderDetails.startsAtUtc ? formatDateTime(enqueueOrderDetails.startsAtUtc) : "No devuelto"}</strong></div>
+                <div className="figma-data-row"><span>Cierre</span><strong>{enqueueOrderDetails.endsAtUtc ? formatDateTime(enqueueOrderDetails.endsAtUtc) : "No devuelto"}</strong></div>
+              </div>
+            </UiCard>
+          ) : null}
 
           <UiCard className="panel">
             <div className="figma-section-header">
