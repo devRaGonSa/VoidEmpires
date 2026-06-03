@@ -3,7 +3,7 @@
 ---
 id: TASK-17A-final-research-enqueue-closure-checklist
 title: Final Research enqueue closure checklist
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

@@ -130,6 +130,16 @@ Then confirm on `/research`:
 - After exactly one confirmed enqueue, the queue updates and the reviewed technology changes away from the ready state.
 - Diagnostics remain collapsed by default.
 
+## Block closure gate
+
+Close the current Research enqueue block only after all of the following are true:
+
+- `/research` loads from the seeded QA URL and shows `Disponibles >= 1` before enqueue.
+- The seeded available item opens confirmation and the guarded submit succeeds.
+- The queue refreshes from backend state after success and the enqueued technology no longer appears ready.
+- Blocked research remains non-mutating and complete-due remains visibly disabled.
+- Diagnostics stay collapsed, and no 3D, WebGL, combat, interception, or espionage execution appears in this cockpit.
+
 ## Intentional exclusions
 
 - No 3D renderer.
