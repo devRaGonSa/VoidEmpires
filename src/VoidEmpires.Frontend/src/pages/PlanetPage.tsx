@@ -23,9 +23,11 @@ import {
   formatBuildingType,
   formatConstructionAction,
   formatConstructionActionButtonLabel,
+  formatConstructionCommandFailure,
   formatConstructionEnqueueSuccess,
   formatConstructionAvailability,
   formatConstructionQueuePhase,
+  formatConstructionRequestFailure,
   formatConstructionStatus,
   formatCompactResourceCost,
   formatMissingPlanetResources,
@@ -149,6 +151,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
   const [isSubmittingConstruction, setIsSubmittingConstruction] = useState(false);
   const [constructionFeedback, setConstructionFeedback] = useState<string | null>(null);
   const [constructionError, setConstructionError] = useState<string | null>(null);
+  const [constructionTechnicalDetail, setConstructionTechnicalDetail] = useState<string | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -185,6 +188,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
       setError(null);
       setConstructionFeedback(null);
       setConstructionError(null);
+      setConstructionTechnicalDetail(null);
 
       try {
         const response = await voidEmpiresApi.getPlanetUiState(
@@ -265,6 +269,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
     setIsSubmittingConstruction(true);
     setConstructionFeedback(null);
     setConstructionError(null);
+    setConstructionTechnicalDetail(null);
 
     try {
       const result = await voidEmpiresApi.enqueuePlanetConstruction({
@@ -276,10 +281,12 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
       });
 
       if (result.httpStatus !== 201 || !result.response?.succeeded) {
-        setConstructionError(
-          result.response?.errors[0] ??
-            "La orden no pudo entrar en la cola de construccion.",
+        const failure = formatConstructionCommandFailure(
+          result.response?.errors[0],
+          result.httpStatus,
         );
+        setConstructionError(failure.primaryMessage);
+        setConstructionTechnicalDetail(failure.technicalDetail);
         return;
       }
 
@@ -301,16 +308,18 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         setUiState(refreshed.uiState);
       } else {
         setConstructionError(
-          refreshed.errors[0] ??
-          "La orden se envio, pero la cabina no pudo recargar el estado actualizado.",
+          "La orden se envio, pero la cabina no pudo recargar el estado actualizado. Refresca la vista para confirmar el resultado final.",
+        );
+        setConstructionTechnicalDetail(
+          refreshed.errors[0] ?? "Planet UI state refresh failed after a successful enqueue.",
         );
       }
     } catch (requestError) {
-      setConstructionError(
-        requestError instanceof Error
-          ? requestError.message
-          : "No se pudo enviar la orden de construccion.",
+      const failure = formatConstructionRequestFailure(
+        requestError instanceof Error ? requestError.message : null,
       );
+      setConstructionError(failure.primaryMessage);
+      setConstructionTechnicalDetail(failure.technicalDetail);
     } finally {
       setIsSubmittingConstruction(false);
     }
@@ -321,6 +330,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
     setHasConstructionAcknowledgement(false);
     setConstructionFeedback(null);
     setConstructionError(null);
+    setConstructionTechnicalDetail(null);
   }
 
   return (
@@ -840,6 +850,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                                 setHasConstructionAcknowledgement(false);
                                 setConstructionFeedback(null);
                                 setConstructionError(null);
+                                setConstructionTechnicalDetail(null);
                               }}
                               disabled={!isAvailable}
                             >
@@ -1011,6 +1022,29 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                     </div>
                   </section>
                 </div>
+                {constructionFeedback || constructionTechnicalDetail ? (
+                  <section className="subpanel figma-subpanel">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">Ultimo intento de obra</p>
+                        <h4>Traza de soporte</h4>
+                      </div>
+                      <UiBadge tone={constructionTechnicalDetail ? "warn" : "good"}>
+                        {constructionTechnicalDetail ? "Con observaciones" : "Confirmado"}
+                      </UiBadge>
+                    </div>
+                    <div className="figma-data-list">
+                      <PlanetDataRow
+                        label="Resultado visible"
+                        value={constructionError ?? constructionFeedback ?? "Sin actividad reciente"}
+                      />
+                      <PlanetDataRow
+                        label="Detalle tecnico"
+                        value={constructionTechnicalDetail ?? "Sin detalle tecnico adicional"}
+                      />
+                    </div>
+                  </section>
+                ) : null}
               </UiCard>
             </div>
           </details>

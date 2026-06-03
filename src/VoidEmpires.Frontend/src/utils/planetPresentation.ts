@@ -19,6 +19,11 @@ import {
 
 type PlanetValue = PlanetApiValue | null | undefined;
 
+export interface ConstructionCommandFeedback {
+  primaryMessage: string;
+  technicalDetail: string | null;
+}
+
 const constructionStatusLabels: Record<string, string> = {
   Pending: "Pendiente",
   Active: "Activa",
@@ -200,6 +205,93 @@ export function formatConstructionActionButtonLabel(
     default:
       return "No disponible";
   }
+}
+
+export function formatConstructionCommandFailure(
+  rawError: string | null | undefined,
+  httpStatus?: number,
+): ConstructionCommandFeedback {
+  const technicalDetail = rawError?.trim() || null;
+
+  switch (technicalDetail) {
+    case "Planet already has an open construction order.":
+      return {
+        primaryMessage: "La colonia ya tiene una orden abierta. Espera a que la cola quede libre antes de enviar otra.",
+        technicalDetail,
+      };
+    case "Insufficient resources.":
+      return {
+        primaryMessage: "No hay recursos suficientes para esta obra. Revisa el coste y acumula las reservas que faltan antes de reintentar.",
+        technicalDetail,
+      };
+    case "Planet resource stockpile was not found.":
+      return {
+        primaryMessage: "La reserva del planeta no esta disponible. Recarga la cabina o revisa la seed local antes de volver a intentarlo.",
+        technicalDetail,
+      };
+    case "Planet building capacity would be exceeded.":
+      return {
+        primaryMessage: "La colonia no tiene capacidad libre para ese edificio. Elige otra accion o amplia la infraestructura actual.",
+        technicalDetail,
+      };
+    case "Planet building capacity was not found.":
+      return {
+        primaryMessage: "La capacidad de edificios no esta disponible en este entorno. Recarga la cabina o valida la seed antes de continuar.",
+        technicalDetail,
+      };
+    case "Building was not found.":
+      return {
+        primaryMessage: "El edificio base ya no esta disponible para mejorar. Recarga la cabina y revisa el estado actual antes de reintentar.",
+        technicalDetail,
+      };
+    case "Planet id is required.":
+    case "Civilization id is required.":
+    case "Construction action is required.":
+    case "Building type is required.":
+    case "Requested date is required.":
+    case "Requested date must be UTC.":
+      return {
+        primaryMessage: "La orden llego incompleta a la API. Revisa el contexto activo y vuelve a preparar la accion.",
+        technicalDetail,
+      };
+    default:
+      break;
+  }
+
+  if (httpStatus === 503) {
+    return {
+      primaryMessage: "La API de desarrollo no tiene persistencia disponible. Configura el entorno local antes de enviar la orden.",
+      technicalDetail,
+    };
+  }
+
+  if (httpStatus === 404) {
+    return {
+      primaryMessage: "La ruta de construccion no esta disponible en este entorno. Verifica que las dev endpoints sigan activas.",
+      technicalDetail,
+    };
+  }
+
+  if (httpStatus === 400) {
+    return {
+      primaryMessage: "La API rechazo la orden por validacion. Revisa el planeta activo y vuelve a preparar la accion.",
+      technicalDetail,
+    };
+  }
+
+  return {
+    primaryMessage: "La orden no pudo entrar en la cola de construccion. Recarga la cabina y vuelve a intentarlo.",
+    technicalDetail,
+  };
+}
+
+export function formatConstructionRequestFailure(
+  message: string | null | undefined,
+): ConstructionCommandFeedback {
+  return {
+    primaryMessage: "No se pudo enviar la orden de construccion. Comprueba la conexion con la API local y vuelve a intentarlo.",
+    technicalDetail: message?.trim() || null,
+  };
 }
 
 export function formatPlanetControlStatus(value: PlanetValue) {
