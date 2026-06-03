@@ -346,6 +346,34 @@ public class DevelopmentSeedServiceTests
         Assert.Single(system.TransferOverlays);
     }
 
+    [Fact]
+    public async Task GalaxyCockpitRegressionSmoke_CockpitValidationSeedKeepsProjectableFocusableReadModel()
+    {
+        await using var dbContext = CreateDbContext();
+        await new DevelopmentSeedService(dbContext).ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+
+        var result = await CreateStrategicMapService(dbContext).GetAsync(new GetStrategicMapRequest(CivilizationId));
+
+        Assert.True(result.Systems.Count >= 1);
+        Assert.Contains(result.Systems, system => system.IsVisible || system.IsOwnedByRequestingCivilization);
+
+        var focusableSystem = result.Systems
+            .FirstOrDefault(system => system.IsOwnedByRequestingCivilization)
+            ?? result.Systems.FirstOrDefault(system => system.IsVisible);
+
+        Assert.NotNull(focusableSystem);
+        Assert.NotEqual(Guid.Empty, focusableSystem.SystemId);
+        Assert.False(string.IsNullOrWhiteSpace(focusableSystem.SystemName));
+        Assert.Contains(result.Systems, system =>
+            system.CoordinateX == 12 &&
+            system.CoordinateY == -4 &&
+            system.CoordinateZ == 3);
+        Assert.True(result.Systems.Sum(system => system.Planets.Count) >= 1);
+        Assert.True(
+            focusableSystem.FleetPresence.Count > 0 ||
+            focusableSystem.TransferOverlays.Count > 0);
+    }
+
     private static StrategicMapService CreateStrategicMapService(VoidEmpiresDbContext dbContext) =>
         new(
             dbContext,

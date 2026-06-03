@@ -3,7 +3,7 @@
 ---
 id: TASK-18Z-galaxy-cockpit-automated-regression-smoke
 title: Galaxy cockpit automated regression smoke
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

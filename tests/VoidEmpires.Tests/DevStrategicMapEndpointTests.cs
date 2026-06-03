@@ -141,6 +141,38 @@ public class DevStrategicMapEndpointTests(WebApplicationFactory<Program> factory
         Assert.Single(system.TransferOverlays);
     }
 
+    [Fact]
+    public async Task GalaxyCockpitRegressionSmoke_StrategicMapEndpointKeepsNonEmptyProjectableFocusablePayload()
+    {
+        await using var dbContext = CreateSeededDbContext("cockpit-validation");
+        using var client = CreateConfiguredClient(dbContext);
+
+        using var response = await client.GetAsync($"/api/dev/strategic-map?civilizationId={SeedCivilizationId}");
+        var payload = await response.Content.ReadFromJsonAsync<StrategicMapResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.Map);
+        Assert.True(payload.Succeeded);
+        Assert.True(payload.Map.Systems.Count >= 1);
+        Assert.Contains(payload.Map.Systems, system => system.IsVisible || system.IsOwnedByRequestingCivilization);
+
+        var focusableSystem = payload.Map.Systems
+            .FirstOrDefault(system => system.IsOwnedByRequestingCivilization)
+            ?? payload.Map.Systems.FirstOrDefault(system => system.IsVisible);
+
+        Assert.NotNull(focusableSystem);
+        Assert.NotEqual(Guid.Empty, focusableSystem.SystemId);
+        Assert.False(string.IsNullOrWhiteSpace(focusableSystem.SystemName));
+        Assert.Contains(payload.Map.Systems, system =>
+            system.CoordinateX == 12 &&
+            system.CoordinateY == -4 &&
+            system.CoordinateZ == 3);
+        Assert.True(payload.Map.Systems.Sum(system => system.Planets.Count) >= 1);
+        Assert.True(
+            focusableSystem.FleetPresence.Count > 0 ||
+            focusableSystem.TransferOverlays.Count > 0);
+    }
+
     private HttpClient CreateConfiguredClient(GetStrategicMapResult result) =>
         CreateConfiguredClient(new FakeStrategicMapService(result));
 
