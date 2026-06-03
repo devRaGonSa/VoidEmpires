@@ -3,7 +3,7 @@
 ---
 id: TASK-18O-galaxy-empty-screen-root-cause-audit
 title: Galaxy empty screen root cause audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
