@@ -230,6 +230,7 @@ export function StrategicMapPage() {
   const [civilizationId, setCivilizationId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorTechnicalDetail, setErrorTechnicalDetail] = useState<string | null>(null);
   const [result, setResult] = useState<StrategicMapResult | null>(null);
   const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null);
   const [selectedPlanetId, setSelectedPlanetId] = useState<string | null>(null);
@@ -245,6 +246,11 @@ export function StrategicMapPage() {
   const querySystemId = searchParams.get("systemId");
   const queryPlanetId = searchParams.get("planetId");
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
+  const hasMissingContext = !queryCivilizationId;
+  const hasInvalidContext = isSuspiciousContext;
+  const hasApiError = Boolean(queryCivilizationId && error && !result);
+  const hasEmptyStrategicReadModel = Boolean(result && result.systems.length === 0);
+  const cockpitResult = result && result.systems.length > 0 ? result : null;
 
   const summary = useMemo(() => {
     if (!result) {
@@ -365,6 +371,7 @@ export function StrategicMapPage() {
         setSelectedSystemId(null);
         setSelectedPlanetId(null);
         setError(null);
+        setErrorTechnicalDetail(null);
         setSystemVisualState(null);
         setSystemVisualError(null);
         setPlanetVisualState(null);
@@ -374,6 +381,7 @@ export function StrategicMapPage() {
 
       setIsLoading(true);
       setError(null);
+      setErrorTechnicalDetail(null);
 
       try {
         const response = await voidEmpiresApi.getStrategicMap(queryCivilizationId);
@@ -381,7 +389,8 @@ export function StrategicMapPage() {
           setResult(null);
           setSelectedSystemId(null);
           setSelectedPlanetId(null);
-          setError(response.errors[0] ?? "Strategic map request failed.");
+          setError("No se pudo cargar el mapa de Galaxia.");
+          setErrorTechnicalDetail(response.errors[0] ?? "Strategic map request failed.");
           return;
         }
 
@@ -401,6 +410,7 @@ export function StrategicMapPage() {
         setSystemVisualError(null);
         setPlanetVisualState(null);
         setPlanetVisualError(null);
+        setErrorTechnicalDetail(null);
       } catch (requestError) {
         const message =
           requestError instanceof Error
@@ -409,7 +419,8 @@ export function StrategicMapPage() {
         setResult(null);
         setSelectedSystemId(null);
         setSelectedPlanetId(null);
-        setError(message);
+        setError("No se pudo cargar el mapa de Galaxia.");
+        setErrorTechnicalDetail(message);
       } finally {
         setIsLoading(false);
       }
@@ -480,6 +491,7 @@ export function StrategicMapPage() {
     const trimmedCivilizationId = civilizationId.trim();
     if (!trimmedCivilizationId) {
       setError("El id de civilizacion es obligatorio.");
+      setErrorTechnicalDetail("Civilization id is required.");
       setResult(null);
       setSelectedSystemId(null);
       setSelectedPlanetId(null);
@@ -546,7 +558,7 @@ export function StrategicMapPage() {
             </button>
           </form>
           {error && <p className="error-text">{error}</p>}
-          {!queryCivilizationId && (
+          {hasMissingContext && (
             <p className="figma-panel-note">
               Carga un contexto de civilizacion para abrir Galaxia.
             </p>
@@ -595,12 +607,12 @@ export function StrategicMapPage() {
         </UiCard>
       </div>
 
-      {isSuspiciousContext && (
+      {hasInvalidContext && (
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Contexto sospechoso</p>
-              <h3>El id de civilizacion no parece valido para abrir Galaxia.</h3>
+              <h3>El contexto de civilizacion no es valido para Galaxia.</h3>
             </div>
             <UiBadge tone="warn">Revisar contexto</UiBadge>
           </div>
@@ -615,7 +627,7 @@ export function StrategicMapPage() {
         </UiCard>
       )}
 
-      {!queryCivilizationId && !isSuspiciousContext && (
+      {hasMissingContext && !hasInvalidContext && (
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
@@ -635,7 +647,53 @@ export function StrategicMapPage() {
         </UiCard>
       )}
 
-      {result && (
+      {isLoading && (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Cargando</p>
+              <h3>Sincronizando mapa de Galaxia</h3>
+              <p>Consultando sistemas visibles, planetas conocidos y marcadores tacticos.</p>
+            </div>
+            <UiBadge>Cargando...</UiBadge>
+          </div>
+        </UiCard>
+      )}
+
+      {hasApiError && (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Fallo de carga</p>
+              <h3>No se pudo cargar el mapa de Galaxia.</h3>
+              <p>La cabina sigue accesible, pero el backend no devolvio un mapa util para este contexto.</p>
+            </div>
+            <UiBadge tone="warn">Sin mapa</UiBadge>
+          </div>
+          <p className="error-text">{error}</p>
+          {errorTechnicalDetail ? (
+            <details className="json-details">
+              <summary>Detalle tecnico</summary>
+              <pre className="json-preview">{errorTechnicalDetail}</pre>
+            </details>
+          ) : null}
+        </UiCard>
+      )}
+
+      {hasEmptyStrategicReadModel && (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Estado vacio</p>
+              <h3>No hay sistemas visibles para esta civilizacion.</h3>
+              <p>La solicitud devolvio un contexto valido, pero el teatro visible sigue vacio para esta lectura.</p>
+            </div>
+            <UiBadge tone="warn">Sin sistemas</UiBadge>
+          </div>
+        </UiCard>
+      )}
+
+      {cockpitResult ? (
         <UiCard className="panel strategic-map-panel">
           <div className="figma-map-layout">
             <div className="figma-map-stage">
@@ -652,10 +710,10 @@ export function StrategicMapPage() {
                 <UiBadge>Plano tactico SVG</UiBadge>
               </div>
               <StrategicMap2DView
-                systems={result.systems}
+                systems={cockpitResult.systems}
                 selectedSystemId={selectedSystem?.systemId}
                 onSelectSystem={(systemId) => {
-                  const system = result.systems.find((item) => item.systemId === systemId);
+                  const system = cockpitResult.systems.find((item) => item.systemId === systemId);
                   if (system) {
                     selectSystem(system);
                   }
@@ -675,7 +733,7 @@ export function StrategicMapPage() {
                 <div className="figma-data-list">
                   <DataRow
                     label="Sistemas visibles"
-                    value={String(mapReadModel?.detectedSystems ?? result.systems.length)}
+                    value={String(mapReadModel?.detectedSystems ?? cockpitResult.systems.length)}
                   />
                   <DataRow
                     label="Bajo control"
@@ -707,7 +765,7 @@ export function StrategicMapPage() {
                     <p className="eyebrow">Leyenda</p>
                     <h4>Codigos del mapa</h4>
                   </div>
-                  <UiBadge>{result.systems.length} nodos</UiBadge>
+                  <UiBadge>{cockpitResult.systems.length} nodos</UiBadge>
                 </div>
                 <div className="figma-legend-grid">
                   <div className="figma-legend-item">
@@ -738,7 +796,7 @@ export function StrategicMapPage() {
                 </div>
               </div>
 
-              {(mapReadModel?.detectedSystems ?? result.systems.length) <= 2 && (
+              {(mapReadModel?.detectedSystems ?? cockpitResult.systems.length) <= 2 && (
                 <div className="figma-mini-card figma-mini-card-warn">
                   <div className="figma-section-header">
                     <div>
@@ -851,7 +909,7 @@ export function StrategicMapPage() {
             </aside>
           </div>
         </UiCard>
-      )}
+      ) : null}
 
       {result && result.systems.length === 0 && (
         <UiCard className="panel">
@@ -1170,7 +1228,7 @@ export function StrategicMapPage() {
         </div>
       )}
 
-      {result && !selectedSystem && result.systems.length > 0 && (
+      {cockpitResult && !selectedSystem && cockpitResult.systems.length > 0 && (
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
@@ -1183,7 +1241,7 @@ export function StrategicMapPage() {
         </UiCard>
       )}
 
-      {result && (
+      {cockpitResult ? (
         <details className="technical-disclosure">
           <summary>
             <div>
@@ -1211,19 +1269,19 @@ export function StrategicMapPage() {
                   <div className="figma-data-list">
                     <DataRow
                       label="Filas de alianzas"
-                      value={String(result.allianceReadiness?.length ?? 0)}
+                      value={String(cockpitResult.allianceReadiness?.length ?? 0)}
                     />
                     <DataRow
                       label="Filas de pactos"
-                      value={String(result.alliancePacts?.length ?? 0)}
+                      value={String(cockpitResult.alliancePacts?.length ?? 0)}
                     />
                     <DataRow
                       label="Notas de flota"
-                      value={String(result.interceptionNotes?.length ?? 0)}
+                      value={String(cockpitResult.interceptionNotes?.length ?? 0)}
                     />
                     <DataRow
                       label="Notas de ruta y combustible"
-                      value={String(result.routeFuelNotes?.length ?? 0)}
+                      value={String(cockpitResult.routeFuelNotes?.length ?? 0)}
                     />
                   </div>
                 </section>
@@ -1232,7 +1290,7 @@ export function StrategicMapPage() {
                   <h4>Anotaciones de preparacion</h4>
                   <div className="readiness-grid strategic-readiness-grid">
                     {readinessSections.map((section) => {
-                      const notes = result[section.key];
+                      const notes = cockpitResult[section.key];
                       if (!notes?.length) {
                         return null;
                       }
@@ -1437,7 +1495,7 @@ export function StrategicMapPage() {
             </UiCard>
           </div>
         </details>
-      )}
+      ) : null}
     </section>
   );
 }

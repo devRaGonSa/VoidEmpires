@@ -3,7 +3,7 @@
 ---
 id: TASK-18R-galaxy-frontend-api-error-and-empty-state-visibility
 title: Galaxy frontend API error and empty state visibility
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
