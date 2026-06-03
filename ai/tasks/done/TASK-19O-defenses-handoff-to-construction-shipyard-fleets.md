@@ -3,7 +3,7 @@
 ---
 id: TASK-19O-defenses-handoff-to-construction-shipyard-fleets
 title: Defenses handoff to construction shipyard fleets
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
