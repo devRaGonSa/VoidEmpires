@@ -3,7 +3,7 @@
 ---
 id: TASK-16X-research-complete-due-visual-regression-guard
 title: Research complete-due visual regression guard
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
