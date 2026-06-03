@@ -903,7 +903,7 @@ select {
   background: color-mix(in srgb, var(--ve-color-bg) 30%, transparent);
 }
 
-.construction-handoff-card small {
+.module-status-card small {
   color: color-mix(in srgb, var(--ve-color-text) 66%, var(--ve-color-muted));
   font-size: 0.72rem;
   line-height: 1.4;

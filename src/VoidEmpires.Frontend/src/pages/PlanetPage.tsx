@@ -13,6 +13,7 @@ import type {
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
+import { ModuleStatusCard, PlanetDataRow } from "../components/PlanetModuleLayout";
 import {
   formatColonizationStatus,
   formatCompactGuid,
@@ -49,22 +50,8 @@ import {
   toPlanetCatalogId,
 } from "../utils/planetPresentation";
 
-interface PlanetDataRowProps {
-  label: string;
-  value: string;
-}
-
 interface PlanetPageProps {
   variant?: "planet" | "construction";
-}
-
-function PlanetDataRow({ label, value }: PlanetDataRowProps) {
-  return (
-    <div className="figma-data-row">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
 }
 
 function formatDateTime(value: string) {
@@ -862,16 +849,15 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                 </p>
                 <div className="planet-related-modules-grid">
                   {constructionHandoffModules.map((module) => (
-                    <Link
+                    <ModuleStatusCard
                       key={module.path}
-                      className="planet-related-module-card construction-handoff-card"
+                      className="construction-handoff-card"
                       to={`${module.path}?civilizationId=${activeCivilizationId}&planetId=${planet.planetId}`}
-                    >
-                      <strong>{module.title}</strong>
-                      <span>{module.label}</span>
-                      <span>{module.statusLabel}</span>
-                      <small>{module.summary}</small>
-                    </Link>
+                      title={module.title}
+                      label={module.label}
+                      status={module.statusLabel}
+                      description={module.summary}
+                    />
                   ))}
                 </div>
               </UiCard>
@@ -920,12 +906,14 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                       purpose: "Regresa al mapa estrategico y cambia de contexto.",
                     },
                   ].map((entry) => (
-                    <Link key={entry.path} className="planet-related-module-card" to={entry.path}>
-                      <strong>{entry.title}</strong>
-                      <span>{entry.label}</span>
-                      <span>{entry.status}</span>
-                      <small>{entry.purpose}</small>
-                    </Link>
+                    <ModuleStatusCard
+                      key={entry.path}
+                      to={entry.path}
+                      title={entry.title}
+                      label={entry.label}
+                      status={entry.status}
+                      description={entry.purpose}
+                    />
                   ))}
                 </div>
               </section>

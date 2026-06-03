@@ -3,7 +3,7 @@
 ---
 id: TASK-15F
 title: Shared planet module layout components
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

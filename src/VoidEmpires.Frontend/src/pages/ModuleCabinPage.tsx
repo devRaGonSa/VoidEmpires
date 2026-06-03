@@ -3,26 +3,13 @@ import { Link, useSearchParams } from "react-router-dom";
 import type { PlanetUiStateResult } from "../api/planetTypes";
 import type { PlanetModuleRouteInfo } from "../utils/planetPresentation";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
+import { PlanetDataRow } from "../components/PlanetModuleLayout";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { formatPlanetIdentity, formatPlanetOverviewLine, formatPlanetOwnerLabel, formatPlanetShortReference } from "../utils/planetPresentation";
 
-interface PlanetDataRowProps {
-  label: string;
-  value: string;
-}
-
 interface ModuleCabinPageProps {
   route: PlanetModuleRouteInfo;
-}
-
-function PlanetDataRow({ label, value }: PlanetDataRowProps) {
-  return (
-    <div className="figma-data-row">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
 }
 
 export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
