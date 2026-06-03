@@ -1,6 +1,7 @@
 # Planet Cockpit Checklist
 
 Planet cockpit v1 is the first playable 2D colony-management surface for the current development build.
+Use `docs/dev/planet-module-boundaries.md` to keep the dashboard role separate from construction and specialized placeholder cabinas.
 
 ## Acceptance boundary
 
@@ -35,6 +36,7 @@ npm run build --prefix src/VoidEmpires.Frontend
 Then confirm on `/planet`:
 
 - The deterministic seeded scenario can open as `/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`.
+- The dashboard route should stay focused on `Planeta`, `Construccion`, `Flotas`, and `Galaxia` handoff cards instead of showing the full construction catalog.
 - The route loads with Spanish loading, error, and empty states.
 - When `civilizationId` is present and `planetId` is omitted, the primary or first owned planet is selected.
 - The page header prioritizes planet identity, system, ownership, type, and colony state.

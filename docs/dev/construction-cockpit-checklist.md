@@ -1,6 +1,7 @@
 # Construction Cockpit Checklist
 
 Construction cockpit v1 is the focused route for the current guarded planet construction flow.
+Use `docs/dev/planet-module-boundaries.md` to keep `/construction` limited to general infrastructure and to explain the specialized handoff cards.
 
 ## Acceptance boundary
 
@@ -36,6 +37,7 @@ npm run build --prefix src/VoidEmpires.Frontend
 Then confirm on `/construction`:
 
 - The deterministic seeded scenario can open as `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`.
+- The route should keep specialized modules in the secondary handoff section rather than showing full research, army, shipyard, or defenses catalogs.
 - The first viewport prioritizes active planet context, reserves, local economy, queue state, and the construction catalog.
 - The catalog shows readable building names, readable categories, readable availability badges, and next-step language in Spanish.
 - Blocked cards do not dominate the screen and their disabled buttons remain visually secondary.

@@ -4,6 +4,7 @@ Use this checklist to validate the current frontend prototype without confusing 
 
 For the current Fleet estimate -> confirm -> create-transfer -> confirm -> cancel-transfer or complete-due paths, pair this document with `docs/dev/fleet-controlled-mutation-checklist.md`.
 For the current Galaxy, Planet, and Construction cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md`, `docs/dev/planet-cockpit-checklist.md`, and `docs/dev/construction-cockpit-checklist.md`.
+For the current module boundary model and placeholder responsibilities, also pair this document with `docs/dev/planet-module-boundaries.md`.
 
 ## Backend prerequisites
 
@@ -43,6 +44,7 @@ Fleet cockpit v1 acceptance boundary:
    - no button on the map page executes a gameplay mutation
 9. Open the `Planet` route.
 10. Enter the same civilization id or arrive from Galaxy and confirm:
+   - the seeded dashboard URL `/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` opens the cockpit with the same context as the Galaxy handoff
    - `/planet` loads as a real cockpit route
    - when `planetId` is omitted, the page defaults to the home or first owned planet
    - the first viewport prioritizes identity, colony state, resources, buildings, queue, and guarded actions
@@ -55,6 +57,7 @@ Fleet cockpit v1 acceptance boundary:
    - links back to Galaxy and toward Fleets preserve context
    - diagnostics remain collapsed by default
 11. Open the `Construction` route with civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`, then confirm:
+   - the seeded construction URL `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` opens the focused infrastructure cockpit
    - `/construction` loads as a focused cockpit route for the seeded `Aurelia` colony
    - the seeded scenario exposes existing buildings, visible stockpile, visible local economy, and an empty or clearly readable queue
    - the catalog shows both at least one available action and at least one blocked action for comparison
