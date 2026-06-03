@@ -3,7 +3,7 @@
 ---
 id: TASK-18Y-galaxy-dev-diagnostics-and-state-summary
 title: Galaxy dev diagnostics and state summary
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

@@ -283,6 +283,22 @@ export function StrategicMapPage() {
   const hasApiError = Boolean(queryCivilizationId && error && !result);
   const hasEmptyStrategicReadModel = Boolean(result && result.systems.length === 0);
   const cockpitResult = result && result.systems.length > 0 ? result : null;
+  const shouldRenderDiagnostics = Boolean(
+    queryCivilizationId || result || error || isLoading || hasInvalidContext,
+  );
+  const loadStatusLabel = isLoading
+    ? "Cargando"
+    : hasInvalidContext
+      ? "Contexto invalido"
+      : hasMissingContext
+        ? "Sin contexto"
+        : hasApiError
+          ? "Error de API"
+          : hasEmptyStrategicReadModel
+            ? "Lectura vacia"
+            : cockpitResult
+              ? "Cabina lista"
+              : "Sincronizacion pendiente";
 
   const summary = useMemo(() => {
     if (!result) {
@@ -1271,17 +1287,98 @@ export function StrategicMapPage() {
         </UiCard>
       )}
 
-      {cockpitResult ? (
+      {shouldRenderDiagnostics ? (
         <details className="technical-disclosure">
           <summary>
             <div>
               <p className="eyebrow">Diagnostico secundario</p>
-              <strong>Lecturas tecnicas y payloads de renderer</strong>
+              <strong>Resumen de estado y lecturas tecnicas</strong>
             </div>
             <UiBadge tone="warn">Contraido por defecto</UiBadge>
           </summary>
 
           <div className="technical-disclosure-body">
+            <UiCard className="panel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Resumen de estado</p>
+                  <h3>Contexto actual de Galaxia</h3>
+                  <p>
+                    Esta lectura compacta ayuda a distinguir contexto, carga,
+                    seleccion y densidad del mapa sin abrir payloads completos.
+                  </p>
+                </div>
+                <UiBadge>{loadStatusLabel}</UiBadge>
+              </div>
+              <div className="figma-detail-grid strategic-detail-grid">
+                <section className="subpanel figma-subpanel">
+                  <div className="figma-data-list">
+                    <DataRow
+                      label="Civilizacion"
+                      value={
+                        queryCivilizationId
+                          ? formatCompactGuid(queryCivilizationId)
+                          : "Sin contexto"
+                      }
+                    />
+                    <DataRow label="Estado de carga" value={loadStatusLabel} />
+                    <DataRow
+                      label="Sistemas visibles"
+                      value={String(summary?.systems ?? result?.systems.length ?? 0)}
+                    />
+                    <DataRow
+                      label="Planetas visibles"
+                      value={String(summary?.planets ?? 0)}
+                    />
+                    <DataRow
+                      label="Marcadores de flota"
+                      value={String(summary?.fleets ?? 0)}
+                    />
+                    <DataRow
+                      label="Rutas visibles"
+                      value={String(summary?.transfers ?? 0)}
+                    />
+                  </div>
+                </section>
+
+                <section className="subpanel figma-subpanel">
+                  <div className="figma-data-list">
+                    <DataRow
+                      label="Sistema enfocado"
+                      value={selectedSystem?.systemName ?? "Sin seleccion"}
+                    />
+                    <DataRow
+                      label="Ref. sistema"
+                      value={
+                        selectedSystem?.systemId
+                          ? formatCompactGuid(selectedSystem.systemId)
+                          : "Sin sistema"
+                      }
+                    />
+                    <DataRow
+                      label="Planeta enfocado"
+                      value={selectedPlanet?.planetName ?? "Sin planeta"}
+                    />
+                    <DataRow
+                      label="Ref. planeta"
+                      value={
+                        selectedPlanet?.planetId
+                          ? formatCompactGuid(selectedPlanet.planetId)
+                          : "Sin planeta"
+                      }
+                    />
+                  </div>
+                  {errorTechnicalDetail ? (
+                    <details className="json-details">
+                      <summary>Detalle tecnico del ultimo error</summary>
+                      <pre className="json-preview">{errorTechnicalDetail}</pre>
+                    </details>
+                  ) : null}
+                </section>
+              </div>
+            </UiCard>
+
+            {cockpitResult ? (
             <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
@@ -1345,7 +1442,9 @@ export function StrategicMapPage() {
                 </section>
               </div>
             </UiCard>
+            ) : null}
 
+            {cockpitResult ? (
             <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
@@ -1528,6 +1627,7 @@ export function StrategicMapPage() {
                 </section>
               </div>
             </UiCard>
+            ) : null}
           </div>
         </details>
       ) : null}
