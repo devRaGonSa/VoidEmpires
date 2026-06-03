@@ -13,15 +13,16 @@ Use `docs/dev/planet-module-boundaries.md` to keep the dashboard role separate f
 
 ## Seeded QA scenario
 
-Use the current `minimal-validation` seed for deterministic Planet checks:
+Use `planet-full-validation` for the richer deterministic Planet QA baseline:
 
 - Civilization id: `00000000-0000-0000-0000-000000000001`
 - Owned planet id: `40000000-0000-0000-0000-000000000001`
 - Owned planet name: `Aurelia`
 - Expected comparison baseline:
+  - Existing visible buildings include `Centro de mando`, `Distrito habitacional`, `Planta solar`, and `Mina de metal`.
+  - The queue shows one completed construction-history row and no open order.
   - At least one construction option is immediately available.
   - At least one construction option is blocked by `Recursos insuficientes`.
-  - Existing visible buildings include `Centro de mando` and `Distrito habitacional`.
 
 ## Final manual QA
 

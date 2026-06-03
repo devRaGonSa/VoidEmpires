@@ -45,6 +45,10 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
     private const int FleetValidationMetal = 260;
     private const int FleetValidationCrystal = 160;
     private const int FleetValidationGas = 100;
+    private const int PlanetValidationCredits = 240;
+    private const int PlanetValidationMetal = 220;
+    private const int PlanetValidationCrystal = 140;
+    private const int PlanetValidationGas = 90;
     private static readonly DateTime SeedTransferDepartureAtUtc = new(2026, 6, 2, 8, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime SeedTransferArrivalAtUtc = new(2026, 6, 2, 12, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime FleetValidationTransferDepartureAtUtc = new(2026, 6, 1, 8, 0, 0, DateTimeKind.Utc);
@@ -109,6 +113,14 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
                     $"Validated fleet-focused seed for civilization {SeedCivilizationId}.",
                     "Aurelia keeps multiple stationed groups plus a stationed logistics example.",
                     "Fleet state now includes one standard active transfer and one additional due transfer for complete-due QA."
+                ]);
+                break;
+            case "planet-full-validation":
+                await SeedPlanetFullValidationProfileAsync(cancellationToken);
+                appliedSteps.AddRange([
+                    $"Validated planet-focused seed for civilization {SeedCivilizationId}.",
+                    "Aurelia now includes richer general infrastructure and completed construction history.",
+                    "Planet and Construction keep available and blocked actions without seeding an open queue."
                 ]);
                 break;
             default:
@@ -602,7 +614,8 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
                     x.OriginPlanetId == SeedOwnedPlanetId &&
                     x.CurrentPlanetId == SeedOwnedPlanetId &&
                     x.AssetType == SpaceAssetType.CargoCraft &&
-                    x.Quantity == 1,
+                    x.Quantity == 1 &&
+                    x.Status == OrbitalGroupStatus.Reserved,
                 cancellationToken);
 
         if (dueTransferGroup is null)
@@ -662,6 +675,73 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
         if (stockpile.Gas < FleetValidationGas)
         {
             stockpile.Increase(ResourceType.Gas, FleetValidationGas - stockpile.Gas);
+        }
+    }
+
+    private async Task SeedPlanetFullValidationProfileAsync(CancellationToken cancellationToken)
+    {
+        await SeedMinimalValidationProfileAsync(cancellationToken);
+
+        var stockpile = await dbContext.PlanetResourceStockpiles
+            .SingleAsync(x => x.PlanetId == SeedOwnedPlanetId, cancellationToken);
+
+        EnsurePlanetValidationStockpile(stockpile);
+
+        if (!await dbContext.Set<PlanetBuilding>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId && x.BuildingType == BuildingType.SolarPlant,
+                cancellationToken))
+        {
+            dbContext.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOwnedPlanetId, BuildingType.SolarPlant, 2, 1));
+        }
+
+        if (!await dbContext.Set<PlanetBuilding>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId && x.BuildingType == BuildingType.MetalMine,
+                cancellationToken))
+        {
+            dbContext.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOwnedPlanetId, BuildingType.MetalMine, 2, 1));
+        }
+
+        if (!await dbContext.Set<PlanetConstructionOrder>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId &&
+                    x.BuildingType == BuildingType.SolarPlant &&
+                    x.TargetLevel == 2 &&
+                    x.Status == ConstructionQueueItemStatus.Completed,
+                cancellationToken))
+        {
+            dbContext.Set<PlanetConstructionOrder>().Add(PlanetConstructionOrder.Create(
+                SeedOwnedPlanetId,
+                ConstructionQueueItemAction.Upgrade,
+                BuildingType.SolarPlant,
+                2,
+                1,
+                CockpitValidationConstructionStartAtUtc,
+                CockpitValidationConstructionEndAtUtc,
+                ConstructionQueueItemStatus.Completed));
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static void EnsurePlanetValidationStockpile(PlanetResourceStockpile stockpile)
+    {
+        if (stockpile.Credits < PlanetValidationCredits)
+        {
+            stockpile.Increase(ResourceType.Credits, PlanetValidationCredits - stockpile.Credits);
+        }
+
+        if (stockpile.Metal < PlanetValidationMetal)
+        {
+            stockpile.Increase(ResourceType.Metal, PlanetValidationMetal - stockpile.Metal);
+        }
+
+        if (stockpile.Crystal < PlanetValidationCrystal)
+        {
+            stockpile.Increase(ResourceType.Crystal, PlanetValidationCrystal - stockpile.Crystal);
+        }
+
+        if (stockpile.Gas < PlanetValidationGas)
+        {
+            stockpile.Increase(ResourceType.Gas, PlanetValidationGas - stockpile.Gas);
         }
     }
 }

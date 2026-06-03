@@ -123,9 +123,20 @@ public static class DevelopmentSeedProfiles
         "research-validation",
         ["Research"]);
 
-    public static readonly DevelopmentSeedProfileMetadata PlanetFullValidation = CreatePlannedProfile(
+    public static readonly DevelopmentSeedProfileMetadata PlanetFullValidation = new(
         "planet-full-validation",
-        ["Planet", "Construction"]);
+        true,
+        "Implemented today. Use this for a planet and construction focused richer QA baseline.",
+        "Additive and idempotent. Builds on minimal-validation, preserves dashboard boundaries, and adds extra general buildings plus completed construction history without seeding an open queue.",
+        ["Planet", "Construction"],
+        [
+            "/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
+            "/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001"
+        ],
+        [
+            new("civilizationId", "00000000-0000-0000-0000-000000000001", "Void Seed Civilization"),
+            new("ownedPlanetId", "40000000-0000-0000-0000-000000000001", "Aurelia")
+        ]);
 
     public static IReadOnlyList<DevelopmentSeedProfileMetadata> All { get; } =
     [

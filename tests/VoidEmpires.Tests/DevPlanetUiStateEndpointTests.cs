@@ -113,6 +113,44 @@ public class DevPlanetUiStateEndpointTests(WebApplicationFactory<Program> factor
         Assert.Contains("Planet was not found.", payload.Errors);
     }
 
+    [Fact]
+    public async Task PlanetFullValidationProfileReturnsRicherBuildingsAndCompletedQueueHistory()
+    {
+        using var client = CreateConfiguredClient(CreateSeededDbContext("planet-full-validation"));
+
+        using var response = await client.GetAsync($"/api/dev/planets/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var payload = await response.Content.ReadFromJsonAsync<DevPlanetUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.UiState?.Planet);
+        Assert.True(payload.UiState.Planet.Buildings.Count >= 5);
+        Assert.Contains(payload.UiState.Planet.Buildings, x => x.BuildingType.ToString() == "SolarPlant");
+        Assert.Contains(payload.UiState.Planet.Buildings, x => x.BuildingType.ToString() == "MetalMine");
+        Assert.Single(payload.UiState.Planet.ConstructionQueue);
+        Assert.Equal("Completed", payload.UiState.Planet.ConstructionQueue[0].Status.ToString());
+        Assert.True(payload.UiState.Planet.ConstructionActions.Count(x => x.AvailabilityStatus == "Available") >= 1);
+        Assert.True(payload.UiState.Planet.ConstructionActions.Count(x => x.AvailabilityStatus != "Available") >= 3);
+        Assert.Equal("Available", payload.UiState.Planet.ActionSummary.QueueActionStatus);
+    }
+
+    [Fact]
+    public async Task ReapplyingPlanetFullValidationDoesNotDuplicateBuildingsOrCompletedQueueHistory()
+    {
+        await using var dbContext = CreateSeededDbContext("planet-full-validation");
+        var service = new DevelopmentSeedService(dbContext);
+
+        _ = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("planet-full-validation"));
+
+        var ownedPlanetId = Guid.Parse(SeedOwnedPlanetId);
+        Assert.Equal(1, await dbContext.Set<VoidEmpires.Domain.Buildings.PlanetBuilding>().CountAsync(x => x.PlanetId == ownedPlanetId && x.BuildingType == VoidEmpires.Domain.Buildings.BuildingType.SolarPlant));
+        Assert.Equal(1, await dbContext.Set<VoidEmpires.Domain.Buildings.PlanetBuilding>().CountAsync(x => x.PlanetId == ownedPlanetId && x.BuildingType == VoidEmpires.Domain.Buildings.BuildingType.MetalMine));
+        Assert.Equal(1, await dbContext.Set<VoidEmpires.Domain.Buildings.PlanetConstructionOrder>().CountAsync(x =>
+            x.PlanetId == ownedPlanetId &&
+            x.BuildingType == VoidEmpires.Domain.Buildings.BuildingType.SolarPlant &&
+            x.TargetLevel == 2 &&
+            x.Status == VoidEmpires.Domain.Buildings.ConstructionQueueItemStatus.Completed));
+    }
+
     private HttpClient CreateConfiguredClient(VoidEmpiresDbContext dbContext) =>
         factory.WithWebHostBuilder(builder =>
         {
@@ -128,12 +166,12 @@ public class DevPlanetUiStateEndpointTests(WebApplicationFactory<Program> factor
             });
         }).CreateClient();
 
-    private static VoidEmpiresDbContext CreateSeededDbContext()
+    private static VoidEmpiresDbContext CreateSeededDbContext(string profile = "minimal-validation")
     {
         var dbContext = new VoidEmpiresDbContext(new DbContextOptionsBuilder<VoidEmpiresDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options);
-        new DevelopmentSeedService(dbContext).ApplyAsync(new ApplyDevelopmentSeedRequest("minimal-validation")).GetAwaiter().GetResult();
+        new DevelopmentSeedService(dbContext).ApplyAsync(new ApplyDevelopmentSeedRequest(profile)).GetAwaiter().GetResult();
         return dbContext;
     }
 

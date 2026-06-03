@@ -3,7 +3,7 @@
 ---
 id: TASK-17Z-planet-construction-validation-seed-data-richness
 title: Planet Construction validation seed data richness
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

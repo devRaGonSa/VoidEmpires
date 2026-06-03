@@ -13,7 +13,7 @@ This document is the current source of truth for the development-only `minimal-v
 | `shipyard-validation` | Implemented | Shipyard-focused richer baseline with completed queue history, two local stock rows, one available hull, and blocked comparisons |
 | `fleet-validation` | Implemented | Fleet-focused richer baseline with one extra stationed cargo example and one additional due active transfer |
 | `research-validation` | Planned only | Future research-focused richer baseline |
-| `planet-full-validation` | Planned only | Future richer planet and construction baseline |
+| `planet-full-validation` | Implemented | Planet and Construction richer baseline with extra general buildings and completed queue history |
 
 - Endpoint: `POST /api/dev/seeds/apply`
 - Request body:
@@ -86,6 +86,18 @@ Expected Fleet result:
 - one additional planned transfer is already due for `complete-due` QA
 - one controlled fleet group remains stationed away from `Aurelia`
 - origin-planet resource context remains visible for travel estimate and transfer actions
+
+## `planet-full-validation` additions
+
+`planet-full-validation` builds on `minimal-validation`, tops `Aurelia` up to at least `240` credits, `220` metal, `140` crystal, and `90` gas, adds visible `SolarPlant` and `MetalMine` rows on `Aurelia`, and adds one completed `SolarPlant` upgrade row to the construction history.
+
+Expected Planet and Construction result:
+
+- `/planet` stays a dashboard, not a full construction catalog
+- `/construction` stays scoped to general infrastructure
+- visible building inventory is richer than the minimal baseline
+- the queue shows one completed construction-history row and no open order
+- at least one general construction action remains available while several remain blocked
 
 ### Identity and ownership
 

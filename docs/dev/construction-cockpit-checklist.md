@@ -13,16 +13,16 @@ Use `docs/dev/planet-module-boundaries.md` to keep `/construction` limited to ge
 
 ## Seeded QA scenario
 
-Use the current `minimal-validation` seed for deterministic Construction checks:
+Use `planet-full-validation` for the richer deterministic Construction QA baseline:
 
 - Civilization id: `00000000-0000-0000-0000-000000000001`
 - Owned planet id: `40000000-0000-0000-0000-000000000001`
 - Owned planet name: `Aurelia`
 - Expected comparison baseline:
-  - Existing visible buildings include `Centro de mando` and `Distrito habitacional`.
+  - Existing visible buildings include `Centro de mando`, `Distrito habitacional`, `Planta solar`, and `Mina de metal`.
   - At least one action is immediately available in the catalog.
-  - At least one action is blocked by `Recursos insuficientes`.
-  - The queue starts empty and should read `Sin cola` or `No hay construcciones en cola.`
+  - Several actions remain blocked.
+  - The queue shows one completed construction-history row and no open order.
 
 ## Final manual QA
 
