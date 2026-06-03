@@ -75,7 +75,8 @@ public sealed record DevPlanetBuildingDto(
     BuildingType BuildingType,
     BuildingCategory Category,
     int Level,
-    int Footprint);
+    int Footprint,
+    DevPlanetBuildingDisplayDto? Display = null);
 
 public sealed record DevPlanetConstructionQueueItemDto(
     Guid OrderId,
@@ -88,7 +89,8 @@ public sealed record DevPlanetConstructionQueueItemDto(
     DateTime StartsAtUtc,
     DateTime EndsAtUtc,
     bool IsDue,
-    IReadOnlyList<DevPlanetResourceBalanceDto> Cost);
+    IReadOnlyList<DevPlanetResourceBalanceDto> Cost,
+    DevPlanetConstructionQueueItemDisplayDto? Display = null);
 
 public sealed record DevPlanetConstructionActionSummaryDto(
     string QueueActionStatus,
@@ -96,7 +98,8 @@ public sealed record DevPlanetConstructionActionSummaryDto(
     bool CompleteDueSupported,
     string CompleteDueActionStatus,
     string CompleteDueActionReason,
-    int DueConstructionCount);
+    int DueConstructionCount,
+    DevPlanetConstructionActionSummaryDisplayDto? Display = null);
 
 public sealed record DevPlanetConstructionActionDto(
     ConstructionQueueItemAction Action,
@@ -107,7 +110,31 @@ public sealed record DevPlanetConstructionActionDto(
     string AvailabilityStatus,
     string AvailabilityReason,
     TimeSpan EstimatedDuration,
-    IReadOnlyList<DevPlanetResourceBalanceDto> Cost);
+    IReadOnlyList<DevPlanetResourceBalanceDto> Cost,
+    DevPlanetConstructionActionDisplayDto? Display = null);
+
+public sealed record DevPlanetBuildingDisplayDto(
+    string BuildingTypeLabel,
+    string CategoryLabel);
+
+public sealed record DevPlanetConstructionQueueItemDisplayDto(
+    string ActionLabel,
+    string StatusLabel,
+    string BuildingTypeLabel,
+    string CategoryLabel);
+
+public sealed record DevPlanetConstructionActionSummaryDisplayDto(
+    string QueueActionStatusLabel,
+    string QueueActionReasonLabel,
+    string CompleteDueActionStatusLabel,
+    string CompleteDueActionReasonLabel);
+
+public sealed record DevPlanetConstructionActionDisplayDto(
+    string ActionLabel,
+    string BuildingTypeLabel,
+    string CategoryLabel,
+    string AvailabilityLabel,
+    string AvailabilityReasonLabel);
 
 public sealed record DevPlanetOrbitalContextDto(
     int StationedGroups,

@@ -348,7 +348,10 @@ export function PlanetPage() {
               <PlanetDataRow label="Propiedad" value={formatPlanetOwnerLabel(planet)} />
               <PlanetDataRow
                 label="Capacidad de accion"
-                value={formatConstructionAvailability(planet.actionSummary.queueActionStatus)}
+                value={
+                  planet.actionSummary.display?.queueActionStatusLabel
+                  ?? formatConstructionAvailability(planet.actionSummary.queueActionStatus)
+                }
               />
             </div>
           ) : (
@@ -550,7 +553,7 @@ export function PlanetPage() {
                             key={`${String(building.buildingType)}-${building.level}`}
                             className="subpanel figma-subpanel planet-building-card"
                           >
-                            <strong>{formatBuildingType(building.buildingType)}</strong>
+                            <strong>{building.display?.buildingTypeLabel ?? formatBuildingType(building.buildingType)}</strong>
                             <p className="figma-panel-note">
                               Nivel {building.level} | Huella {building.footprint}
                             </p>
@@ -586,16 +589,16 @@ export function PlanetPage() {
                       <div className="figma-section-header">
                         <div>
                           <p className="eyebrow">Secuencia {item.sequence}</p>
-                          <h4>{formatBuildingType(item.buildingType)}</h4>
+                          <h4>{item.display?.buildingTypeLabel ?? formatBuildingType(item.buildingType)}</h4>
                         </div>
                         <UiBadge tone={item.isDue ? "warn" : "neutral"}>
-                          {formatQueueState(item)}
+                          {item.display?.statusLabel ?? formatQueueState(item)}
                         </UiBadge>
                       </div>
                       <div className="figma-data-list">
                         <PlanetDataRow
                           label="Accion"
-                          value={`${formatConstructionAction(item.action)} a nivel ${item.targetLevel}`}
+                          value={`${item.display?.actionLabel ?? formatConstructionAction(item.action)} a nivel ${item.targetLevel}`}
                         />
                         <PlanetDataRow
                           label="Inicio"
@@ -629,12 +632,13 @@ export function PlanetPage() {
               </div>
               <div className="figma-badge-row">
                 <UiBadge tone={planet.actionSummary.queueActionStatus === "Available" ? "good" : "warn"}>
-                  {formatConstructionAvailability(planet.actionSummary.queueActionStatus)}
+                  {planet.actionSummary.display?.queueActionStatusLabel
+                    ?? formatConstructionAvailability(planet.actionSummary.queueActionStatus)}
                 </UiBadge>
                 <UiBadge tone="warn">
                   {planet.actionSummary.completeDueSupported
                     ? "Cierre disponible"
-                    : "No disponible en esta build"}
+                    : planet.actionSummary.display?.completeDueActionStatusLabel ?? "No disponible en esta build"}
                 </UiBadge>
               </div>
             </div>
@@ -642,7 +646,7 @@ export function PlanetPage() {
             <div className="figma-data-list">
               <PlanetDataRow
                 label="Estado de cola"
-                value={planet.actionSummary.queueActionReason}
+                value={planet.actionSummary.display?.queueActionReasonLabel ?? planet.actionSummary.queueActionReason}
               />
               <PlanetDataRow
                 label="Construcciones vencidas"
@@ -650,7 +654,7 @@ export function PlanetPage() {
               />
               <PlanetDataRow
                 label="Completar vencidas"
-                value={planet.actionSummary.completeDueActionReason}
+                value={planet.actionSummary.display?.completeDueActionReasonLabel ?? planet.actionSummary.completeDueActionReason}
               />
             </div>
 
@@ -674,17 +678,17 @@ export function PlanetPage() {
                         <article key={actionKey} className="subpanel figma-subpanel planet-action-card">
                           <div className="figma-section-header">
                             <div>
-                              <p className="eyebrow">{formatBuildingCategory(action.category)}</p>
-                              <h4>{formatBuildingType(action.buildingType)}</h4>
+                              <p className="eyebrow">{action.display?.categoryLabel ?? formatBuildingCategory(action.category)}</p>
+                              <h4>{action.display?.buildingTypeLabel ?? formatBuildingType(action.buildingType)}</h4>
                             </div>
                             <UiBadge tone={isAvailable ? "good" : "warn"}>
-                              {formatConstructionAvailability(action.availabilityStatus)}
+                              {action.display?.availabilityLabel ?? formatConstructionAvailability(action.availabilityStatus)}
                             </UiBadge>
                           </div>
                           <div className="figma-data-list">
                             <PlanetDataRow
                               label="Orden"
-                              value={`${formatConstructionAction(action.action)} a nivel ${action.targetLevel}`}
+                              value={`${action.display?.actionLabel ?? formatConstructionAction(action.action)} a nivel ${action.targetLevel}`}
                             />
                             <PlanetDataRow
                               label="Estado actual"
@@ -696,7 +700,7 @@ export function PlanetPage() {
                             />
                             <PlanetDataRow label="Coste" value={formatCost(action.cost)} />
                           </div>
-                          <p className="figma-panel-note">{action.availabilityReason}</p>
+                          <p className="figma-panel-note">{action.display?.availabilityReasonLabel ?? action.availabilityReason}</p>
                           <div className="transfer-confirmation-actions">
                             <button
                               type="button"

@@ -232,7 +232,8 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                     x.BuildingType,
                     BuildingCatalog.Get(x.BuildingType).Category,
                     x.Level,
-                    x.Footprint))
+                    x.Footprint,
+                    CreateBuildingDisplay(x.BuildingType)))
                 .ToArray(),
             constructionQueue
                 .Select(x => new DevPlanetConstructionQueueItemDto(
@@ -246,7 +247,8 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                     x.StartsAtUtc,
                     x.EndsAtUtc,
                     x.Status is ConstructionQueueItemStatus.Pending or ConstructionQueueItemStatus.Active && x.EndsAtUtc <= nowUtc,
-                    CreateConstructionCost(x.BuildingType, x.Action == ConstructionQueueItemAction.Upgrade ? x.TargetLevel : 1)))
+                    CreateConstructionCost(x.BuildingType, x.Action == ConstructionQueueItemAction.Upgrade ? x.TargetLevel : 1),
+                    CreateQueueItemDisplay(x.Action, x.Status, x.BuildingType)))
                 .ToArray(),
             actionSummary,
             actions,
@@ -278,6 +280,27 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
             new(ResourceType.Gas, stockpile.Gas)
         ];
 
+    private static DevPlanetBuildingDisplayDto CreateBuildingDisplay(BuildingType buildingType)
+    {
+        var definition = BuildingCatalog.Get(buildingType);
+        return new DevPlanetBuildingDisplayDto(
+            FormatBuildingTypeLabel(buildingType),
+            FormatBuildingCategoryLabel(definition.Category));
+    }
+
+    private static DevPlanetConstructionQueueItemDisplayDto CreateQueueItemDisplay(
+        ConstructionQueueItemAction action,
+        ConstructionQueueItemStatus status,
+        BuildingType buildingType)
+    {
+        var definition = BuildingCatalog.Get(buildingType);
+        return new DevPlanetConstructionQueueItemDisplayDto(
+            FormatConstructionActionLabel(action),
+            FormatConstructionStatusLabel(status),
+            FormatBuildingTypeLabel(buildingType),
+            FormatBuildingCategoryLabel(definition.Category));
+    }
+
     private static IReadOnlyList<DevPlanetResourceBalanceDto> CreateConstructionCost(
         BuildingType buildingType,
         int multiplier)
@@ -307,7 +330,12 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                 false,
                 "Unsupported",
                 "No disponible en esta build.",
-                0);
+                0,
+                CreateActionSummaryDisplay(
+                    "Blocked",
+                    "La colonia no esta controlada por la civilizacion solicitante.",
+                    "Unsupported",
+                    "No disponible en esta build."));
         }
 
         if (!hasStockpile)
@@ -318,7 +346,12 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                 false,
                 "Unsupported",
                 "No disponible en esta build.",
-                dueConstructionCount);
+                dueConstructionCount,
+                CreateActionSummaryDisplay(
+                    "Blocked",
+                    "No se encontro la reserva de recursos del planeta.",
+                    "Unsupported",
+                    "No disponible en esta build."));
         }
 
         if (openConstructionOrderCount > 0)
@@ -329,7 +362,12 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                 false,
                 "Unsupported",
                 "No disponible en esta build.",
-                dueConstructionCount);
+                dueConstructionCount,
+                CreateActionSummaryDisplay(
+                    "Blocked",
+                    "El planeta ya tiene una orden de construccion abierta.",
+                    "Unsupported",
+                    "No disponible en esta build."));
         }
 
         return new DevPlanetConstructionActionSummaryDto(
@@ -338,7 +376,12 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
             false,
             "Unsupported",
             "No disponible en esta build.",
-            dueConstructionCount);
+            dueConstructionCount,
+            CreateActionSummaryDisplay(
+                "Available",
+                "La cola de construccion puede usar el endpoint de desarrollo actual con confirmacion explicita.",
+                "Unsupported",
+                "No disponible en esta build."));
     }
 
     private static DevPlanetConstructionActionDto BuildConstructionAction(
@@ -375,7 +418,12 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                 "Blocked",
                 "Planet already has an open construction order.",
                 estimatedDuration,
-                cost);
+                cost,
+                CreateActionDisplay(
+                    action,
+                    buildingType,
+                    "Blocked",
+                    "El planeta ya tiene una orden de construccion abierta."));
         }
 
         if (stockpile is null)
@@ -389,7 +437,12 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                 "MissingResourceStockpile",
                 "Planet resource stockpile was not found.",
                 estimatedDuration,
-                cost);
+                cost,
+                CreateActionDisplay(
+                    action,
+                    buildingType,
+                    "MissingResourceStockpile",
+                    "No se encontro la reserva de recursos del planeta."));
         }
 
         if (action == ConstructionQueueItemAction.Construct)
@@ -405,7 +458,12 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                     "MissingCapacityData",
                     "Planet building capacity was not found.",
                     estimatedDuration,
-                    cost);
+                    cost,
+                    CreateActionDisplay(
+                        action,
+                        buildingType,
+                        "MissingCapacityData",
+                        "No se encontro la capacidad de edificios del planeta."));
             }
 
             if (!buildingCapacity.CanFit(usedCapacity, definition.Footprint, researchCapacityBonus))
@@ -419,7 +477,12 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                     "CapacityExceeded",
                     "Planet building capacity would be exceeded.",
                     estimatedDuration,
-                    cost);
+                    cost,
+                    CreateActionDisplay(
+                        action,
+                        buildingType,
+                        "CapacityExceeded",
+                        "La capacidad de edificios del planeta se agotaria."));
             }
         }
 
@@ -438,7 +501,12 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                 "InsufficientResources",
                 "Insufficient resources.",
                 estimatedDuration,
-                cost);
+                cost,
+                CreateActionDisplay(
+                    action,
+                    buildingType,
+                    "InsufficientResources",
+                    "No hay recursos suficientes."));
         }
 
         return new DevPlanetConstructionActionDto(
@@ -450,8 +518,99 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
             "Available",
             "Ready for explicit development confirmation.",
             estimatedDuration,
-            cost);
+            cost,
+            CreateActionDisplay(
+                action,
+                buildingType,
+                "Available",
+                "Lista para confirmacion explicita de desarrollo."));
     }
+
+    private static DevPlanetConstructionActionSummaryDisplayDto CreateActionSummaryDisplay(
+        string queueActionStatus,
+        string queueActionReasonLabel,
+        string completeDueActionStatus,
+        string completeDueActionReasonLabel) =>
+        new(
+            FormatConstructionAvailabilityLabel(queueActionStatus),
+            queueActionReasonLabel,
+            FormatConstructionAvailabilityLabel(completeDueActionStatus),
+            completeDueActionReasonLabel);
+
+    private static DevPlanetConstructionActionDisplayDto CreateActionDisplay(
+        ConstructionQueueItemAction action,
+        BuildingType buildingType,
+        string availabilityStatus,
+        string availabilityReasonLabel)
+    {
+        var definition = BuildingCatalog.Get(buildingType);
+        return new DevPlanetConstructionActionDisplayDto(
+            FormatConstructionActionLabel(action),
+            FormatBuildingTypeLabel(buildingType),
+            FormatBuildingCategoryLabel(definition.Category),
+            FormatConstructionAvailabilityLabel(availabilityStatus),
+            availabilityReasonLabel);
+    }
+
+    private static string FormatBuildingTypeLabel(BuildingType buildingType) => buildingType switch
+    {
+        BuildingType.CommandCenter => "Centro de mando",
+        BuildingType.MetalMine => "Mina de metal",
+        BuildingType.CrystalMine => "Mina de cristal",
+        BuildingType.GasExtractor => "Extractor de gas",
+        BuildingType.SolarPlant => "Planta solar",
+        BuildingType.ResearchLab => "Laboratorio de investigacion",
+        BuildingType.Shipyard => "Astillero",
+        BuildingType.DefenseGrid => "Malla defensiva",
+        BuildingType.HabitationDistrict => "Distrito habitacional",
+        BuildingType.MedicalCenter => "Centro medico",
+        BuildingType.MilitaryAcademy => "Academia militar",
+        BuildingType.Barracks => "Barracones",
+        BuildingType.CrewAcademy => "Academia de tripulacion",
+        BuildingType.FleetCommandCenter => "Mando de flota",
+        BuildingType.LogisticsHub => "Centro logistico",
+        _ => buildingType.ToString()
+    };
+
+    private static string FormatBuildingCategoryLabel(BuildingCategory category) => category switch
+    {
+        BuildingCategory.Civilian => "Civil",
+        BuildingCategory.Industrial => "Industrial",
+        BuildingCategory.Research => "Investigacion",
+        BuildingCategory.MilitaryGround => "Militar terrestre",
+        BuildingCategory.MilitarySpace => "Militar espacial",
+        BuildingCategory.Defense => "Defensa",
+        BuildingCategory.Logistics => "Logistica",
+        _ => category.ToString()
+    };
+
+    private static string FormatConstructionActionLabel(ConstructionQueueItemAction action) => action switch
+    {
+        ConstructionQueueItemAction.Construct => "Construir",
+        ConstructionQueueItemAction.Upgrade => "Mejorar",
+        _ => action.ToString()
+    };
+
+    private static string FormatConstructionStatusLabel(ConstructionQueueItemStatus status) => status switch
+    {
+        ConstructionQueueItemStatus.Pending => "Pendiente",
+        ConstructionQueueItemStatus.Active => "Activa",
+        ConstructionQueueItemStatus.Completed => "Completada",
+        ConstructionQueueItemStatus.Cancelled => "Cancelada",
+        _ => status.ToString()
+    };
+
+    private static string FormatConstructionAvailabilityLabel(string availabilityStatus) => availabilityStatus switch
+    {
+        "Available" => "Disponible",
+        "Blocked" => "Bloqueada",
+        "MissingResourceStockpile" => "Sin reservas",
+        "MissingCapacityData" => "Sin capacidad",
+        "CapacityExceeded" => "Capacidad agotada",
+        "InsufficientResources" => "Recursos insuficientes",
+        "Unsupported" => "No disponible",
+        _ => availabilityStatus
+    };
 
     private static IReadOnlyList<string> BuildDiagnosticsNotes(
         bool isOwnedByRequestingCivilization,

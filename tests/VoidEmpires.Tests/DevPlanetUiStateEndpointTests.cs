@@ -73,6 +73,9 @@ public class DevPlanetUiStateEndpointTests(WebApplicationFactory<Program> factor
         Assert.Contains(payload.UiState.Planet.Buildings, x => x.BuildingType.ToString() == "CommandCenter");
         Assert.Contains(payload.UiState.Planet.ConstructionActions, x => x.AvailabilityStatus == "Available");
         Assert.Equal("Available", payload.UiState.Planet.ActionSummary.QueueActionStatus);
+        Assert.Contains(payload.UiState.Planet.Buildings, x => x.Display?.BuildingTypeLabel == "Centro de mando");
+        Assert.Contains(payload.UiState.Planet.ConstructionActions, x => x.Display?.ActionLabel is "Construir" or "Mejorar");
+        Assert.Equal("Disponible", payload.UiState.Planet.ActionSummary.Display?.QueueActionStatusLabel);
         Assert.False(payload.UiState.Planet.ActionSummary.CompleteDueSupported);
     }
 

@@ -3,7 +3,7 @@
 ---
 id: TASK-14D
 title: Phase 14D - Planet cockpit read model display metadata hardening
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

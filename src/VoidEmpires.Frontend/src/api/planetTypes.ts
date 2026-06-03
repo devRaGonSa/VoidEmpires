@@ -111,6 +111,7 @@ export interface PlanetBuildingDto {
   category: PlanetApiValue;
   level: number;
   footprint: number;
+  display?: PlanetBuildingDisplayDto | null;
 }
 
 export interface PlanetConstructionQueueItemDto {
@@ -125,6 +126,7 @@ export interface PlanetConstructionQueueItemDto {
   endsAtUtc: string;
   isDue: boolean;
   cost: PlanetResourceBalanceDto[];
+  display?: PlanetConstructionQueueItemDisplayDto | null;
 }
 
 export interface PlanetConstructionActionSummaryDto {
@@ -134,6 +136,7 @@ export interface PlanetConstructionActionSummaryDto {
   completeDueActionStatus: string;
   completeDueActionReason: string;
   dueConstructionCount: number;
+  display?: PlanetConstructionActionSummaryDisplayDto | null;
 }
 
 export interface PlanetConstructionActionDto {
@@ -146,6 +149,34 @@ export interface PlanetConstructionActionDto {
   availabilityReason: string;
   estimatedDuration: string;
   cost: PlanetResourceBalanceDto[];
+  display?: PlanetConstructionActionDisplayDto | null;
+}
+
+export interface PlanetBuildingDisplayDto {
+  buildingTypeLabel: string;
+  categoryLabel: string;
+}
+
+export interface PlanetConstructionQueueItemDisplayDto {
+  actionLabel: string;
+  statusLabel: string;
+  buildingTypeLabel: string;
+  categoryLabel: string;
+}
+
+export interface PlanetConstructionActionSummaryDisplayDto {
+  queueActionStatusLabel: string;
+  queueActionReasonLabel: string;
+  completeDueActionStatusLabel: string;
+  completeDueActionReasonLabel: string;
+}
+
+export interface PlanetConstructionActionDisplayDto {
+  actionLabel: string;
+  buildingTypeLabel: string;
+  categoryLabel: string;
+  availabilityLabel: string;
+  availabilityReasonLabel: string;
 }
 
 export interface PlanetOrbitalContextDto {
