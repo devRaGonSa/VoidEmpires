@@ -43,7 +43,7 @@ internal static class DevResearchUiStateEndpoints
                                    orderby planet.Id == civilization.HomePlanetId descending, planet.Name, planet.OrbitalSlot
                                    select new DevResearchPlanetDto(planet.Id, planet.Name);
 
-            DevResearchPlanetDto? selectedPlanet = null;
+            DevResearchPlanetDto? selectedPlanet;
             if (planetId is not null)
             {
                 selectedPlanet = await (from planet in dbContext.Set<Planet>().AsNoTracking()
@@ -70,16 +70,19 @@ internal static class DevResearchUiStateEndpoints
                 .OrderBy(x => x.Status == ResearchQueueItemStatus.Pending || x.Status == ResearchQueueItemStatus.Active ? 0 : 1)
                 .ThenBy(x => x.Sequence)
                 .ToListAsync(cancellationToken);
+
             var projects = await dbContext.ResearchProjects
                 .AsNoTracking()
                 .Where(x => x.CivilizationId == civilizationId.Value)
                 .OrderBy(x => x.ResearchType)
                 .ToListAsync(cancellationToken);
+
             var projectLevels = projects.ToDictionary(x => x.ResearchType, x => x.Level);
             var energySystemsLevel = projectLevels.GetValueOrDefault(ResearchType.EnergySystems);
             var stockpile = selectedPlanet is null
                 ? null
                 : await dbContext.PlanetResourceStockpiles.AsNoTracking().SingleOrDefaultAsync(x => x.PlanetId == selectedPlanet.Id, cancellationToken);
+
             var queueDtos = queue.Select(x => new DevResearchOrderDto(
                 x.Id,
                 x.CivilizationId,
@@ -90,6 +93,7 @@ internal static class DevResearchUiStateEndpoints
                 x.StartsAtUtc,
                 x.EndsAtUtc,
                 x.Status)).ToArray();
+
             var projectDtos = projects.Select(x => new DevResearchProjectDto(x.CivilizationId, x.ResearchType, x.Level)).ToArray();
 
             var technologyHints = Enum.GetValues<ResearchType>()
@@ -126,26 +130,27 @@ internal static class DevResearchUiStateEndpoints
                 })
                 .ToArray();
 
-            var response = new DevResearchUiStateResult(
-                civilizationId.Value,
-                selectedPlanet?.Id,
-                selectedPlanet?.Name,
-                Enum.GetValues<ResearchType>().Select(ResearchCatalog.Get).ToArray(),
-                queueDtos,
-                projectDtos,
-                technologyHints,
-                [
-                    $"Catalog entries: {technologyHints.Length}.",
-                    $"Open queue items: {queueDtos.Count(x => x.Status is ResearchQueueItemStatus.Pending or ResearchQueueItemStatus.Active)}.",
-                    $"Completed research projects: {projectDtos.Length}.",
-                ],
-                [
-                    "Read-only dev research cockpit state.",
-                    "No research effects are executed by this endpoint.",
-                    "Only source planet, queue slot, and stockpile readiness are derived here.",
-                ]);
-
-            return Results.Ok(new DevResearchUiStateApiResponse(true, response, []));
+            return Results.Ok(new DevResearchUiStateApiResponse(
+                true,
+                new DevResearchUiStateResult(
+                    civilizationId.Value,
+                    selectedPlanet?.Id,
+                    selectedPlanet?.Name,
+                    Enum.GetValues<ResearchType>().Select(ResearchCatalog.Get).ToArray(),
+                    queueDtos,
+                    projectDtos,
+                    technologyHints,
+                    [
+                        $"Catalog entries: {technologyHints.Length}.",
+                        $"Open queue items: {queueDtos.Count(x => x.Status is ResearchQueueItemStatus.Pending or ResearchQueueItemStatus.Active)}.",
+                        $"Completed research projects: {projectDtos.Length}.",
+                    ],
+                    [
+                        "Read-only dev research cockpit state.",
+                        "No research effects are executed by this endpoint.",
+                        "Only source planet, queue slot, and stockpile readiness are derived here.",
+                    ]),
+                []));
         });
     }
 
@@ -198,3 +203,4 @@ internal sealed record DevResearchTechnologyHintDto(
     TimeSpan EstimatedDuration,
     ResearchCost EstimatedCost,
     IReadOnlyList<string> RequirementKeys);
+
