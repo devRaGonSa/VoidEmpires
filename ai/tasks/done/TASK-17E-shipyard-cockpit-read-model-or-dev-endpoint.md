@@ -3,7 +3,7 @@
 ---
 id: TASK-17E-shipyard-cockpit-read-model-or-dev-endpoint
 title: Shipyard cockpit read model or dev endpoint
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

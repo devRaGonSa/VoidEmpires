@@ -251,6 +251,36 @@ internal static class DevEndpointMappings
                 []));
         });
 
+        app.MapGet("/api/dev/shipyard/ui-state", async (
+            Guid? civilizationId,
+            Guid? planetId,
+            [FromServices] IServiceProvider services,
+            [FromServices] IConfiguration configuration,
+            CancellationToken cancellationToken) =>
+        {
+            if (!IsPersistenceConfigured(configuration))
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (civilizationId is null || civilizationId == Guid.Empty)
+            {
+                return Results.BadRequest(new DevShipyardUiStateApiResponse(false, null, ["Civilization id is required."]));
+            }
+
+            var service = services.GetRequiredService<IDevShipyardUiStateService>();
+            var uiState = await service.GetAsync(
+                new GetDevShipyardUiStateRequest(civilizationId.Value, planetId),
+                cancellationToken);
+
+            if (uiState.Shipyard is null && uiState.Errors.Count > 0)
+            {
+                return Results.NotFound(new DevShipyardUiStateApiResponse(false, null, uiState.Errors));
+            }
+
+            return Results.Ok(new DevShipyardUiStateApiResponse(true, uiState, []));
+        });
+
         app.MapPost("/api/dev/research/orders/enqueue", async (
             EnqueueResearchOrderApiRequest request,
             [FromServices] IServiceProvider services,
@@ -700,6 +730,11 @@ internal sealed record ProcessAssetProductionApiResponse(
     bool Succeeded,
     int CompletedCount,
     IReadOnlyList<Guid> CompletedOrderIds,
+    IReadOnlyList<string> Errors);
+
+internal sealed record DevShipyardUiStateApiResponse(
+    bool Succeeded,
+    GetDevShipyardUiStateResult? UiState,
     IReadOnlyList<string> Errors);
 
 internal sealed record EnqueueResearchOrderApiRequest(
