@@ -1655,6 +1655,13 @@ select {
   opacity: 1;
 }
 
+.planet-action-button-secondary {
+  background: color-mix(in srgb, var(--ve-color-bg) 76%, black) !important;
+  color: color-mix(in srgb, var(--ve-color-text) 86%, var(--ve-color-muted)) !important;
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 48%, transparent) !important;
+  box-shadow: none !important;
+}
+
 .json-details {
   margin-top: 14px;
 }

@@ -3,7 +3,7 @@
 ---
 id: TASK-14I
 title: Phase 14I - Construction confirmation modal gameplay polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

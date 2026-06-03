@@ -295,6 +295,13 @@ export function PlanetPage() {
     }
   }
 
+  function handleConstructionCancel() {
+    setPreparedActionKey("");
+    setHasConstructionAcknowledgement(false);
+    setConstructionFeedback(null);
+    setConstructionError(null);
+  }
+
   return (
     <section className="page-grid">
       <UiCard className="panel panel-hero figma-hero-card">
@@ -755,7 +762,7 @@ export function PlanetPage() {
                               }}
                               disabled={!isAvailable}
                             >
-                              {actionButtonLabel}
+                              {isAvailable && !isPrepared ? "Revisar orden" : actionButtonLabel}
                             </button>
                           </div>
                         </article>
@@ -770,30 +777,45 @@ export function PlanetPage() {
               <section className="subpanel figma-subpanel transfer-confirmation-panel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Confirmacion requerida</p>
-                    <h4>{formatBuildingType(preparedAction.buildingType)}</h4>
+                    <p className="eyebrow">Paso final</p>
+                    <h4>Confirmar orden de construccion</h4>
                     <p>
-                      Revisa coste, objetivo y duracion antes de enviar la orden a la
-                      cola de construccion.
+                      Esta orden enviara una unica accion segura a la cola de
+                      construccion del planeta actual.
                     </p>
                   </div>
                   <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
                 </div>
                 <div className="figma-data-list">
                   <PlanetDataRow
+                    label="Planeta"
+                    value={planet.planetName}
+                  />
+                  <PlanetDataRow
+                    label="Edificio"
+                    value={preparedAction.display?.buildingTypeLabel ?? formatBuildingType(preparedAction.buildingType)}
+                  />
+                  <PlanetDataRow
+                    label="Categoria"
+                    value={preparedAction.display?.categoryLabel ?? formatBuildingCategory(preparedAction.category)}
+                  />
+                  <PlanetDataRow
                     label="Accion"
-                    value={`${formatConstructionAction(preparedAction.action)} a nivel ${preparedAction.targetLevel}`}
+                    value={`${preparedAction.display?.actionLabel ?? formatConstructionAction(preparedAction.action)} a nivel ${preparedAction.targetLevel}`}
+                  />
+                  <PlanetDataRow
+                    label="Estado actual"
+                    value={preparedAction.currentLevel > 0 ? `Nivel ${preparedAction.currentLevel}` : "Sin construir"}
                   />
                   <PlanetDataRow label="Coste" value={formatCompactResourceCost(preparedAction.cost)} />
                   <PlanetDataRow
                     label="Duracion"
                     value={formatDuration(preparedAction.estimatedDuration)}
                   />
-                  <PlanetDataRow
-                    label="Planeta"
-                    value={planet.planetName}
-                  />
                 </div>
+                <p className="figma-panel-note">
+                  {preparedAction.display?.availabilityReasonLabel ?? "La orden esta lista para enviarse cuando confirmes."}
+                </p>
                 <label className="confirmation-checkbox">
                   <input
                     type="checkbox"
@@ -805,6 +827,14 @@ export function PlanetPage() {
                   <span>Confirmo que quiero enviar esta orden de construccion</span>
                 </label>
                 <div className="transfer-confirmation-actions">
+                  <button
+                    type="button"
+                    className="planet-action-button-secondary"
+                    onClick={handleConstructionCancel}
+                    disabled={isSubmittingConstruction}
+                  >
+                    Cancelar revision
+                  </button>
                   <button
                     type="button"
                     onClick={() => void handleConstructionSubmit()}
