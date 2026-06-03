@@ -3,7 +3,7 @@
 ---
 id: TASK-19D-final-galaxy-regression-closure
 title: Final galaxy regression closure
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
