@@ -3,7 +3,7 @@
 ---
 id: TASK-18Q-galaxy-read-model-cockpit-validation-seed-smoke
 title: Galaxy read model cockpit validation seed smoke
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

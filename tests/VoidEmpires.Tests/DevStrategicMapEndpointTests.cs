@@ -3,17 +3,27 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VoidEmpires.Application.Development;
 using VoidEmpires.Application.Fleets;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Galaxy;
+using VoidEmpires.Infrastructure.Development;
+using VoidEmpires.Infrastructure.Persistence;
+using VoidEmpires.Infrastructure.StrategicMap;
+using VoidEmpires.Infrastructure.Visuals;
 
 namespace VoidEmpires.Tests;
 
 public class DevStrategicMapEndpointTests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
 {
+    private static readonly Guid SeedCivilizationId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+    private static readonly Guid SeedSystemId = Guid.Parse("20000000-0000-0000-0000-000000000001");
+    private static readonly Guid SeedOwnedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
+    private static readonly Guid SeedVisibleComparisonPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000002");
     private static readonly Guid CivilizationId = Guid.Parse("5d6b762b-fdd9-453f-b6b4-67d36c7e2cb4");
     private static readonly Guid OtherCivilizationId = Guid.Parse("4921e837-a3e7-4b65-b7a3-5d3086851ed0");
 
@@ -102,6 +112,33 @@ public class DevStrategicMapEndpointTests(WebApplicationFactory<Program> factory
         Assert.DoesNotContain(planets, x => x.CivilizationId == OtherCivilizationId);
     }
 
+    [Fact]
+    public async Task StrategicMapEndpointReturnsNonEmptyCockpitValidationSeededReadModel()
+    {
+        await using var dbContext = CreateSeededDbContext("cockpit-validation");
+        using var client = CreateConfiguredClient(dbContext);
+
+        using var response = await client.GetAsync($"/api/dev/strategic-map?civilizationId={SeedCivilizationId}");
+        var payload = await response.Content.ReadFromJsonAsync<StrategicMapResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.Map);
+        Assert.True(payload.Succeeded);
+        Assert.Empty(payload.Errors);
+        Assert.Equal(SeedCivilizationId, payload.Map.CivilizationId);
+        Assert.NotEmpty(payload.Map.Systems);
+
+        var system = Assert.Single(payload.Map.Systems);
+        Assert.Equal(SeedSystemId, system.SystemId);
+        Assert.Equal("Helios Gate", system.SystemName);
+        Assert.True(system.IsVisible);
+        Assert.True(system.Planets.Count >= 3);
+        Assert.Contains(system.Planets, x => x.PlanetId == SeedOwnedPlanetId && x.IsOwnedByRequestingCivilization);
+        Assert.Contains(system.Planets, x => x.PlanetId == SeedVisibleComparisonPlanetId && x.IsVisible && !x.IsOwnedByRequestingCivilization);
+        Assert.NotEmpty(system.FleetPresence);
+        Assert.NotEmpty(system.TransferOverlays);
+    }
+
     private HttpClient CreateConfiguredClient(GetStrategicMapResult result) =>
         CreateConfiguredClient(new FakeStrategicMapService(result));
 
@@ -116,6 +153,33 @@ public class DevStrategicMapEndpointTests(WebApplicationFactory<Program> factory
                 }));
             builder.ConfigureTestServices(services => services.AddSingleton(strategicMapService));
         }).CreateClient();
+
+    private HttpClient CreateConfiguredClient(VoidEmpiresDbContext dbContext) =>
+        factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Development");
+            builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=voidempires_strategic_map_seeded_endpoint_tests"
+                }));
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddSingleton<IStrategicMapService>(new StrategicMapService(
+                    dbContext,
+                    new SystemVisualStateService(dbContext, new PlanetVisualStateService(dbContext)),
+                    new MapVisibilityService(dbContext)));
+            });
+        }).CreateClient();
+
+    private static VoidEmpiresDbContext CreateSeededDbContext(string profile)
+    {
+        var dbContext = new VoidEmpiresDbContext(new DbContextOptionsBuilder<VoidEmpiresDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options);
+        new DevelopmentSeedService(dbContext).ApplyAsync(new ApplyDevelopmentSeedRequest(profile)).GetAwaiter().GetResult();
+        return dbContext;
+    }
 
     private static GetStrategicMapResult CreateMapResult()
     {

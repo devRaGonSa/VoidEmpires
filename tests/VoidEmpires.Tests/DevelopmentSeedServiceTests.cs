@@ -24,6 +24,8 @@ public class DevelopmentSeedServiceTests
     private static readonly Guid GalaxyId = Guid.Parse("10000000-0000-0000-0000-000000000001");
     private static readonly Guid SystemId = Guid.Parse("20000000-0000-0000-0000-000000000001");
     private static readonly Guid OwnedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
+    private static readonly Guid VisibleComparisonPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000002");
+    private static readonly Guid KnownComparisonPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000003");
     private const int SeededConstructionSequenceStart = 10_000;
     private const int SeededResearchSequenceStart = 20_000;
     private const int SeededAssetProductionSequenceStart = 30_000;
@@ -315,9 +317,15 @@ public class DevelopmentSeedServiceTests
         var result = await CreateStrategicMapService(dbContext).GetAsync(new GetStrategicMapRequest(CivilizationId));
 
         var system = Assert.Single(result.Systems);
+        Assert.Equal(SystemId, system.SystemId);
+        Assert.Equal("Helios Gate", system.SystemName);
         Assert.True(system.IsVisible);
         Assert.Equal(3, system.Planets.Count);
         Assert.Contains(system.Planets, x => x.PlanetId == OwnedPlanetId && x.IsOwnedByRequestingCivilization);
+        Assert.Contains(system.Planets, x => x.PlanetId == VisibleComparisonPlanetId && x.IsVisible && !x.IsOwnedByRequestingCivilization);
+        Assert.Contains(system.Planets, x => x.PlanetId == KnownComparisonPlanetId && x.IsVisible && !x.IsOwnedByRequestingCivilization);
+        Assert.NotEmpty(system.FleetPresence);
+        Assert.NotEmpty(system.TransferOverlays);
     }
 
     private static StrategicMapService CreateStrategicMapService(VoidEmpiresDbContext dbContext) =>
