@@ -3,7 +3,7 @@
 ---
 id: TASK-15K
 title: Current state update module boundaries
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

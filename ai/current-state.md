@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 14T - Planet construction readability v1`.
+The repository is consolidated through `Phase 15L - Planet module boundaries and construction scope separation`.
 
 ## Repository Reality
 
@@ -27,9 +27,22 @@ The repository contains `VoidEmpires.sln` with:
 Current frontend cockpit baseline:
 
 - Galaxy v1 remains read-only and now prioritizes gameplay hierarchy over technical metadata, keeping diagnostics collapsed by default.
-- Planet v1 now exists at `/planet` as a 2D colony-management cockpit with a development-only UI-state read endpoint, Spanish-first presentation helpers, deterministic seeded economy and construction context, readable resources or production or capacity sections, grouped buildings, queue visibility, guarded construction enqueue, and a disabled complete-due placeholder.
-- Construction v1 now exists at `/construction` as a focused command-center route for the same owned-planet construction state, with catalog readability, safe explicit confirmations, Spanish error guidance, queue refresh feedback, and context-preserving links across Galaxy, Planet, and Fleets.
-- Fleets remains the accepted dev-cockpit foundation and now supports simple URL-based context links into both Planet and Construction.
+- Planet v1 now exists at `/planet` as a 2D dashboard and context hub with a development-only UI-state read endpoint, Spanish-first presentation helpers, deterministic seeded economy and construction context, readable resources or production or capacity sections, grouped buildings, queue visibility, guarded construction enqueue, and dashboard handoff cards for Construction, Fleets, Galaxy, and the specialized placeholders.
+- Construction v1 now exists at `/construction` as a focused general-infrastructure route for the same owned-planet construction state, with catalog readability, safe explicit confirmations, Spanish error guidance, queue refresh feedback, and secondary handoff cards for Research, Ground Army, Shipyard, and Defenses.
+- Research, Ground Army, Shipyard, and Defenses now have dedicated placeholder routes that keep their boundaries explicit even before specialized gameplay exists.
+- Fleets remains the accepted dev-cockpit foundation and now supports simple URL-based context links into both Planet and Construction while keeping destination context optional.
+- Query-context helpers now centralize `civilizationId` and `planetId` navigation so the cockpit links stop rebuilding URLs by hand.
+- Module-specific catalog duplication has been reduced by extracting shared planet layout components and route builders.
+- The current frontend boundary model is documented in `docs/dev/planet-module-boundaries.md`.
+
+Current intentional exclusions:
+
+- no 3D or WebGL renderer
+- no combat gameplay
+- no real interception execution
+- no espionage gameplay
+- no production authentication
+- no real specialized module execution yet
 
 Current implemented foundations:
 
