@@ -3,7 +3,7 @@
 ---
 id: TASK-17C-shipyard-backend-contract-discovery-and-scope-audit
 title: Shipyard backend contract discovery and scope audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
