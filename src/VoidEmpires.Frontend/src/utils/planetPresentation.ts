@@ -4,11 +4,13 @@ import type {
   PlanetCockpitDto,
   PlanetCatalogEntry,
   PlanetConstructionActionDto,
+  PlanetModule,
 } from "../api/planetTypes";
 import {
   planetBuildingCategoryCatalog,
   planetBuildingTypeCatalog,
   planetConstructionActionCatalog,
+  planetModuleCatalog,
 } from "../api/planetTypes";
 import {
   formatCompactGuid,
@@ -138,6 +140,100 @@ export function formatBuildingCategory(value: PlanetValue) {
 
 export function formatConstructionAction(value: PlanetValue) {
   return resolveCatalogLabel(value, planetConstructionActionCatalog);
+}
+
+function resolveModuleByCategory(category: PlanetValue): PlanetModule {
+  const entry = findCatalogEntry(category, planetBuildingCategoryCatalog);
+
+  // Some infrastructure is shared between the planet overview and construction
+  // surfaces, but research, army, shipyard, defense, and logistics ownership
+  // stays with their dedicated module labels.
+  switch (entry?.key) {
+    case "Civilian":
+    case "Industrial":
+      return "GeneralConstruction";
+    case "Research":
+      return "Research";
+    case "MilitaryGround":
+      return "GroundArmy";
+    case "MilitarySpace":
+      return "Shipyard";
+    case "Defense":
+      return "Defenses";
+    case "Logistics":
+      return "Logistics";
+    default:
+      return "UnknownOrDiagnostics";
+  }
+}
+
+function resolveModuleByBuildingType(buildingType: PlanetValue): PlanetModule {
+  const entry = findCatalogEntry(buildingType, planetBuildingTypeCatalog);
+
+  switch (entry?.key) {
+    case "CommandCenter":
+    case "MetalMine":
+    case "CrystalMine":
+    case "GasExtractor":
+    case "SolarPlant":
+    case "HabitationDistrict":
+    case "MedicalCenter":
+    case "LogisticsHub":
+      return "GeneralConstruction";
+    case "ResearchLab":
+      return "Research";
+    case "MilitaryAcademy":
+    case "Barracks":
+    case "CrewAcademy":
+      return "GroundArmy";
+    case "Shipyard":
+    case "FleetCommandCenter":
+      return "Shipyard";
+    case "DefenseGrid":
+      return "Defenses";
+    default:
+      return "UnknownOrDiagnostics";
+  }
+}
+
+function resolveModuleByAction(action: PlanetConstructionActionDto): PlanetModule {
+  const categoryModule = resolveModuleByCategory(action.category);
+  if (categoryModule !== "UnknownOrDiagnostics") {
+    return categoryModule;
+  }
+
+  return resolveModuleByBuildingType(action.buildingType);
+}
+
+export function getPlanetModuleLabel(module: PlanetModule) {
+  return resolveCatalogLabel(module, planetModuleCatalog, "Pendiente de clasificar");
+}
+
+export function getPlanetModuleForBuilding(
+  buildingType: PlanetValue,
+  category: PlanetValue,
+) {
+  const categoryModule = resolveModuleByCategory(category);
+  if (categoryModule !== "UnknownOrDiagnostics") {
+    return categoryModule;
+  }
+
+  return resolveModuleByBuildingType(buildingType);
+}
+
+export function isGeneralConstructionAction(action: PlanetConstructionActionDto) {
+  return resolveModuleByAction(action) === "GeneralConstruction";
+}
+
+export function isSpecializedModuleAction(action: PlanetConstructionActionDto) {
+  const module = resolveModuleByAction(action);
+  return (
+    module === "Research"
+    || module === "GroundArmy"
+    || module === "Shipyard"
+    || module === "Defenses"
+    || module === "Logistics"
+  );
 }
 
 export function formatConstructionStatus(value: PlanetValue) {
@@ -366,20 +462,28 @@ export function formatMissingPlanetResources(
     : null;
 }
 
-export function groupBuildingsByCategory(buildings: PlanetBuildingDto[]) {
-  return buildings.reduce<Record<string, PlanetBuildingDto[]>>((accumulator, building) => {
-    const key = formatBuildingCategory(building.category);
-    accumulator[key] ??= [];
-    accumulator[key].push(building);
+export function groupBuildingsByModule(buildings: PlanetBuildingDto[]) {
+  return buildings.reduce<Partial<Record<PlanetModule, PlanetBuildingDto[]>>>((accumulator, building) => {
+    const module = getPlanetModuleForBuilding(building.buildingType, building.category);
+    if (module === "UnknownOrDiagnostics") {
+      return accumulator;
+    }
+
+    accumulator[module] ??= [];
+    accumulator[module]?.push(building);
     return accumulator;
   }, {});
 }
 
-export function groupActionsByCategory(actions: PlanetConstructionActionDto[]) {
-  return actions.reduce<Record<string, PlanetConstructionActionDto[]>>((accumulator, action) => {
-    const key = formatBuildingCategory(action.category);
-    accumulator[key] ??= [];
-    accumulator[key].push(action);
+export function groupActionsByModule(actions: PlanetConstructionActionDto[]) {
+  return actions.reduce<Partial<Record<PlanetModule, PlanetConstructionActionDto[]>>>((accumulator, action) => {
+    const module = resolveModuleByAction(action);
+    if (module === "UnknownOrDiagnostics") {
+      return accumulator;
+    }
+
+    accumulator[module] ??= [];
+    accumulator[module]?.push(action);
     return accumulator;
   }, {});
 }

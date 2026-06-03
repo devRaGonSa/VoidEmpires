@@ -39,6 +39,28 @@ export const planetConstructionActionCatalog: readonly PlanetCatalogEntry[] = [
   { id: 2, key: "Upgrade", label: "Mejorar" },
 ] as const;
 
+export type PlanetModule =
+  | "PlanetOverview"
+  | "GeneralConstruction"
+  | "Research"
+  | "GroundArmy"
+  | "Shipyard"
+  | "Defenses"
+  | "Logistics"
+  | "UnknownOrDiagnostics";
+
+// Sidebar-aligned module labels used by the planet cockpit surfaces.
+export const planetModuleCatalog: readonly PlanetCatalogEntry[] = [
+  { id: 1, key: "PlanetOverview", label: "Planeta" },
+  { id: 2, key: "GeneralConstruction", label: "Construccion" },
+  { id: 3, key: "Research", label: "Investigacion" },
+  { id: 4, key: "GroundArmy", label: "Ejercito Tierra" },
+  { id: 5, key: "Shipyard", label: "Astillero" },
+  { id: 6, key: "Defenses", label: "Defensas" },
+  { id: 7, key: "Logistics", label: "Logistica" },
+  { id: 8, key: "UnknownOrDiagnostics", label: "Pendiente de clasificar" },
+] as const;
+
 export interface PlanetUiStateResponse {
   succeeded: boolean;
   uiState: PlanetUiStateResult | null;

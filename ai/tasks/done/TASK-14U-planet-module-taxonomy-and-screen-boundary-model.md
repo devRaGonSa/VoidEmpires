@@ -3,7 +3,7 @@
 ---
 id: TASK-14U
 title: Planet module taxonomy and screen boundary model
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
