@@ -1,6 +1,7 @@
 # Shipyard Cockpit Checklist
 
 This checklist documents the current `/shipyard` development cockpit, the seeded QA URL, and the intentional boundary with Fleet work.
+Use `docs/dev/development-seed-profiles.md` for the standard Development-only QA commands, ids, and reseed guidance.
 
 Shipyard v1 is a development-safe orbital production cockpit.
 It can inspect production context and enqueue one guarded orbital order through the current dev route.

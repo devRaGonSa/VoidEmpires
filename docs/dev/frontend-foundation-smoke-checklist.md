@@ -5,6 +5,7 @@ Use this checklist to validate the current frontend prototype without confusing 
 For the current Fleet estimate -> confirm -> create-transfer -> confirm -> cancel-transfer or complete-due paths, pair this document with `docs/dev/fleet-controlled-mutation-checklist.md`.
 For the current Galaxy, Planet, Construction, Research, and Shipyard cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md`, `docs/dev/planet-cockpit-checklist.md`, `docs/dev/construction-cockpit-checklist.md`, `docs/dev/research-cockpit-checklist.md`, and `docs/dev/shipyard-cockpit-checklist.md`.
 For the current module boundary model and placeholder responsibilities, also pair this document with `docs/dev/planet-module-boundaries.md`.
+For deterministic local QA setup, use `docs/dev/development-seed-profiles.md` instead of manual SQL.
 
 ## Backend prerequisites
 

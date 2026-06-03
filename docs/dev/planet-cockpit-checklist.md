@@ -2,6 +2,7 @@
 
 Planet cockpit v1 is the first playable 2D colony-management surface for the current development build.
 Use `docs/dev/planet-module-boundaries.md` to keep the dashboard role separate from construction and specialized placeholder cabinas.
+Use `docs/dev/development-seed-profiles.md` for the standard Development-only QA commands, ids, and recovery guidance.
 
 ## Acceptance boundary
 

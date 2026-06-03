@@ -1,6 +1,7 @@
 # Development Seed Profiles
 
-This document is the current source of truth for the development-only `minimal-validation` seed exposed by `POST /api/dev/seeds/apply`.
+This document is the source of truth for the current Development-only seed profile system.
+Use these profiles instead of manual SQL for standard cockpit QA.
 
 ## Profile catalog
 
@@ -26,6 +27,33 @@ This document is the current source of truth for the development-only `minimal-v
 ```
 
 Unsupported profile requests fail safely. The current response now includes the requested profile name, the applied profile metadata when successful, and the known profile catalog so PowerShell or JSON callers can discover the supported naming contract directly.
+
+## Quick start
+
+Apply a profile:
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:5142/api/dev/seeds/apply" `
+  -ContentType "application/json" `
+  -Body '{"profile":"cockpit-validation"}'
+```
+
+Discover available profiles:
+
+```powershell
+Invoke-RestMethod `
+  -Method Get `
+  -Uri "http://localhost:5142/api/dev/seeds/profiles"
+```
+
+Operational guidance:
+
+- Seed profiles are Development-only, deterministic, and idempotent.
+- Reapply the documented profile when local QA state becomes confusing.
+- Do not use manual SQL for the standard Galaxy, Planet, Construction, Research, Shipyard, or Fleet QA flows.
+- Use a fresh disposable local database only when you need the exact original pre-mutation baseline.
 
 The discovery endpoint is Development-only and returns a concise list of all known profiles with:
 
@@ -56,6 +84,24 @@ Example:
   "errors": []
 }
 ```
+
+## QA routes
+
+Primary deterministic local QA routes:
+
+- Galaxy: `/?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Planet: `/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Construction: `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Research: `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Shipyard: `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Fleets: `/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Ground Army placeholder: `/ground-army?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Defenses placeholder: `/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+
+Route note:
+
+- The current Galaxy cockpit uses the root route (`/`) rather than a separate `/galaxy` path.
+- Ground Army and Defenses remain placeholder/readiness cabins; seed profiles preserve navigation context for them but do not turn them into full gameplay cockpits.
 
 ## Dependency map
 

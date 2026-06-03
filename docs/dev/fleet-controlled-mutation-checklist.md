@@ -3,6 +3,7 @@
 Use this checklist for the current non-visual regression pass around the Fleet page estimate -> confirm -> create-transfer -> confirm -> cancel-transfer or complete-due flow.
 
 Use this checklist as the non-visual mutation baseline for Fleet cockpit v1.
+Use `docs/dev/development-seed-profiles.md` for the standard Development-only QA commands, ids, and reseed guidance.
 
 Accepted Fleet v1 command set:
 

@@ -2,6 +2,7 @@
 
 Construction cockpit v1 is the focused route for the current guarded planet construction flow.
 Use `docs/dev/planet-module-boundaries.md` to keep `/construction` limited to general infrastructure and to explain the specialized handoff cards.
+Use `docs/dev/development-seed-profiles.md` for the standard Development-only QA commands, ids, and reseed guidance.
 
 ## Acceptance boundary
 

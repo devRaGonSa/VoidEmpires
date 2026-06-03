@@ -2,6 +2,7 @@
 
 Research cockpit v1 is the current development-safe route for browsing technology readiness, queue state, and guarded enqueue actions.
 Use `docs/dev/planet-module-boundaries.md` to keep `/research` separate from the planet dashboard, construction flow, and unsupported gameplay systems.
+Use `docs/dev/development-seed-profiles.md` for the standard Development-only QA commands, ids, and reseed guidance.
 
 ## Acceptance boundary
 
