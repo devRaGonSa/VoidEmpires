@@ -3,7 +3,7 @@
 ---
 id: TASK-19M-defenses-queue-and-complete-due-safe-placeholder
 title: Defenses queue and complete due safe placeholder
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

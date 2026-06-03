@@ -19,6 +19,13 @@ import {
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
 
+function formatDateTime(value: string) {
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed)
+    ? "No disponible"
+    : new Intl.DateTimeFormat("es-ES", { dateStyle: "short", timeStyle: "short" }).format(parsed);
+}
+
 function getProtectionPosture(viewModel: DefensesViewModel["defenses"]) {
   if (!viewModel) {
     return "Sin contexto defensivo";
@@ -454,6 +461,88 @@ export function DefensesPage() {
             {optionGroups.length === 0 ? (
               <p className="figma-panel-note">El backend no expone una lista defensiva mas amplia todavia. La cabina conserva el contexto y explica el limite con honestidad.</p>
             ) : null}
+          </UiCard>
+
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Cola defensiva</p>
+                <h3>Ordenes visibles y cierre conservador</h3>
+                <p>Esta lectura usa la cola de construccion filtrada para defensas y mantiene el cierre vencido como affordance secundaria.</p>
+              </div>
+              <div className="figma-badge-row">
+                <UiBadge tone={defenses.queue.length > 0 ? "warn" : "neutral"}>
+                  {defenses.queue.length > 0 ? `${defenses.queue.length} visibles` : "Sin cola"}
+                </UiBadge>
+                <UiBadge tone={defenses.actionAvailability.completeDue.supported ? "warn" : "neutral"}>
+                  {defenses.actionAvailability.completeDue.supported ? "Cierre no habilitado aqui" : "Sin cierre seguro"}
+                </UiBadge>
+              </div>
+            </div>
+            <div className="readiness-grid">
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Estado general</p>
+                    <h4>Lectura de cola</h4>
+                  </div>
+                  <UiBadge tone="neutral">Solo lectura</UiBadge>
+                </div>
+                <div className="figma-data-list">
+                  <div className="figma-data-row"><span>Origen</span><strong>{defenses.planetName}</strong></div>
+                  <div className="figma-data-row"><span>Scope</span><strong>Construccion filtrada para defensas</strong></div>
+                  <div className="figma-data-row"><span>Vencidas</span><strong>{defenses.protectionSummary.dueQueueItemCount}</strong></div>
+                  <div className="figma-data-row"><span>Cierre visible</span><strong>{defenses.actionAvailability.completeDue.supported ? "Detectado pero no habilitado" : "No soportado"}</strong></div>
+                </div>
+                <div className="selection-chip-row">
+                  <button type="button" className="selection-chip" disabled>
+                    Completar orden defensiva no disponible
+                  </button>
+                </div>
+                <p className="figma-panel-note">
+                  El backend actual conserva un cierre global de construccion. Esta cabina no lo ejecuta hasta que exista una ruta segura y acotada al planeta.
+                </p>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Interpretacion</p>
+                    <h4>Como leer esta seccion</h4>
+                  </div>
+                  <UiBadge tone="warn">Sin auto-cierre</UiBadge>
+                </div>
+                <ul className="stack-list compact-list">
+                  <li>Una orden visible confirma readiness de construccion, no combate ni cierre automatico.</li>
+                  <li>Una orden vencida sigue siendo una lectura de backlog, no una autorizacion para completar desde aqui.</li>
+                  <li>Los ids tecnicos quedan fuera de la vista principal y se reservan para diagnosticos.</li>
+                </ul>
+              </section>
+            </div>
+            {defenses.queue.length === 0 ? (
+              <p className="figma-panel-note">No hay ordenes defensivas en cola.</p>
+            ) : (
+              <div className="readiness-grid">
+                {defenses.queue.map((item) => (
+                  <article key={item.orderId} className="subpanel figma-subpanel">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">{item.actionLabel}</p>
+                        <h4>{item.structureLabel}</h4>
+                      </div>
+                      <UiBadge tone={item.isDue ? "warn" : "neutral"}>{item.statusLabel}</UiBadge>
+                    </div>
+                    <div className="figma-data-list">
+                      <div className="figma-data-row"><span>Planeta</span><strong>{defenses.planetName}</strong></div>
+                      <div className="figma-data-row"><span>Objetivo</span><strong>Nivel {item.targetLevel}</strong></div>
+                      <div className="figma-data-row"><span>Inicio</span><strong>{formatDateTime(item.startsAtUtc)}</strong></div>
+                      <div className="figma-data-row"><span>Fin</span><strong>{formatDateTime(item.endsAtUtc)}</strong></div>
+                      <div className="figma-data-row"><span>Coste</span><strong>{item.estimatedCostLabel}</strong></div>
+                    </div>
+                    <p>{item.isDue ? "La orden ya vencio en la lectura actual y permanece pendiente de una via segura de cierre." : "La orden sigue visible en la ventana temporal actual."}</p>
+                  </article>
+                ))}
+              </div>
+            )}
           </UiCard>
 
           {defenses.diagnostics.playerFacing.length > 0 || defenses.diagnostics.limitations.length > 0 ? (
