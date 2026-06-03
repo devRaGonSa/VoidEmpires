@@ -94,6 +94,15 @@ function formatCost(cost: PlanetCockpitDto["stockpile"]) {
     : "Sin coste";
 }
 
+function formatCompactCost(cost: PlanetCockpitDto["stockpile"]) {
+  return cost.length
+    ? cost
+      .filter((item) => item.quantity > 0)
+      .map((item) => `${formatResourceType(item.resourceType)} ${item.quantity}`)
+      .join(" · ")
+    : "Sin coste";
+}
+
 function formatQueueState(item: PlanetCockpitDto["constructionQueue"][number]) {
   if (item.isDue) {
     return "Lista para cierre";
@@ -700,22 +709,31 @@ export function PlanetPage() {
                               {action.display?.availabilityLabel ?? formatConstructionAvailability(action.availabilityStatus)}
                             </UiBadge>
                           </div>
-                          <div className="figma-data-list">
-                            <PlanetDataRow
-                              label="Orden"
-                              value={`${action.display?.actionLabel ?? formatConstructionAction(action.action)} a nivel ${action.targetLevel}`}
-                            />
-                            <PlanetDataRow
-                              label="Estado actual"
-                              value={action.currentLevel > 0 ? `Nivel ${action.currentLevel}` : "Sin construir"}
-                            />
-                            <PlanetDataRow
-                              label="Duracion"
-                              value={formatDuration(action.estimatedDuration)}
-                            />
-                            <PlanetDataRow label="Coste" value={formatCost(action.cost)} />
+                          <div className="planet-action-facts">
+                            <div className="planet-action-stat">
+                              <span>Orden</span>
+                              <strong>{action.display?.actionLabel ?? formatConstructionAction(action.action)}</strong>
+                            </div>
+                            <div className="planet-action-stat">
+                              <span>Nivel</span>
+                              <strong>
+                                {action.currentLevel > 0
+                                  ? `${action.currentLevel} -> ${action.targetLevel}`
+                                  : `Nuevo ${action.targetLevel}`}
+                              </strong>
+                            </div>
+                            <div className="planet-action-stat">
+                              <span>Duracion</span>
+                              <strong>{formatDuration(action.estimatedDuration)}</strong>
+                            </div>
                           </div>
-                          <p className="figma-panel-note">{action.display?.availabilityReasonLabel ?? action.availabilityReason}</p>
+                          <div className="planet-action-cost-block">
+                            <span>Coste previsto</span>
+                            <strong>{formatCompactCost(action.cost)}</strong>
+                          </div>
+                          <p className="figma-panel-note planet-action-reason">
+                            {action.display?.availabilityReasonLabel ?? action.availabilityReason}
+                          </p>
                           <div className="transfer-confirmation-actions">
                             <button
                               type="button"

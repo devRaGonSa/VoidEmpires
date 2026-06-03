@@ -777,11 +777,56 @@ select {
   align-content: start;
 }
 
+.planet-action-card {
+  gap: 14px;
+  overflow: hidden;
+}
+
 .planet-action-card-blocked {
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 74%, transparent), color-mix(in srgb, var(--ve-color-panel) 94%, transparent));
   border-color: color-mix(in srgb, var(--ve-color-warning) 18%, transparent);
   opacity: 0.86;
+}
+
+.planet-action-facts {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+}
+
+.planet-action-stat,
+.planet-action-cost-block {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 34%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 34%, transparent);
+}
+
+.planet-action-stat span,
+.planet-action-cost-block span {
+  color: color-mix(in srgb, var(--ve-color-text) 68%, var(--ve-color-muted));
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.planet-action-stat strong,
+.planet-action-cost-block strong {
+  overflow-wrap: anywhere;
+}
+
+.planet-action-cost-block strong {
+  color: color-mix(in srgb, var(--ve-color-text) 92%, white);
+  line-height: 1.5;
+}
+
+.planet-action-reason {
+  margin: 0;
+  min-height: 40px;
 }
 
 .planet-action-card .transfer-confirmation-actions button {

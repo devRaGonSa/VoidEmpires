@@ -3,7 +3,7 @@
 ---
 id: TASK-14G
 title: Phase 14G - Construction catalog card readability and density
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
