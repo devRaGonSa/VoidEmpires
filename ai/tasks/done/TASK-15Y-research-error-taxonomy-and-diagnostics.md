@@ -3,7 +3,7 @@
 ---
 id: TASK-15Y-research-error-taxonomy-and-diagnostics
 title: Research error taxonomy and diagnostics
-status: pending
+status: obsolete
 type: platform
 team: platform
 supporting_teams: []
