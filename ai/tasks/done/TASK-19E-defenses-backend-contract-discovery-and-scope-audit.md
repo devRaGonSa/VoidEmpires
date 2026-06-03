@@ -3,7 +3,7 @@
 ---
 id: TASK-19E-defenses-backend-contract-discovery-and-scope-audit
 title: Defenses backend contract discovery and scope audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
