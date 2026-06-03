@@ -113,6 +113,10 @@ function formatQueueState(item: PlanetCockpitDto["constructionQueue"][number]) {
   return formatConstructionStatus(item.status);
 }
 
+function formatProductionValue(value: number) {
+  return value > 0 ? `+${value}` : String(value);
+}
+
 function findPreparedAction(
   planet: PlanetCockpitDto | null,
   preparedActionKey: string,
@@ -515,12 +519,18 @@ export function PlanetPage() {
             <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">Reservas y flujo</p>
+                  <p className="eyebrow">Reservas y produccion</p>
                   <h3>Economia local</h3>
                 </div>
                 <UiBadge tone="resource">
                   {planet.stockpile.length > 0 ? `${planet.stockpile.length} reservas visibles` : "Sin reservas"}
                 </UiBadge>
+              </div>
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Reservas locales</p>
+                  <h4>Recursos almacenados</h4>
+                </div>
               </div>
               {planet.stockpile.length > 0 ? (
                 <div className="figma-stat-grid">
@@ -539,27 +549,51 @@ export function PlanetPage() {
                   No hay reservas visibles para este planeta dentro del contexto actual.
                 </p>
               )}
+              <div className="planet-inline-summary">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Produccion estimada</p>
+                    <h4>Flujo por hora</h4>
+                  </div>
+                </div>
               {planet.productionSummary ? (
-                <div className="planet-inline-summary">
+                <>
+                  <div className="figma-stat-grid">
+                    <div className="figma-stat">
+                      <strong>{formatProductionValue(planet.productionSummary.creditsPerHour)}</strong>
+                      <span>Creditos / h</span>
+                    </div>
+                    <div className="figma-stat">
+                      <strong>{formatProductionValue(planet.productionSummary.metalPerHour)}</strong>
+                      <span>Metal / h</span>
+                    </div>
+                    <div className="figma-stat">
+                      <strong>{formatProductionValue(planet.productionSummary.crystalPerHour)}</strong>
+                      <span>Cristal / h</span>
+                    </div>
+                    <div className="figma-stat">
+                      <strong>{formatProductionValue(planet.productionSummary.gasPerHour)}</strong>
+                      <span>Gas / h</span>
+                    </div>
+                  </div>
                   <PlanetDataRow
-                    label="Produccion / h"
-                    value={[
-                      `Creditos ${planet.productionSummary.creditsPerHour}`,
-                      `Metal ${planet.productionSummary.metalPerHour}`,
-                      `Cristal ${planet.productionSummary.crystalPerHour}`,
-                      `Gas ${planet.productionSummary.gasPerHour}`,
-                    ].join(" | ")}
-                  />
-                  <PlanetDataRow
-                    label="Multiplicador de investigacion"
+                    label="Impulso de investigacion"
                     value={`x${planet.productionSummary.researchMultiplier}`}
                   />
-                </div>
+                </>
               ) : (
-                <p className="figma-panel-note">
-                  Este planeta todavia no muestra un perfil de produccion disponible.
-                </p>
+                <>
+                  <p className="figma-panel-note">
+                    La colonia conserva sus reservas, pero esta build todavia no expone
+                    un perfil horario detallado para este planeta.
+                  </p>
+                  <p className="figma-panel-note">
+                    Cuando el perfil exista aqui veras produccion por recurso y cualquier
+                    ajuste aplicado por investigacion.
+                  </p>
+                </>
               )}
+              </div>
             </UiCard>
           </div>
 

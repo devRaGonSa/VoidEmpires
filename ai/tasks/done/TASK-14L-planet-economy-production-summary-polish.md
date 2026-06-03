@@ -3,7 +3,7 @@
 ---
 id: TASK-14L
 title: Phase 14L - Planet economy production summary polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
