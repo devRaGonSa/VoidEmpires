@@ -3,7 +3,7 @@
 ---
 id: TASK-19H-defenses-frontend-api-types-and-view-models
 title: Defenses frontend api types and view models
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
