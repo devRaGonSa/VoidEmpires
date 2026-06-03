@@ -10,6 +10,7 @@ import {
   groupResearchTechnologiesByCategory,
   mapResearchUiStateToViewModel,
   selectRecommendedResearch,
+  summarizeResearchCatalog,
 } from "../utils/researchPresentation";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -49,17 +50,10 @@ export function ResearchPage() {
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
   const recommendedResearch = useMemo(() => selectRecommendedResearch(uiState?.catalog ?? []), [uiState?.catalog]);
   const catalogGroups = useMemo(() => groupResearchTechnologiesByCategory(uiState?.catalog ?? []), [uiState?.catalog]);
+  const catalogSummary = useMemo(() => summarizeResearchCatalog(uiState?.catalog ?? []), [uiState?.catalog]);
   const preparedResearch = useMemo(
     () => uiState?.catalog.find((item) => item.researchType === preparedResearchType) ?? null,
     [preparedResearchType, uiState?.catalog],
-  );
-  const availableResearchCount = useMemo(
-    () => uiState?.catalog.filter((item) => item.availability.canEnqueue).length ?? 0,
-    [uiState?.catalog],
-  );
-  const blockedResearchCount = useMemo(
-    () => uiState?.catalog.filter((item) => !item.availability.canEnqueue && !item.availability.canCompleteDue).length ?? 0,
-    [uiState?.catalog],
   );
   const dueQueueCount = useMemo(
     () => uiState?.queue.filter((item) => item.isDue).length ?? 0,
@@ -273,12 +267,12 @@ export function ResearchPage() {
           {uiState ? (
             <div className="figma-data-list">
               <div className="figma-data-row"><span>Planeta seleccionado</span><strong>{uiState.selectedPlanetName ?? "Sin planeta"}</strong></div>
-              <div className="figma-data-row"><span>Disponibles</span><strong>{availableResearchCount}</strong></div>
-              <div className="figma-data-row"><span>Bloqueadas</span><strong>{blockedResearchCount}</strong></div>
+              <div className="figma-data-row"><span>Disponibles</span><strong>{catalogSummary.availableCount}</strong></div>
+              <div className="figma-data-row"><span>Bloqueadas</span><strong>{catalogSummary.blockedCount}</strong></div>
               <div className="figma-data-row"><span>Cola</span><strong>{uiState.queue.length}</strong></div>
               <div className="figma-data-row"><span>En espera de cierre</span><strong>{dueQueueCount}</strong></div>
-              <div className="figma-data-row"><span>Proyectos</span><strong>{uiState.projects.length}</strong></div>
-              <div className="figma-data-row"><span>Recomendacion</span><strong>{recommendedResearch ? recommendedResearch.label : "Sin recomendacion"}</strong></div>
+              <div className="figma-data-row"><span>Proyectos</span><strong>{catalogSummary.completedCount}</strong></div>
+              <div className="figma-data-row"><span>Recomendacion</span><strong>{recommendedResearch ? recommendedResearch.label : "No hay investigaciones disponibles ahora."}</strong></div>
             </div>
           ) : (
             <p className="figma-panel-note">La cabina mostrara catalogo, cola y diagnostico cuando exista un contexto valido.</p>

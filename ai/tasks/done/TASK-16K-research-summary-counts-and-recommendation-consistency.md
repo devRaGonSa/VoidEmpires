@@ -3,7 +3,7 @@
 ---
 id: TASK-16K-research-summary-counts-and-recommendation-consistency
 title: Research summary counts and recommendation consistency
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

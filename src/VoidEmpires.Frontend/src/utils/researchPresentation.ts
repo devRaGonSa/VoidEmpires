@@ -81,6 +81,13 @@ export interface ResearchDiagnostics {
   limitations: string[];
 }
 
+export interface ResearchCatalogSummary {
+  availableCount: number;
+  blockedCount: number;
+  activeCount: number;
+  completedCount: number;
+}
+
 export interface ResearchCommandFeedback {
   primaryMessage: string;
   technicalDetail: string | null;
@@ -448,8 +455,29 @@ export function getResearchPrimaryAction(technology: ResearchTechnology) {
 export function selectRecommendedResearch(technologies: readonly ResearchTechnology[]) {
   return technologies.find((item) => item.availability.canEnqueue)
     ?? technologies.find((item) => item.availability.canCompleteDue)
-    ?? technologies[0]
     ?? null;
+}
+
+export function summarizeResearchCatalog(technologies: readonly ResearchTechnology[]): ResearchCatalogSummary {
+  return technologies.reduce<ResearchCatalogSummary>((summary, technology) => {
+    const visualState = getResearchVisualState(technology);
+    if (visualState === "ready") {
+      summary.availableCount += 1;
+    } else if (visualState === "blocked") {
+      summary.blockedCount += 1;
+    } else if (visualState === "active") {
+      summary.activeCount += 1;
+    } else if (visualState === "completed") {
+      summary.completedCount += 1;
+    }
+
+    return summary;
+  }, {
+    availableCount: 0,
+    blockedCount: 0,
+    activeCount: 0,
+    completedCount: 0,
+  });
 }
 
 export function groupResearchTechnologiesByCategory(technologies: readonly ResearchTechnology[]) {
