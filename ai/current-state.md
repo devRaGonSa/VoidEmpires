@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 17T - Shipyard cockpit playable foundation v1`.
+The repository is consolidated through `Phase 18F - Development simulation data profiles and cockpit QA seeds`.
 
 ## Repository Reality
 
@@ -35,9 +35,13 @@ Current frontend cockpit baseline:
 - Fleets remains the accepted dev-cockpit foundation and now supports simple URL-based context links into Planet, Construction, and Shipyard while keeping destination context optional.
 - Query-context helpers now centralize `civilizationId` and `planetId` navigation so the cockpit links stop rebuilding URLs by hand.
 - Module-specific catalog duplication has been reduced by extracting shared planet layout components and route builders.
+- Development-only seed profiles now provide the standard QA setup path for Galaxy, Planet, Construction, Research, Shipyard, and Fleets without manual SQL.
+- `minimal-validation` remains the deterministic shared baseline, `cockpit-validation` is the richer cross-cockpit baseline, and the current cockpit-specific richer profiles are `shipyard-validation`, `fleet-validation`, `research-validation`, and `planet-full-validation`.
+- Seed profiles are additive, deterministic, idempotent, and Development-only. They restore documented baseline rows and minimums but do not destructively clear queues, extra transfers, or other user mutations.
 - The current frontend boundary model is documented in `docs/dev/planet-module-boundaries.md`.
 - The current Research cockpit QA flow and acceptance boundaries are documented in `docs/dev/research-cockpit-checklist.md`.
 - The current Shipyard cockpit QA flow and accepted Fleet boundary are documented in `docs/dev/shipyard-cockpit-checklist.md`.
+- The current seed profile catalog, discovery endpoint, deterministic ids, and QA URLs are documented in `docs/dev/development-seed-profiles.md`.
 
 Current intentional exclusions:
 
@@ -49,6 +53,7 @@ Current intentional exclusions:
 - no Fleet movement, transfer creation, split, merge, or combat execution from Shipyard
 - no real specialized module execution yet outside the current backend-supported Research and Shipyard enqueue paths plus the accepted Fleets flow
 - no real research effects beyond queue and completion state
+- no destructive seed reset behavior
 
 Current implemented foundations:
 
@@ -266,11 +271,18 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 17T:
+Current validated baseline after Phase 18F:
 
 - backend: `dotnet build --no-restore` succeeded
 - tests: `dotnet test --no-build` succeeded with `600` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
+
+Current validated cockpit QA seed baseline:
+
+- `POST /api/dev/seeds/apply` supports `minimal-validation`, `cockpit-validation`, `shipyard-validation`, `fleet-validation`, `research-validation`, and `planet-full-validation`.
+- `GET /api/dev/seeds/profiles` exposes the current profile catalog for Development-only discovery.
+- Standard manual QA should start from the documented seed profiles rather than ad hoc SQL.
+- Ground Army and Defenses remain placeholder/readiness cabins even though the shared seed context preserves route navigation for them.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, the minimal exploration mission lifecycle, the current Planet or Construction cockpit readability baseline, the minimal-validation Research seed readiness path, the development Research UI-state endpoint baseline, the full seeded Research enqueue smoke path through queue refresh, the development Shipyard UI-state endpoint baseline, the scoped Shipyard enqueue endpoint path, and the strengthened minimal-validation Shipyard seed expectations.
 
