@@ -3,7 +3,7 @@
 ---
 id: TASK-16Q-research-enqueue-payload-contract-audit
 title: Research enqueue payload contract audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

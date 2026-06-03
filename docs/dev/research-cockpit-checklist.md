@@ -40,6 +40,29 @@ POST /api/dev/seeds/apply
   - The development seed now restores the owned-planet stockpile to at least the research QA baseline (`125` credits, `100` metal, `50` crystal, `20` gas) so `Ingenieria planetaria` remains the deterministic available item for the baseline scenario.
   - Reapplying the seed restores the owned-planet stockpile baseline, but it does not delete an already enqueued research order or rebuild the queue to an empty state. For an exact pre-enqueue baseline, use a fresh disposable local database before applying the seed.
 
+## Enqueue contract note
+
+The current dev enqueue route is `POST /api/dev/research/orders/enqueue`.
+The frontend-safe request body is:
+
+```json
+{
+  "civilizationId": "00000000-0000-0000-0000-000000000001",
+  "sourcePlanetId": "40000000-0000-0000-0000-000000000001",
+  "researchType": "PlanetaryEngineering",
+  "requestedAtUtc": "2026-01-01T12:00:00Z"
+}
+```
+
+- `civilizationId` is required and must be a non-empty GUID.
+- `sourcePlanetId` is required and must be a non-empty GUID owned by the civilization.
+- `researchType` must use the stable backend enum key such as `PlanetaryEngineering`, not the Spanish label `Ingenieria planetaria`.
+- `requestedAtUtc` is required and must be a UTC timestamp.
+- `targetLevel`, `planetId`, capability ids, and action metadata are not part of the current backend enqueue contract.
+- Root cause from the enqueue audit:
+  - The cockpit already sent the correct route and core fields.
+  - The validation failure came from enum-string binding: the frontend posted `researchType` as the stable string key, but the web host had not enabled JSON string enum deserialization for the POST contract.
+
 ## Final manual QA
 
 Run first:

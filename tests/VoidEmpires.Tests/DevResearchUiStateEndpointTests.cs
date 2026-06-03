@@ -241,6 +241,30 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.Equal(0, followUpPayload.UiState.TechnologyHints.Count(x => x.CanEnqueue));
     }
 
+    [Fact]
+    public async Task EnqueueResearchAcceptsFrontendStringEnumPayload()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        await using var dbContext = CreateSeededDbContext(databaseName);
+        using var client = CreateConfiguredClient(databaseName);
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/dev/research/orders/enqueue",
+            new
+            {
+                civilizationId = SeedCivilizationId,
+                sourcePlanetId = SeedOwnedPlanetId,
+                researchType = "PlanetaryEngineering",
+                requestedAtUtc = "2026-01-01T12:00:00Z"
+            });
+        var payload = await response.Content.ReadFromJsonAsync<EnqueueResearchOrderApiResponse>();
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.True(payload!.Succeeded);
+        Assert.NotNull(payload.OrderId);
+    }
+
     private HttpClient CreateConfiguredClient(string databaseName) =>
         factory.WithWebHostBuilder(builder =>
         {
