@@ -120,9 +120,28 @@ export function StrategicMap2DView({
               </>
             )}
             <circle r="20" className="map-node-ring" />
-            <circle r="7" className="map-node-core" />
+            {tone(system.visibilityLevel) === "owned" ? (
+              <circle r="7" className="map-node-core" />
+            ) : tone(system.visibilityLevel) === "visible" ? (
+              <polygon
+                points="0,-8 8,0 0,8 -8,0"
+                className="map-node-core map-node-core-diamond"
+              />
+            ) : (
+              <rect
+                x="-6.5"
+                y="-6.5"
+                width="13"
+                height="13"
+                rx="2.5"
+                className="map-node-core map-node-core-square"
+              />
+            )}
             {(system.fleetPresence?.length ?? 0) > 0 && (
-              <circle cx="18" cy="-14" r="4" className="map-node-indicator" />
+              <path
+                d="M 18 -19 L 24 -11 L 12 -11 Z"
+                className="map-node-indicator"
+              />
             )}
             <text className="map-node-title" x="0" y="44">
               {system.systemName ?? "Unknown system"}

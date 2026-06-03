@@ -251,6 +251,40 @@ export function StrategicMapPage() {
     );
   }, [result]);
 
+  const mapReadModel = useMemo(() => {
+    if (!result) {
+      return null;
+    }
+
+    return result.systems.reduce(
+      (accumulator, system) => {
+        if (isOwnedVisibilityLevel(system.visibilityLevel)) {
+          accumulator.ownedSystems += 1;
+        } else if (isVisibleVisibilityLevel(system.visibilityLevel)) {
+          accumulator.visibleSystems += 1;
+        } else {
+          accumulator.unknownSystems += 1;
+        }
+
+        if (system.isVisible) {
+          accumulator.detectedSystems += 1;
+        }
+
+        accumulator.fleetMarkers += system.fleetPresence?.length ?? 0;
+        accumulator.transferMarkers += system.transferOverlays?.length ?? 0;
+        return accumulator;
+      },
+      {
+        ownedSystems: 0,
+        visibleSystems: 0,
+        unknownSystems: 0,
+        detectedSystems: 0,
+        fleetMarkers: 0,
+        transferMarkers: 0,
+      },
+    );
+  }, [result]);
+
   const selectedSystem = useMemo(
     () =>
       result?.systems.find((system) => system.systemId === selectedSystemId) ??
@@ -531,35 +565,95 @@ export function StrategicMapPage() {
 
             <aside className="figma-map-sidebar">
               <div className="figma-mini-card">
-                <p className="eyebrow">Leyenda</p>
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Lectura actual</p>
+                    <h4>Resumen de inteligencia</h4>
+                  </div>
+                  <UiBadge tone="warn">Solo lectura</UiBadge>
+                </div>
+                <div className="figma-data-list">
+                  <DataRow
+                    label="Sistemas visibles"
+                    value={String(mapReadModel?.detectedSystems ?? result.systems.length)}
+                  />
+                  <DataRow
+                    label="Bajo control"
+                    value={String(mapReadModel?.ownedSystems ?? 0)}
+                  />
+                  <DataRow
+                    label="Observados"
+                    value={String(mapReadModel?.visibleSystems ?? 0)}
+                  />
+                  <DataRow
+                    label="Sin confirmar"
+                    value={String(mapReadModel?.unknownSystems ?? 0)}
+                  />
+                  <DataRow
+                    label="Foco actual"
+                    value={selectedSystem?.systemName ?? "Sin seleccion"}
+                  />
+                  <DataRow
+                    label="Marcadores orbitales"
+                    value={`${mapReadModel?.fleetMarkers ?? 0} flotas | ${mapReadModel?.transferMarkers ?? 0} rutas`}
+                  />
+                  <DataRow label="Malla tactica" value="64u | Proyeccion fija | Solo lectura" />
+                </div>
+              </div>
+
+              <div className="figma-mini-card">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Leyenda</p>
+                    <h4>Codigos del mapa</h4>
+                  </div>
+                  <UiBadge>{result.systems.length} nodos</UiBadge>
+                </div>
                 <div className="figma-legend-grid">
                   <div className="figma-legend-item">
                     <span className="figma-legend-dot figma-legend-owned" />
                     <strong>Propio</strong>
-                    <small>Control directo</small>
+                    <small>Circulo solido y control directo</small>
                   </div>
                   <div className="figma-legend-item">
                     <span className="figma-legend-dot figma-legend-visible" />
                     <strong>Visible</strong>
-                    <small>Sistema observado</small>
+                    <small>Diamante central y sistema observado</small>
                   </div>
                   <div className="figma-legend-item">
                     <span className="figma-legend-dot figma-legend-unknown" />
-                    <strong>Desconocido</strong>
-                    <small>Contacto saneado</small>
+                    <strong>Contacto parcial</strong>
+                    <small>Cuadro central y lectura incompleta</small>
                   </div>
                   <div className="figma-legend-item">
                     <span className="figma-legend-dot figma-legend-fleet" />
                     <strong>Flota</strong>
-                    <small>Marcador orbital</small>
+                    <small>Baliza triangular de presencia orbital</small>
                   </div>
                   <div className="figma-legend-item">
                     <span className="figma-legend-line" />
                     <strong>Transferencia</strong>
-                    <small>Ruta superpuesta</small>
+                    <small>Doble trazo orbital superpuesto</small>
                   </div>
                 </div>
               </div>
+
+              {(mapReadModel?.detectedSystems ?? result.systems.length) <= 2 && (
+                <div className="figma-mini-card figma-mini-card-warn">
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Pista operativa</p>
+                      <h4>Lectura de baja densidad</h4>
+                    </div>
+                    <UiBadge tone="warn">Cobertura limitada</UiBadge>
+                  </div>
+                  <p className="figma-panel-note">
+                    La niebla actual es deliberada: con pocas firmas visibles
+                    conviene validar foco, balizas orbitales y rutas antes de
+                    asumir que el teatro esta vacio.
+                  </p>
+                </div>
+              )}
 
               {selectedSystem && (
                 <div className="figma-mini-card">

@@ -3,7 +3,7 @@
 ---
 id: TASK-13N
 title: Phase 13N - Strategic map marker legend and empty density polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

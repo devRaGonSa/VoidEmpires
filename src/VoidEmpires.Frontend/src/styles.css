@@ -1123,6 +1123,7 @@ select {
 .map-node {
   cursor: pointer;
   outline: none;
+  transition: transform 120ms ease;
 }
 
 .map-node-halo {
@@ -1157,12 +1158,25 @@ select {
   color: var(--ve-color-resource-deuterium);
 }
 
+.map-node-owned .map-node-ring {
+  stroke-width: 2.8;
+}
+
 .map-node-visible {
   color: color-mix(in srgb, var(--ve-color-accent-blue) 72%, white);
 }
 
+.map-node-visible .map-node-ring {
+  stroke-dasharray: 4 4;
+}
+
 .map-node-unknown {
   color: color-mix(in srgb, var(--ve-color-warning) 72%, white);
+}
+
+.map-node-unknown .map-node-ring {
+  stroke-dasharray: 2 6;
+  opacity: 0.9;
 }
 
 .map-node .map-node-ring,
@@ -1174,6 +1188,10 @@ select {
 .map-node-selected .map-node-ring {
   stroke: #f4f8ff;
   stroke-width: 3;
+}
+
+.map-node-selected .map-node-halo {
+  opacity: 0.2;
 }
 
 .map-node-title {
@@ -1194,6 +1212,13 @@ select {
   border: 1px dashed color-mix(in srgb, var(--ve-color-border) 56%, transparent);
   background: color-mix(in srgb, var(--ve-color-bg) 56%, transparent);
   color: color-mix(in srgb, var(--ve-color-text) 80%, var(--ve-color-muted));
+}
+
+.figma-mini-card-warn {
+  border-color: color-mix(in srgb, var(--ve-color-warning) 32%, transparent);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--ve-color-warning) 10%, transparent), transparent 46%),
+    color-mix(in srgb, var(--ve-color-panel-2) 80%, transparent);
 }
 
 .selection-chip {
