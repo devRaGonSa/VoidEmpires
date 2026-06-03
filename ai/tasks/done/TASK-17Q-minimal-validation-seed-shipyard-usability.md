@@ -3,7 +3,7 @@
 ---
 id: TASK-17Q-minimal-validation-seed-shipyard-usability
 title: Minimal validation seed Shipyard usability
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

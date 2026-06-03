@@ -6,6 +6,7 @@ using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Domain.Players;
+using VoidEmpires.Domain.Population;
 using VoidEmpires.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,9 +29,9 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
     private const string SeedSystemName = "Helios Gate";
     private const string SeedStarName = "Helios Gate Star";
     private const int SeedCredits = 125;
-    private const int SeedMetal = 100;
-    private const int SeedCrystal = 50;
-    private const int SeedGas = 20;
+    private const int SeedMetal = 160;
+    private const int SeedCrystal = 100;
+    private const int SeedGas = 50;
     private static readonly DateTime SeedTransferDepartureAtUtc = new(2026, 6, 2, 8, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime SeedTransferArrivalAtUtc = new(2026, 6, 2, 12, 0, 0, DateTimeKind.Utc);
 
@@ -169,6 +170,13 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
         }
 
         if (!await dbContext.Set<PlanetBuilding>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId && x.BuildingType == BuildingType.Shipyard,
+                cancellationToken))
+        {
+            dbContext.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOwnedPlanetId, BuildingType.Shipyard, 1, 1));
+        }
+
+        if (!await dbContext.Set<PlanetBuilding>().AnyAsync(
                 x => x.PlanetId == SeedOuterPlanetId && x.BuildingType == BuildingType.MetalMine,
                 cancellationToken))
         {
@@ -194,6 +202,13 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
                 cancellationToken))
         {
             dbContext.Set<PlanetBuildingCapacity>().Add(PlanetBuildingCapacity.Create(SeedOuterPlanetId, 120));
+        }
+
+        if (!await dbContext.Set<PlanetPopulationProfile>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId,
+                cancellationToken))
+        {
+            dbContext.Set<PlanetPopulationProfile>().Add(PlanetPopulationProfile.Create(SeedOwnedPlanetId, 2_000, 500, 100));
         }
 
         if (!await dbContext.Set<OrbitalAssetStock>().AnyAsync(

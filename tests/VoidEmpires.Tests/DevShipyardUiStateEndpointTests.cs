@@ -58,7 +58,7 @@ public class DevShipyardUiStateEndpointTests(WebApplicationFactory<Program> fact
     }
 
     [Fact]
-    public async Task ShipyardUiStateReturnsSeededBlockedCatalogWithoutMutatingState()
+    public async Task ShipyardUiStateReturnsSeededUsableCatalogWithoutMutatingState()
     {
         await using var dbContext = CreateSeededDbContext();
         var initialOrderCount = await dbContext.Set<VoidEmpires.Domain.Assets.AssetProductionOrder>().CountAsync();
@@ -75,10 +75,17 @@ public class DevShipyardUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.True(payload.Succeeded);
         Assert.Equal(SeedOwnedPlanetId, payload.UiState.SelectedPlanetId);
         Assert.Equal("Aurelia", payload.UiState.Shipyard.PlanetName);
+        Assert.Empty(payload.UiState.Shipyard.Queue);
+        Assert.NotEmpty(payload.UiState.Shipyard.ResourceStockpile);
         Assert.Contains(payload.UiState.Shipyard.OrbitalStock, x => x.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.EscortCraft && x.Quantity == 4);
         Assert.Equal(4, payload.UiState.Shipyard.Catalog.Count);
-        Assert.All(payload.UiState.Shipyard.Catalog, item => Assert.Equal("Blocked", item.AvailabilityStatus));
-        Assert.Contains(payload.UiState.Shipyard.Diagnostics.Notes, x => x.Contains("shipyard building requirement", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal(1, payload.UiState.Shipyard.Catalog.Count(item => item.AvailabilityStatus == "Available"));
+        Assert.Equal(3, payload.UiState.Shipyard.Catalog.Count(item => item.AvailabilityStatus == "Blocked"));
+        Assert.Contains(payload.UiState.Shipyard.Catalog, item => item.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.ScoutCraft && item.AvailabilityStatus == "Available");
+        Assert.Contains(payload.UiState.Shipyard.Catalog, item => item.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.CargoCraft && item.AvailabilityReason == "InsufficientResources");
+        Assert.Contains(payload.UiState.Shipyard.Catalog, item => item.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.EscortCraft && item.AvailabilityReason == "MissingRequiredBuilding");
+        Assert.True(payload.UiState.Shipyard.ActionSummary.EnqueueSupported);
+        Assert.Equal("Available", payload.UiState.Shipyard.ActionSummary.EnqueueActionStatus);
         Assert.Equal(initialOrderCount, await dbContext.Set<VoidEmpires.Domain.Assets.AssetProductionOrder>().CountAsync());
         Assert.Equal(initialStockRows, await dbContext.Set<VoidEmpires.Domain.Assets.OrbitalAssetStock>().CountAsync());
         Assert.Equal(initialGroupCount, await dbContext.Set<VoidEmpires.Domain.Fleets.OrbitalGroup>().CountAsync());
@@ -89,8 +96,6 @@ public class DevShipyardUiStateEndpointTests(WebApplicationFactory<Program> fact
     {
         await using var dbContext = CreateSeededDbContext(context =>
         {
-            context.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOwnedPlanetId, BuildingType.Shipyard, 1, 1));
-            context.Set<PlanetPopulationProfile>().Add(PlanetPopulationProfile.Create(SeedOwnedPlanetId, 2_000, 500, 100));
             var stockpile = context.PlanetResourceStockpiles.Single(x => x.PlanetId == SeedOwnedPlanetId);
             stockpile.Increase(ResourceType.Metal, 300);
             stockpile.Increase(ResourceType.Crystal, 200);

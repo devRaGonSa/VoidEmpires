@@ -3,8 +3,6 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Development;
-using VoidEmpires.Domain.Buildings;
-using VoidEmpires.Domain.Population;
 using VoidEmpires.Infrastructure.Development;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -64,8 +62,8 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
         var databaseName = Guid.NewGuid().ToString("N");
         await using var dbContext = CreateSeededDbContext(databaseName, context =>
         {
-            context.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOwnedPlanetId, BuildingType.Shipyard, 1, 1));
-            context.Set<PlanetPopulationProfile>().Add(PlanetPopulationProfile.Create(SeedOwnedPlanetId, 2_000, 500, 100));
+            var stockpile = context.PlanetResourceStockpiles.Single(x => x.PlanetId == SeedOwnedPlanetId);
+            stockpile.Spend(0, 50, 30, 20);
         });
         using var client = CreateConfiguredClient(databaseName);
 
@@ -115,8 +113,6 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
         var databaseName = Guid.NewGuid().ToString("N");
         await using var dbContext = CreateSeededDbContext(databaseName, context =>
         {
-            context.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOwnedPlanetId, BuildingType.Shipyard, 1, 1));
-            context.Set<PlanetPopulationProfile>().Add(PlanetPopulationProfile.Create(SeedOwnedPlanetId, 2_000, 500, 100));
             var stockpile = context.PlanetResourceStockpiles.Single(x => x.PlanetId == SeedOwnedPlanetId);
             stockpile.Increase(VoidEmpires.Domain.Economy.ResourceType.Metal, 300);
             stockpile.Increase(VoidEmpires.Domain.Economy.ResourceType.Crystal, 200);

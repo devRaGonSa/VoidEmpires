@@ -139,11 +139,16 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.Contains(
             payload.UiState.TechnologyHints,
             item => item.ResearchType == ResearchType.ResourceExtraction &&
-                !item.CanEnqueue &&
-                item.StatusKey == "InsufficientResources");
+                item.CanEnqueue &&
+                item.StatusKey == "Available");
         Assert.Contains(
             payload.UiState.TechnologyHints,
             item => item.ResearchType == ResearchType.EnergySystems &&
+                item.CanEnqueue &&
+                item.StatusKey == "Available");
+        Assert.Contains(
+            payload.UiState.TechnologyHints,
+            item => item.ResearchType == ResearchType.ConstructionAutomation &&
                 !item.CanEnqueue &&
                 item.StatusKey == "InsufficientResources");
     }
@@ -155,7 +160,7 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
         await using var dbContext = CreateSeededDbContext(databaseName);
         var planetId = Guid.Parse(SeedOwnedPlanetId);
         var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == planetId);
-        stockpile.Spend(stockpile.Credits, 25, 10, stockpile.Gas);
+        stockpile.Spend(stockpile.Credits, 70, 60, 40);
         await dbContext.SaveChangesAsync();
 
         using (var client = CreateConfiguredClient(databaseName))
@@ -208,8 +213,8 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.True(initialPayload.UiState.TechnologyHints.Count(x => x.CanEnqueue) >= 1);
         Assert.True(initialPayload.UiState.TechnologyHints.Count(x => !x.CanEnqueue && !x.CanCompleteDue) >= 1);
 
-        var availableResearch = Assert.Single(initialPayload.UiState.TechnologyHints.Where(x => x.CanEnqueue));
-        Assert.Equal(ResearchType.PlanetaryEngineering, availableResearch.ResearchType);
+        var availableResearch = Assert.Single(initialPayload.UiState.TechnologyHints.Where(x => x.ResearchType == ResearchType.PlanetaryEngineering));
+        Assert.True(availableResearch.CanEnqueue);
 
         Assert.NotNull(availableResearch.EnqueueCommand);
 
@@ -267,7 +272,7 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.NotNull(payload?.UiState);
 
         var blockedResearch = Assert.Single(payload.UiState.TechnologyHints.Where(x =>
-            x.ResearchType == ResearchType.ResourceExtraction &&
+            x.ResearchType == ResearchType.ConstructionAutomation &&
             !x.CanEnqueue &&
             x.StatusKey == "InsufficientResources"));
 

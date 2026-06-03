@@ -7,6 +7,8 @@ using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Domain.Players;
+using VoidEmpires.Domain.Buildings;
+using VoidEmpires.Domain.Population;
 using VoidEmpires.Infrastructure.Development;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.StrategicMap;
@@ -46,14 +48,16 @@ public class DevelopmentSeedServiceTests
         Assert.True(await dbContext.Set<PlanetOwnership>().AnyAsync(x => x.PlanetId == OwnedPlanetId && x.CivilizationId == CivilizationId));
         var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == OwnedPlanetId);
         Assert.Equal(125, stockpile.Credits);
-        Assert.Equal(100, stockpile.Metal);
-        Assert.Equal(50, stockpile.Crystal);
-        Assert.Equal(20, stockpile.Gas);
+        Assert.Equal(160, stockpile.Metal);
+        Assert.Equal(100, stockpile.Crystal);
+        Assert.Equal(50, stockpile.Gas);
         var productionProfile = await dbContext.PlanetProductionProfiles.SingleAsync(x => x.PlanetId == OwnedPlanetId);
         Assert.Equal(18, productionProfile.CreditsPerHour);
         Assert.Equal(14, productionProfile.MetalPerHour);
         Assert.Equal(6, productionProfile.CrystalPerHour);
         Assert.Equal(3, productionProfile.GasPerHour);
+        Assert.True(await dbContext.Set<PlanetBuilding>().AnyAsync(x => x.PlanetId == OwnedPlanetId && x.BuildingType == BuildingType.Shipyard && x.Level == 1));
+        Assert.True(await dbContext.Set<PlanetPopulationProfile>().AnyAsync(x => x.PlanetId == OwnedPlanetId));
         Assert.True(await dbContext.Set<OrbitalAssetStock>().AnyAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == SpaceAssetType.EscortCraft && x.Quantity == 4));
         Assert.Equal(4, await dbContext.Set<OrbitalGroup>().CountAsync(x => x.CivilizationId == CivilizationId));
         Assert.True(await dbContext.Set<OrbitalGroup>().AnyAsync(
@@ -82,6 +86,8 @@ public class DevelopmentSeedServiceTests
         Assert.Equal(1, await dbContext.Set<PlanetOwnership>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.CivilizationId == CivilizationId));
         Assert.Equal(1, await dbContext.PlanetResourceStockpiles.CountAsync(x => x.PlanetId == OwnedPlanetId));
         Assert.Equal(1, await dbContext.PlanetProductionProfiles.CountAsync(x => x.PlanetId == OwnedPlanetId));
+        Assert.Equal(1, await dbContext.Set<PlanetBuilding>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.BuildingType == BuildingType.Shipyard));
+        Assert.Equal(1, await dbContext.Set<PlanetPopulationProfile>().CountAsync(x => x.PlanetId == OwnedPlanetId));
         Assert.Equal(1, await dbContext.Set<OrbitalAssetStock>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == SpaceAssetType.EscortCraft));
         Assert.Equal(4, await dbContext.Set<OrbitalGroup>().CountAsync(x => x.CivilizationId == CivilizationId));
         Assert.Equal(1, await dbContext.Set<OrbitalTransfer>().CountAsync(x => x.CivilizationId == CivilizationId && x.Status == OrbitalTransferStatus.Planned));
