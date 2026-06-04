@@ -683,11 +683,15 @@ export function DefensesPage() {
           </UiCard>
 
           {defenses.diagnostics.playerFacing.length > 0 || defenses.diagnostics.limitations.length > 0 || technicalErrorDetail ? (
-            <details className="fleet-technical-disclosure">
+            <details className="technical-disclosure">
               <summary>
-                <span>Diagnosticos de desarrollo</span>
-                <UiBadge tone="warn">Secundario</UiBadge>
+                <div>
+                  <p className="eyebrow">Diagnostico secundario</p>
+                  <strong>Lectura tecnica</strong>
+                </div>
+                <UiBadge tone="warn">Contraido por defecto</UiBadge>
               </summary>
+              <div className="technical-disclosure-body">
               <UiCard className="panel fleet-technical-panel">
                 <div className="figma-section-header">
                   <div>
@@ -706,6 +710,7 @@ export function DefensesPage() {
                   {technicalErrorDetail ? <li>{technicalErrorDetail}</li> : null}
                 </ul>
               </UiCard>
+              </div>
             </details>
           ) : null}
         </>

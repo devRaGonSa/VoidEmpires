@@ -3,7 +3,7 @@
 ---
 id: TASK-20S-cross-cockpit-diagnostics-collapsed-consistency
 title: Cross-cockpit diagnostics collapsed consistency
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

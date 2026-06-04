@@ -1478,12 +1478,15 @@ export function FleetsPage() {
 
       {((fleetManifest.length > 0 || strategicMapManifest.length > 0) ||
         (uiState && mutationConfirmations.length > 0)) && (
-        <details className="fleet-technical-disclosure">
+        <details className="technical-disclosure">
           <summary>
-            <span>Detalles de desarrollo y contratos</span>
-            <UiBadge tone="warn">Secundario</UiBadge>
+            <div>
+              <p className="eyebrow">Diagnostico secundario</p>
+              <strong>Lectura tecnica</strong>
+            </div>
+            <UiBadge tone="warn">Contraido por defecto</UiBadge>
           </summary>
-
+          <div className="technical-disclosure-body">
           {(fleetManifest.length > 0 || strategicMapManifest.length > 0) && (
             <div className="fleet-manifest-grid">
               {fleetManifest.length > 0 && (
@@ -1537,6 +1540,7 @@ export function FleetsPage() {
               </div>
             </UiCard>
           )}
+          </div>
         </details>
       )}
     </section>

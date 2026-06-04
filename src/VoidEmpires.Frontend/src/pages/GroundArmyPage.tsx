@@ -189,7 +189,22 @@ export function GroundArmyPage() {
             </div></section>
           </div>
         ) : <p className="figma-panel-note">Todavia no hay datos terrestres visibles. La cabina mantiene un estado honesto en lugar de volver a un placeholder vacio.</p>}
-        <details className="subpanel figma-subpanel"><summary>Diagnosticos</summary><ul className="stack-list compact-list">{(groundArmy?.diagnostics.technical ?? uiState?.diagnostics.technical ?? []).map((line) => <li key={line}>{line}</li>)}</ul></details>
+        <details className="technical-disclosure">
+          <summary>
+            <div>
+              <p className="eyebrow">Diagnostico secundario</p>
+              <strong>Lectura tecnica</strong>
+            </div>
+            <UiBadge tone="warn">Contraido por defecto</UiBadge>
+          </summary>
+          <div className="technical-disclosure-body">
+            <UiCard className="panel">
+              <div className="figma-section-header"><div><p className="eyebrow">Diagnosticos</p><h3>Notas tecnicas</h3></div><UiBadge tone="warn">{cockpitStatusLabels.diagnostics}</UiBadge></div>
+              <ul className="stack-list compact-list">{(groundArmy?.diagnostics.technical ?? uiState?.diagnostics.technical ?? []).map((line) => <li key={line}>{line}</li>)}</ul>
+              {technicalErrorDetail ? <p className="figma-panel-note">{technicalErrorDetail}</p> : null}
+            </UiCard>
+          </div>
+        </details>
       </UiCard>
 
       {groundArmy ? (
@@ -271,13 +286,6 @@ export function GroundArmyPage() {
 
       {isSuspiciousContext ? (
         <UiCard className="panel"><div className="figma-section-header"><div><p className="eyebrow">Contexto sospechoso</p><h3>El identificador de civilizacion no parece valido para esta cabina.</h3></div><UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge></div><p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p></UiCard>
-      ) : null}
-
-      {technicalErrorDetail ? (
-        <UiCard className="panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Diagnostico</p><h3>Detalle tecnico colapsado</h3></div><UiBadge tone="warn">{cockpitStatusLabels.diagnostics}</UiBadge></div>
-          <details className="subpanel figma-subpanel"><summary>Ver detalle tecnico</summary><p className="figma-panel-note">{technicalErrorDetail}</p></details>
-        </UiCard>
       ) : null}
 
       <UiCard className="panel">
