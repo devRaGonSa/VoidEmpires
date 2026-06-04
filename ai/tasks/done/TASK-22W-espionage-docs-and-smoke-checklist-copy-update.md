@@ -3,7 +3,7 @@
 ---
 id: TASK-22W
 title: Phase 22W - Espionage docs and smoke checklist copy update
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

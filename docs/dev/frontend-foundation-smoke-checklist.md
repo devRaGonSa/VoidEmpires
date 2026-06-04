@@ -85,7 +85,7 @@ Then open and compare these deterministic routes:
 9. Espionage
    URL: `/espionage?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
    Expected primary state: `Helios Gate` loads with owned `Aurelia`, visible comparison targets, passive signal cards, grouped intelligence, and disabled future mission placeholders.
-   No-go: no mission execution cues, no fake real-time surveillance language, and no raw backend diagnostics in the first viewport.
+   No-go: no mission execution cues, no fake real-time surveillance language, no visible English technical strings outside collapsed diagnostics, and no raw backend diagnostics in the first viewport.
    Screenshot target: grouped target catalog plus passive signals or future-missions strip in the same frame.
 
 Cross-cockpit comparison checks:
@@ -94,6 +94,7 @@ Cross-cockpit comparison checks:
 - Route helpers preserve `civilizationId` and `planetId` when moving between the accepted cockpit links.
 - Galaxy remains read-only while Planet, Construction, Research, Shipyard, and Fleets keep their current guarded mutation boundaries.
 - Diagnostics stay collapsed or clearly secondary across the cockpit routes.
+- Espionage visible copy stays Spanish-first; English technical wording outside collapsed diagnostics fails visual QA.
 - Ground Army is now part of the accepted cockpit-foundation suite, but it remains readiness-only and non-combat.
 - Defenses is now part of the accepted cockpit-foundation suite, but it remains readiness-only and non-combat.
 

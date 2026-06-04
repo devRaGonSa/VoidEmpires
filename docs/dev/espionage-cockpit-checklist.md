@@ -20,6 +20,9 @@ Apply `cockpit-validation` twice before manual QA when the local database has al
 8. Confirm future mission actions stay visible but disabled, with `No disponible en esta version.` and `Solo lectura en esta cabina.` messaging.
 9. Confirm handoff cards toward `Galaxia`, `Planeta`, `Flotas`, and `Investigacion` preserve context when that context exists.
 10. Confirm diagnostics remain collapsed by default and raw technical detail stays secondary.
+11. Confirm no visible English copy remains in primary or secondary Espionage UI outside collapsed diagnostics.
+12. Confirm signal, coverage, and future-mission labels stay Spanish-first and do not fall back to row-oriented backend wording.
+13. Confirm no active espionage, infiltration, sabotage, theft, or counter-espionage action appears executable from this cockpit.
 
 ## Copy-normalization audit note
 
