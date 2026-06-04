@@ -244,6 +244,24 @@ Neighbor cockpit regression checkpoints:
 - Confirm the current route helpers still preserve `civilizationId` and `planetId` when moving between `Galaxy`, `Planet`, `Construction`, `Research`, `Ground Army`, `Shipyard`, `Fleets`, and `Defenses`.
 - Confirm `Galaxy` remains read-only while `Planet`, `Construction`, `Research`, `Ground Army`, `Shipyard`, and `Fleets` keep their accepted cockpit boundaries.
 
+## Final Demo-Readiness Regression Note
+
+Use this narrow final pass before declaring the polish block ready for user visual QA:
+
+1. Reapply `cockpit-validation` twice.
+2. Open `Galaxy`, `Planet`, `Construction`, `Research`, `Shipyard`, `Fleets`, `Defenses`, and `Ground Army` in that order.
+3. Confirm each cockpit renders its expected primary state without blank shells, broken handoffs, or horizontal overflow.
+4. Confirm primary UI copy stays gameplay-facing and no obvious raw technical wording dominates the first viewport.
+5. Confirm diagnostics stay collapsed by default or clearly secondary on every accepted cockpit route.
+
+Treat any of the following as a regression for this block:
+
+- an accepted cockpit opening to a near-empty shell when the shared seed is present
+- an implemented cockpit still labeled as future or placeholder navigation
+- a blocked or unavailable action styled like a primary executable action
+- raw technical ids, payload wording, or endpoint wording dominating the main visible surface
+- diagnostics opening by default in the main accepted flow
+
 Ground Army cockpit v1 visual review:
 
 - Confirm the first viewport reads like a readiness cockpit rather than a placeholder or battle screen.

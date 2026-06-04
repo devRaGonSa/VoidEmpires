@@ -3,7 +3,7 @@
 ---
 id: TASK-20Y-final-demo-readiness-regression-pass
 title: Final demo readiness regression pass
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
