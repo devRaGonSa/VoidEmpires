@@ -3,7 +3,7 @@
 ---
 id: TASK-19X-ground-army-frontend-api-types-and-view-models
 title: Ground Army frontend API types and view models
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
