@@ -3,7 +3,7 @@
 ---
 id: TASK-25V
 title: Phase 25V - Optional stock to Fleet allocation script or docs
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
