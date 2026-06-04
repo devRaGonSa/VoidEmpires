@@ -36,6 +36,122 @@ function getCoverageOverview(viewModel: EspionageViewModel | null) {
   return "Cobertura amplia";
 }
 
+interface IntelligenceCatalogEntry {
+  id: string;
+  title: string;
+  subtitle: string;
+  typeLabel: string;
+  statusLabel: string;
+  statusTone: "neutral" | "good" | "warn";
+  confidenceLabel: string;
+  coverageLabel: string;
+  handoffLabel: string;
+  controlLabel: string | null;
+  signalLabel: string;
+}
+
+interface IntelligenceCatalogSection {
+  key: "owned" | "observed" | "partial" | "signal" | "unconfirmed";
+  label: string;
+  description: string;
+  tone: "neutral" | "good" | "warn";
+  entries: IntelligenceCatalogEntry[];
+}
+
+function isOwnedTarget(target: IntelligenceTargetViewModel) {
+  return target.diagnostics.visibilityLevel === "Owned" || target.diagnostics.visibilityLevel === "2";
+}
+
+function isVisibleTarget(target: IntelligenceTargetViewModel) {
+  return target.diagnostics.visibilityLevel === "Visible" || target.diagnostics.visibilityLevel === "1";
+}
+
+function getTargetTone(target: IntelligenceTargetViewModel): "neutral" | "good" | "warn" {
+  return isOwnedTarget(target) ? "good" : isVisibleTarget(target) ? "neutral" : "warn";
+}
+
+function getTargetTypeLabel(target: IntelligenceTargetViewModel) {
+  return target.kind === "System" ? "Sistema" : target.kind === "Planet" ? "Planeta" : "Objetivo";
+}
+
+function getTargetStatusLabel(target: IntelligenceTargetViewModel) {
+  if (isOwnedTarget(target)) return "Control confirmado";
+  if (isVisibleTarget(target)) return "Lectura estable";
+  return target.hasPassiveSignals ? "Lectura parcial" : "Contacto sin confirmar";
+}
+
+function getTargetHandoffLabel(target: IntelligenceTargetViewModel) {
+  if (target.planetId && isOwnedTarget(target)) return "Planeta";
+  if (target.planetId && isVisibleTarget(target)) return "Galaxia -> Planeta";
+  return "Galaxia";
+}
+
+function getSignalLabel(signal: IntelligenceSystemTargetGroup["signals"][number]) {
+  switch (signal.label) {
+    case "SensorProfile":
+      return "Perfil de sensores";
+    case "DetectionCoverage":
+      return "Cobertura de deteccion";
+    case "TransferSignal":
+      return "Trayectoria orbital";
+    default:
+      return "Senal orbital";
+  }
+}
+
+function buildCatalogSections(groups: readonly IntelligenceSystemTargetGroup[]): IntelligenceCatalogSection[] {
+  const sections: IntelligenceCatalogSection[] = [
+    { key: "owned", label: "Sistema propio", description: "Colonias y sistemas confirmados bajo control propio.", tone: "good", entries: [] },
+    { key: "observed", label: "Sistema observado", description: "Objetivos visibles o conocidos sin exagerar la certeza.", tone: "neutral", entries: [] },
+    { key: "partial", label: "Contacto parcial", description: "Lecturas parciales con contexto suficiente para seguir observando.", tone: "warn", entries: [] },
+    { key: "signal", label: "Senal orbital", description: "Pistas pasivas y trayectorias todavia no elevadas a objetivo confirmado.", tone: "warn", entries: [] },
+    { key: "unconfirmed", label: "Sin confirmar", description: "Contactos sin evidencia estable y con datos incompletos.", tone: "warn", entries: [] },
+  ];
+
+  groups.forEach((group) => {
+    group.targets.forEach((target) => {
+      const key = isOwnedTarget(target)
+        ? "owned"
+        : isVisibleTarget(target)
+          ? "observed"
+          : target.hasPassiveSignals
+            ? "partial"
+            : "unconfirmed";
+      sections.find((section) => section.key === key)?.entries.push({
+        id: `${target.systemId}-${target.planetId ?? target.kind}`,
+        title: target.label,
+        subtitle: target.systemLabel,
+        typeLabel: getTargetTypeLabel(target),
+        statusLabel: getTargetStatusLabel(target),
+        statusTone: getTargetTone(target),
+        confidenceLabel: target.confidenceLabel,
+        coverageLabel: target.coverageLabel,
+        handoffLabel: getTargetHandoffLabel(target),
+        controlLabel: isOwnedTarget(target) ? "Control propio" : null,
+        signalLabel: target.hasPassiveSignals ? target.observationLabel : "Datos incompletos",
+      });
+    });
+
+    group.signals.forEach((signal) => {
+      sections.find((section) => section.key === "signal")?.entries.push({
+        id: `${group.systemId}-${signal.planetId ?? signal.label}-${signal.summary}`,
+        title: getSignalLabel(signal),
+        subtitle: group.label,
+        typeLabel: "Senal orbital",
+        statusLabel: "Datos incompletos",
+        statusTone: "warn",
+        confidenceLabel: "Senal pasiva",
+        coverageLabel: signal.summary,
+        handoffLabel: signal.planetId ? "Galaxia -> Planeta" : "Galaxia",
+        controlLabel: null,
+        signalLabel: signal.summary,
+      });
+    });
+  });
+
+  return sections.filter((section) => section.entries.length > 0);
+}
+
 export function EspionagePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
@@ -112,6 +228,7 @@ export function EspionagePage() {
   );
   const activePlanetId = focusedTarget?.planetId ?? queryPlanetId ?? null;
   const coverageOverview = getCoverageOverview(viewModel);
+  const catalogSections = useMemo(() => buildCatalogSections(viewModel?.groups ?? []), [viewModel]);
 
   return (
     <section className="page-grid">
@@ -237,21 +354,107 @@ export function EspionagePage() {
             <section className="subpanel figma-subpanel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">Catalogo agrupado</p>
+                  <p className="eyebrow">Sistema enfocado</p>
                   <h4>{focusedGroup?.label ?? "Sin sistema"}</h4>
                 </div>
-                <UiBadge>{focusedGroup?.targets.length ?? 0} objetivos</UiBadge>
+                <UiBadge>{(focusedGroup?.targets.length ?? 0) + (focusedGroup?.signals.length ?? 0)} lecturas</UiBadge>
               </div>
-              {focusedGroup?.targets.length ? (
-                <ul className="stack-list compact-list">
+              {focusedGroup?.targets.length || focusedGroup?.signals.length ? (
+                <div className="espionage-system-list">
                   {focusedGroup.targets.map((target) => (
-                    <li key={`${target.systemId}-${target.planetId ?? target.kind}`}>
-                      <strong>{target.label}</strong>: {target.intelligenceLabel}, {target.observationLabel}.
-                    </li>
+                    <article key={`${target.systemId}-${target.planetId ?? target.kind}`} className={`espionage-target-card espionage-target-card-${getTargetTone(target)}`}>
+                      <div className="espionage-target-card-head">
+                        <div>
+                          <p className="eyebrow">{getTargetTypeLabel(target)}</p>
+                          <h5>{target.label}</h5>
+                        </div>
+                        <UiBadge tone={getTargetTone(target)}>{getTargetStatusLabel(target)}</UiBadge>
+                      </div>
+                      <div className="figma-badge-row">
+                        <UiBadge>{target.intelligenceLabel}</UiBadge>
+                        <UiBadge tone={target.hasPassiveSignals ? "warn" : "neutral"}>{target.observationLabel}</UiBadge>
+                      </div>
+                      <div className="figma-data-list espionage-data-list">
+                        <div className="figma-data-row"><span>Confianza</span><strong>{target.confidenceLabel}</strong></div>
+                        <div className="figma-data-row"><span>Cobertura</span><strong>{target.coverageLabel}</strong></div>
+                        {isOwnedTarget(target) ? <div className="figma-data-row"><span>Control</span><strong>Control propio</strong></div> : null}
+                        <div className="figma-data-row"><span>Handoff sugerido</span><strong>{getTargetHandoffLabel(target)}</strong></div>
+                      </div>
+                    </article>
                   ))}
-                </ul>
+
+                  {focusedGroup.signals.map((signal) => (
+                    <article key={`${signal.systemId}-${signal.planetId ?? signal.label}-${signal.summary}`} className="espionage-target-card espionage-target-card-warn">
+                      <div className="espionage-target-card-head">
+                        <div>
+                          <p className="eyebrow">Senal orbital</p>
+                          <h5>{getSignalLabel(signal)}</h5>
+                        </div>
+                        <UiBadge tone="warn">Datos incompletos</UiBadge>
+                      </div>
+                      <p className="figma-panel-note">{signal.summary}</p>
+                      <div className="figma-data-list espionage-data-list">
+                        <div className="figma-data-row"><span>Sistema</span><strong>{focusedGroup.label}</strong></div>
+                        <div className="figma-data-row"><span>Handoff sugerido</span><strong>{signal.planetId ? "Galaxia -> Planeta" : "Galaxia"}</strong></div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
               ) : <p className="figma-panel-note">Todavia no hay objetivos agrupados para este foco.</p>}
             </section>
+          </div>
+        </UiCard>
+      ) : null}
+
+      {catalogSections.length ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Catalogo de objetivos</p>
+              <h3>Lectura agrupada</h3>
+              <p>La cabina separa control confirmado, observacion estable, lectura parcial y senales sin convertirlas en operaciones.</p>
+            </div>
+            <UiBadge>{catalogSections.length} grupos</UiBadge>
+          </div>
+          <div className="espionage-catalog-grid">
+            {catalogSections.map((section) => (
+              <section key={section.key} className="subpanel figma-subpanel espionage-catalog-section">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">{section.label}</p>
+                    <h4>{section.entries.length} lecturas</h4>
+                    <p>{section.description}</p>
+                  </div>
+                  <UiBadge tone={section.tone}>{section.label}</UiBadge>
+                </div>
+
+                <div className="espionage-target-grid">
+                  {section.entries.map((entry) => (
+                    <article key={entry.id} className={`espionage-target-card espionage-target-card-${entry.statusTone}`}>
+                      <div className="espionage-target-card-head">
+                        <div>
+                          <p className="eyebrow">{entry.typeLabel}</p>
+                          <h5>{entry.title}</h5>
+                          <p className="espionage-target-subtitle">{entry.subtitle}</p>
+                        </div>
+                        <UiBadge tone={entry.statusTone}>{entry.statusLabel}</UiBadge>
+                      </div>
+
+                      <div className="figma-badge-row">
+                        <UiBadge>{entry.confidenceLabel}</UiBadge>
+                        <UiBadge tone={entry.signalLabel === "Datos incompletos" ? "warn" : "neutral"}>{entry.signalLabel}</UiBadge>
+                      </div>
+
+                      <div className="figma-data-list espionage-data-list">
+                        <div className="figma-data-row"><span>Cobertura</span><strong>{entry.coverageLabel}</strong></div>
+                        {entry.controlLabel ? <div className="figma-data-row"><span>Control</span><strong>{entry.controlLabel}</strong></div> : null}
+                        <div className="figma-data-row"><span>Handoff sugerido</span><strong>{entry.handoffLabel}</strong></div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
         </UiCard>
       ) : null}
