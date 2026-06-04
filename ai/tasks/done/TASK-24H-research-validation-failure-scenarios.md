@@ -3,7 +3,7 @@
 ---
 id: TASK-24H
 title: Phase 24H - Research validation failure scenarios
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

@@ -111,6 +111,63 @@ public class ResearchQueueServiceTests
         Assert.Equal(900, stockpile.Crystal);
     }
 
+    [Fact]
+    public async Task EnqueueAsyncRejectsPlanetNotOwnedByCivilizationWithoutMutatingState()
+    {
+        await using var db = CreateDb();
+        var civilizationId = Guid.NewGuid();
+        var sourcePlanetId = Guid.NewGuid();
+        var requestedAtUtc = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
+        var stockpile = PlanetResourceStockpile.Create(sourcePlanetId);
+        stockpile.Increase(ResourceType.Metal, 500);
+        stockpile.Increase(ResourceType.Crystal, 500);
+        db.PlanetResourceStockpiles.Add(stockpile);
+        await db.SaveChangesAsync();
+
+        var service = new ResearchQueueService(db);
+
+        var result = await service.EnqueueAsync(new EnqueueResearchOrderRequest(
+            civilizationId,
+            sourcePlanetId,
+            ResearchType.PlanetaryEngineering,
+            requestedAtUtc));
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(["Planet is not owned by the requesting civilization."], result.Errors);
+        Assert.Empty(db.ResearchOrders);
+        Assert.Equal(500, stockpile.Metal);
+        Assert.Equal(500, stockpile.Crystal);
+    }
+
+    [Fact]
+    public async Task EnqueueAsyncRejectsInsufficientResourcesWithoutMutatingState()
+    {
+        await using var db = CreateDb();
+        var civilizationId = Guid.NewGuid();
+        var sourcePlanetId = Guid.NewGuid();
+        var requestedAtUtc = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
+        var stockpile = PlanetResourceStockpile.Create(sourcePlanetId);
+        stockpile.Increase(ResourceType.Metal, 50);
+        stockpile.Increase(ResourceType.Crystal, 25);
+        db.PlanetResourceStockpiles.Add(stockpile);
+        db.PlanetOwnerships.Add(PlanetOwnership.Create(sourcePlanetId, civilizationId));
+        await db.SaveChangesAsync();
+
+        var service = new ResearchQueueService(db);
+
+        var result = await service.EnqueueAsync(new EnqueueResearchOrderRequest(
+            civilizationId,
+            sourcePlanetId,
+            ResearchType.PlanetaryEngineering,
+            requestedAtUtc));
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(["Insufficient resources."], result.Errors);
+        Assert.Empty(db.ResearchOrders);
+        Assert.Equal(50, stockpile.Metal);
+        Assert.Equal(25, stockpile.Crystal);
+    }
+
     private static VoidEmpiresDbContext CreateDb()
     {
         return new VoidEmpiresDbContext(

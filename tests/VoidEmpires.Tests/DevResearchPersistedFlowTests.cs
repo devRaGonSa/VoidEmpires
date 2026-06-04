@@ -14,6 +14,7 @@ public class DevResearchPersistedFlowTests(WebApplicationFactory<Program> factor
 {
     private static readonly Guid SeedCivilizationId = Guid.Parse("00000000-0000-0000-0000-000000000001");
     private static readonly Guid SeedOwnedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
+    private static readonly Guid SeedForeignPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000002");
 
     [Fact]
     public async Task ResearchValidationEnqueuePersistsAndAppearsInFollowUpRead()
@@ -111,6 +112,97 @@ public class DevResearchPersistedFlowTests(WebApplicationFactory<Program> factor
         Assert.Equal(availableHint.ResearchType, persistedOrder.ResearchType);
         Assert.Equal(availableHint.NextLevel, persistedOrder.TargetLevel);
         Assert.Equal(ResearchQueueItemStatus.Active, persistedOrder.Status);
+    }
+
+    [Fact]
+    public async Task ResearchEnqueueRejectsForeignPlanetAndSecondOpenOrderWithoutMutatingExtraState()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: databaseName);
+        using var client = configuredFactory.CreateClient();
+
+        using var seedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "cockpit-validation" });
+        Assert.Equal(HttpStatusCode.OK, seedResponse.StatusCode);
+
+        using var initialResponse = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var initialPayload = await initialResponse.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
+        Assert.NotNull(initialPayload?.UiState);
+
+        var initialState = initialPayload.UiState;
+        var availableHint = initialState.TechnologyHints.Single(x => x.ResearchType == ResearchType.PlanetaryEngineering && x.CanEnqueue);
+        var initialQueueLength = initialState.Queue.Length;
+
+        using var scopeBefore = configuredFactory.Services.CreateScope();
+        var dbBefore = scopeBefore.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+        var stockpileBefore = await dbBefore.PlanetResourceStockpiles.AsNoTracking().SingleAsync(x => x.PlanetId == SeedOwnedPlanetId);
+        var resourcesBefore = new Dictionary<ResourceType, decimal>
+        {
+            [ResourceType.Credits] = stockpileBefore.Credits,
+            [ResourceType.Metal] = stockpileBefore.Metal,
+            [ResourceType.Crystal] = stockpileBefore.Crystal,
+            [ResourceType.Gas] = stockpileBefore.Gas
+        };
+
+        using var foreignPlanetResponse = await client.PostAsJsonAsync("/api/dev/research/orders/enqueue", new
+        {
+            civilizationId = SeedCivilizationId,
+            sourcePlanetId = SeedForeignPlanetId,
+            researchType = ResearchType.PlanetaryEngineering.ToString(),
+            requestedAtUtc = "2026-06-04T12:00:00Z"
+        });
+        var foreignPlanetPayload = await foreignPlanetResponse.Content.ReadFromJsonAsync<EnqueueResearchOrderResponse>();
+
+        Assert.Equal(HttpStatusCode.Conflict, foreignPlanetResponse.StatusCode);
+        Assert.NotNull(foreignPlanetPayload);
+        Assert.False(foreignPlanetPayload!.Succeeded);
+        Assert.Equal(["Planet is not owned by the requesting civilization."], foreignPlanetPayload.Errors);
+
+        using var firstEnqueueResponse = await client.PostAsJsonAsync("/api/dev/research/orders/enqueue", new
+        {
+            civilizationId = availableHint.EnqueueCommand!.CivilizationId,
+            sourcePlanetId = availableHint.EnqueueCommand.SourcePlanetId,
+            researchType = availableHint.EnqueueCommand.ResearchType.ToString(),
+            requestedAtUtc = "2026-06-04T12:05:00Z"
+        });
+        var firstEnqueuePayload = await firstEnqueueResponse.Content.ReadFromJsonAsync<EnqueueResearchOrderResponse>();
+
+        Assert.Equal(HttpStatusCode.Created, firstEnqueueResponse.StatusCode);
+        Assert.NotNull(firstEnqueuePayload);
+        Assert.True(firstEnqueuePayload!.Succeeded);
+
+        using var secondEnqueueResponse = await client.PostAsJsonAsync("/api/dev/research/orders/enqueue", new
+        {
+            civilizationId = availableHint.EnqueueCommand.CivilizationId,
+            sourcePlanetId = availableHint.EnqueueCommand.SourcePlanetId,
+            researchType = availableHint.EnqueueCommand.ResearchType.ToString(),
+            requestedAtUtc = "2026-06-04T12:06:00Z"
+        });
+        var secondEnqueuePayload = await secondEnqueueResponse.Content.ReadFromJsonAsync<EnqueueResearchOrderResponse>();
+
+        Assert.Equal(HttpStatusCode.Conflict, secondEnqueueResponse.StatusCode);
+        Assert.NotNull(secondEnqueuePayload);
+        Assert.False(secondEnqueuePayload!.Succeeded);
+        Assert.Equal(["Civilization already has an open research order."], secondEnqueuePayload.Errors);
+
+        using var followUpResponse = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var followUpPayload = await followUpResponse.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, followUpResponse.StatusCode);
+        Assert.NotNull(followUpPayload?.UiState);
+
+        var followUpState = followUpPayload.UiState;
+        Assert.Equal(initialQueueLength + 1, followUpState.Queue.Length);
+
+        using var scopeAfter = configuredFactory.Services.CreateScope();
+        var dbAfter = scopeAfter.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+        var stockpileAfter = await dbAfter.PlanetResourceStockpiles.AsNoTracking().SingleAsync(x => x.PlanetId == SeedOwnedPlanetId);
+
+        Assert.Equal(resourcesBefore[ResourceType.Credits] - availableHint.EstimatedCost.Credits, stockpileAfter.Credits);
+        Assert.Equal(resourcesBefore[ResourceType.Metal] - availableHint.EstimatedCost.Metal, stockpileAfter.Metal);
+        Assert.Equal(resourcesBefore[ResourceType.Crystal] - availableHint.EstimatedCost.Crystal, stockpileAfter.Crystal);
+        Assert.Equal(resourcesBefore[ResourceType.Gas] - availableHint.EstimatedCost.Gas, stockpileAfter.Gas);
     }
 
     private sealed record DevResearchUiStateResponse(

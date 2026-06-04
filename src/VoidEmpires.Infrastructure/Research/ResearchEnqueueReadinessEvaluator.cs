@@ -28,7 +28,7 @@ public static class ResearchEnqueueReadinessEvaluator
                 "SourcePlanetMissing",
                 targetLevel,
                 cost,
-                "Planet was not found.");
+                "Planet is not owned by the requesting civilization.");
         }
 
         if (hasOpenOrder)

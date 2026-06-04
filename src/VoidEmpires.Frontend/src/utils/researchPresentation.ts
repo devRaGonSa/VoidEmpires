@@ -313,6 +313,11 @@ export function formatResearchCommandFailure(
         primaryMessage: "El planeta no pertenece a la civilizacion o ya no esta disponible. Actualiza la cabina y vuelve a prepararla.",
         technicalDetail,
       };
+    case "Planet is not owned by the requesting civilization.":
+      return {
+        primaryMessage: "La colonia ya no pertenece a tu civilizacion activa. Recarga la cabina y revisa el planeta antes de volver a intentarlo.",
+        technicalDetail,
+      };
     case "Research type is required.":
       return {
         primaryMessage: "Tecnologia no encontrada. Actualiza la cabina y vuelve a preparar la investigacion.",
