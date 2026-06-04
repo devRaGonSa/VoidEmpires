@@ -6,6 +6,7 @@ using VoidEmpires.Application.Assets;
 using VoidEmpires.Application.Buildings;
 using VoidEmpires.Application.Fleets;
 using VoidEmpires.Application.Galaxy;
+using VoidEmpires.Application.Markets;
 using VoidEmpires.Application.Players;
 using VoidEmpires.Application.Research;
 using VoidEmpires.Application.StrategicMap;
@@ -15,6 +16,7 @@ using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Players;
 using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Persistence;
+using VoidEmpires.Infrastructure.Markets;
 
 internal static class DevEndpointMappings
 {
@@ -342,6 +344,34 @@ internal static class DevEndpointMappings
             }
 
             return Results.Ok(new DevShipyardUiStateApiResponse(true, uiState, []));
+        });
+
+        app.MapGet("/api/dev/market/ui-state", async (
+            Guid? civilizationId,
+            Guid? planetId,
+            [FromServices] VoidEmpiresDbContext dbContext,
+            [FromServices] IConfiguration configuration,
+            CancellationToken cancellationToken) =>
+        {
+            if (!IsPersistenceConfigured(configuration))
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (civilizationId is null || civilizationId == Guid.Empty)
+            {
+                return Results.BadRequest(new DevMarketUiStateApiResponse(false, null, ["Civilization id is required."]));
+            }
+
+            var service = new DevMarketUiStateService(dbContext);
+            var uiState = await service.GetAsync(new GetDevMarketUiStateRequest(civilizationId.Value, planetId), cancellationToken);
+
+            if (uiState.Market is null && uiState.Errors.Count > 0)
+            {
+                return Results.NotFound(new DevMarketUiStateApiResponse(false, null, uiState.Errors));
+            }
+
+            return Results.Ok(new DevMarketUiStateApiResponse(true, uiState, []));
         });
 
         app.MapPost("/api/dev/research/orders/enqueue", async (
@@ -833,6 +863,11 @@ internal sealed record ProcessAssetProductionApiResponse(
 internal sealed record DevShipyardUiStateApiResponse(
     bool Succeeded,
     GetDevShipyardUiStateResult? UiState,
+    IReadOnlyList<string> Errors);
+
+internal sealed record DevMarketUiStateApiResponse(
+    bool Succeeded,
+    GetDevMarketUiStateResult? UiState,
     IReadOnlyList<string> Errors);
 
 internal sealed record EnqueueResearchOrderApiRequest(
