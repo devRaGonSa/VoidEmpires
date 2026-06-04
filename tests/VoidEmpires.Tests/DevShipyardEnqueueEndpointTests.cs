@@ -346,6 +346,68 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
         Assert.Equal(AssetProductionOrderStatus.Active, persistedOrder.Status);
     }
 
+    [Fact]
+    public async Task CockpitValidationReapplyPreservesManualShipyardOrderAndKeepsUiStateReadable()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: databaseName);
+        using var client = configuredFactory.CreateClient();
+
+        using var firstSeedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "cockpit-validation" });
+        Assert.Equal(HttpStatusCode.OK, firstSeedResponse.StatusCode);
+
+        using var initialResponse = await client.GetAsync($"/api/dev/shipyard/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var initialPayload = await initialResponse.Content.ReadFromJsonAsync<ShipyardUiStateEnvelope>();
+
+        Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
+        Assert.NotNull(initialPayload?.UiState?.Shipyard);
+
+        var availableItem = Assert.Single(initialPayload.UiState.Shipyard.Catalog.Where(item => item.AssetType == SpaceAssetType.ScoutCraft));
+        Assert.NotNull(availableItem.EnqueueCommand);
+
+        using var enqueueResponse = await client.PostAsJsonAsync(availableItem.EnqueueCommand.Route, new
+        {
+            civilizationId = availableItem.EnqueueCommand.CivilizationId,
+            planetId = availableItem.EnqueueCommand.PlanetId,
+            target = availableItem.EnqueueCommand.Target,
+            spaceAssetType = availableItem.EnqueueCommand.SpaceAssetType,
+            quantity = availableItem.EnqueueCommand.Quantity,
+            requestedAtUtc = "2026-01-01T12:00:00Z",
+        });
+        var enqueuePayload = await enqueueResponse.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
+
+        Assert.Equal(HttpStatusCode.Created, enqueueResponse.StatusCode);
+        Assert.NotNull(enqueuePayload);
+        Assert.True(enqueuePayload!.Succeeded);
+        Assert.NotNull(enqueuePayload.OrderId);
+
+        using var reseedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "cockpit-validation" });
+        Assert.Equal(HttpStatusCode.OK, reseedResponse.StatusCode);
+
+        using var followUpResponse = await client.GetAsync($"/api/dev/shipyard/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var followUpPayload = await followUpResponse.Content.ReadFromJsonAsync<ShipyardUiStateEnvelope>();
+
+        Assert.Equal(HttpStatusCode.OK, followUpResponse.StatusCode);
+        Assert.NotNull(followUpPayload?.UiState?.Shipyard);
+        Assert.Contains(followUpPayload.UiState.Shipyard.Queue, item => item.OrderId == enqueuePayload.OrderId);
+
+        using var scope = configuredFactory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+
+        Assert.Equal(3, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId));
+        Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
+            x.PlanetId == SeedOwnedPlanetId &&
+            x.Id == enqueuePayload.OrderId!.Value &&
+            x.Status == AssetProductionOrderStatus.Active));
+        Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
+            x.PlanetId == SeedOwnedPlanetId &&
+            x.SpaceAssetType == SpaceAssetType.ScoutCraft &&
+            x.Status == AssetProductionOrderStatus.Completed));
+        Assert.Equal(2, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
+            x.PlanetId == SeedOwnedPlanetId &&
+            x.Sequence >= 30_000));
+    }
+
     private HttpClient CreateConfiguredClient(string databaseName) =>
         factory.WithInMemoryPersistence(databaseName: databaseName).CreateClient();
 

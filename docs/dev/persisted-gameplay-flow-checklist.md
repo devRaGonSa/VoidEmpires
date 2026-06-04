@@ -496,6 +496,7 @@ Expected result:
 
 - the baseline still runs
 - pre-existing manual orders remain present
+- manual Shipyard orders are now also covered on this reused-database path: reapply preserves the active orbital production row and does not duplicate seeded completed Shipyard history
 - no destructive reset occurs
 
 Important reminders:

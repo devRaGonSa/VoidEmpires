@@ -326,6 +326,7 @@ Current validated cockpit QA seed baseline:
 - The real persisted Research enqueue path is now covered through backend tests, backend-only helper scripts, and the central persisted-flow runbook.
 - Current verified resource rule: both Construction and Research deduct the full visible cost immediately when enqueue succeeds.
 - `cockpit-validation` now preserves manual Construction and Research orders created during QA while keeping the deterministic read-model baseline intact.
+- `cockpit-validation` now also preserves real manual Shipyard production orders created during QA, avoids duplicating seeded completed Shipyard history on reapply, and keeps Shipyard UI-state readable on reused Development databases.
 - `cockpit-validation` now also supports meaningful Market QA through seeded reserves, selected-planet production, advisory ratios, visible trade signals, disabled future actions, and deterministic `/market` routing without introducing transaction gameplay.
 - `cockpit-validation` now also seeds meaningful Defenses readiness through a visible `DefenseGrid` on `Aurelia` while keeping defense queue completion and combat behavior out of scope.
 - `cockpit-validation` now also seeds meaningful Ground Army readiness through a visible `Barracks`, one deterministic available `PatrolGroup` path, blocked comparison options, and completed planetary training history on `Aurelia` while keeping combat, invasion, and complete-due execution out of scope.

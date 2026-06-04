@@ -241,6 +241,45 @@ public class DevelopmentSeedServiceTests
     }
 
     [Fact]
+    public async Task ApplyAsyncSupportsCockpitValidationAfterExistingManualShipyardOrderWithoutDuplicatingSeededHistory()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new DevelopmentSeedService(dbContext);
+
+        _ = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("minimal-validation"));
+        dbContext.Set<AssetProductionOrder>().Add(AssetProductionOrder.Create(
+            OwnedPlanetId,
+            AssetProductionTarget.Orbital,
+            null,
+            SpaceAssetType.CargoCraft,
+            1,
+            1,
+            new DateTime(2026, 1, 3, 9, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 1, 3, 9, 3, 0, DateTimeKind.Utc),
+            AssetProductionOrderStatus.Active));
+        await dbContext.SaveChangesAsync();
+
+        var firstApply = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+        var secondApply = await service.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+
+        Assert.True(firstApply.Succeeded);
+        Assert.True(secondApply.Succeeded);
+        Assert.Equal(3, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId));
+        Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
+            x.PlanetId == OwnedPlanetId &&
+            x.SpaceAssetType == SpaceAssetType.CargoCraft &&
+            x.Status == AssetProductionOrderStatus.Active &&
+            x.Sequence == 1));
+        Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
+            x.PlanetId == OwnedPlanetId &&
+            x.SpaceAssetType == SpaceAssetType.ScoutCraft &&
+            x.Status == AssetProductionOrderStatus.Completed));
+        Assert.Equal(2, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
+            x.PlanetId == OwnedPlanetId &&
+            x.Sequence >= SeededAssetProductionSequenceStart));
+    }
+
+    [Fact]
     public async Task ApplyAsyncSupportsResearchValidationProfileWithoutDuplicatingCompletedResearchHistory()
     {
         await using var dbContext = CreateDbContext();
