@@ -145,6 +145,8 @@ The seeded orbital groups, transfer row, and queue rows do not use fixed ids. In
 
 `cockpit-validation` builds on `minimal-validation`, tops `Aurelia` up to at least `220` credits, `320` metal, `220` crystal, and `120` gas, adds a visible `DefenseGrid` level `1` plus `Barracks` level `1` on `Aurelia`, and then adds one completed construction row, one completed `EnergySystems` research order plus project, one completed orbital `ScoutCraft` production order plus local `ScoutCraft` stock, and one completed planetary `PatrolGroup x2` training row plus local `PatrolGroup x2` stock. It stays non-destructive and avoids extra pending or active queue rows so the current executable cockpit actions remain available.
 
+Use it as one shared demo story: `Void Seed Civilization` controls `Aurelia` in `Helios Gate`, while `Cinder Reach` and `Aether Crown` stay visible as nearby comparison worlds. Galaxy, Planet, Construction, Research, Shipyard, Fleets, Defenses, and Ground Army should all read as different views of that same prepared colony rather than unrelated fixtures.
+
 Expected Galaxy result for screenshot QA:
 
 - one visible strategic system: `Helios Gate`

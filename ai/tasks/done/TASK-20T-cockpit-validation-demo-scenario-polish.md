@@ -3,7 +3,7 @@
 ---
 id: TASK-20T-cockpit-validation-demo-scenario-polish
 title: Cockpit validation demo scenario polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

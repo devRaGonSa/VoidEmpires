@@ -91,6 +91,15 @@ public class DevelopmentSeedServiceTests
         Assert.True(result.Succeeded);
         Assert.Equal("cockpit-validation", result.Profile);
         Assert.NotNull(result.ProfileMetadata);
+        Assert.Contains(result.ProfileMetadata.IntendedCockpits, x => x == "Defenses");
+        Assert.Contains(result.ProfileMetadata.IntendedCockpits, x => x == "Ground Army");
+        Assert.Contains(result.ProfileMetadata.RecommendedQaUrls, x => x.StartsWith("/defenses?", StringComparison.Ordinal));
+        Assert.Contains(result.ProfileMetadata.RecommendedQaUrls, x => x.StartsWith("/ground-army?", StringComparison.Ordinal));
+        Assert.Contains("Aurelia", result.ProfileMetadata.AvailabilityNote, StringComparison.Ordinal);
+        Assert.Contains(result.AppliedSteps, x => x.Contains("Helios Gate", StringComparison.Ordinal));
+        Assert.Contains(result.AppliedSteps, x => x.Contains("Aurelia", StringComparison.Ordinal));
+        Assert.Contains(result.AppliedSteps, x => x.Contains("Cinder Reach", StringComparison.Ordinal));
+        Assert.Contains(result.AppliedSteps, x => x.Contains("Aether Crown", StringComparison.Ordinal));
         Assert.Contains(result.AppliedSteps, x => x.Contains("completed queue history", StringComparison.OrdinalIgnoreCase));
 
         var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == OwnedPlanetId);
