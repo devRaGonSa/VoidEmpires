@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { enqueueResearchOrder, fetchResearchUiState } from "../api/researchApi";
+import { CockpitHero } from "../components/CockpitHero";
 import type { ResearchTechnology, ResearchUiState } from "../utils/researchPresentation";
 import {
   formatResearchCommandFailure,
@@ -233,20 +234,19 @@ export function ResearchPage() {
 
   return (
     <section className="page-grid">
-      <UiCard className="panel panel-hero figma-hero-card">
-        <div className="figma-hero-copy">
-          <UiBadge tone="resource">Investigacion v1</UiBadge>
-          <h2>Investigacion</h2>
-          <p>Cabina de investigacion con carga de contexto, catalogo y diagnostico sin exponer DTOs crudos en la superficie principal.</p>
-        </div>
-        <div className="figma-badge-row">
-          <UiBadge>{cockpitStatusLabels.readOnly}</UiBadge>
-          <UiBadge tone={hasSafeResearchEnqueue ? "good" : "warn"}>
-            {hasSafeResearchEnqueue ? "Mutacion dev protegida" : "Sin mutacion segura"}
-          </UiBadge>
-          <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
-        </div>
-      </UiCard>
+      <CockpitHero
+        versionLabel="Investigacion v1"
+        title="Investigacion"
+        description="La cabina prioriza contexto, catalogo, cola y confirmacion antes que el detalle tecnico."
+        developmentNote="La ruta sigue pensada para QA local: conserva limites seguros y mantiene el diagnostico como una capa secundaria."
+        badges={
+          <>
+            <UiBadge>{cockpitStatusLabels.readOnly}</UiBadge>
+            <UiBadge>Catalogo y cola</UiBadge>
+            <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
+          </>
+        }
+      />
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">

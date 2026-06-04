@@ -3,7 +3,7 @@
 ---
 id: TASK-20N-B-specialized-cockpit-header-polish
 title: Specialized cockpit header polish follow-up
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { enqueueShipyardProduction, fetchShipyardUiState } from "../api/shipyardApi";
+import { CockpitHero } from "../components/CockpitHero";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { formatPlanetPrimaryLabel, formatPlanetSecondaryLabel, formatResourceType } from "../utils/domainPresentation";
@@ -439,18 +440,19 @@ export function ShipyardPage() {
 
   return (
     <section className="page-grid">
-      <UiCard className="panel panel-hero figma-hero-card">
-        <div className="figma-hero-copy">
-          <UiBadge tone="resource">Astillero v1</UiBadge>
-          <h2>Astillero</h2>
-          <p>Cabina de produccion orbital para preparar activos, revisar capacidad local y derivar el movimiento real hacia Flotas.</p>
-        </div>
-        <div className="figma-badge-row">
-          <UiBadge tone="good">Carga contexto real</UiBadge>
-          <UiBadge tone="warn">Sin ordenes de produccion todavia</UiBadge>
-          <UiBadge>Flotas mueve grupos ya existentes</UiBadge>
-        </div>
-      </UiCard>
+      <CockpitHero
+        versionLabel="Astillero v1"
+        title="Astillero"
+        description="La cabina prioriza produccion orbital, capacidad local, cola y stock antes que el detalle tecnico."
+        developmentNote="La ruta sigue siendo de desarrollo para QA local: la produccion visible permanece segura y el mando de flotas sigue fuera de esta cabina."
+        badges={
+          <>
+            <UiBadge tone="good">Produccion local</UiBadge>
+            <UiBadge>Cola y stock</UiBadge>
+            <UiBadge tone="warn">Sin movimiento de flota</UiBadge>
+          </>
+        }
+      />
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">

@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchDefensesUiState } from "../api/defenseApi";
+import { CockpitHero } from "../components/CockpitHero";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { formatDefenseRequestFailure } from "../utils/defensePresentation";
@@ -191,18 +192,19 @@ export function DefensesPage() {
 
   return (
     <section className="page-grid">
-      <UiCard className="panel panel-hero figma-hero-card">
-        <div className="figma-hero-copy">
-          <UiBadge tone="resource">Defensas v1</UiBadge>
-          <h2>Defensas</h2>
-          <p>Cabina de proteccion planetaria para leer readiness defensivo, estructuras locales y limites reales de esta build.</p>
-        </div>
-        <div className="figma-badge-row">
-          <UiBadge tone="good">Carga contexto real</UiBadge>
-          <UiBadge tone="warn">Sin combate ni intercepcion</UiBadge>
-          <UiBadge>Construccion sigue siendo el flujo seguro</UiBadge>
-        </div>
-      </UiCard>
+      <CockpitHero
+        versionLabel="Defensas v1"
+        title="Defensas"
+        description="La cabina prioriza proteccion planetaria, estructuras locales y el siguiente paso seguro antes que el detalle tecnico."
+        developmentNote="La ruta sigue siendo de desarrollo para QA local: conserva la lectura visible, pero deja el combate y la ejecucion fuera de esta cabina."
+        badges={
+          <>
+            <UiBadge tone="good">Proteccion local</UiBadge>
+            <UiBadge>Preparacion visible</UiBadge>
+            <UiBadge tone="warn">Sin combate ni intercepcion</UiBadge>
+          </>
+        }
+      />
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">

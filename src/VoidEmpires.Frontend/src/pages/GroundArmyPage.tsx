@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchGroundArmyUiState } from "../api/groundArmyApi";
+import { CockpitHero } from "../components/CockpitHero";
 import { PlanetDataRow } from "../components/PlanetModuleLayout";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -115,17 +116,19 @@ export function GroundArmyPage() {
 
   return (
     <section className="page-grid">
-      <UiCard className="panel panel-hero figma-hero-card">
-        <div className="figma-hero-copy">
-          <UiBadge tone="resource">Ejercito Tierra v1</UiBadge>
-          <h2>Cabina de Ejercito Tierra</h2>
-          <p>Lee preparacion terrestre, guarnicion local y opciones de entrenamiento seguras sin activar invasion, combate ni movimiento orbital.</p>
-        </div>
-        <div className="figma-badge-row">
-          <UiBadge>Lectura y preparacion terrestre</UiBadge>
-          <UiBadge tone="warn">Sin combate ni invasion</UiBadge>
-        </div>
-      </UiCard>
+      <CockpitHero
+        versionLabel="Ejercito de Tierra v1"
+        title="Ejercito de Tierra"
+        description="La cabina prioriza preparacion terrestre, guarnicion local y entrenamiento seguro antes que el detalle tecnico."
+        developmentNote="La ruta sigue siendo de desarrollo para QA local: conserva la lectura de entrenamiento visible y deja la invasion y el combate fuera de alcance."
+        badges={
+          <>
+            <UiBadge>Guarnicion y entrenamiento</UiBadge>
+            <UiBadge>{cockpitStatusLabels.preparation}</UiBadge>
+            <UiBadge tone="warn">Sin combate ni invasion</UiBadge>
+          </>
+        }
+      />
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">
