@@ -3,7 +3,7 @@
 ---
 id: TASK-22B
 title: Phase 22B - Espionage taxonomy and display labels
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

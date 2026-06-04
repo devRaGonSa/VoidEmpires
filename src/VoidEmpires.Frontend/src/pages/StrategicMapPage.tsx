@@ -30,6 +30,14 @@ import {
   isVisibleVisibilityLevel,
 } from "../utils/domainPresentation";
 import {
+  formatIntelCoverage,
+  getEspionageActionLabel,
+  getIntelConfidenceLabel,
+  getIntelligenceLevelLabel,
+  getObservationStatusLabel,
+  getTargetVisibilityLabel,
+} from "../utils/espionagePresentation";
+import {
   buildConstructionUrl,
   buildDevelopmentHelperUrl,
   buildFleetsUrl,
@@ -102,6 +110,15 @@ function readStringValue(record: Record<string, unknown>, key: string) {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
+function readArrayLength(record: Record<string, unknown> | null, key: string) {
+  if (!record) {
+    return 0;
+  }
+
+  const value = record[key];
+  return Array.isArray(value) ? value.length : 0;
+}
+
 function formatReadinessItem(value: unknown) {
   if (typeof value === "string") {
     return value;
@@ -117,7 +134,7 @@ function formatReadinessItem(value: unknown) {
 
 function formatStrategicCommandLabel(actionKey: unknown) {
   const key = readText(actionKey, "unknown.command");
-  return getUserFacingActionLabel(key, "Accion disponible");
+  return getEspionageActionLabel(key) ?? getUserFacingActionLabel(key, "Accion disponible");
 }
 
 function formatStrategicCommandSummary(
@@ -135,6 +152,10 @@ function formatStrategicCommandSummary(
         return "La ruta puede revisarse desde la cabina de flotas sin mutar datos.";
       case "fleet.transfer.create":
         return "La cabina de flotas puede preparar esta ruta cuando exista contexto valido.";
+      case "exploration.preview":
+        return "La lectura previa solo anticipa reconocimiento futuro y no activa ninguna mision.";
+      case "exploration.mission.create":
+        return "La mision permanece fuera de alcance en esta version y debe mostrarse como hoja de ruta.";
       default:
         return "Lectura disponible en esta vista de solo inspeccion.";
     }
@@ -860,13 +881,23 @@ export function StrategicMapPage() {
                       <h4>{selectedSystem.systemName ?? "Sistema desconocido"}</h4>
                     </div>
                     <UiBadge tone={getVisibilityTone(selectedSystem.visibilityLevel)}>
-                      {formatVisibilityLevel(selectedSystem.visibilityLevel)}
+                      {getTargetVisibilityLabel(
+                        selectedSystem.visibilityLevel,
+                        Boolean(selectedSystemRecord?.isOwnedByRequestingCivilization),
+                      )}
                     </UiBadge>
                   </div>
                   <div className="figma-data-list">
                     <DataRow
                       label="Coordenadas"
                       value={`${formatCoordinate(selectedSystem.coordinateX)}, ${formatCoordinate(selectedSystem.coordinateY)}, ${formatCoordinate(selectedSystem.coordinateZ)}`}
+                    />
+                    <DataRow
+                      label="Nivel de inteligencia"
+                      value={getIntelligenceLevelLabel(
+                        selectedSystem.visibilityLevel,
+                        selectedSystem.visibilityReason,
+                      )}
                     />
                     <DataRow label="Planetas" value={String(selectedSystem.planets?.length ?? 0)} />
                     <DataRow label="Flotas" value={String(selectedSystem.fleetPresence?.length ?? 0)} />
@@ -1012,7 +1043,10 @@ export function StrategicMapPage() {
                     <p>La lectura principal prioriza posicion, control y presencia operativa sobre los metadatos de implementacion.</p>
                   </div>
                   <UiBadge tone={getVisibilityTone(selectedSystem.visibilityLevel)}>
-                    {formatVisibilityLevel(selectedSystem.visibilityLevel)}
+                    {getTargetVisibilityLabel(
+                      selectedSystem.visibilityLevel,
+                      Boolean(selectedSystemRecord?.isOwnedByRequestingCivilization),
+                    )}
                   </UiBadge>
                 </div>
                 <div className="figma-data-list">
@@ -1033,8 +1067,37 @@ export function StrategicMapPage() {
                     value={
                       Boolean(selectedSystemRecord?.isOwnedByRequestingCivilization)
                         ? "Sistema propio"
-                        : formatVisibilityReason(selectedSystem.visibilityReason)
+                        : getIntelligenceLevelLabel(
+                            selectedSystem.visibilityLevel,
+                            selectedSystem.visibilityReason,
+                          )
                     }
+                  />
+                  <DataRow
+                    label="Observacion"
+                    value={getObservationStatusLabel({
+                      visibilityLevel: selectedSystem.visibilityLevel,
+                      visibilityReason: selectedSystem.visibilityReason,
+                      sensorCount: selectedSystem.sensorProfiles?.length ?? 0,
+                      detectionCount: selectedSystem.detectionCoverage?.length ?? 0,
+                      transferCount: selectedSystem.transferOverlays?.length ?? 0,
+                    })}
+                  />
+                  <DataRow
+                    label="Confianza"
+                    value={getIntelConfidenceLabel({
+                      visibilityLevel: selectedSystem.visibilityLevel,
+                      sensorCount: selectedSystem.sensorProfiles?.length ?? 0,
+                      detectionCount: selectedSystem.detectionCoverage?.length ?? 0,
+                    })}
+                  />
+                  <DataRow
+                    label="Cobertura"
+                    value={formatIntelCoverage({
+                      sensorCount: selectedSystem.sensorProfiles?.length ?? 0,
+                      detectionCount: selectedSystem.detectionCoverage?.length ?? 0,
+                      transferCount: selectedSystem.transferOverlays?.length ?? 0,
+                    })}
                   />
                   <DataRow
                     label="Presencia operativa"
@@ -1161,15 +1224,42 @@ export function StrategicMapPage() {
                       <p>El foco principal muestra tipo, control y estado colonial antes que claves de diagnostico.</p>
                     </div>
                     <UiBadge tone={getVisibilityTone(selectedPlanet.visibilityLevel)}>
-                      {Boolean(selectedPlanetRecord?.isOwnedByRequestingCivilization)
-                        ? "Propio"
-                        : formatVisibilityLevel(selectedPlanet.visibilityLevel)}
+                      {getTargetVisibilityLabel(
+                        selectedPlanet.visibilityLevel,
+                        Boolean(selectedPlanetRecord?.isOwnedByRequestingCivilization),
+                      )}
                     </UiBadge>
                   </div>
                   <div className="figma-data-list">
                     <DataRow
                       label="Estado"
-                      value={`${formatVisibilityLevel(selectedPlanet.visibilityLevel)} (${formatVisibilityReason(selectedPlanet.visibilityReason)})`}
+                      value={getIntelligenceLevelLabel(
+                        selectedPlanet.visibilityLevel,
+                        selectedPlanet.visibilityReason,
+                      )}
+                    />
+                    <DataRow
+                      label="Observacion"
+                      value={getObservationStatusLabel({
+                        visibilityLevel: selectedPlanet.visibilityLevel,
+                        visibilityReason: selectedPlanet.visibilityReason,
+                        sensorCount: readArrayLength(selectedPlanetRecord ?? {}, "sensorProfiles"),
+                        detectionCount: readArrayLength(
+                          selectedPlanetRecord ?? {},
+                          "detectionCoverage",
+                        ),
+                      })}
+                    />
+                    <DataRow
+                      label="Confianza"
+                      value={getIntelConfidenceLabel({
+                        visibilityLevel: selectedPlanet.visibilityLevel,
+                        sensorCount: readArrayLength(selectedPlanetRecord ?? {}, "sensorProfiles"),
+                        detectionCount: readArrayLength(
+                          selectedPlanetRecord ?? {},
+                          "detectionCoverage",
+                        ),
+                      })}
                     />
                     <DataRow
                       label="Tipo"
@@ -1185,8 +1275,17 @@ export function StrategicMapPage() {
                       label="Acceso"
                       value={
                         selectedPlanet.isVisible
-                          ? "Inspeccion disponible"
-                          : "Pendiente de visibilidad"
+                          ? formatIntelCoverage({
+                              sensorCount: readArrayLength(
+                                selectedPlanetRecord ?? {},
+                                "sensorProfiles",
+                              ),
+                              detectionCount: readArrayLength(
+                                selectedPlanetRecord ?? {},
+                                "detectionCoverage",
+                              ),
+                            })
+                          : "Objetivo fuera de alcance"
                       }
                     />
                   </div>
