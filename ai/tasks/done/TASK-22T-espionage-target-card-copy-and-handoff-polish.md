@@ -3,7 +3,7 @@
 ---
 id: TASK-22T
 title: Phase 22T - Espionage target card copy and handoff polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

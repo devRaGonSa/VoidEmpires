@@ -89,9 +89,10 @@ function getTargetStatusLabel(target: IntelligenceTargetViewModel) {
 }
 
 function getTargetHandoffLabel(target: IntelligenceTargetViewModel) {
-  if (target.planetId && isOwnedTarget(target)) return "Planeta";
-  if (target.planetId && isVisibleTarget(target)) return "Galaxia -> Planeta";
-  return "Galaxia";
+  if (target.planetId && isOwnedTarget(target)) return "Abrir planeta";
+  if (target.planetId && isVisibleTarget(target)) return "Revisar en Galaxia";
+  if (target.planetId) return "Seguir desde Galaxia";
+  return "Volver al mapa";
 }
 
 function getSignalLabel(signal: IntelligenceSystemTargetGroup["signals"][number]) {
@@ -150,7 +151,7 @@ function buildCatalogSections(groups: readonly IntelligenceSystemTargetGroup[]):
         statusTone: "warn",
         confidenceLabel: "Senal pasiva",
         coverageLabel: signal.summary,
-        handoffLabel: signal.planetId ? "Galaxia -> Planeta" : "Galaxia",
+        handoffLabel: signal.planetId ? "Revisar en Galaxia" : "Volver al mapa",
         controlLabel: null,
         signalLabel: signal.summary,
       });
@@ -178,25 +179,25 @@ const handoffCards = [
     key: "galaxy",
     label: "Galaxia",
     title: "Vista estrategica",
-    description: "Mantiene el mapa, el contexto de sistema y la lectura general de visibilidad.",
+    description: "Mantiene el mapa, el contexto del sistema y la siguiente comparacion visible.",
   },
   {
     key: "planet",
     label: "Planeta",
     title: "Detalle planetario",
-    description: "Concentra la superficie propia, reservas y estado local del mundo enfocado.",
+    description: "Reune la superficie propia, las reservas y el estado local del mundo enfocado.",
   },
   {
     key: "fleets",
     label: "Flotas",
     title: "Movimiento orbital",
-    description: "Posee grupos orbitales, rutas y transferencias. Espionaje no ejecuta movimientos.",
+    description: "Permite revisar grupos orbitales, rutas y transferencias sin convertir Espionaje en una cabina de mando.",
   },
   {
     key: "research",
     label: "Investigacion",
     title: "Progreso tecnologico",
-    description: "Agrupa el contexto de progreso futuro para lecturas y mejoras relacionadas con inteligencia.",
+    description: "Muestra el progreso tecnologico relacionado con futuras mejoras de lectura e inteligencia.",
   },
 ] as const;
 
@@ -450,7 +451,7 @@ export function EspionagePage() {
             <div>
               <p className="eyebrow">Foco recomendado</p>
               <h3>{focusedTarget?.label ?? "Sin objetivo priorizado"}</h3>
-              <p>La cabina prioriza objetivos parciales con senales pasivas o comparaciones visibles antes que prometer operaciones no implementadas.</p>
+              <p>La cabina prioriza objetivos parciales con senales pasivas y deja claro en que lectura conviene continuar el analisis.</p>
             </div>
             <UiBadge tone={focusedTarget?.hasPassiveSignals ? "good" : "warn"}>{getEspionagePrimaryAction(viewModel)}</UiBadge>
           </div>
@@ -491,7 +492,7 @@ export function EspionagePage() {
                         <div className="figma-data-row"><span>Confianza</span><strong>{target.confidenceLabel}</strong></div>
                         <div className="figma-data-row"><span>Cobertura</span><strong>{target.coverageLabel}</strong></div>
                         {isOwnedTarget(target) ? <div className="figma-data-row"><span>Control</span><strong>Control propio</strong></div> : null}
-                        <div className="figma-data-row"><span>Handoff sugerido</span><strong>{getTargetHandoffLabel(target)}</strong></div>
+                        <div className="figma-data-row"><span>Siguiente lectura</span><strong>{getTargetHandoffLabel(target)}</strong></div>
                       </div>
                       {!isOwnedTarget(target) && !isVisibleTarget(target) ? (
                         <p className="espionage-target-note">{getEspionageMissingDataNote(target.hasPassiveSignals ? "partial" : "unconfirmed")}</p>
@@ -511,7 +512,7 @@ export function EspionagePage() {
                       <p className="figma-panel-note">{signal.summary}</p>
                       <div className="figma-data-list espionage-data-list">
                         <div className="figma-data-row"><span>Sistema</span><strong>{signal.systemLabel}</strong></div>
-                        <div className="figma-data-row"><span>Handoff sugerido</span><strong>{signal.planetId ? "Galaxia -> Planeta" : "Galaxia"}</strong></div>
+                        <div className="figma-data-row"><span>Siguiente lectura</span><strong>{signal.planetId ? "Revisar en Galaxia" : "Volver al mapa"}</strong></div>
                       </div>
                       <p className="espionage-target-note">{getEspionageMissingDataNote("signal")}</p>
                     </article>
@@ -594,7 +595,7 @@ export function EspionagePage() {
                       <div className="figma-data-list espionage-data-list">
                         <div className="figma-data-row"><span>Cobertura</span><strong>{entry.coverageLabel}</strong></div>
                         {entry.controlLabel ? <div className="figma-data-row"><span>Control</span><strong>{entry.controlLabel}</strong></div> : null}
-                        <div className="figma-data-row"><span>Handoff sugerido</span><strong>{entry.handoffLabel}</strong></div>
+                        <div className="figma-data-row"><span>Siguiente lectura</span><strong>{entry.handoffLabel}</strong></div>
                       </div>
                       {entry.statusTone === "warn" ? (
                         <p className="espionage-target-note">
@@ -641,7 +642,7 @@ export function EspionagePage() {
                   </div>
                   <p className="figma-panel-note">{entry.summary}</p>
                   <div className="figma-data-list espionage-data-list">
-                    <div className="figma-data-row"><span>Destino sugerido</span><strong>{entry.handoffLabel}</strong></div>
+                    <div className="figma-data-row"><span>Siguiente lectura</span><strong>{entry.handoffLabel}</strong></div>
                     <div className="figma-data-row"><span>Estado</span><strong>{entry.statusLabel}</strong></div>
                   </div>
                 </article>
