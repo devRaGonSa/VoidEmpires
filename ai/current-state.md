@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Block 19U-20J - Ground Army cockpit playable foundation v1`.
+The repository is consolidated through `Phase 21Z - Cross-cockpit UX consolidation and gameplay language polish`.
 
 ## Repository Reality
 
@@ -36,8 +36,9 @@ Current frontend cockpit baseline:
 - Fleets remains the accepted dev-cockpit foundation and now supports simple URL-based context links into Planet, Construction, and Shipyard while keeping destination context optional.
 - Query-context helpers now centralize `civilizationId` and `planetId` navigation so the cockpit links stop rebuilding URLs by hand.
 - Module-specific catalog duplication has been reduced by extracting shared planet layout components and route builders.
+- The accepted cockpit suite now shares a clearer polish baseline: primary copy is more gameplay-facing, diagnostics stay collapsed or clearly secondary, action hierarchy is more consistent, responsive overflow has been tightened, and sidebar or module-state cues better distinguish implemented versus future modules.
 - Development-only seed profiles now provide the standard QA setup path for Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, and Defenses without manual SQL.
-- `minimal-validation` remains the deterministic shared baseline, `cockpit-validation` is now the accepted richer cross-cockpit baseline for Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, and Defenses together, and the current cockpit-specific richer profiles are `shipyard-validation`, `fleet-validation`, `research-validation`, and `planet-full-validation`.
+- `minimal-validation` remains the deterministic shared baseline, `cockpit-validation` is now the first coherent cross-cockpit demo scenario for Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, and Defenses together, and the current cockpit-specific richer profiles are `shipyard-validation`, `fleet-validation`, `research-validation`, and `planet-full-validation`.
 - Seed profiles are additive, deterministic, idempotent, and Development-only. They restore documented baseline rows and minimums but do not destructively clear queues, extra transfers, or other user mutations.
 - Richer development seed profiles now reserve deterministic high sequence ranges for their completed queue-history rows, preventing runtime collisions when `cockpit-validation` is applied over reused development databases that already contain manual QA queue activity.
 - The development seed apply endpoint now converts persisted-state write conflicts into `409 Conflict` responses with diagnostic details instead of surfacing an unhandled runtime failure.
@@ -55,6 +56,9 @@ Current intentional exclusions:
 - no Ground Army combat, invasion, or assault resolution
 - no real interception execution
 - no espionage gameplay
+- no espionage execution
+- no alliances
+- no market
 - no production authentication
 - no Fleet movement, transfer creation, split, merge, or combat execution from Shipyard
 - no combat, interception execution, fleet movement, or shield simulation from Defenses
@@ -279,12 +283,12 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Block 19U-20J:
+Current validated baseline after Phase 21Z:
 
 - backend: `dotnet build --no-restore` succeeded
 - tests: `dotnet test --no-build` succeeded with `641` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
-- Manual visual QA for the restored Galaxy and neighboring cockpit suite, including Ground Army, remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; the Browser runtime was unavailable in this session, so final screenshot-style acceptance is still user-driven.
+- Manual visual QA for the accepted cross-cockpit demo flow remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; the Browser runtime was unavailable in this session, so final screenshot-style acceptance is still user-driven.
 
 Current validated cockpit QA seed baseline:
 

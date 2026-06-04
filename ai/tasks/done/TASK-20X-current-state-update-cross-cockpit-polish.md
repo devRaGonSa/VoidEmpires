@@ -3,7 +3,7 @@
 ---
 id: TASK-20X-current-state-update-cross-cockpit-polish
 title: Current state update cross-cockpit polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
