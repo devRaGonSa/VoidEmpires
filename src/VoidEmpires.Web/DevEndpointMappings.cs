@@ -8,6 +8,7 @@ using VoidEmpires.Application.Fleets;
 using VoidEmpires.Application.Galaxy;
 using VoidEmpires.Application.Players;
 using VoidEmpires.Application.Research;
+using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Colonization;
@@ -441,6 +442,28 @@ internal static class DevEndpointMappings
                 : Results.Conflict(response);
         });
 
+        app.MapGet("/api/dev/espionage/ui-state", async (
+            Guid? civilizationId,
+            [FromServices] IServiceProvider services,
+            [FromServices] IConfiguration configuration,
+            CancellationToken cancellationToken) =>
+        {
+            if (!IsPersistenceConfigured(configuration))
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (civilizationId is null || civilizationId == Guid.Empty)
+            {
+                return Results.BadRequest(new DevEspionageUiStateApiResponse(false, null, ["Civilization id is required."]));
+            }
+
+            var service = services.GetRequiredService<IDevEspionageUiStateService>();
+            var uiState = await service.GetAsync(new GetDevEspionageUiStateRequest(civilizationId.Value), cancellationToken);
+
+            return Results.Ok(new DevEspionageUiStateApiResponse(true, uiState, []));
+        });
+
         app.MapDevOrbitalGroupLookupEndpoints();
         app.MapDevOrbitalGroupSplitEndpoints();
         app.MapDevOrbitalGroupMergeEndpoints();
@@ -844,4 +867,9 @@ internal sealed record CreateOrbitalGroupApiRequest(
 internal sealed record CreateOrbitalGroupApiResponse(
     bool Succeeded,
     Guid? OrbitalGroupId,
+    IReadOnlyList<string> Errors);
+
+internal sealed record DevEspionageUiStateApiResponse(
+    bool Succeeded,
+    GetDevEspionageUiStateResult? UiState,
     IReadOnlyList<string> Errors);

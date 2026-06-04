@@ -84,6 +84,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<ISensorProfileService, SensorProfileService>();
         services.AddScoped<IDetectionCoverageService, DetectionCoverageService>();
         services.AddScoped<IInterceptionOpportunityService, InterceptionOpportunityService>();
+        services.AddScoped<IDevEspionageUiStateService, DevEspionageUiStateService>();
         services.AddScoped<IAllianceReadinessQueryService, AllianceReadinessQueryService>();
         services.AddScoped<IAlliancePactReadinessQueryService, AlliancePactReadinessQueryService>();
         services.AddScoped<IDiplomaticContactQueryService, DiplomaticContactQueryService>();

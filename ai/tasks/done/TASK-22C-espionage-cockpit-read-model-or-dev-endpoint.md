@@ -3,7 +3,7 @@
 ---
 id: TASK-22C
 title: Phase 22C - Espionage cockpit read model or dev endpoint
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
