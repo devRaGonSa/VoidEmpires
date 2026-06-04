@@ -3,7 +3,7 @@
 ---
 id: TASK-24B
 title: Phase 24B - Dev QA command script for seed and baseline snapshot
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

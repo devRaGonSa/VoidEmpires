@@ -21,6 +21,10 @@ Recommended deterministic setup:
 3. Use a fresh disposable local database only when an exact pre-enqueue baseline is required.
 4. Reapply the documented seed when local state becomes confusing, but do not rely on reseeding to clear open orders.
 
+Repeatable backend-only baseline helper:
+
+- Run `.\scripts\dev-qa-baseline.ps1` to verify the seed catalog, apply `cockpit-validation` twice, and print the current Construction/Planet and Research baseline snapshot before creating any real orders.
+
 Primary QA URLs:
 
 - Construction: `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
