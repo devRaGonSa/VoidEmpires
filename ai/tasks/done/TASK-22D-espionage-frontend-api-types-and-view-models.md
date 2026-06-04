@@ -3,7 +3,7 @@
 ---
 id: TASK-22D
 title: Phase 22D - Espionage frontend API types and view models
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
