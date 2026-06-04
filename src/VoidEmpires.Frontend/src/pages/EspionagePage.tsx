@@ -356,7 +356,7 @@ export function EspionagePage() {
           {error ? <p className="error-text">{error}</p> : null}
           {technicalErrorDetail ? (
             <details className="json-details">
-              <summary>Detalle tecnico del ultimo error</summary>
+              <summary>Datos tecnicos del ultimo error</summary>
               <pre className="json-preview">{technicalErrorDetail}</pre>
             </details>
           ) : null}
@@ -662,7 +662,7 @@ export function EspionagePage() {
           <summary>
             <div>
               <p className="eyebrow">Diagnostico secundario</p>
-              <strong>Lecturas tecnicas</strong>
+              <strong>Lectura tecnica</strong>
             </div>
             <UiBadge tone="warn">Contraido por defecto</UiBadge>
           </summary>
@@ -679,7 +679,7 @@ export function EspionagePage() {
                 {viewModel.limitations.map((item) => <li key={item}>{item}</li>)}
               </ul>
               <details className="json-details">
-                <summary>Detalle tecnico</summary>
+                <summary>Datos tecnicos</summary>
                 <ul className="stack-list compact-list">
                   {viewModel.diagnostics.technical.map((item) => <li key={item}>{item}</li>)}
                 </ul>

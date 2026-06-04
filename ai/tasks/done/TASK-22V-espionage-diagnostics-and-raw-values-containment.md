@@ -3,7 +3,7 @@
 ---
 id: TASK-22V
 title: Phase 22V - Espionage diagnostics and raw values containment
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
