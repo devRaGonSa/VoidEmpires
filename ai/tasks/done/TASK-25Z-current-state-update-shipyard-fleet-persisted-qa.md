@@ -3,7 +3,7 @@
 ---
 id: TASK-25Z
 title: Phase 25Z - Current state update for Shipyard and Fleet persisted QA
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

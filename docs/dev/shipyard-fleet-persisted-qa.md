@@ -283,15 +283,15 @@ What to confirm:
 - seed reapply does not clear extra groups, transfers, or stock mutations
 - if you need the exact pre-enqueue baseline again, switch to a fresh disposable local database
 
-## Script targets for later tasks
+## Script set shipped for this block
 
-Expected script set by the end of this block:
+Current accepted helper set:
 
-- baseline helper: extend `scripts/dev-qa-baseline.ps1` to include Shipyard and Fleet read-state
-- enqueue helper: add `scripts/dev-qa-create-shipyard-order.ps1`
-- fleet read helper: add `scripts/dev-qa-fleet-read-state.ps1`
-- optional allocation helper or docs: add only if allocation becomes explicitly approved later
-- script checker: extend `scripts/check-dev-qa-scripts.ps1` to include the Shipyard/Fleet helpers
+- baseline helper: `scripts/dev-qa-baseline.ps1`
+- Shipyard enqueue helper: `scripts/dev-qa-create-shipyard-production-order.ps1`
+- Fleet read helper: `scripts/dev-qa-fleet-read-state.ps1`
+- local script checker: `scripts/check-dev-qa-scripts.ps1`
+- optional allocation helper: intentionally absent until allocation is explicitly re-approved
 
 Known reused-database states scripts must treat as expected:
 
@@ -326,8 +326,6 @@ Fleet flow:
 - `tests/VoidEmpires.Tests/DevOrbitalGroupEndpointTests.cs`
 - `tests/VoidEmpires.Tests/OrbitalStockGroupServiceTests.cs`
 
-Current gap now covered by later follow-up tasks:
+Current remaining limit:
 
-- no backend helper script yet creates one real Shipyard order and prints before/after deltas
-- no backend helper script yet re-reads Fleet state after Shipyard enqueue
 - no safe default allocation loop exists yet for reused databases

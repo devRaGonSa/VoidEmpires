@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 24P - Real persisted gameplay flow QA for Construction and Research`.
+The repository is consolidated through `Phase 26B - Real persisted gameplay flow QA for Shipyard and Fleets`.
 
 ## Repository Reality
 
@@ -42,13 +42,13 @@ Current frontend cockpit baseline:
 - Development-only seed profiles now provide the standard QA setup path for Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, and Espionage without manual SQL.
 - `minimal-validation` remains the deterministic shared baseline, `cockpit-validation` is now the first coherent cross-cockpit demo scenario for Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, and Espionage together, and the current cockpit-specific richer profiles are `shipyard-validation`, `fleet-validation`, `research-validation`, and `planet-full-validation`.
 - Seed profiles are additive, deterministic, idempotent, and Development-only. They restore documented baseline rows and minimums but do not destructively clear queues, extra transfers, or other user mutations.
-- The real persisted Development enqueue path is now covered for both Construction and Research through direct endpoint tests, negative-path coverage, resource-deduction checks, and cross-cockpit read-model regression coverage.
-- `cockpit-validation` is now verified to preserve manual QA-created Construction and Research orders created through the supported dev endpoints while still avoiding duplicate seeded history rows.
-- Backend-only QA helpers now exist for baseline capture plus one real Construction or Research enqueue without manual SQL: `scripts/dev-qa-baseline.ps1`, `scripts/dev-qa-create-construction-order.ps1`, and `scripts/dev-qa-create-research-order.ps1`.
+- The real persisted Development enqueue path is now covered for Construction, Research, and Shipyard through direct endpoint tests, negative-path coverage, resource-deduction checks, and cross-cockpit read-model regression coverage; Fleet coverage for this block remains the read-only post-Shipyard verification path.
+- `cockpit-validation` is now verified to preserve manual QA-created Construction, Research, and Shipyard orders created through the supported dev endpoints while still avoiding duplicate seeded history rows.
+- Backend-only QA helpers now exist for baseline capture plus one real Construction, Research, or Shipyard enqueue without manual SQL, followed by Fleet read-state verification: `scripts/dev-qa-baseline.ps1`, `scripts/dev-qa-create-construction-order.ps1`, `scripts/dev-qa-create-research-order.ps1`, `scripts/dev-qa-create-shipyard-production-order.ps1`, and `scripts/dev-qa-fleet-read-state.ps1`.
 - The persisted QA PowerShell helpers are now hardened against the real Development DTO shapes: the shared script helpers accept `resourceType + quantity`, `resourceType + amount`, flat stockpile objects, and unknown-shape fallback warnings, and `dev-qa-baseline.ps1` no longer crashes on the outdated direct `.amount` assumption.
 - The persisted QA create-order helpers are now aligned with the live backend command contracts: the Construction helper posts backend-compatible enqueue values instead of stringified UI action text, and the Research helper now recognizes `Civilization already has an open research order.` from either parsed JSON errors or the raw HTTP body so the expected reused-Development-database no-op path works in both Windows PowerShell and newer shells.
-- The persisted-flow runbook is documented in `docs/dev/persisted-gameplay-flow-checklist.md`, including backend start, seed apply, baseline capture, real enqueue commands, expected success/failure interpretation, and reseed-preservation checks.
-- A lightweight local PowerShell check now exists at `scripts/check-dev-qa-scripts.ps1` to parser-check the persisted QA helpers and validate the resource-format fallback behavior without requiring the backend to be running.
+- The persisted-flow runbook is documented in `docs/dev/persisted-gameplay-flow-checklist.md`, and the Shipyard/Fleet companion runbook is documented in `docs/dev/shipyard-fleet-persisted-qa.md`, including backend start, seed apply, baseline capture, real enqueue commands, expected success/no-op interpretation, Fleet read-state verification, and reseed-preservation checks.
+- A lightweight local PowerShell check now exists at `scripts/check-dev-qa-scripts.ps1` to parser-check the persisted QA helpers and validate resource formatting plus known Construction, Research, and Shipyard no-op helper behavior without requiring the backend to be running.
 - Richer development seed profiles now reserve deterministic high sequence ranges for their completed queue-history rows, preventing runtime collisions when `cockpit-validation` is applied over reused development databases that already contain manual QA queue activity.
 - The development seed apply endpoint now converts persisted-state write conflicts into `409 Conflict` responses with diagnostic details instead of surfacing an unhandled runtime failure.
 - The current frontend boundary model is documented in `docs/dev/planet-module-boundaries.md`.
@@ -74,6 +74,7 @@ Current intentional exclusions:
 - no production authentication
 - no production auth
 - no production data
+- no manual SQL standard path for the accepted persisted QA loop
 - no market transactions
 - no buying
 - no selling
@@ -82,6 +83,7 @@ Current intentional exclusions:
 - no resource mutation from Market
 - no trade-route execution from Market
 - no Fleet movement, transfer creation, split, merge, or combat execution from Shipyard
+- no new Fleet movement, split, merge, transfer creation, transfer cancellation, transfer completion, or stock-to-fleet allocation in the accepted persisted Shipyard/Fleet QA loop
 - no combat, interception execution, fleet movement, or shield simulation from Defenses
 - no invasion, bombardment, orbital transport command, or fleet movement execution from Ground Army
 - no real specialized module execution yet outside the current backend-supported Research and Shipyard enqueue paths plus the accepted Fleets flow; Espionage remains analysis-only
@@ -304,13 +306,14 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 24P:
+Current validated baseline after Phase 26B:
 
 - backend: `dotnet build --no-restore` succeeded
-- tests: `dotnet test --no-build` succeeded with `664` passing tests
+- tests: `dotnet test --no-build` succeeded with `672` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
+- persisted QA scripts: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` succeeded
 - frontend note: Vite still reports the existing chunk-size warning around `500 kB`, but the production build completes successfully
-- persisted QA scripts note: the runtime-contract hardening in the follow-up script block is intended to keep helper output aligned with the real DTO shape; this session can report separately whether the scripts were parser-checked only or exercised against a live backend
+- build note: `dotnet build --no-restore` can still emit transient `MSB3026` copy-retry warnings when `testhost` holds test output DLLs, but the build completes successfully and the test run remains clean
 - Manual visual QA for the accepted cross-cockpit demo flow remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; the Browser runtime was unavailable in this session, so final screenshot-style acceptance is still user-driven.
 - Market visual QA remains documented and user-driven through the seeded browser checklists; the persisted-flow hardening block did not expand Market into transaction gameplay or production behavior.
 
@@ -324,9 +327,13 @@ Current validated cockpit QA seed baseline:
 - Reapplying richer seed profiles after manual QA queue activity is now supported without colliding on persisted queue `Sequence` uniqueness.
 - The real persisted Construction enqueue path is now covered through backend tests, backend-only helper scripts, and the central persisted-flow runbook.
 - The real persisted Research enqueue path is now covered through backend tests, backend-only helper scripts, and the central persisted-flow runbook.
+- The real persisted Shipyard enqueue path is now covered through backend tests, the backend-only Shipyard helper script, and the Shipyard/Fleet companion runbook.
+- Fleet read-state after Shipyard enqueue is now covered through backend tests, the backend-only Fleet read helper script, and the Shipyard/Fleet companion runbook.
 - Current verified resource rule: both Construction and Research deduct the full visible cost immediately when enqueue succeeds.
+- Current verified resource rule: Shipyard enqueue also deducts the full visible cost immediately when enqueue succeeds, while local orbital stock stays unchanged until due processing.
 - `cockpit-validation` now preserves manual Construction and Research orders created during QA while keeping the deterministic read-model baseline intact.
 - `cockpit-validation` now also preserves real manual Shipyard production orders created during QA, avoids duplicating seeded completed Shipyard history on reapply, and keeps Shipyard UI-state readable on reused Development databases.
+- Stock-to-fleet allocation remains intentionally excluded from the accepted persisted Shipyard/Fleet QA loop because `POST /api/dev/fleets/orbital-groups/create-from-stock` is a real non-idempotent mutation and is not yet hardened for reused-database automation.
 - `cockpit-validation` now also supports meaningful Market QA through seeded reserves, selected-planet production, advisory ratios, visible trade signals, disabled future actions, and deterministic `/market` routing without introducing transaction gameplay.
 - `cockpit-validation` now also seeds meaningful Defenses readiness through a visible `DefenseGrid` on `Aurelia` while keeping defense queue completion and combat behavior out of scope.
 - `cockpit-validation` now also seeds meaningful Ground Army readiness through a visible `Barracks`, one deterministic available `PatrolGroup` path, blocked comparison options, and completed planetary training history on `Aurelia` while keeping combat, invasion, and complete-due execution out of scope.
