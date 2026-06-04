@@ -3,7 +3,7 @@
 ---
 id: TASK-24J
 title: Phase 24J - Dev QA PowerShell script create Research order
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

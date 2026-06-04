@@ -25,6 +25,7 @@ Repeatable backend-only baseline helper:
 
 - Run `.\scripts\dev-qa-baseline.ps1` to verify the seed catalog, apply `cockpit-validation` twice, and print the current Construction/Planet and Research baseline snapshot before creating any real orders.
 - Run `.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed` to apply a deterministic Construction seed, enqueue one real Construction order through the dev API, and print queue plus stockpile deltas from the authoritative read model.
+- Run `.\scripts\dev-qa-create-research-order.ps1 -ApplySeed` to apply a deterministic Research seed, enqueue one real Research order through the dev API using backend-provided command metadata, and print queue plus stockpile deltas.
 
 Primary QA URLs:
 
@@ -117,6 +118,14 @@ Safe mutation path:
 3. Choose the technology hint with `CanEnqueue = true`, currently expected to be `PlanetaryEngineering` in the standard seeded flow.
 4. Enqueue with `POST /api/dev/research/orders/enqueue`.
 5. Refresh from `GET /api/dev/research/ui-state` and verify the queue changed from persisted backend state.
+
+Repeatable backend-only helper:
+
+- `.\scripts\dev-qa-create-research-order.ps1`
+- Defaults to civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`.
+- Add `-ApplySeed` to apply `research-validation` before the enqueue.
+- Add `-ResearchType PlanetaryEngineering` or another available type to force the exact enqueue target instead of auto-picking the first available hint.
+- The helper reads Research command metadata from `/api/dev/research/ui-state`, posts the real enqueue request, then re-reads Research and Planet state to print queue plus resource changes without running migrations or cleanup.
 
 Current enqueue behavior:
 

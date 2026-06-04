@@ -44,6 +44,12 @@ POST /api/dev/seeds/apply
   - The profile intentionally resets the owned-planet stockpile to `125` credits, `110` metal, `70` crystal, and `30` gas so `Ingenieria planetaria` remains the deterministic available item while higher-cost research stays blocked.
   - Reapplying the seed preserves completed history but does not delete an already enqueued active research order. For an exact pre-enqueue baseline, use a fresh disposable local database before applying the seed.
 
+Backend-only persisted QA helper:
+
+- `.\scripts\dev-qa-create-research-order.ps1 -ApplySeed`
+- Add `-ResearchType PlanetaryEngineering` or another available backend key to force the exact enqueue target.
+- The helper reads `enqueueCommand` metadata from `/api/dev/research/ui-state`, posts the real enqueue request, and then re-reads Research and Planet state to print queue and reserve deltas.
+
 ## Browser checkpoints
 
 - Checkpoint 1: available card before enqueue
