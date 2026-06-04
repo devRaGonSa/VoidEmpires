@@ -71,6 +71,17 @@ export function MarketPage() {
     })),
     [market],
   );
+  const futureMarketOperations = useMemo(
+    () => [
+      "Comprar recursos",
+      "Vender recursos",
+      "Crear oferta",
+      "Crear ruta comercial",
+      "Exportar recursos",
+      "Importar recursos",
+    ],
+    [],
+  );
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -562,21 +573,13 @@ export function MarketPage() {
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Acciones bloqueadas</p>
-                    <h4>Mutaciones fuera de alcance</h4>
+                    <p className="eyebrow">Dependencia de cabina</p>
+                    <h4>Continuar en logistica</h4>
                   </div>
-                  <UiBadge tone="warn">No disponibles</UiBadge>
-                </div>
-                <div className="stack-list compact-list">
-                  <button type="button" disabled>
-                    Crear ruta comercial no disponible
-                  </button>
-                  <button type="button" disabled>
-                    Transferencia de recursos no disponible
-                  </button>
+                  <UiBadge tone="warn">Sin ejecucion</UiBadge>
                 </div>
                 <p className="figma-panel-note">
-                  El estado se mantiene visible para orientar la siguiente cabina, no para ejecutar logistica oculta.
+                  Esta cabina mantiene visibles la tension y las rutas futuras, pero la resolucion real permanece en Flotas y Galaxia.
                 </p>
               </section>
             </div>
@@ -587,6 +590,38 @@ export function MarketPage() {
               <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, undefined, selectedPlanetId)}>
                 Ver contexto de ruta en Galaxia
               </Link>
+            </div>
+          </UiCard>
+
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Operaciones futuras</p>
+                <h3>Acciones de mercado</h3>
+                <p>La hoja de ruta queda visible, pero esta cabina sigue siendo de solo lectura y no confirma ninguna operacion comercial.</p>
+              </div>
+              <UiBadge tone="warn">{cockpitStatusLabels.safePlaceholder}</UiBadge>
+            </div>
+            <div className="market-future-actions-grid">
+              {futureMarketOperations.map((actionLabel) => (
+                <section key={actionLabel} className="subpanel figma-subpanel market-future-action-card">
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Accion futura</p>
+                      <h4>{actionLabel}</h4>
+                    </div>
+                    <UiBadge tone="warn">No disponible</UiBadge>
+                  </div>
+                  <button type="button" className="market-future-action-button" disabled>
+                    {actionLabel}
+                  </button>
+                  <ul className="stack-list compact-list">
+                    <li>No disponible en esta version.</li>
+                    <li>Solo lectura en esta cabina.</li>
+                    <li>La operacion queda visible como referencia futura, pero no se puede ejecutar.</li>
+                  </ul>
+                </section>
+              ))}
             </div>
           </UiCard>
 

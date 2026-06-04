@@ -1937,6 +1937,39 @@ select {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.market-future-actions-grid {
+  display: grid;
+  gap: var(--ve-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin-top: 14px;
+}
+
+.market-future-action-card {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  border-color: color-mix(in srgb, var(--ve-color-border) 36%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 72%, transparent), color-mix(in srgb, var(--ve-color-panel) 90%, transparent));
+}
+
+.market-future-action-button {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 var(--ve-space-4);
+  border-radius: var(--ve-radius-sm);
+  border: 1px dashed color-mix(in srgb, var(--ve-color-warning) 40%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 76%, black);
+  color: color-mix(in srgb, var(--ve-color-text) 72%, var(--ve-color-muted));
+  font-weight: 700;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.market-future-action-button:disabled {
+  opacity: 1;
+}
+
 .transfer-prepare-button {
   width: 100%;
 }
