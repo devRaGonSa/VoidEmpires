@@ -3,7 +3,7 @@
 ---
 id: TASK-24A
 title: Phase 24A - Construction and Research persisted flow scope audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
