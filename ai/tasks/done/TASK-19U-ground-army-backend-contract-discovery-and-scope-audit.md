@@ -3,7 +3,7 @@
 ---
 id: TASK-19U-ground-army-backend-contract-discovery-and-scope-audit
 title: Ground Army backend contract discovery and scope audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
