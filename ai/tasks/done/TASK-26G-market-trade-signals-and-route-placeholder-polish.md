@@ -3,7 +3,7 @@
 ---
 id: TASK-26G
 title: Phase 26G - Market trade signals and route placeholder polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

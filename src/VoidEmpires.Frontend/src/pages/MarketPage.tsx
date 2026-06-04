@@ -400,7 +400,7 @@ export function MarketPage() {
               <UiBadge tone="good">{market.summary.primaryActionLabel}</UiBadge>
             </div>
             <div className="readiness-grid">
-              <section className="subpanel figma-subpanel">
+              <section className="subpanel figma-subpanel market-secondary-card">
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Reservas</p>
@@ -661,11 +661,11 @@ export function MarketPage() {
                   )}
                 </ul>
               </section>
-              <section className="subpanel figma-subpanel">
+              <section className="subpanel figma-subpanel market-secondary-card">
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Rutas comerciales futuras</p>
-                    <h4>Referencias de ruta</h4>
+                    <h4>Notas de ruta</h4>
                   </div>
                   <UiBadge tone="warn">{market.routePlaceholders.length} visibles</UiBadge>
                 </div>
@@ -681,8 +681,12 @@ export function MarketPage() {
                 <p className="figma-panel-note">
                   Estas rutas son solo contexto. Mercado no crea rutas comerciales ni mueve flotas desde esta seccion.
                 </p>
+                <ul className="stack-list compact-list">
+                  <li>Transferencia de recursos no disponible.</li>
+                  <li>Crear ruta comercial no disponible.</li>
+                </ul>
               </section>
-              <section className="subpanel figma-subpanel">
+              <section className="subpanel figma-subpanel market-secondary-card">
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Dependencia de cabina</p>
@@ -693,6 +697,10 @@ export function MarketPage() {
                 <p className="figma-panel-note">
                   Esta cabina mantiene visible la presion comercial, pero la resolucion real permanece en Flotas y Galaxia.
                 </p>
+                <ul className="stack-list compact-list">
+                  <li>Revisar logistica en Flotas.</li>
+                  <li>Ver contexto de ruta en Galaxia.</li>
+                </ul>
               </section>
             </div>
             <div className="selection-chip-row">

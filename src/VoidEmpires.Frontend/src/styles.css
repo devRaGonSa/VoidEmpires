@@ -1985,6 +1985,12 @@ select {
   border-top: 1px dashed color-mix(in srgb, var(--ve-color-border) 26%, transparent);
 }
 
+.market-secondary-card {
+  border-color: color-mix(in srgb, var(--ve-color-border) 22%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 54%, transparent), color-mix(in srgb, var(--ve-color-panel) 86%, transparent));
+}
+
 .market-future-action-card {
   display: grid;
   gap: 12px;

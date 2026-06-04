@@ -106,6 +106,19 @@ Reference and ratio cards should now keep these safety cues visible:
 
 Treat any ratio card that reads like a confirmation step, a live offer, or a bright primary action as a regression for this block.
 
+## Task 26G signals and route focus
+
+Trade-signal and route-placeholder content should now keep these cues visible:
+
+- `Senales comerciales`
+- `Rutas comerciales futuras`
+- `Transferencia de recursos no disponible`
+- `Crear ruta comercial no disponible`
+- `Revisar logistica en Flotas`
+- `Ver contexto de ruta en Galaxia`
+
+Treat any route placeholder that reads like a builder, a transfer setup, or a primary command surface as a regression for this block.
+
 ## Seeded QA scenario
 
 Use `cockpit-validation` for the richer deterministic Market QA baseline:
