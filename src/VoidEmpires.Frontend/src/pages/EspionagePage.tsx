@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchEspionageUiState } from "../api/espionageApi";
+import { CockpitHero } from "../components/CockpitHero";
 import type { EspionageViewModel, IntelligenceSystemTargetGroup, IntelligenceTargetViewModel } from "../utils/espionageViewModel";
 import { getEspionagePrimaryAction, mapEspionageUiStateToViewModel } from "../utils/espionageViewModel";
 import { UiBadge } from "../components/ui/UiBadge";
@@ -26,6 +27,13 @@ function pickFocusedTarget(group: IntelligenceSystemTargetGroup | null, planetId
     ?? group?.targets.find((target) => target.planetId === recommendedTarget?.planetId)
     ?? group?.targets[0]
     ?? null;
+}
+
+function getCoverageOverview(viewModel: EspionageViewModel | null) {
+  if (!viewModel) return "Sin lectura";
+  if (viewModel.summary.partialTargetCount >= viewModel.summary.visibleTargetCount) return "Cobertura parcial";
+  if (viewModel.summary.passiveSignalCount === 0) return "Cobertura limitada";
+  return "Cobertura amplia";
 }
 
 export function EspionagePage() {
@@ -103,21 +111,23 @@ export function EspionagePage() {
     [focusedGroup, queryPlanetId, viewModel],
   );
   const activePlanetId = focusedTarget?.planetId ?? queryPlanetId ?? null;
+  const coverageOverview = getCoverageOverview(viewModel);
 
   return (
     <section className="page-grid">
-      <UiCard className="panel panel-hero figma-hero-card">
-        <div className="figma-hero-copy">
-          <UiBadge tone="resource">Espionaje v1</UiBadge>
-          <h2>Espionaje</h2>
-          <p>La cabina analiza cobertura, objetivos observados y senales pasivas sin abrir misiones activas ni acciones encubiertas.</p>
-        </div>
-        <div className="figma-badge-row">
-          <UiBadge>Solo lectura</UiBadge>
-          <UiBadge tone="warn">Sin operaciones activas</UiBadge>
-          <UiBadge tone="warn">Cobertura honesta</UiBadge>
-        </div>
-      </UiCard>
+      <CockpitHero
+        versionLabel="Espionaje v1"
+        title="Espionaje"
+        description="La cabina resume lo confirmado, lo observado indirectamente y lo que sigue incompleto antes de prometer operaciones que esta version todavia no ejecuta."
+        developmentNote="La lectura reutiliza la cobertura estrategica disponible y mantiene cualquier futura mision como una referencia bloqueada, no como una accion activa."
+        badges={
+          <>
+            <UiBadge>{coverageOverview}</UiBadge>
+            <UiBadge>Solo lectura</UiBadge>
+            <UiBadge tone="warn">Sin operaciones activas</UiBadge>
+          </>
+        }
+      />
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">
@@ -171,12 +181,17 @@ export function EspionagePage() {
             <UiBadge>{viewModel ? `${viewModel.summary.passiveSignalCount} senales` : "Sin lectura"}</UiBadge>
           </div>
           {viewModel ? (
-            <div className="figma-data-list">
-              <div className="figma-data-row"><span>Objetivos propios</span><strong>{viewModel.summary.ownedTargetCount}</strong></div>
-              <div className="figma-data-row"><span>Objetivos visibles</span><strong>{viewModel.summary.visibleTargetCount}</strong></div>
-              <div className="figma-data-row"><span>Lecturas conocidas</span><strong>{viewModel.summary.knownTargetCount}</strong></div>
-              <div className="figma-data-row"><span>Objetivos parciales</span><strong>{viewModel.summary.partialTargetCount}</strong></div>
-            </div>
+            <>
+              <div className="figma-stat-grid">
+                <div className="figma-stat"><strong>{viewModel.summary.ownedTargetCount}</strong><span>Confirmados</span></div>
+                <div className="figma-stat"><strong>{viewModel.summary.visibleTargetCount}</strong><span>Observados</span></div>
+                <div className="figma-stat"><strong>{viewModel.summary.partialTargetCount}</strong><span>Parciales</span></div>
+                <div className="figma-stat"><strong>{viewModel.summary.passiveSignalCount}</strong><span>Senales</span></div>
+              </div>
+              <p className="figma-panel-note">
+                Confirmado: objetivos propios o plenamente asentados. Observado: lectura visible o indirecta. Incompleto: contacto parcial que todavia necesita seguimiento.
+              </p>
+            </>
           ) : (
             <p className="figma-panel-note">La cabina mostrara su resumen cuando exista un contexto valido de civilizacion.</p>
           )}

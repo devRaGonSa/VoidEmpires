@@ -3,7 +3,7 @@
 ---
 id: TASK-22F
 title: Phase 22F - Espionage dashboard intelligence summary
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
