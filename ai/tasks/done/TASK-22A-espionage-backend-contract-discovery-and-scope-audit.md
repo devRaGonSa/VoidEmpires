@@ -3,7 +3,7 @@
 ---
 id: TASK-22A
 title: Phase 22A - Espionage backend contract discovery and scope audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
