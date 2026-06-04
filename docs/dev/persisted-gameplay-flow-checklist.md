@@ -32,6 +32,130 @@ Primary QA URLs:
 - Construction: `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Research: `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 
+## Backend-only runbook
+
+This is the practical backend-only QA path for real persisted rows. It is intended for a local Development backend only.
+
+### 1. Start the backend
+
+```powershell
+dotnet run --project .\src\VoidEmpires.Web
+```
+
+Warnings:
+
+- These commands create real rows in the Development database.
+- Do not run this flow against production.
+- No manual SQL is required or recommended.
+- No script in this checklist runs migrations, deletes rows, or clears queues.
+
+### 2. Capture a clean baseline
+
+Run the shared baseline helper first:
+
+```powershell
+.\scripts\dev-qa-baseline.ps1
+```
+
+What to confirm:
+
+- `cockpit-validation` exists in the seed catalog.
+- Applying the seed twice succeeds.
+- Construction and Research state load for civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`.
+- The baseline output shows current queue counts before you create any new real order.
+
+### 3. Create one real Construction order
+
+Use the focused Construction helper:
+
+```powershell
+.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed
+```
+
+Optional explicit target:
+
+```powershell
+.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed -BuildingType MetalMine
+```
+
+What success looks like:
+
+- The script prints `Real persisted construction order created.`
+- `QueueAfter` is greater than `QueueBefore`.
+- `OpenQueueAfter` is greater than `OpenQueueBefore`.
+- The resource delta shows negative values for the spent resources.
+- The response includes a real `OrderId`, `StartsAtUtc`, and `EndsAtUtc`.
+
+What failure looks like:
+
+- The helper fails clearly if the backend is unreachable.
+- A conflict response prints backend errors such as `Planet already has an open construction order.` or `Planet is not owned by the requesting civilization.`
+- No cleanup or destructive reset runs automatically after a failure.
+
+### 4. Create one real Research order
+
+Use the Research helper:
+
+```powershell
+.\scripts\dev-qa-create-research-order.ps1 -ApplySeed
+```
+
+Optional explicit target:
+
+```powershell
+.\scripts\dev-qa-create-research-order.ps1 -ApplySeed -ResearchType PlanetaryEngineering
+```
+
+What success looks like:
+
+- The script prints `Real persisted research order created.`
+- `QueueAfter` is greater than `QueueBefore`.
+- `OpenQueueAfter` is greater than `OpenQueueBefore`.
+- The resource delta shows negative values for the spent resources.
+- The response includes a real `OrderId`, `StartsAtUtc`, and `EndsAtUtc`.
+
+What failure looks like:
+
+- The helper fails clearly if the backend is unreachable.
+- A conflict response prints backend errors such as `Civilization already has an open research order.` or `Planet is not owned by the requesting civilization.`
+- No cleanup or destructive reset runs automatically after a failure.
+
+### 5. Re-read authoritative state
+
+If you want direct read-model confirmation after either helper, fetch state again:
+
+```powershell
+Invoke-RestMethod "http://localhost:5142/api/dev/planets/ui-state?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001"
+Invoke-RestMethod "http://localhost:5142/api/dev/research/ui-state?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001"
+```
+
+What to confirm:
+
+- Construction read-state now includes the new queue row and reduced local stockpile.
+- Research read-state now includes the new active queue row and no longer exposes the same hint as immediately enqueueable.
+- The read model reflects persisted backend state rather than optimistic UI state.
+
+### 6. Confirm seed reapply preserves manual orders
+
+Re-run the baseline helper or reapply the seed manually:
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:5142/api/dev/seeds/apply" `
+  -ContentType "application/json" `
+  -Body '{"profile":"cockpit-validation"}'
+```
+
+Then fetch state again with the read endpoints above.
+
+What to confirm:
+
+- Existing manual Construction orders are still present.
+- Existing manual Research orders are still present.
+- Seed reapply can restore deterministic read surfaces, but it does not delete already created active orders.
+- If you need an exact pre-enqueue baseline again, switch to a fresh disposable local database instead of relying on reseed cleanup.
+
 ## Endpoint inventory
 
 Construction persisted mutation and read surfaces: `POST /api/dev/buildings/construction-orders/enqueue`, `POST /api/dev/buildings/construction-orders/complete-due`, `GET /api/dev/planets/ui-state?civilizationId={id}&planetId={id}`
