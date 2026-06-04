@@ -109,6 +109,7 @@ Market-specific visual audit note:
 - Use `docs/dev/market-cockpit-checklist.md` as the source of truth for the current Market QA target list before changing copy or hierarchy.
 - Treat a dev-loader-first first viewport, duplicated diagnostics, or action-like future Market wording as a failed visual pass even if the route remains technically read-only.
 - Treat route placeholders that overshadow the economy summary or resemble executable logistics controls as a failed Market visual pass.
+- Confirm the shared sidebar marks `Mercado` as an implemented cockpit when `/market` is active, while `Alianza` and `Ranking` remain visibly future-facing.
 
 ## Ground Army Block Closure Pass
 

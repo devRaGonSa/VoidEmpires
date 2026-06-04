@@ -809,11 +809,11 @@ export function MarketPage() {
       <UiCard className="panel">
         <div className="figma-section-header">
           <div>
-            <p className="eyebrow">Pasar a otra cabina</p>
-            <h3>Limites de Mercado y siguiente paso</h3>
-            <p>Mercado interpreta la economia visible y te deriva hacia la cabina propietaria cuando hace falta gestionar reservas locales, consumo, produccion orbital o contexto de ruta.</p>
+            <p className="eyebrow">Cabina implementada</p>
+            <h3>Mercado dentro de la suite actual</h3>
+            <p>Mercado interpreta la economia visible y conserva el contexto actual cuando te deriva hacia la cabina propietaria para reservas locales, consumo, produccion orbital o contexto de ruta.</p>
           </div>
-          <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
+          <UiBadge tone="warn">{cockpitStatusLabels.implementedReadOnly}</UiBadge>
         </div>
         <div className="readiness-grid">
           <section className="subpanel figma-subpanel">
@@ -899,6 +899,7 @@ export function MarketPage() {
           <div>
             <p className="eyebrow">Navegacion</p>
             <h3>{cockpitNavigationLabels.relatedCabins}</h3>
+            <p>Mercado forma parte de la suite activa, pero mantiene su limite de solo lectura y conserva `civilizationId` y `planetId` cuando el contexto existe.</p>
           </div>
           <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
         </div>

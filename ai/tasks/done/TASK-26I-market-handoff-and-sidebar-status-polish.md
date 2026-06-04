@@ -3,7 +3,7 @@
 ---
 id: TASK-26I
 title: Phase 26I - Market handoff and sidebar status polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

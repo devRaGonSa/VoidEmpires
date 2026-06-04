@@ -5,6 +5,7 @@ export const cockpitStatusLabels = {
   contextPreserved: "Contexto conservado",
   developmentOnly: "Solo desarrollo",
   diagnostics: "Diagnostico secundario",
+  implementedReadOnly: "Cabina activa",
   inQueue: "En cola",
   preparation: "Preparacion",
   readOnly: "Solo lectura",

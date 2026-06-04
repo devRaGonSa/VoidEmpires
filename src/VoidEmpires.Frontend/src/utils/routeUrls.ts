@@ -1,5 +1,6 @@
 import type { PlanetModule } from "../api/planetTypes";
 
+const developmentSeedCivilizationId = "00000000-0000-0000-0000-000000000001";
 const developmentSeedPlanetId = "40000000-0000-0000-0000-000000000001";
 
 function buildUrl(path: string, params: Record<string, string | null | undefined>) {
@@ -95,5 +96,5 @@ export function isSuspiciousCabinContext(
 }
 
 export function buildDevelopmentHelperUrl() {
-  return buildFleetsUrl(developmentSeedPlanetId, developmentSeedPlanetId);
+  return buildFleetsUrl(developmentSeedCivilizationId, developmentSeedPlanetId);
 }
