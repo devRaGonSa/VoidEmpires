@@ -3,7 +3,7 @@
 ---
 id: TASK-25P
 title: Phase 25P - Shipyard validation failure scenarios
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

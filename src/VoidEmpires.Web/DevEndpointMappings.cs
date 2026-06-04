@@ -650,10 +650,18 @@ internal static class DevEndpointMappings
         {
             errors.Add("Planetary asset type is required.");
         }
+        else if (request.Target == AssetProductionTarget.Planetary && request.PlanetaryAssetType is not null && !Enum.IsDefined(request.PlanetaryAssetType.Value))
+        {
+            errors.Add("Planetary asset type is invalid.");
+        }
 
         if (request.Target == AssetProductionTarget.Orbital && request.SpaceAssetType is null)
         {
             errors.Add("Space asset type is required.");
+        }
+        else if (request.Target == AssetProductionTarget.Orbital && request.SpaceAssetType is not null && !Enum.IsDefined(request.SpaceAssetType.Value))
+        {
+            errors.Add("Space asset type is invalid.");
         }
 
         if (request.Quantity is null || request.Quantity <= 0)

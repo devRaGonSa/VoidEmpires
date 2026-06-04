@@ -19,48 +19,91 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
     private static readonly Guid SeedOuterPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000002");
 
     [Fact]
-    public async Task EnqueueReturnsBadRequestWhenRequiredIdsAreMissing()
+    public async Task EnqueueReturnsBadRequestWhenCivilizationIdIsEmptyWithoutMutatingState()
     {
-        var databaseName = Guid.NewGuid().ToString("N");
-        await using var dbContext = CreateSeededDbContext(databaseName);
-        using var client = CreateConfiguredClient(databaseName);
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: Guid.NewGuid().ToString("N"));
+        using var client = configuredFactory.CreateClient();
 
-        using var response = await client.PostAsJsonAsync("/api/dev/assets/production/enqueue", new { });
+        var before = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOwnedPlanetId);
+
+        using var response = await client.PostAsJsonAsync("/api/dev/assets/production/enqueue", new
+        {
+            civilizationId = Guid.Empty,
+            planetId = SeedOwnedPlanetId,
+            target = AssetProductionTarget.Orbital,
+            spaceAssetType = SpaceAssetType.ScoutCraft,
+            quantity = 1,
+            requestedAtUtc = "2026-01-01T12:00:00Z",
+        });
         var payload = await response.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
+        var after = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOwnedPlanetId);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(payload);
         Assert.False(payload!.Succeeded);
-        Assert.Contains("Civilization id is required.", payload.Errors);
-        Assert.Contains("Planet id is required.", payload.Errors);
+        Assert.Equal(["Civilization id is required."], payload.Errors);
+        AssertPlanetSnapshotUnchanged(before, after);
     }
 
     [Fact]
-    public async Task EnqueueReturnsConflictWhenPlanetIsNotOwnedByRequestingCivilization()
+    public async Task EnqueueReturnsBadRequestWhenPlanetIdIsEmptyWithoutMutatingState()
     {
-        var databaseName = Guid.NewGuid().ToString("N");
-        await using var dbContext = CreateSeededDbContext(databaseName);
-        using var client = CreateConfiguredClient(databaseName);
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: Guid.NewGuid().ToString("N"));
+        using var client = configuredFactory.CreateClient();
+
+        var before = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOwnedPlanetId);
+
+        using var response = await client.PostAsJsonAsync("/api/dev/assets/production/enqueue", new
+        {
+            civilizationId = SeedCivilizationId,
+            planetId = Guid.Empty,
+            target = AssetProductionTarget.Orbital,
+            spaceAssetType = SpaceAssetType.ScoutCraft,
+            quantity = 1,
+            requestedAtUtc = "2026-01-01T12:00:00Z",
+        });
+        var payload = await response.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
+        var after = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOwnedPlanetId);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload!.Succeeded);
+        Assert.Equal(["Planet id is required."], payload.Errors);
+        AssertPlanetSnapshotUnchanged(before, after);
+    }
+
+    [Fact]
+    public async Task EnqueueReturnsConflictWhenPlanetIsNotOwnedByRequestingCivilizationWithoutMutatingOwnedPlanetState()
+    {
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: Guid.NewGuid().ToString("N"));
+        using var client = configuredFactory.CreateClient();
+
+        var ownedBefore = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOwnedPlanetId);
+        var foreignBefore = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOuterPlanetId);
 
         using var response = await client.PostAsJsonAsync("/api/dev/assets/production/enqueue", new
         {
             civilizationId = SeedCivilizationId,
             planetId = SeedOuterPlanetId,
-            target = 2,
-            spaceAssetType = 1,
+            target = AssetProductionTarget.Orbital,
+            spaceAssetType = SpaceAssetType.ScoutCraft,
             quantity = 1,
             requestedAtUtc = "2026-01-01T12:00:00Z",
         });
         var payload = await response.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
+        var ownedAfter = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOwnedPlanetId);
+        var foreignAfter = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOuterPlanetId);
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.NotNull(payload);
         Assert.False(payload!.Succeeded);
         Assert.Equal(["Planet is not owned by the requesting civilization."], payload.Errors);
+        AssertPlanetSnapshotUnchanged(ownedBefore, ownedAfter);
+        AssertPlanetSnapshotUnchanged(foreignBefore, foreignAfter);
     }
 
     [Fact]
-    public async Task EnqueueReturnsConflictWhenResourcesAreInsufficient()
+    public async Task EnqueueReturnsConflictWhenResourcesAreInsufficientWithoutMutatingState()
     {
         var databaseName = Guid.NewGuid().ToString("N");
         await using var dbContext = CreateSeededDbContext(databaseName, context =>
@@ -69,45 +112,165 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
             stockpile.Spend(0, 50, 30, 20);
         });
         using var client = CreateConfiguredClient(databaseName);
+        var before = await CapturePlanetSnapshotAsync(dbContext, SeedOwnedPlanetId);
 
         using var response = await client.PostAsJsonAsync("/api/dev/assets/production/enqueue", new
         {
             civilizationId = SeedCivilizationId,
             planetId = SeedOwnedPlanetId,
-            target = 2,
-            spaceAssetType = 1,
+            target = AssetProductionTarget.Orbital,
+            spaceAssetType = SpaceAssetType.ScoutCraft,
             quantity = 1,
             requestedAtUtc = "2026-01-01T12:00:00Z",
         });
         var payload = await response.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
+        var after = await CapturePlanetSnapshotAsync(dbContext, SeedOwnedPlanetId);
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.NotNull(payload);
         Assert.False(payload!.Succeeded);
         Assert.Equal(["Insufficient resources."], payload.Errors);
+        AssertPlanetSnapshotUnchanged(before, after);
     }
 
     [Fact]
-    public async Task EnqueueReturnsBadRequestWhenOrbitalAssetTypeIsMissing()
+    public async Task EnqueueReturnsConflictWhenRequirementIsMissingWithoutMutatingState()
     {
         var databaseName = Guid.NewGuid().ToString("N");
-        await using var dbContext = CreateSeededDbContext(databaseName);
+        await using var dbContext = CreateSeededDbContext(databaseName, context =>
+        {
+            var stockpile = context.PlanetResourceStockpiles.Single(x => x.PlanetId == SeedOwnedPlanetId);
+            stockpile.Increase(ResourceType.Metal, 400);
+            stockpile.Increase(ResourceType.Crystal, 200);
+            stockpile.Increase(ResourceType.Gas, 120);
+        });
         using var client = CreateConfiguredClient(databaseName);
+        var before = await CapturePlanetSnapshotAsync(dbContext, SeedOwnedPlanetId);
 
         using var response = await client.PostAsJsonAsync("/api/dev/assets/production/enqueue", new
         {
             civilizationId = SeedCivilizationId,
             planetId = SeedOwnedPlanetId,
-            target = 2,
+            target = AssetProductionTarget.Orbital,
+            spaceAssetType = SpaceAssetType.EscortCraft,
             quantity = 1,
             requestedAtUtc = "2026-01-01T12:00:00Z",
         });
         var payload = await response.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
+        var after = await CapturePlanetSnapshotAsync(dbContext, SeedOwnedPlanetId);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload!.Succeeded);
+        Assert.Equal(["Required building is missing or below required level."], payload.Errors);
+        AssertPlanetSnapshotUnchanged(before, after);
+    }
+
+    [Fact]
+    public async Task EnqueueReturnsBadRequestWhenOrbitalAssetTypeIsMissingWithoutMutatingState()
+    {
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: Guid.NewGuid().ToString("N"));
+        using var client = configuredFactory.CreateClient();
+
+        var before = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOwnedPlanetId);
+
+        using var response = await client.PostAsJsonAsync("/api/dev/assets/production/enqueue", new
+        {
+            civilizationId = SeedCivilizationId,
+            planetId = SeedOwnedPlanetId,
+            target = AssetProductionTarget.Orbital,
+            quantity = 1,
+            requestedAtUtc = "2026-01-01T12:00:00Z",
+        });
+        var payload = await response.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
+        var after = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOwnedPlanetId);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(payload);
         Assert.False(payload!.Succeeded);
         Assert.Contains("Space asset type is required.", payload.Errors);
+        AssertPlanetSnapshotUnchanged(before, after);
+    }
+
+    [Fact]
+    public async Task EnqueueReturnsBadRequestWhenOrbitalAssetTypeIsInvalidWithoutMutatingState()
+    {
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: Guid.NewGuid().ToString("N"));
+        using var client = configuredFactory.CreateClient();
+
+        var before = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOwnedPlanetId);
+
+        using var response = await client.PostAsJsonAsync("/api/dev/assets/production/enqueue", new
+        {
+            civilizationId = SeedCivilizationId,
+            planetId = SeedOwnedPlanetId,
+            target = AssetProductionTarget.Orbital,
+            spaceAssetType = 999,
+            quantity = 1,
+            requestedAtUtc = "2026-01-01T12:00:00Z",
+        });
+        var payload = await response.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
+        var after = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOwnedPlanetId);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload!.Succeeded);
+        Assert.Contains("Space asset type is invalid.", payload.Errors);
+        AssertPlanetSnapshotUnchanged(before, after);
+    }
+
+    [Fact]
+    public async Task EnqueueReturnsConflictWhenOpenQueueAlreadyExistsWithoutAdditionalMutation()
+    {
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: Guid.NewGuid().ToString("N"));
+        using var client = configuredFactory.CreateClient();
+
+        using var seedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "cockpit-validation" });
+        Assert.Equal(HttpStatusCode.OK, seedResponse.StatusCode);
+
+        using var initialResponse = await client.GetAsync($"/api/dev/shipyard/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var initialPayload = await initialResponse.Content.ReadFromJsonAsync<ShipyardUiStateEnvelope>();
+
+        Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
+        Assert.NotNull(initialPayload?.UiState?.Shipyard);
+
+        var availableItem = Assert.Single(initialPayload.UiState.Shipyard.Catalog.Where(item => item.AssetType == SpaceAssetType.ScoutCraft));
+        Assert.NotNull(availableItem.EnqueueCommand);
+
+        using var firstEnqueueResponse = await client.PostAsJsonAsync(availableItem.EnqueueCommand.Route, new
+        {
+            civilizationId = availableItem.EnqueueCommand.CivilizationId,
+            planetId = availableItem.EnqueueCommand.PlanetId,
+            target = availableItem.EnqueueCommand.Target,
+            spaceAssetType = availableItem.EnqueueCommand.SpaceAssetType,
+            quantity = availableItem.EnqueueCommand.Quantity,
+            requestedAtUtc = "2026-01-01T12:00:00Z",
+        });
+        var firstEnqueuePayload = await firstEnqueueResponse.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
+
+        Assert.Equal(HttpStatusCode.Created, firstEnqueueResponse.StatusCode);
+        Assert.NotNull(firstEnqueuePayload);
+        Assert.True(firstEnqueuePayload!.Succeeded);
+
+        var afterFirstSuccess = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOwnedPlanetId);
+
+        using var secondEnqueueResponse = await client.PostAsJsonAsync(availableItem.EnqueueCommand.Route, new
+        {
+            civilizationId = availableItem.EnqueueCommand.CivilizationId,
+            planetId = availableItem.EnqueueCommand.PlanetId,
+            target = availableItem.EnqueueCommand.Target,
+            spaceAssetType = availableItem.EnqueueCommand.SpaceAssetType,
+            quantity = availableItem.EnqueueCommand.Quantity,
+            requestedAtUtc = "2026-01-01T12:01:00Z",
+        });
+        var secondEnqueuePayload = await secondEnqueueResponse.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
+        var afterSecondAttempt = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOwnedPlanetId);
+
+        Assert.Equal(HttpStatusCode.Conflict, secondEnqueueResponse.StatusCode);
+        Assert.NotNull(secondEnqueuePayload);
+        Assert.False(secondEnqueuePayload!.Succeeded);
+        Assert.Equal(["Planet already has an open asset production order."], secondEnqueuePayload.Errors);
+        AssertPlanetSnapshotUnchanged(afterFirstSuccess, afterSecondAttempt);
     }
 
     [Fact]
@@ -185,6 +348,44 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
 
     private HttpClient CreateConfiguredClient(string databaseName) =>
         factory.WithInMemoryPersistence(databaseName: databaseName).CreateClient();
+
+    private static async Task<PlanetMutationSnapshot> CapturePlanetSnapshotAsync(IServiceProvider services, Guid planetId)
+    {
+        using var scope = services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+        return await CapturePlanetSnapshotAsync(dbContext, planetId);
+    }
+
+    private static async Task<PlanetMutationSnapshot> CapturePlanetSnapshotAsync(VoidEmpiresDbContext dbContext, Guid planetId)
+    {
+        var stockpile = await dbContext.PlanetResourceStockpiles
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.PlanetId == planetId);
+        var orders = await dbContext.Set<AssetProductionOrder>()
+            .AsNoTracking()
+            .Where(x => x.PlanetId == planetId)
+            .OrderBy(x => x.Sequence)
+            .Select(x => new PlanetOrderSnapshot(x.Id, x.Target, x.SpaceAssetType, x.Quantity, x.Status, x.Sequence))
+            .ToArrayAsync();
+
+        return new PlanetMutationSnapshot(
+            planetId,
+            stockpile?.Credits,
+            stockpile?.Metal,
+            stockpile?.Crystal,
+            stockpile?.Gas,
+            orders);
+    }
+
+    private static void AssertPlanetSnapshotUnchanged(PlanetMutationSnapshot before, PlanetMutationSnapshot after)
+    {
+        Assert.Equal(before.PlanetId, after.PlanetId);
+        Assert.Equal(before.Credits, after.Credits);
+        Assert.Equal(before.Metal, after.Metal);
+        Assert.Equal(before.Crystal, after.Crystal);
+        Assert.Equal(before.Gas, after.Gas);
+        Assert.Equal(before.Orders, after.Orders);
+    }
 
     private static VoidEmpiresDbContext CreateSeededDbContext(string databaseName, Action<VoidEmpiresDbContext>? seedOverride = null)
     {
@@ -265,4 +466,20 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
         AssetProductionTarget Target,
         SpaceAssetType SpaceAssetType,
         int Quantity);
+
+    private sealed record PlanetMutationSnapshot(
+        Guid PlanetId,
+        decimal? Credits,
+        decimal? Metal,
+        decimal? Crystal,
+        decimal? Gas,
+        IReadOnlyList<PlanetOrderSnapshot> Orders);
+
+    private sealed record PlanetOrderSnapshot(
+        Guid OrderId,
+        AssetProductionTarget Target,
+        SpaceAssetType? SpaceAssetType,
+        int Quantity,
+        AssetProductionOrderStatus Status,
+        int Sequence);
 }

@@ -90,6 +90,7 @@ function formatShipyardCommandFailure(detail: string | null, planetName?: string
         technicalDetail: detail,
       };
     case "Asset type is required.":
+    case "Space asset type is invalid.":
       return {
         primaryMessage: "El activo orbital seleccionado no es valido para esta cabina.",
         followUp: "Vuelve a abrir la revision desde una carta orbital visible.",
