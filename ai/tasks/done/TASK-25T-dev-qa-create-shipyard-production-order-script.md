@@ -3,7 +3,7 @@
 ---
 id: TASK-25T
 title: Phase 25T - Dev QA Shipyard production order script
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
