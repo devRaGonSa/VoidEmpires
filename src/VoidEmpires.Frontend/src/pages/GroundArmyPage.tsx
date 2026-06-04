@@ -54,6 +54,7 @@ export function GroundArmyPage() {
   const resourcePressureSummary = getResourcePressureSummary(groundArmy);
   const optionGroups = groupGroundOptionsByCategory(groundArmy?.catalog ?? []);
   const recommendedOption = selectRecommendedGroundArmyAction(groundArmy?.catalog ?? []);
+  const canUseDirectGroundAction = false;
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -230,6 +231,29 @@ export function GroundArmyPage() {
           )}
           <div className="figma-section-header module-boundary-spacer"><div><p className="eyebrow">Completar vencidas</p><h4>Placeholder seguro</h4></div><UiBadge tone="warn">{groundArmy.actionAvailability.completeDueStatusLabel}</UiBadge></div>
           <p className="figma-panel-note">{groundArmy.actionAvailability.completeDueReason}. La cola terrestre sigue visible, pero el cierre permanece deshabilitado porque el backend actual no esta acotado por planeta.</p>
+        </UiCard>
+      ) : null}
+
+      {groundArmy && recommendedOption ? (
+        <UiCard className="panel">
+          <div className="figma-section-header"><div><p className="eyebrow">Accion controlada</p><h3>Preparacion o bloqueo seguro</h3><p>La cabina no debe saltarse Construccion ni confirmar mutaciones genericas sin una ruta terrestre dedicada.</p></div><UiBadge tone={recommendedOption.statusKey === "Available" ? "good" : "warn"}>{recommendedOption.statusLabel}</UiBadge></div>
+          <div className="figma-data-list">
+            <PlanetDataRow label="Preparacion" value={recommendedOption.label} />
+            <PlanetDataRow label="Requisito" value={recommendedOption.requirementLabel} />
+            <PlanetDataRow label="Coste" value={recommendedOption.estimatedCostLabel} />
+            <PlanetDataRow label="Duracion" value={recommendedOption.estimatedDurationLabel} />
+          </div>
+          <div className="selection-chip-row">
+            <Link className="selection-chip selection-chip-active" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>Abrir Construccion</Link>
+            <button type="button" className="selection-chip" disabled>
+              {canUseDirectGroundAction ? "Confirmar preparacion" : "Preparacion terrestre no disponible"}
+            </button>
+          </div>
+          <p className="figma-panel-note">
+            {recommendedOption.statusKey === "Available"
+              ? "La opcion es visible, pero en esta build la confirmacion directa sigue deshabilitada hasta que exista una ruta terrestre dedicada y segura."
+              : `La accion permanece bloqueada: ${recommendedOption.reasonLabel}.`}
+          </p>
         </UiCard>
       ) : null}
 

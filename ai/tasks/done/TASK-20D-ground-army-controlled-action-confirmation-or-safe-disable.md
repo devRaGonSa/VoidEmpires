@@ -3,7 +3,7 @@
 ---
 id: TASK-20D-ground-army-controlled-action-confirmation-or-safe-disable
 title: Ground Army controlled action confirmation or safe disable
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
