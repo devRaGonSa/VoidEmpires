@@ -3,7 +3,7 @@
 ---
 id: TASK-24M
 title: Phase 24M - Real flow regression against other cockpits
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

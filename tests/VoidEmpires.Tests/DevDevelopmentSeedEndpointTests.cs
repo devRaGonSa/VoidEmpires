@@ -10,6 +10,7 @@ using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Research;
 using VoidEmpires.Application.Development;
+using VoidEmpires.Application.Markets;
 using VoidEmpires.Infrastructure.Persistence;
 
 namespace VoidEmpires.Tests;
@@ -336,6 +337,99 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
             x.Sequence >= SeededConstructionSequenceStart));
     }
 
+    [Fact]
+    public async Task CockpitValidationReadModelsRemainCoherentAfterRealConstructionAndResearchOrdersExist()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: databaseName);
+        using var client = configuredFactory.CreateClient();
+
+        using (var seedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "cockpit-validation" }))
+        {
+            Assert.Equal(HttpStatusCode.OK, seedResponse.StatusCode);
+        }
+
+        using (var constructionStateResponse = await client.GetAsync($"/api/dev/planets/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}"))
+        {
+            var constructionState = await constructionStateResponse.Content.ReadFromJsonAsync<DevPlanetUiStateResponse>();
+            Assert.Equal(HttpStatusCode.OK, constructionStateResponse.StatusCode);
+            Assert.NotNull(constructionState?.UiState?.Planet);
+
+            var action = constructionState.UiState.Planet.ConstructionActions.First(x => x.AvailabilityStatus == "Available");
+
+            using var enqueueConstructionResponse = await client.PostAsJsonAsync("/api/dev/buildings/construction-orders/enqueue", new
+            {
+                planetId = SeedOwnedPlanetId,
+                civilizationId = SeedCivilizationId,
+                action = action.Action,
+                buildingType = action.BuildingType,
+                requestedAtUtc = "2026-06-04T12:10:00Z"
+            });
+
+            Assert.Equal(HttpStatusCode.Created, enqueueConstructionResponse.StatusCode);
+        }
+
+        using (var researchStateResponse = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}"))
+        {
+            var researchState = await researchStateResponse.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+            Assert.Equal(HttpStatusCode.OK, researchStateResponse.StatusCode);
+            Assert.NotNull(researchState?.UiState);
+
+            var hint = researchState.UiState.TechnologyHints.First(x => x.CanEnqueue);
+
+            using var enqueueResearchResponse = await client.PostAsJsonAsync(hint.EnqueueCommand!.Route, new
+            {
+                civilizationId = hint.EnqueueCommand.CivilizationId,
+                sourcePlanetId = hint.EnqueueCommand.SourcePlanetId,
+                researchType = hint.EnqueueCommand.ResearchType.ToString(),
+                requestedAtUtc = "2026-06-04T12:15:00Z"
+            });
+
+            Assert.Equal(HttpStatusCode.Created, enqueueResearchResponse.StatusCode);
+        }
+
+        using var planetResponse = await client.GetAsync($"/api/dev/planets/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        using var marketResponse = await client.GetAsync($"/api/dev/market/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        using var researchResponse = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+
+        var planetPayload = await planetResponse.Content.ReadFromJsonAsync<DevPlanetUiStateResponse>();
+        var marketPayload = await marketResponse.Content.ReadFromJsonAsync<DevMarketUiStateResponse>();
+        var researchPayload = await researchResponse.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, planetResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, marketResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, researchResponse.StatusCode);
+
+        Assert.NotNull(planetPayload?.UiState?.Planet);
+        Assert.NotNull(marketPayload?.UiState?.Market);
+        Assert.NotNull(researchPayload?.UiState);
+
+        Assert.True(planetPayload!.Succeeded);
+        Assert.True(marketPayload!.Succeeded);
+        Assert.True(researchPayload!.Succeeded);
+        Assert.Empty(planetPayload.Errors);
+        Assert.Empty(marketPayload.Errors);
+        Assert.Empty(researchPayload.Errors);
+
+        Assert.Equal(SeedOwnedPlanetId, planetPayload.UiState.SelectedPlanetId);
+        Assert.True(planetPayload.UiState.Planet.IsOwnedByRequestingCivilization);
+        Assert.True(planetPayload.UiState.Planet.ConstructionQueue.Length >= 2);
+        Assert.Equal("Blocked", planetPayload.UiState.Planet.ActionSummary.QueueActionStatus.ToString());
+
+        Assert.Equal(SeedOwnedPlanetId, marketPayload.UiState.SelectedPlanetId);
+        Assert.Equal("Aurelia", marketPayload.UiState.Market.SelectedPlanetName);
+        Assert.NotEmpty(marketPayload.UiState.Market.SelectedPlanetReserves);
+        Assert.NotNull(marketPayload.UiState.Market.SelectedPlanetProduction);
+        Assert.Contains(marketPayload.UiState.Market.Signals, x => x.SignalKey == "FutureTradeRoute");
+        Assert.All(marketPayload.UiState.Market.FutureActions, x => Assert.False(x.IsEnabled));
+
+        Assert.Equal(SeedOwnedPlanetId, researchPayload.UiState.SelectedPlanetId);
+        Assert.Equal("Aurelia", researchPayload.UiState.SelectedPlanetName);
+        Assert.Contains(researchPayload.UiState.Queue, x => x.Status == ResearchQueueItemStatus.Active);
+        Assert.Contains(researchPayload.UiState.Projects, x => x.ResearchType == ResearchType.EnergySystems);
+        Assert.Contains(researchPayload.UiState.TechnologyHints, x => x.ResearchType == ResearchType.PlanetaryEngineering && !x.CanEnqueue && x.StatusKey == "InResearch");
+    }
+
     private HttpClient CreateConfiguredClient(ApplyDevelopmentSeedResult result) =>
         CreateConfiguredClient(new FakeDevelopmentSeedService(result));
 
@@ -404,10 +498,19 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
         object? BuildingCapacity,
         object[] Buildings,
         object[] ConstructionQueue,
-        object ActionSummary,
+        DevPlanetConstructionActionSummaryDto ActionSummary,
         DevPlanetConstructionActionDto[] ConstructionActions,
         object OrbitalContext,
         object Diagnostics);
+
+    private sealed record DevPlanetConstructionActionSummaryDto(
+        string QueueActionStatus,
+        string QueueActionReason,
+        bool CompleteDueSupported,
+        string CompleteDueActionStatus,
+        string CompleteDueActionReason,
+        int DueConstructionCount,
+        object? Display);
 
     private sealed record DevPlanetConstructionActionDto(
         ConstructionQueueItemAction Action,
@@ -445,11 +548,27 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
         Guid? SelectedPlanetId,
         string? SelectedPlanetName,
         object[] Catalog,
-        object[] Queue,
-        object[] Projects,
+        DevResearchOrderDto[] Queue,
+        DevResearchProjectDto[] Projects,
         DevResearchTechnologyHintDto[] TechnologyHints,
         string[] Diagnostics,
         string[] Limitations);
+
+    private sealed record DevResearchOrderDto(
+        Guid Id,
+        Guid CivilizationId,
+        Guid SourcePlanetId,
+        ResearchType ResearchType,
+        int TargetLevel,
+        int Sequence,
+        DateTime StartsAtUtc,
+        DateTime EndsAtUtc,
+        ResearchQueueItemStatus Status);
+
+    private sealed record DevResearchProjectDto(
+        Guid CivilizationId,
+        ResearchType ResearchType,
+        int Level);
 
     private sealed record DevResearchTechnologyHintDto(
         ResearchType ResearchType,
@@ -476,5 +595,10 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
     private sealed record DevelopmentSeedProfilesResponse(
         bool Succeeded,
         DevelopmentSeedProfileSummary[] Profiles,
+        string[] Errors);
+
+    private sealed record DevMarketUiStateResponse(
+        bool Succeeded,
+        GetDevMarketUiStateResult? UiState,
         string[] Errors);
 }
