@@ -159,7 +159,7 @@ function getReasonLabel(rawReason: string, fallbackLabel?: string | null) {
     return fallbackLabel;
   }
 
-  return reasonLabels[rawReason] ?? "Readiness defensivo pendiente de clasificar";
+  return reasonLabels[rawReason] ?? "Preparacion defensiva no catalogada";
 }
 
 function mapStructure(item: DefenseStructureDto): DefenseStructure {

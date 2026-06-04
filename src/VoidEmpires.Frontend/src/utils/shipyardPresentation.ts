@@ -16,9 +16,9 @@ export interface ShipyardAssetPresentationEntry {
   roleLabel: string;
 }
 
-const uncategorizedAssetFallback = "Activo orbital pendiente de clasificar";
-const unknownActionFallback = "Accion de astillero pendiente de clasificar";
-const unknownStatusFallback = "Estado de produccion pendiente de clasificar";
+const uncategorizedAssetFallback = "Activo orbital no catalogado";
+const unknownActionFallback = "Accion de astillero no catalogada";
+const unknownStatusFallback = "Estado de produccion no catalogado";
 
 const shipyardAssetCatalog: readonly ShipyardAssetPresentationEntry[] = [
   {

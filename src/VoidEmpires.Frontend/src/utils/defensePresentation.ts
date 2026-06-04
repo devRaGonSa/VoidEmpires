@@ -22,11 +22,11 @@ export interface DefenseErrorFeedback {
   technicalDetail: string | null;
 }
 
-const unknownStructureFallback = "Defensa pendiente de clasificar";
-const unknownCategoryFallback = "Categoria defensiva pendiente de clasificar";
-const unknownReadinessFallback = "Readiness defensivo pendiente de clasificar";
-const unknownStatusFallback = "Estado defensivo pendiente de clasificar";
-const unknownActionFallback = "Accion defensiva pendiente de clasificar";
+const unknownStructureFallback = "Defensa no catalogada";
+const unknownCategoryFallback = "Categoria defensiva no catalogada";
+const unknownReadinessFallback = "Preparacion defensiva no catalogada";
+const unknownStatusFallback = "Estado defensivo no catalogado";
+const unknownActionFallback = "Accion defensiva no catalogada";
 
 const defenseStructureCatalog: readonly DefenseStructurePresentationEntry[] = [
   {

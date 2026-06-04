@@ -58,7 +58,7 @@ export const planetModuleCatalog: readonly PlanetCatalogEntry[] = [
   { id: 5, key: "Shipyard", label: "Astillero" },
   { id: 6, key: "Defenses", label: "Defensas" },
   { id: 7, key: "Logistics", label: "Logistica" },
-  { id: 8, key: "UnknownOrDiagnostics", label: "Pendiente de clasificar" },
+  { id: 8, key: "UnknownOrDiagnostics", label: "Diagnostico" },
 ] as const;
 
 export interface PlanetUiStateResponse {

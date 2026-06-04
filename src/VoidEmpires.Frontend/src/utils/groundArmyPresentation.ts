@@ -16,11 +16,11 @@ export interface GroundArmyUnitPresentationEntry {
   requiredStructureKey: string;
 }
 
-const unknownUnitFallback = "Unidad terrestre pendiente de clasificar";
-const unknownStructureFallback = "Estructura terrestre pendiente de clasificar";
-const unknownCategoryFallback = "Categoria terrestre pendiente de clasificar";
-const unknownReadinessFallback = "Preparacion terrestre pendiente de clasificar";
-const unknownActionFallback = "Accion terrestre pendiente de clasificar";
+const unknownUnitFallback = "Unidad terrestre no catalogada";
+const unknownStructureFallback = "Estructura terrestre no catalogada";
+const unknownCategoryFallback = "Categoria terrestre no catalogada";
+const unknownReadinessFallback = "Preparacion terrestre no catalogada";
+const unknownActionFallback = "Accion terrestre no catalogada";
 
 export interface GroundArmyErrorFeedback {
   primaryMessage: string;
