@@ -26,12 +26,31 @@ public class DevShipyardFleetPersistedFlowAuditTests(WebApplicationFactory<Progr
 
         Assert.NotNull(shipyardBefore?.UiState?.Shipyard);
         Assert.NotNull(fleetBefore?.UiState);
+        Assert.True(fleetBefore!.Succeeded);
+        Assert.NotEmpty(fleetBefore.UiState.Groups);
+        Assert.NotEmpty(fleetBefore.UiState.ResourceContexts);
+        Assert.Contains(fleetBefore.UiState.Groups, x => !x.HasActiveTransfer && x.CanCreateTransfer);
+        Assert.Contains(fleetBefore.UiState.Groups, x => x.HasActiveTransfer && x.ActiveTransfer is not null);
 
         var scoutCraft = shipyardBefore.UiState.Shipyard.Catalog.Single(x => x.AssetType == 1);
         Assert.Equal("Available", scoutCraft.AvailabilityStatus);
 
         var fleetGroupSnapshot = fleetBefore.UiState.Groups
-            .Select(x => new { x.Id, x.CurrentPlanetId, x.Quantity, x.Status, x.HasActiveTransfer })
+            .Select(x => new
+            {
+                x.Id,
+                x.CurrentPlanetId,
+                x.Quantity,
+                x.Status,
+                x.HasActiveTransfer,
+                x.CanCreateTransfer,
+                x.CanSplit,
+                x.CanMerge,
+                x.CanCancelTransfer,
+                ActiveTransferId = x.ActiveTransfer?.Id,
+                ActiveTransferStatus = x.ActiveTransfer?.Status,
+                ActiveTransferDestinationPlanetId = x.ActiveTransfer?.DestinationPlanetId
+            })
             .OrderBy(x => x.Id)
             .ToArray();
 
@@ -56,6 +75,11 @@ public class DevShipyardFleetPersistedFlowAuditTests(WebApplicationFactory<Progr
 
         Assert.NotNull(shipyardAfter?.UiState?.Shipyard);
         Assert.NotNull(fleetAfter?.UiState);
+        Assert.True(fleetAfter!.Succeeded);
+        Assert.NotEmpty(fleetAfter.UiState.Groups);
+        Assert.NotEmpty(fleetAfter.UiState.ResourceContexts);
+        Assert.Contains(fleetAfter.UiState.Groups, x => !x.HasActiveTransfer && x.CanCreateTransfer);
+        Assert.Contains(fleetAfter.UiState.Groups, x => x.HasActiveTransfer && x.ActiveTransfer is not null);
 
         Assert.Equal(
             shipyardBefore.UiState.Shipyard.ActionSummary.OpenQueueCount + 1,
@@ -79,7 +103,21 @@ public class DevShipyardFleetPersistedFlowAuditTests(WebApplicationFactory<Progr
             GetResourceQuantity(fleetPlanetBefore.Balances, ResourceType.Metal));
 
         var fleetGroupSnapshotAfter = fleetAfter.UiState.Groups
-            .Select(x => new { x.Id, x.CurrentPlanetId, x.Quantity, x.Status, x.HasActiveTransfer })
+            .Select(x => new
+            {
+                x.Id,
+                x.CurrentPlanetId,
+                x.Quantity,
+                x.Status,
+                x.HasActiveTransfer,
+                x.CanCreateTransfer,
+                x.CanSplit,
+                x.CanMerge,
+                x.CanCancelTransfer,
+                ActiveTransferId = x.ActiveTransfer?.Id,
+                ActiveTransferStatus = x.ActiveTransfer?.Status,
+                ActiveTransferDestinationPlanetId = x.ActiveTransfer?.DestinationPlanetId
+            })
             .OrderBy(x => x.Id)
             .ToArray();
         Assert.Equal(fleetGroupSnapshot, fleetGroupSnapshotAfter);
@@ -154,7 +192,26 @@ public class DevShipyardFleetPersistedFlowAuditTests(WebApplicationFactory<Progr
         Guid CurrentPlanetId,
         int Quantity,
         int Status,
-        bool HasActiveTransfer);
+        bool HasActiveTransfer,
+        FleetTransferPayload? ActiveTransfer,
+        FleetCommandPayload Commands)
+    {
+        public bool CanCreateTransfer => Commands.CanCreateTransfer;
+        public bool CanSplit => Commands.CanSplit;
+        public bool CanMerge => Commands.CanMerge;
+        public bool CanCancelTransfer => Commands.CanCancelTransfer;
+    }
+
+    private sealed record FleetTransferPayload(
+        Guid Id,
+        Guid DestinationPlanetId,
+        int Status);
+
+    private sealed record FleetCommandPayload(
+        bool CanCreateTransfer,
+        bool CanSplit,
+        bool CanMerge,
+        bool CanCancelTransfer);
 
     private sealed record FleetResourceContextPayload(
         Guid PlanetId,

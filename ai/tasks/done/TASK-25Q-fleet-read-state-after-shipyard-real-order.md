@@ -3,7 +3,7 @@
 ---
 id: TASK-25Q
 title: Phase 25Q - Fleet read-state after real Shipyard order
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

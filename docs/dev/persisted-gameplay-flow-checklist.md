@@ -13,6 +13,7 @@ Use it together with `docs/dev/development-seed-profiles.md`, `docs/dev/construc
 - No visual QA is required for this block.
 - Shipyard persisted QA stops at enqueue plus read-state verification; it does not use global due-processing.
 - Shipyard enqueue follows the same immediate-spend rule already proven for Construction and Research: successful enqueue deducts the full visible cost immediately from the local planet stockpile.
+- Fleet read-state remains an accepted post-Shipyard verification step: after a real Shipyard order exists, `GET /api/dev/fleets/ui-state` should still return readable stationed groups, active-transfer summaries, command-readiness metadata, and current-planet resource contexts without introducing new Fleet mutation state.
 - Fleet persisted QA for this block is read-only after the Shipyard mutation.
 - Stock-to-fleet allocation remains optional and excluded from the accepted default loop until its endpoint is hardened and explicitly re-approved.
 
