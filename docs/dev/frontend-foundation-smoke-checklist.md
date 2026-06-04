@@ -5,6 +5,7 @@ Use this checklist to validate the current frontend prototype without confusing 
 For the current Fleet estimate -> confirm -> create-transfer -> confirm -> cancel-transfer or complete-due paths, pair this document with `docs/dev/fleet-controlled-mutation-checklist.md`.
 For the current Galaxy, Planet, Construction, Research, Ground Army, Shipyard, and Defenses cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md`, `docs/dev/planet-cockpit-checklist.md`, `docs/dev/construction-cockpit-checklist.md`, `docs/dev/research-cockpit-checklist.md`, `docs/dev/ground-army-cockpit-checklist.md`, `docs/dev/shipyard-cockpit-checklist.md`, and `docs/dev/defenses-cockpit-checklist.md`.
 For the current module boundary model and placeholder responsibilities, also pair this document with `docs/dev/planet-module-boundaries.md`.
+For cross-cockpit wording cleanup, use `docs/dev/cross-cockpit-language-audit.md` as the source of truth before changing visible copy.
 For deterministic local QA setup, use `docs/dev/development-seed-profiles.md` instead of manual SQL.
 
 ## Final Cross-Cockpit Visual Pass

@@ -3,7 +3,7 @@
 ---
 id: TASK-20K-cross-cockpit-language-audit
 title: Cross-cockpit language audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
