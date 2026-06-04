@@ -21,6 +21,51 @@ Apply `cockpit-validation` twice before manual QA when the local database has al
 9. Confirm handoff cards toward `Galaxia`, `Planeta`, `Flotas`, and `Investigacion` preserve context when that context exists.
 10. Confirm diagnostics remain collapsed by default and raw technical detail stays secondary.
 
+## Copy-normalization audit note
+
+This checklist now tracks visible English leakage outside diagnostics. The normalization pass targets player-facing or always-expanded Espionage copy first, then any secondary visible framing that still exposes backend-authored English.
+
+## Task 22Q audit inventory
+
+Component discovery for this audit:
+
+- Entrypoint: [src/VoidEmpires.Frontend/src/pages/EspionagePage.tsx](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/pages/EspionagePage.tsx)
+- Frontend copy owners: [src/VoidEmpires.Frontend/src/utils/espionagePresentation.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/utils/espionagePresentation.ts) and [src/VoidEmpires.Frontend/src/utils/espionageViewModel.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/utils/espionageViewModel.ts)
+- Backend UI-state owner feeding visible strings: [src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs)
+
+Dependency map for the visible leakage:
+
+- `/espionage` page -> `fetchEspionageUiState` -> `/api/dev/espionage/ui-state`
+- API response -> `mapEspionageUiStateToViewModel`
+- Visible labels currently pass through from `futureActions[].reason`, `passiveSignals[].summary`, `targets[].coverageSummary`, `recommendedFocus.reason`, `diagnostics[]`, and `limitations[]`
+- Primary backend owner of the remaining English leakage: `DevEspionageUiStateService`
+
+Remaining visible English or mixed-language inventory:
+
+| Classification | Visible string or family | Current visible surface | Likely owner | Source |
+|---|---|---|---|---|
+| primary UI and must be translated or rewritten | `Reconnaissance remains a future placeholder and is not executable from this cockpit.` | Future mission card body for `Reconocimiento activo` | backend future action reason | [src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs) |
+| primary UI and must be translated or rewritten | `Infiltration gameplay is not implemented.` | Future mission card body for `Infiltracion` | backend future action reason | [src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs) |
+| primary UI and must be translated or rewritten | `Sabotage gameplay is not implemented.` | Future mission card body for `Sabotaje` | backend future action reason | [src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs) |
+| secondary UI and should be translated | `1 passive signal rows available.` / `No passive signal rows available.` | Coverage and target-reading summaries rendered in always-expanded cards | backend target coverage summary | [src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs) |
+| secondary UI and should be translated | `1 sensor profile rows.` / `1 local sensor profile rows.` | Passive signal cards and signal catalog entries | backend passive signal summary | [src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs) |
+| secondary UI and should be translated | `1 detection coverage rows.` / `1 local detection coverage rows.` | Passive signal cards and signal catalog entries | backend passive signal summary | [src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs) |
+| secondary UI and should be translated | `1 visible transfer trajectories.` | Passive signal cards and signal catalog entries | backend passive signal summary | [src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs) |
+| secondary UI and should be translated | `Relevant target remains partial and already has passive signal context.` | Recommended-focus explanation if the backend reason is surfaced later | backend recommended focus reason | [src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs) |
+| secondary UI and should be translated | `Relevant target remains partial and should stay under observation.` | Recommended-focus explanation if the backend reason is surfaced later | backend recommended focus reason | [src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs) |
+| secondary UI and should be translated | `Visible foreign target offers the clearest current intelligence comparison.` | Recommended-focus explanation if the backend reason is surfaced later | backend recommended focus reason | [src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs) |
+| diagnostics-only and acceptable only if collapsed and clearly technical | `Strategic relevance rows: ...`, `Passive signals: ...`, `Diplomatic contacts: ...` | Technical drawer only | backend diagnostics | [src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs) |
+| diagnostics-only and acceptable only if collapsed and clearly technical | raw action keys such as `espionage.reconnaissance.create`, `sensor.profile.read`, `detection.coverage.read` | code, DTOs, docs, or collapsed technical context only | frontend/backend implementation metadata | [src/VoidEmpires.Frontend/src/pages/EspionagePage.tsx](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/pages/EspionagePage.tsx) |
+| docs/tests only | checklist and seed docs still say `placeholder` or `gameplay` where they describe implementation status rather than player-facing UX | docs only | docs | this file and related dev notes |
+
+Follow-up path from this audit:
+
+- `22R`: normalize signal and coverage row summaries emitted by `DevEspionageUiStateService`
+- `22S`: rewrite future action reason copy into Spanish-first limitation language
+- `22T`: verify target-card summaries and recommended-focus wording do not leak backend English
+- `22U`: tighten dashboard and legend framing if any secondary mixed-language labels remain
+- `22V`: keep diagnostics collapsed and contain raw English to technical-only wrappers
+
 ## Explicit non-goals
 
 - no sabotage

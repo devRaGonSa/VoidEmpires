@@ -3,7 +3,7 @@
 ---
 id: TASK-22Q
 title: Phase 22Q - Espionage visible English copy audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
