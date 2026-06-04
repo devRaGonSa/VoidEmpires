@@ -4,7 +4,13 @@ import { fetchEspionageUiState } from "../api/espionageApi";
 import { CockpitHero } from "../components/CockpitHero";
 import type { EspionageViewModel, IntelligenceSystemTargetGroup, IntelligenceTargetViewModel } from "../utils/espionageViewModel";
 import { getEspionagePrimaryAction, mapEspionageUiStateToViewModel } from "../utils/espionageViewModel";
-import { getEspionageActionLabel, getEspionageCueDescription, getEspionageMissingDataNote } from "../utils/espionagePresentation";
+import {
+  formatEspionageEmptyState,
+  formatEspionageRequestFailure,
+  getEspionageActionLabel,
+  getEspionageCueDescription,
+  getEspionageMissingDataNote,
+} from "../utils/espionagePresentation";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import {
@@ -208,6 +214,7 @@ export function EspionagePage() {
   const [planetIdInput, setPlanetIdInput] = useState(searchParams.get("planetId") ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [technicalErrorDetail, setTechnicalErrorDetail] = useState<string | null>(null);
   const [viewModel, setViewModel] = useState<EspionageViewModel | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
@@ -224,6 +231,7 @@ export function EspionagePage() {
       if (!queryCivilizationId) {
         setViewModel(null);
         setError(null);
+        setTechnicalErrorDetail(null);
         return;
       }
 
@@ -233,15 +241,26 @@ export function EspionagePage() {
       try {
         const response = await fetchEspionageUiState(queryCivilizationId);
         if (!response.succeeded || !response.uiState) {
+          const failure = formatEspionageRequestFailure(response.errors[0] ?? null);
           setViewModel(null);
-          setError(response.errors[0] ?? "La cabina de espionaje no pudo cargarse.");
+          setError(failure.primaryMessage);
+          setTechnicalErrorDetail(failure.technicalDetail);
           return;
         }
 
-        setViewModel(mapEspionageUiStateToViewModel(response.uiState));
+        const nextViewModel = mapEspionageUiStateToViewModel(response.uiState);
+        if (nextViewModel.groups.length === 0 && nextViewModel.passiveSignalEntries.length === 0) {
+          setError(formatEspionageEmptyState(false));
+        } else {
+          setError(null);
+        }
+        setTechnicalErrorDetail(null);
+        setViewModel(nextViewModel);
       } catch (requestError) {
+        const failure = formatEspionageRequestFailure(requestError instanceof Error ? requestError.message : null);
         setViewModel(null);
-        setError(requestError instanceof Error ? requestError.message : "La cabina de espionaje no pudo cargarse.");
+        setError(failure.primaryMessage);
+        setTechnicalErrorDetail(failure.technicalDetail);
       } finally {
         setIsLoading(false);
       }
@@ -255,7 +274,9 @@ export function EspionagePage() {
 
     const trimmedCivilizationId = civilizationIdInput.trim();
     if (!trimmedCivilizationId) {
-      setError("El id de civilizacion es obligatorio.");
+      const failure = formatEspionageRequestFailure("Civilization id is required.");
+      setError(failure.primaryMessage);
+      setTechnicalErrorDetail(failure.technicalDetail);
       setViewModel(null);
       return;
     }
@@ -331,6 +352,12 @@ export function EspionagePage() {
             <button type="submit" disabled={isLoading}>{isLoading ? "Cargando..." : "Cargar espionaje"}</button>
           </form>
           {error ? <p className="error-text">{error}</p> : null}
+          {technicalErrorDetail ? (
+            <details className="json-details">
+              <summary>Detalle tecnico del ultimo error</summary>
+              <pre className="json-preview">{technicalErrorDetail}</pre>
+            </details>
+          ) : null}
           {!queryCivilizationId ? <p className="figma-panel-note">Introduce un `civilizationId` valido para abrir la cabina de espionaje.</p> : null}
         </UiCard>
 

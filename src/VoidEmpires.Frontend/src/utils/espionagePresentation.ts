@@ -1,5 +1,10 @@
 type DomainValue = string | number | null | undefined;
 
+export interface EspionageErrorFeedback {
+  primaryMessage: string;
+  technicalDetail: string | null;
+}
+
 function read(value: DomainValue) {
   return typeof value === "number"
     ? String(value)
@@ -77,6 +82,34 @@ export function getEspionageMissingDataNote(cue: "partial" | "signal" | "unconfi
     default:
       return "La cabina oculta campos no confirmados en lugar de inventarlos.";
   }
+}
+
+export function formatEspionageRequestFailure(rawError: string | null | undefined): EspionageErrorFeedback {
+  const technicalDetail = rawError?.trim() || null;
+
+  switch (technicalDetail) {
+    case "Civilization id is required.":
+      return { primaryMessage: "Falta el id de civilizacion para abrir Espionaje.", technicalDetail };
+    case "Civilization not found.":
+      return { primaryMessage: "La civilizacion no existe en este escenario visible.", technicalDetail };
+    case "Request failed with status 404.":
+      return { primaryMessage: "La ruta de Espionaje no esta disponible fuera del entorno de desarrollo.", technicalDetail };
+    case "Request failed with status 503.":
+      return { primaryMessage: "La persistencia de desarrollo no esta disponible. Aplica cockpit-validation para cargar el escenario demo.", technicalDetail };
+    case "Unsupported action.":
+      return { primaryMessage: "Las misiones activas no estan disponibles en esta version.", technicalDetail };
+    default:
+      return {
+        primaryMessage: "No se pudo cargar la lectura de inteligencia.",
+        technicalDetail,
+      };
+  }
+}
+
+export function formatEspionageEmptyState(hasSignals: boolean) {
+  return hasSignals
+    ? "No hay objetivos visibles para esta civilizacion."
+    : "No hay objetivos visibles ni lecturas pasivas para esta civilizacion.";
 }
 
 export function formatIntelCoverage(options: { sensorCount?: number; detectionCount?: number; transferCount?: number; }) {
