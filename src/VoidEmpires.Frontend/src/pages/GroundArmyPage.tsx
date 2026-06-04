@@ -4,6 +4,7 @@ import { fetchGroundArmyUiState } from "../api/groundArmyApi";
 import { PlanetDataRow } from "../components/PlanetModuleLayout";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
+import { formatGroundArmyRequestFailure } from "../utils/groundArmyPresentation";
 import { groupGroundOptionsByCategory, mapGroundArmyUiStateToViewModel, selectRecommendedGroundArmyAction } from "../utils/groundArmyViewModel";
 import { buildConstructionUrl, buildDefensesUrl, buildFleetsUrl, buildGalaxyUrl, buildPlanetUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 
@@ -41,6 +42,7 @@ export function GroundArmyPage() {
   const [planetIdInput, setPlanetIdInput] = useState(searchParams.get("planetId") ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [technicalErrorDetail, setTechnicalErrorDetail] = useState<string | null>(null);
   const [uiState, setUiState] = useState<ReturnType<typeof mapGroundArmyUiStateToViewModel> | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
@@ -64,24 +66,30 @@ export function GroundArmyPage() {
       if (!queryCivilizationId) {
         setUiState(null);
         setError(null);
+        setTechnicalErrorDetail(null);
         return;
       }
 
       setIsLoading(true);
       setError(null);
+      setTechnicalErrorDetail(null);
 
       try {
         const response = await fetchGroundArmyUiState(queryCivilizationId, queryPlanetId || undefined);
         if (!response.succeeded || !response.uiState) {
+          const feedback = formatGroundArmyRequestFailure(response.errors[0] ?? null);
           setUiState(null);
-          setError(response.errors[0] ?? "La cabina terrestre no pudo cargarse.");
+          setError(feedback.primaryMessage);
+          setTechnicalErrorDetail(feedback.technicalDetail);
           return;
         }
 
         setUiState(mapGroundArmyUiStateToViewModel(response.uiState));
       } catch (requestError) {
+        const feedback = formatGroundArmyRequestFailure(requestError instanceof Error ? requestError.message : null);
         setUiState(null);
-        setError(requestError instanceof Error ? requestError.message : "La cabina terrestre no pudo cargarse.");
+        setError(feedback.primaryMessage);
+        setTechnicalErrorDetail(feedback.technicalDetail);
       } finally {
         setIsLoading(false);
       }
@@ -259,6 +267,13 @@ export function GroundArmyPage() {
 
       {isSuspiciousContext ? (
         <UiCard className="panel"><div className="figma-section-header"><div><p className="eyebrow">Contexto sospechoso</p><h3>El identificador de civilizacion no parece valido para esta cabina.</h3></div><UiBadge tone="warn">Revisar contexto</UiBadge></div><p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p></UiCard>
+      ) : null}
+
+      {technicalErrorDetail ? (
+        <UiCard className="panel">
+          <div className="figma-section-header"><div><p className="eyebrow">Diagnostico</p><h3>Detalle tecnico colapsado</h3></div><UiBadge tone="warn">Secundario</UiBadge></div>
+          <details className="subpanel figma-subpanel"><summary>Ver detalle tecnico</summary><p className="figma-panel-note">{technicalErrorDetail}</p></details>
+        </UiCard>
       ) : null}
 
       <UiCard className="panel">

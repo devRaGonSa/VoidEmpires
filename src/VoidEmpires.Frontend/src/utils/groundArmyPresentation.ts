@@ -22,6 +22,11 @@ const unknownCategoryFallback = "Categoria terrestre pendiente de clasificar";
 const unknownReadinessFallback = "Preparacion terrestre pendiente de clasificar";
 const unknownActionFallback = "Accion terrestre pendiente de clasificar";
 
+export interface GroundArmyErrorFeedback {
+  primaryMessage: string;
+  technicalDetail: string | null;
+}
+
 const groundArmyUnitCatalog: readonly GroundArmyUnitPresentationEntry[] = [
   { key: "PatrolGroup", label: "Patrulla de guarnicion", categoryKey: "Guarnicion", categoryLabel: "Guarnicion", roleLabel: "Vigilancia planetaria", requiredStructureKey: "Barracks" },
   { key: "ExpeditionGroup", label: "Grupo expedicionario", categoryKey: "PreparacionColonial", categoryLabel: "Preparacion colonial", roleLabel: "Despliegue terrestre preparado", requiredStructureKey: "MilitaryAcademy" },
@@ -147,4 +152,29 @@ export function formatGroundTrainingDuration(value: string | number | null | und
   }
 
   return normalizeValue(value) ?? "Duracion terrestre no disponible";
+}
+
+export function formatGroundArmyRequestFailure(rawError: string | null | undefined): GroundArmyErrorFeedback {
+  const technicalDetail = rawError?.trim() || null;
+
+  switch (technicalDetail) {
+    case "Civilization id is required.":
+      return { primaryMessage: "Falta el id de civilizacion. Revisa el contexto antes de cargar la cabina.", technicalDetail };
+    case "Planet was not found.":
+      return { primaryMessage: "El planeta no existe en esta build o ya no esta visible. Revisa el contexto.", technicalDetail };
+    case "Planet is not controlled by the requesting civilization.":
+      return { primaryMessage: "La colonia seleccionada no pertenece a tu civilizacion. Abre una colonia propia.", technicalDetail };
+    case "Request failed with status 404.":
+      return { primaryMessage: "La cabina terrestre no esta disponible fuera del entorno de desarrollo.", technicalDetail };
+    case "Request failed with status 503.":
+      return { primaryMessage: "La persistencia de desarrollo no esta disponible. Aplica cockpit-validation o revisa la configuracion local.", technicalDetail };
+    case "MissingRequiredBuilding":
+      return { primaryMessage: "Falta infraestructura terrestre. Abre Construccion para revisar barracones, academia o logistica.", technicalDetail };
+    case "InsufficientResources":
+      return { primaryMessage: "No hay recursos suficientes para esta preparacion terrestre.", technicalDetail };
+    case "InsufficientPopulationCapacity":
+      return { primaryMessage: "La capacidad de poblacion terrestre es insuficiente para esta preparacion.", technicalDetail };
+    default:
+      return { primaryMessage: "La cabina terrestre no pudo completar la solicitud. Revisa el contexto y usa los diagnosticos si el problema persiste.", technicalDetail };
+  }
 }

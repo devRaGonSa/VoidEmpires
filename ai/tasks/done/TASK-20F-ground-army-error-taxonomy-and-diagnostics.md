@@ -3,7 +3,7 @@
 ---
 id: TASK-20F-ground-army-error-taxonomy-and-diagnostics
 title: Ground Army error taxonomy and diagnostics
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
