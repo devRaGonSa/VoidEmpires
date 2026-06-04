@@ -54,6 +54,7 @@ Operational guidance:
 - Seed profiles are Development-only, deterministic, and idempotent.
 - Reapply the documented profile when local QA state becomes confusing.
 - Reapplying `cockpit-validation`, `shipyard-validation`, `research-validation`, or `planet-full-validation` is supported on reused development databases even after manual QA has already created queue rows.
+- `cockpit-validation` is now also verified against real manual Construction and Research orders created through the supported dev endpoints; reapplying the profile preserves those active manual rows while still avoiding duplicate seeded history rows.
 - Richer profiles reserve high sequence ranges for their completed queue-history seed rows, avoiding collisions with pre-existing manual queue activity without resetting the database.
 - Do not use manual SQL for the standard Galaxy, Planet, Construction, Research, Shipyard, Fleet, or Market QA flows.
 - Use a fresh disposable local database only when you need the exact original pre-mutation baseline.

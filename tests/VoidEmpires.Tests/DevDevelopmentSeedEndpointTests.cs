@@ -228,6 +228,114 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
         Assert.Equal(HttpStatusCode.OK, fleetResponse.StatusCode);
     }
 
+    [Fact]
+    public async Task ApplyCockpitValidationPreservesRealConstructionAndResearchOrdersCreatedThroughDevEndpoints()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: databaseName);
+        using var client = configuredFactory.CreateClient();
+        Guid? manualConstructionOrderId = null;
+        Guid? manualResearchOrderId = null;
+
+        using (var seedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "cockpit-validation" }))
+        {
+            Assert.Equal(HttpStatusCode.OK, seedResponse.StatusCode);
+        }
+
+        using (var constructionStateResponse = await client.GetAsync($"/api/dev/planets/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}"))
+        {
+            var constructionState = await constructionStateResponse.Content.ReadFromJsonAsync<DevPlanetUiStateResponse>();
+            Assert.Equal(HttpStatusCode.OK, constructionStateResponse.StatusCode);
+            Assert.NotNull(constructionState?.UiState?.Planet);
+
+            var action = constructionState.UiState.Planet.ConstructionActions.First(x => x.AvailabilityStatus == "Available");
+
+            using var enqueueConstructionResponse = await client.PostAsJsonAsync("/api/dev/buildings/construction-orders/enqueue", new
+            {
+                planetId = SeedOwnedPlanetId,
+                civilizationId = SeedCivilizationId,
+                action = action.Action,
+                buildingType = action.BuildingType,
+                requestedAtUtc = "2026-06-04T12:00:00Z"
+            });
+            var constructionPayload = await enqueueConstructionResponse.Content.ReadFromJsonAsync<EnqueueConstructionOrderResponse>();
+
+            Assert.Equal(HttpStatusCode.Created, enqueueConstructionResponse.StatusCode);
+            Assert.NotNull(constructionPayload);
+            Assert.True(constructionPayload!.Succeeded);
+            Assert.NotNull(constructionPayload.OrderId);
+            manualConstructionOrderId = constructionPayload.OrderId;
+        }
+
+        using (var researchStateResponse = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}"))
+        {
+            var researchState = await researchStateResponse.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+            Assert.Equal(HttpStatusCode.OK, researchStateResponse.StatusCode);
+            Assert.NotNull(researchState?.UiState);
+
+            var hint = researchState.UiState.TechnologyHints.First(x => x.CanEnqueue);
+
+            using var enqueueResearchResponse = await client.PostAsJsonAsync(hint.EnqueueCommand!.Route, new
+            {
+                civilizationId = hint.EnqueueCommand.CivilizationId,
+                sourcePlanetId = hint.EnqueueCommand.SourcePlanetId,
+                researchType = hint.EnqueueCommand.ResearchType.ToString(),
+                requestedAtUtc = "2026-06-04T12:05:00Z"
+            });
+            var researchPayload = await enqueueResearchResponse.Content.ReadFromJsonAsync<EnqueueResearchOrderResponse>();
+
+            Assert.Equal(HttpStatusCode.Created, enqueueResearchResponse.StatusCode);
+            Assert.NotNull(researchPayload);
+            Assert.True(researchPayload!.Succeeded);
+            Assert.NotNull(researchPayload.OrderId);
+            manualResearchOrderId = researchPayload.OrderId;
+        }
+
+        using var firstApplyResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "cockpit-validation" });
+        using var secondApplyResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "cockpit-validation" });
+
+        Assert.Equal(HttpStatusCode.OK, firstApplyResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, secondApplyResponse.StatusCode);
+        Assert.NotNull(manualConstructionOrderId);
+        Assert.NotNull(manualResearchOrderId);
+
+        using var scope = configuredFactory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+
+        Assert.Equal(2, await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == SeedCivilizationId));
+        Assert.Equal(2, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId));
+        Assert.Equal(1, await dbContext.Set<ResearchOrder>().CountAsync(x =>
+            x.CivilizationId == SeedCivilizationId &&
+            x.ResearchType == ResearchType.EnergySystems &&
+            x.Status == ResearchQueueItemStatus.Completed));
+        Assert.Equal(1, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x =>
+            x.PlanetId == SeedOwnedPlanetId &&
+            x.Status == ConstructionQueueItemStatus.Completed));
+        Assert.Equal(1, await dbContext.Set<ResearchOrder>().CountAsync(x =>
+            x.CivilizationId == SeedCivilizationId &&
+            x.Status == ResearchQueueItemStatus.Active));
+        Assert.Equal(1, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x =>
+            x.PlanetId == SeedOwnedPlanetId &&
+            x.Status == ConstructionQueueItemStatus.Active));
+        Assert.True(await dbContext.Set<ResearchOrder>().AnyAsync(x =>
+            x.Id == manualResearchOrderId &&
+            x.CivilizationId == SeedCivilizationId &&
+            x.Status == ResearchQueueItemStatus.Active));
+        Assert.True(await dbContext.Set<PlanetConstructionOrder>().AnyAsync(x =>
+            x.Id == manualConstructionOrderId &&
+            x.PlanetId == SeedOwnedPlanetId &&
+            x.Status == ConstructionQueueItemStatus.Active));
+        Assert.Equal(1, await dbContext.Set<ResearchOrder>().CountAsync(x =>
+            x.CivilizationId == SeedCivilizationId &&
+            x.ResearchType == ResearchType.EnergySystems &&
+            x.Status == ResearchQueueItemStatus.Completed &&
+            x.Sequence >= SeededResearchSequenceStart));
+        Assert.Equal(1, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x =>
+            x.PlanetId == SeedOwnedPlanetId &&
+            x.Status == ConstructionQueueItemStatus.Completed &&
+            x.Sequence >= SeededConstructionSequenceStart));
+    }
+
     private HttpClient CreateConfiguredClient(ApplyDevelopmentSeedResult result) =>
         CreateConfiguredClient(new FakeDevelopmentSeedService(result));
 
@@ -266,6 +374,104 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
         string[] Errors,
         DevelopmentSeedProfileMetadata? ProfileMetadata,
         DevelopmentSeedProfileMetadata[] KnownProfiles);
+
+    private sealed record DevPlanetUiStateResponse(
+        bool Succeeded,
+        DevPlanetUiStateResult? UiState,
+        string[] Errors);
+
+    private sealed record DevPlanetUiStateResult(
+        Guid CivilizationId,
+        Guid? SelectedPlanetId,
+        DevPlanetCockpitDto? Planet,
+        string[] Errors);
+
+    private sealed record DevPlanetCockpitDto(
+        Guid PlanetId,
+        string PlanetName,
+        Guid SolarSystemId,
+        string SolarSystemName,
+        int OrbitalSlot,
+        object PlanetType,
+        int Size,
+        object ColonizationStatus,
+        bool IsOwnedByRequestingCivilization,
+        Guid? OwnerCivilizationId,
+        string? OwnerCivilizationName,
+        object? ControlStatus,
+        object[] Stockpile,
+        object? ProductionSummary,
+        object? BuildingCapacity,
+        object[] Buildings,
+        object[] ConstructionQueue,
+        object ActionSummary,
+        DevPlanetConstructionActionDto[] ConstructionActions,
+        object OrbitalContext,
+        object Diagnostics);
+
+    private sealed record DevPlanetConstructionActionDto(
+        ConstructionQueueItemAction Action,
+        BuildingType BuildingType,
+        object Category,
+        int CurrentLevel,
+        int TargetLevel,
+        string AvailabilityStatus,
+        string AvailabilityReason,
+        TimeSpan EstimatedDuration,
+        object[] Cost,
+        object? Display);
+
+    private sealed record EnqueueConstructionOrderResponse(
+        bool Succeeded,
+        Guid? OrderId,
+        DateTime? StartsAtUtc,
+        DateTime? EndsAtUtc,
+        IReadOnlyList<string> Errors);
+
+    private sealed record EnqueueResearchOrderResponse(
+        bool Succeeded,
+        Guid? OrderId,
+        DateTime? StartsAtUtc,
+        DateTime? EndsAtUtc,
+        IReadOnlyList<string> Errors);
+
+    private sealed record DevResearchUiStateResponse(
+        bool Succeeded,
+        DevResearchUiStateResult? UiState,
+        string[] Errors);
+
+    private sealed record DevResearchUiStateResult(
+        Guid CivilizationId,
+        Guid? SelectedPlanetId,
+        string? SelectedPlanetName,
+        object[] Catalog,
+        object[] Queue,
+        object[] Projects,
+        DevResearchTechnologyHintDto[] TechnologyHints,
+        string[] Diagnostics,
+        string[] Limitations);
+
+    private sealed record DevResearchTechnologyHintDto(
+        ResearchType ResearchType,
+        int CurrentLevel,
+        int NextLevel,
+        string StatusKey,
+        string AvailabilityReasonKey,
+        bool CanEnqueue,
+        bool CanCompleteDue,
+        TimeSpan EstimatedDuration,
+        ResearchCost EstimatedCost,
+        DevResearchEnqueueCommandDto? EnqueueCommand,
+        IReadOnlyList<string> RequirementKeys);
+
+    private sealed record DevResearchEnqueueCommandDto(
+        string ActionKey,
+        string Method,
+        string Route,
+        Guid CivilizationId,
+        Guid SourcePlanetId,
+        ResearchType ResearchType,
+        int TargetLevel);
 
     private sealed record DevelopmentSeedProfilesResponse(
         bool Succeeded,

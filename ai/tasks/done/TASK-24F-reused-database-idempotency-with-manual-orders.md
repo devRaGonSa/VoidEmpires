@@ -3,7 +3,7 @@
 ---
 id: TASK-24F
 title: Phase 24F - Reused database idempotency with manual orders
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
