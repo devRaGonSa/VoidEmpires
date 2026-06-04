@@ -35,6 +35,7 @@ Repeatable backend-only baseline helper:
 - Run `.\scripts\dev-qa-create-shipyard-production-order.ps1 -ApplySeed` to apply the shared cockpit seed, enqueue one real orbital Shipyard order through backend-provided command metadata, and print queue, stock, and stockpile deltas.
 - Run `.\scripts\dev-qa-fleet-read-state.ps1` to re-read Fleet UI state after seed application or Shipyard enqueue and print group, stationed, transfer, and local resource-context summaries without mutating anything.
 - Run `.\scripts\check-dev-qa-scripts.ps1` to parser-check the persisted QA PowerShell helpers and run lightweight local formatting checks without requiring the backend.
+- There is intentionally no `dev-qa-create-orbital-group-from-stock.ps1` helper in this block because stock-to-fleet allocation is still excluded from the accepted reused-database QA loop.
 
 Shared helper defaults:
 

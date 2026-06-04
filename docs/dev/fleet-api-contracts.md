@@ -170,6 +170,7 @@ Current audit classification for persisted QA:
 - Current service coverage shows it can create groups whose `currentPlanetId` differs from `originPlanetId`.
 - The current service does not prove ownership validation for the source planet before consuming stock.
 - Because of those limits, this route stays out of the default reused-database QA flow for the current Shipyard/Fleet block.
+- No `dev-qa-create-orbital-group-from-stock.ps1` helper is shipped for this block; the exclusion is intentional until the route is hardened and explicitly re-approved.
 
 ### List Groups
 
