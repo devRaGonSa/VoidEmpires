@@ -72,22 +72,19 @@ public class DevGroundArmyUiStateEndpointTests(WebApplicationFactory<Program> fa
         Assert.NotEmpty(payload.UiState.GroundArmy.ResourceStockpile);
         Assert.NotNull(payload.UiState.GroundArmy.Population);
         Assert.Equal(4, payload.UiState.GroundArmy.Catalog.Count);
-        Assert.All(payload.UiState.GroundArmy.Catalog, x => Assert.Equal("Blocked", x.AvailabilityStatus));
+        Assert.Contains(payload.UiState.GroundArmy.GroundStructures, x => x.BuildingType == BuildingType.Barracks);
+        Assert.Equal(1, payload.UiState.GroundArmy.ReadinessSummary.AvailableOptionCount);
+        Assert.Equal(3, payload.UiState.GroundArmy.ReadinessSummary.BlockedOptionCount);
+        Assert.Equal(1, payload.UiState.GroundArmy.ReadinessSummary.QueueItemCount);
+        Assert.Contains(payload.UiState.GroundArmy.Catalog, x => x.AssetType == PlanetaryAssetType.PatrolGroup.ToString() && x.AvailabilityStatus == "Available");
+        Assert.Contains(payload.UiState.GroundArmy.Catalog, x => x.AvailabilityStatus == "Blocked");
         Assert.Equal(initialQueueCount, await dbContext.Set<AssetProductionOrder>().CountAsync());
         Assert.Equal(initialStockCount, await dbContext.Set<PlanetaryAssetStock>().CountAsync());
     }
 
     [Fact] public async Task GroundArmyUiStateReturnsAvailableAndBlockedOptionsWhenLocalPrerequisitesExist()
     {
-        await using var dbContext = CreateSeededDbContext(context =>
-        {
-            context.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOwnedPlanetId, BuildingType.Barracks, 1, 1));
-            var stockpile = context.PlanetResourceStockpiles.Single(x => x.PlanetId == SeedOwnedPlanetId);
-            stockpile.Increase(ResourceType.Credits, 300);
-            stockpile.Increase(ResourceType.Metal, 300);
-            stockpile.Increase(ResourceType.Crystal, 200);
-            stockpile.Increase(ResourceType.Gas, 100);
-        }, "cockpit-validation");
+        await using var dbContext = CreateSeededDbContext(profile: "cockpit-validation");
         using var client = CreateConfiguredClient(dbContext);
         using var response = await client.GetAsync($"/api/dev/ground-army/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
         var payload = await response.Content.ReadFromJsonAsync<DevGroundArmyUiStateResponse>();
@@ -117,6 +114,7 @@ public class DevGroundArmyUiStateEndpointTests(WebApplicationFactory<Program> fa
             builder.ConfigureAppConfiguration((_, configurationBuilder) => configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=voidempires_ground_army_ui_state_tests" }));
             builder.ConfigureTestServices(services =>
             {
+                services.AddSingleton(dbContext);
                 var planetUiStateService = new DevPlanetUiStateService(dbContext);
                 services.AddSingleton<IDevPlanetUiStateService>(planetUiStateService);
                 services.AddSingleton<IDevGroundArmyUiStateService>(new DevGroundArmyUiStateService(planetUiStateService, dbContext));

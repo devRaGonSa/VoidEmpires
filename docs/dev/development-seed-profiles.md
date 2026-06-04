@@ -10,7 +10,7 @@ Use these profiles instead of manual SQL for standard cockpit QA.
 | Profile | Status | Intended QA use |
 |---|---|---|
 | `minimal-validation` | Implemented | Current deterministic shared baseline for Galaxy, Planet, Construction, Research, Shipyard, and Fleets |
-| `cockpit-validation` | Implemented | Richer combined cockpit baseline with non-blocking completed history plus visible Defenses readiness on Aurelia |
+| `cockpit-validation` | Implemented | Richer combined cockpit baseline with non-blocking completed history plus visible Defenses and Ground Army readiness on Aurelia |
 | `shipyard-validation` | Implemented | Shipyard-focused richer baseline with completed queue history, two local stock rows, one available hull, and blocked comparisons |
 | `fleet-validation` | Implemented | Fleet-focused richer baseline with one extra stationed cargo example and one additional due active transfer |
 | `research-validation` | Implemented | Research-focused richer baseline with one deterministic available technology, completed history, and truthful resource-blocked comparisons |
@@ -105,7 +105,7 @@ Primary deterministic local QA routes:
 Route note:
 
 - `/galaxy` is the canonical Galaxy route. `/` remains supported as a compatibility alias.
-- Ground Army remains a placeholder/readiness cabin.
+- Ground Army now has a seeded cockpit-foundation readiness baseline, but it still stays scoped to readiness and explicit training preparation only.
 - Defenses now has a seeded cockpit-foundation readiness baseline, but it still does not execute combat or seed an active defensive queue.
 
 ## Dependency map
@@ -143,7 +143,7 @@ The seeded orbital groups, transfer row, and queue rows do not use fixed ids. In
 
 ## `cockpit-validation` additions
 
-`cockpit-validation` builds on `minimal-validation`, tops `Aurelia` up to at least `220` credits, `320` metal, `220` crystal, and `120` gas, adds a visible `DefenseGrid` level `1` on `Aurelia`, and then adds one completed construction row, one completed `EnergySystems` research order plus project, and one completed orbital `ScoutCraft` production order plus local `ScoutCraft` stock. It stays non-destructive and avoids extra pending or active queue rows so the current executable cockpit actions remain available.
+`cockpit-validation` builds on `minimal-validation`, tops `Aurelia` up to at least `220` credits, `320` metal, `220` crystal, and `120` gas, adds a visible `DefenseGrid` level `1` plus `Barracks` level `1` on `Aurelia`, and then adds one completed construction row, one completed `EnergySystems` research order plus project, one completed orbital `ScoutCraft` production order plus local `ScoutCraft` stock, and one completed planetary `PatrolGroup x2` training row plus local `PatrolGroup x2` stock. It stays non-destructive and avoids extra pending or active queue rows so the current executable cockpit actions remain available.
 
 Expected Galaxy result for screenshot QA:
 
@@ -161,6 +161,16 @@ Expected Defenses result for screenshot QA:
 - one deterministic defense readiness option remains visible for `DefenseGrid`
 - the baseline stays truthful about current scope: no seeded active defense queue and complete-due remains a limitation, not a fake action
 - blocked defense comparisons are not seeded in the default baseline because the current defensive catalog exposes only one real structure type; blocked-state coverage is validated through targeted low-resource tests instead
+
+Expected Ground Army result for screenshot QA:
+
+- `Aurelia` loads as the controlled planet with the richer cockpit-validation stockpile and population profile
+- one visible `Barracks` structure appears in the ground-readiness inventory
+- one deterministic `PatrolGroup` option is available
+- blocked comparisons remain visible for `ExpeditionGroup`, `VehicleGroup`, and `SupportGroup`
+- the garrison shows one local `PatrolGroup x2` row
+- the queue shows one completed planetary training history row and no open ground order
+- the baseline stays truthful about current scope: complete-due remains a limitation, not a fake action, and no combat or invasion state is seeded
 
 ## `shipyard-validation` additions
 

@@ -63,9 +63,12 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
     private static readonly DateTime CockpitValidationResearchEndAtUtc = new(2026, 5, 31, 9, 12, 0, DateTimeKind.Utc);
     private static readonly DateTime CockpitValidationProductionStartAtUtc = new(2026, 5, 31, 10, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime CockpitValidationProductionEndAtUtc = new(2026, 5, 31, 10, 3, 0, DateTimeKind.Utc);
+    private static readonly DateTime CockpitValidationGroundArmyStartAtUtc = new(2026, 5, 31, 10, 15, 0, DateTimeKind.Utc);
+    private static readonly DateTime CockpitValidationGroundArmyEndAtUtc = new(2026, 5, 31, 10, 18, 0, DateTimeKind.Utc);
     private const int SeededConstructionSequenceStart = 10_000;
     private const int SeededResearchSequenceStart = 20_000;
     private const int SeededAssetProductionSequenceStart = 30_000;
+    private const int SeededGroundArmyProductionSequenceStart = 31_000;
 
     public async Task<ApplyDevelopmentSeedResult> ApplyAsync(
         ApplyDevelopmentSeedRequest request,
@@ -104,7 +107,8 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
                     $"System {SeedSystemId} keeps Aurelia plus visible comparison planets {SeedOuterPlanetId} and {SeedIcePlanetId}.",
                     "Planet and Construction gain completed queue history without blocking current actions.",
                     "Research and Shipyard gain richer completed history while preserving available and blocked read-state.",
-                    "Defenses now include a visible Defense Grid readiness baseline without seeding combat or an active queue."
+                    "Defenses now include a visible Defense Grid readiness baseline without seeding combat or an active queue.",
+                    "Ground Army now includes one Barracks baseline, one completed patrol training history row, one ready patrol stock row, and truthful blocked comparisons."
                 ]);
                 break;
             case "shipyard-validation":
@@ -446,6 +450,13 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
             dbContext.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOwnedPlanetId, BuildingType.DefenseGrid, 1, 1));
         }
 
+        if (!await dbContext.Set<PlanetBuilding>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId && x.BuildingType == BuildingType.Barracks,
+                cancellationToken))
+        {
+            dbContext.Set<PlanetBuilding>().Add(PlanetBuilding.Create(SeedOwnedPlanetId, BuildingType.Barracks, 1, 1));
+        }
+
         await EnsureSeededConstructionOrderAsync(
             SeedOwnedPlanetId,
             ConstructionQueueItemAction.Construct,
@@ -487,11 +498,30 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
             SeededAssetProductionSequenceStart,
             cancellationToken);
 
+        await EnsureSeededAssetProductionOrderAsync(
+            SeedOwnedPlanetId,
+            AssetProductionTarget.Planetary,
+            PlanetaryAssetType.PatrolGroup,
+            null,
+            2,
+            CockpitValidationGroundArmyStartAtUtc,
+            CockpitValidationGroundArmyEndAtUtc,
+            AssetProductionOrderStatus.Completed,
+            SeededGroundArmyProductionSequenceStart,
+            cancellationToken);
+
         if (!await dbContext.Set<OrbitalAssetStock>().AnyAsync(
                 x => x.PlanetId == SeedOwnedPlanetId && x.AssetType == SpaceAssetType.ScoutCraft,
                 cancellationToken))
         {
             dbContext.Set<OrbitalAssetStock>().Add(OrbitalAssetStock.Create(SeedOwnedPlanetId, SpaceAssetType.ScoutCraft, 1));
+        }
+
+        if (!await dbContext.Set<PlanetaryAssetStock>().AnyAsync(
+                x => x.PlanetId == SeedOwnedPlanetId && x.AssetType == PlanetaryAssetType.PatrolGroup,
+                cancellationToken))
+        {
+            dbContext.Set<PlanetaryAssetStock>().Add(PlanetaryAssetStock.Create(SeedOwnedPlanetId, PlanetaryAssetType.PatrolGroup, 2));
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

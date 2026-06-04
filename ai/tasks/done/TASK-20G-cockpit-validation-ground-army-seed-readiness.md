@@ -3,7 +3,7 @@
 ---
 id: TASK-20G-cockpit-validation-ground-army-seed-readiness
 title: Cockpit validation Ground Army seed readiness
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

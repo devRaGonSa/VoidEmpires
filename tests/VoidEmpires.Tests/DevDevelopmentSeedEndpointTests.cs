@@ -208,13 +208,13 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
             var dbContext = scope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
             Assert.Equal(2, await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == SeedCivilizationId));
             Assert.Equal(2, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId));
-            Assert.Equal(2, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId));
+            Assert.Equal(3, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId));
             Assert.Equal(1, await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == SeedCivilizationId && x.Sequence == 1));
             Assert.Equal(1, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId && x.Sequence == 1));
             Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId && x.Sequence == 1));
             Assert.Equal(1, await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == SeedCivilizationId && x.Sequence >= SeededResearchSequenceStart));
             Assert.Equal(1, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId && x.Sequence >= SeededConstructionSequenceStart));
-            Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId && x.Sequence >= SeededAssetProductionSequenceStart));
+            Assert.Equal(2, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId && x.Sequence >= SeededAssetProductionSequenceStart));
         }
 
         using var researchResponse = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");

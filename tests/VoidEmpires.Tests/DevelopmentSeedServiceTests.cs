@@ -99,11 +99,14 @@ public class DevelopmentSeedServiceTests
         Assert.Equal(220, stockpile.Crystal);
         Assert.Equal(120, stockpile.Gas);
         Assert.Equal(1, await dbContext.Set<PlanetBuilding>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.BuildingType == BuildingType.DefenseGrid && x.Level == 1));
+        Assert.Equal(1, await dbContext.Set<PlanetBuilding>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.BuildingType == BuildingType.Barracks && x.Level == 1));
         Assert.Equal(1, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.Status == ConstructionQueueItemStatus.Completed));
         Assert.Equal(1, await dbContext.Set<ResearchProject>().CountAsync(x => x.CivilizationId == CivilizationId && x.ResearchType == ResearchType.EnergySystems));
         Assert.Equal(1, await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == CivilizationId && x.ResearchType == ResearchType.EnergySystems && x.Status == ResearchQueueItemStatus.Completed));
         Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.SpaceAssetType == SpaceAssetType.ScoutCraft && x.Status == AssetProductionOrderStatus.Completed));
+        Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.PlanetaryAssetType == PlanetaryAssetType.PatrolGroup && x.Status == AssetProductionOrderStatus.Completed));
         Assert.True(await dbContext.Set<OrbitalAssetStock>().AnyAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == SpaceAssetType.ScoutCraft && x.Quantity == 1));
+        Assert.True(await dbContext.Set<PlanetaryAssetStock>().AnyAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == PlanetaryAssetType.PatrolGroup && x.Quantity == 2));
     }
 
     [Fact]
@@ -177,7 +180,7 @@ public class DevelopmentSeedServiceTests
         Assert.True(firstApply.Succeeded);
         Assert.True(secondApply.Succeeded);
         Assert.Equal(2, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId));
-        Assert.Equal(2, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId));
+        Assert.Equal(3, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId));
         Assert.Equal(1, await dbContext.Set<PlanetConstructionOrder>().CountAsync(x =>
             x.PlanetId == OwnedPlanetId &&
             x.Sequence == 1));
@@ -187,7 +190,7 @@ public class DevelopmentSeedServiceTests
         Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
             x.PlanetId == OwnedPlanetId &&
             x.Sequence == 1));
-        Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
+        Assert.Equal(2, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
             x.PlanetId == OwnedPlanetId &&
             x.Sequence >= SeededAssetProductionSequenceStart));
     }
@@ -258,8 +261,10 @@ public class DevelopmentSeedServiceTests
                     await AssertProfileCountsAsync(dbContext, constructionOrders: 0, researchOrders: 0, researchProjects: 0, assetProductionOrders: 0, orbitalAssetStocks: 1, orbitalGroups: 4, orbitalTransfers: 1);
                     break;
                 case "cockpit-validation":
-                    await AssertProfileCountsAsync(dbContext, constructionOrders: 1, researchOrders: 1, researchProjects: 1, assetProductionOrders: 1, orbitalAssetStocks: 2, orbitalGroups: 4, orbitalTransfers: 1);
+                    await AssertProfileCountsAsync(dbContext, constructionOrders: 1, researchOrders: 1, researchProjects: 1, assetProductionOrders: 2, orbitalAssetStocks: 2, orbitalGroups: 4, orbitalTransfers: 1);
                     Assert.Equal(1, await dbContext.Set<PlanetBuilding>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.BuildingType == BuildingType.DefenseGrid));
+                    Assert.Equal(1, await dbContext.Set<PlanetBuilding>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.BuildingType == BuildingType.Barracks));
+                    Assert.Equal(1, await dbContext.Set<PlanetaryAssetStock>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == PlanetaryAssetType.PatrolGroup));
                     break;
                 case "shipyard-validation":
                     await AssertProfileCountsAsync(dbContext, constructionOrders: 0, researchOrders: 0, researchProjects: 0, assetProductionOrders: 1, orbitalAssetStocks: 2, orbitalGroups: 4, orbitalTransfers: 1);
