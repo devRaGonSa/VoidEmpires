@@ -6,7 +6,8 @@ import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { buildConstructionUrl, buildDevelopmentHelperUrl, buildFleetsUrl, buildGalaxyUrl, buildPlanetUrl, buildShipyardUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 import { cockpitNavigationLabels, cockpitStatusLabels } from "../utils/cockpitStatus";
-import { getMarketPrimaryAction, groupMarketSignals, mapMarketUiStateToViewModel, selectRecommendedMarketFocus, type MarketUiState } from "../utils/marketViewModel";
+import { getMarketPrimaryAction, getMarketResourceSignalLabel, groupMarketSignals, mapMarketUiStateToViewModel, marketResourceOrder, selectRecommendedMarketFocus, type MarketUiState } from "../utils/marketViewModel";
+import { formatMarketResourceAmount, getMarketResourceLabel } from "../utils/marketPresentation";
 
 function formatMarketRequestFailure(message: string | null | undefined) {
   const detail = message?.trim() ?? null;
@@ -50,6 +51,24 @@ export function MarketPage() {
   );
   const primaryActionLabel = useMemo(
     () => getMarketPrimaryAction(market),
+    [market],
+  );
+  const reserveCards = useMemo(
+    () => marketResourceOrder.map((resourceType) => ({
+      resourceType,
+      label: getMarketResourceLabel(resourceType),
+      civilizationReserve: market?.civilizationReserves.find((entry) => entry.resourceType === resourceType) ?? null,
+      selectedReserve: market?.selectedPlanetReserves.find((entry) => entry.resourceType === resourceType) ?? null,
+      signalLabel: getMarketResourceSignalLabel(resourceType, market?.signals ?? []),
+    })),
+    [market],
+  );
+  const productionCards = useMemo(
+    () => marketResourceOrder.map((resourceType) => ({
+      resourceType,
+      label: getMarketResourceLabel(resourceType),
+      flow: market?.production.find((entry) => entry.resourceType === resourceType) ?? null,
+    })),
     [market],
   );
 
@@ -390,6 +409,58 @@ export function MarketPage() {
                     <li>Sin rutas futuras visibles.</li>
                   )}
                 </ul>
+              </section>
+            </div>
+          </UiCard>
+
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Reservas y produccion</p>
+                <h3>Lectura economica visible</h3>
+                <p>Mercado agrega la lectura actual sin sustituir la gestion local que sigue perteneciendo a Planeta y otras cabinas.</p>
+              </div>
+              <UiBadge tone="resource">{market.selectedPlanetName ? `Reservas de ${market.selectedPlanetName}` : "Lectura de civilizacion"}</UiBadge>
+            </div>
+            <div className="readiness-grid">
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Reservas</p>
+                    <h4>Lectura de civilizacion</h4>
+                  </div>
+                  <UiBadge>{reserveCards.filter((entry) => entry.civilizationReserve).length} visibles</UiBadge>
+                </div>
+                <div className="readiness-grid">
+                  {reserveCards.map((entry) => (
+                    <section key={`reserve-${entry.resourceType}`} className="subpanel figma-subpanel">
+                      <div className="figma-data-list">
+                        <div className="figma-data-row"><span>{entry.label}</span><strong>{entry.civilizationReserve ? entry.civilizationReserve.quantityLabel : formatMarketResourceAmount(null, entry.resourceType)}</strong></div>
+                        <div className="figma-data-row"><span>Estado</span><strong>{entry.signalLabel}</strong></div>
+                        <div className="figma-data-row"><span>Reserva local</span><strong>{entry.selectedReserve ? entry.selectedReserve.quantityLabel : "Sin lectura local"}</strong></div>
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Flujo</p>
+                    <h4>Produccion estimada</h4>
+                  </div>
+                  <UiBadge>{market.production.length > 0 ? `${market.production.length} recursos` : "Sin perfil"}</UiBadge>
+                </div>
+                <div className="readiness-grid">
+                  {productionCards.map((entry) => (
+                    <section key={`flow-${entry.resourceType}`} className="subpanel figma-subpanel">
+                      <div className="figma-data-list">
+                        <div className="figma-data-row"><span>{entry.label}</span><strong>{entry.flow?.quantityLabel ?? "Produccion no visible"}</strong></div>
+                        <div className="figma-data-row"><span>Alcance</span><strong>{entry.flow ? `Produccion estimada de ${market.selectedPlanetName ?? "planeta activo"}` : "No soportada en esta fase"}</strong></div>
+                      </div>
+                    </section>
+                  ))}
+                </div>
               </section>
             </div>
           </UiCard>

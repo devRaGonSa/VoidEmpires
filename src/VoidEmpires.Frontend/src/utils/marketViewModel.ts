@@ -124,6 +124,8 @@ export interface MarketUiState {
   diagnostics: MarketDiagnostics;
 }
 
+export const marketResourceOrder = ["Credits", "Metal", "Crystal", "Gas", "Deuterium", "Energy"] as const;
+
 function normalizeValue(value: string | number | null | undefined) {
   return typeof value === "string" ? value : `${value ?? ""}`;
 }
@@ -287,6 +289,25 @@ export function getMarketPrimaryAction(market: MarketCockpit | null) {
 
   return market.futureActions.find((action) => action.isEnabled)?.label
     ?? getMarketActionLabel("market.signal.read");
+}
+
+export function getMarketResourceSignalLabel(
+  resourceType: string,
+  signals: readonly MarketSignal[],
+) {
+  const signal = signals.find((entry) => entry.resourceType === resourceType);
+  if (!signal) {
+    return "Sin lectura visible";
+  }
+
+  switch (signal.signalKey) {
+    case "VisibleSurplus":
+      return "Excedente visible";
+    case "DemandPressure":
+      return "Reserva ajustada";
+    default:
+      return "Recurso estable";
+  }
 }
 
 function getReservePosture(civilizationReserves: readonly MarketResourceReserve[], signals: readonly MarketSignal[]) {
