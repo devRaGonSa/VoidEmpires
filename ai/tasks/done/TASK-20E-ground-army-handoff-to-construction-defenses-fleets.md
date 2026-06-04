@@ -3,7 +3,7 @@
 ---
 id: TASK-20E-ground-army-handoff-to-construction-defenses-fleets
 title: Ground Army handoff to Construction Defenses and Fleets
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
