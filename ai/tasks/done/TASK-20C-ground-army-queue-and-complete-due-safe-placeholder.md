@@ -3,7 +3,7 @@
 ---
 id: TASK-20C-ground-army-queue-and-complete-due-safe-placeholder
 title: Ground Army queue and complete due safe placeholder
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

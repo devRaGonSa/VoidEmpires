@@ -30,6 +30,11 @@ function getResourcePressureSummary(viewModel: ReturnType<typeof mapGroundArmyUi
   return [...viewModel.stockpile].sort((left, right) => right.quantity - left.quantity).slice(0, 3).map((entry) => `${entry.label} ${entry.quantity}`).join(" | ");
 }
 
+function formatDateTime(value: string) {
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? "No disponible" : new Intl.DateTimeFormat("es-ES", { dateStyle: "short", timeStyle: "short" }).format(parsed);
+}
+
 export function GroundArmyPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
@@ -206,6 +211,25 @@ export function GroundArmyPage() {
               </section>
             ))}
           </div>
+        </UiCard>
+      ) : null}
+
+      {groundArmy ? (
+        <UiCard className="panel">
+          <div className="figma-section-header"><div><p className="eyebrow">Cola terrestre</p><h3>Ordenes y cierre seguro</h3><p>La cola es de solo lectura en esta build y no completa ordenes automaticamente.</p></div><UiBadge tone={groundArmy.queue.length > 0 ? "resource" : "neutral"}>{groundArmy.queue.length > 0 ? `${groundArmy.queue.length} visibles` : "Sin cola"}</UiBadge></div>
+          {groundArmy.queue.length > 0 ? (
+            <ul className="stack-list compact-list">
+              {groundArmy.queue.map((item) => (
+                <li key={item.orderId}>
+                  {item.label} | {item.statusLabel} | Inicio {formatDateTime(item.startsAtUtc)} | Fin {formatDateTime(item.endsAtUtc)}{item.isDue ? " | Pendiente de cierre seguro" : ""}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="figma-panel-note">No hay ordenes terrestres en cola.</p>
+          )}
+          <div className="figma-section-header module-boundary-spacer"><div><p className="eyebrow">Completar vencidas</p><h4>Placeholder seguro</h4></div><UiBadge tone="warn">{groundArmy.actionAvailability.completeDueStatusLabel}</UiBadge></div>
+          <p className="figma-panel-note">{groundArmy.actionAvailability.completeDueReason}. La cola terrestre sigue visible, pero el cierre permanece deshabilitado porque el backend actual no esta acotado por planeta.</p>
         </UiCard>
       ) : null}
 
