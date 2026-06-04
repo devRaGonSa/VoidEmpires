@@ -1,6 +1,37 @@
 # Espionage Cockpit Checklist
 
-This note defines the safe backend scope for `Espionaje v1`.
+Use this checklist for the accepted `Espionaje v1` cockpit and for later regressions that touch visibility, signals, route handoffs, or read-only intelligence copy.
+
+## Canonical seeded route
+
+- `/espionage?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+
+Apply `cockpit-validation` twice before manual QA when the local database has already been reused.
+
+## Manual QA pass
+
+1. Open the seeded `Espionaje` route.
+2. Confirm the page loads without falling back to a placeholder shell.
+3. Confirm the civilization context is visible and the first viewport reads as `Espionaje v1`.
+4. Confirm the intelligence summary shows owned, observed, partial, or signal counts in a stable layout.
+5. Confirm the grouped target catalog is visible and includes owned `Aurelia` plus visible comparison targets from `Helios Gate`.
+6. Confirm visibility, confidence, and uncertainty cues are readable without expanding diagnostics.
+7. Confirm the passive-signal or recent-readings panel appears when signal rows are available and stays truthful when empty.
+8. Confirm future mission actions stay visible but disabled, with `No disponible en esta version.` and `Solo lectura en esta cabina.` messaging.
+9. Confirm handoff cards toward `Galaxia`, `Planeta`, `Flotas`, and `Investigacion` preserve context when that context exists.
+10. Confirm diagnostics remain collapsed by default and raw technical detail stays secondary.
+
+## Explicit non-goals
+
+- no sabotage
+- no active spy mission execution
+- no infiltration
+- no counter-espionage execution
+- no combat
+- no WebSockets
+- no real-time streaming
+
+## Read-only backend boundary
 
 Current accepted boundary:
 

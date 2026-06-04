@@ -4,6 +4,7 @@ Use this checklist to validate the current frontend prototype without confusing 
 
 For the current Fleet estimate -> confirm -> create-transfer -> confirm -> cancel-transfer or complete-due paths, pair this document with `docs/dev/fleet-controlled-mutation-checklist.md`.
 For the current Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Defenses, and Espionage cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md`, `docs/dev/planet-cockpit-checklist.md`, `docs/dev/construction-cockpit-checklist.md`, `docs/dev/research-cockpit-checklist.md`, `docs/dev/ground-army-cockpit-checklist.md`, `docs/dev/shipyard-cockpit-checklist.md`, `docs/dev/defenses-cockpit-checklist.md`, and `docs/dev/espionage-cockpit-checklist.md`.
+Use the dedicated espionage checklist for the route-specific pass on grouped targets, passive signals, disabled future missions, and cross-cockpit handoffs.
 For the current module boundary model and placeholder responsibilities, also pair this document with `docs/dev/planet-module-boundaries.md`.
 For cross-cockpit wording cleanup, use `docs/dev/cross-cockpit-language-audit.md` as the source of truth before changing visible copy.
 For shared preferred terms and allowed limitation patterns, use `docs/dev/cockpit-copy-guidelines.md`.

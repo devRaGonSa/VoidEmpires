@@ -12,6 +12,7 @@ This guide documents the current frontend boundary model for the planet-related 
 - `/shipyard`: specialized shipyard cockpit foundation with guarded orbital enqueue, queue and stock reads, and a disabled complete-due placeholder.
 - `/defenses`: specialized defenses cockpit foundation with readiness, structures, option state, and no combat execution.
 - `/fleets`: fleet command cockpit and route context hub.
+- `/espionage`: read-only intelligence cockpit foundation with grouped targets, passive signals, disabled future missions, and no active spy execution.
 
 ## Do Not Mix
 
@@ -22,6 +23,7 @@ This guide documents the current frontend boundary model for the planet-related 
 - Do not treat `/ground-army` as an invasion, combat, orbital logistics, or fleet-movement surface.
 - Do not treat `/shipyard` as a fleet movement, transfer, split, merge, or combat surface.
 - Do not treat `/defenses` as a combat, interception, fleet-command, or shield-simulation surface.
+- Do not treat `/espionage` as a mission-launch, sabotage, theft, or counter-espionage execution surface.
 
 ## Current placeholder model
 
@@ -32,6 +34,7 @@ This guide documents the current frontend boundary model for the planet-related 
 - `Ejercito terrestre v1` now sits between placeholder and full gameplay: it supports readiness, visible structures, available and blocked training options, queue history, and guarded development preparation, but combat and complete-due execution remain intentionally unavailable in the cockpit.
 - `Astillero v1` now also sits between placeholder and full gameplay: it supports read-model browsing plus guarded development enqueue, but Fleet handoff stays explanatory only and complete-due remains intentionally disabled in the cockpit.
 - `Defensas v1` now sits between placeholder and full gameplay: it supports readiness, structure visibility, defensive option visibility, queue context, and handoff guidance, but combat and complete-due execution remain intentionally unavailable in the cockpit.
+- `Espionaje v1` now sits between placeholder and full gameplay: it supports read-only intelligence analysis, grouped targets, passive signal context, and disabled future mission placeholders, but active mission execution remains intentionally unavailable in the cockpit.
 
 ## Seeded QA URLs
 
@@ -41,3 +44,4 @@ This guide documents the current frontend boundary model for the planet-related 
 - Ground army cockpit: `/ground-army?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Shipyard cockpit: `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Defenses cockpit: `/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Espionage cockpit: `/espionage?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
