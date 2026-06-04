@@ -134,6 +134,7 @@ What failure looks like:
 - The helper fails clearly if the backend is unreachable.
 - A conflict response prints backend errors such as `Civilization already has an open research order.` or `Planet is not owned by the requesting civilization.`
 - If the backend returns `Civilization already has an open research order.`, the helper now treats it as an expected reused-Development-database state, re-reads the queue, prints a concise summary, and exits without creating a second order.
+- The helper matches that condition from either parsed JSON errors or the raw HTTP body text, because Development QA may be run from Windows PowerShell where JSON parsing capabilities differ from newer shells.
 - If no available research exists because the queue is already occupied, the helper now says so explicitly instead of failing with a vague empty-selection message.
 - No cleanup or destructive reset runs automatically after a failure.
 
@@ -210,6 +211,7 @@ Accepted script behavior:
 - The scripts should prefer authoritative backend fields such as `action`, `buildingType`, `researchType`, and `enqueueCommand`.
 - The scripts may format resources from multiple shapes defensively, but they must not hide real HTTP failures.
 - If resource formatting cannot recognize the current shape, the script should print a readable warning instead of throwing.
+- Known Development conflict states should be recognized from both parsed response objects and raw JSON body text so the Research helper stays stable across supported PowerShell runtimes.
 - Construction enqueue currently expects the request body shape:
   - `planetId`
   - `civilizationId`

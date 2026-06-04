@@ -175,7 +175,7 @@ Write-Host "Payload summary: $(Format-DevQaPayloadSummary $enqueuePayload)"
 $enqueueResult = Invoke-DevPostDetailed $command.route $enqueuePayload
 
 if (-not $enqueueResult.Succeeded) {
-    if ($enqueueResult.StatusCode -eq 409 -and (Test-DevQaResponseHasKnownError -ResponseObject $enqueueResult.Json -KnownErrorFragment "already has an open research order")) {
+    if ($enqueueResult.StatusCode -eq 409 -and (Test-DevQaResponseHasKnownError -ResponseObject $enqueueResult.Json -FallbackText $enqueueResult.BodyText -KnownErrorFragment "already has an open research order")) {
         Write-Host "Ya existe una investigacion abierta para esta civilizacion. No se crea otra orden."
         Write-Host "Reading research state again to summarize the current queue..."
         $occupiedResearchResponse = Get-ResearchState
@@ -195,7 +195,7 @@ if (-not $enqueueResult.Succeeded) {
         exit 0
     }
 
-    $errors = Get-DevQaResponseErrorText $enqueueResult.Json
+    $errors = Get-DevQaResponseErrorText -ResponseObject $enqueueResult.Json -FallbackText $enqueueResult.BodyText
     $details = if (-not [string]::IsNullOrWhiteSpace($errors)) { $errors } else { $enqueueResult.BodyText }
     throw "Research enqueue failed with HTTP $($enqueueResult.StatusCode). $details"
 }

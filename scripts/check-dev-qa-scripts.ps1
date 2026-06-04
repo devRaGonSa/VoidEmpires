@@ -79,5 +79,10 @@ if (-not (Test-DevQaResponseHasKnownError -ResponseObject $known409Response -Kno
     throw "Expected known research 409 detection helper to match the current backend error."
 }
 
+$known409JsonText = '{"succeeded":false,"orderId":null,"startsAtUtc":null,"endsAtUtc":null,"errors":["Civilization already has an open research order."]}'
+if (-not (Test-DevQaResponseHasKnownError -ResponseObject $null -FallbackText $known409JsonText -KnownErrorFragment "already has an open research order")) {
+    throw "Expected known research 409 detection helper to match the current backend JSON body text."
+}
+
 Write-Host "Persisted QA PowerShell scripts parsed successfully."
 Write-Host "Resource-format and payload helper checks passed."

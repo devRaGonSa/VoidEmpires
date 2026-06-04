@@ -201,7 +201,12 @@ function ConvertFrom-DevQaJsonSafely {
     }
 
     try {
-        return $JsonText | ConvertFrom-Json -Depth 20
+        $command = Get-Command ConvertFrom-Json -ErrorAction Stop
+        if ($command.Parameters.ContainsKey("Depth")) {
+            return $JsonText | ConvertFrom-Json -Depth 20
+        }
+
+        return $JsonText | ConvertFrom-Json
     }
     catch {
         return $null
@@ -209,14 +214,34 @@ function ConvertFrom-DevQaJsonSafely {
 }
 
 function Get-DevQaResponseErrorText {
-    param([object]$ResponseObject)
+    param(
+        [object]$ResponseObject,
+        [string]$FallbackText
+    )
 
     if ($null -eq $ResponseObject) {
+        if (-not [string]::IsNullOrWhiteSpace($FallbackText)) {
+            return Get-DevQaResponseErrorText -ResponseObject $FallbackText
+        }
+
         return $null
+    }
+
+    if ($ResponseObject -is [string]) {
+        $parsedResponse = ConvertFrom-DevQaJsonSafely $ResponseObject
+        if ($null -ne $parsedResponse) {
+            return Get-DevQaResponseErrorText -ResponseObject $parsedResponse
+        }
+
+        return $ResponseObject
     }
 
     $errors = @(Get-DevQaEnumerable (Get-DevQaPropertyValue -InputObject $ResponseObject -PropertyNames @("errors", "Errors")))
     if ($errors.Count -eq 0) {
+        if (-not [string]::IsNullOrWhiteSpace($FallbackText)) {
+            return Get-DevQaResponseErrorText -ResponseObject $FallbackText
+        }
+
         return $null
     }
 
@@ -239,11 +264,12 @@ function Format-DevQaPayloadSummary {
 function Test-DevQaResponseHasKnownError {
     param(
         [object]$ResponseObject,
+        [string]$FallbackText,
         [Parameter(Mandatory = $true)]
         [string]$KnownErrorFragment
     )
 
-    $errorText = Get-DevQaResponseErrorText $ResponseObject
+    $errorText = Get-DevQaResponseErrorText -ResponseObject $ResponseObject -FallbackText $FallbackText
     if ([string]::IsNullOrWhiteSpace($errorText)) {
         return $false
     }
