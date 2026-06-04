@@ -3,7 +3,7 @@
 ---
 id: TASK-19W-ground-army-cockpit-read-model-or-dev-endpoint
 title: Ground Army cockpit read model or dev endpoint
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

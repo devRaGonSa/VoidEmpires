@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VoidEmpires.Application.Planets;
+using VoidEmpires.Infrastructure.Persistence;
+using VoidEmpires.Infrastructure.Planets;
 
 internal static class DevPlanetUiStateEndpoints
 {
@@ -64,6 +66,38 @@ internal static class DevPlanetUiStateEndpoints
 
             return Results.Ok(new DevDefenseUiStateApiResponse(true, uiState, []));
         });
+
+        app.MapGet("/api/dev/ground-army/ui-state", async (
+            Guid? civilizationId,
+            Guid? planetId,
+            [FromServices] IServiceProvider services,
+            [FromServices] IConfiguration configuration,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(configuration.GetConnectionString("DefaultConnection")))
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (civilizationId is null || civilizationId == Guid.Empty)
+            {
+                return Results.BadRequest(new DevGroundArmyUiStateApiResponse(false, null, ["Civilization id is required."]));
+            }
+
+            var service = new DevGroundArmyUiStateService(
+                services.GetRequiredService<IDevPlanetUiStateService>(),
+                services.GetRequiredService<VoidEmpiresDbContext>());
+            var uiState = await service.GetAsync(
+                new GetDevGroundArmyUiStateRequest(civilizationId.Value, planetId),
+                cancellationToken);
+
+            if (uiState.GroundArmy is null && uiState.Errors.Count > 0)
+            {
+                return Results.NotFound(new DevGroundArmyUiStateApiResponse(false, null, uiState.Errors));
+            }
+
+            return Results.Ok(new DevGroundArmyUiStateApiResponse(true, uiState, []));
+        });
     }
 }
 
@@ -75,4 +109,9 @@ internal sealed record DevPlanetUiStateApiResponse(
 internal sealed record DevDefenseUiStateApiResponse(
     bool Succeeded,
     GetDevDefenseUiStateResult? UiState,
+    IReadOnlyList<string> Errors);
+
+internal sealed record DevGroundArmyUiStateApiResponse(
+    bool Succeeded,
+    GetDevGroundArmyUiStateResult? UiState,
     IReadOnlyList<string> Errors);

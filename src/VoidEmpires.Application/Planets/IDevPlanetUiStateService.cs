@@ -19,11 +19,22 @@ public interface IDevDefenseUiStateService
         CancellationToken cancellationToken = default);
 }
 
+public interface IDevGroundArmyUiStateService
+{
+    Task<GetDevGroundArmyUiStateResult> GetAsync(
+        GetDevGroundArmyUiStateRequest request,
+        CancellationToken cancellationToken = default);
+}
+
 public sealed record GetDevPlanetUiStateRequest(
     Guid CivilizationId,
     Guid? PlanetId = null);
 
 public sealed record GetDevDefenseUiStateRequest(
+    Guid CivilizationId,
+    Guid? PlanetId = null);
+
+public sealed record GetDevGroundArmyUiStateRequest(
     Guid CivilizationId,
     Guid? PlanetId = null);
 
@@ -39,6 +50,13 @@ public sealed record GetDevDefenseUiStateResult(
     Guid? SelectedPlanetId,
     IReadOnlyList<DevPlanetOptionDto> KnownPlanets,
     DevDefenseCockpitDto? Defenses,
+    IReadOnlyList<string> Errors);
+
+public sealed record GetDevGroundArmyUiStateResult(
+    Guid CivilizationId,
+    Guid? SelectedPlanetId,
+    IReadOnlyList<DevPlanetOptionDto> KnownPlanets,
+    DevGroundArmyCockpitDto? GroundArmy,
     IReadOnlyList<string> Errors);
 
 public sealed record DevPlanetOptionDto(
@@ -87,6 +105,25 @@ public sealed record DevDefenseCockpitDto(
     DevDefenseProtectionSummaryDto ProtectionSummary,
     DevPlanetConstructionActionSummaryDto ActionSummary,
     DevDefenseDiagnosticsDto Diagnostics);
+
+public sealed record DevGroundArmyCockpitDto(
+    Guid PlanetId,
+    string PlanetName,
+    Guid SolarSystemId,
+    string SolarSystemName,
+    bool IsOwnedByRequestingCivilization,
+    Guid? OwnerCivilizationId,
+    string? OwnerCivilizationName,
+    PlanetControlStatus? ControlStatus,
+    IReadOnlyList<DevPlanetResourceBalanceDto> ResourceStockpile,
+    DevGroundArmyPopulationSummaryDto? Population,
+    IReadOnlyList<DevPlanetBuildingDto> GroundStructures,
+    IReadOnlyList<DevGroundArmyUnitStockDto> Garrison,
+    IReadOnlyList<DevGroundArmyCatalogItemDto> Catalog,
+    IReadOnlyList<DevGroundArmyQueueItemDto> Queue,
+    DevGroundArmyReadinessSummaryDto ReadinessSummary,
+    DevGroundArmyActionSummaryDto ActionSummary,
+    DevGroundArmyDiagnosticsDto Diagnostics);
 
 public sealed record DevPlanetResourceBalanceDto(
     ResourceType ResourceType,
@@ -195,11 +232,68 @@ public sealed record DevDefenseProtectionSummaryDto(
     int QueueItemCount,
     int DueQueueItemCount);
 
+public sealed record DevGroundArmyPopulationSummaryDto(
+    long TotalPopulation,
+    long BaseRecruitablePopulation,
+    long BuildingCapacityBonus,
+    long TotalGroundCapacity);
+
+public sealed record DevGroundArmyUnitStockDto(
+    string AssetType,
+    int Quantity);
+
+public sealed record DevGroundArmyCatalogItemDto(
+    string AssetType,
+    BuildingType RequiredBuildingType,
+    int RequiredBuildingLevel,
+    int RequiredPopulationCapacity,
+    TimeSpan EstimatedDuration,
+    IReadOnlyList<DevPlanetResourceBalanceDto> Cost,
+    int CurrentStock,
+    string AvailabilityStatus,
+    string AvailabilityReason);
+
+public sealed record DevGroundArmyQueueItemDto(
+    Guid OrderId,
+    string AssetType,
+    int Quantity,
+    int Sequence,
+    string Status,
+    DateTime StartsAtUtc,
+    DateTime EndsAtUtc,
+    bool IsDue);
+
+public sealed record DevGroundArmyReadinessSummaryDto(
+    int StructureCount,
+    int GarrisonUnitTypes,
+    int TotalGarrisonQuantity,
+    int AvailableOptionCount,
+    int BlockedOptionCount,
+    int QueueItemCount,
+    int DueQueueItemCount);
+
+public sealed record DevGroundArmyActionSummaryDto(
+    bool EnqueueSupported,
+    string EnqueueActionStatus,
+    string EnqueueActionReason,
+    bool CompleteDueSupported,
+    string CompleteDueActionStatus,
+    string CompleteDueActionReason);
+
 public sealed record DevDefenseDiagnosticsDto(
     Guid? RequestPlanetId,
     Guid SolarSystemId,
     Guid? OwnerCivilizationId,
     bool HasResourceStockpile,
     bool HasDefenseStructure,
+    IReadOnlyList<string> Notes,
+    IReadOnlyList<string> Limitations);
+
+public sealed record DevGroundArmyDiagnosticsDto(
+    Guid? RequestPlanetId,
+    Guid SolarSystemId,
+    Guid? OwnerCivilizationId,
+    bool HasResourceStockpile,
+    bool HasPopulationProfile,
     IReadOnlyList<string> Notes,
     IReadOnlyList<string> Limitations);
