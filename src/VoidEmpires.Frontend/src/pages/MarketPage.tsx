@@ -538,13 +538,19 @@ export function MarketPage() {
                   </div>
                   <UiBadge>{reserveCards.filter((entry) => entry.civilizationReserve).length} visibles</UiBadge>
                 </div>
-                <div className="readiness-grid">
+                <div className="market-resource-grid">
                   {reserveCards.map((entry) => (
-                    <section key={`reserve-${entry.resourceType}`} className="subpanel figma-subpanel">
+                    <section key={`reserve-${entry.resourceType}`} className="subpanel figma-subpanel market-resource-card">
+                      <div className="market-resource-head">
+                        <div>
+                          <p className="eyebrow">{entry.label}</p>
+                          <h5>{entry.signalLabel}</h5>
+                        </div>
+                        <UiBadge tone="resource">{entry.label}</UiBadge>
+                      </div>
                       <div className="figma-data-list">
-                        <div className="figma-data-row"><span>{entry.label}</span><strong>{entry.civilizationReserve ? entry.civilizationReserve.quantityLabel : formatMarketResourceAmount(null, entry.resourceType)}</strong></div>
-                        <div className="figma-data-row"><span>Estado</span><strong>{entry.signalLabel}</strong></div>
-                        <div className="figma-data-row"><span>Reserva local</span><strong>{entry.selectedReserve ? entry.selectedReserve.quantityLabel : "Sin lectura local"}</strong></div>
+                        <div className="figma-data-row"><span>Lectura de civilizacion</span><strong>{entry.civilizationReserve ? entry.civilizationReserve.quantityLabel : formatMarketResourceAmount(null, entry.resourceType)}</strong></div>
+                        <div className="figma-data-row"><span>{market.selectedPlanetName ? `Reservas de ${market.selectedPlanetName}` : "Reserva local"}</span><strong>{entry.selectedReserve ? entry.selectedReserve.quantityLabel : "Sin lectura local"}</strong></div>
                       </div>
                     </section>
                   ))}
@@ -558,12 +564,21 @@ export function MarketPage() {
                   </div>
                   <UiBadge>{market.production.length > 0 ? `${market.production.length} recursos` : "Sin perfil"}</UiBadge>
                 </div>
-                <div className="readiness-grid">
+                <div className="market-resource-grid">
                   {productionCards.map((entry) => (
-                    <section key={`flow-${entry.resourceType}`} className="subpanel figma-subpanel">
+                    <section key={`flow-${entry.resourceType}`} className="subpanel figma-subpanel market-resource-card">
+                      <div className="market-resource-head">
+                        <div>
+                          <p className="eyebrow">{entry.label}</p>
+                          <h5>{entry.flow ? "Produccion estimada" : "Sin produccion visible"}</h5>
+                        </div>
+                        <UiBadge tone={entry.flow ? "good" : "warn"}>
+                          {entry.flow ? "Flujo visible" : "Sin perfil"}
+                        </UiBadge>
+                      </div>
                       <div className="figma-data-list">
-                        <div className="figma-data-row"><span>{entry.label}</span><strong>{entry.flow?.quantityLabel ?? "Produccion no visible"}</strong></div>
-                        <div className="figma-data-row"><span>Alcance</span><strong>{entry.flow ? `Produccion estimada de ${market.selectedPlanetName ?? "planeta activo"}` : "No soportada en esta fase"}</strong></div>
+                        <div className="figma-data-row"><span>Produccion estimada</span><strong>{entry.flow?.quantityLabel ?? "Produccion no visible"}</strong></div>
+                        <div className="figma-data-row"><span>Alcance</span><strong>{entry.flow ? `Produccion estimada de ${market.selectedPlanetName ?? "planeta activo"}` : "No visible en esta lectura"}</strong></div>
                       </div>
                     </section>
                   ))}

@@ -3,7 +3,7 @@
 ---
 id: TASK-26E
 title: Phase 26E - Market reserves and production layout polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

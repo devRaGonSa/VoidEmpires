@@ -84,6 +84,17 @@ Primary Market wording should now align with these anchors:
 
 During manual QA, treat any return to console-like labels such as `Accion principal`, `Apertura de Mercado`, `placeholder`, or generic `operacion` wording in the first viewport as a regression for this block.
 
+## Task 26E layout focus
+
+Reserve and production panels should now read with these scoping cues:
+
+- `Lectura de civilizacion`
+- `Reservas de Aurelia` when the seeded planet is active
+- `Produccion estimada`
+- compact resource-state labels such as `Excedente visible`, `Reserva ajustada`, and `Estable`
+
+Treat dense ledger-like cards or reserve and production rows that no longer distinguish local versus broader scope as a regression for this block.
+
 ## Seeded QA scenario
 
 Use `cockpit-validation` for the richer deterministic Market QA baseline:

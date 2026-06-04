@@ -1944,6 +1944,32 @@ select {
   margin-top: 14px;
 }
 
+.market-resource-grid {
+  display: grid;
+  gap: var(--ve-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-top: 14px;
+}
+
+.market-resource-card {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 78%, transparent), color-mix(in srgb, var(--ve-color-panel) 92%, transparent));
+}
+
+.market-resource-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ve-space-3);
+  align-items: start;
+}
+
+.market-resource-head h5 {
+  margin: 0;
+}
+
 .market-future-action-card {
   display: grid;
   gap: 12px;

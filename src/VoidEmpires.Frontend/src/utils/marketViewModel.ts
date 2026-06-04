@@ -306,7 +306,7 @@ export function getMarketResourceSignalLabel(
 ) {
   const signal = signals.find((entry) => entry.resourceType === resourceType);
   if (!signal) {
-    return "Sin lectura visible";
+    return "Sin lectura";
   }
 
   switch (signal.signalKey) {
@@ -315,7 +315,7 @@ export function getMarketResourceSignalLabel(
     case "DemandPressure":
       return "Reserva ajustada";
     default:
-      return "Recurso estable";
+      return "Estable";
   }
 }
 
