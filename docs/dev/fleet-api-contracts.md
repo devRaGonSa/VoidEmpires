@@ -15,6 +15,7 @@ Current persisted Shipyard/Fleet audit boundary:
 - This block accepts Fleet read-state after a Shipyard mutation.
 - This block does not accept transfer creation, cancellation, completion, split, merge, combat, or interception execution as part of the persisted Shipyard/Fleet QA loop.
 - `POST /api/dev/fleets/orbital-groups/create-from-stock` exists, is Development-only, and mutates real stock, but it is still too thinly validated to include in the default repeated-QA flow.
+- Current audit decision: keep stock-to-fleet allocation excluded from the accepted persisted QA loop for this block.
 
 Development fleet routes are mapped when the web host runs in `Development` or `VoidEmpires:DevEndpoints:Enabled=true`. If the development surface is disabled, routes return `404 Not Found`. If the route is mapped but `ConnectionStrings:DefaultConnection` is empty, persistence-backed endpoints return `503 Service Unavailable`.
 
@@ -160,6 +161,15 @@ Request: `civilizationId`, `originPlanetId`, `currentPlanetId`, `assetType`, `qu
 Response: `succeeded`, `orbitalGroupId`, `errors`.
 
 Restrictions: ids are required, `assetType` is required, and `quantity` must be positive. The backing service can reject insufficient stock or invalid ownership/state. This endpoint creates an orbital group only; it does not create transfers.
+
+Current audit classification for persisted QA:
+
+- Development-only and intentionally non-idempotent.
+- Consumes real `OrbitalAssetStock` on every successful call.
+- Creates a new `OrbitalGroup` on every successful call.
+- Current service coverage shows it can create groups whose `currentPlanetId` differs from `originPlanetId`.
+- The current service does not prove ownership validation for the source planet before consuming stock.
+- Because of those limits, this route stays out of the default reused-database QA flow for the current Shipyard/Fleet block.
 
 ### List Groups
 

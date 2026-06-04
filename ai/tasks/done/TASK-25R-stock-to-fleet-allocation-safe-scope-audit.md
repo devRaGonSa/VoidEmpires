@@ -3,7 +3,7 @@
 ---
 id: TASK-25R
 title: Phase 25R - Stock to Fleet allocation safe scope audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

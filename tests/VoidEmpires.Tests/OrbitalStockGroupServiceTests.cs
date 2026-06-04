@@ -83,6 +83,50 @@ public class OrbitalStockGroupServiceTests
         Assert.Null(result.OrbitalGroupId);
     }
 
+    [Fact]
+    public async Task CreateFromLocalStockAllowsAwayFromOriginCurrentPlanetAndIsNotIdempotent()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var originPlanetId = Guid.NewGuid();
+        var awayPlanetId = Guid.NewGuid();
+        var stock = OrbitalAssetStock.Create(originPlanetId, SpaceAssetType.ScoutCraft, 3);
+        dbContext.Set<OrbitalAssetStock>().Add(stock);
+        await dbContext.SaveChangesAsync();
+
+        var service = new OrbitalStockGroupService(dbContext);
+
+        var firstResult = await service.CreateFromLocalStockAsync(new CreateOrbitalGroupRequest(
+            civilizationId,
+            originPlanetId,
+            awayPlanetId,
+            SpaceAssetType.ScoutCraft,
+            1));
+        var secondResult = await service.CreateFromLocalStockAsync(new CreateOrbitalGroupRequest(
+            civilizationId,
+            originPlanetId,
+            awayPlanetId,
+            SpaceAssetType.ScoutCraft,
+            1));
+
+        Assert.True(firstResult.Succeeded);
+        Assert.True(secondResult.Succeeded);
+        Assert.Equal(1, stock.Quantity);
+
+        var groups = await dbContext.Set<OrbitalGroup>()
+            .OrderBy(x => x.Id)
+            .ToListAsync();
+
+        Assert.Equal(2, groups.Count);
+        Assert.All(groups, group =>
+        {
+            Assert.Equal(civilizationId, group.CivilizationId);
+            Assert.Equal(originPlanetId, group.OriginPlanetId);
+            Assert.Equal(awayPlanetId, group.CurrentPlanetId);
+            Assert.True(group.IsStationedAwayFromOrigin);
+        });
+    }
+
     private static VoidEmpiresDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<VoidEmpiresDbContext>()

@@ -179,6 +179,7 @@ Accepted guidance:
 
 - Keep allocation out of the default Shipyard/Fleet persisted QA sequence.
 - Treat allocation as an opt-in later task only if the endpoint is hardened, documented, and paired with explicit reused-database expectations.
+- Current evidence for exclusion: the service consumes stock and creates a new group on every successful call, allows `currentPlanetId` to differ from `originPlanetId`, and does not currently prove ownership-scoped safety suitable for reused-database automation.
 
 ## Accepted persisted QA sequence for this block
 

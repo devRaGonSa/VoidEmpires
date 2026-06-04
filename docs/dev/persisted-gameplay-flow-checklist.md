@@ -16,6 +16,7 @@ Use it together with `docs/dev/development-seed-profiles.md`, `docs/dev/construc
 - Fleet read-state remains an accepted post-Shipyard verification step: after a real Shipyard order exists, `GET /api/dev/fleets/ui-state` should still return readable stationed groups, active-transfer summaries, command-readiness metadata, and current-planet resource contexts without introducing new Fleet mutation state.
 - Fleet persisted QA for this block is read-only after the Shipyard mutation.
 - Stock-to-fleet allocation remains optional and excluded from the accepted default loop until its endpoint is hardened and explicitly re-approved.
+- Current allocation audit result: `POST /api/dev/fleets/orbital-groups/create-from-stock` is Development-only, consumes real stock, creates new groups per call, is not idempotent, and remains excluded from the repeated-QA runbook.
 
 ## Safe baseline
 
