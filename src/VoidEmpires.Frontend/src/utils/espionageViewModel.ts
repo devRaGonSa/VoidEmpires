@@ -31,6 +31,7 @@ export interface IntelligenceSignalViewModel {
   systemId: string;
   planetId: string | null;
   label: string;
+  systemLabel: string;
   summary: string;
   diagnostics: IntelligenceSignalDto;
 }
@@ -86,11 +87,27 @@ function mapTarget(target: IntelligenceTargetDto): IntelligenceTargetViewModel {
   };
 }
 
-function mapSignal(signal: IntelligenceSignalDto): IntelligenceSignalViewModel {
+function mapSignal(
+  signal: IntelligenceSignalDto,
+  targetByPlanetId: ReadonlyMap<string, IntelligenceTargetViewModel>,
+  targetBySystemId: ReadonlyMap<string, IntelligenceTargetViewModel>,
+): IntelligenceSignalViewModel {
+  const matchedPlanetTarget = signal.planetId ? targetByPlanetId.get(signal.planetId) : null;
+  const matchedSystemTarget = signal.systemId !== "00000000-0000-0000-0000-000000000000"
+    ? targetBySystemId.get(signal.systemId)
+    : null;
+  const resolvedSystemId = matchedPlanetTarget?.systemId
+    ?? matchedSystemTarget?.systemId
+    ?? signal.systemId;
+  const resolvedSystemLabel = matchedPlanetTarget?.systemLabel
+    ?? matchedSystemTarget?.systemLabel
+    ?? "Sistema sin identificar";
+
   return {
-    systemId: signal.systemId,
+    systemId: resolvedSystemId,
     planetId: signal.planetId,
     label: signal.signalKind,
+    systemLabel: resolvedSystemLabel,
     summary: signal.summary,
     diagnostics: signal,
   };
@@ -158,7 +175,11 @@ export function getEspionagePrimaryAction(viewModel: EspionageViewModel) {
 
 export function mapEspionageUiStateToViewModel(state: EspionageUiStateDto): EspionageViewModel {
   const targets = state.targets.map(mapTarget);
-  const signals = state.passiveSignals.map(mapSignal);
+  const targetByPlanetId = new Map(
+    targets.flatMap((target) => (target.planetId ? [[target.planetId, target] as const] : [])),
+  );
+  const targetBySystemId = new Map(targets.map((target) => [target.systemId, target] as const));
+  const signals = state.passiveSignals.map((signal) => mapSignal(signal, targetByPlanetId, targetBySystemId));
 
   return {
     civilizationId: state.civilizationId,

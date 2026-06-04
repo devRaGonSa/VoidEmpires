@@ -394,7 +394,7 @@ export function EspionagePage() {
                       </div>
                       <p className="figma-panel-note">{signal.summary}</p>
                       <div className="figma-data-list espionage-data-list">
-                        <div className="figma-data-row"><span>Sistema</span><strong>{focusedGroup.label}</strong></div>
+                        <div className="figma-data-row"><span>Sistema</span><strong>{signal.systemLabel}</strong></div>
                         <div className="figma-data-row"><span>Handoff sugerido</span><strong>{signal.planetId ? "Galaxia -> Planeta" : "Galaxia"}</strong></div>
                       </div>
                     </article>
