@@ -530,6 +530,15 @@ select {
   padding: 26px;
 }
 
+.panel,
+.subpanel,
+.ui-card,
+.figma-mini-card,
+.figma-transfer-card,
+.technical-disclosure-body > * {
+  min-width: 0;
+}
+
 .figma-hero-card {
   display: grid;
   gap: var(--ve-space-5);
@@ -567,7 +576,7 @@ select {
 }
 
 .figma-two-column {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
 }
 
 .strategic-cockpit-top,
@@ -579,11 +588,11 @@ select {
 
 .strategic-cockpit-top,
 .technical-disclosure-body {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
 }
 
 .strategic-system-layout {
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
 }
 
 .fleet-cockpit-top,
@@ -598,7 +607,7 @@ select {
 .fleet-cockpit-top,
 .fleet-preflight-strip,
 .fleet-manifest-grid {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
 }
 
 .fleet-preflight-strip {
@@ -606,7 +615,7 @@ select {
 }
 
 .fleet-cockpit-layout {
-  grid-template-columns: minmax(360px, 410px) minmax(0, 1fr);
+  grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
   align-items: start;
 }
 
@@ -1357,7 +1366,7 @@ select {
 .readiness-grid {
   display: grid;
   gap: var(--ve-space-3);
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   margin-top: 14px;
 }
 
@@ -1532,6 +1541,13 @@ select {
   max-width: 100%;
 }
 
+@media (max-width: 1440px) {
+  .fleet-cockpit-layout,
+  .fleet-action-stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .technical-disclosure {
   border: 1px solid color-mix(in srgb, var(--ve-color-border) 44%, transparent);
   border-radius: var(--ve-radius-xl);
@@ -1606,14 +1622,14 @@ select {
 .fleet-action-stage {
   display: grid;
   gap: var(--ve-space-4);
-  grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+  grid-template-columns: minmax(260px, 0.95fr) minmax(280px, 1.05fr);
   margin: 18px 0;
 }
 
 .fleet-order-step-grid {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
 }
 
 .fleet-order-step {

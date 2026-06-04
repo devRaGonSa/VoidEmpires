@@ -3,7 +3,7 @@
 ---
 id: TASK-20U-cross-cockpit-responsive-overflow-audit
 title: Cross-cockpit responsive overflow audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
