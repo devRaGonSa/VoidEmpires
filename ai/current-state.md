@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 23P - Market cockpit read-only economy foundation v1`.
+The repository is consolidated through `Phase 24P - Real persisted gameplay flow QA for Construction and Research`.
 
 ## Repository Reality
 
@@ -42,6 +42,10 @@ Current frontend cockpit baseline:
 - Development-only seed profiles now provide the standard QA setup path for Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, and Espionage without manual SQL.
 - `minimal-validation` remains the deterministic shared baseline, `cockpit-validation` is now the first coherent cross-cockpit demo scenario for Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, and Espionage together, and the current cockpit-specific richer profiles are `shipyard-validation`, `fleet-validation`, `research-validation`, and `planet-full-validation`.
 - Seed profiles are additive, deterministic, idempotent, and Development-only. They restore documented baseline rows and minimums but do not destructively clear queues, extra transfers, or other user mutations.
+- The real persisted Development enqueue path is now covered for both Construction and Research through direct endpoint tests, negative-path coverage, resource-deduction checks, and cross-cockpit read-model regression coverage.
+- `cockpit-validation` is now verified to preserve manual QA-created Construction and Research orders created through the supported dev endpoints while still avoiding duplicate seeded history rows.
+- Backend-only QA helpers now exist for baseline capture plus one real Construction or Research enqueue without manual SQL: `scripts/dev-qa-baseline.ps1`, `scripts/dev-qa-create-construction-order.ps1`, and `scripts/dev-qa-create-research-order.ps1`.
+- The persisted-flow runbook is documented in `docs/dev/persisted-gameplay-flow-checklist.md`, including backend start, seed apply, baseline capture, real enqueue commands, expected success/failure interpretation, and reseed-preservation checks.
 - Richer development seed profiles now reserve deterministic high sequence ranges for their completed queue-history rows, preventing runtime collisions when `cockpit-validation` is applied over reused development databases that already contain manual QA queue activity.
 - The development seed apply endpoint now converts persisted-state write conflicts into `409 Conflict` responses with diagnostic details instead of surfacing an unhandled runtime failure.
 - The current frontend boundary model is documented in `docs/dev/planet-module-boundaries.md`.
@@ -65,6 +69,8 @@ Current intentional exclusions:
 - no counter-espionage execution
 - no alliances
 - no production authentication
+- no production auth
+- no production data
 - no market transactions
 - no buying
 - no selling
@@ -295,13 +301,14 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 23P:
+Current validated baseline after Phase 24P:
 
 - backend: `dotnet build --no-restore` succeeded
-- tests: `dotnet test --no-build` succeeded with `654` passing tests
+- tests: `dotnet test --no-build` succeeded with `664` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
 - frontend note: Vite still reports the existing chunk-size warning around `500 kB`, but the production build completes successfully
 - Manual visual QA for the accepted cross-cockpit demo flow remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; the Browser runtime was unavailable in this session, so final screenshot-style acceptance is still user-driven.
+- Market visual QA remains documented and user-driven through the seeded browser checklists; the persisted-flow hardening block did not expand Market into transaction gameplay or production behavior.
 
 Current validated cockpit QA seed baseline:
 
@@ -311,6 +318,10 @@ Current validated cockpit QA seed baseline:
 - The documented canonical seeded Galaxy QA path is `/galaxy?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`, while `/?...` remains a compatibility alias.
 - `cockpit-validation` now restores a non-empty, focusable, read-only Galaxy baseline alongside the accepted Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, and Espionage cockpit flows.
 - Reapplying richer seed profiles after manual QA queue activity is now supported without colliding on persisted queue `Sequence` uniqueness.
+- The real persisted Construction enqueue path is now covered through backend tests, backend-only helper scripts, and the central persisted-flow runbook.
+- The real persisted Research enqueue path is now covered through backend tests, backend-only helper scripts, and the central persisted-flow runbook.
+- Current verified resource rule: both Construction and Research deduct the full visible cost immediately when enqueue succeeds.
+- `cockpit-validation` now preserves manual Construction and Research orders created during QA while keeping the deterministic read-model baseline intact.
 - `cockpit-validation` now also supports meaningful Market QA through seeded reserves, selected-planet production, advisory ratios, visible trade signals, disabled future actions, and deterministic `/market` routing without introducing transaction gameplay.
 - `cockpit-validation` now also seeds meaningful Defenses readiness through a visible `DefenseGrid` on `Aurelia` while keeping defense queue completion and combat behavior out of scope.
 - `cockpit-validation` now also seeds meaningful Ground Army readiness through a visible `Barracks`, one deterministic available `PatrolGroup` path, blocked comparison options, and completed planetary training history on `Aurelia` while keeping combat, invasion, and complete-due execution out of scope.

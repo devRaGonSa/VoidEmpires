@@ -3,7 +3,7 @@
 ---
 id: TASK-24N
 title: Phase 24N - Persisted flow current state update
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
