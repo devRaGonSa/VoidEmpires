@@ -3,7 +3,7 @@
 ---
 id: TASK-22S
 title: Phase 22S - Espionage future actions Spanish copy
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

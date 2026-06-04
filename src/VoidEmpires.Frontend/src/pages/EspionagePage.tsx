@@ -9,6 +9,7 @@ import {
   formatEspionageRequestFailure,
   getEspionageActionLabel,
   getEspionageCueDescription,
+  getEspionageFutureActionReasonLabel,
   getEspionageMissingDataNote,
 } from "../utils/espionagePresentation";
 import { UiBadge } from "../components/ui/UiBadge";
@@ -306,7 +307,7 @@ export function EspionagePage() {
       return {
         key,
         label: getEspionageActionLabel(key) ?? "Accion futura",
-        reason: action?.reasonLabel ?? "No disponible en esta version.",
+        reason: getEspionageFutureActionReasonLabel(key, action?.reasonLabel),
       };
     });
   }, [viewModel]);

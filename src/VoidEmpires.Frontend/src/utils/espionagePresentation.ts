@@ -103,6 +103,27 @@ export function getEspionageActionLabel(actionKey: string | null | undefined) {
   return actionKey ? labels[actionKey] ?? null : null;
 }
 
+export function getEspionageFutureActionReasonLabel(actionKey: string | null | undefined, rawReason: string | null | undefined) {
+  switch (actionKey) {
+    case "espionage.reconnaissance.create":
+      return "La mision queda visible como referencia futura, pero no se puede ejecutar desde esta cabina.";
+    case "espionage.infiltration.create":
+      return "La infiltracion sigue fuera del alcance de esta version y solo aparece como referencia futura.";
+    case "espionage.sabotage.create":
+      return "El sabotaje sigue fuera del alcance de esta version y solo aparece como referencia futura.";
+    case "espionage.counterintelligence.create":
+      return "El contraespionaje sigue fuera del alcance de esta version y solo aparece como referencia futura.";
+    case "espionage.technologyTheft.create":
+      return "El robo de tecnologia sigue fuera del alcance de esta version y solo aparece como referencia futura.";
+    default:
+      if (!rawReason?.trim()) {
+        return "No disponible en esta version.";
+      }
+
+      return "La accion queda visible como referencia futura, pero sigue fuera del alcance de esta cabina.";
+  }
+}
+
 export function getIntelConfidenceLabel(options: { visibilityLevel: DomainValue; sensorCount?: number; detectionCount?: number; }) {
   if (isOneOf(options.visibilityLevel, ["Owned", "2"])) return "Confirmada";
   if ((options.sensorCount ?? 0) > 0) return "Alta";
