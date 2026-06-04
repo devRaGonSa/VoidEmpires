@@ -9,8 +9,8 @@ Use these profiles instead of manual SQL for standard cockpit QA.
 
 | Profile | Status | Intended QA use |
 |---|---|---|
-| `minimal-validation` | Implemented | Current deterministic shared baseline for Galaxy, Planet, Construction, Research, Shipyard, and Fleets |
-| `cockpit-validation` | Implemented | Richer combined cockpit baseline with non-blocking completed history plus visible Defenses, Ground Army, and Espionage readiness on Aurelia |
+| `minimal-validation` | Implemented | Current deterministic shared baseline for Galaxy, Planet, Construction, Research, Shipyard, Fleets, and Market |
+| `cockpit-validation` | Implemented | Richer combined cockpit baseline with non-blocking completed history plus visible Market, Defenses, Ground Army, and Espionage readiness on Aurelia |
 | `shipyard-validation` | Implemented | Shipyard-focused richer baseline with completed queue history, two local stock rows, one available hull, and blocked comparisons |
 | `fleet-validation` | Implemented | Fleet-focused richer baseline with one extra stationed cargo example and one additional due active transfer |
 | `research-validation` | Implemented | Research-focused richer baseline with one deterministic available technology, completed history, and truthful resource-blocked comparisons |
@@ -55,7 +55,7 @@ Operational guidance:
 - Reapply the documented profile when local QA state becomes confusing.
 - Reapplying `cockpit-validation`, `shipyard-validation`, `research-validation`, or `planet-full-validation` is supported on reused development databases even after manual QA has already created queue rows.
 - Richer profiles reserve high sequence ranges for their completed queue-history seed rows, avoiding collisions with pre-existing manual queue activity without resetting the database.
-- Do not use manual SQL for the standard Galaxy, Planet, Construction, Research, Shipyard, or Fleet QA flows.
+- Do not use manual SQL for the standard Galaxy, Planet, Construction, Research, Shipyard, Fleet, or Market QA flows.
 - Use a fresh disposable local database only when you need the exact original pre-mutation baseline.
 - Pair Galaxy QA with `docs/dev/strategic-map-cockpit-checklist.md` so the route, expected seeded names, and shell-only regression checks stay aligned.
 
@@ -99,6 +99,7 @@ Primary deterministic local QA routes:
 - Research: `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Shipyard: `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Fleets: `/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Market: `/market?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Espionage: `/espionage?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Ground Army placeholder: `/ground-army?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Defenses: `/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
@@ -146,7 +147,17 @@ The seeded orbital groups, transfer row, and queue rows do not use fixed ids. In
 
 `cockpit-validation` builds on `minimal-validation`, tops `Aurelia` up to at least `220` credits, `320` metal, `220` crystal, and `120` gas, adds a visible `DefenseGrid` level `1` plus `Barracks` level `1` on `Aurelia`, and then adds one completed construction row, one completed `EnergySystems` research order plus project, one completed orbital `ScoutCraft` production order plus local `ScoutCraft` stock, and one completed planetary `PatrolGroup x2` training row plus local `PatrolGroup x2` stock. It stays non-destructive and avoids extra pending or active queue rows so the current executable cockpit actions remain available.
 
-Use it as one shared demo story: `Void Seed Civilization` controls `Aurelia` in `Helios Gate`, while `Cinder Reach` and `Aether Crown` stay visible as nearby comparison worlds. Galaxy, Planet, Construction, Research, Shipyard, Fleets, Defenses, Ground Army, and Espionage should all read as different views of that same prepared colony rather than unrelated fixtures.
+Use it as one shared demo story: `Void Seed Civilization` controls `Aurelia` in `Helios Gate`, while `Cinder Reach` and `Aether Crown` stay visible as nearby comparison worlds. Galaxy, Planet, Construction, Research, Shipyard, Fleets, Market, Defenses, Ground Army, and Espionage should all read as different views of that same prepared colony rather than unrelated fixtures.
+
+Expected Market result for screenshot QA:
+
+- `Aurelia` loads as the active colony inside `Helios Gate`
+- civilization and local reserves are non-zero and derived from the seeded owned-planet stockpile baseline
+- production remains visible for the selected colony
+- advisory reference ratios are present for the seeded resource set
+- at least one economy signal plus the disabled future-route signal remain visible
+- all future Market actions remain disabled placeholders
+- the cockpit stays honest about being read-only and advisory only
 
 Expected Galaxy result for screenshot QA:
 
@@ -345,6 +356,7 @@ Expected Planet and Construction result:
 | Research | `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` | civilization, owned planet, `Helios Gate` context, `Aurelia` stockpile | research queue and research projects should both start empty in a fresh database |
 | Shipyard | `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` | civilization, owned planet, `Aurelia` stockpile, `Shipyard` building, population profile, `EscortCraft x4` orbital stock row | orbital production queue should start empty in a fresh database |
 | Fleets | `/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` | civilization, owned planet, all seeded orbital groups, planned transfer, destination planets `Cinder Reach` and `Aether Crown`, current stockpile for estimate and create-transfer costs | no seeded queue; one planned transfer already exists |
+| Market | `/market?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` | civilization, owned planet, `Aurelia` stockpile, production profile, visible `Helios Gate` context, seeded transfer counts, deterministic advisory ratios and future disabled actions from the market read model | no executable queue; all actions stay disabled |
 | Espionage | `/espionage?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` | civilization, `Helios Gate`, owned `Aurelia`, visible `Cinder Reach`, visible `Aether Crown`, seeded orbital groups, planned transfer, current strategic visibility | no mission queue or active espionage execution |
 
 ## Reapply behavior by subsystem

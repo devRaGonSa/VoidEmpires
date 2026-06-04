@@ -3,7 +3,7 @@
 Use this checklist to validate the current frontend prototype without confusing it with production UI.
 
 For the current Fleet estimate -> confirm -> create-transfer -> confirm -> cancel-transfer or complete-due paths, pair this document with `docs/dev/fleet-controlled-mutation-checklist.md`.
-For the current Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Defenses, and Espionage cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md`, `docs/dev/planet-cockpit-checklist.md`, `docs/dev/construction-cockpit-checklist.md`, `docs/dev/research-cockpit-checklist.md`, `docs/dev/ground-army-cockpit-checklist.md`, `docs/dev/shipyard-cockpit-checklist.md`, `docs/dev/defenses-cockpit-checklist.md`, and `docs/dev/espionage-cockpit-checklist.md`.
+For the current Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Market, Defenses, and Espionage cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md`, `docs/dev/planet-cockpit-checklist.md`, `docs/dev/construction-cockpit-checklist.md`, `docs/dev/research-cockpit-checklist.md`, `docs/dev/ground-army-cockpit-checklist.md`, `docs/dev/shipyard-cockpit-checklist.md`, `docs/dev/market-cockpit-checklist.md`, `docs/dev/defenses-cockpit-checklist.md`, and `docs/dev/espionage-cockpit-checklist.md`.
 Use the dedicated espionage checklist for the route-specific pass on grouped targets, passive signals, disabled future missions, and cross-cockpit handoffs.
 For the current module boundary model and placeholder responsibilities, also pair this document with `docs/dev/planet-module-boundaries.md`.
 For cross-cockpit wording cleanup, use `docs/dev/cross-cockpit-language-audit.md` as the source of truth before changing visible copy.
@@ -68,22 +68,27 @@ Then open and compare these deterministic routes:
    Expected primary state: `Aurelia` loads with readiness, stock, queue context, one available orbital option, and blocked comparison options.
    No-go: no fleet-command implication from Shipyard, no complete-due action looking active, and no diagnostics leading the page.
    Screenshot target: readiness summary plus stock or queue plus one available orbital card.
-6. Fleets
+6. Market
+   URL: `/market?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+   Expected primary state: `Aurelia` loads with economy summary, reserves, production, advisory ratios, visible trade signals, and disabled future Market actions.
+   No-go: no active buy or sell implication, no diagnostics leading the page, and no raw backend wording dominating the first viewport.
+   Screenshot target: summary plus advisory ratios or trade signals in the same frame.
+7. Fleets
    URL: `/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
    Expected primary state: the command deck, group rail, selected-group detail, active-transfer context, and the read-only estimate flow all render with seeded groups and transfers.
    No-go: no prototype-only control should look executable and no raw ids should dominate selectors or headings.
    Screenshot target: group rail, selected squad panel, and action column in one frame.
-7. Defenses
+8. Defenses
    URL: `/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
    Expected primary state: `Aurelia` loads with defense readiness, one visible `DefenseGrid`, one deterministic defense option, truthful complete-due limitation messaging, and visible handoffs toward neighboring cockpits.
    No-go: no combat tone, no defense-specific mutation pretending to exist locally, and no diagnostics opened by default.
    Screenshot target: readiness summary plus deployed `DefenseGrid` and the visible defense option.
-8. Ground Army
+9. Ground Army
    URL: `/ground-army?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
    Expected primary state: `Aurelia` loads with readiness summary, visible ground structures, one available option, blocked comparisons, truthful queue history, and disabled complete-due messaging.
    No-go: no invasion or combat implication, no direct action pretending to be available, and no expanded technical copy ahead of the main cards.
    Screenshot target: readiness summary plus one available and one blocked ground option.
-9. Espionage
+10. Espionage
    URL: `/espionage?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
    Expected primary state: `Helios Gate` loads with owned `Aurelia`, visible comparison targets, passive signal cards, grouped intelligence, and disabled future mission placeholders.
    No-go: no mission execution cues, no fake real-time surveillance language, no visible English technical strings outside collapsed diagnostics, and no raw backend diagnostics in the first viewport.
@@ -91,7 +96,7 @@ Then open and compare these deterministic routes:
 
 Cross-cockpit comparison checks:
 
-- Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, Defenses, and Espionage all open from the shared `cockpit-validation` baseline without shell-only or near-empty regressions.
+- Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Market, Fleets, Defenses, and Espionage all open from the shared `cockpit-validation` baseline without shell-only or near-empty regressions.
 - Route helpers preserve `civilizationId` and `planetId` when moving between the accepted cockpit links.
 - Galaxy remains read-only while Planet, Construction, Research, Shipyard, and Fleets keep their current guarded mutation boundaries.
 - Diagnostics stay collapsed or clearly secondary across the cockpit routes.

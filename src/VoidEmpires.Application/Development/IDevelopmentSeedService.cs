@@ -65,14 +65,15 @@ public static class DevelopmentSeedProfiles
         true,
         "Implemented today. Use this for the current deterministic QA baseline.",
         "Additive and idempotent. Inserts missing baseline rows, tops up the Aurelia stockpile to documented minimums, and preserves existing queues or extra mutated rows.",
-        ["Galaxy", "Planet", "Construction", "Research", "Shipyard", "Fleets"],
+        ["Galaxy", "Planet", "Construction", "Research", "Shipyard", "Fleets", "Market"],
         [
             "/?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
             "/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
             "/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
             "/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
             "/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
-            "/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001"
+            "/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
+            "/market?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001"
         ],
         [
             new("playerProfileId", "90000000-0000-0000-0000-000000000001", "Validation Commander / seed-user-minimal-validation"),
@@ -87,9 +88,9 @@ public static class DevelopmentSeedProfiles
     public static readonly DevelopmentSeedProfileMetadata CockpitValidation = new(
         "cockpit-validation",
         true,
-        "Implemented today. Use this for the richer shared Aurelia-at-Helios-Gate cross-cockpit QA baseline, including Espionaje read-only validation.",
-        "Additive and idempotent. Builds on minimal-validation, preserves existing queues, and adds non-blocking completed history plus richer stockpile, defense, and ground-readiness context for the same colony scenario.",
-        ["Galaxy", "Planet", "Construction", "Research", "Shipyard", "Fleets", "Defenses", "Ground Army", "Espionage"],
+        "Implemented today. Use this for the richer shared Aurelia-at-Helios-Gate cross-cockpit QA baseline, including Market and Espionaje read-only validation.",
+        "Additive and idempotent. Builds on minimal-validation, preserves existing queues, and adds non-blocking completed history plus richer stockpile, defense, ground-readiness, and market-read context for the same colony scenario.",
+        ["Galaxy", "Planet", "Construction", "Research", "Shipyard", "Fleets", "Market", "Defenses", "Ground Army", "Espionage"],
         [
             "/?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
             "/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
@@ -97,6 +98,7 @@ public static class DevelopmentSeedProfiles
             "/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
             "/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
             "/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
+            "/market?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
             "/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
             "/ground-army?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
             "/espionage?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001"

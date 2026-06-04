@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Development;
+using VoidEmpires.Application.Markets;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Assets;
@@ -11,6 +12,7 @@ using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Population;
 using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Development;
+using VoidEmpires.Infrastructure.Markets;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.StrategicMap;
 using VoidEmpires.Infrastructure.Visuals;
@@ -92,8 +94,10 @@ public class DevelopmentSeedServiceTests
         Assert.Equal("cockpit-validation", result.Profile);
         Assert.NotNull(result.ProfileMetadata);
         Assert.Contains(result.ProfileMetadata.IntendedCockpits, x => x == "Espionage");
+        Assert.Contains(result.ProfileMetadata.IntendedCockpits, x => x == "Market");
         Assert.Contains(result.ProfileMetadata.IntendedCockpits, x => x == "Defenses");
         Assert.Contains(result.ProfileMetadata.IntendedCockpits, x => x == "Ground Army");
+        Assert.Contains(result.ProfileMetadata.RecommendedQaUrls, x => x.StartsWith("/market?", StringComparison.Ordinal));
         Assert.Contains(result.ProfileMetadata.RecommendedQaUrls, x => x.StartsWith("/espionage?", StringComparison.Ordinal));
         Assert.Contains(result.ProfileMetadata.RecommendedQaUrls, x => x.StartsWith("/defenses?", StringComparison.Ordinal));
         Assert.Contains(result.ProfileMetadata.RecommendedQaUrls, x => x.StartsWith("/ground-army?", StringComparison.Ordinal));
@@ -118,6 +122,36 @@ public class DevelopmentSeedServiceTests
         Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.PlanetaryAssetType == PlanetaryAssetType.PatrolGroup && x.Status == AssetProductionOrderStatus.Completed));
         Assert.True(await dbContext.Set<OrbitalAssetStock>().AnyAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == SpaceAssetType.ScoutCraft && x.Quantity == 1));
         Assert.True(await dbContext.Set<PlanetaryAssetStock>().AnyAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == PlanetaryAssetType.PatrolGroup && x.Quantity == 2));
+    }
+
+    [Fact]
+    public async Task CockpitValidationSeedSupportsMeaningfulMarketReadModelAfterReapply()
+    {
+        await using var dbContext = CreateDbContext();
+        var seedService = new DevelopmentSeedService(dbContext);
+
+        _ = await seedService.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+        _ = await seedService.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+
+        var market = await new DevMarketUiStateService(dbContext)
+            .GetAsync(new GetDevMarketUiStateRequest(CivilizationId, OwnedPlanetId));
+
+        Assert.Empty(market.Errors);
+        Assert.NotNull(market.Market);
+        Assert.Equal(OwnedPlanetId, market.SelectedPlanetId);
+        Assert.NotEmpty(market.KnownPlanets);
+        Assert.Equal("Aurelia", market.Market.SelectedPlanetName);
+        Assert.Equal("Helios Gate", market.Market.SelectedSolarSystemName);
+        Assert.NotEmpty(market.Market.CivilizationReserves);
+        Assert.NotEmpty(market.Market.SelectedPlanetReserves);
+        Assert.NotNull(market.Market.SelectedPlanetProduction);
+        Assert.NotEmpty(market.Market.ReferenceRatios);
+        Assert.Contains(market.Market.Signals, x => x.SignalKey == "FutureTradeRoute");
+        Assert.All(market.Market.FutureActions, x => Assert.False(x.IsEnabled));
+        Assert.Contains(market.Market.ReferenceRatios, x => x.IsAdvisory);
+        Assert.Contains(market.Market.CivilizationReserves, x => x.ResourceType == ResourceType.Credits && x.Quantity >= 220);
+        Assert.Contains(market.Market.SelectedPlanetReserves, x => x.ResourceType == ResourceType.Metal && x.Quantity >= 320);
+        Assert.Contains(market.Market.Limitations, x => x.Contains("read-only", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
