@@ -3,7 +3,7 @@
 ---
 id: TASK-22U
 title: Phase 22U - Espionage dashboard and legend copy tightening
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

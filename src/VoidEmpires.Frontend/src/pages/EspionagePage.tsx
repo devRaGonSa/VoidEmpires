@@ -318,8 +318,8 @@ export function EspionagePage() {
       <CockpitHero
         versionLabel="Espionaje v1"
         title="Espionaje"
-        description="La cabina resume lo confirmado, lo observado indirectamente y lo que sigue incompleto antes de prometer operaciones que esta version todavia no ejecuta."
-        developmentNote="La lectura reutiliza la cobertura estrategica disponible y mantiene cualquier futura mision como una referencia bloqueada, no como una accion activa."
+        description="La cabina resume lo confirmado, lo observado y lo que sigue incompleto sin prometer operaciones activas."
+        developmentNote="La lectura reutiliza la cobertura estrategica disponible y deja cualquier futura mision como referencia bloqueada."
         badges={
           <>
             <UiBadge>{coverageOverview}</UiBadge>
@@ -395,7 +395,7 @@ export function EspionagePage() {
                 <div className="figma-stat"><strong>{viewModel.summary.passiveSignalCount}</strong><span>Senales</span></div>
               </div>
               <p className="figma-panel-note">
-                Confirmado: objetivos propios o plenamente asentados. Observado: lectura visible o indirecta. Incompleto: contacto parcial que todavia necesita seguimiento.
+                Confirmado: control propio o lectura asentada. Observado: lectura visible o indirecta. Incompleto: contacto que todavia necesita seguimiento.
               </p>
             </>
           ) : (
@@ -408,7 +408,7 @@ export function EspionagePage() {
         <div className="figma-section-header">
           <div>
             <p className="eyebrow">Lectura de niveles</p>
-            <h3>Como interpretar la inteligencia</h3>
+            <h3>Como leer la inteligencia</h3>
             <p>Los datos incompletos no desbloquean acciones ofensivas. La lectura depende de la visibilidad estrategica actual.</p>
           </div>
           <UiBadge tone="warn">Sin precision falsa</UiBadge>
@@ -451,7 +451,7 @@ export function EspionagePage() {
             <div>
               <p className="eyebrow">Foco recomendado</p>
               <h3>{focusedTarget?.label ?? "Sin objetivo priorizado"}</h3>
-              <p>La cabina prioriza objetivos parciales con senales pasivas y deja claro en que lectura conviene continuar el analisis.</p>
+              <p>La cabina prioriza objetivos parciales con senales pasivas y sugiere donde seguir la lectura.</p>
             </div>
             <UiBadge tone={focusedTarget?.hasPassiveSignals ? "good" : "warn"}>{getEspionagePrimaryAction(viewModel)}</UiBadge>
           </div>
@@ -529,7 +529,7 @@ export function EspionagePage() {
           <div>
             <p className="eyebrow">Misiones futuras</p>
             <h3>Acciones de inteligencia</h3>
-            <p>La cabina deja visible la hoja de ruta, pero mantiene todas las operaciones desactivadas y fuera del alcance de esta version.</p>
+            <p>La hoja de ruta sigue visible, pero todas las operaciones permanecen desactivadas en esta version.</p>
           </div>
           <UiBadge tone="warn">Solo lectura</UiBadge>
         </div>
@@ -621,7 +621,7 @@ export function EspionagePage() {
             <div>
               <p className="eyebrow">Senales observadas</p>
               <h3>Lecturas recientes</h3>
-              <p>Estas pistas reutilizan cobertura pasiva ya visible en otras cabinas. No implican seguimiento en tiempo real ni vigilancia activa.</p>
+              <p>Estas pistas reutilizan cobertura pasiva ya visible. No implican seguimiento en tiempo real ni vigilancia activa.</p>
             </div>
             <UiBadge tone={viewModel.passiveSignalEntries.length > 0 ? "neutral" : "warn"}>
               {viewModel.passiveSignalEntries.length > 0 ? `${viewModel.passiveSignalEntries.length} lecturas` : "Sin lecturas"}
