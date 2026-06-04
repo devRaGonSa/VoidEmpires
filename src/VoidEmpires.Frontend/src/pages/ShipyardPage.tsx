@@ -21,7 +21,7 @@ import {
   buildResearchUrl,
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
-import { cockpitStatusLabels } from "../utils/cockpitStatus";
+import { cockpitNavigationLabels, cockpitStatusLabels } from "../utils/cockpitStatus";
 
 function formatDateTime(value: string) {
   const parsed = Date.parse(value);
@@ -1102,25 +1102,25 @@ export function ShipyardPage() {
         <div className="figma-section-header">
           <div>
             <p className="eyebrow">Navegacion</p>
-            <h3>Siguientes cabinas</h3>
+            <h3>{cockpitNavigationLabels.relatedCabins}</h3>
           </div>
           <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
         </div>
         <div className="selection-chip-row">
           <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>
-            Volver a Planeta
+            {cockpitNavigationLabels.returnToPlanet}
           </Link>
           <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
-            Abrir Construccion
+            {cockpitNavigationLabels.openConstruction}
           </Link>
           <Link className="selection-chip" to={buildResearchUrl(activeCivilizationId, selectedPlanetId)}>
-            Abrir Investigacion
+            {cockpitNavigationLabels.openResearch}
           </Link>
           <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
-            Abrir Flotas
+            {cockpitNavigationLabels.openFleets}
           </Link>
           <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, undefined, selectedPlanetId)}>
-            Volver a Galaxia
+            {cockpitNavigationLabels.returnToGalaxy}
           </Link>
         </div>
       </UiCard>

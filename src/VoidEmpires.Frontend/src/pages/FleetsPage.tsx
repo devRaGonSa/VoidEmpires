@@ -29,6 +29,7 @@ import {
   buildPlanetUrl,
   buildShipyardUrl,
 } from "../utils/routeUrls";
+import { cockpitNavigationLabels } from "../utils/cockpitStatus";
 import {
   buildFleetCommandReadiness,
   buildFleetEstimateReviewCard,
@@ -991,35 +992,35 @@ export function FleetsPage() {
               <UiCard className="panel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Contexto cruzado</p>
-                    <h3>Cabinas relacionadas</h3>
+                    <p className="eyebrow">Navegacion</p>
+                    <h3>{cockpitNavigationLabels.relatedCabins}</h3>
                   </div>
-                  <UiBadge>Planeta y ruta</UiBadge>
+                  <UiBadge>{cockpitNavigationLabels.relatedCabin}</UiBadge>
                 </div>
                 <div className="selection-chip-row">
                   <Link
                     className="selection-chip selection-chip-active"
                     to={buildGalaxyUrl(uiState.civilizationId, undefined, inspectedGroup.currentPlanetId)}
                   >
-                    Volver a Galaxia
+                    {cockpitNavigationLabels.returnToGalaxy}
                   </Link>
                   <Link
                     className="selection-chip"
                     to={buildPlanetUrl(uiState.civilizationId, inspectedGroup.currentPlanetId)}
                   >
-                    Abrir planeta actual
+                    {cockpitNavigationLabels.currentPlanet}
                   </Link>
                   <Link
                     className="selection-chip"
                     to={buildConstructionUrl(uiState.civilizationId, inspectedGroup.currentPlanetId)}
                   >
-                    Abrir construccion
+                    {cockpitNavigationLabels.openConstruction}
                   </Link>
                   <Link
                     className="selection-chip"
                     to={buildShipyardUrl(uiState.civilizationId, inspectedGroup.currentPlanetId)}
                   >
-                    Abrir Astillero
+                    {cockpitNavigationLabels.openShipyard}
                   </Link>
                   {inspectedGroup.activeTransfer?.destinationPlanetId ? (
                     <Link

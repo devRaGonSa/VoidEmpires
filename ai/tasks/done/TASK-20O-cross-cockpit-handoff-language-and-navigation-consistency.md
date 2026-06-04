@@ -3,7 +3,7 @@
 ---
 id: TASK-20O-cross-cockpit-handoff-language-and-navigation-consistency
 title: Cross-cockpit handoff language and navigation consistency
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

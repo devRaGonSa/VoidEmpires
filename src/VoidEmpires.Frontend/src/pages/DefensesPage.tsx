@@ -20,7 +20,7 @@ import {
   buildShipyardUrl,
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
-import { cockpitStatusLabels } from "../utils/cockpitStatus";
+import { cockpitNavigationLabels, cockpitStatusLabels } from "../utils/cockpitStatus";
 
 function formatDateTime(value: string) {
   const parsed = Date.parse(value);
@@ -74,7 +74,7 @@ function getRecommendedNextStep(viewModel: DefensesViewModel["defenses"]) {
     return "Resolver bloqueo visible";
   }
 
-  return "Handoff a Construccion";
+  return "Continuar en Construccion";
 }
 
 function getResourcePressureSummary(viewModel: DefensesViewModel["defenses"]) {
@@ -609,25 +609,25 @@ export function DefensesPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Handoff entre modulos</p>
-                <h3>Donde continuar segun la necesidad</h3>
+                <p className="eyebrow">Navegacion</p>
+                <h3>{cockpitNavigationLabels.relatedCabins}</h3>
                 <p>Defensas resume proteccion y readiness, pero cada sistema vecino conserva su propio alcance y su propia accion segura.</p>
               </div>
-              <UiBadge tone="warn">{cockpitStatusLabels.diagnostics}</UiBadge>
+              <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
             </div>
             <div className="readiness-grid">
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Infraestructura</p>
-                    <h4>Construccion</h4>
+                    <h4>Continuar en Construccion</h4>
                   </div>
-                  <UiBadge>Modulo vecino</UiBadge>
+                  <UiBadge>{cockpitNavigationLabels.relatedCabin}</UiBadge>
                 </div>
                 <p>Usa Construccion cuando la siguiente defensa siga siendo una obra planetaria o una mejora de infraestructura.</p>
                 <div className="selection-chip-row">
                   <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
-                    Abrir Construccion
+                    {cockpitNavigationLabels.openConstruction}
                   </Link>
                 </div>
               </section>
@@ -637,12 +637,12 @@ export function DefensesPage() {
                     <p className="eyebrow">Activos orbitales</p>
                     <h4>Astillero</h4>
                   </div>
-                  <UiBadge>Modulo vecino</UiBadge>
+                  <UiBadge>{cockpitNavigationLabels.relatedCabin}</UiBadge>
                 </div>
                 <p>Usa Astillero cuando el siguiente paso implique plataformas, stock orbital o produccion que no pertenece a Defensas.</p>
                 <div className="selection-chip-row">
                   <Link className="selection-chip" to={buildShipyardUrl(activeCivilizationId, selectedPlanetId)}>
-                    Abrir Astillero
+                    {cockpitNavigationLabels.openShipyard}
                   </Link>
                 </div>
               </section>
@@ -652,12 +652,12 @@ export function DefensesPage() {
                     <p className="eyebrow">Mando y movimiento</p>
                     <h4>Flotas</h4>
                   </div>
-                  <UiBadge>Modulo vecino</UiBadge>
+                  <UiBadge>{cockpitNavigationLabels.relatedCabin}</UiBadge>
                 </div>
                 <p>Usa Flotas para escuadras, traslados y movimiento orbital. Defensas no ordena grupos ni abre combate.</p>
                 <div className="selection-chip-row">
                   <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
-                    Abrir Flotas
+                    {cockpitNavigationLabels.openFleets}
                   </Link>
                 </div>
               </section>
@@ -667,15 +667,15 @@ export function DefensesPage() {
                     <p className="eyebrow">Contexto general</p>
                     <h4>Planeta y Galaxia</h4>
                   </div>
-                  <UiBadge>Lectura vecina</UiBadge>
+                  <UiBadge>{cockpitNavigationLabels.relatedCabin}</UiBadge>
                 </div>
                 <p>Usa Planeta para la vision integral de la colonia y Galaxia para la lectura estrategica del teatro local.</p>
                 <div className="selection-chip-row">
                   <Link className="selection-chip" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>
-                    Volver a Planeta
+                    {cockpitNavigationLabels.returnToPlanet}
                   </Link>
                   <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, undefined, selectedPlanetId)}>
-                    Volver a Galaxia
+                    {cockpitNavigationLabels.returnToGalaxy}
                   </Link>
                 </div>
               </section>
@@ -728,25 +728,25 @@ export function DefensesPage() {
         <div className="figma-section-header">
           <div>
             <p className="eyebrow">Navegacion</p>
-            <h3>Siguientes cabinas</h3>
+            <h3>{cockpitNavigationLabels.relatedCabins}</h3>
           </div>
           <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
         </div>
         <div className="selection-chip-row">
           <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>
-            Volver a Planeta
+            {cockpitNavigationLabels.returnToPlanet}
           </Link>
           <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
-            Abrir Construccion
+            {cockpitNavigationLabels.openConstruction}
           </Link>
           <Link className="selection-chip" to={buildShipyardUrl(activeCivilizationId, selectedPlanetId)}>
-            Abrir Astillero
+            {cockpitNavigationLabels.openShipyard}
           </Link>
           <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
-            Abrir Flotas
+            {cockpitNavigationLabels.openFleets}
           </Link>
           <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, undefined, selectedPlanetId)}>
-            Volver a Galaxia
+            {cockpitNavigationLabels.returnToGalaxy}
           </Link>
         </div>
       </UiCard>
