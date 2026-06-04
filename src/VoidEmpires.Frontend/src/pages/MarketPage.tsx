@@ -673,6 +673,94 @@ export function MarketPage() {
       <UiCard className="panel">
         <div className="figma-section-header">
           <div>
+            <p className="eyebrow">Pasar a otra cabina</p>
+            <h3>Limites de Mercado y siguiente paso</h3>
+            <p>Mercado interpreta la economia visible y te deriva hacia la cabina propietaria cuando hace falta gestionar reservas locales, consumo, produccion orbital o contexto de ruta.</p>
+          </div>
+          <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
+        </div>
+        <div className="readiness-grid">
+          <section className="subpanel figma-subpanel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Planeta</p>
+                <h4>Reservas y produccion local</h4>
+              </div>
+              <UiBadge>Cabina vecina</UiBadge>
+            </div>
+            <p className="figma-panel-note">
+              Usa Planeta para revisar la colonia activa, sus reservas persistidas y la produccion del mundo seleccionado.
+            </p>
+            <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>
+              Abrir Planeta
+            </Link>
+          </section>
+          <section className="subpanel figma-subpanel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Construccion</p>
+                <h4>Sumideros e infraestructura</h4>
+              </div>
+              <UiBadge>Cabina vecina</UiBadge>
+            </div>
+            <p className="figma-panel-note">
+              Usa Construccion para validar donde se consumen recursos y que mejoras estan tensionando la economia visible.
+            </p>
+            <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
+              Abrir Construccion
+            </Link>
+          </section>
+          <section className="subpanel figma-subpanel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Astillero</p>
+                <h4>Produccion orbital y stock</h4>
+              </div>
+              <UiBadge>Cabina vecina</UiBadge>
+            </div>
+            <p className="figma-panel-note">
+              Usa Astillero para revisar produccion orbital, cola local y stock que aun no se convierte en movimiento de flota.
+            </p>
+            <Link className="selection-chip" to={buildShipyardUrl(activeCivilizationId, selectedPlanetId)}>
+              Abrir Astillero
+            </Link>
+          </section>
+          <section className="subpanel figma-subpanel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Flotas</p>
+                <h4>Logistica y movimiento</h4>
+              </div>
+              <UiBadge>Cabina vecina</UiBadge>
+            </div>
+            <p className="figma-panel-note">
+              Usa Flotas para revisar grupos orbitales, dependencias logisticas y cualquier traslado que Mercado solo puede anticipar.
+            </p>
+            <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
+              Abrir Flotas
+            </Link>
+          </section>
+          <section className="subpanel figma-subpanel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Galaxia</p>
+                <h4>Ruta y sistema</h4>
+              </div>
+              <UiBadge>Cabina vecina</UiBadge>
+            </div>
+            <p className="figma-panel-note">
+              Usa Galaxia para recuperar el sistema activo y el contexto espacial que explica por que una ruta futura podria importar.
+            </p>
+            <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, undefined, selectedPlanetId)}>
+              Volver a Galaxia
+            </Link>
+          </section>
+        </div>
+      </UiCard>
+
+      <UiCard className="panel">
+        <div className="figma-section-header">
+          <div>
             <p className="eyebrow">Navegacion</p>
             <h3>{cockpitNavigationLabels.relatedCabins}</h3>
           </div>
