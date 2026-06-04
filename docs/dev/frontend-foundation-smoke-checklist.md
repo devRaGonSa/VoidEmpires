@@ -262,7 +262,7 @@ Neighbor cockpit regression checkpoints:
 Use this narrow final pass before declaring the polish block ready for user visual QA:
 
 1. Reapply `cockpit-validation` twice.
-2. Open `Galaxy`, `Planet`, `Construction`, `Research`, `Shipyard`, `Fleets`, `Defenses`, and `Ground Army` in that order.
+2. Open `Galaxy`, `Planet`, `Construction`, `Research`, `Shipyard`, `Fleets`, `Defenses`, `Ground Army`, `Espionage`, and `Market` in that order.
 3. Confirm each cockpit renders its expected primary state without blank shells, broken handoffs, or horizontal overflow.
 4. Confirm primary UI copy stays gameplay-facing and no obvious raw technical wording dominates the first viewport.
 5. Confirm diagnostics stay collapsed by default or clearly secondary on every accepted cockpit route.
@@ -353,8 +353,10 @@ Shipyard cockpit v1 visual review:
 - `/ground-army` behaves as a readiness cockpit foundation, not a placeholder and not a combat surface.
 - `/defenses` behaves as a readiness cockpit foundation, not a placeholder and not a combat surface.
 - `/shipyard` behaves as a development-safe cockpit foundation with guarded enqueue, disabled complete-due, and explicit Fleet boundaries.
+- `/market` behaves as a read-only economy cockpit foundation with advisory ratios, visible trade signals, disabled future actions, and no transaction execution.
 - `Galaxy` remains read-only.
 - `Fleets` still preserves context and read-only command flow.
+- `Espionage` remains read-only and `Market` remains read-only.
 - No 3D/WebGL renderer is introduced.
 - Diagnostics stay collapsed by default on the cockpit routes.
 
