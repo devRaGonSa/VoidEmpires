@@ -72,6 +72,18 @@ Follow-up path from this audit:
 - `26K`: finish docs and smoke wording once the visual pass stabilizes
 - `26L`: closure-only confirmation after the final Market polish pass
 
+## Task 26D copy focus
+
+Primary Market wording should now align with these anchors:
+
+- `Mercado`
+- `Lectura economica`
+- `Referencias orientativas`
+- `Operaciones no disponibles en esta version`
+- `Esta cabina no ejecuta compras ni ventas.`
+
+During manual QA, treat any return to console-like labels such as `Accion principal`, `Apertura de Mercado`, `placeholder`, or generic `operacion` wording in the first viewport as a regression for this block.
+
 ## Seeded QA scenario
 
 Use `cockpit-validation` for the richer deterministic Market QA baseline:

@@ -5,11 +5,11 @@ interface MarketLabelEntry {
   label: string;
 }
 
-const unknownResourceFallback = "Recurso pendiente de clasificar";
-const unknownSignalFallback = "Senal economica pendiente de clasificar";
-const unknownConfidenceFallback = "Confianza de precio pendiente de clasificar";
-const unknownTradeStateFallback = "Operacion pendiente de clasificar";
-const unknownActionFallback = "Accion de mercado pendiente de clasificar";
+const unknownResourceFallback = "Recurso no clasificado";
+const unknownSignalFallback = "Senal economica no clasificada";
+const unknownConfidenceFallback = "Confianza orientativa no clasificada";
+const unknownTradeStateFallback = "Estado no clasificado";
+const unknownActionFallback = "Lectura de mercado no clasificada";
 
 const marketResourceCatalog: readonly MarketLabelEntry[] = [
   { key: "Credits", label: "Creditos" },
@@ -43,18 +43,18 @@ const tradeStateCatalog: readonly MarketLabelEntry[] = [
   { key: "DemandPressure", label: "Presion de demanda" },
   { key: "VisibleSurplus", label: "Excedente visible" },
   { key: "FutureTradeRoute", label: "Ruta comercial futura" },
-  { key: "OperationUnavailable", label: "Operacion no disponible" },
+  { key: "OperationUnavailable", label: "No disponible en esta version" },
 ] as const;
 
 const marketActionCatalog: readonly MarketLabelEntry[] = [
-  { key: "market.read", label: "Abrir Mercado" },
-  { key: "market.signal.read", label: "Revisar economia visible" },
-  { key: "market.reference.read", label: "Revisar referencias" },
-  { key: "market.route.future", label: "Ruta comercial futura" },
-  { key: "market.buy.future", label: "Compra no disponible" },
-  { key: "market.sell.future", label: "Venta no disponible" },
-  { key: "market.transfer.future", label: "Traslado no disponible" },
-  { key: "market.auction.future", label: "Subasta no disponible" },
+  { key: "market.read", label: "Lectura economica" },
+  { key: "market.signal.read", label: "Lectura economica prioritaria" },
+  { key: "market.reference.read", label: "Referencias orientativas" },
+  { key: "market.route.future", label: "Ruta comercial orientativa" },
+  { key: "market.buy.future", label: "Compra no disponible en esta version" },
+  { key: "market.sell.future", label: "Venta no disponible en esta version" },
+  { key: "market.transfer.future", label: "Traslado no disponible en esta version" },
+  { key: "market.auction.future", label: "Subasta no disponible en esta version" },
 ] as const;
 
 function normalizeValue(value: MarketValue) {

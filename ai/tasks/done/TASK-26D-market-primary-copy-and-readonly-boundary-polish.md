@@ -3,7 +3,7 @@
 ---
 id: TASK-26D
 title: Phase 26D - Market primary copy and read-only boundary polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

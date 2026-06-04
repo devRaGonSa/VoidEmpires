@@ -217,7 +217,7 @@ function mapFutureActions(entries: readonly MarketFutureActionDto[]): MarketFutu
     label: getMarketActionLabel(entry.actionKey),
     isEnabled: entry.isEnabled,
     stateKey: entry.stateKey,
-    stateLabel: entry.isEnabled ? "Disponible" : "Operacion no disponible",
+    stateLabel: entry.isEnabled ? "Disponible" : "No disponible en esta version",
     reasonKey: entry.reasonKey,
     reasonLabel: getTradeStateLabel(entry.reasonKey),
   }));
@@ -269,7 +269,7 @@ export function groupMarketSignals(signals: readonly MarketSignal[]) {
 
 export function selectRecommendedMarketFocus(market: MarketCockpit | null) {
   if (!market) {
-    return "Mercado pendiente de cargar";
+    return "Lectura economica pendiente";
   }
 
   const demandSignal = market.signals.find((signal) => signal.signalKey === "DemandPressure");
@@ -287,7 +287,7 @@ export function selectRecommendedMarketFocus(market: MarketCockpit | null) {
   }
 
   return market.routePlaceholders.length > 0
-    ? "Ruta comercial futura"
+    ? "Ruta futura en observacion"
     : "Reserva local estable";
 }
 
@@ -465,7 +465,7 @@ export function buildMarketReferenceComparisons(
       pairLabel: `${left.label} <-> ${right.label}`,
       ratioLabel: formatMarketRatio(left.advisoryRatio / right.advisoryRatio),
       advisoryLabel: "Precio no ejecutable",
-      executionLabel: "Solo lectura",
+      executionLabel: "No ejecutable en esta cabina",
     }];
   });
 }

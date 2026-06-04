@@ -229,13 +229,13 @@ export function MarketPage() {
       <CockpitHero
         versionLabel="Mercado v1"
         title="Mercado"
-        description="Mercado lee reservas, flujo economico y presion comercial visible sin ejecutar compras, ventas ni traslados."
-        developmentNote="La cabina sigue siendo una lectura de desarrollo: orienta economia y potencial comercial, pero no confirma operaciones activas."
+        description="Lectura economica de reservas, produccion y presion comercial visible para orientar la siguiente decision del imperio."
+        developmentNote="Esta cabina no ejecuta compras ni ventas. Solo ordena la lectura economica y mantiene las operaciones futuras fuera de esta superficie."
         badges={(
           <>
-            <UiBadge tone="resource">Economia visible</UiBadge>
+            <UiBadge tone="resource">Lectura economica</UiBadge>
             <UiBadge>{cockpitStatusLabels.readOnly}</UiBadge>
-            <UiBadge tone="warn">Sin compra ni venta</UiBadge>
+            <UiBadge tone="warn">Referencias orientativas</UiBadge>
           </>
         )}
       />
@@ -244,8 +244,8 @@ export function MarketPage() {
         <UiCard className="panel strategic-loader-panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Entrada de mercado</p>
-              <h3>Cargar contexto economico</h3>
+              <p className="eyebrow">Contexto de lectura</p>
+              <h3>Cargar lectura economica</h3>
             </div>
             <UiBadge>{cockpitStatusLabels.developmentOnly}</UiBadge>
           </div>
@@ -271,7 +271,7 @@ export function MarketPage() {
               />
             </label>
             <button type="submit" disabled={isLoading}>
-              {isLoading ? "Cargando..." : "Abrir Mercado"}
+              {isLoading ? "Cargando..." : "Abrir lectura"}
             </button>
           </form>
           {error ? (
@@ -291,14 +291,14 @@ export function MarketPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Estado visible</p>
-              <h3>Resumen de cabina</h3>
+              <h3>Resumen de lectura</h3>
             </div>
             <UiBadge>{market?.selectedPlanetName ?? "Sin planeta"}</UiBadge>
           </div>
           {market ? (
             <div className="figma-data-list">
-              <div className="figma-data-row"><span>Foco recomendado</span><strong>{recommendedFocus}</strong></div>
-              <div className="figma-data-row"><span>Accion principal</span><strong>{primaryActionLabel}</strong></div>
+              <div className="figma-data-row"><span>Prioridad de lectura</span><strong>{recommendedFocus}</strong></div>
+              <div className="figma-data-row"><span>Resumen principal</span><strong>{primaryActionLabel}</strong></div>
               <div className="figma-data-row"><span>Planeta activo</span><strong>{market.selectedPlanetName ?? "Sin seleccion"}</strong></div>
               <div className="figma-data-row"><span>Sistema</span><strong>{market.selectedSolarSystemName ?? "Sin sistema"}</strong></div>
             </div>
@@ -313,13 +313,13 @@ export function MarketPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Limite actual</p>
-              <h3>Lectura de economia y potencial comercial</h3>
+              <h3>Mercado mantiene una lectura economica</h3>
             </div>
             <UiBadge tone="warn">Sin ejecucion</UiBadge>
           </div>
           <ul className="stack-list strategic-rules-list">
             <li>Mercado lee reservas, produccion y presion comercial visible.</li>
-            <li>Esta version no ejecuta compras, ventas, subastas ni traslados.</li>
+            <li>Esta cabina no ejecuta compras ni ventas.</li>
             <li>Las rutas comerciales futuras aparecen solo como orientacion, no como ordenes activas.</li>
             <li>Los detalles tecnicos permanecen en diagnostico secundario.</li>
           </ul>
@@ -394,8 +394,8 @@ export function MarketPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Resumen economico</p>
-                <h3>Apertura de Mercado</h3>
-                <p>La cabina resume postura de reservas, flujo, potencial comercial y referencias antes de entrar en detalle.</p>
+                <h3>Panorama economico</h3>
+                <p>La cabina resume reservas, flujo, presion comercial y referencias orientativas antes de pasar al detalle.</p>
               </div>
               <UiBadge tone="good">{market.summary.primaryActionLabel}</UiBadge>
             </div>
@@ -432,7 +432,7 @@ export function MarketPage() {
                   </div>
                   <UiBadge tone="warn">{market.routePlaceholders.length} rutas futuras</UiBadge>
                 </div>
-                <p>Mercado observa presion y excedente, pero sigue derivando la accion real hacia otras cabinas o futuras fases.</p>
+                <p>Mercado observa presion y excedente, pero deja cualquier confirmacion comercial fuera de esta cabina.</p>
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
@@ -451,8 +451,8 @@ export function MarketPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Lectura lista</p>
-                <h3>Mercado ya no es un placeholder</h3>
-                <p>La cabina interpreta economia visible con contexto real y prepara la base para paneles mas profundos.</p>
+                <h3>Mercado visible</h3>
+                <p>La cabina interpreta la economia visible con contexto real y ordena donde mirar primero.</p>
               </div>
               <div className="figma-badge-row">
                 <UiBadge tone="good">{market.summary.recommendedFocus}</UiBadge>
@@ -505,9 +505,9 @@ export function MarketPage() {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Rutas futuras</p>
-                    <h4>Orientacion comercial</h4>
+                    <h4>Orientacion de ruta</h4>
                   </div>
-                  <UiBadge tone="warn">{market.routePlaceholders.length} placeholder{market.routePlaceholders.length === 1 ? "" : "s"}</UiBadge>
+                  <UiBadge tone="warn">{market.routePlaceholders.length} referencias</UiBadge>
                 </div>
                 <ul className="stack-list compact-list">
                   {market.routePlaceholders.length > 0 ? market.routePlaceholders.map((route) => (
@@ -576,7 +576,7 @@ export function MarketPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Referencias de intercambio</p>
-                <h3>Ratios orientativos</h3>
+                <h3>Referencias orientativas</h3>
                 <p>Estas comparaciones reutilizan referencias deterministas de la cabina y no representan ofertas activas ni operaciones confirmables.</p>
               </div>
               <UiBadge tone="warn">Solo lectura</UiBadge>
@@ -597,7 +597,7 @@ export function MarketPage() {
                   <div className="figma-data-list">
                     <div className="figma-data-row"><span>Referencia de intercambio</span><strong>{comparison.ratioLabel}</strong></div>
                     <div className="figma-data-row"><span>Lectura</span><strong>{comparison.advisoryLabel}</strong></div>
-                    <div className="figma-data-row"><span>Operacion</span><strong>{comparison.executionLabel}</strong></div>
+                    <div className="figma-data-row"><span>Limite</span><strong>{comparison.executionLabel}</strong></div>
                   </div>
                 </section>
               )) : (
@@ -621,7 +621,7 @@ export function MarketPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Senales comerciales</p>
-                <h3>Presion logistica futura</h3>
+                <h3>Presion comercial visible</h3>
                 <p>Mercado relaciona excedente, tension y contexto de ruta sin apropiarse del flujo real que sigue perteneciendo a Flotas y Galaxia.</p>
               </div>
               <UiBadge tone="warn">Secundario</UiBadge>
@@ -649,7 +649,7 @@ export function MarketPage() {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Rutas comerciales futuras</p>
-                    <h4>Placeholders de logistica</h4>
+                    <h4>Referencias de ruta</h4>
                   </div>
                   <UiBadge tone="warn">{market.routePlaceholders.length} visibles</UiBadge>
                 </div>
@@ -675,7 +675,7 @@ export function MarketPage() {
                   <UiBadge tone="warn">Sin ejecucion</UiBadge>
                 </div>
                 <p className="figma-panel-note">
-                  Esta cabina mantiene visibles la tension y las rutas futuras, pero la resolucion real permanece en Flotas y Galaxia.
+                  Esta cabina mantiene visible la presion comercial, pero la resolucion real permanece en Flotas y Galaxia.
                 </p>
               </section>
             </div>
@@ -693,8 +693,8 @@ export function MarketPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Operaciones futuras</p>
-                <h3>Acciones de mercado</h3>
-                <p>La hoja de ruta queda visible, pero esta cabina sigue siendo de solo lectura y no confirma ninguna operacion comercial.</p>
+                <h3>Operaciones no disponibles en esta version</h3>
+                <p>La hoja de ruta sigue visible como orientacion. Esta cabina no ejecuta compras ni ventas.</p>
               </div>
               <UiBadge tone="warn">{cockpitStatusLabels.safePlaceholder}</UiBadge>
             </div>
@@ -703,18 +703,18 @@ export function MarketPage() {
                 <section key={actionLabel} className="subpanel figma-subpanel market-future-action-card">
                   <div className="figma-section-header">
                     <div>
-                      <p className="eyebrow">Accion futura</p>
+                      <p className="eyebrow">Operacion futura</p>
                       <h4>{actionLabel}</h4>
                     </div>
                     <UiBadge tone="warn">No disponible</UiBadge>
                   </div>
                   <button type="button" className="market-future-action-button" disabled>
-                    {actionLabel}
+                    No disponible en esta version
                   </button>
                   <ul className="stack-list compact-list">
                     <li>No disponible en esta version.</li>
-                    <li>Solo lectura en esta cabina.</li>
-                    <li>La operacion queda visible como referencia futura, pero no se puede ejecutar.</li>
+                    <li>Esta cabina no ejecuta compras ni ventas.</li>
+                    <li>La operacion queda visible como referencia futura, pero no se puede confirmar aqui.</li>
                   </ul>
                 </section>
               ))}
