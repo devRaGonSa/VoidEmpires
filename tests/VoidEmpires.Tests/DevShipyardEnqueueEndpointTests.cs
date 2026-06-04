@@ -401,11 +401,17 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
             x.Status == AssetProductionOrderStatus.Active));
         Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
             x.PlanetId == SeedOwnedPlanetId &&
+            x.Target == AssetProductionTarget.Orbital &&
             x.SpaceAssetType == SpaceAssetType.ScoutCraft &&
+            x.Status == AssetProductionOrderStatus.Completed));
+        Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
+            x.PlanetId == SeedOwnedPlanetId &&
+            x.Target == AssetProductionTarget.Planetary &&
+            x.PlanetaryAssetType == PlanetaryAssetType.PatrolGroup &&
             x.Status == AssetProductionOrderStatus.Completed));
         Assert.Equal(2, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
             x.PlanetId == SeedOwnedPlanetId &&
-            x.Sequence >= 30_000));
+            x.Status == AssetProductionOrderStatus.Completed));
     }
 
     private HttpClient CreateConfiguredClient(string databaseName) =>
