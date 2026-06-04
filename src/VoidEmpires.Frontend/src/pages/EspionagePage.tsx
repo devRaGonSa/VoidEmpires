@@ -166,6 +166,33 @@ const intelligenceLegend: Array<{
   { key: "unconfirmed", label: "Sin confirmar", badge: "Sin evidencia estable", tone: "warn" },
 ];
 
+const handoffCards = [
+  {
+    key: "galaxy",
+    label: "Galaxia",
+    title: "Vista estrategica",
+    description: "Mantiene el mapa, el contexto de sistema y la lectura general de visibilidad.",
+  },
+  {
+    key: "planet",
+    label: "Planeta",
+    title: "Detalle planetario",
+    description: "Concentra la superficie propia, reservas y estado local del mundo enfocado.",
+  },
+  {
+    key: "fleets",
+    label: "Flotas",
+    title: "Movimiento orbital",
+    description: "Posee grupos orbitales, rutas y transferencias. Espionaje no ejecuta movimientos.",
+  },
+  {
+    key: "research",
+    label: "Investigacion",
+    title: "Progreso tecnologico",
+    description: "Agrupa el contexto de progreso futuro para lecturas y mejoras relacionadas con inteligencia.",
+  },
+] as const;
+
 const futureMissionKeys = [
   "espionage.reconnaissance.create",
   "espionage.infiltration.create",
@@ -637,15 +664,48 @@ export function EspionagePage() {
         <div className="figma-section-header">
           <div>
             <p className="eyebrow">Navegacion</p>
-            <h3>Siguientes cabinas</h3>
+            <h3>Pasar a otras cabinas</h3>
+            <p>Espionaje interpreta inteligencia. Las demas superficies siguen siendo propietarias del mapa, la superficie planetaria, el mando orbital y el progreso tecnologico.</p>
           </div>
           <UiBadge tone="warn">Contexto conservado</UiBadge>
         </div>
-        <div className="selection-chip-row">
-          <Link className="selection-chip selection-chip-active" to={buildGalaxyUrl(queryCivilizationId, querySystemId, activePlanetId)}>Volver a Galaxia</Link>
-          {activePlanetId ? <Link className="selection-chip" to={buildPlanetUrl(queryCivilizationId, activePlanetId)}>Abrir Planeta</Link> : null}
-          <Link className="selection-chip" to={buildFleetsUrl(queryCivilizationId, activePlanetId)}>Abrir Flotas</Link>
-          <Link className="selection-chip" to={buildResearchUrl(queryCivilizationId, activePlanetId)}>Abrir Investigacion</Link>
+        <div className="espionage-handoff-grid">
+          {handoffCards.map((card) => {
+            const link = card.key === "galaxy"
+              ? buildGalaxyUrl(queryCivilizationId, querySystemId, activePlanetId)
+              : card.key === "planet"
+                ? buildPlanetUrl(queryCivilizationId, activePlanetId)
+                : card.key === "fleets"
+                  ? buildFleetsUrl(queryCivilizationId, activePlanetId)
+                  : buildResearchUrl(queryCivilizationId, activePlanetId);
+            const isUnavailable = card.key === "planet" && !activePlanetId;
+
+            return (
+              <article key={card.key} className="subpanel figma-subpanel espionage-handoff-card">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">{card.label}</p>
+                    <h4>{card.title}</h4>
+                  </div>
+                  <UiBadge tone={card.key === "galaxy" ? "neutral" : "warn"}>{card.label}</UiBadge>
+                </div>
+                <p className="figma-panel-note">{card.description}</p>
+                {isUnavailable ? (
+                  <span className="planet-action-handoff-message">Necesita un planeta enfocado para conservar contexto.</span>
+                ) : (
+                  <Link className={`selection-chip${card.key === "galaxy" ? " selection-chip-active" : ""}`} to={link}>
+                    {card.key === "galaxy"
+                      ? "Volver a Galaxia"
+                      : card.key === "planet"
+                        ? "Abrir Planeta"
+                        : card.key === "fleets"
+                          ? "Abrir Flotas"
+                          : "Abrir Investigacion"}
+                  </Link>
+                )}
+              </article>
+            );
+          })}
         </div>
       </UiCard>
     </section>

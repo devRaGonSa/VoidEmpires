@@ -1565,6 +1565,7 @@ select {
 
 .espionage-catalog-grid,
 .espionage-legend-grid,
+.espionage-handoff-grid,
 .espionage-mission-grid,
 .espionage-signal-grid,
 .espionage-target-grid,
@@ -1576,6 +1577,7 @@ select {
 
 .espionage-catalog-grid,
 .espionage-legend-grid,
+.espionage-handoff-grid,
 .espionage-mission-grid,
 .espionage-signal-grid,
 .espionage-system-list {
@@ -1583,6 +1585,7 @@ select {
 }
 
 .espionage-legend-grid,
+.espionage-handoff-grid,
 .espionage-mission-grid,
 .espionage-signal-grid,
 .espionage-target-grid,
@@ -1595,6 +1598,12 @@ select {
 }
 
 .espionage-mission-card {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.espionage-handoff-card {
   display: grid;
   gap: 12px;
   align-content: start;
