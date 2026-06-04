@@ -11,6 +11,7 @@ import type {
   PlanetModule,
 } from "../api/planetTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
+import { CockpitHero } from "../components/CockpitHero";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { ModuleStatusCard, PlanetDataRow } from "../components/PlanetModuleLayout";
@@ -58,6 +59,7 @@ import {
   buildSpecializedModuleUrl,
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
+import { cockpitStatusLabels } from "../utils/cockpitStatus";
 
 interface PlanetPageProps {
   variant?: "planet" | "construction";
@@ -407,24 +409,27 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
   return (
     <section className="page-grid">
-      <UiCard className="panel panel-hero figma-hero-card">
-        <div className="figma-hero-copy">
-          <UiBadge tone="resource">
-            {isConstructionRoute ? "Centro de Construccion v1" : "Cabina Planetaria v1"}
-          </UiBadge>
-          <h2>{isConstructionRoute ? "Mando de construccion orbital" : "Gestion de colonia en 2D"}</h2>
-          <p>
-            {isConstructionRoute
-              ? "La superficie de Construccion prioriza planeta activo, reservas, catalogo, cola y confirmaciones seguras antes que datos tecnicos."
-              : "La superficie de Planeta prioriza identidad colonial, recursos, edificios y cola de construccion antes que datos tecnicos."}
-          </p>
-        </div>
-        <div className="figma-badge-row">
-          <UiBadge>{isConstructionRoute ? "Sin renderer 3D" : "Sin 3D"}</UiBadge>
-          <UiBadge>Acciones seguras y confirmadas</UiBadge>
-          <UiBadge tone="warn">Galaxia permanece en observacion</UiBadge>
-        </div>
-      </UiCard>
+      <CockpitHero
+        versionLabel={isConstructionRoute ? "Construccion v1" : "Planeta v1"}
+        title={isConstructionRoute ? "Mando de construccion" : "Gestion de colonia"}
+        description={
+          isConstructionRoute
+            ? "Construccion prioriza reservas, catalogo, cola y confirmaciones seguras del planeta activo."
+            : "Planeta prioriza identidad colonial, recursos, edificios y cola de construccion antes que el detalle tecnico."
+        }
+        developmentNote={
+          isConstructionRoute
+            ? "La cabina sigue siendo una ruta de desarrollo para QA local, pero mantiene el flujo de construccion en primer plano."
+            : "La cabina sigue siendo una ruta de desarrollo para QA local, pero mantiene la gestion de colonia por encima del detalle tecnico."
+        }
+        badges={
+          <>
+            <UiBadge>{isConstructionRoute ? "Sin 3D" : "Colonia en 2D"}</UiBadge>
+            <UiBadge>Acciones seguras y confirmadas</UiBadge>
+            <UiBadge tone="warn">Galaxia sigue en observacion</UiBadge>
+          </>
+        }
+      />
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">
@@ -433,7 +438,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
               <p className="eyebrow">Enlace planetario</p>
               <h3>{isConstructionRoute ? "Cargar centro de construccion" : "Cargar cabina de planeta"}</h3>
             </div>
-            <UiBadge>Uso local</UiBadge>
+            <UiBadge>{cockpitStatusLabels.developmentOnly}</UiBadge>
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">

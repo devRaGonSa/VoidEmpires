@@ -10,6 +10,7 @@ import type {
   SystemVisualStateResponse,
 } from "../api/voidEmpiresApi";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
+import { CockpitHero } from "../components/CockpitHero";
 import { StrategicMap2DView } from "../components/StrategicMap2DView";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -35,6 +36,7 @@ import {
   buildPlanetUrl,
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
+import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { getUserFacingActionLabel } from "../utils/fleetCommandPresentation";
 
 const readinessSections = [
@@ -555,22 +557,19 @@ export function StrategicMapPage() {
 
   return (
     <section className="page-grid">
-      <UiCard className="panel panel-hero figma-hero-card">
-        <div className="figma-hero-copy">
-          <UiBadge tone="resource">Phase 13E cockpit foundation</UiBadge>
-          <h2>Cabina estrategica de Galaxia</h2>
-          <p>
-            La vista tactica en modo lectura prioriza entrada de mando, visibilidad
-            del teatro, foco de sistema e inteligencia planetaria antes que los
-            payloads tecnicos.
-          </p>
-        </div>
-        <div className="figma-badge-row">
-          <UiBadge>Coordenadas del backend intactas</UiBadge>
-          <UiBadge>Superficie de solo lectura</UiBadge>
-          <UiBadge tone="warn">Sin mutaciones jugables</UiBadge>
-        </div>
-      </UiCard>
+      <CockpitHero
+        versionLabel="Galaxia v1"
+        title="Cabina estrategica de Galaxia"
+        description="La vista tactica prioriza el frente, el foco de sistema y la inteligencia planetaria antes que el detalle tecnico."
+        developmentNote="La lectura sigue orientada a QA local: conserva limites seguros, no ejecuta ordenes y mantiene las rutas tecnicas fuera del foco principal."
+        badges={
+          <>
+            <UiBadge>{cockpitStatusLabels.readOnly}</UiBadge>
+            <UiBadge>Mapa tactico</UiBadge>
+            <UiBadge tone="warn">Sin mutaciones jugables</UiBadge>
+          </>
+        }
+      />
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">

@@ -3,7 +3,7 @@
 ---
 id: TASK-20N-cross-cockpit-primary-header-polish
 title: Cross-cockpit primary header polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

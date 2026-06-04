@@ -543,6 +543,21 @@ select {
   gap: var(--ve-space-3);
 }
 
+.cockpit-hero-dev-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ve-space-3);
+  padding-top: var(--ve-space-3);
+  border-top: 1px solid color-mix(in srgb, var(--ve-color-border) 46%, transparent);
+}
+
+.cockpit-hero-dev-note p {
+  margin: 0;
+  color: color-mix(in srgb, var(--ve-color-text) 76%, var(--ve-color-muted));
+  font-size: 0.92rem;
+}
+
 .figma-two-column,
 .figma-map-layout,
 .figma-detail-grid,

@@ -9,6 +9,7 @@ import type { FleetCommandPresentationItem } from "../utils/fleetCommandPresenta
 import type { FleetGroupSummary, FleetUiState } from "../api/fleetTypes";
 import type { ReadinessNote } from "../api/strategicMapTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
+import { CockpitHero } from "../components/CockpitHero";
 import { FleetSelectedGroupPanel } from "../components/FleetSelectedGroupPanel";
 import { FleetSummaryPanel } from "../components/FleetSummaryPanel";
 import { ActionManifestPanel } from "../components/ActionManifestPanel";
@@ -847,19 +848,20 @@ export function FleetsPage() {
 
   return (
     <section className="page-grid">
-      <UiCard className="panel panel-hero figma-hero-card">
-        <div className="figma-hero-copy">
-          <UiBadge tone="resource">Cabina fase 11X</UiBadge>
-          <h2>Cabina de mando orbital</h2>
-          <p>Revisa tu flota, elige una escuadra y confirma cada orden importante antes de moverla.</p>
-        </div>
-        <div className="figma-badge-row">
-          <UiBadge>Resumen tactico</UiBadge>
-          <UiBadge>Rail de escuadras</UiBadge>
-          <UiBadge>Detalle enfocado</UiBadge>
-          <UiBadge tone="warn">Ordenes protegidas</UiBadge>
-        </div>
-      </UiCard>
+      <CockpitHero
+        versionLabel="Flotas v1"
+        title="Cabina de mando orbital"
+        description="Revisa la flota, elige una escuadra y confirma cada orden importante antes de moverla."
+        developmentNote="La ruta sigue siendo de desarrollo para QA local: mantiene las ordenes controladas y deja el detalle tecnico fuera del foco principal."
+        badges={
+          <>
+            <UiBadge>Resumen tactico</UiBadge>
+            <UiBadge>Rail de escuadras</UiBadge>
+            <UiBadge>Detalle enfocado</UiBadge>
+            <UiBadge tone="warn">Ordenes protegidas</UiBadge>
+          </>
+        }
+      />
 
       <div className="fleet-preflight-strip">
         <UiCard className="panel fleet-dev-loader-panel">
