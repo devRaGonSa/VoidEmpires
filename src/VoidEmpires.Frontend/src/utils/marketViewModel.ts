@@ -83,6 +83,10 @@ export interface MarketEconomySummary {
   totalReserveTypes: number;
   activeSignalCount: number;
   availableFutureActions: number;
+  reservePosture: string;
+  productionPosture: string;
+  tradePotential: string;
+  referenceAvailability: string;
   recommendedFocus: string;
   primaryActionLabel: string;
 }
@@ -285,6 +289,58 @@ export function getMarketPrimaryAction(market: MarketCockpit | null) {
     ?? getMarketActionLabel("market.signal.read");
 }
 
+function getReservePosture(civilizationReserves: readonly MarketResourceReserve[], signals: readonly MarketSignal[]) {
+  if (signals.some((signal) => signal.signalKey === "DemandPressure")) {
+    return "Reservas bajo presion";
+  }
+
+  const totalQuantity = civilizationReserves.reduce((sum, entry) => sum + entry.quantity, 0);
+  if (signals.some((signal) => signal.signalKey === "VisibleSurplus") || totalQuantity >= 600) {
+    return "Reservas holgadas";
+  }
+
+  return "Reserva local estable";
+}
+
+function getProductionPosture(production: readonly MarketProductionFlow[], signals: readonly MarketSignal[]) {
+  if (production.length === 0) {
+    return "Produccion no visible";
+  }
+
+  if (signals.some((signal) => signal.signalKey === "DemandPressure")) {
+    return "Flujo tensionado";
+  }
+
+  return "Produccion estimada estable";
+}
+
+function getTradePotential(
+  routePlaceholders: readonly MarketRoutePlaceholder[],
+  references: readonly MarketReferencePrice[],
+  signals: readonly MarketSignal[],
+) {
+  if (routePlaceholders.length > 0 && references.length > 0 && signals.length > 0) {
+    return "Potencial comercial en observacion";
+  }
+
+  if (references.length > 0) {
+    return "Lectura economica disponible";
+  }
+
+  return "Potencial comercial limitado";
+}
+
+function getReferenceAvailability(references: readonly MarketReferencePrice[]) {
+  if (references.length === 0) {
+    return "Sin referencias visibles";
+  }
+
+  const lowConfidence = references.filter((reference) => reference.confidenceKey === "Low").length;
+  return lowConfidence > 0
+    ? "Referencias orientativas"
+    : "Referencias disponibles";
+}
+
 function mapMarketContext(market: MarketCockpitDto, errors: readonly string[]): MarketCockpit {
   const civilizationReserves = mapReserves(market.civilizationReserves);
   const selectedPlanetReserves = mapReserves(market.selectedPlanetReserves);
@@ -317,12 +373,20 @@ function mapMarketContext(market: MarketCockpitDto, errors: readonly string[]): 
       totalReserveTypes: civilizationReserves.length,
       activeSignalCount: signals.length,
       availableFutureActions: futureActions.filter((action) => action.isEnabled).length,
+      reservePosture: "",
+      productionPosture: "",
+      tradePotential: "",
+      referenceAvailability: "",
       recommendedFocus: "",
       primaryActionLabel: "",
     },
     diagnostics,
   };
 
+  cockpit.summary.reservePosture = getReservePosture(civilizationReserves, signals);
+  cockpit.summary.productionPosture = getProductionPosture(production, signals);
+  cockpit.summary.tradePotential = getTradePotential(routePlaceholders, references, signals);
+  cockpit.summary.referenceAvailability = getReferenceAvailability(references);
   cockpit.summary.recommendedFocus = selectRecommendedMarketFocus(cockpit);
   cockpit.summary.primaryActionLabel = getMarketPrimaryAction(cockpit);
   return cockpit;

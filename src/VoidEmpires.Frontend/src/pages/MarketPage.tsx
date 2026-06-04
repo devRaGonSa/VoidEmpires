@@ -267,6 +267,63 @@ export function MarketPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
+                <p className="eyebrow">Resumen economico</p>
+                <h3>Apertura de Mercado</h3>
+                <p>La cabina resume postura de reservas, flujo, potencial comercial y referencias antes de entrar en detalle.</p>
+              </div>
+              <UiBadge tone="good">{market.summary.primaryActionLabel}</UiBadge>
+            </div>
+            <div className="readiness-grid">
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Reservas</p>
+                    <h4>{market.summary.reservePosture}</h4>
+                  </div>
+                  <UiBadge>{market.civilizationReserves.length} tipos</UiBadge>
+                </div>
+                <p>{market.summary.recommendedFocus}</p>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Produccion</p>
+                    <h4>{market.summary.productionPosture}</h4>
+                  </div>
+                  <UiBadge>{market.production.length > 0 ? `${market.production.length} lecturas` : "Sin perfil"}</UiBadge>
+                </div>
+                <p>
+                  {market.production.length > 0
+                    ? "La cabina ya puede leer flujo estimado del planeta activo sin prometer una economia global persistida."
+                    : "El flujo productivo sigue incompleto; Mercado mantiene una lectura honesta en lugar de inventar cifras."}
+                </p>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Potencial comercial</p>
+                    <h4>{market.summary.tradePotential}</h4>
+                  </div>
+                  <UiBadge tone="warn">{market.routePlaceholders.length} rutas futuras</UiBadge>
+                </div>
+                <p>Mercado observa presion y excedente, pero sigue derivando la accion real hacia otras cabinas o futuras fases.</p>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Referencias</p>
+                    <h4>{market.summary.referenceAvailability}</h4>
+                  </div>
+                  <UiBadge>{market.references.length} ratios</UiBadge>
+                </div>
+                <p>Las referencias actuales son orientativas y sirven para comparar presion economica, no para confirmar una orden.</p>
+              </section>
+            </div>
+          </UiCard>
+
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
                 <p className="eyebrow">Lectura lista</p>
                 <h3>Mercado ya no es un placeholder</h3>
                 <p>La cabina interpreta economia visible con contexto real y prepara la base para paneles mas profundos.</p>
