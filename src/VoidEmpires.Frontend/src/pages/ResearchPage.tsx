@@ -210,7 +210,7 @@ export function ResearchPage() {
       setHasEnqueueAcknowledgement(false);
       setEnqueueFeedback(null);
       setEnqueueOrderDetails(null);
-      setEnqueueError("No se puede preparar esta investigacion en esta build.");
+      setEnqueueError("No se puede preparar esta investigacion en esta version.");
       setTechnicalErrorDetail("Research enqueue command metadata is missing.");
       return;
     }
@@ -306,7 +306,7 @@ export function ResearchPage() {
           <ul className="stack-list strategic-rules-list">
             <li>La cabina prioriza lectura de catalogo, cola y proyectos completados.</li>
             <li>La navegacion conserva `civilizationId` y `planetId` siempre que existen.</li>
-            <li>Las altas a cola requieren confirmacion explicita y solo usan una ruta dev segura.</li>
+            <li>Las altas a cola requieren confirmacion explicita y solo usan una via segura de desarrollo.</li>
             <li>El diagnostico tecnico se mantiene aparte para no ensuciar la vista principal.</li>
           </ul>
         </UiCard>
@@ -335,7 +335,7 @@ export function ResearchPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Catalogo vacio</p>
-              <h3>No hay tecnologias disponibles en esta build.</h3>
+              <h3>No hay tecnologias disponibles en esta version.</h3>
             </div>
             <UiBadge tone="warn">Sin catalogo</UiBadge>
           </div>
@@ -465,11 +465,11 @@ export function ResearchPage() {
                           </p>
                         ) : !hasSafeResearchEnqueue ? (
                           <p className="figma-panel-note">
-                            Esta build no expone una ruta segura para iniciar investigacion desde la cabina.
+                            Esta version no expone una via segura para iniciar investigacion desde la cabina.
                           </p>
                         ) : !technology.enqueueCommand ? (
                           <p className="figma-panel-note">
-                            No se puede preparar esta investigacion en esta build.
+                            No se puede preparar esta investigacion en esta version.
                           </p>
                         ) : (
                           <p className="figma-panel-note">
@@ -562,7 +562,7 @@ export function ResearchPage() {
               <div>
                 <p className="eyebrow">Cierre vencido</p>
                 <h3>Completar investigaciones vencidas</h3>
-                <p>La ruta disponible en esta build procesa vencimientos de forma global y no queda limitada a esta cabina.</p>
+                <p>La via disponible en esta version procesa vencimientos de forma global y no queda limitada a esta cabina.</p>
               </div>
               <UiBadge tone="warn">{dueQueueCount} vencidas</UiBadge>
             </div>
@@ -572,7 +572,7 @@ export function ResearchPage() {
               </button>
             </div>
             <p className="figma-panel-note">
-              Esta accion no esta disponible desde Investigacion en esta build porque el cierre seguro todavia no esta acotado al contexto visible.
+              Esta accion no esta disponible desde Investigacion en esta version porque el cierre seguro todavia no esta acotado al contexto visible.
             </p>
           </UiCard>
 

@@ -3,7 +3,7 @@
 ---
 id: TASK-20P-raw-technical-copy-migration-to-diagnostics
 title: Raw technical copy migration to diagnostics
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

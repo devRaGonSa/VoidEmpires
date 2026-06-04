@@ -516,7 +516,7 @@ export function ShipyardPage() {
               <div className="figma-data-row"><span>Accion principal</span><strong>{getShipyardPrimaryAction(recommendedAsset)}</strong></div>
             </div>
           ) : (
-            <p className="figma-panel-note">La cabina mostrara el planeta seleccionado cuando el endpoint del astillero devuelva un contexto valido.</p>
+            <p className="figma-panel-note">La cabina mostrara el planeta seleccionado cuando el servicio del astillero devuelva un contexto valido.</p>
           )}
         </UiCard>
 
@@ -743,7 +743,7 @@ export function ShipyardPage() {
                     </div>
                     <p className="figma-panel-note">
                       {catalogBuckets.unsupported.length > 0
-                        ? "El endpoint aun no describe bien estas opciones y la UI las muestra como limite real."
+                        ? "El servicio aun no describe bien estas opciones y la UI las muestra como limite real."
                         : "No hay opciones marcadas como no soportadas."}
                     </p>
                   </section>
@@ -783,7 +783,7 @@ export function ShipyardPage() {
                               <div className="figma-data-row"><span>Stock local</span><strong>{asset.quantityLabel}</strong></div>
                               <div className="figma-data-row"><span>Requisitos</span><strong>{formatRequirementLabel(asset)}</strong></div>
                             </div>
-                            <p>{bucket === "available" ? "Lista para preparar produccion cuando la tarea de mutacion quede habilitada." : asset.reasonLabel}</p>
+                            <p>{bucket === "available" ? "Lista para preparar produccion cuando la accion dedicada quede habilitada." : asset.reasonLabel}</p>
                             <div className="selection-chip-row">
                               <button
                                 type="button"
@@ -806,7 +806,7 @@ export function ShipyardPage() {
                       <div>
                         <p className="eyebrow">Revision controlada</p>
                         <h3>Confirmacion de produccion orbital</h3>
-                        <p>La cabina revisa el impacto visible antes de habilitar cualquier mutacion real.</p>
+                        <p>La cabina revisa el impacto visible antes de habilitar cualquier accion real.</p>
                       </div>
                       <UiBadge tone={reviewSelection.bucket === "available" ? "good" : "warn"}>
                         {reviewSelection.bucket === "available" ? "Lista para futura cola" : "No enviable"}
@@ -832,7 +832,7 @@ export function ShipyardPage() {
                     </div>
                     <p>
                       {reviewSelection.bucket === "available"
-                        ? "La opcion ya puede enviarse por la ruta dev protegida si confirmas la revision."
+                        ? "La opcion ya puede enviarse por la via protegida de desarrollo si confirmas la revision."
                         : "Esta revision permanece en modo diagnostico. La cabina no intentara enviar nada mientras el estado siga bloqueado o no soportado."}
                     </p>
                     {reviewSelection.bucket === "available" ? (
@@ -909,7 +909,7 @@ export function ShipyardPage() {
                   </button>
                 </div>
                 <p className="figma-panel-note">
-                  El repositorio solo expone un cierre global de produccion vencida. Esta cabina no lo activa hasta que exista una ruta dev segura y acotada al contexto del planeta.
+                  El repositorio solo expone un cierre global de produccion vencida. Esta cabina no lo activa hasta que exista una via segura y acotada al contexto del planeta.
                 </p>
               </section>
               <section className="subpanel figma-subpanel">
@@ -986,7 +986,7 @@ export function ShipyardPage() {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Diagnosticos</p>
-                    <h3>Notas del endpoint</h3>
+                    <h3>Notas del servicio</h3>
                   </div>
                   <UiBadge tone="warn">{cockpitStatusLabels.developmentOnly}</UiBadge>
                 </div>
@@ -1014,7 +1014,7 @@ export function ShipyardPage() {
                 <h3>Como se relacionan stock, cola y grupos orbitales</h3>
                 <p>Astillero produce y conserva stock local. Flotas inspecciona los grupos orbitales ya visibles y sus movimientos.</p>
               </div>
-              <UiBadge tone="warn">Sin mutacion de flota</UiBadge>
+              <UiBadge tone="warn">Sin accion de flota</UiBadge>
             </div>
             <div className="readiness-grid">
               <section className="subpanel figma-subpanel">
@@ -1042,7 +1042,7 @@ export function ShipyardPage() {
                 <ul className="stack-list compact-list">
                   <li>El stock orbital no equivale automaticamente a una escuadra visible en Flotas.</li>
                   <li>Las ordenes en cola siguen en produccion hasta que el backend las complete y las convierta en stock util.</li>
-                  <li>La asignacion a flota se mantiene fuera de esta cabina en esta build.</li>
+                  <li>La asignacion a flota se mantiene fuera de esta cabina en esta version.</li>
                 </ul>
               </section>
             </div>

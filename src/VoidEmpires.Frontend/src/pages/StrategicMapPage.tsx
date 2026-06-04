@@ -638,10 +638,10 @@ export function StrategicMapPage() {
             <UiBadge tone="warn">Inspeccion segura</UiBadge>
           </div>
           <ul className="stack-list strategic-rules-list">
-            <li>El endpoint puede devolver `404` o `503` fuera de ejecuciones backend preparadas para desarrollo.</li>
+            <li>El servicio puede no estar disponible fuera del entorno local preparado para esta lectura.</li>
             <li>Los datos siguen en solo lectura y no otorgan autorizacion de juego.</li>
             <li>La disponibilidad y los metadatos de mando son orientativos, no autoridad.</li>
-            <li>Mutaciones, polling, WebSockets y ejecucion de renderer siguen fuera de alcance.</li>
+            <li>Las ordenes directas, la actualizacion continua y la simulacion visual avanzada siguen fuera de alcance.</li>
           </ul>
         </UiCard>
       </div>
@@ -1304,7 +1304,7 @@ export function StrategicMapPage() {
                   <h3>Contexto actual de Galaxia</h3>
                   <p>
                     Esta lectura compacta ayuda a distinguir contexto, carga,
-                    seleccion y densidad del mapa sin abrir payloads completos.
+                    seleccion y densidad del mapa sin abrir todos los datos tecnicos.
                   </p>
                 </div>
                 <UiBadge>{loadStatusLabel}</UiBadge>
@@ -1392,7 +1392,7 @@ export function StrategicMapPage() {
               </div>
               <p className="figma-panel-note">
                 Galaxia sigue siendo una cabina de solo lectura: estas vistas previas
-                y metadatos nunca ejecutan ordenes, y cualquier mutacion real debe
+                y metadatos nunca ejecutan ordenes, y cualquier accion real debe
                 hacerse desde la cabina propietaria.
               </p>
               <div className="figma-detail-grid strategic-detail-grid">
@@ -1447,7 +1447,7 @@ export function StrategicMapPage() {
             <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">Contratos para renderer</p>
+                  <p className="eyebrow">Datos para vista visual</p>
                   <h3>Vista previa del estado visual</h3>
                   <p>
                     Estas lecturas de desarrollo siguen disponibles para el trabajo
@@ -1455,7 +1455,7 @@ export function StrategicMapPage() {
                     mapa.
                   </p>
                 </div>
-                <UiBadge tone="warn">Payloads solo dev</UiBadge>
+                <UiBadge tone="warn">Datos tecnicos</UiBadge>
               </div>
 
               <div className="figma-detail-grid strategic-detail-grid">

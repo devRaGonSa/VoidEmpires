@@ -159,7 +159,7 @@ export function GroundArmyPage() {
             <li>Prepara y lee fuerzas terrestres y readiness local.</li>
             <li>Construccion mantiene edificios militares y Defensas mantiene proteccion planetaria.</li>
             <li>Flotas mantiene movimiento orbital y transporte.</li>
-            <li>Esta build no ejecuta invasion, combate ni ocupacion.</li>
+            <li>Esta version no ejecuta invasion, combate ni ocupacion.</li>
           </ul>
         </UiCard>
       </div>
@@ -199,7 +199,7 @@ export function GroundArmyPage() {
             <section className="subpanel figma-subpanel">
               <div className="figma-section-header"><div><p className="eyebrow">Guarnicion</p><h4>Unidades visibles</h4></div><UiBadge>{groundArmy.garrison.length} tipos</UiBadge></div>
               <ul className="stack-list compact-list">
-                {groundArmy.garrison.length > 0 ? groundArmy.garrison.map((unit) => <li key={unit.assetType}>{unit.label}: {unit.quantity} | {unit.roleLabel}</li>) : <li>Lectura terrestre preparada para esta build.</li>}
+                {groundArmy.garrison.length > 0 ? groundArmy.garrison.map((unit) => <li key={unit.assetType}>{unit.label}: {unit.quantity} | {unit.roleLabel}</li>) : <li>Lectura terrestre preparada para esta version.</li>}
               </ul>
             </section>
             <section className="subpanel figma-subpanel">
@@ -229,7 +229,7 @@ export function GroundArmyPage() {
 
       {groundArmy ? (
         <UiCard className="panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Cola terrestre</p><h3>Ordenes y cierre seguro</h3><p>La cola es de solo lectura en esta build y no completa ordenes automaticamente.</p></div><UiBadge tone={groundArmy.queue.length > 0 ? "resource" : "neutral"}>{groundArmy.queue.length > 0 ? `${groundArmy.queue.length} visibles` : "Sin cola"}</UiBadge></div>
+          <div className="figma-section-header"><div><p className="eyebrow">Cola terrestre</p><h3>Ordenes y cierre seguro</h3><p>La cola es de solo lectura en esta version y no completa ordenes automaticamente.</p></div><UiBadge tone={groundArmy.queue.length > 0 ? "resource" : "neutral"}>{groundArmy.queue.length > 0 ? `${groundArmy.queue.length} visibles` : "Sin cola"}</UiBadge></div>
           {groundArmy.queue.length > 0 ? (
             <ul className="stack-list compact-list">
               {groundArmy.queue.map((item) => (
@@ -248,7 +248,7 @@ export function GroundArmyPage() {
 
       {groundArmy && recommendedOption ? (
         <UiCard className="panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Accion controlada</p><h3>Preparacion o bloqueo seguro</h3><p>La cabina no debe saltarse Construccion ni confirmar mutaciones genericas sin una ruta terrestre dedicada.</p></div><UiBadge tone={recommendedOption.statusKey === "Available" ? "good" : "warn"}>{recommendedOption.statusLabel}</UiBadge></div>
+          <div className="figma-section-header"><div><p className="eyebrow">Accion controlada</p><h3>Preparacion o bloqueo seguro</h3><p>La cabina no debe saltarse Construccion ni confirmar acciones genericas sin una via terrestre dedicada.</p></div><UiBadge tone={recommendedOption.statusKey === "Available" ? "good" : "warn"}>{recommendedOption.statusLabel}</UiBadge></div>
           <div className="figma-data-list">
             <PlanetDataRow label="Preparacion" value={recommendedOption.label} />
             <PlanetDataRow label="Requisito" value={recommendedOption.requirementLabel} />
@@ -263,7 +263,7 @@ export function GroundArmyPage() {
           </div>
           <p className="figma-panel-note">
             {recommendedOption.statusKey === "Available"
-              ? "La opcion es visible, pero en esta build la confirmacion directa sigue deshabilitada hasta que exista una ruta terrestre dedicada y segura."
+              ? "La opcion es visible, pero en esta version la confirmacion directa sigue deshabilitada hasta que exista una via terrestre dedicada y segura."
               : `La accion permanece bloqueada: ${recommendedOption.reasonLabel}.`}
           </p>
         </UiCard>
@@ -286,8 +286,8 @@ export function GroundArmyPage() {
           <section className="subpanel figma-subpanel"><div className="figma-section-header"><div><p className="eyebrow">Planeta</p><h4>Volver al resumen</h4></div></div><p className="figma-panel-note">Usa Planeta para ver el contexto general de la colonia antes de entrar en una cabina especializada.</p><Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>{cockpitNavigationLabels.returnToPlanet}</Link></section>
           <section className="subpanel figma-subpanel"><div className="figma-section-header"><div><p className="eyebrow">Construccion</p><h4>Infraestructura militar</h4></div></div><p className="figma-panel-note">Barracones, academia y logistica terrestre siguen anclados a Construccion cuando pertenecen a obra e infraestructura.</p><Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>{cockpitNavigationLabels.openConstruction}</Link></section>
           <section className="subpanel figma-subpanel"><div className="figma-section-header"><div><p className="eyebrow">Defensas</p><h4>Proteccion planetaria</h4></div></div><p className="figma-panel-note">Defensas mantiene cobertura, fortificacion y proteccion. Ground Army no resuelve escudos ni defensa activa.</p><Link className="selection-chip" to={buildDefensesUrl(activeCivilizationId, selectedPlanetId)}>{cockpitNavigationLabels.openDefenses}</Link></section>
-          <section className="subpanel figma-subpanel"><div className="figma-section-header"><div><p className="eyebrow">Flotas</p><h4>Movimiento orbital</h4></div></div><p className="figma-panel-note">Flotas mantiene movimiento, transferencias y contexto orbital. Ground Army no lanza transporte ni invasion en esta build.</p><Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>{cockpitNavigationLabels.openFleets}</Link></section>
-          <section className="subpanel figma-subpanel"><div className="figma-section-header"><div><p className="eyebrow">Galaxia</p><h4>Contexto estrategico</h4></div></div><p className="figma-panel-note">Galaxia sigue siendo lectura estrategica de alto nivel. Esta cabina solo prepara readiness terrestre local.</p><Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, undefined, selectedPlanetId ?? undefined)}>{cockpitNavigationLabels.returnToGalaxy}</Link></section>
+          <section className="subpanel figma-subpanel"><div className="figma-section-header"><div><p className="eyebrow">Flotas</p><h4>Movimiento orbital</h4></div></div><p className="figma-panel-note">Flotas mantiene movimiento, transferencias y contexto orbital. Ground Army no lanza transporte ni invasion en esta version.</p><Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>{cockpitNavigationLabels.openFleets}</Link></section>
+          <section className="subpanel figma-subpanel"><div className="figma-section-header"><div><p className="eyebrow">Galaxia</p><h4>Contexto estrategico</h4></div></div><p className="figma-panel-note">Galaxia sigue siendo lectura estrategica de alto nivel. Esta cabina solo prepara la disposicion terrestre local.</p><Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, undefined, selectedPlanetId ?? undefined)}>{cockpitNavigationLabels.returnToGalaxy}</Link></section>
         </div>
       </UiCard>
     </section>
