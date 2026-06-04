@@ -3,7 +3,7 @@
 ---
 id: TASK-24C
 title: Phase 24C - Construction persisted enqueue smoke test
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
