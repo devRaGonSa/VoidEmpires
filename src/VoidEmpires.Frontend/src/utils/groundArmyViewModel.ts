@@ -12,7 +12,7 @@ import {
 } from "./groundArmyPresentation";
 
 export interface GroundArmyOption {
-  assetType: string; label: string; categoryLabel: string; roleLabel: string; statusKey: string; statusLabel: string; reasonKey: string; reasonLabel: string; currentStock: number; estimatedDurationLabel: string; estimatedCostLabel: string;
+  assetType: string; label: string; categoryLabel: string; roleLabel: string; statusKey: string; statusLabel: string; reasonKey: string; reasonLabel: string; currentStock: number; estimatedDurationLabel: string; estimatedCostLabel: string; resourceScopeLabel: string; requirementLabel: string; missingLabel: string | null;
 }
 export interface GroundArmyQueueItem {
   orderId: string; assetType: string; label: string; quantity: number; sequence: number; statusKey: string; statusLabel: string; startsAtUtc: string; endsAtUtc: string; isDue: boolean;
@@ -34,6 +34,14 @@ export interface GroundArmyViewModel {
 
 function mapOption(item: GroundArmyOptionDto): GroundArmyOption {
   const assetType = `${item.assetType ?? ""}`;
+  const resourceEntries = item.cost.map((entry) => ({ resourceType: `${entry.resourceType ?? ""}`, quantity: entry.quantity }));
+  const requiredBuildingType = `${item.requiredBuildingType ?? ""}`;
+  const requirementLabel = `Requiere ${getGroundStructureLabel(requiredBuildingType)} nivel ${item.requiredBuildingLevel}`;
+  const reasonLabel = item.availabilityReason === "MissingRequiredBuilding"
+    ? requirementLabel
+    : item.availabilityReason === "InsufficientPopulationCapacity"
+      ? `Capacidad de poblacion insuficiente (${item.requiredPopulationCapacity})`
+      : getGroundReadinessLabel(item.availabilityReason);
   return {
     assetType,
     label: getGroundUnitLabel(assetType),
@@ -42,10 +50,17 @@ function mapOption(item: GroundArmyOptionDto): GroundArmyOption {
     statusKey: item.availabilityStatus,
     statusLabel: item.availabilityStatus === "Available" ? "Disponible" : "Bloqueada",
     reasonKey: item.availabilityReason,
-    reasonLabel: getGroundReadinessLabel(item.availabilityReason),
+    reasonLabel,
     currentStock: item.currentStock,
     estimatedDurationLabel: formatGroundTrainingDuration(item.estimatedDuration),
     estimatedCostLabel: formatGroundTrainingCost(item.cost),
+    resourceScopeLabel: "Reservas disponibles en esta build",
+    requirementLabel,
+    missingLabel: item.availabilityReason === "InsufficientResources"
+      ? `Revisa reservas locales: ${resourceEntries.filter((entry) => entry.quantity > 0).map((entry) => `${formatResourceType(entry.resourceType)} ${entry.quantity}`).join(" | ")}`
+      : item.availabilityReason === "InsufficientPopulationCapacity"
+        ? `Falta capacidad terrestre local para ${item.requiredPopulationCapacity}`
+        : null,
   };
 }
 

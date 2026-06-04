@@ -3,7 +3,7 @@
 ---
 id: TASK-20B-ground-army-resource-affordability-and-requirements-display
 title: Ground Army resource affordability and requirements display
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

@@ -199,7 +199,7 @@ export function GroundArmyPage() {
                 <ul className="stack-list compact-list">
                   {group.options.map((option) => (
                     <li key={option.assetType}>
-                      {option.label} | {option.statusLabel} | {option.reasonLabel} | Coste {option.estimatedCostLabel} | Duracion {option.estimatedDurationLabel}
+                      {option.label} | {option.statusLabel} | {option.reasonLabel} | {option.requirementLabel} | {option.resourceScopeLabel} | Coste {option.estimatedCostLabel} | Duracion {option.estimatedDurationLabel}{option.missingLabel ? ` | ${option.missingLabel}` : ""}
                     </li>
                   ))}
                 </ul>
