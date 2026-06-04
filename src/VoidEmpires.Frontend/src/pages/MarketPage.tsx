@@ -9,20 +9,82 @@ import { cockpitNavigationLabels, cockpitStatusLabels } from "../utils/cockpitSt
 import { getMarketPrimaryAction, getMarketResourceSignalLabel, getMarketTradeSignalSummary, groupMarketSignals, mapMarketUiStateToViewModel, marketResourceOrder, selectRecommendedMarketFocus, type MarketUiState } from "../utils/marketViewModel";
 import { formatMarketResourceAmount, getMarketResourceLabel } from "../utils/marketPresentation";
 
-function formatMarketRequestFailure(message: string | null | undefined) {
+interface MarketErrorPresentation {
+  primaryMessage: string;
+  followUp: string | null;
+  technicalDetail: string | null;
+}
+
+function formatMarketRequestFailure(message: string | null | undefined): MarketErrorPresentation {
   const detail = message?.trim() ?? null;
 
   switch (detail) {
+    case "Civilization id is required.":
+      return {
+        primaryMessage: "No se pudo cargar la lectura economica.",
+        followUp: "Introduce un id de civilizacion valido antes de abrir Mercado.",
+        technicalDetail: detail,
+      };
     case "Civilization was not found.":
-      return "La civilizacion no existe en el contexto visible.";
+      return {
+        primaryMessage: "No se pudo cargar la lectura economica.",
+        followUp: "La civilizacion no existe en el contexto visible.",
+        technicalDetail: detail,
+      };
+    case "Planet id is required.":
+      return {
+        primaryMessage: "No se pudo cargar la lectura economica.",
+        followUp: "Selecciona un planeta visible o deja que Mercado use el planeta conocido por defecto.",
+        technicalDetail: detail,
+      };
     case "Planet was not found.":
-      return "El planeta solicitado no esta disponible para esta cabina.";
+      return {
+        primaryMessage: "No se pudo cargar la lectura economica.",
+        followUp: "El planeta solicitado no esta disponible para esta cabina.",
+        technicalDetail: detail,
+      };
+    case "Planet is not owned by the requesting civilization.":
+      return {
+        primaryMessage: "No hay reservas visibles para esta civilizacion.",
+        followUp: "Revisa el planeta seleccionado o vuelve a entrar desde una colonia propia.",
+        technicalDetail: detail,
+      };
+    case "No owned planets were found for the requesting civilization.":
+      return {
+        primaryMessage: "No hay reservas visibles para esta civilizacion.",
+        followUp: "Aplica cockpit-validation para cargar el escenario demo.",
+        technicalDetail: detail,
+      };
+    case "Market read is not available for this civilization.":
+      return {
+        primaryMessage: "No se pudo cargar la lectura economica.",
+        followUp: "Aplica cockpit-validation para cargar el escenario demo.",
+        technicalDetail: detail,
+      };
+    case "Market transactions are not supported in this version.":
+      return {
+        primaryMessage: "Las operaciones de mercado no estan disponibles en esta version.",
+        followUp: "Mercado sigue siendo una cabina de solo lectura.",
+        technicalDetail: detail,
+      };
     case "Request failed with status 404.":
-      return "La ruta de Mercado no esta disponible fuera del entorno de desarrollo.";
+      return {
+        primaryMessage: "No se pudo cargar la lectura economica.",
+        followUp: "La ruta de Mercado no esta disponible fuera del entorno de desarrollo.",
+        technicalDetail: detail,
+      };
     case "Request failed with status 503.":
-      return "La persistencia de desarrollo no esta disponible ahora mismo.";
+      return {
+        primaryMessage: "No se pudo cargar la lectura economica.",
+        followUp: "La persistencia de desarrollo no esta disponible ahora mismo.",
+        technicalDetail: detail,
+      };
     default:
-      return "Mercado no pudo cargarse con el contexto actual.";
+      return {
+        primaryMessage: "No se pudo cargar la lectura economica.",
+        followUp: "Mercado no pudo cargarse con el contexto actual.",
+        technicalDetail: detail,
+      };
   }
 }
 
@@ -32,6 +94,8 @@ export function MarketPage() {
   const [planetIdInput, setPlanetIdInput] = useState(searchParams.get("planetId") ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorFollowUp, setErrorFollowUp] = useState<string | null>(null);
+  const [technicalErrorDetail, setTechnicalErrorDetail] = useState<string | null>(null);
   const [uiState, setUiState] = useState<MarketUiState | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
@@ -91,22 +155,31 @@ export function MarketPage() {
       if (!queryCivilizationId) {
         setUiState(null);
         setError(null);
+        setErrorFollowUp(null);
+        setTechnicalErrorDetail(null);
         return;
       }
 
       setIsLoading(true);
       setError(null);
+      setErrorFollowUp(null);
+      setTechnicalErrorDetail(null);
 
       try {
         const response = await fetchMarketUiState(queryCivilizationId, queryPlanetId);
         if (!response.succeeded || !response.uiState) {
           setUiState(null);
-          setError(formatMarketRequestFailure(response.errors[0] ?? null));
+          const failure = formatMarketRequestFailure(response.errors[0] ?? null);
+          setError(failure.primaryMessage);
+          setErrorFollowUp(failure.followUp);
+          setTechnicalErrorDetail(failure.technicalDetail);
           return;
         }
 
         const nextState = mapMarketUiStateToViewModel(response.uiState);
         setUiState(nextState);
+        setErrorFollowUp(null);
+        setTechnicalErrorDetail(null);
 
         if (nextState.selectedPlanetId && nextState.selectedPlanetId !== queryPlanetId) {
           const nextParams = new URLSearchParams(searchParams);
@@ -116,11 +189,12 @@ export function MarketPage() {
         }
       } catch (requestError) {
         setUiState(null);
-        setError(
-          formatMarketRequestFailure(
-            requestError instanceof Error ? requestError.message : null,
-          ),
+        const failure = formatMarketRequestFailure(
+          requestError instanceof Error ? requestError.message : null,
         );
+        setError(failure.primaryMessage);
+        setErrorFollowUp(failure.followUp);
+        setTechnicalErrorDetail(failure.technicalDetail);
       } finally {
         setIsLoading(false);
       }
@@ -135,7 +209,10 @@ export function MarketPage() {
     const trimmedCivilizationId = civilizationIdInput.trim();
     if (!trimmedCivilizationId) {
       setUiState(null);
-      setError("El id de civilizacion es obligatorio.");
+      const failure = formatMarketRequestFailure("Civilization id is required.");
+      setError(failure.primaryMessage);
+      setErrorFollowUp(failure.followUp);
+      setTechnicalErrorDetail(failure.technicalDetail);
       return;
     }
 
@@ -197,7 +274,12 @@ export function MarketPage() {
               {isLoading ? "Cargando..." : "Abrir Mercado"}
             </button>
           </form>
-          {error ? <p className="error-text">{error}</p> : null}
+          {error ? (
+            <div className="subpanel figma-subpanel figma-mini-card-warn">
+              <p className="error-text">{error}</p>
+              {errorFollowUp ? <p className="figma-panel-note">{errorFollowUp}</p> : null}
+            </div>
+          ) : null}
           {!queryCivilizationId ? (
             <p className="figma-panel-note">
               Introduce un `civilizationId` valido o entra desde otra cabina para conservar el contexto de Mercado.
@@ -289,6 +371,20 @@ export function MarketPage() {
           <p className="figma-panel-note">
             Usa el formulario superior o entra desde Planeta, Astillero, Construccion o Flotas para preservar el contexto.
           </p>
+        </UiCard>
+      ) : null}
+
+      {error && queryCivilizationId && !isLoading ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Lectura no disponible</p>
+              <h3>No se pudo cargar la lectura economica.</h3>
+            </div>
+            <UiBadge tone="warn">Sin lectura</UiBadge>
+          </div>
+          <p className="error-text">{error}</p>
+          {errorFollowUp ? <p>{errorFollowUp}</p> : null}
         </UiCard>
       ) : null}
 
@@ -670,6 +766,21 @@ export function MarketPage() {
         </>
       ) : null}
 
+      {uiState && !market && !error && queryCivilizationId && !isLoading ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Lectura incompleta</p>
+              <h3>No hay reservas visibles para esta civilizacion.</h3>
+            </div>
+            <UiBadge tone="warn">Sin economia visible</UiBadge>
+          </div>
+          <p className="figma-panel-note">
+            Aplica cockpit-validation para cargar el escenario demo o revisa si la civilizacion aun no expone stockpile ni planeta util para Mercado.
+          </p>
+        </UiCard>
+      ) : null}
+
       <UiCard className="panel">
         <div className="figma-section-header">
           <div>
@@ -786,6 +897,67 @@ export function MarketPage() {
           </Link>
         </div>
       </UiCard>
+
+      {(technicalErrorDetail || uiState?.diagnostics.playerFacing.length || uiState?.diagnostics.technical.length) ? (
+        <details className="technical-disclosure">
+          <summary>
+            <div>
+              <p className="eyebrow">Diagnostico secundario</p>
+              <strong>Errores y notas tecnicas</strong>
+            </div>
+            <UiBadge tone="warn">Contraido por defecto</UiBadge>
+          </summary>
+          <div className="technical-disclosure-body">
+            <UiCard className="panel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Soporte de Mercado</p>
+                  <h3>Lectura tecnica</h3>
+                </div>
+                <UiBadge>{cockpitStatusLabels.diagnostics}</UiBadge>
+              </div>
+              {technicalErrorDetail ? (
+                <>
+                  <p className="figma-panel-note">Ultimo detalle tecnico conservado por la cabina.</p>
+                  <ul className="stack-list compact-list">
+                    <li>{technicalErrorDetail}</li>
+                  </ul>
+                </>
+              ) : null}
+              {uiState?.diagnostics.playerFacing.length ? (
+                <>
+                  <div className="figma-section-header module-boundary-spacer">
+                    <div>
+                      <p className="eyebrow">Notas visibles</p>
+                      <h4>Contexto de lectura</h4>
+                    </div>
+                  </div>
+                  <ul className="stack-list compact-list">
+                    {uiState.diagnostics.playerFacing.map((note) => (
+                      <li key={note}>{note}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
+              {uiState?.diagnostics.technical.length ? (
+                <>
+                  <div className="figma-section-header module-boundary-spacer">
+                    <div>
+                      <p className="eyebrow">Trazas tecnicas</p>
+                      <h4>Solo soporte</h4>
+                    </div>
+                  </div>
+                  <ul className="stack-list compact-list">
+                    {uiState.diagnostics.technical.map((note) => (
+                      <li key={note}>{note}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
+            </UiCard>
+          </div>
+        </details>
+      ) : null}
     </section>
   );
 }
