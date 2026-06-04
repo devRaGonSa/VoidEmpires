@@ -3,7 +3,7 @@
 ---
 id: TASK-20I-current-state-update-ground-army-cockpit-v1
 title: Current state update Ground Army cockpit v1
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
