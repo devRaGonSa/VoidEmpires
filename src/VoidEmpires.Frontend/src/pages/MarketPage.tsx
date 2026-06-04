@@ -6,7 +6,7 @@ import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { buildConstructionUrl, buildDevelopmentHelperUrl, buildFleetsUrl, buildGalaxyUrl, buildPlanetUrl, buildShipyardUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 import { cockpitNavigationLabels, cockpitStatusLabels } from "../utils/cockpitStatus";
-import { getMarketPrimaryAction, getMarketResourceSignalLabel, groupMarketSignals, mapMarketUiStateToViewModel, marketResourceOrder, selectRecommendedMarketFocus, type MarketUiState } from "../utils/marketViewModel";
+import { getMarketPrimaryAction, getMarketResourceSignalLabel, getMarketTradeSignalSummary, groupMarketSignals, mapMarketUiStateToViewModel, marketResourceOrder, selectRecommendedMarketFocus, type MarketUiState } from "../utils/marketViewModel";
 import { formatMarketResourceAmount, getMarketResourceLabel } from "../utils/marketPresentation";
 
 function formatMarketRequestFailure(message: string | null | undefined) {
@@ -507,6 +507,86 @@ export function MarketPage() {
                   </p>
                 </section>
               )}
+            </div>
+          </UiCard>
+
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Senales comerciales</p>
+                <h3>Presion logistica futura</h3>
+                <p>Mercado relaciona excedente, tension y contexto de ruta sin apropiarse del flujo real que sigue perteneciendo a Flotas y Galaxia.</p>
+              </div>
+              <UiBadge tone="warn">Secundario</UiBadge>
+            </div>
+            <div className="readiness-grid">
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Lecturas visibles</p>
+                    <h4>Senales de economia</h4>
+                  </div>
+                  <UiBadge>{market.signals.length} senales</UiBadge>
+                </div>
+                <ul className="stack-list compact-list">
+                  {market.signals.length > 0 ? market.signals.map((signal) => (
+                    <li key={`${signal.signalKey}-${signal.resourceType ?? "global"}`}>
+                      <strong>{signal.signalLabel}</strong>: {getMarketTradeSignalSummary(signal)}
+                    </li>
+                  )) : (
+                    <li>Sin presion comercial visible en esta lectura.</li>
+                  )}
+                </ul>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Rutas comerciales futuras</p>
+                    <h4>Placeholders de logistica</h4>
+                  </div>
+                  <UiBadge tone="warn">{market.routePlaceholders.length} visibles</UiBadge>
+                </div>
+                <ul className="stack-list compact-list">
+                  {market.routePlaceholders.length > 0 ? market.routePlaceholders.map((route) => (
+                    <li key={route.actionKey}>
+                      <strong>{route.label}</strong>: {route.reasonLabel}
+                    </li>
+                  )) : (
+                    <li>Sin rutas futuras visibles para este contexto.</li>
+                  )}
+                </ul>
+                <p className="figma-panel-note">
+                  Estas rutas son solo contexto. Mercado no crea rutas comerciales ni mueve flotas desde esta seccion.
+                </p>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Acciones bloqueadas</p>
+                    <h4>Mutaciones fuera de alcance</h4>
+                  </div>
+                  <UiBadge tone="warn">No disponibles</UiBadge>
+                </div>
+                <div className="stack-list compact-list">
+                  <button type="button" disabled>
+                    Crear ruta comercial no disponible
+                  </button>
+                  <button type="button" disabled>
+                    Transferencia de recursos no disponible
+                  </button>
+                </div>
+                <p className="figma-panel-note">
+                  El estado se mantiene visible para orientar la siguiente cabina, no para ejecutar logistica oculta.
+                </p>
+              </section>
+            </div>
+            <div className="selection-chip-row">
+              <Link className="selection-chip selection-chip-active" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
+                Revisar logistica en Flotas
+              </Link>
+              <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, undefined, selectedPlanetId)}>
+                Ver contexto de ruta en Galaxia
+              </Link>
             </div>
           </UiCard>
 

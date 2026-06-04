@@ -319,6 +319,25 @@ export function getMarketResourceSignalLabel(
   }
 }
 
+export function getMarketTradeSignalSummary(signal: MarketSignal) {
+  const resourceLabel = signal.resourceLabel ?? "la economia visible";
+
+  switch (signal.signalKey) {
+    case "VisibleSurplus":
+      return `${resourceLabel} mantiene excedente visible y podria requerir una salida logistica futura.`;
+    case "DemandPressure":
+      return `${resourceLabel} muestra tension y depende de produccion local o apoyo logistico posterior.`;
+    case "FutureTradeRoute":
+      return "La cabina detecta una dependencia de ruta futura, pero no puede crear ni ejecutar esa ruta desde Mercado.";
+    case "EstimatedProduction":
+      return signal.productionPerHour !== null
+        ? `${resourceLabel} conserva una produccion estimada de ${signal.productionPerHour}/h para esta lectura.`
+        : `${resourceLabel} sigue sin una produccion visible para orientar ruta o intercambio.`;
+    default:
+      return `${signal.signalLabel} sigue siendo una lectura orientativa sin mutacion de flotas ni recursos.`;
+  }
+}
+
 function getReservePosture(civilizationReserves: readonly MarketResourceReserve[], signals: readonly MarketSignal[]) {
   if (signals.some((signal) => signal.signalKey === "DemandPressure")) {
     return "Reservas bajo presion";
