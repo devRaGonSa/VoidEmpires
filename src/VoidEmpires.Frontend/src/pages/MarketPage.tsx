@@ -592,23 +592,24 @@ export function MarketPage() {
               <div>
                 <p className="eyebrow">Referencias de intercambio</p>
                 <h3>Referencias orientativas</h3>
-                <p>Estas comparaciones reutilizan referencias deterministas de la cabina y no representan ofertas activas ni operaciones confirmables.</p>
+                <p>Estas comparaciones reutilizan referencias deterministas de la cabina y sirven para interpretar presion economica, no para cerrar un intercambio.</p>
               </div>
               <UiBadge tone="warn">Solo lectura</UiBadge>
             </div>
             <p className="figma-panel-note">
-              Mercado muestra una referencia de intercambio para lectura rapida. Ningun ratio de esta seccion ejecuta compra, venta o traslado.
+              Mercado muestra una referencia de intercambio para lectura rapida. No es una oferta activa y no ejecuta compra, venta o traslado.
             </p>
             <div className="readiness-grid">
               {market.referenceComparisons.length > 0 ? market.referenceComparisons.map((comparison) => (
-                <section key={comparison.key} className="subpanel figma-subpanel">
+                <section key={comparison.key} className="subpanel figma-subpanel market-reference-card">
                   <div className="figma-section-header">
                     <div>
                       <p className="eyebrow">Ratio orientativo</p>
                       <h4>{comparison.pairLabel}</h4>
                     </div>
-                    <UiBadge>{comparison.ratioLabel}</UiBadge>
+                    <UiBadge tone="warn">{comparison.ratioLabel}</UiBadge>
                   </div>
+                  <p className="figma-panel-note market-reference-note">No es una oferta activa.</p>
                   <div className="figma-data-list">
                     <div className="figma-data-row"><span>Referencia de intercambio</span><strong>{comparison.ratioLabel}</strong></div>
                     <div className="figma-data-row"><span>Lectura</span><strong>{comparison.advisoryLabel}</strong></div>

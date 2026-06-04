@@ -3,7 +3,7 @@
 ---
 id: TASK-26F
 title: Phase 26F - Market reference ratios copy and safety polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

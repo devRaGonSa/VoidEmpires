@@ -95,6 +95,17 @@ Reserve and production panels should now read with these scoping cues:
 
 Treat dense ledger-like cards or reserve and production rows that no longer distinguish local versus broader scope as a regression for this block.
 
+## Task 26F reference safety focus
+
+Reference and ratio cards should now keep these safety cues visible:
+
+- `Referencia de intercambio`
+- `Ratio orientativo`
+- `No es una oferta activa`
+- `Solo lectura`
+
+Treat any ratio card that reads like a confirmation step, a live offer, or a bright primary action as a regression for this block.
+
 ## Seeded QA scenario
 
 Use `cockpit-validation` for the richer deterministic Market QA baseline:

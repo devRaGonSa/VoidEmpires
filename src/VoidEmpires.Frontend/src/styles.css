@@ -1970,6 +1970,21 @@ select {
   margin: 0;
 }
 
+.market-reference-card {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  border-color: color-mix(in srgb, var(--ve-color-border) 30%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 62%, transparent), color-mix(in srgb, var(--ve-color-panel) 90%, transparent));
+}
+
+.market-reference-note {
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px dashed color-mix(in srgb, var(--ve-color-border) 26%, transparent);
+}
+
 .market-future-action-card {
   display: grid;
   gap: 12px;

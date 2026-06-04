@@ -25,7 +25,7 @@ const marketSignalCatalog: readonly MarketLabelEntry[] = [
   { key: "EstimatedProduction", label: "Produccion estimada" },
   { key: "DemandPressure", label: "Presion de demanda" },
   { key: "VisibleSurplus", label: "Excedente visible" },
-  { key: "ReferencePrice", label: "Referencia de precio" },
+  { key: "ReferencePrice", label: "Referencia de intercambio" },
   { key: "FutureTradeRoute", label: "Ruta comercial futura" },
 ] as const;
 
