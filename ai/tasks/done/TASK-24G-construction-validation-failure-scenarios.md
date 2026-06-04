@@ -3,7 +3,7 @@
 ---
 id: TASK-24G
 title: Phase 24G - Construction validation failure scenarios
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Buildings;
 using VoidEmpires.Domain.Buildings;
+using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Infrastructure.Buildings;
 using VoidEmpires.Infrastructure.Persistence;
@@ -22,6 +23,7 @@ public class PlanetConstructionQueueServiceTests
         stockpile.Increase(ResourceType.Metal, 100);
         stockpile.Increase(ResourceType.Crystal, 100);
         db.PlanetResourceStockpiles.Add(stockpile);
+        db.PlanetOwnerships.Add(PlanetOwnership.Create(planetId, civilizationId));
         await db.SaveChangesAsync();
 
         var service = new PlanetConstructionQueueService(db);
@@ -62,6 +64,7 @@ public class PlanetConstructionQueueServiceTests
             requestedAtUtc.AddMinutes(5),
             ConstructionQueueItemStatus.Active));
         db.PlanetResourceStockpiles.Add(PlanetResourceStockpile.Create(planetId));
+        db.PlanetOwnerships.Add(PlanetOwnership.Create(planetId, civilizationId));
         await db.SaveChangesAsync();
 
         var service = new PlanetConstructionQueueService(db);
@@ -91,6 +94,7 @@ public class PlanetConstructionQueueServiceTests
 
         db.PlanetBuildings.Add(building);
         db.PlanetResourceStockpiles.Add(stockpile);
+        db.PlanetOwnerships.Add(PlanetOwnership.Create(planetId, civilizationId));
         await db.SaveChangesAsync();
 
         var service = new PlanetConstructionQueueService(db);
@@ -107,6 +111,73 @@ public class PlanetConstructionQueueServiceTests
         Assert.Equal(1, building.Level);
         Assert.Equal(380, stockpile.Metal);
         Assert.Equal(470, stockpile.Crystal);
+    }
+
+    [Fact]
+    public async Task EnqueueAsyncRejectsPlanetNotOwnedByCivilizationWithoutMutatingState()
+    {
+        await using var db = CreateDb();
+        var planetId = Guid.NewGuid();
+        var civilizationId = Guid.NewGuid();
+        var requestedAtUtc = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
+
+        db.PlanetBuildingCapacities.Add(PlanetBuildingCapacity.Create(planetId, 100));
+        var stockpile = PlanetResourceStockpile.Create(planetId);
+        stockpile.Increase(ResourceType.Metal, 100);
+        stockpile.Increase(ResourceType.Crystal, 100);
+        db.PlanetResourceStockpiles.Add(stockpile);
+        await db.SaveChangesAsync();
+
+        var metalBefore = stockpile.Metal;
+        var crystalBefore = stockpile.Crystal;
+        var service = new PlanetConstructionQueueService(db);
+
+        var result = await service.EnqueueAsync(new EnqueueConstructionOrderRequest(
+            planetId,
+            civilizationId,
+            ConstructionQueueItemAction.Construct,
+            BuildingType.MetalMine,
+            requestedAtUtc));
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(["Planet is not owned by the requesting civilization."], result.Errors);
+        Assert.Empty(db.PlanetConstructionOrders);
+        Assert.Equal(metalBefore, stockpile.Metal);
+        Assert.Equal(crystalBefore, stockpile.Crystal);
+    }
+
+    [Fact]
+    public async Task EnqueueAsyncRejectsInsufficientResourcesWithoutMutatingState()
+    {
+        await using var db = CreateDb();
+        var planetId = Guid.NewGuid();
+        var civilizationId = Guid.NewGuid();
+        var requestedAtUtc = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
+
+        db.PlanetBuildingCapacities.Add(PlanetBuildingCapacity.Create(planetId, 100));
+        var stockpile = PlanetResourceStockpile.Create(planetId);
+        stockpile.Increase(ResourceType.Metal, 10);
+        stockpile.Increase(ResourceType.Crystal, 10);
+        db.PlanetResourceStockpiles.Add(stockpile);
+        db.PlanetOwnerships.Add(PlanetOwnership.Create(planetId, civilizationId));
+        await db.SaveChangesAsync();
+
+        var metalBefore = stockpile.Metal;
+        var crystalBefore = stockpile.Crystal;
+        var service = new PlanetConstructionQueueService(db);
+
+        var result = await service.EnqueueAsync(new EnqueueConstructionOrderRequest(
+            planetId,
+            civilizationId,
+            ConstructionQueueItemAction.Construct,
+            BuildingType.MetalMine,
+            requestedAtUtc));
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(["Insufficient resources."], result.Errors);
+        Assert.Empty(db.PlanetConstructionOrders);
+        Assert.Equal(metalBefore, stockpile.Metal);
+        Assert.Equal(crystalBefore, stockpile.Crystal);
     }
 
     private static VoidEmpiresDbContext CreateDb()

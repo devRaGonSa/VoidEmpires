@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Buildings;
 using VoidEmpires.Domain.Buildings;
+using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -27,6 +28,18 @@ public sealed class PlanetConstructionQueueService(VoidEmpiresDbContext dbContex
         if (request.RequestedAtUtc.Kind != DateTimeKind.Utc)
         {
             return EnqueueConstructionOrderResult.Failure("Requested date must be UTC.");
+        }
+
+        var hasOwnedPlanet = await dbContext.PlanetOwnerships
+            .AnyAsync(
+                x => x.PlanetId == request.PlanetId &&
+                    x.CivilizationId == request.CivilizationId &&
+                    x.Status == PlanetControlStatus.Active,
+                cancellationToken);
+
+        if (!hasOwnedPlanet)
+        {
+            return EnqueueConstructionOrderResult.Failure("Planet is not owned by the requesting civilization.");
         }
 
         var hasOpenOrder = await dbContext.PlanetConstructionOrders

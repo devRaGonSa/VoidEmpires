@@ -460,6 +460,11 @@ export function formatConstructionCommandFailure(
         primaryMessage: "La reserva del planeta no esta disponible. Recarga la cabina o revisa la seed local antes de volver a intentarlo.",
         technicalDetail,
       };
+    case "Planet is not owned by the requesting civilization.":
+      return {
+        primaryMessage: "La colonia ya no pertenece a tu civilizacion activa. Recarga la cabina y revisa el planeta antes de volver a intentarlo.",
+        technicalDetail,
+      };
     case "Planet building capacity would be exceeded.":
       return {
         primaryMessage: "La colonia no tiene capacidad libre para ese edificio. Elige otra accion o amplia la infraestructura actual.",

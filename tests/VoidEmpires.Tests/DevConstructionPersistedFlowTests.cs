@@ -15,6 +15,7 @@ public class DevConstructionPersistedFlowTests(WebApplicationFactory<Program> fa
 {
     private static readonly Guid SeedCivilizationId = Guid.Parse("00000000-0000-0000-0000-000000000001");
     private static readonly Guid SeedOwnedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
+    private static readonly Guid SeedForeignPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000002");
 
     [Fact]
     public async Task PlanetFullValidationConstructionEnqueuePersistsAndAppearsInFollowUpRead()
@@ -91,6 +92,86 @@ public class DevConstructionPersistedFlowTests(WebApplicationFactory<Program> fa
         Assert.Equal(selectedAction.TargetLevel, persistedOrder.TargetLevel);
         Assert.Equal(ConstructionQueueItemStatus.Active, persistedOrder.Status);
         Assert.Equal(PlanetControlStatus.Active, activeOwnership.Status);
+    }
+
+    [Fact]
+    public async Task ConstructionEnqueueRejectsForeignPlanetAndSecondOpenOrderWithoutMutatingExtraState()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: databaseName);
+        using var client = configuredFactory.CreateClient();
+
+        using var seedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "planet-full-validation" });
+        Assert.Equal(HttpStatusCode.OK, seedResponse.StatusCode);
+
+        using var initialResponse = await client.GetAsync($"/api/dev/planets/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var initialPayload = await initialResponse.Content.ReadFromJsonAsync<DevPlanetUiStateResponse>();
+        Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
+        Assert.NotNull(initialPayload?.UiState?.Planet);
+
+        var initialPlanet = initialPayload.UiState.Planet;
+        var availableAction = initialPlanet.ConstructionActions.First(x => x.AvailabilityStatus == "Available");
+        var initialQueueLength = initialPlanet.ConstructionQueue.Length;
+        var initialStockpile = initialPlanet.Stockpile.ToDictionary(x => x.ResourceType, x => x.Quantity);
+
+        using var foreignPlanetResponse = await client.PostAsJsonAsync("/api/dev/buildings/construction-orders/enqueue", new
+        {
+            planetId = SeedForeignPlanetId,
+            civilizationId = SeedCivilizationId,
+            action = ConstructionQueueItemAction.Construct,
+            buildingType = BuildingType.MetalMine,
+            requestedAtUtc = "2026-06-04T12:00:00Z"
+        });
+        var foreignPlanetPayload = await foreignPlanetResponse.Content.ReadFromJsonAsync<EnqueueConstructionOrderResponse>();
+
+        Assert.Equal(HttpStatusCode.Conflict, foreignPlanetResponse.StatusCode);
+        Assert.NotNull(foreignPlanetPayload);
+        Assert.False(foreignPlanetPayload!.Succeeded);
+        Assert.Equal(["Planet is not owned by the requesting civilization."], foreignPlanetPayload.Errors);
+
+        using var firstEnqueueResponse = await client.PostAsJsonAsync("/api/dev/buildings/construction-orders/enqueue", new
+        {
+            planetId = SeedOwnedPlanetId,
+            civilizationId = SeedCivilizationId,
+            action = availableAction.Action,
+            buildingType = availableAction.BuildingType,
+            requestedAtUtc = "2026-06-04T12:05:00Z"
+        });
+        var firstEnqueuePayload = await firstEnqueueResponse.Content.ReadFromJsonAsync<EnqueueConstructionOrderResponse>();
+
+        Assert.Equal(HttpStatusCode.Created, firstEnqueueResponse.StatusCode);
+        Assert.NotNull(firstEnqueuePayload);
+        Assert.True(firstEnqueuePayload!.Succeeded);
+
+        using var secondEnqueueResponse = await client.PostAsJsonAsync("/api/dev/buildings/construction-orders/enqueue", new
+        {
+            planetId = SeedOwnedPlanetId,
+            civilizationId = SeedCivilizationId,
+            action = availableAction.Action,
+            buildingType = availableAction.BuildingType,
+            requestedAtUtc = "2026-06-04T12:06:00Z"
+        });
+        var secondEnqueuePayload = await secondEnqueueResponse.Content.ReadFromJsonAsync<EnqueueConstructionOrderResponse>();
+
+        Assert.Equal(HttpStatusCode.Conflict, secondEnqueueResponse.StatusCode);
+        Assert.NotNull(secondEnqueuePayload);
+        Assert.False(secondEnqueuePayload!.Succeeded);
+        Assert.Equal(["Planet already has an open construction order."], secondEnqueuePayload.Errors);
+
+        using var followUpResponse = await client.GetAsync($"/api/dev/planets/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var followUpPayload = await followUpResponse.Content.ReadFromJsonAsync<DevPlanetUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, followUpResponse.StatusCode);
+        Assert.NotNull(followUpPayload?.UiState?.Planet);
+
+        var followUpPlanet = followUpPayload.UiState.Planet;
+        Assert.Equal(initialQueueLength + 1, followUpPlanet.ConstructionQueue.Length);
+        foreach (var cost in availableAction.Cost)
+        {
+            var expectedAfterFirstSuccess = initialStockpile[cost.ResourceType] - cost.Quantity;
+            var actual = followUpPlanet.Stockpile.Single(x => x.ResourceType == cost.ResourceType).Quantity;
+            Assert.Equal(expectedAfterFirstSuccess, actual);
+        }
     }
 
     private sealed record DevPlanetUiStateResponse(
