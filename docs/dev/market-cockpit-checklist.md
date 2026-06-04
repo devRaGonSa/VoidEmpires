@@ -12,6 +12,66 @@ Use `docs/dev/development-seed-profiles.md` for deterministic QA setup and `docs
 - Market must not buy, sell, transfer, auction, mutate resources, or execute trade routes.
 - Diagnostics stay collapsed or clearly secondary.
 
+## Task 26C visual readiness audit
+
+Component discovery for this audit:
+
+- Entrypoint: [src/VoidEmpires.Frontend/src/pages/MarketPage.tsx](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/pages/MarketPage.tsx)
+- Frontend presentation owners: [src/VoidEmpires.Frontend/src/utils/marketPresentation.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/utils/marketPresentation.ts) and [src/VoidEmpires.Frontend/src/utils/marketViewModel.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/utils/marketViewModel.ts)
+- Route context helpers used by Market handoffs: [src/VoidEmpires.Frontend/src/utils/routeUrls.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/utils/routeUrls.ts)
+
+Dependency map for the current Market read surface:
+
+- `/market` page -> `fetchMarketUiState` -> `/api/dev/market/ui-state`
+- API response -> `mapMarketUiStateToViewModel`
+- View model -> Market summary, reserves, production, references, signals, future-action placeholders, diagnostics
+- Route helpers -> Planet, Construction, Shipyard, Fleets, and Galaxy handoffs with preserved `civilizationId` and optional `planetId`
+
+Section-presence result from the audit:
+
+- hero or header: present
+- economy summary: present
+- reserves and production: present
+- reference prices or ratios: present
+- trade signals and future routes: present
+- disabled future operations: present
+- handoffs: present
+- collapsed diagnostics: present, but currently duplicated
+
+Primary visual QA target list for the rest of the block:
+
+| Priority | Risk | Why it can block acceptance | Current owner |
+|---|---|---|---|
+| high | The first viewport is too dev-loader-heavy before the actual economy story begins. `Entrada de mercado`, `Resumen de cabina`, `Limite actual`, suspicious-context handling, loading, and empty/error states all sit ahead of the main Market summary. | The route can read more like a tooling shell than an accepted cockpit, especially on narrower viewports. | [src/VoidEmpires.Frontend/src/pages/MarketPage.tsx](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/pages/MarketPage.tsx) |
+| high | Several primary labels still read like action or console language: `Accion principal`, `Apertura de Mercado`, `Operaciones futuras`, `Acciones de mercado`, and button-style future cards. | Market can look closer to a blocked transaction console than a read-only economy analysis cabin. | [src/VoidEmpires.Frontend/src/pages/MarketPage.tsx](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/pages/MarketPage.tsx), [src/VoidEmpires.Frontend/src/utils/marketViewModel.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/utils/marketViewModel.ts) |
+| high | Disabled future operations are rendered as a full grid of buttons, one per commercial action. | Even disabled, the button grid visually over-promises buying, selling, route creation, import, and export. It should stay visibly secondary to the read-only economy panels. | [src/VoidEmpires.Frontend/src/pages/MarketPage.tsx](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/pages/MarketPage.tsx) |
+| medium | Diagnostics are collapsed, but there are two separate technical disclosures on the page. | The current layout repeats support content and increases page length and visual noise, making diagnostics feel more prominent than they should. | [src/VoidEmpires.Frontend/src/pages/MarketPage.tsx](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/pages/MarketPage.tsx) |
+| medium | Read-only boundary messaging is truthful but repeated in many places: hero, top rule card, references, signals, future operations, and handoff copy. | The repetition helps safety, but too much of it can crowd out the actual economy story and flatten hierarchy. | [src/VoidEmpires.Frontend/src/pages/MarketPage.tsx](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/pages/MarketPage.tsx) |
+| medium | The trade-signal and route block may visually outweigh the core reserves and production story. | Market should read economy-first, with logistics and future routes as secondary interpretation rather than the main event. | [src/VoidEmpires.Frontend/src/pages/MarketPage.tsx](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/pages/MarketPage.tsx) |
+| medium | Placeholder fallbacks such as `Recurso pendiente de clasificar`, `Senal economica pendiente de clasificar`, `Confianza de precio pendiente de clasificar`, `Operacion pendiente de clasificar`, and `Accion de mercado pendiente de clasificar` are still player-visible if new API values appear. | These are acceptable as diagnostics, but they fail visual QA if they escape into primary cards. | [src/VoidEmpires.Frontend/src/utils/marketPresentation.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/utils/marketPresentation.ts) |
+| medium | `reasonKey` values for future actions are normalized through `getTradeStateLabel`, which can fall back to `Operacion pendiente de clasificar`. | If backend reason keys expand, Market can surface placeholder wording in always-visible cards instead of a contained limitation note. | [src/VoidEmpires.Frontend/src/utils/marketViewModel.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/utils/marketViewModel.ts) |
+| low | The page hardcodes a future-action list instead of rendering only the backend-provided `futureActions`. | This is still safe today, but it is a frontend assumption that can drift from the API and make the page look more transactional than the current contract actually is. | [src/VoidEmpires.Frontend/src/pages/MarketPage.tsx](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/pages/MarketPage.tsx) |
+| low | Market currently keeps two navigation areas near the end: a full handoff card block plus a generic related-cabins strip. | The duplication is not wrong, but it spends valuable vertical space after an already long page. | [src/VoidEmpires.Frontend/src/pages/MarketPage.tsx](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/pages/MarketPage.tsx) |
+
+What already reads well and should be preserved:
+
+- The route clearly states the read-only boundary and never exposes live buy, sell, or route-execution actions.
+- Core economy sections already exist, so the rest of the block can focus on hierarchy and copy instead of adding major new surfaces.
+- Handoff links already preserve context toward the neighboring cockpit owners.
+- Diagnostics are already collapsed by default rather than opening directly into raw support detail.
+
+Follow-up path from this audit:
+
+- `26D`: tighten primary copy and reduce action-like or execution-like wording
+- `26E`: improve production and reserve layout so the economy story appears earlier and reads more clearly
+- `26F`: reframe reference ratios as advisory comparisons only
+- `26G`: demote trade-signal and route placeholder weight relative to the economy summary
+- `26H`: keep future operations visible but clearly secondary and non-interactive
+- `26I`: simplify handoff density and clarify cockpit ownership boundaries
+- `26J`: contain diagnostics and raw fallback wording more aggressively
+- `26K`: finish docs and smoke wording once the visual pass stabilizes
+- `26L`: closure-only confirmation after the final Market polish pass
+
 ## Seeded QA scenario
 
 Use `cockpit-validation` for the richer deterministic Market QA baseline:

@@ -3,7 +3,7 @@
 ---
 id: TASK-26C
 title: Phase 26C - Market visual readiness audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

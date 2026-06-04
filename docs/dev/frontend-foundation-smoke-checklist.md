@@ -71,7 +71,7 @@ Then open and compare these deterministic routes:
 6. Market
    URL: `/market?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
    Expected primary state: `Aurelia` loads with economy summary, reserves, production, advisory ratios, visible trade signals, and disabled future Market actions.
-   No-go: no active buy or sell implication, no diagnostics leading the page, and no raw backend wording dominating the first viewport.
+   No-go: no active buy or sell implication, no diagnostics leading the page, no full disabled-action grid overpowering the economy summary, and no raw backend wording dominating the first viewport.
    Screenshot target: summary plus advisory ratios or trade signals in the same frame.
 7. Fleets
    URL: `/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
@@ -103,6 +103,11 @@ Cross-cockpit comparison checks:
 - Espionage visible copy stays Spanish-first; English technical wording outside collapsed diagnostics fails visual QA.
 - Ground Army is now part of the accepted cockpit-foundation suite, but it remains readiness-only and non-combat.
 - Defenses is now part of the accepted cockpit-foundation suite, but it remains readiness-only and non-combat.
+
+Market-specific visual audit note:
+
+- Use `docs/dev/market-cockpit-checklist.md` as the source of truth for the current Market QA target list before changing copy or hierarchy.
+- Treat a dev-loader-first first viewport, duplicated diagnostics, or action-like future Market wording as a failed visual pass even if the route remains technically read-only.
 
 ## Ground Army Block Closure Pass
 
