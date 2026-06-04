@@ -3,7 +3,7 @@
 ---
 id: TASK-20A-ground-army-units-structures-and-readiness-catalog
 title: Ground Army units structures and readiness catalog
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

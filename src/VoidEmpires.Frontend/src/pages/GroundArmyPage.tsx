@@ -4,7 +4,7 @@ import { fetchGroundArmyUiState } from "../api/groundArmyApi";
 import { PlanetDataRow } from "../components/PlanetModuleLayout";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
-import { mapGroundArmyUiStateToViewModel } from "../utils/groundArmyViewModel";
+import { groupGroundOptionsByCategory, mapGroundArmyUiStateToViewModel, selectRecommendedGroundArmyAction } from "../utils/groundArmyViewModel";
 import { buildConstructionUrl, buildDefensesUrl, buildFleetsUrl, buildGalaxyUrl, buildPlanetUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 
 function getGroundPosture(viewModel: ReturnType<typeof mapGroundArmyUiStateToViewModel>["groundArmy"]) {
@@ -47,6 +47,8 @@ export function GroundArmyPage() {
   const posture = getGroundPosture(groundArmy);
   const recommendedNextStep = getRecommendedNextStep(groundArmy);
   const resourcePressureSummary = getResourcePressureSummary(groundArmy);
+  const optionGroups = groupGroundOptionsByCategory(groundArmy?.catalog ?? []);
+  const recommendedOption = selectRecommendedGroundArmyAction(groundArmy?.catalog ?? []);
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -171,6 +173,41 @@ export function GroundArmyPage() {
         ) : <p className="figma-panel-note">Todavia no hay datos terrestres visibles. La cabina mantiene un estado honesto en lugar de volver a un placeholder vacio.</p>}
         <details className="subpanel figma-subpanel"><summary>Diagnosticos</summary><ul className="stack-list compact-list">{(groundArmy?.diagnostics.technical ?? uiState?.diagnostics.technical ?? []).map((line) => <li key={line}>{line}</li>)}</ul></details>
       </UiCard>
+
+      {groundArmy ? (
+        <UiCard className="panel">
+          <div className="figma-section-header"><div><p className="eyebrow">Catalogo terrestre</p><h3>Unidades, estructuras y readiness</h3><p>Las tarjetas muestran preparacion terrestre y handoff seguro, no combate activo.</p></div><UiBadge tone={recommendedOption?.statusKey === "Available" ? "good" : "warn"}>{recommendedOption?.label ?? "Sin recomendacion"}</UiBadge></div>
+          <div className="readiness-grid">
+            <section className="subpanel figma-subpanel">
+              <div className="figma-section-header"><div><p className="eyebrow">Guarnicion</p><h4>Unidades visibles</h4></div><UiBadge>{groundArmy.garrison.length} tipos</UiBadge></div>
+              <ul className="stack-list compact-list">
+                {groundArmy.garrison.length > 0 ? groundArmy.garrison.map((unit) => <li key={unit.assetType}>{unit.label}: {unit.quantity} | {unit.roleLabel}</li>) : <li>Lectura terrestre preparada para esta build.</li>}
+              </ul>
+            </section>
+            <section className="subpanel figma-subpanel">
+              <div className="figma-section-header"><div><p className="eyebrow">Estructuras</p><h4>Soporte terrestre</h4></div><UiBadge>{groundArmy.structures.length} filas</UiBadge></div>
+              <ul className="stack-list compact-list">
+                {groundArmy.structures.length > 0 ? groundArmy.structures.map((structure) => <li key={`${structure.buildingType}-${structure.level}`}>{structure.label} | {structure.categoryLabel} | Nivel {structure.level}</li>) : <li>Gestionar desde Construccion si la colonia aun no tiene infraestructura terrestre.</li>}
+              </ul>
+            </section>
+          </div>
+          <div className="figma-section-header module-boundary-spacer"><div><p className="eyebrow">Opciones agrupadas</p><h4>Readiness catalog</h4></div></div>
+          <div className="readiness-grid">
+            {optionGroups.map((group) => (
+              <section key={group.key} className="subpanel figma-subpanel">
+                <div className="figma-section-header"><div><p className="eyebrow">Categoria</p><h4>{group.label}</h4></div><UiBadge>{group.options.length} tarjetas</UiBadge></div>
+                <ul className="stack-list compact-list">
+                  {group.options.map((option) => (
+                    <li key={option.assetType}>
+                      {option.label} | {option.statusLabel} | {option.reasonLabel} | Coste {option.estimatedCostLabel} | Duracion {option.estimatedDurationLabel}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        </UiCard>
+      ) : null}
 
       {isSuspiciousContext ? (
         <UiCard className="panel"><div className="figma-section-header"><div><p className="eyebrow">Contexto sospechoso</p><h3>El identificador de civilizacion no parece valido para esta cabina.</h3></div><UiBadge tone="warn">Revisar contexto</UiBadge></div><p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p></UiCard>
