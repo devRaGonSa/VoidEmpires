@@ -3,7 +3,7 @@
 ---
 id: TASK-24P
 title: Phase 24P - Final real persisted flow closure
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
