@@ -18,6 +18,57 @@ function isOneOf(value: DomainValue, options: string[]) {
   return normalized ? options.includes(normalized) : false;
 }
 
+function formatCount(value: number, singular: string, plural: string) {
+  return `${value} ${value === 1 ? singular : plural}`;
+}
+
+export function formatEspionageSignalCoverageSummary(rawSummary: string | null | undefined) {
+  const normalized = rawSummary?.trim();
+  if (!normalized) return "Sin lectura";
+
+  if (/^No passive signal rows available\.$/i.test(normalized)) {
+    return "Sin senales pasivas disponibles";
+  }
+
+  const passiveSignalMatch = normalized.match(/^(\d+) passive signal rows available\.$/i);
+  if (passiveSignalMatch) {
+    const count = Number.parseInt(passiveSignalMatch[1], 10);
+    return `${formatCount(count, "senal pasiva", "senales pasivas")} disponible${count === 1 ? "" : "s"}`;
+  }
+
+  const sensorProfileMatch = normalized.match(/^(\d+) sensor profile rows\.$/i);
+  if (sensorProfileMatch) {
+    const count = Number.parseInt(sensorProfileMatch[1], 10);
+    return formatCount(count, "lectura de perfil de sensores", "lecturas de perfil de sensores");
+  }
+
+  const localSensorProfileMatch = normalized.match(/^(\d+) local sensor profile rows\.$/i);
+  if (localSensorProfileMatch) {
+    const count = Number.parseInt(localSensorProfileMatch[1], 10);
+    return formatCount(count, "lectura local de sensores", "lecturas locales de sensores");
+  }
+
+  const detectionCoverageMatch = normalized.match(/^(\d+) detection coverage rows\.$/i);
+  if (detectionCoverageMatch) {
+    const count = Number.parseInt(detectionCoverageMatch[1], 10);
+    return formatCount(count, "lectura de cobertura de deteccion", "lecturas de cobertura de deteccion");
+  }
+
+  const localDetectionCoverageMatch = normalized.match(/^(\d+) local detection coverage rows\.$/i);
+  if (localDetectionCoverageMatch) {
+    const count = Number.parseInt(localDetectionCoverageMatch[1], 10);
+    return formatCount(count, "lectura local de cobertura", "lecturas locales de cobertura");
+  }
+
+  const transferTrajectoryMatch = normalized.match(/^(\d+) visible transfer trajectories\.$/i);
+  if (transferTrajectoryMatch) {
+    const count = Number.parseInt(transferTrajectoryMatch[1], 10);
+    return formatCount(count, "trayectoria de transferencia visible", "trayectorias de transferencia visibles");
+  }
+
+  return normalized;
+}
+
 export function getIntelligenceLevelLabel(visibilityLevel: DomainValue, visibilityReason?: DomainValue) {
   if (isOneOf(visibilityLevel, ["Owned", "2"]) || isOneOf(visibilityReason, ["OwnedPlanet", "SystemContainsOwnedPlanet", "1", "2"])) return "Inteligencia confirmada";
   if (isOneOf(visibilityLevel, ["Visible", "1"]) && isOneOf(visibilityReason, ["ExploredSystem", "ExploredPlanet", "3", "4"])) return "Objetivo conocido";

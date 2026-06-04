@@ -5,6 +5,7 @@ import type {
   IntelligenceTargetDto,
 } from "../api/espionageTypes";
 import {
+  formatEspionageSignalCoverageSummary,
   getEspionageActionLabel,
   getIntelConfidenceLabel,
   getIntelligenceLevelLabel,
@@ -101,7 +102,7 @@ function buildPassiveSignalEntries(
       id: `${group.systemId}-${signal.planetId ?? signal.label}-${signal.summary}`,
       title: getSignalTitle(signal),
       systemLabel: signal.systemLabel,
-      summary: signal.summary,
+      summary: formatEspionageSignalCoverageSummary(signal.summary),
       statusLabel: signal.planetId ? "Lectura local" : "Lectura de sistema",
       handoffLabel: signal.planetId ? "Galaxia -> Planeta" : "Galaxia",
     })),
@@ -117,7 +118,7 @@ function buildPassiveSignalEntries(
       id: `${target.systemId}-${target.planetId ?? target.kind}-passive`,
       title: "Lectura pasiva derivada",
       systemLabel: target.systemLabel,
-      summary: target.coverageLabel,
+      summary: formatEspionageSignalCoverageSummary(target.coverageLabel),
       statusLabel: "Contexto reutilizado",
       handoffLabel: target.planetId ? "Galaxia -> Planeta" : "Galaxia",
     }));
@@ -134,7 +135,7 @@ function mapTarget(target: IntelligenceTargetDto): IntelligenceTargetViewModel {
     visibilityLabel: getTargetVisibilityLabel(target.visibilityLevel, target.intelligenceLevel === "Confirmed"),
     intelligenceLabel: getIntelligenceLevelLabel(target.visibilityLevel, target.visibilityReason),
     confidenceLabel: getIntelConfidenceLabel({ visibilityLevel: target.visibilityLevel, detectionCount: signalCount }),
-    coverageLabel: target.coverageSummary,
+    coverageLabel: formatEspionageSignalCoverageSummary(target.coverageSummary),
     observationLabel: getObservationStatusLabel({ visibilityLevel: target.visibilityLevel, visibilityReason: target.visibilityReason, detectionCount: signalCount }),
     hasPassiveSignals: target.hasPassiveSignals,
     diagnostics: target,
@@ -162,7 +163,7 @@ function mapSignal(
     planetId: signal.planetId,
     label: signal.signalKind,
     systemLabel: resolvedSystemLabel,
-    summary: signal.summary,
+    summary: formatEspionageSignalCoverageSummary(signal.summary),
     diagnostics: signal,
   };
 }

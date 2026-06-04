@@ -3,7 +3,7 @@
 ---
 id: TASK-22R
 title: Phase 22R - Espionage signal and coverage label normalization
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
