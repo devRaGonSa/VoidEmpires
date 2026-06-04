@@ -3,7 +3,7 @@
 ---
 id: TASK-26K
 title: Phase 26K - Market docs and smoke checklist finalization
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

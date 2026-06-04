@@ -73,6 +73,7 @@ Then open and compare these deterministic routes:
    Expected primary state: `Aurelia` loads with economy summary, reserves, production, advisory ratios, visible trade signals, and disabled future Market actions.
    No-go: no active buy or sell implication, no diagnostics leading the page, no full disabled-action grid overpowering the economy summary, and no raw backend wording dominating the first viewport.
    Screenshot target: summary plus advisory ratios or trade signals in the same frame.
+   User-driven note: this route still requires manual browser confirmation; passing build or test commands does not replace the final visual QA pass.
 7. Fleets
    URL: `/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
    Expected primary state: the command deck, group rail, selected-group detail, active-transfer context, and the read-only estimate flow all render with seeded groups and transfers.
@@ -110,6 +111,7 @@ Market-specific visual audit note:
 - Treat a dev-loader-first first viewport, duplicated diagnostics, or action-like future Market wording as a failed visual pass even if the route remains technically read-only.
 - Treat route placeholders that overshadow the economy summary or resemble executable logistics controls as a failed Market visual pass.
 - Confirm the shared sidebar marks `Mercado` as an implemented cockpit when `/market` is active, while `Alianza` and `Ranking` remain visibly future-facing.
+- Keep the final Market verdict honest: polished read-only baseline implemented, screenshot-backed visual acceptance still user-driven.
 
 ## Ground Army Block Closure Pass
 

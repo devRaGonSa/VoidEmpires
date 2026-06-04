@@ -153,6 +153,8 @@ Use `cockpit-validation` for the richer deterministic Market QA baseline:
 
 ## Final manual QA
 
+This visual QA pass remains user-driven. Use the checklist below as the accepted read-only baseline, but do not treat it as screenshot-backed approval unless the browser pass is actually performed.
+
 Run first:
 
 ```powershell
@@ -185,11 +187,14 @@ Then confirm on `/market`:
 
 - The deterministic seeded scenario can open as `/market?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`.
 - The first viewport reads like an economy cockpit, not a transaction console or shell-only placeholder.
+- The page reads as `Mercado`, `Lectura economica`, and `Referencias orientativas`, not as a dev tool or transaction console.
 - The page loads with Spanish loading, missing-context, and failure states.
 - Civilization and selected-planet context are visible.
+- Summary cards are visible before diagnostics.
 - Resource summary and reserve posture are visible.
+- Reserves remain clearly split between `Lectura de civilizacion` and `Reservas de Aurelia`.
 - Production or economy summary is visible when the seeded profile is applied.
-- Reference prices or ratios are visible as advisory-only data.
+- Reference prices or ratios are visible as advisory-only data and read as `No es una oferta activa`.
 - Trade signals and future-route placeholders are visible as secondary context.
 - Future Market actions stay disabled and visually secondary.
 - Handoff links to Planet, Construction, Shipyard, Fleets, and Galaxy preserve context.

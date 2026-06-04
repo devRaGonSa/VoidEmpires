@@ -174,7 +174,9 @@ Use it as one shared demo story: `Void Seed Civilization` controls `Aurelia` in 
 
 Expected Market result for screenshot QA:
 
+- canonical route: `/market?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - `Aurelia` loads as the active colony inside `Helios Gate`
+- the first viewport reads as a read-only economy cockpit, not as a transaction console
 - civilization and local reserves are non-zero and derived from the seeded owned-planet stockpile baseline
 - production remains visible for the selected colony
 - advisory reference ratios are present for the seeded resource set
