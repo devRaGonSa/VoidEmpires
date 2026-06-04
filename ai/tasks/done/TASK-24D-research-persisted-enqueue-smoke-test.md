@@ -3,7 +3,7 @@
 ---
 id: TASK-24D
 title: Phase 24D - Research persisted enqueue smoke test
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
