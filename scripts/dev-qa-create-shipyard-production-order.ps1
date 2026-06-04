@@ -114,6 +114,7 @@ if ($ApplySeed) {
     }
 }
 
+Write-Host "Parametros: BaseUrl=$BaseUrl, CivilizationId=$CivilizationId, PlanetId=$PlanetId, ApplySeed=$ApplySeed, SeedProfile=$SeedProfile"
 Write-Host "Reading shipyard state before enqueue..."
 $beforeResponse = Get-ShipyardState
 $beforeShipyard = $beforeResponse.uiState.shipyard
@@ -243,4 +244,4 @@ Write-Host "After resources:  $((Format-DevQaResourceSummary $afterResources).Su
 Write-Host "Before stock:     $($beforeStock.Summary)"
 Write-Host "After stock:      $($afterStock.Summary)"
 Write-Host ""
-Write-Host "This script creates a real persisted row in the Development database. It does not run migrations, delete data, auto-complete due production, or mutate fleet state."
+Write-Host "Nota operativa: esta script crea una fila real en la base Development. No ejecuta migraciones, no borra datos, no completa produccion vencida y no muta estado de Flotas."

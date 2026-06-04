@@ -446,7 +446,7 @@ Expected success:
 
 - profile catalog loads
 - `cockpit-validation` applies twice
-- Construction and Research queue counts print
+- Construction, Research, Shipyard, and Fleet baseline snapshots print
 - resources print or a readable formatting warning is shown
 
 4. Create one Construction order:
@@ -500,10 +500,46 @@ Expected result:
 - manual Shipyard orders are now also covered on this reused-database path: reapply preserves the active orbital production row and does not duplicate seeded completed Shipyard history
 - no destructive reset occurs
 
+7. Create one Shipyard order:
+
+```powershell
+.\scripts\dev-qa-create-shipyard-production-order.ps1 -ApplySeed
+```
+
+Expected success:
+
+- selected orbital asset and payload summary are printed
+- queue counts increase
+- a real `OrderId` is returned
+- local resources decrease immediately
+- local orbital stock remains unchanged immediately after enqueue
+
+Expected controlled no-op:
+
+- repeated runs on a reused database may report that an open orbital production order already exists
+- the helper re-reads Shipyard state, prints the current queue summary, and exits without creating a second order
+
+8. Re-read Fleet state after the Shipyard mutation:
+
+```powershell
+.\scripts\dev-qa-fleet-read-state.ps1
+```
+
+Expected success:
+
+- current group counts, stationed counts, active-transfer counts, and resource-context summaries print
+- the helper stays read-only and does not create movement, transfer, split, merge, or combat state
+
+Expected controlled no-op:
+
+- if no groups are currently visible, the helper explains that the read-state is still valid and no mutation was attempted
+
 Important reminders:
 
 - These scripts create real Development database rows when you run the Construction or Research helpers.
+- The Shipyard helper also creates a real Development database row when enqueue succeeds.
 - Repeated runs may find the queue already occupied and should now report that clearly.
+- Fleet read-state is accepted only as a post-Shipyard read. Stock-to-fleet allocation, new movement, split, merge, combat, and due-processing stay out of this default loop.
 - The scripts do not delete, cancel, or complete existing orders automatically.
 - Do not paste printed console output back into PowerShell as if it were a command.
 

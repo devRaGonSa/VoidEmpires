@@ -65,7 +65,7 @@ Backend-only persisted QA helpers:
 
 - `.\scripts\dev-qa-baseline.ps1`
   - defaults to `http://localhost:5142`
-  - applies `cockpit-validation` twice and prints the current Construction and Research baseline snapshot
+  - applies `cockpit-validation` twice and prints the current Construction, Research, Shipyard, and Fleet baseline snapshots
 - `.\scripts\dev-qa-create-construction-order.ps1`
   - defaults to civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`
   - add `-ApplySeed` to apply `planet-full-validation` before enqueueing one real Construction order
@@ -78,6 +78,7 @@ Backend-only persisted QA helpers:
 - `.\scripts\dev-qa-fleet-read-state.ps1`
   - defaults to civilization `00000000-0000-0000-0000-000000000001`
   - re-reads Fleet UI state only and prints group, stationed, transfer, and resource-context summaries without mutating anything
+- There is intentionally no `.\scripts\dev-qa-create-orbital-group-from-stock.ps1` helper in this block because stock-to-fleet allocation remains excluded from the accepted reused-database QA loop.
 
 All five helpers create or inspect Development-only persisted state. Do not run them against production.
 

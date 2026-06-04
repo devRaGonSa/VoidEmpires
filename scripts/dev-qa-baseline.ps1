@@ -12,7 +12,12 @@ $ErrorActionPreference = "Stop"
 function Invoke-DevGet {
     param([string]$Path)
 
-    Invoke-RestMethod -Method Get -Uri ($BaseUrl.TrimEnd("/") + $Path)
+    try {
+        Invoke-RestMethod -Method Get -Uri ($BaseUrl.TrimEnd("/") + $Path)
+    }
+    catch {
+        throw "GET $Path failed. Ensure the Development backend is running at $BaseUrl. $($_.Exception.Message)"
+    }
 }
 
 function Invoke-DevPost {
@@ -21,11 +26,16 @@ function Invoke-DevPost {
         [object]$Body
     )
 
-    Invoke-RestMethod `
-        -Method Post `
-        -Uri ($BaseUrl.TrimEnd("/") + $Path) `
-        -ContentType "application/json" `
-        -Body ($Body | ConvertTo-Json -Depth 6 -Compress)
+    try {
+        Invoke-RestMethod `
+            -Method Post `
+            -Uri ($BaseUrl.TrimEnd("/") + $Path) `
+            -ContentType "application/json" `
+            -Body ($Body | ConvertTo-Json -Depth 6 -Compress)
+    }
+    catch {
+        throw "POST $Path failed. Ensure the Development backend is running at $BaseUrl. $($_.Exception.Message)"
+    }
 }
 
 function Invoke-DevOptionalGet {
@@ -49,6 +59,7 @@ function Invoke-DevOptionalGet {
     }
 }
 
+Write-Host "Parametros: BaseUrl=$BaseUrl, Profile=$Profile, CivilizationId=$CivilizationId, PlanetId=$PlanetId"
 Write-Host "Checking seed profile catalog..."
 $profilesResponse = Invoke-DevGet "/api/dev/seeds/profiles"
 $profileNames = @($profilesResponse.profiles | ForEach-Object { $_.name })
@@ -169,4 +180,4 @@ if ($null -ne $fleetSnapshot) {
 }
 
 Write-Host ""
-Write-Host "Read-only note: this script applies the documented seed baseline and inspects Construction, Research, Astillero, and Flotas state only. It does not create orders, delete data, or run migrations."
+Write-Host "Nota operativa: esta script aplica el seed documentado y relee el estado de Construction, Research, Astillero y Flotas. Puede insertar o completar minimos del baseline en la base Development, pero no crea ordenes manuales, no borra datos y no ejecuta migraciones."

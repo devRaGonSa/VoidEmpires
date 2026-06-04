@@ -18,6 +18,7 @@ function Invoke-DevGet {
     }
 }
 
+Write-Host "Parametros: BaseUrl=$BaseUrl, CivilizationId=$CivilizationId"
 Write-Host "Reading fleet UI state..."
 $response = Invoke-DevGet "/api/dev/fleets/ui-state?civilizationId=$CivilizationId"
 $uiState = $response.uiState
@@ -72,4 +73,4 @@ else {
 }
 
 Write-Host ""
-Write-Host "This script is read-only. It does not create transfers, create groups, split, merge, cancel, or complete any fleet state."
+Write-Host "Nota operativa: esta script es solo de lectura. No crea transferencias, no crea grupos, no divide, no fusiona, no cancela y no completa ningun estado de Flotas."

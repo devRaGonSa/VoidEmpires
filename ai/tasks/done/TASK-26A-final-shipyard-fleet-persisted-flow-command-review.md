@@ -3,7 +3,7 @@
 ---
 id: TASK-26A
 title: Phase 26A - Final Shipyard and Fleet persisted flow command review
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
