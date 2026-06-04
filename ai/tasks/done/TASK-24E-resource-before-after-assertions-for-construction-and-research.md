@@ -3,7 +3,7 @@
 ---
 id: TASK-24E
 title: Phase 24E - Resource before and after assertions for Construction and Research
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

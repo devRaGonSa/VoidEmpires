@@ -91,6 +91,7 @@ Resource handling:
 
 - Construction does not use `IResourceSpendService`.
 - `PlanetConstructionQueueService` validates affordability directly against the planet stockpile and calls `stockpile.Spend(...)` before saving the order.
+- Current verified rule: Construction deducts the full visible cost immediately when enqueue succeeds. It does not use a separate reservation-only stockpile model.
 
 Scope enforcement:
 
@@ -130,6 +131,7 @@ Resource handling:
 
 - Research does not use `IResourceSpendService`.
 - `ResearchQueueService` validates readiness through `ResearchEnqueueReadinessEvaluator` and then calls `stockpile.Spend(...)` before saving the order.
+- Current verified rule: Research deducts the full visible cost immediately when enqueue succeeds. It does not reserve resources and leave balances unchanged.
 
 Scope enforcement:
 
@@ -191,5 +193,6 @@ Concrete gaps for later tasks:
 - Read from the cockpit-backed endpoint before mutating.
 - Enqueue only actions already marked available by the read model.
 - Refresh from the authoritative read endpoint after mutation.
+- Expect local planet resources to drop immediately after a successful Construction or Research enqueue.
 - Treat any global completion path as out of scope for repeatable cockpit QA.
 - Keep the flow Development-only and backend-authoritative.

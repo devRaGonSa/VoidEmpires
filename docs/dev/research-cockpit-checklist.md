@@ -110,6 +110,7 @@ Then confirm on `/research`:
 - `Confirmar` and `Cancelar` appear before any enqueue mutation.
 - Sending the confirmed order refreshes the queue and updates the catalog from the read model instead of adding optimistic local entries.
 - After one successful enqueue, `Ingenieria planetaria` no longer appears as immediately available and the queue shows one active order.
+- A successful enqueue reduces the visible source-planet reserves immediately by the full research cost; this flow does not leave resources untouched as a reservation-only placeholder.
 - Any generic validation rejection during this guarded enqueue flow is a QA failure, not an acceptable fallback state.
 - The success state can show order details returned by the API without exposing raw payloads in the main cockpit.
 - `Completar vencidas no disponible` stays disabled with a clear placeholder because the current backend route is not scoped safely to this cabin.

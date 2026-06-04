@@ -45,6 +45,7 @@ Then confirm on `/construction`:
 - The current seeded `Aurelia` state shows both available and blocked actions for direct comparison.
 - Preparing an available action opens the guarded confirmation panel with planet, building, action, level, cost, and duration.
 - Sending the confirmed order refreshes the queue and surfaces a readable success message.
+- A successful enqueue reduces the visible planet reserves immediately by the full order cost; this cockpit does not use a reservation-only placeholder rule.
 - Command failures show Spanish guidance in the main panel while technical details remain secondary inside diagnostics.
 - The queue remains readable after refresh, including building name, action, level, timing, and cost.
 - Links toward `Planeta`, `Galaxia`, and `Flotas` preserve the current civilization and planet context.
