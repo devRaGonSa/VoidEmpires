@@ -3,7 +3,7 @@
 ---
 id: TASK-25Y
 title: Phase 25Y - Dev QA script checks include Shipyard and Fleet
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

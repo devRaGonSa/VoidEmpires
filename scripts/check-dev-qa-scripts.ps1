@@ -3,14 +3,42 @@ $ErrorActionPreference = "Stop"
 
 . (Join-Path $PSScriptRoot "dev-qa-common.ps1")
 
-$scriptPaths = @(
-    (Join-Path $PSScriptRoot "dev-qa-common.ps1"),
-    (Join-Path $PSScriptRoot "dev-qa-baseline.ps1"),
-    (Join-Path $PSScriptRoot "dev-qa-create-construction-order.ps1"),
-    (Join-Path $PSScriptRoot "dev-qa-create-research-order.ps1"),
-    (Join-Path $PSScriptRoot "dev-qa-create-shipyard-production-order.ps1"),
-    (Join-Path $PSScriptRoot "dev-qa-fleet-read-state.ps1")
-)
+function Get-ExistingDevQaScriptPaths {
+    $requiredScriptNames = @(
+        "dev-qa-common.ps1",
+        "dev-qa-baseline.ps1",
+        "dev-qa-create-construction-order.ps1",
+        "dev-qa-create-research-order.ps1",
+        "dev-qa-create-shipyard-production-order.ps1",
+        "dev-qa-fleet-read-state.ps1"
+    )
+
+    $optionalScriptNames = @(
+        "dev-qa-create-orbital-group-from-stock.ps1"
+    )
+
+    $paths = New-Object System.Collections.Generic.List[string]
+
+    foreach ($scriptName in $requiredScriptNames) {
+        $scriptPath = Join-Path $PSScriptRoot $scriptName
+        if (-not (Test-Path -LiteralPath $scriptPath)) {
+            throw "Required QA script '$scriptName' was not found."
+        }
+
+        $paths.Add($scriptPath)
+    }
+
+    foreach ($scriptName in $optionalScriptNames) {
+        $scriptPath = Join-Path $PSScriptRoot $scriptName
+        if (Test-Path -LiteralPath $scriptPath) {
+            $paths.Add($scriptPath)
+        }
+    }
+
+    return @($paths)
+}
+
+$scriptPaths = Get-ExistingDevQaScriptPaths
 
 $parseFailures = New-Object System.Collections.Generic.List[string]
 
@@ -124,6 +152,16 @@ if (@($transferSummary).Count -ne 1 -or $transferSummary[0].AssetType -ne "Scout
     throw "Expected fleet transfer summary helper to summarize active transfer rows."
 }
 
+$emptyTransferSummary = Format-DevQaFleetTransferSummary @(
+    [pscustomobject]@{
+        assetType = "ScoutCraft"
+        quantity = 2
+    }
+)
+if (@($emptyTransferSummary).Count -ne 0) {
+    throw "Expected fleet transfer summary helper to ignore groups without an active transfer."
+}
+
 $constructionPayloadSummary = Format-DevQaPayloadSummary ([ordered]@{
     planetId = "00000000-0000-0000-0000-000000000001"
     civilizationId = "00000000-0000-0000-0000-000000000002"
@@ -145,6 +183,18 @@ if (-not (Test-DevQaResponseHasKnownError -ResponseObject $known409Response -Kno
 $known409JsonText = '{"succeeded":false,"orderId":null,"startsAtUtc":null,"endsAtUtc":null,"errors":["Civilization already has an open research order."]}'
 if (-not (Test-DevQaResponseHasKnownError -ResponseObject $null -FallbackText $known409JsonText -KnownErrorFragment "already has an open research order")) {
     throw "Expected known research 409 detection helper to match the current backend JSON body text."
+}
+
+$shipyardOpenOrderResponse = [pscustomobject]@{
+    errors = @("Planet already has an open asset production order.")
+}
+if (-not (Test-DevQaResponseHasKnownError -ResponseObject $shipyardOpenOrderResponse -KnownErrorFragment "open asset production order")) {
+    throw "Expected known shipyard 409 detection helper to match the current backend error."
+}
+
+$shipyardOpenOrderJsonText = '{"succeeded":false,"orderId":null,"startsAtUtc":null,"endsAtUtc":null,"errors":["Planet already has an open asset production order."]}'
+if (-not (Test-DevQaResponseHasKnownError -ResponseObject $null -FallbackText $shipyardOpenOrderJsonText -KnownErrorFragment "open asset production order")) {
+    throw "Expected known shipyard 409 detection helper to match the current backend JSON body text."
 }
 
 Write-Host "Persisted QA PowerShell scripts parsed successfully."
