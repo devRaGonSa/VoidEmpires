@@ -3,7 +3,7 @@
 ---
 id: TASK-20Z-final-cross-cockpit-polish-closure
 title: Final cross-cockpit polish closure
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
