@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 export interface SidebarNavItem {
   label: string;
   to?: string;
+  state?: "implemented" | "future";
 }
 
 interface SidebarNavProps {
@@ -25,19 +26,20 @@ export function SidebarNav({ items }: SidebarNavProps) {
                 item.to === "/galaxy" && location.pathname === "/";
 
               return isActive || shouldHighlightGalaxyAlias
-                ? "sidebar-nav-item sidebar-nav-item-active"
-                : "sidebar-nav-item";
+                ? "sidebar-nav-item sidebar-nav-item-implemented sidebar-nav-item-active"
+                : "sidebar-nav-item sidebar-nav-item-implemented";
             }}
           >
-            {item.label}
+            <span className="sidebar-nav-item-label">{item.label}</span>
           </NavLink>
         ) : (
           <span
             key={item.label}
-            className="sidebar-nav-item sidebar-nav-item-disabled"
+            className="sidebar-nav-item sidebar-nav-item-future"
             aria-disabled="true"
           >
-            {item.label}
+            <span className="sidebar-nav-item-label">{item.label}</span>
+            <small className="sidebar-nav-item-note">Futuro</small>
           </span>
         ),
       )}

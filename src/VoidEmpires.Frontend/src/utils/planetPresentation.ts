@@ -363,10 +363,10 @@ export function getConstructionHandoffModuleInfo(
     return {
       ...route,
       actionCount,
-      statusLabel: actionCount > 0 ? "Solo lectura" : "Proximamente",
+      statusLabel: actionCount > 0 ? "Solo lectura" : "Disponible",
       summary: actionCount > 0
         ? `${actionCount} elementos gestionados en ${route.label}.`
-        : `Sin elementos gestionados para ${route.label} por ahora.`,
+        : `${route.label} sigue disponible aunque no tenga elementos derivados desde Construccion en esta vista.`,
     };
   });
 }

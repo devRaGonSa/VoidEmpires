@@ -221,10 +221,11 @@ select {
 }
 
 .sidebar-nav-item {
-  display: flex;
-  align-items: center;
-  min-height: 40px;
-  padding: 0 14px;
+  display: grid;
+  gap: 2px;
+  align-content: center;
+  min-height: 46px;
+  padding: 8px 14px;
   border-radius: 12px;
   border: 1px solid transparent;
   color: color-mix(in srgb, var(--ve-color-text) 84%, var(--ve-color-muted));
@@ -234,15 +235,36 @@ select {
     color 120ms ease;
 }
 
+.sidebar-nav-item-label {
+  font-weight: 600;
+}
+
+.sidebar-nav-item-note {
+  color: color-mix(in srgb, var(--ve-color-text) 56%, var(--ve-color-muted));
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sidebar-nav-item-implemented {
+  border-color: color-mix(in srgb, var(--ve-color-border) 28%, transparent);
+  background: color-mix(in srgb, var(--ve-color-panel) 22%, transparent);
+}
+
 .sidebar-nav-item-active {
   border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 34%, transparent);
   background: color-mix(in srgb, var(--ve-color-accent-blue) 16%, transparent);
   color: #f3f8ff;
 }
 
-.sidebar-nav-item-disabled {
+.sidebar-nav-item-active .sidebar-nav-item-note {
+  color: color-mix(in srgb, white 82%, var(--ve-color-accent-cyan));
+}
+
+.sidebar-nav-item-future {
   color: color-mix(in srgb, var(--ve-color-muted) 72%, transparent);
-  background: color-mix(in srgb, var(--ve-color-panel) 34%, transparent);
+  background: color-mix(in srgb, var(--ve-color-panel) 24%, transparent);
+  border-color: color-mix(in srgb, var(--ve-color-border) 18%, transparent);
   cursor: not-allowed;
 }
 

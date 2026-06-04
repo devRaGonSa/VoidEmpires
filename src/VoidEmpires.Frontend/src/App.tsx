@@ -14,16 +14,15 @@ import { specializedPlanetModuleRoutes } from "./utils/planetPresentation";
 import { buildGalaxyUrl } from "./utils/routeUrls";
 
 const sidebarItems = [
-  { label: "Resumen" },
-  { label: "Planeta", to: "/planet" },
-  { label: "Construccion", to: "/construction" },
-  ...specializedPlanetModuleRoutes.map((route) => ({ label: route.label, to: route.path })),
-  { label: "Flotas", to: "/fleets" },
-  { label: "Galaxia", to: buildGalaxyUrl() },
-  { label: "Espionaje" },
-  { label: "Alianza" },
-  { label: "Mercado" },
-  { label: "Ranking" },
+  { label: "Galaxia", to: buildGalaxyUrl(), state: "implemented" },
+  { label: "Planeta", to: "/planet", state: "implemented" },
+  { label: "Construccion", to: "/construction", state: "implemented" },
+  ...specializedPlanetModuleRoutes.map((route) => ({ label: route.label, to: route.path, state: "implemented" as const })),
+  { label: "Flotas", to: "/fleets", state: "implemented" },
+  { label: "Espionaje", state: "future" },
+  { label: "Alianza", state: "future" },
+  { label: "Mercado", state: "future" },
+  { label: "Ranking", state: "future" },
 ] as const;
 
 const resources = [

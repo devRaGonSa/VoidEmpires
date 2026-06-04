@@ -3,7 +3,7 @@
 ---
 id: TASK-20V-sidebar-and-module-list-polish
 title: Sidebar and module list polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

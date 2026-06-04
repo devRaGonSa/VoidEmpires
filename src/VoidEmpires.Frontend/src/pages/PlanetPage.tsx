@@ -923,7 +923,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                       label: module.label,
                       path: buildSpecializedModuleUrl(module.module, activeCivilizationId, planet?.planetId),
                       title: module.title,
-                      status: module.module === "Shipyard" || module.module === "Research" ? "Disponible" : "Proximamente",
+                      status: "Disponible",
                       purpose: module.purpose,
                     })),
                     {
