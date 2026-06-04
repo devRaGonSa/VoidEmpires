@@ -53,6 +53,7 @@ const marketActionCatalog: readonly MarketLabelEntry[] = [
   { key: "market.route.future", label: "Crear ruta comercial no disponible" },
   { key: "market.buy.future", label: "Compra no disponible en esta version" },
   { key: "market.sell.future", label: "Venta no disponible en esta version" },
+  { key: "market.offer.future", label: "Crear oferta no disponible en esta version" },
   { key: "market.transfer.future", label: "Transferencia de recursos no disponible" },
   { key: "market.auction.future", label: "Subasta no disponible en esta version" },
 ] as const;

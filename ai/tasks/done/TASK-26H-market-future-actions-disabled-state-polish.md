@@ -3,7 +3,7 @@
 ---
 id: TASK-26H
 title: Phase 26H - Market future actions disabled state polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

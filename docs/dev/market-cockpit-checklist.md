@@ -119,6 +119,15 @@ Trade-signal and route-placeholder content should now keep these cues visible:
 
 Treat any route placeholder that reads like a builder, a transfer setup, or a primary command surface as a regression for this block.
 
+## Task 26H disabled future-actions focus
+
+Future Market operations should now keep these disabled-state cues visible:
+
+- `No disponible en esta version.`
+- `Solo lectura en esta cabina.`
+
+Treat any future Market operation card that still reads like a clickable primary command, a blocked CTA, or a near-future execution step as a regression for this block.
+
 ## Seeded QA scenario
 
 Use `cockpit-validation` for the richer deterministic Market QA baseline:

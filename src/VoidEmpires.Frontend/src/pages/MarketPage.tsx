@@ -732,12 +732,13 @@ export function MarketPage() {
                     </div>
                     <UiBadge tone="warn">No disponible</UiBadge>
                   </div>
-                  <button type="button" className="market-future-action-button" disabled>
-                    No disponible en esta version
-                  </button>
+                  <div className="market-future-action-state" aria-hidden="true">
+                    Solo lectura en esta cabina
+                  </div>
                   <ul className="stack-list compact-list">
                     <li>No disponible en esta version.</li>
                     <li>Esta cabina no ejecuta compras ni ventas.</li>
+                    <li>Solo lectura en esta cabina.</li>
                     <li>La operacion queda visible como referencia futura, pero no se puede confirmar aqui.</li>
                   </ul>
                 </section>
