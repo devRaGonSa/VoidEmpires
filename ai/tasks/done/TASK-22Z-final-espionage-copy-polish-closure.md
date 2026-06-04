@@ -3,7 +3,7 @@
 ---
 id: TASK-22Z
 title: Phase 22Z - Final Espionage copy polish closure
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
