@@ -3,7 +3,7 @@
 ---
 id: TASK-26B
 title: Phase 26B - Final Shipyard and Fleet persisted flow closure
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
