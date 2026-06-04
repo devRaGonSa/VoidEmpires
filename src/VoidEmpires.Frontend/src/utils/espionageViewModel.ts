@@ -43,6 +43,15 @@ export interface IntelligenceSystemTargetGroup {
   signals: IntelligenceSignalViewModel[];
 }
 
+export interface PassiveSignalEntryViewModel {
+  id: string;
+  title: string;
+  systemLabel: string;
+  summary: string;
+  statusLabel: string;
+  handoffLabel: string;
+}
+
 export interface EspionageActionAvailability {
   key: string;
   label: string;
@@ -60,6 +69,7 @@ export interface EspionageViewModel {
     passiveSignalCount: number;
   };
   groups: IntelligenceSystemTargetGroup[];
+  passiveSignalEntries: PassiveSignalEntryViewModel[];
   recommendedTarget: IntelligenceTargetViewModel | null;
   futureActions: EspionageActionAvailability[];
   diagnostics: {
@@ -67,6 +77,50 @@ export interface EspionageViewModel {
     technical: readonly string[];
   };
   limitations: readonly string[];
+}
+
+function getSignalTitle(signal: IntelligenceSignalViewModel) {
+  switch (signal.label) {
+    case "SensorProfile":
+      return "Perfil de sensores observado";
+    case "DetectionCoverage":
+      return "Cobertura de deteccion observada";
+    case "TransferSignal":
+      return "Trayectoria orbital observada";
+    default:
+      return "Senal observada";
+  }
+}
+
+function buildPassiveSignalEntries(
+  groups: readonly IntelligenceSystemTargetGroup[],
+  targets: readonly IntelligenceTargetViewModel[],
+): PassiveSignalEntryViewModel[] {
+  const signalEntries = groups.flatMap((group) =>
+    group.signals.map((signal) => ({
+      id: `${group.systemId}-${signal.planetId ?? signal.label}-${signal.summary}`,
+      title: getSignalTitle(signal),
+      systemLabel: signal.systemLabel,
+      summary: signal.summary,
+      statusLabel: signal.planetId ? "Lectura local" : "Lectura de sistema",
+      handoffLabel: signal.planetId ? "Galaxia -> Planeta" : "Galaxia",
+    })),
+  );
+
+  if (signalEntries.length > 0) {
+    return signalEntries;
+  }
+
+  return targets
+    .filter((target) => target.hasPassiveSignals)
+    .map((target) => ({
+      id: `${target.systemId}-${target.planetId ?? target.kind}-passive`,
+      title: "Lectura pasiva derivada",
+      systemLabel: target.systemLabel,
+      summary: target.coverageLabel,
+      statusLabel: "Contexto reutilizado",
+      handoffLabel: target.planetId ? "Galaxia -> Planeta" : "Galaxia",
+    }));
 }
 
 function mapTarget(target: IntelligenceTargetDto): IntelligenceTargetViewModel {
@@ -180,11 +234,13 @@ export function mapEspionageUiStateToViewModel(state: EspionageUiStateDto): Espi
   );
   const targetBySystemId = new Map(targets.map((target) => [target.systemId, target] as const));
   const signals = state.passiveSignals.map((signal) => mapSignal(signal, targetByPlanetId, targetBySystemId));
+  const groups = groupIntelTargetsBySystem(targets, signals);
 
   return {
     civilizationId: state.civilizationId,
     summary: { ...state.overview },
-    groups: groupIntelTargetsBySystem(targets, signals),
+    groups,
+    passiveSignalEntries: buildPassiveSignalEntries(groups, targets),
     recommendedTarget: selectRecommendedIntelTarget(targets, state.recommendedFocus),
     futureActions: state.futureActions.map(mapAction),
     diagnostics: {

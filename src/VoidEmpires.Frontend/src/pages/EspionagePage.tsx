@@ -511,6 +511,48 @@ export function EspionagePage() {
         </UiCard>
       ) : null}
 
+      {viewModel ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Senales observadas</p>
+              <h3>Lecturas recientes</h3>
+              <p>Estas pistas reutilizan cobertura pasiva ya visible en otras cabinas. No implican seguimiento en tiempo real ni vigilancia activa.</p>
+            </div>
+            <UiBadge tone={viewModel.passiveSignalEntries.length > 0 ? "neutral" : "warn"}>
+              {viewModel.passiveSignalEntries.length > 0 ? `${viewModel.passiveSignalEntries.length} lecturas` : "Sin lecturas"}
+            </UiBadge>
+          </div>
+
+          {viewModel.passiveSignalEntries.length > 0 ? (
+            <div className="espionage-signal-grid">
+              {viewModel.passiveSignalEntries.map((entry) => (
+                <article key={entry.id} className="espionage-target-card espionage-target-card-neutral">
+                  <div className="espionage-target-card-head">
+                    <div>
+                      <p className="eyebrow">Lectura pasiva</p>
+                      <h5>{entry.title}</h5>
+                      <p className="espionage-target-subtitle">{entry.systemLabel}</p>
+                    </div>
+                    <UiBadge>{entry.statusLabel}</UiBadge>
+                  </div>
+                  <p className="figma-panel-note">{entry.summary}</p>
+                  <div className="figma-data-list espionage-data-list">
+                    <div className="figma-data-row"><span>Destino sugerido</span><strong>{entry.handoffLabel}</strong></div>
+                    <div className="figma-data-row"><span>Estado</span><strong>{entry.statusLabel}</strong></div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="espionage-empty-state">
+              <strong>No hay lecturas recientes para este contexto.</strong>
+              <p>La cabina seguira mostrando objetivos y niveles de certeza, pero no fabricara un historial cuando la lectura actual no lo ofrece.</p>
+            </div>
+          )}
+        </UiCard>
+      ) : null}
+
       {viewModel?.diagnostics.technical.length ? (
         <details className="technical-disclosure">
           <summary>

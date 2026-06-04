@@ -1565,6 +1565,7 @@ select {
 
 .espionage-catalog-grid,
 .espionage-legend-grid,
+.espionage-signal-grid,
 .espionage-target-grid,
 .espionage-system-list,
 .espionage-data-list {
@@ -1574,11 +1575,13 @@ select {
 
 .espionage-catalog-grid,
 .espionage-legend-grid,
+.espionage-signal-grid,
 .espionage-system-list {
   margin-top: 14px;
 }
 
 .espionage-legend-grid,
+.espionage-signal-grid,
 .espionage-target-grid,
 .espionage-system-list {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -1640,6 +1643,21 @@ select {
   border-top: 1px dashed color-mix(in srgb, var(--ve-color-border) 34%, transparent);
   color: color-mix(in srgb, var(--ve-color-text) 76%, var(--ve-color-muted));
   font-size: 0.82rem;
+}
+
+.espionage-empty-state {
+  display: grid;
+  gap: var(--ve-space-2);
+  margin-top: 14px;
+  padding: 18px;
+  border-radius: var(--ve-radius-md);
+  border: 1px dashed color-mix(in srgb, var(--ve-color-border) 48%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 56%, transparent);
+}
+
+.espionage-empty-state strong,
+.espionage-empty-state p {
+  margin: 0;
 }
 
 @media (max-width: 1440px) {
