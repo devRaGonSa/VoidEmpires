@@ -465,6 +465,51 @@ export function MarketPage() {
             </div>
           </UiCard>
 
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Referencias de intercambio</p>
+                <h3>Ratios orientativos</h3>
+                <p>Estas comparaciones reutilizan referencias deterministas de la cabina y no representan ofertas activas ni operaciones confirmables.</p>
+              </div>
+              <UiBadge tone="warn">Solo lectura</UiBadge>
+            </div>
+            <p className="figma-panel-note">
+              Mercado muestra una referencia de intercambio para lectura rapida. Ningun ratio de esta seccion ejecuta compra, venta o traslado.
+            </p>
+            <div className="readiness-grid">
+              {market.referenceComparisons.length > 0 ? market.referenceComparisons.map((comparison) => (
+                <section key={comparison.key} className="subpanel figma-subpanel">
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Ratio orientativo</p>
+                      <h4>{comparison.pairLabel}</h4>
+                    </div>
+                    <UiBadge>{comparison.ratioLabel}</UiBadge>
+                  </div>
+                  <div className="figma-data-list">
+                    <div className="figma-data-row"><span>Referencia de intercambio</span><strong>{comparison.ratioLabel}</strong></div>
+                    <div className="figma-data-row"><span>Lectura</span><strong>{comparison.advisoryLabel}</strong></div>
+                    <div className="figma-data-row"><span>Operacion</span><strong>{comparison.executionLabel}</strong></div>
+                  </div>
+                </section>
+              )) : (
+                <section className="subpanel figma-subpanel">
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Sin comparativas</p>
+                      <h4>No hay ratios visibles</h4>
+                    </div>
+                    <UiBadge tone="warn">Referencia ausente</UiBadge>
+                  </div>
+                  <p className="figma-panel-note">
+                    La cabina no recibio suficientes referencias deterministas para construir comparaciones seguras en esta fase.
+                  </p>
+                </section>
+              )}
+            </div>
+          </UiCard>
+
           <details className="technical-disclosure">
             <summary>
               <div>

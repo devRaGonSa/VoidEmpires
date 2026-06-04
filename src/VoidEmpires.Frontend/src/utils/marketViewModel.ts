@@ -73,6 +73,14 @@ export interface MarketRoutePlaceholder {
   reasonLabel: string;
 }
 
+export interface MarketReferenceComparison {
+  key: string;
+  pairLabel: string;
+  ratioLabel: string;
+  advisoryLabel: string;
+  executionLabel: string;
+}
+
 export interface MarketDiagnostics {
   playerFacing: readonly string[];
   technical: readonly string[];
@@ -110,6 +118,7 @@ export interface MarketCockpit {
   references: MarketReferencePrice[];
   signals: MarketSignal[];
   futureActions: MarketFutureAction[];
+  referenceComparisons: MarketReferenceComparison[];
   routePlaceholders: MarketRoutePlaceholder[];
   logistics: MarketCockpitDto["logistics"];
   summary: MarketEconomySummary;
@@ -369,6 +378,7 @@ function mapMarketContext(market: MarketCockpitDto, errors: readonly string[]): 
   const references = mapReferences(market.referenceRatios);
   const signals = mapSignals(market.signals);
   const futureActions = mapFutureActions(market.futureActions);
+  const referenceComparisons = buildMarketReferenceComparisons(references);
   const routePlaceholders = futureActions
     .filter((action) => action.actionKey.includes("route"))
     .map((action) => ({
@@ -388,6 +398,7 @@ function mapMarketContext(market: MarketCockpitDto, errors: readonly string[]): 
     references,
     signals,
     futureActions,
+    referenceComparisons,
     routePlaceholders,
     logistics: market.logistics,
     summary: {
@@ -411,6 +422,33 @@ function mapMarketContext(market: MarketCockpitDto, errors: readonly string[]): 
   cockpit.summary.recommendedFocus = selectRecommendedMarketFocus(cockpit);
   cockpit.summary.primaryActionLabel = getMarketPrimaryAction(cockpit);
   return cockpit;
+}
+
+export function buildMarketReferenceComparisons(
+  references: readonly MarketReferencePrice[],
+): MarketReferenceComparison[] {
+  const pairs: Array<[string, string]> = [
+    ["Metal", "Crystal"],
+    ["Metal", "Gas"],
+    ["Crystal", "Gas"],
+    ["Credits", "Metal"],
+  ];
+
+  return pairs.flatMap(([leftResource, rightResource]) => {
+    const left = references.find((entry) => entry.resourceType === leftResource);
+    const right = references.find((entry) => entry.resourceType === rightResource);
+    if (!left || !right || right.advisoryRatio === 0) {
+      return [];
+    }
+
+    return [{
+      key: `${leftResource}-${rightResource}`,
+      pairLabel: `${left.label} <-> ${right.label}`,
+      ratioLabel: formatMarketRatio(left.advisoryRatio / right.advisoryRatio),
+      advisoryLabel: "Precio no ejecutable",
+      executionLabel: "Solo lectura",
+    }];
+  });
 }
 
 export function mapMarketUiStateToViewModel(state: MarketUiStateDto): MarketUiState {
