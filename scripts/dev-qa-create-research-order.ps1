@@ -9,6 +9,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "dev-qa-common.ps1")
 
 function Invoke-DevGet {
     param([string]$Path)
@@ -54,27 +55,6 @@ function Get-ResearchState {
 
 function Get-PlanetState {
     Invoke-DevGet "/api/dev/planets/ui-state?civilizationId=$CivilizationId&planetId=$PlanetId"
-}
-
-function New-ResourceMap {
-    param([object[]]$Rows)
-
-    $map = @{}
-    foreach ($row in @($Rows)) {
-        $map["$($row.resourceType)"] = [decimal]$row.quantity
-    }
-
-    return $map
-}
-
-function Format-ResourceSummary {
-    param([hashtable]$Map)
-
-    if ($Map.Count -eq 0) {
-        return "none"
-    }
-
-    ($Map.Keys | Sort-Object | ForEach-Object { "{0}={1}" -f $_, $Map[$_] }) -join ", "
 }
 
 function Format-ResourceDelta {
@@ -123,6 +103,11 @@ if ($null -eq $beforePlanet) {
 
 $availableHints = @($beforeResearch.technologyHints | Where-Object { $_.canEnqueue -and $null -ne $_.enqueueCommand })
 if ($availableHints.Count -eq 0) {
+    $openQueueCount = Get-DevQaOpenQueueCount $beforeResearch.queue
+    if ($openQueueCount -gt 0) {
+        throw "No available research hints were found because the research queue is already occupied. OpenQueueItems=$openQueueCount VisibleQueueItems=$(@($beforeResearch.queue).Count)"
+    }
+
     throw "No available research hints were found for civilization $CivilizationId on planet $PlanetId."
 }
 
@@ -141,9 +126,9 @@ else {
 
 $command = $selectedHint.enqueueCommand
 $requestedAtUtc = [DateTime]::UtcNow
-$beforeResources = New-ResourceMap $beforePlanet.stockpile
+$beforeResources = (Get-DevQaResourceMap $beforePlanet.stockpile).Map
 $beforeQueueCount = @($beforeResearch.queue).Count
-$beforeOpenQueueCount = @($beforeResearch.queue | Where-Object { $_.status -in @("Pending", "Active") }).Count
+$beforeOpenQueueCount = Get-DevQaOpenQueueCount $beforeResearch.queue
 
 Write-Host "Creating a real persisted research order..."
 $enqueueResponse = Invoke-DevPost $command.route @{
@@ -165,9 +150,9 @@ $afterResearch = $afterResearchResponse.uiState
 Write-Host "Reading planet state after enqueue..."
 $afterPlanetResponse = Get-PlanetState
 $afterPlanet = $afterPlanetResponse.uiState.planet
-$afterResources = New-ResourceMap $afterPlanet.stockpile
+$afterResources = (Get-DevQaResourceMap $afterPlanet.stockpile).Map
 $afterQueueCount = @($afterResearch.queue).Count
-$afterOpenQueueCount = @($afterResearch.queue | Where-Object { $_.status -in @("Pending", "Active") }).Count
+$afterOpenQueueCount = Get-DevQaOpenQueueCount $afterResearch.queue
 
 Write-Host ""
 Write-Host "Real persisted research order created."
@@ -197,7 +182,7 @@ Write-Host "Resource delta:"
 Format-ResourceDelta -Before $beforeResources -After $afterResources | Format-Table -AutoSize
 
 Write-Host ""
-Write-Host "Before resources: $(Format-ResourceSummary $beforeResources)"
-Write-Host "After resources:  $(Format-ResourceSummary $afterResources)"
+Write-Host "Before resources: $((Format-DevQaResourceSummary $beforeResources).Summary)"
+Write-Host "After resources:  $((Format-DevQaResourceSummary $afterResources).Summary)"
 Write-Host ""
 Write-Host "This script creates a real persisted row in the Development database. It does not run migrations, delete data, or reset queues."

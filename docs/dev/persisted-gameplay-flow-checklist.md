@@ -26,6 +26,7 @@ Repeatable backend-only baseline helper:
 - Run `.\scripts\dev-qa-baseline.ps1` to verify the seed catalog, apply `cockpit-validation` twice, and print the current Construction/Planet and Research baseline snapshot before creating any real orders.
 - Run `.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed` to apply a deterministic Construction seed, enqueue one real Construction order through the dev API, and print queue plus stockpile deltas from the authoritative read model.
 - Run `.\scripts\dev-qa-create-research-order.ps1 -ApplySeed` to apply a deterministic Research seed, enqueue one real Research order through the dev API using backend-provided command metadata, and print queue plus stockpile deltas.
+- Run `.\scripts\check-dev-qa-scripts.ps1` to parser-check the persisted QA PowerShell helpers and run lightweight local formatting checks without requiring the backend.
 
 Shared helper defaults:
 
@@ -70,6 +71,9 @@ What to confirm:
 - Applying the seed twice succeeds.
 - Construction and Research state load for civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`.
 - The baseline output shows current queue counts before you create any new real order.
+- Construction resources come from `uiState.planet.stockpile` rows shaped as `resourceType + quantity`, not `resourceType + amount`.
+- Research availability comes from `uiState.technologyHints`, and Research queue counts come from `uiState.queue`.
+- If resource formatting cannot recognize the current DTO shape, the script now prints a warning instead of crashing.
 
 ### 3. Create one real Construction order
 
@@ -97,6 +101,7 @@ What failure looks like:
 
 - The helper fails clearly if the backend is unreachable.
 - A conflict response prints backend errors such as `Planet already has an open construction order.` or `Planet is not owned by the requesting civilization.`
+- If no available Construction action exists, the helper prints the queue counts so you can see whether the planet is already occupied.
 - No cleanup or destructive reset runs automatically after a failure.
 
 ### 4. Create one real Research order
@@ -125,6 +130,7 @@ What failure looks like:
 
 - The helper fails clearly if the backend is unreachable.
 - A conflict response prints backend errors such as `Civilization already has an open research order.` or `Planet is not owned by the requesting civilization.`
+- If no available research exists because the queue is already occupied, the helper now says so explicitly instead of failing with a vague empty-selection message.
 - No cleanup or destructive reset runs automatically after a failure.
 
 ### 5. Re-read authoritative state
@@ -170,6 +176,36 @@ Construction persisted mutation and read surfaces: `POST /api/dev/buildings/cons
 Research persisted mutation and read surfaces: `POST /api/dev/research/orders/enqueue`, `POST /api/dev/research/orders/complete-due`, `GET /api/dev/research/ui-state?civilizationId={id}&planetId={id}`
 
 Seed/bootstrap surfaces used by the safe QA loop: `POST /api/dev/seeds/apply`, `GET /api/dev/seeds/profiles`
+
+## Runtime contract notes for PowerShell helpers
+
+Current audited object paths:
+
+- Construction resources or reserves:
+  - `/api/dev/planets/ui-state`
+  - path: `uiState.planet.stockpile`
+  - row shape: `resourceType + quantity`
+- Construction queue count:
+  - path: `uiState.planet.constructionQueue`
+- Construction available actions:
+  - path: `uiState.planet.constructionActions`
+  - available rows currently expose `availabilityStatus = "Available"`
+- Research resources used by the helper:
+  - the Research script re-reads `/api/dev/planets/ui-state`
+  - path: `uiState.planet.stockpile`
+  - row shape: `resourceType + quantity`
+- Research queue count:
+  - `/api/dev/research/ui-state`
+  - path: `uiState.queue`
+- Research available actions:
+  - path: `uiState.technologyHints`
+  - available rows currently expose `canEnqueue = true` and an `enqueueCommand`
+
+Accepted script behavior:
+
+- The scripts should prefer authoritative backend fields such as `action`, `buildingType`, `researchType`, and `enqueueCommand`.
+- The scripts may format resources from multiple shapes defensively, but they must not hide real HTTP failures.
+- If resource formatting cannot recognize the current shape, the script should print a readable warning instead of throwing.
 
 ## Dependency map
 
@@ -335,6 +371,109 @@ Concrete gaps for later tasks:
 - No persisted end-to-end Research smoke test currently proves the same loop through the real endpoint and real database outside the UI-state endpoint test fixture.
 - No current test asserts before/after stockpile deltas for both loops in one QA-focused scenario document.
 - No current test fences the global `complete-due` routes with cockpit-specific scoping, so those routes must remain out of the accepted manual flow.
+
+## PowerShell script checks
+
+Parser and lightweight helper validation:
+
+```powershell
+.\scripts\check-dev-qa-scripts.ps1
+```
+
+What this check covers:
+
+- PowerShell parsing for the persisted QA helper scripts
+- resource formatting for row-based `amount` shapes
+- resource formatting for flat `credits/metal/crystal/gas` objects
+- unknown-shape fallback behavior
+
+What this check does not cover:
+
+- live backend runtime success
+- actual HTTP responses
+- queue mutation or persistence
+
+## Final concise runtime checklist
+
+1. Start the backend:
+
+```powershell
+dotnet run --project .\src\VoidEmpires.Web
+```
+
+2. Parser-check the QA scripts:
+
+```powershell
+.\scripts\check-dev-qa-scripts.ps1
+```
+
+3. Capture a seeded baseline:
+
+```powershell
+.\scripts\dev-qa-baseline.ps1
+```
+
+Expected success:
+
+- profile catalog loads
+- `cockpit-validation` applies twice
+- Construction and Research queue counts print
+- resources print or a readable formatting warning is shown
+
+4. Create one Construction order:
+
+```powershell
+.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed
+```
+
+Expected success:
+
+- selected action is printed
+- queue counts increase
+- a real `OrderId` is returned
+
+Expected controlled failure:
+
+- queue already occupied
+- no available action
+- backend conflict with a real message
+
+5. Create one Research order:
+
+```powershell
+.\scripts\dev-qa-create-research-order.ps1 -ApplySeed
+```
+
+Expected success:
+
+- selected research is printed
+- queue counts increase
+- a real `OrderId` is returned
+
+Expected controlled failure:
+
+- queue already occupied
+- no available research hint
+- backend conflict with a real message
+
+6. Reapply `cockpit-validation` and baseline again:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"cockpit-validation"}'
+.\scripts\dev-qa-baseline.ps1
+```
+
+Expected result:
+
+- the baseline still runs
+- pre-existing manual orders remain present
+- no destructive reset occurs
+
+Important reminders:
+
+- These scripts create real Development database rows when you run the Construction or Research helpers.
+- Repeated runs may find the queue already occupied and should now report that clearly.
+- Do not paste printed console output back into PowerShell as if it were a command.
 
 ## Accepted QA checklist for this block
 

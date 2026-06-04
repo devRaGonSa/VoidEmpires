@@ -1,0 +1,65 @@
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+. (Join-Path $PSScriptRoot "dev-qa-common.ps1")
+
+$scriptPaths = @(
+    (Join-Path $PSScriptRoot "dev-qa-common.ps1"),
+    (Join-Path $PSScriptRoot "dev-qa-baseline.ps1"),
+    (Join-Path $PSScriptRoot "dev-qa-create-construction-order.ps1"),
+    (Join-Path $PSScriptRoot "dev-qa-create-research-order.ps1")
+)
+
+$parseFailures = New-Object System.Collections.Generic.List[string]
+
+foreach ($scriptPath in $scriptPaths) {
+    $tokens = $null
+    $errors = $null
+    [void][System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$tokens, [ref]$errors)
+
+    if ($errors.Count -gt 0) {
+        foreach ($error in $errors) {
+            $parseFailures.Add("${scriptPath}:$($error.Extent.StartLineNumber): $($error.Message)")
+        }
+    }
+}
+
+if ($parseFailures.Count -gt 0) {
+    throw "PowerShell parser errors were found:`n$($parseFailures -join [Environment]::NewLine)"
+}
+
+function Assert-ResourceSummaryContains {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$InputObject,
+        [Parameter(Mandatory = $true)]
+        [string[]]$ExpectedFragments
+    )
+
+    $summary = Format-DevQaResourceSummary $InputObject
+    foreach ($fragment in $ExpectedFragments) {
+        if ($summary.Summary -notlike "*$fragment*") {
+            throw "Expected resource summary to contain '$fragment' but got '$($summary.Summary)'."
+        }
+    }
+}
+
+Assert-ResourceSummaryContains -InputObject @(
+    [pscustomobject]@{ resourceType = "Credits"; amount = 1250 },
+    [pscustomobject]@{ resourceType = "Metal"; amount = 40 }
+) -ExpectedFragments @("Credits=1250", "Metal=40")
+
+Assert-ResourceSummaryContains -InputObject ([pscustomobject]@{
+    credits = 1000
+    metal = 80
+    crystal = 60
+    gas = 20
+}) -ExpectedFragments @("credits=1000", "metal=80", "crystal=60", "gas=20")
+
+$unknownShape = Format-DevQaResourceSummary ([pscustomobject]@{ unexpected = 1 })
+if ($unknownShape.Summary -notlike "warning:*") {
+    throw "Expected unknown resource shapes to return a warning summary."
+}
+
+Write-Host "Persisted QA PowerShell scripts parsed successfully."
+Write-Host "Resource-format helper checks passed."

@@ -45,7 +45,9 @@ Current frontend cockpit baseline:
 - The real persisted Development enqueue path is now covered for both Construction and Research through direct endpoint tests, negative-path coverage, resource-deduction checks, and cross-cockpit read-model regression coverage.
 - `cockpit-validation` is now verified to preserve manual QA-created Construction and Research orders created through the supported dev endpoints while still avoiding duplicate seeded history rows.
 - Backend-only QA helpers now exist for baseline capture plus one real Construction or Research enqueue without manual SQL: `scripts/dev-qa-baseline.ps1`, `scripts/dev-qa-create-construction-order.ps1`, and `scripts/dev-qa-create-research-order.ps1`.
+- The persisted QA PowerShell helpers are now hardened against the real Development DTO shapes: the shared script helpers accept `resourceType + quantity`, `resourceType + amount`, flat stockpile objects, and unknown-shape fallback warnings, and `dev-qa-baseline.ps1` no longer crashes on the outdated direct `.amount` assumption.
 - The persisted-flow runbook is documented in `docs/dev/persisted-gameplay-flow-checklist.md`, including backend start, seed apply, baseline capture, real enqueue commands, expected success/failure interpretation, and reseed-preservation checks.
+- A lightweight local PowerShell check now exists at `scripts/check-dev-qa-scripts.ps1` to parser-check the persisted QA helpers and validate the resource-format fallback behavior without requiring the backend to be running.
 - Richer development seed profiles now reserve deterministic high sequence ranges for their completed queue-history rows, preventing runtime collisions when `cockpit-validation` is applied over reused development databases that already contain manual QA queue activity.
 - The development seed apply endpoint now converts persisted-state write conflicts into `409 Conflict` responses with diagnostic details instead of surfacing an unhandled runtime failure.
 - The current frontend boundary model is documented in `docs/dev/planet-module-boundaries.md`.
@@ -307,6 +309,7 @@ Current validated baseline after Phase 24P:
 - tests: `dotnet test --no-build` succeeded with `664` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
 - frontend note: Vite still reports the existing chunk-size warning around `500 kB`, but the production build completes successfully
+- persisted QA scripts note: the runtime-contract hardening in the follow-up script block is intended to keep helper output aligned with the real DTO shape; this session can report separately whether the scripts were parser-checked only or exercised against a live backend
 - Manual visual QA for the accepted cross-cockpit demo flow remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; the Browser runtime was unavailable in this session, so final screenshot-style acceptance is still user-driven.
 - Market visual QA remains documented and user-driven through the seeded browser checklists; the persisted-flow hardening block did not expand Market into transaction gameplay or production behavior.
 

@@ -9,6 +9,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "dev-qa-common.ps1")
 
 function Invoke-DevGet {
     param([string]$Path)
@@ -52,27 +53,6 @@ function Get-PlanetState {
     Invoke-DevGet "/api/dev/planets/ui-state?civilizationId=$CivilizationId&planetId=$PlanetId"
 }
 
-function New-ResourceMap {
-    param([object[]]$Rows)
-
-    $map = @{}
-    foreach ($row in @($Rows)) {
-        $map["$($row.resourceType)"] = [decimal]$row.quantity
-    }
-
-    return $map
-}
-
-function Format-ResourceSummary {
-    param([hashtable]$Map)
-
-    if ($Map.Count -eq 0) {
-        return "none"
-    }
-
-    ($Map.Keys | Sort-Object | ForEach-Object { "{0}={1}" -f $_, $Map[$_] }) -join ", "
-}
-
 function Format-ResourceDelta {
     param(
         [hashtable]$Before,
@@ -113,7 +93,8 @@ if ($null -eq $beforePlanet) {
 
 $availableActions = @($beforePlanet.constructionActions | Where-Object { $_.availabilityStatus -eq "Available" })
 if ($availableActions.Count -eq 0) {
-    throw "No available construction actions were found for planet $PlanetId."
+    $openQueueCount = Get-DevQaOpenQueueCount $beforePlanet.constructionQueue
+    throw "No available construction actions were found for planet $PlanetId. OpenQueueItems=$openQueueCount VisibleQueueItems=$(@($beforePlanet.constructionQueue).Count)"
 }
 
 $selectedAction = if ($BuildingType) {
@@ -130,9 +111,9 @@ else {
 }
 
 $requestedAtUtc = [DateTime]::UtcNow
-$beforeResources = New-ResourceMap $beforePlanet.stockpile
+$beforeResources = (Get-DevQaResourceMap $beforePlanet.stockpile).Map
 $beforeQueueCount = @($beforePlanet.constructionQueue).Count
-$beforeOpenQueueCount = @($beforePlanet.constructionQueue | Where-Object { $_.status -in @("Pending", "Active") }).Count
+$beforeOpenQueueCount = Get-DevQaOpenQueueCount $beforePlanet.constructionQueue
 
 Write-Host "Creating a real persisted construction order..."
 $enqueueResponse = Invoke-DevPost "/api/dev/buildings/construction-orders/enqueue" @{
@@ -151,9 +132,9 @@ if (-not $enqueueResponse.succeeded) {
 Write-Host "Reading planet state after enqueue..."
 $afterResponse = Get-PlanetState
 $afterPlanet = $afterResponse.uiState.planet
-$afterResources = New-ResourceMap $afterPlanet.stockpile
+$afterResources = (Get-DevQaResourceMap $afterPlanet.stockpile).Map
 $afterQueueCount = @($afterPlanet.constructionQueue).Count
-$afterOpenQueueCount = @($afterPlanet.constructionQueue | Where-Object { $_.status -in @("Pending", "Active") }).Count
+$afterOpenQueueCount = Get-DevQaOpenQueueCount $afterPlanet.constructionQueue
 
 Write-Host ""
 Write-Host "Real persisted construction order created."
@@ -184,7 +165,7 @@ Write-Host "Resource delta:"
 Format-ResourceDelta -Before $beforeResources -After $afterResources | Format-Table -AutoSize
 
 Write-Host ""
-Write-Host "Before resources: $(Format-ResourceSummary $beforeResources)"
-Write-Host "After resources:  $(Format-ResourceSummary $afterResources)"
+Write-Host "Before resources: $((Format-DevQaResourceSummary $beforeResources).Summary)"
+Write-Host "After resources:  $((Format-DevQaResourceSummary $afterResources).Summary)"
 Write-Host ""
 Write-Host "This script creates a real persisted row in the Development database. It does not run migrations, delete data, or reset queues."

@@ -7,6 +7,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "dev-qa-common.ps1")
 
 function Invoke-DevGet {
     param([string]$Path)
@@ -25,16 +26,6 @@ function Invoke-DevPost {
         -Uri ($BaseUrl.TrimEnd("/") + $Path) `
         -ContentType "application/json" `
         -Body ($Body | ConvertTo-Json -Depth 6 -Compress)
-}
-
-function Format-ResourceSummary {
-    param([object[]]$Rows)
-
-    if (-not $Rows -or $Rows.Count -eq 0) {
-        return "none"
-    }
-
-    ($Rows | ForEach-Object { "{0}={1}" -f $_.resourceType, $_.amount }) -join ", "
 }
 
 Write-Host "Checking seed profile catalog..."
@@ -57,14 +48,15 @@ $researchState = Invoke-DevGet "/api/dev/research/ui-state?civilizationId=$Civil
 
 $planet = $planetState.uiState.planet
 $research = $researchState.uiState
+$planetResources = Format-DevQaResourceSummary $planet.stockpile
 
 $availableConstruction = @($planet.constructionActions | Where-Object { $_.availabilityStatus -eq "Available" }).Count
 $blockedConstruction = @($planet.constructionActions | Where-Object { $_.availabilityStatus -ne "Available" }).Count
-$openConstructionQueue = @($planet.constructionQueue | Where-Object { $_.status -in @("Pending", "Active") }).Count
+$openConstructionQueue = Get-DevQaOpenQueueCount $planet.constructionQueue
 
 $availableResearch = @($research.technologyHints | Where-Object { $_.canEnqueue }).Count
 $blockedResearch = @($research.technologyHints | Where-Object { -not $_.canEnqueue }).Count
-$openResearchQueue = @($research.queue | Where-Object { $_.status -in @("Pending", "Active") }).Count
+$openResearchQueue = Get-DevQaOpenQueueCount $research.queue
 $completedResearchProjects = @($research.projects).Count
 
 Write-Host ""
@@ -92,12 +84,16 @@ Write-Host ""
 Write-Host "Construction baseline snapshot:"
 [pscustomobject]@{
     Planet = $planet.planetName
-    Resources = Format-ResourceSummary $planet.stockpile
+    Resources = $planetResources.Summary
     AvailableActions = $availableConstruction
     BlockedActions = $blockedConstruction
     OpenQueueItems = $openConstructionQueue
     VisibleQueueItems = @($planet.constructionQueue).Count
 } | Format-List
+
+if ($planetResources.Warnings.Count -gt 0) {
+    Write-Warning ($planetResources.Warnings -join " ")
+}
 
 Write-Host ""
 Write-Host "Research baseline snapshot:"
