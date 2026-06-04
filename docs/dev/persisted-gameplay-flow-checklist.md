@@ -47,6 +47,7 @@ Shared helper defaults:
 Shipyard/Fleet companion note:
 
 - Use `docs/dev/shipyard-fleet-persisted-qa.md` for the exact endpoint inventory, read-model fields, and current inclusion or exclusion rules for Shipyard and Fleets.
+- The companion note now also carries the copy-pasteable backend-only runbook for `baseline -> shipyard enqueue -> fleet read-state` using the final helper script names.
 
 Primary QA URLs:
 

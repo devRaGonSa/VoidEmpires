@@ -184,6 +184,22 @@ Accepted guidance:
 
 ## Accepted persisted QA sequence for this block
 
+Copy-pasteable helper path for the accepted backend-only loop:
+
+```powershell
+dotnet run --project .\src\VoidEmpires.Web
+.\scripts\dev-qa-baseline.ps1
+.\scripts\dev-qa-create-shipyard-production-order.ps1 -ApplySeed
+.\scripts\dev-qa-fleet-read-state.ps1
+```
+
+Expected operator interpretation:
+
+- Successful Shipyard enqueue prints one real `OrderId`, queue before/after counts, resource deltas, and unchanged local orbital stock.
+- Reused-database no-op Shipyard state prints that an open orbital production order already exists and exits without creating a second row.
+- Fleet read-state prints group counts, stationed counts, active transfer counts, current resource-context summaries, and any visible transfer rows without mutating fleet state.
+- No production environment, frontend clicking, manual SQL, movement, split, merge, combat, or due-processing step is part of this accepted flow.
+
 ### 1. Start the backend
 
 ```powershell
@@ -193,6 +209,7 @@ dotnet run --project .\src\VoidEmpires.Web
 ### 2. Apply the deterministic seed
 
 ```powershell
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"cockpit-validation"}'
 Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"cockpit-validation"}'
 ```
 
@@ -212,7 +229,7 @@ What to confirm:
 ### 4. Create one real Shipyard order
 
 ```powershell
-Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/assets/production/enqueue" -ContentType "application/json" -Body '{"civilizationId":"00000000-0000-0000-0000-000000000001","planetId":"40000000-0000-0000-0000-000000000001","target":2,"spaceAssetType":1,"quantity":1,"requestedAtUtc":"2026-01-01T12:00:00Z"}'
+.\scripts\dev-qa-create-shipyard-production-order.ps1 -ApplySeed
 ```
 
 Expected success:
@@ -220,10 +237,12 @@ Expected success:
 - a real `OrderId` is returned
 - the order is persisted immediately
 - local resources are charged immediately
+- queue before/after counts and stock/resource summaries are printed from the follow-up Shipyard read
 
 Expected controlled reused-database failure:
 
 - `Planet already has an open asset production order.`
+- the helper exits cleanly after summarizing the current open queue instead of attempting a second mutation
 
 ### 5. Re-read Shipyard state
 
@@ -242,7 +261,7 @@ What to confirm:
 ### 6. Re-read Fleet state after the Shipyard mutation
 
 ```powershell
-Invoke-RestMethod "http://localhost:5142/api/dev/fleets/ui-state?civilizationId=00000000-0000-0000-0000-000000000001"
+.\scripts\dev-qa-fleet-read-state.ps1
 ```
 
 What to confirm:
@@ -250,6 +269,7 @@ What to confirm:
 - stationed group ids, quantities, statuses, and active-transfer state are unchanged
 - `resourceContexts[]` for the current planet now reflect the reduced balances caused by Shipyard enqueue
 - no fleet transfer, split, merge, or allocation mutation happened as a side effect
+- if no groups are currently visible, the helper explains that the read-state is valid and remains non-mutating
 
 ### 7. Reapply seed only for read-surface recovery
 

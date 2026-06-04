@@ -3,7 +3,7 @@
 ---
 id: TASK-25X
 title: Phase 25X - Shipyard and Fleet persisted flow runbook
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

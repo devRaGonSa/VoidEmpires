@@ -72,8 +72,14 @@ Backend-only persisted QA helpers:
 - `.\scripts\dev-qa-create-research-order.ps1`
   - defaults to civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`
   - add `-ApplySeed` to apply `research-validation` before enqueueing one real Research order
+- `.\scripts\dev-qa-create-shipyard-production-order.ps1`
+  - defaults to civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`
+  - add `-ApplySeed` to apply `cockpit-validation` before enqueueing one real Shipyard order
+- `.\scripts\dev-qa-fleet-read-state.ps1`
+  - defaults to civilization `00000000-0000-0000-0000-000000000001`
+  - re-reads Fleet UI state only and prints group, stationed, transfer, and resource-context summaries without mutating anything
 
-All three helpers create or inspect Development-only persisted state. Do not run them against production.
+All five helpers create or inspect Development-only persisted state. Do not run them against production.
 
 The discovery endpoint is Development-only and returns a concise list of all known profiles with:
 
