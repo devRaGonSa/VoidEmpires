@@ -52,6 +52,14 @@ export function buildFleetsUrl(civilizationId: string, planetId?: string | null)
   return buildUrl("/fleets", { civilizationId, planetId });
 }
 
+export function buildEspionageUrl(
+  civilizationId: string,
+  systemId?: string | null,
+  planetId?: string | null,
+) {
+  return buildUrl("/espionage", { civilizationId, systemId, planetId });
+}
+
 export function buildSpecializedModuleUrl(
   module: PlanetModule,
   civilizationId: string,

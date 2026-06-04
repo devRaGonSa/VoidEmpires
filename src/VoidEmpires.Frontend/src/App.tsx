@@ -6,12 +6,13 @@ import { DefensesPage } from "./pages/DefensesPage";
 import { FleetsPage } from "./pages/FleetsPage";
 import { GroundArmyPage } from "./pages/GroundArmyPage";
 import { ModuleCabinPage } from "./pages/ModuleCabinPage";
+import { EspionagePage } from "./pages/EspionagePage";
 import { ResearchPage } from "./pages/ResearchPage";
 import { ShipyardPage } from "./pages/ShipyardPage";
 import { PlanetPage } from "./pages/PlanetPage";
 import { StrategicMapPage } from "./pages/StrategicMapPage";
 import { specializedPlanetModuleRoutes } from "./utils/planetPresentation";
-import { buildGalaxyUrl } from "./utils/routeUrls";
+import { buildEspionageUrl, buildGalaxyUrl } from "./utils/routeUrls";
 
 const sidebarItems = [
   { label: "Galaxia", to: buildGalaxyUrl(), state: "implemented" },
@@ -19,7 +20,7 @@ const sidebarItems = [
   { label: "Construccion", to: "/construction", state: "implemented" },
   ...specializedPlanetModuleRoutes.map((route) => ({ label: route.label, to: route.path, state: "implemented" as const })),
   { label: "Flotas", to: "/fleets", state: "implemented" },
-  { label: "Espionaje", state: "future" },
+  { label: "Espionaje", to: buildEspionageUrl("00000000-0000-0000-0000-000000000001"), state: "implemented" },
   { label: "Alianza", state: "future" },
   { label: "Mercado", state: "future" },
   { label: "Ranking", state: "future" },
@@ -65,6 +66,7 @@ export default function App() {
           />
         ))}
         <Route path="/fleets" element={<FleetsPage />} />
+        <Route path="/espionage" element={<EspionagePage />} />
       </Routes>
     </AppShell>
   );
