@@ -6,6 +6,7 @@ For the current Fleet estimate -> confirm -> create-transfer -> confirm -> cance
 For the current Galaxy, Planet, Construction, Research, Ground Army, Shipyard, and Defenses cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md`, `docs/dev/planet-cockpit-checklist.md`, `docs/dev/construction-cockpit-checklist.md`, `docs/dev/research-cockpit-checklist.md`, `docs/dev/ground-army-cockpit-checklist.md`, `docs/dev/shipyard-cockpit-checklist.md`, and `docs/dev/defenses-cockpit-checklist.md`.
 For the current module boundary model and placeholder responsibilities, also pair this document with `docs/dev/planet-module-boundaries.md`.
 For cross-cockpit wording cleanup, use `docs/dev/cross-cockpit-language-audit.md` as the source of truth before changing visible copy.
+For shared preferred terms and allowed limitation patterns, use `docs/dev/cockpit-copy-guidelines.md`.
 For deterministic local QA setup, use `docs/dev/development-seed-profiles.md` instead of manual SQL.
 
 ## Final Cross-Cockpit Visual Pass

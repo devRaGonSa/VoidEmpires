@@ -3,7 +3,7 @@
 ---
 id: TASK-20L-shared-cockpit-copy-guidelines-and-vocabulary
 title: Shared cockpit copy guidelines and vocabulary
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
