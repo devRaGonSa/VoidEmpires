@@ -20,6 +20,8 @@ Shared constraints for this pass:
 - Do not treat combat as supported.
 - Galaxy remains read-only.
 - Mutations are allowed only in dedicated cockpits and still require explicit confirmation.
+- Primary UI should read in gameplay-oriented Spanish and avoid raw technical copy in the first viewport.
+- Diagnostics should remain collapsed by default or clearly secondary when a cockpit needs technical detail.
 
 Start by reapplying the richer shared seed twice so reused local databases recover their documented baseline rows before you compare screens:
 
@@ -41,28 +43,44 @@ Then open and compare these deterministic routes:
 
 1. Galaxy
    URL: `/galaxy?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
-   Minimum non-empty result: `Helios Gate` loads with visible `Aurelia`, `Cinder Reach`, and `Aether Crown`, fleet markers and one transfer overlay are visible, and the cockpit stays read-only.
+   Expected primary state: `Helios Gate` loads with visible `Aurelia`, `Cinder Reach`, and `Aether Crown`, fleet markers, one transfer overlay, and a read-only command boundary.
+   No-go: no gameplay mutation buttons, no raw payload or endpoint language dominating the first viewport.
+   Screenshot target: map stage plus focused system and planet context in the same frame.
 2. Planet
    URL: `/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
-   Minimum non-empty result: `Aurelia` loads with readable resources, grouped buildings, queue state, and handoffs back to Galaxy and toward Fleets.
+   Expected primary state: `Aurelia` loads with readable resources, grouped buildings, queue state, and clear handoffs toward Galaxy and Fleets.
+   No-go: no diagnostics expansion by default, no module cards implying broken or missing implemented cockpits.
+   Screenshot target: dashboard header, resources, and grouped module or queue context.
 3. Construction
    URL: `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
-   Minimum non-empty result: `Aurelia` loads with reserves, local economy, queue context, at least one available construction action, and at least one blocked action.
+   Expected primary state: `Aurelia` loads with reserves, local economy, queue context, at least one available construction action, and at least one blocked action.
+   No-go: blocked actions must not visually overpower available ones, and no complete-due path should look executable.
+   Screenshot target: available-versus-blocked action comparison with queue summary nearby.
 4. Research
    URL: `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
-   Minimum non-empty result: `Aurelia` loads with summary cards, queue history, `Ingenieria planetaria` available, and at least one blocked comparison card.
+   Expected primary state: `Aurelia` loads with summary cards, queue history, `Ingenieria planetaria` available, and at least one blocked comparison card.
+   No-go: no `pendiente de clasificar` fallback text in seeded primary content and no raw technical wording leading the catalog.
+   Screenshot target: summary plus one available and one blocked research card.
 5. Shipyard
    URL: `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
-   Minimum non-empty result: `Aurelia` loads with readiness, stock, queue context, one available orbital option, and blocked comparison options.
-6. Ground Army
-   URL: `/ground-army?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
-   Minimum non-empty result: `Aurelia` loads with readiness summary, visible ground structures, one available option, blocked comparisons, truthful queue history, and disabled complete-due messaging.
-7. Fleets
+   Expected primary state: `Aurelia` loads with readiness, stock, queue context, one available orbital option, and blocked comparison options.
+   No-go: no fleet-command implication from Shipyard, no complete-due action looking active, and no diagnostics leading the page.
+   Screenshot target: readiness summary plus stock or queue plus one available orbital card.
+6. Fleets
    URL: `/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
-   Minimum non-empty result: the command deck, group rail, selected-group detail, active-transfer context, and the read-only estimate flow all render with seeded groups and transfers.
-8. Defenses
+   Expected primary state: the command deck, group rail, selected-group detail, active-transfer context, and the read-only estimate flow all render with seeded groups and transfers.
+   No-go: no prototype-only control should look executable and no raw ids should dominate selectors or headings.
+   Screenshot target: group rail, selected squad panel, and action column in one frame.
+7. Defenses
    URL: `/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
-   Minimum non-empty result: `Aurelia` loads with defense readiness, one visible `DefenseGrid`, one deterministic defense option, truthful complete-due limitation messaging, and visible handoffs toward neighboring cockpits.
+   Expected primary state: `Aurelia` loads with defense readiness, one visible `DefenseGrid`, one deterministic defense option, truthful complete-due limitation messaging, and visible handoffs toward neighboring cockpits.
+   No-go: no combat tone, no defense-specific mutation pretending to exist locally, and no diagnostics opened by default.
+   Screenshot target: readiness summary plus deployed `DefenseGrid` and the visible defense option.
+8. Ground Army
+   URL: `/ground-army?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+   Expected primary state: `Aurelia` loads with readiness summary, visible ground structures, one available option, blocked comparisons, truthful queue history, and disabled complete-due messaging.
+   No-go: no invasion or combat implication, no direct action pretending to be available, and no expanded technical copy ahead of the main cards.
+   Screenshot target: readiness summary plus one available and one blocked ground option.
 
 Cross-cockpit comparison checks:
 

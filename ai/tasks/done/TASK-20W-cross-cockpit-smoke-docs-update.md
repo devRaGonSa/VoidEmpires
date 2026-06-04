@@ -3,7 +3,7 @@
 ---
 id: TASK-20W-cross-cockpit-smoke-docs-update
 title: Cross-cockpit smoke docs update
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
