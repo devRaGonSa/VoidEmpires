@@ -166,3 +166,87 @@ function Get-DevQaOpenQueueCount {
 
     return $count
 }
+
+function Get-DevQaHttpResponseBody {
+    param([System.Exception]$Exception)
+
+    $response = $Exception.Response
+    if ($null -eq $response) {
+        return $null
+    }
+
+    $stream = $response.GetResponseStream()
+    if ($null -eq $stream) {
+        return $null
+    }
+
+    $reader = New-Object System.IO.StreamReader($stream)
+    try {
+        if ($reader.BaseStream.CanSeek) {
+            $reader.BaseStream.Position = 0
+        }
+        $reader.DiscardBufferedData()
+        return $reader.ReadToEnd()
+    }
+    finally {
+        $reader.Dispose()
+    }
+}
+
+function ConvertFrom-DevQaJsonSafely {
+    param([string]$JsonText)
+
+    if ([string]::IsNullOrWhiteSpace($JsonText)) {
+        return $null
+    }
+
+    try {
+        return $JsonText | ConvertFrom-Json -Depth 20
+    }
+    catch {
+        return $null
+    }
+}
+
+function Get-DevQaResponseErrorText {
+    param([object]$ResponseObject)
+
+    if ($null -eq $ResponseObject) {
+        return $null
+    }
+
+    $errors = @(Get-DevQaEnumerable (Get-DevQaPropertyValue -InputObject $ResponseObject -PropertyNames @("errors", "Errors")))
+    if ($errors.Count -eq 0) {
+        return $null
+    }
+
+    return ($errors | ForEach-Object { "$_" }) -join "; "
+}
+
+function Format-DevQaPayloadSummary {
+    param(
+        [Parameter(Mandatory = $true)]
+        [hashtable]$Payload
+    )
+
+    if ($Payload.Count -eq 0) {
+        return "none"
+    }
+
+    return ($Payload.Keys | ForEach-Object { "{0}={1}" -f $_, $Payload[$_] }) -join ", "
+}
+
+function Test-DevQaResponseHasKnownError {
+    param(
+        [object]$ResponseObject,
+        [Parameter(Mandatory = $true)]
+        [string]$KnownErrorFragment
+    )
+
+    $errorText = Get-DevQaResponseErrorText $ResponseObject
+    if ([string]::IsNullOrWhiteSpace($errorText)) {
+        return $false
+    }
+
+    return $errorText.IndexOf($KnownErrorFragment, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
+}

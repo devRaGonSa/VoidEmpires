@@ -92,6 +92,7 @@ Optional explicit target:
 What success looks like:
 
 - The script prints `Real persisted construction order created.`
+- The script prints the selected backend action and a sanitized payload summary before the POST.
 - `QueueAfter` is greater than `QueueBefore`.
 - `OpenQueueAfter` is greater than `OpenQueueBefore`.
 - The resource delta shows negative values for the spent resources.
@@ -102,6 +103,7 @@ What failure looks like:
 - The helper fails clearly if the backend is unreachable.
 - A conflict response prints backend errors such as `Planet already has an open construction order.` or `Planet is not owned by the requesting civilization.`
 - If no available Construction action exists, the helper prints the queue counts so you can see whether the planet is already occupied.
+- If the backend rejects the payload with `400`, the helper now prints the endpoint, the selected option label, the selected backend action value, a sanitized payload summary, and the response body.
 - No cleanup or destructive reset runs automatically after a failure.
 
 ### 4. Create one real Research order
@@ -121,6 +123,7 @@ Optional explicit target:
 What success looks like:
 
 - The script prints `Real persisted research order created.`
+- The script prints the selected research and a sanitized payload summary before the POST.
 - `QueueAfter` is greater than `QueueBefore`.
 - `OpenQueueAfter` is greater than `OpenQueueBefore`.
 - The resource delta shows negative values for the spent resources.
@@ -130,6 +133,7 @@ What failure looks like:
 
 - The helper fails clearly if the backend is unreachable.
 - A conflict response prints backend errors such as `Civilization already has an open research order.` or `Planet is not owned by the requesting civilization.`
+- If the backend returns `Civilization already has an open research order.`, the helper now treats it as an expected reused-Development-database state, re-reads the queue, prints a concise summary, and exits without creating a second order.
 - If no available research exists because the queue is already occupied, the helper now says so explicitly instead of failing with a vague empty-selection message.
 - No cleanup or destructive reset runs automatically after a failure.
 
@@ -206,6 +210,13 @@ Accepted script behavior:
 - The scripts should prefer authoritative backend fields such as `action`, `buildingType`, `researchType`, and `enqueueCommand`.
 - The scripts may format resources from multiple shapes defensively, but they must not hide real HTTP failures.
 - If resource formatting cannot recognize the current shape, the script should print a readable warning instead of throwing.
+- Construction enqueue currently expects the request body shape:
+  - `planetId`
+  - `civilizationId`
+  - `action`
+  - `buildingType`
+  - `requestedAtUtc`
+- The current backend request type does not use the Research-style string enum converter for `action`, so the helper must send the backend-compatible action value from the read model instead of Spanish display text or stringified UI labels.
 
 ## Dependency map
 
@@ -455,6 +466,7 @@ Expected controlled failure:
 - queue already occupied
 - no available research hint
 - backend conflict with a real message
+- repeated runs on a reused database may report that an open research order already exists; this is now treated as a safe no-op state, not as an unhandled fatal failure
 
 6. Reapply `cockpit-validation` and baseline again:
 
@@ -473,6 +485,7 @@ Important reminders:
 
 - These scripts create real Development database rows when you run the Construction or Research helpers.
 - Repeated runs may find the queue already occupied and should now report that clearly.
+- The scripts do not delete, cancel, or complete existing orders automatically.
 - Do not paste printed console output back into PowerShell as if it were a command.
 
 ## Accepted QA checklist for this block

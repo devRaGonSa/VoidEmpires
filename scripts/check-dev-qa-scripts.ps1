@@ -61,5 +61,23 @@ if ($unknownShape.Summary -notlike "warning:*") {
     throw "Expected unknown resource shapes to return a warning summary."
 }
 
+$constructionPayloadSummary = Format-DevQaPayloadSummary ([ordered]@{
+    planetId = "00000000-0000-0000-0000-000000000001"
+    civilizationId = "00000000-0000-0000-0000-000000000002"
+    action = 0
+    buildingType = 1
+    requestedAtUtc = "2026-01-01T00:00:00.0000000Z"
+})
+if ($constructionPayloadSummary -like "*action=Construir*" -or $constructionPayloadSummary -like "*action=Mejorar*") {
+    throw "Construction payload summary should use backend-compatible action values, not display labels."
+}
+
+$known409Response = [pscustomobject]@{
+    errors = @("Civilization already has an open research order.")
+}
+if (-not (Test-DevQaResponseHasKnownError -ResponseObject $known409Response -KnownErrorFragment "already has an open research order")) {
+    throw "Expected known research 409 detection helper to match the current backend error."
+}
+
 Write-Host "Persisted QA PowerShell scripts parsed successfully."
-Write-Host "Resource-format helper checks passed."
+Write-Host "Resource-format and payload helper checks passed."

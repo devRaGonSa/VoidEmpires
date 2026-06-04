@@ -49,6 +49,39 @@ function Invoke-DevPost {
     }
 }
 
+function Invoke-DevPostDetailed {
+    param(
+        [string]$Path,
+        [hashtable]$Body
+    )
+
+    try {
+        $result = Invoke-RestMethod `
+            -Method Post `
+            -Uri ($BaseUrl.TrimEnd("/") + $Path) `
+            -ContentType "application/json" `
+            -Body ($Body | ConvertTo-Json -Depth 8 -Compress)
+
+        return [pscustomobject]@{
+            Succeeded = $true
+            StatusCode = 200
+            Json = $result
+            BodyText = $null
+        }
+    }
+    catch {
+        $response = $_.Exception.Response
+        $statusCode = if ($null -ne $response) { [int]$response.StatusCode } else { $null }
+        $responseBody = Get-DevQaHttpResponseBody $_.Exception
+        return [pscustomobject]@{
+            Succeeded = $false
+            StatusCode = $statusCode
+            Json = ConvertFrom-DevQaJsonSafely $responseBody
+            BodyText = $responseBody
+        }
+    }
+}
+
 function Get-ResearchState {
     Invoke-DevGet "/api/dev/research/ui-state?civilizationId=$CivilizationId&planetId=$PlanetId"
 }
@@ -129,19 +162,45 @@ $requestedAtUtc = [DateTime]::UtcNow
 $beforeResources = (Get-DevQaResourceMap $beforePlanet.stockpile).Map
 $beforeQueueCount = @($beforeResearch.queue).Count
 $beforeOpenQueueCount = Get-DevQaOpenQueueCount $beforeResearch.queue
-
-Write-Host "Creating a real persisted research order..."
-$enqueueResponse = Invoke-DevPost $command.route @{
+$enqueuePayload = [ordered]@{
     civilizationId = $command.civilizationId
     sourcePlanetId = $command.sourcePlanetId
     researchType = "$($command.researchType)"
     requestedAtUtc = $requestedAtUtc.ToString("O")
 }
 
-if (-not $enqueueResponse.succeeded) {
-    $errors = @($enqueueResponse.errors) -join "; "
-    throw "Research enqueue was rejected. Errors: $errors"
+Write-Host "Creating a real persisted research order..."
+Write-Host "Selected research: researchType=$($selectedHint.researchType) nextLevel=$($selectedHint.nextLevel)"
+Write-Host "Payload summary: $(Format-DevQaPayloadSummary $enqueuePayload)"
+$enqueueResult = Invoke-DevPostDetailed $command.route $enqueuePayload
+
+if (-not $enqueueResult.Succeeded) {
+    if ($enqueueResult.StatusCode -eq 409 -and (Test-DevQaResponseHasKnownError -ResponseObject $enqueueResult.Json -KnownErrorFragment "already has an open research order")) {
+        Write-Host "Ya existe una investigacion abierta para esta civilizacion. No se crea otra orden."
+        Write-Host "Reading research state again to summarize the current queue..."
+        $occupiedResearchResponse = Get-ResearchState
+        $occupiedResearch = $occupiedResearchResponse.uiState
+        $occupiedQueueCount = @($occupiedResearch.queue).Count
+        $occupiedOpenQueueCount = Get-DevQaOpenQueueCount $occupiedResearch.queue
+        $currentOrder = @($occupiedResearch.queue | Where-Object { "$($_.status)" -in @("Pending", "Active") } | Select-Object -First 1)
+
+        [pscustomobject]@{
+            QueueCount = $occupiedQueueCount
+            OpenQueueCount = $occupiedOpenQueueCount
+            CurrentResearch = if ($currentOrder.Count -gt 0) { "$($currentOrder[0].researchType)" } else { "none" }
+            CurrentStatus = if ($currentOrder.Count -gt 0) { "$($currentOrder[0].status)" } else { "none" }
+        } | Format-List
+
+        Write-Host "Estado esperado para una base de datos de Development reutilizada. La script finaliza sin crear otra orden."
+        exit 0
+    }
+
+    $errors = Get-DevQaResponseErrorText $enqueueResult.Json
+    $details = if (-not [string]::IsNullOrWhiteSpace($errors)) { $errors } else { $enqueueResult.BodyText }
+    throw "Research enqueue failed with HTTP $($enqueueResult.StatusCode). $details"
 }
+
+$enqueueResponse = $enqueueResult.Json
 
 Write-Host "Reading research state after enqueue..."
 $afterResearchResponse = Get-ResearchState
