@@ -31,6 +31,12 @@ Backend-only persisted QA helper:
 - Add `-BuildingType MetalMine` or another available building type to force the exact enqueue target.
 - The helper talks directly to `POST /api/dev/buildings/construction-orders/enqueue`, then re-reads `/api/dev/planets/ui-state` to print queue and reserve deltas.
 
+Verified refresh behavior:
+
+- After a successful backend `201`, the cockpit re-reads `/api/dev/planets/ui-state` before leaving the user with the final visible queue and stockpile state.
+- The main success copy remains grounded in backend confirmation: `La cabina se actualizo con el estado confirmado por la API.`
+- If that follow-up read fails, the cockpit keeps the success or failure technically honest and asks the user to refresh the view instead of inventing a local queue row.
+
 ## Final manual QA
 
 Run first:

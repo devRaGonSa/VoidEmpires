@@ -50,6 +50,12 @@ Backend-only persisted QA helper:
 - Add `-ResearchType PlanetaryEngineering` or another available backend key to force the exact enqueue target.
 - The helper reads `enqueueCommand` metadata from `/api/dev/research/ui-state`, posts the real enqueue request, and then re-reads Research and Planet state to print queue and reserve deltas.
 
+Verified refresh behavior:
+
+- After a successful backend `201`, the cockpit re-runs the Research read flow before treating the queue and catalog as final visible state.
+- The success path stays grounded in backend confirmation and keeps API-returned order timing in the support panel rather than inventing optimistic queue entries.
+- If the post-enqueue refresh fails, the cockpit reports that the order was sent but the refreshed read-state could not be confirmed yet.
+
 ## Browser checkpoints
 
 - Checkpoint 1: available card before enqueue

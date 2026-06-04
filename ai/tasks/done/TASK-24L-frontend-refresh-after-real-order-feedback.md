@@ -3,7 +3,7 @@
 ---
 id: TASK-24L
 title: Phase 24L - Frontend refresh after real order feedback
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
