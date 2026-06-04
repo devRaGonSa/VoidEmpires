@@ -9,6 +9,7 @@ For the current module boundary model and placeholder responsibilities, also pai
 For cross-cockpit wording cleanup, use `docs/dev/cross-cockpit-language-audit.md` as the source of truth before changing visible copy.
 For shared preferred terms and allowed limitation patterns, use `docs/dev/cockpit-copy-guidelines.md`.
 For deterministic local QA setup, use `docs/dev/development-seed-profiles.md` instead of manual SQL.
+For lightweight Espionage copy regression protection before visual QA, run `.\scripts\check-espionage-copy.ps1`.
 
 ## Final Cross-Cockpit Visual Pass
 

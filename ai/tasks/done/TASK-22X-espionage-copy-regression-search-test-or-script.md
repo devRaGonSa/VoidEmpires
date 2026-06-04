@@ -3,7 +3,7 @@
 ---
 id: TASK-22X
 title: Phase 22X - Espionage copy regression search, test, or script
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
