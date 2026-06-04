@@ -3,7 +3,7 @@
 ---
 id: TASK-25W
 title: Phase 25W - Reused database idempotency with Shipyard orders
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
