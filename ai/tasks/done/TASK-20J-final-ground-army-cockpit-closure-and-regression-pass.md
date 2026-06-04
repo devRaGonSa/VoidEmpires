@@ -3,7 +3,7 @@
 ---
 id: TASK-20J-final-ground-army-cockpit-closure-and-regression-pass
 title: Final Ground Army cockpit closure and regression pass
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

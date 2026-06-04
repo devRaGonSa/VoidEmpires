@@ -71,6 +71,27 @@ Cross-cockpit comparison checks:
 - Ground Army is now part of the accepted cockpit-foundation suite, but it remains readiness-only and non-combat.
 - Defenses is now part of the accepted cockpit-foundation suite, but it remains readiness-only and non-combat.
 
+## Ground Army Block Closure Pass
+
+Run this exact narrow sequence when closing the Ground Army cockpit block:
+
+1. Reapply `cockpit-validation` twice.
+2. Open `/galaxy`.
+3. Open `/planet`.
+4. Open `/construction`.
+5. Open `/research`.
+6. Open `/shipyard`.
+7. Open `/fleets`.
+8. Open `/defenses`.
+9. Open `/ground-army`.
+
+Closure expectations:
+
+- Ground Army loads as a cockpit foundation, not a placeholder.
+- Ground Army keeps combat, invasion, assault, 3D, and fleet movement out of scope.
+- Galaxy stays read-only.
+- Planet, Construction, Research, Shipyard, Fleets, and Defenses remain usable from the shared seeded baseline.
+
 ## Backend prerequisites
 
 1. Start `VoidEmpires.Web` with development endpoints enabled.

@@ -284,7 +284,7 @@ Current validated baseline after Block 19U-20J:
 - backend: `dotnet build --no-restore` succeeded
 - tests: `dotnet test --no-build` succeeded with `641` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
-- Manual visual QA for the restored Galaxy and neighboring cockpit suite remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; the Browser runtime was unavailable in this session, so final screenshot-style acceptance is still user-driven.
+- Manual visual QA for the restored Galaxy and neighboring cockpit suite, including Ground Army, remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; the Browser runtime was unavailable in this session, so final screenshot-style acceptance is still user-driven.
 
 Current validated cockpit QA seed baseline:
 
