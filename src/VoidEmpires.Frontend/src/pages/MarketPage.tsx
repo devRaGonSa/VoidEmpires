@@ -746,48 +746,6 @@ export function MarketPage() {
             </div>
           </UiCard>
 
-          <details className="technical-disclosure">
-            <summary>
-              <div>
-                <p className="eyebrow">Diagnostico secundario</p>
-                <strong>Notas de soporte y limites actuales</strong>
-              </div>
-              <UiBadge tone="warn">Contraido por defecto</UiBadge>
-            </summary>
-            <div className="technical-disclosure-body">
-              <UiCard className="panel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Lectura tecnica</p>
-                    <h3>Notas de Mercado</h3>
-                  </div>
-                  <UiBadge>{cockpitStatusLabels.diagnostics}</UiBadge>
-                </div>
-                {uiState?.diagnostics.playerFacing.length ? (
-                  <ul className="stack-list compact-list">
-                    {uiState.diagnostics.playerFacing.map((note) => (
-                      <li key={note}>{note}</li>
-                    ))}
-                  </ul>
-                ) : null}
-                {uiState?.diagnostics.limitations.length ? (
-                  <>
-                    <div className="figma-section-header module-boundary-spacer">
-                      <div>
-                        <p className="eyebrow">Limitaciones</p>
-                        <h4>Fase actual</h4>
-                      </div>
-                    </div>
-                    <ul className="stack-list compact-list">
-                      {uiState.diagnostics.limitations.map((note) => (
-                        <li key={note}>{note}</li>
-                      ))}
-                    </ul>
-                  </>
-                ) : null}
-              </UiCard>
-            </div>
-          </details>
         </>
       ) : null}
 
@@ -924,12 +882,12 @@ export function MarketPage() {
         </div>
       </UiCard>
 
-      {(technicalErrorDetail || uiState?.diagnostics.playerFacing.length || uiState?.diagnostics.technical.length) ? (
+      {(technicalErrorDetail || uiState?.diagnostics.playerFacing.length || uiState?.diagnostics.technical.length || uiState?.diagnostics.limitations.length) ? (
         <details className="technical-disclosure">
           <summary>
             <div>
               <p className="eyebrow">Diagnostico secundario</p>
-              <strong>Errores y notas tecnicas</strong>
+              <strong>Errores, limites y notas tecnicas</strong>
             </div>
             <UiBadge tone="warn">Contraido por defecto</UiBadge>
           </summary>
@@ -960,6 +918,21 @@ export function MarketPage() {
                   </div>
                   <ul className="stack-list compact-list">
                     {uiState.diagnostics.playerFacing.map((note) => (
+                      <li key={note}>{note}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
+              {uiState?.diagnostics.limitations.length ? (
+                <>
+                  <div className="figma-section-header module-boundary-spacer">
+                    <div>
+                      <p className="eyebrow">Limitaciones</p>
+                      <h4>Fase actual</h4>
+                    </div>
+                  </div>
+                  <ul className="stack-list compact-list">
+                    {uiState.diagnostics.limitations.map((note) => (
                       <li key={note}>{note}</li>
                     ))}
                   </ul>

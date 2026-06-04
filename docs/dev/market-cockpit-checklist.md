@@ -128,6 +128,12 @@ Future Market operations should now keep these disabled-state cues visible:
 
 Treat any future Market operation card that still reads like a clickable primary command, a blocked CTA, or a near-future execution step as a regression for this block.
 
+## Task 26J diagnostics containment focus
+
+Market diagnostics should now remain contained under one collapsed `Diagnostico secundario` surface.
+
+Treat repeated technical drawers, raw fallback wording in the first viewport, or limitation notes that escape into the main economy flow as a regression for this block.
+
 ## Seeded QA scenario
 
 Use `cockpit-validation` for the richer deterministic Market QA baseline:

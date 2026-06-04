@@ -3,7 +3,7 @@
 ---
 id: TASK-26J
 title: Phase 26J - Market diagnostics and raw values containment
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
