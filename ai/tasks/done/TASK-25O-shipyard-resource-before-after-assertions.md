@@ -3,7 +3,7 @@
 ---
 id: TASK-25O
 title: Phase 25O - Shipyard resource before and after assertions
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

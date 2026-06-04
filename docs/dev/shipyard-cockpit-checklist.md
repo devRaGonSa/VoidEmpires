@@ -24,6 +24,7 @@ Expected richer baseline:
 - `Nave de escolta` and `Nave colonial` stay blocked by missing building requirements
 - local stock shows at least `Nave de escolta x4` and `Nave exploradora x1`
 - the queue shows one completed production row while enqueue remains available because there is no open production order
+- a successful enqueue deducts the full visible resource cost immediately; it does not create a reservation-only hold
 
 ## Manual Smoke Checklist
 
@@ -39,12 +40,13 @@ Use this after the required validation commands succeed.
 8. Confirm available options open a review step before enqueue and do not submit immediately.
 9. Confirm the guarded confirmation appears before enqueue when the dev action is enabled.
 10. Confirm one successful enqueue refreshes queue, catalog, and local reserves from backend-confirmed state.
-11. Confirm `Completar produccion vencida no disponible` stays disabled or placeholder-only unless a future planet-scoped safe route exists.
-12. Confirm the cockpit explains clearly that local stock is not the same thing as an operational fleet group.
-13. Confirm the links to `Planeta`, `Construccion`, `Investigacion`, `Flotas`, and `Galaxia` preserve `civilizationId` and `planetId`.
-14. Confirm diagnostics remain collapsed or visually secondary.
-15. Confirm no 3D or WebGL renderer is introduced.
-16. Confirm no combat, fleet movement, split, merge, or transfer action can be executed from Shipyard.
+11. Confirm the successful enqueue immediately reduces the visible local resource balances by the exact asset cost.
+12. Confirm `Completar produccion vencida no disponible` stays disabled or placeholder-only unless a future planet-scoped safe route exists.
+13. Confirm the cockpit explains clearly that local stock is not the same thing as an operational fleet group.
+14. Confirm the links to `Planeta`, `Construccion`, `Investigacion`, `Flotas`, and `Galaxia` preserve `civilizationId` and `planetId`.
+15. Confirm diagnostics remain collapsed or visually secondary.
+16. Confirm no 3D or WebGL renderer is introduced.
+17. Confirm no combat, fleet movement, split, merge, or transfer action can be executed from Shipyard.
 
 ## Boundary Summary
 
@@ -53,6 +55,7 @@ Use this after the required validation commands succeed.
 - Shipyard may link to Fleets for already-visible groups, but it must not mutate Fleet state directly in this block.
 - The current complete-due affordance remains intentionally disabled because the backend route is still global and not safely scoped to the visible shipyard context.
 - The accepted persisted QA loop for this block is `seed -> shipyard ui-state -> one enqueue -> shipyard ui-state -> fleet ui-state`.
+- Successful Shipyard enqueue deducts the full visible cost immediately from `PlanetResourceStockpile`; it does not reserve resources and leave balances unchanged.
 - Local orbital stock should stay unchanged immediately after enqueue; produced stock changes only after due processing, which remains out of the safe repeated-QA flow because the current route is global.
 
 ## Development Gating

@@ -806,7 +806,7 @@ export function ShipyardPage() {
                       <div>
                         <p className="eyebrow">Revision controlada</p>
                         <h3>Confirmacion de produccion orbital</h3>
-                        <p>La cabina revisa el impacto visible antes de habilitar cualquier accion real.</p>
+                    <p>La cabina revisa el impacto visible antes de habilitar cualquier accion real, incluido el gasto inmediato de recursos cuando el envio se acepta.</p>
                       </div>
                       <UiBadge tone={reviewSelection.bucket === "available" ? "good" : "warn"}>
                         {reviewSelection.bucket === "available" ? "Lista para futura cola" : "No enviable"}
@@ -832,7 +832,7 @@ export function ShipyardPage() {
                     </div>
                     <p>
                       {reviewSelection.bucket === "available"
-                        ? "La opcion ya puede enviarse por la via protegida de desarrollo si confirmas la revision."
+                        ? "La opcion ya puede enviarse por la via protegida de desarrollo si confirmas la revision. Si el backend la acepta, el coste visible se descuenta al momento."
                         : "Esta revision permanece en modo diagnostico. La cabina no intentara enviar nada mientras el estado siga bloqueado o no soportado."}
                     </p>
                     {reviewSelection.bucket === "available" ? (
@@ -1026,7 +1026,7 @@ export function ShipyardPage() {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">En esta cabina</p>
-                    <h4>Produccion y reserva</h4>
+                    <h4>Produccion y gasto inmediato</h4>
                   </div>
                   <UiBadge tone="resource">{shipyard.orbitalStock.length} stocks</UiBadge>
                 </div>
