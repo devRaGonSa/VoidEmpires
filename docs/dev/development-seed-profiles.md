@@ -10,7 +10,7 @@ Use these profiles instead of manual SQL for standard cockpit QA.
 | Profile | Status | Intended QA use |
 |---|---|---|
 | `minimal-validation` | Implemented | Current deterministic shared baseline for Galaxy, Planet, Construction, Research, Shipyard, and Fleets |
-| `cockpit-validation` | Implemented | Richer combined cockpit baseline with non-blocking completed history plus visible Defenses and Ground Army readiness on Aurelia |
+| `cockpit-validation` | Implemented | Richer combined cockpit baseline with non-blocking completed history plus visible Defenses, Ground Army, and Espionage readiness on Aurelia |
 | `shipyard-validation` | Implemented | Shipyard-focused richer baseline with completed queue history, two local stock rows, one available hull, and blocked comparisons |
 | `fleet-validation` | Implemented | Fleet-focused richer baseline with one extra stationed cargo example and one additional due active transfer |
 | `research-validation` | Implemented | Research-focused richer baseline with one deterministic available technology, completed history, and truthful resource-blocked comparisons |
@@ -99,6 +99,7 @@ Primary deterministic local QA routes:
 - Research: `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Shipyard: `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Fleets: `/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Espionage: `/espionage?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Ground Army placeholder: `/ground-army?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Defenses: `/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 
@@ -145,7 +146,7 @@ The seeded orbital groups, transfer row, and queue rows do not use fixed ids. In
 
 `cockpit-validation` builds on `minimal-validation`, tops `Aurelia` up to at least `220` credits, `320` metal, `220` crystal, and `120` gas, adds a visible `DefenseGrid` level `1` plus `Barracks` level `1` on `Aurelia`, and then adds one completed construction row, one completed `EnergySystems` research order plus project, one completed orbital `ScoutCraft` production order plus local `ScoutCraft` stock, and one completed planetary `PatrolGroup x2` training row plus local `PatrolGroup x2` stock. It stays non-destructive and avoids extra pending or active queue rows so the current executable cockpit actions remain available.
 
-Use it as one shared demo story: `Void Seed Civilization` controls `Aurelia` in `Helios Gate`, while `Cinder Reach` and `Aether Crown` stay visible as nearby comparison worlds. Galaxy, Planet, Construction, Research, Shipyard, Fleets, Defenses, and Ground Army should all read as different views of that same prepared colony rather than unrelated fixtures.
+Use it as one shared demo story: `Void Seed Civilization` controls `Aurelia` in `Helios Gate`, while `Cinder Reach` and `Aether Crown` stay visible as nearby comparison worlds. Galaxy, Planet, Construction, Research, Shipyard, Fleets, Defenses, Ground Army, and Espionage should all read as different views of that same prepared colony rather than unrelated fixtures.
 
 Expected Galaxy result for screenshot QA:
 
@@ -173,6 +174,14 @@ Expected Ground Army result for screenshot QA:
 - the garrison shows one local `PatrolGroup x2` row
 - the queue shows one completed planetary training history row and no open ground order
 - the baseline stays truthful about current scope: complete-due remains a limitation, not a fake action, and no combat or invasion state is seeded
+
+Expected Espionage result for screenshot QA:
+
+- `Helios Gate` loads as the shared strategic context with owned `Aurelia` plus visible `Cinder Reach` and `Aether Crown`
+- the target catalog shows at least one owned target and at least one visible comparison target
+- passive readings include at least one transfer-derived signal from the seeded planned cargo route
+- future mission placeholders remain visible but disabled
+- the cockpit stays read-only and does not imply mission execution
 
 ## `shipyard-validation` additions
 
@@ -336,6 +345,7 @@ Expected Planet and Construction result:
 | Research | `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` | civilization, owned planet, `Helios Gate` context, `Aurelia` stockpile | research queue and research projects should both start empty in a fresh database |
 | Shipyard | `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` | civilization, owned planet, `Aurelia` stockpile, `Shipyard` building, population profile, `EscortCraft x4` orbital stock row | orbital production queue should start empty in a fresh database |
 | Fleets | `/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` | civilization, owned planet, all seeded orbital groups, planned transfer, destination planets `Cinder Reach` and `Aether Crown`, current stockpile for estimate and create-transfer costs | no seeded queue; one planned transfer already exists |
+| Espionage | `/espionage?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` | civilization, `Helios Gate`, owned `Aurelia`, visible `Cinder Reach`, visible `Aether Crown`, seeded orbital groups, planned transfer, current strategic visibility | no mission queue or active espionage execution |
 
 ## Reapply behavior by subsystem
 

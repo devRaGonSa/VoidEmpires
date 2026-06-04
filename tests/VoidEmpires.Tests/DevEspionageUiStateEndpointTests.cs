@@ -83,9 +83,13 @@ public class DevEspionageUiStateEndpointTests(WebApplicationFactory<Program> fac
         Assert.True(payload.Succeeded);
         Assert.Equal(SeedCivilizationId, payload.UiState.CivilizationId);
         Assert.NotEmpty(payload.UiState.Targets);
+        Assert.Contains(payload.UiState.Targets, x => x.PlanetName == "Aurelia");
+        Assert.Contains(payload.UiState.Targets, x => x.PlanetName == "Cinder Reach");
+        Assert.Contains(payload.UiState.Targets, x => x.PlanetName == "Aether Crown");
         Assert.True(payload.UiState.Overview.OwnedTargetCount >= 1);
         Assert.True(payload.UiState.Overview.VisibleTargetCount >= 1);
         Assert.True(payload.UiState.PassiveSignals.Count >= 1);
+        Assert.Contains(payload.UiState.PassiveSignals, x => x.SignalKind == "TransferSignal");
         Assert.NotEmpty(payload.UiState.FutureActions);
         Assert.All(payload.UiState.FutureActions, x => Assert.False(x.IsAvailable));
         Assert.NotEmpty(payload.UiState.Limitations);
