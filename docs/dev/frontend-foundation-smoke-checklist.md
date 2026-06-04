@@ -3,7 +3,7 @@
 Use this checklist to validate the current frontend prototype without confusing it with production UI.
 
 For the current Fleet estimate -> confirm -> create-transfer -> confirm -> cancel-transfer or complete-due paths, pair this document with `docs/dev/fleet-controlled-mutation-checklist.md`.
-For the current Galaxy, Planet, Construction, Research, Shipyard, and Defenses cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md`, `docs/dev/planet-cockpit-checklist.md`, `docs/dev/construction-cockpit-checklist.md`, `docs/dev/research-cockpit-checklist.md`, `docs/dev/shipyard-cockpit-checklist.md`, and `docs/dev/defenses-cockpit-checklist.md`.
+For the current Galaxy, Planet, Construction, Research, Ground Army, Shipyard, and Defenses cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md`, `docs/dev/planet-cockpit-checklist.md`, `docs/dev/construction-cockpit-checklist.md`, `docs/dev/research-cockpit-checklist.md`, `docs/dev/ground-army-cockpit-checklist.md`, `docs/dev/shipyard-cockpit-checklist.md`, and `docs/dev/defenses-cockpit-checklist.md`.
 For the current module boundary model and placeholder responsibilities, also pair this document with `docs/dev/planet-module-boundaries.md`.
 For deterministic local QA setup, use `docs/dev/development-seed-profiles.md` instead of manual SQL.
 
@@ -52,20 +52,23 @@ Then open and compare these deterministic routes:
 5. Shipyard
    URL: `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
    Minimum non-empty result: `Aurelia` loads with readiness, stock, queue context, one available orbital option, and blocked comparison options.
-6. Fleets
+6. Ground Army
+   URL: `/ground-army?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+   Minimum non-empty result: `Aurelia` loads with readiness summary, visible ground structures, one available option, blocked comparisons, truthful queue history, and disabled complete-due messaging.
+7. Fleets
    URL: `/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
    Minimum non-empty result: the command deck, group rail, selected-group detail, active-transfer context, and the read-only estimate flow all render with seeded groups and transfers.
-7. Defenses
+8. Defenses
    URL: `/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
    Minimum non-empty result: `Aurelia` loads with defense readiness, one visible `DefenseGrid`, one deterministic defense option, truthful complete-due limitation messaging, and visible handoffs toward neighboring cockpits.
 
 Cross-cockpit comparison checks:
 
-- Galaxy, Planet, Construction, Research, Shipyard, Fleets, and Defenses all open from the shared `cockpit-validation` baseline without shell-only or near-empty regressions.
+- Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, and Defenses all open from the shared `cockpit-validation` baseline without shell-only or near-empty regressions.
 - Route helpers preserve `civilizationId` and `planetId` when moving between the accepted cockpit links.
 - Galaxy remains read-only while Planet, Construction, Research, Shipyard, and Fleets keep their current guarded mutation boundaries.
 - Diagnostics stay collapsed or clearly secondary across the cockpit routes.
-- Ground Army remains a placeholder.
+- Ground Army is now part of the accepted cockpit-foundation suite, but it remains readiness-only and non-combat.
 - Defenses is now part of the accepted cockpit-foundation suite, but it remains readiness-only and non-combat.
 
 ## Backend prerequisites
@@ -196,9 +199,18 @@ Fleet cockpit v1 acceptance boundary:
 
 Neighbor cockpit regression checkpoints:
 
-- Confirm the seeded `Galaxy`, `Planet`, `Construction`, `Research`, `Shipyard`, `Fleets`, and `Defenses` routes still load with the same local development context used in this block.
-- Confirm the current route helpers still preserve `civilizationId` and `planetId` when moving between `Galaxy`, `Planet`, `Construction`, `Research`, `Shipyard`, `Fleets`, and `Defenses`.
-- Confirm `Galaxy` remains read-only while `Planet`, `Construction`, `Research`, `Shipyard`, and `Fleets` keep their accepted cockpit boundaries.
+- Confirm the seeded `Galaxy`, `Planet`, `Construction`, `Research`, `Ground Army`, `Shipyard`, `Fleets`, and `Defenses` routes still load with the same local development context used in this block.
+- Confirm the current route helpers still preserve `civilizationId` and `planetId` when moving between `Galaxy`, `Planet`, `Construction`, `Research`, `Ground Army`, `Shipyard`, `Fleets`, and `Defenses`.
+- Confirm `Galaxy` remains read-only while `Planet`, `Construction`, `Research`, `Ground Army`, `Shipyard`, and `Fleets` keep their accepted cockpit boundaries.
+
+Ground Army cockpit v1 visual review:
+
+- Confirm the first viewport reads like a readiness cockpit rather than a placeholder or battle screen.
+- Confirm context, summary, structures, options, queue, handoffs, and diagnostics appear in that order before deep technical detail.
+- Confirm the seeded `Aurelia` scenario visibly includes one available option plus visible blocked comparisons.
+- Confirm complete-due remains visibly disabled in this build.
+- Confirm links toward `Construccion`, `Defensas`, `Flotas`, `Planeta`, and `Galaxia` preserve context.
+- Confirm no card or button implies invasion, combat, 3D, or fleet movement support.
 
 Defenses cockpit v1 visual review:
 
@@ -266,7 +278,7 @@ Shipyard cockpit v1 visual review:
 - `/construction` stays scoped to general construction.
 - `/research` behaves as a development-safe cockpit foundation.
 - `/research` keeps the corrected QA path with one seeded available item, visible blocked items, guarded enqueue, and disabled complete-due placeholder.
-- `/ground-army` still opens as a placeholder only.
+- `/ground-army` behaves as a readiness cockpit foundation, not a placeholder and not a combat surface.
 - `/defenses` behaves as a readiness cockpit foundation, not a placeholder and not a combat surface.
 - `/shipyard` behaves as a development-safe cockpit foundation with guarded enqueue, disabled complete-due, and explicit Fleet boundaries.
 - `Galaxy` remains read-only.

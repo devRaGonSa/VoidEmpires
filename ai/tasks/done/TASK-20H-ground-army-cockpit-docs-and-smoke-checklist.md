@@ -3,7 +3,7 @@
 ---
 id: TASK-20H-ground-army-cockpit-docs-and-smoke-checklist
 title: Ground Army cockpit docs and smoke checklist
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

@@ -1,198 +1,87 @@
 # Ground Army Cockpit Checklist
 
-Ground Army v1 must stay a terrestrial readiness cockpit.
-It must not expand into invasion, assault, raid, occupation, bombardment, fleet mutation, or combat resolution.
+Ground Army v1 is a terrestrial readiness cockpit.
+It must not expand into invasion, assault, raid, occupation, bombardment, fleet mutation, orbital transport, or combat resolution.
 
-Use this checklist with `docs/dev/planet-module-boundaries.md` and `docs/dev/development-seed-profiles.md`.
-Today `/ground-army` is still a placeholder route implemented through the shared `ModuleCabinPage`, not through a dedicated Ground Army page or backend UI-state service.
+Use this checklist with `docs/dev/planet-module-boundaries.md`, `docs/dev/development-seed-profiles.md`, and `docs/dev/frontend-foundation-smoke-checklist.md`.
 
-## Current backend inventory
+## Current cockpit
 
-### Domain concepts already implemented
+- Route: `/ground-army`
+- Seeded QA URL: `/ground-army?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Backend read model: `GET /api/dev/ground-army/ui-state?civilizationId=...&planetId=...`
+- Scope: readiness, structures, garrison visibility, guarded training preparation, queue history, and handoffs only
 
-- Ground military buildings exist:
-  - `BuildingType.MilitaryAcademy`
-  - `BuildingType.Barracks`
-  - Both are tagged as `BuildingCategory.MilitaryGround`.
-- Planetary ground-force assets exist:
-  - `PatrolGroup`
-  - `ExpeditionGroup`
-  - `VehicleGroup`
-  - `SupportGroup`
-- Planetary asset requirements are already defined through `PlanetaryAssetCatalog`:
-  - `PatrolGroup` requires `Barracks` level `1`
-  - `ExpeditionGroup` requires `MilitaryAcademy` level `1`
-  - `VehicleGroup` requires `Barracks` level `2`
-  - `SupportGroup` requires `LogisticsHub` level `1`
-- Ground-force capacity already exists through `PlanetMilitaryCapacityCalculator`:
-  - base source: `PlanetPopulationProfile.BaseRecruitablePopulation`
-  - building bonuses:
-    - `MilitaryAcademy`: `1000 * level`
-    - `Barracks`: `2500 * level`
-    - `CommandCenter`: `250 * level`
-- Planetary production persistence already exists:
-  - `AssetProductionOrder` supports `AssetProductionTarget.Planetary`
-  - `PlanetaryAssetStock` stores produced ground assets
+## Seeded QA baseline
 
-### Development-only mutation surface already implemented
+Apply `cockpit-validation` before manual review.
 
-- Generic Development enqueue route exists: `POST /api/dev/assets/production/enqueue`
-- Generic Development processing route exists: `POST /api/dev/assets/production/process-due`
-- The shared queue service already supports `AssetProductionTarget.Planetary`
-- The enqueue path already guards:
-  - owned-planet access
-  - required building presence and level
-  - resource affordability
-  - population-capacity readiness
-  - single open production order per planet
-- The processor already completes planetary orders by increasing `PlanetaryAssetStock`
+Expected seeded `Aurelia` result:
 
-This means Ground Army already has a safe Development-only enqueue foundation through the generic asset-production pipeline, even though it has no cockpit-specific route yet.
+- the selected planet is controlled by the requesting civilization
+- stockpile and population context are visible
+- one visible `Barracks` structure appears in the readiness inventory
+- one deterministic `PatrolGroup` option is available
+- blocked comparisons remain visible for higher-scope or missing-prerequisite options
+- one completed planetary training history row is visible
+- complete-due remains unavailable or clearly disabled
 
-## What does not exist today
+The seeded baseline must stay truthful:
 
-- No dedicated Ground Army backend query service is registered in DI.
-- No `MapDevGroundArmy...` endpoint exists in `Program.cs` or the web layer.
-- No dedicated Ground Army UI-state DTO exists in Application.
-- No seeded Ground Army QA baseline exists in `DevelopmentSeedService`.
-- No Ground Army queue read model exists for the frontend.
-- No dedicated frontend page exists for `/ground-army`; the route still renders the shared placeholder cabin.
+- no combat state
+- no invasion state
+- no troop transfer state
+- no fleet movement action
+- no fake complete-due execution path
 
-## Existing indirect surfaces Ground Army can rely on
+## Manual QA steps
 
-### Safe read-only state already available
+1. Reapply `cockpit-validation` twice if the local database has already been used for QA.
+2. Open the seeded Ground Army URL.
+3. Confirm `Aurelia` context is visible in the first viewport.
+4. Confirm resources, population or manpower context, and readiness summary render without raw payloads dominating the page.
+5. Confirm structures and the garrison or readiness inventory are visible.
+6. Confirm at least one available option and at least one blocked option are visible together.
+7. Confirm blocked states keep readable Spanish guidance.
+8. Confirm queue history is visible and readable when seeded.
+9. Confirm complete-due stays disabled or clearly unsupported in this build.
+10. Confirm handoffs to `Construccion`, `Defensas`, `Flotas`, `Planeta`, and `Galaxia` preserve `civilizationId` and `planetId`.
+11. Confirm diagnostics stay collapsed or clearly secondary by default.
+12. Confirm the page does not imply combat, invasion, 3D, or fleet movement support.
 
-- Planet context already exists through the planet UI-state route and the shared module shell:
-  - civilization id
-  - planet id
-  - ownership
-  - planet identity
-  - nearby route handoffs
-- Construction already classifies `MilitaryGround` actions as belonging to the Ground Army module for handoff purposes.
-- Building labels already exist for `MilitaryAcademy` and `Barracks`.
-- Module routing already preserves `/ground-army?civilizationId=...&planetId=...`.
+## Visual review
 
-### Safe guarded mutation already available
+- The first viewport should read like a specialized readiness cockpit, not a placeholder or raw dev console.
+- Context, summary, structures, catalog, queue, and handoffs should appear before deep diagnostics.
+- Available actions should read as guarded preparation only.
+- Blocked actions should stay visually secondary and should not imply hidden combat systems.
+- Development-only messaging should stay explicit but compact.
 
-- Ground-asset enqueue can already be performed through the generic Development asset-production endpoint by sending:
-  - `planetId`
-  - `civilizationId`
-  - `target = Planetary`
-  - `planetaryAssetType`
-  - `quantity`
-  - `requestedAtUtc`
+## Boundaries
 
-### Important limitation
-
-The current generic asset-production API is not yet a Ground Army cockpit contract.
-It is a shared Development-only backend primitive.
-Later Ground Army cockpit work should wrap or project this behavior through a dedicated ground-army read model instead of calling raw queue infrastructure directly from the main page.
-
-## Safe Ground Army v1 scope
-
-Ground Army v1 is allowed to show:
+Ground Army may show:
 
 - selected-planet context
-- terrestrial military buildings and readiness labels
-- readable names for ground-force asset types
-- resource affordability and missing-resource guidance
-- requirement guidance for barracks, academy, and logistics support
-- current planetary ground-asset stock when a dedicated read model exists
-- queue context when a dedicated read model exists
-- explicit Development-only enqueue readiness if the later cockpit chooses to expose the existing generic planetary production path
+- terrestrial military structures
+- readiness and capacity summaries
+- ground unit labels and current stock
+- available and blocked training options
+- queue history and truthful limitations
+- explanatory handoffs to neighboring modules
 
-Ground Army v1 must remain read-only or guarded Development-only preparation only.
-It must describe terrestrial force readiness and training, not battlefield execution.
+Ground Army must not execute or imply:
 
-## Explicit non-goals for v1
-
-Do not implement or imply support for:
-
-- invasion execution
-- assault execution
-- raid execution
-- occupation execution
+- invasion
+- assault
+- raid
+- occupation
 - bombardment
-- planetary damage
-- troop movement between planets
-- garrison combat resolution
-- defense-vs-army battle resolution
-- fleet movement or orbital transport execution
+- defense-vs-army combat
+- fleet movement
+- orbital logistics command
 - galaxy mutation
-- production authentication changes
 
-## Scope statement for later tasks
+## Controlled action note
 
-### Allowed first upgrade path
-
-The safest next backend step is a dedicated Development-only Ground Army read model, for example:
-
-- `GET /api/dev/ground-army/ui-state?civilizationId=...&planetId=...`
-
-Recommended DTO shape:
-
-- `planet`
-- `stockpile`
-- `groundReadiness`
-- `buildings`
-- `catalog`
-- `queue`
-- `stationedGroundAssets`
-- `actionHints`
-- `diagnostics`
-- `errors`
-
-Recommended read-model contents:
-
-- `groundReadiness`
-  - `baseRecruitablePopulation`
-  - `buildingCapacityBonus`
-  - `totalGroundCapacity`
-  - `notes`
-- `catalog[]`
-  - display label
-  - asset type key
-  - required building
-  - required level
-  - population requirement
-  - resource cost
-  - availability
-  - blocked reasons
-- `queue`
-  - current open planetary production order if it targets `Planetary`
-  - recent completed history rows if later tasks choose to show them
-- `stationedGroundAssets[]`
-  - asset type
-  - quantity
-  - role label
-
-### Allowed guarded action path
-
-If later tasks expose a button, keep it Development-only and route it through a Ground Army-specific wrapper over the existing planetary asset enqueue behavior.
-Do not expose the global complete-due route from the Ground Army cockpit until there is a planet-scoped safe contract.
-
-## Seed readiness gap
-
-Current seed profiles do not create:
-
-- `MilitaryAcademy`
-- `Barracks`
-- `LogisticsHub`
-- `PlanetaryAssetStock`
-- planetary `AssetProductionOrder` history
-
-So the current shared seed set is not yet sufficient for a meaningful Ground Army cockpit.
-Later Ground Army seed tasks should add a deterministic terrestrial baseline without seeding combat or transport.
-
-## Evidence summary
-
-- Domain and persistence already support terrestrial asset production.
-- The backend already contains a safe Development-only planetary enqueue primitive.
-- The frontend route still behaves as a placeholder cabin.
-- No combat, invasion, occupation, or troop-movement execution surface was found in the current backend.
-
-## Final boundary
-
-Ground Army v1 should be treated as a planet-side readiness and preparation cockpit only.
-It can safely grow into a dedicated read model plus guarded Development-only training enqueue over existing planetary production primitives.
-It must not activate combat, invasions, occupation, or any orbital behavior in this build.
+The current cockpit can explain and confirm Development-only training readiness, but the generic planetary asset enqueue primitive remains the underlying mutation surface.
+Ground Army still does not own a cockpit-specific complete-due endpoint, and it must not call the global processing route directly from the main page.
