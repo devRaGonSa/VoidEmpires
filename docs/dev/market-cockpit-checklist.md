@@ -3,6 +3,12 @@
 Market cockpit v1 is accepted as a read-only economy cockpit foundation for the current development build.
 Use `docs/dev/development-seed-profiles.md` for deterministic QA setup and `docs/dev/planet-module-boundaries.md` to keep Market separate from Planet, Construction, Shipyard, Fleets, and Galaxy ownership boundaries.
 
+Closure note for block `26C-26L`:
+
+- the read-only visual polish baseline is implemented
+- this document is the source of truth for manual Market QA
+- final screenshot-backed acceptance remains user-driven
+
 ## Acceptance boundary
 
 - `/market` is a real route.

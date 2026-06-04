@@ -3,7 +3,7 @@
 ---
 id: TASK-26L
 title: Phase 26L - Final Market visual polish closure
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
