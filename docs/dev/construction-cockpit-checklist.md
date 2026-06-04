@@ -25,6 +25,12 @@ Use `planet-full-validation` for the richer deterministic Construction QA baseli
   - Several actions remain blocked.
   - The queue shows one completed construction-history row and no open order.
 
+Backend-only persisted QA helper:
+
+- `.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed`
+- Add `-BuildingType MetalMine` or another available building type to force the exact enqueue target.
+- The helper talks directly to `POST /api/dev/buildings/construction-orders/enqueue`, then re-reads `/api/dev/planets/ui-state` to print queue and reserve deltas.
+
 ## Final manual QA
 
 Run first:

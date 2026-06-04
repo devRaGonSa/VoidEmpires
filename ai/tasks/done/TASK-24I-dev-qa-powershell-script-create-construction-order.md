@@ -3,7 +3,7 @@
 ---
 id: TASK-24I
 title: Phase 24I - Dev QA PowerShell script create Construction order
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

@@ -24,6 +24,7 @@ Recommended deterministic setup:
 Repeatable backend-only baseline helper:
 
 - Run `.\scripts\dev-qa-baseline.ps1` to verify the seed catalog, apply `cockpit-validation` twice, and print the current Construction/Planet and Research baseline snapshot before creating any real orders.
+- Run `.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed` to apply a deterministic Construction seed, enqueue one real Construction order through the dev API, and print queue plus stockpile deltas from the authoritative read model.
 
 Primary QA URLs:
 
@@ -70,6 +71,14 @@ Safe mutation path:
 3. Choose an action that the read model marks as `AvailabilityStatus = "Available"`.
 4. Enqueue with `POST /api/dev/buildings/construction-orders/enqueue`.
 5. Refresh from `GET /api/dev/planets/ui-state` and verify the queue changed from read-model state, not local optimistic state.
+
+Repeatable backend-only helper:
+
+- `.\scripts\dev-qa-create-construction-order.ps1`
+- Defaults to civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`.
+- Add `-ApplySeed` to apply `planet-full-validation` before the enqueue.
+- Add `-BuildingType MetalMine` or another available type to force a specific safe action instead of auto-picking the first available one.
+- The helper requires a running Development backend, creates a real persisted row, and prints before or after queue plus resource changes without running migrations or cleanup.
 
 Current enqueue behavior:
 
