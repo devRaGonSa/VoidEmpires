@@ -36,6 +36,10 @@ export function buildShipyardUrl(civilizationId: string, planetId?: string | nul
   return buildUrl("/shipyard", { civilizationId, planetId });
 }
 
+export function buildMarketUrl(civilizationId: string, planetId?: string | null) {
+  return buildUrl("/market", { civilizationId, planetId });
+}
+
 export function buildDefensesUrl(civilizationId: string, planetId?: string | null) {
   return buildUrl("/defenses", { civilizationId, planetId });
 }
