@@ -27,6 +27,13 @@ Repeatable backend-only baseline helper:
 - Run `.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed` to apply a deterministic Construction seed, enqueue one real Construction order through the dev API, and print queue plus stockpile deltas from the authoritative read model.
 - Run `.\scripts\dev-qa-create-research-order.ps1 -ApplySeed` to apply a deterministic Research seed, enqueue one real Research order through the dev API using backend-provided command metadata, and print queue plus stockpile deltas.
 
+Shared helper defaults:
+
+- Base URL default: `http://localhost:5142`
+- Default civilization id: `00000000-0000-0000-0000-000000000001`
+- Default owned planet id: `40000000-0000-0000-0000-000000000001`
+- If the backend is not running or persistence is unavailable, the helpers fail clearly and do not attempt cleanup or reseed resets.
+
 Primary QA URLs:
 
 - Construction: `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`

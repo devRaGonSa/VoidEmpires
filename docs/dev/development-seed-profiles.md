@@ -60,6 +60,20 @@ Operational guidance:
 - Use a fresh disposable local database only when you need the exact original pre-mutation baseline.
 - Pair Galaxy QA with `docs/dev/strategic-map-cockpit-checklist.md` so the route, expected seeded names, and shell-only regression checks stay aligned.
 
+Backend-only persisted QA helpers:
+
+- `.\scripts\dev-qa-baseline.ps1`
+  - defaults to `http://localhost:5142`
+  - applies `cockpit-validation` twice and prints the current Construction and Research baseline snapshot
+- `.\scripts\dev-qa-create-construction-order.ps1`
+  - defaults to civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`
+  - add `-ApplySeed` to apply `planet-full-validation` before enqueueing one real Construction order
+- `.\scripts\dev-qa-create-research-order.ps1`
+  - defaults to civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`
+  - add `-ApplySeed` to apply `research-validation` before enqueueing one real Research order
+
+All three helpers create or inspect Development-only persisted state. Do not run them against production.
+
 The discovery endpoint is Development-only and returns a concise list of all known profiles with:
 
 - `name`

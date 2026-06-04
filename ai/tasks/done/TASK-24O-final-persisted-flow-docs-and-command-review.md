@@ -3,7 +3,7 @@
 ---
 id: TASK-24O
 title: Phase 24O - Final persisted flow docs and command review
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
