@@ -3,7 +3,7 @@
 ---
 id: TASK-19Y-ground-army-route-context-loading-and-placeholder-upgrade
 title: Ground Army route context loading and placeholder upgrade
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

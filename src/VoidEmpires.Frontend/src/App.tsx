@@ -4,6 +4,7 @@ import { AppShell } from "./components/ui/AppShell";
 import { ConstructionPage } from "./pages/ConstructionPage";
 import { DefensesPage } from "./pages/DefensesPage";
 import { FleetsPage } from "./pages/FleetsPage";
+import { GroundArmyPage } from "./pages/GroundArmyPage";
 import { ModuleCabinPage } from "./pages/ModuleCabinPage";
 import { ResearchPage } from "./pages/ResearchPage";
 import { ShipyardPage } from "./pages/ShipyardPage";
@@ -56,6 +57,8 @@ export default function App() {
                 ? <ResearchPage />
                 : route.module === "Defenses"
                   ? <DefensesPage />
+                : route.module === "GroundArmy"
+                  ? <GroundArmyPage />
                 : route.module === "Shipyard"
                   ? <ShipyardPage />
                   : <ModuleCabinPage route={route} />

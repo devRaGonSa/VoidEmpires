@@ -1,0 +1,158 @@
+import { FormEvent, useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { fetchGroundArmyUiState } from "../api/groundArmyApi";
+import { PlanetDataRow } from "../components/PlanetModuleLayout";
+import { UiBadge } from "../components/ui/UiBadge";
+import { UiCard } from "../components/ui/UiCard";
+import { mapGroundArmyUiStateToViewModel } from "../utils/groundArmyViewModel";
+import { buildConstructionUrl, buildDefensesUrl, buildFleetsUrl, buildGalaxyUrl, buildPlanetUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
+
+export function GroundArmyPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
+  const [planetIdInput, setPlanetIdInput] = useState(searchParams.get("planetId") ?? "");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [uiState, setUiState] = useState<ReturnType<typeof mapGroundArmyUiStateToViewModel> | null>(null);
+
+  const queryCivilizationId = searchParams.get("civilizationId") ?? "";
+  const queryPlanetId = searchParams.get("planetId");
+  const groundArmy = uiState?.groundArmy ?? null;
+  const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
+  const selectedPlanetId = uiState?.selectedPlanetId ?? queryPlanetId ?? null;
+  const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
+
+  useEffect(() => {
+    setCivilizationIdInput(queryCivilizationId);
+    setPlanetIdInput(queryPlanetId ?? "");
+
+    async function load() {
+      if (!queryCivilizationId) {
+        setUiState(null);
+        setError(null);
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetchGroundArmyUiState(queryCivilizationId, queryPlanetId || undefined);
+        if (!response.succeeded || !response.uiState) {
+          setUiState(null);
+          setError(response.errors[0] ?? "La cabina terrestre no pudo cargarse.");
+          return;
+        }
+
+        setUiState(mapGroundArmyUiStateToViewModel(response.uiState));
+      } catch (requestError) {
+        setUiState(null);
+        setError(requestError instanceof Error ? requestError.message : "La cabina terrestre no pudo cargarse.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    void load();
+  }, [queryCivilizationId, queryPlanetId]);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmedCivilizationId = civilizationIdInput.trim();
+    if (!trimmedCivilizationId) {
+      setError("El id de civilizacion es obligatorio.");
+      return;
+    }
+
+    const nextParams = new URLSearchParams({ civilizationId: trimmedCivilizationId });
+    const trimmedPlanetId = planetIdInput.trim();
+    if (trimmedPlanetId) nextParams.set("planetId", trimmedPlanetId);
+    setSearchParams(nextParams);
+  }
+
+  return (
+    <section className="page-grid">
+      <UiCard className="panel panel-hero figma-hero-card">
+        <div className="figma-hero-copy">
+          <UiBadge tone="resource">Ejercito Tierra v1</UiBadge>
+          <h2>Cabina de Ejercito Tierra</h2>
+          <p>Lee preparacion terrestre, guarnicion local y opciones de entrenamiento seguras sin activar invasion, combate ni movimiento orbital.</p>
+        </div>
+        <div className="figma-badge-row">
+          <UiBadge>Lectura y preparacion terrestre</UiBadge>
+          <UiBadge tone="warn">Sin combate ni invasion</UiBadge>
+        </div>
+      </UiCard>
+
+      <div className="strategic-cockpit-top">
+        <UiCard className="panel strategic-loader-panel">
+          <div className="figma-section-header"><div><p className="eyebrow">Contexto</p><h3>Cargar cabina terrestre</h3></div><UiBadge>Uso local</UiBadge></div>
+          <form className="query-form" onSubmit={handleSubmit}>
+            <label className="field"><span>Id de civilizacion</span><input type="text" value={civilizationIdInput} onChange={(event) => setCivilizationIdInput(event.target.value)} placeholder="00000000-0000-0000-0000-000000000000" spellCheck={false} /></label>
+            <label className="field"><span>Id de planeta opcional</span><input type="text" value={planetIdInput} onChange={(event) => setPlanetIdInput(event.target.value)} placeholder="40000000-0000-0000-0000-000000000000" spellCheck={false} /></label>
+            <button type="submit" disabled={isLoading}>{isLoading ? "Cargando..." : "Abrir cabina"}</button>
+          </form>
+          {error ? <p className="error-text">{error}</p> : null}
+        </UiCard>
+
+        <UiCard className="panel">
+          <div className="figma-section-header"><div><p className="eyebrow">Estado actual</p><h3>Resumen terrestre</h3></div><UiBadge>{groundArmy ? groundArmy.planetName : "Sin planeta"}</UiBadge></div>
+          {groundArmy ? (
+            <div className="figma-data-list">
+              <PlanetDataRow label="Sistema" value={groundArmy.solarSystemName} />
+              <PlanetDataRow label="Control" value={groundArmy.controlStatusLabel ?? "Sin control"} />
+              <PlanetDataRow label="Guarnicion" value={`${groundArmy.readinessSummary.totalGarrisonQuantity} unidades`} />
+              <PlanetDataRow label="Estado" value={groundArmy.isOwnedByRequestingCivilization ? "Cabina activa" : "Observacion externa"} />
+            </div>
+          ) : <p className="figma-panel-note">La cabina mostrara preparacion terrestre, estructuras y guarnicion cuando el contexto sea valido.</p>}
+        </UiCard>
+
+        <UiCard className="panel">
+          <div className="figma-section-header"><div><p className="eyebrow">Limite de la cabina</p><h3>Boundary Ground Army</h3></div><UiBadge tone="warn">Readiness only</UiBadge></div>
+          <ul className="stack-list strategic-rules-list">
+            <li>Prepara y lee fuerzas terrestres y readiness local.</li>
+            <li>Construccion mantiene edificios militares y Defensas mantiene proteccion planetaria.</li>
+            <li>Flotas mantiene movimiento orbital y transporte.</li>
+            <li>Esta build no ejecuta invasion, combate ni ocupacion.</li>
+          </ul>
+        </UiCard>
+      </div>
+
+      <UiCard className="panel">
+        <div className="figma-section-header"><div><p className="eyebrow">Estado de readiness</p><h3>Shell de cockpit</h3></div><UiBadge tone={groundArmy?.actionAvailability.enqueueSupported ? "good" : "warn"}>{groundArmy?.actionAvailability.enqueueStatusLabel ?? "Pendiente"}</UiBadge></div>
+        {groundArmy ? (
+          <div className="readiness-grid">
+            <section className="subpanel figma-subpanel"><div className="figma-data-list">
+              <PlanetDataRow label="Poblacion total" value={groundArmy.population ? `${groundArmy.population.totalPopulation}` : "No disponible"} />
+              <PlanetDataRow label="Reclutable base" value={groundArmy.population ? `${groundArmy.population.baseRecruitablePopulation}` : "No disponible"} />
+              <PlanetDataRow label="Capacidad terrestre" value={groundArmy.population ? `${groundArmy.population.totalGroundCapacity}` : "No disponible"} />
+              <PlanetDataRow label="Opciones visibles" value={`${groundArmy.catalog.length}`} />
+            </div></section>
+            <section className="subpanel figma-subpanel"><div className="figma-data-list">
+              <PlanetDataRow label="Estructuras" value={`${groundArmy.readinessSummary.structureCount}`} />
+              <PlanetDataRow label="Tipos en guarnicion" value={`${groundArmy.readinessSummary.garrisonUnitTypes}`} />
+              <PlanetDataRow label="Bloqueadas" value={`${groundArmy.readinessSummary.blockedOptionCount}`} />
+              <PlanetDataRow label="Cola visible" value={`${groundArmy.readinessSummary.queueItemCount}`} />
+            </div></section>
+          </div>
+        ) : <p className="figma-panel-note">Todavia no hay datos terrestres visibles. La cabina mantiene un estado honesto en lugar de volver a un placeholder vacio.</p>}
+        <details className="subpanel figma-subpanel"><summary>Diagnosticos</summary><ul className="stack-list compact-list">{(groundArmy?.diagnostics.technical ?? uiState?.diagnostics.technical ?? []).map((line) => <li key={line}>{line}</li>)}</ul></details>
+      </UiCard>
+
+      {isSuspiciousContext ? (
+        <UiCard className="panel"><div className="figma-section-header"><div><p className="eyebrow">Contexto sospechoso</p><h3>El identificador de civilizacion no parece valido para esta cabina.</h3></div><UiBadge tone="warn">Revisar contexto</UiBadge></div><p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p></UiCard>
+      ) : null}
+
+      <UiCard className="panel">
+        <div className="figma-section-header"><div><p className="eyebrow">Navegacion</p><h3>Cabinas vecinas</h3></div><UiBadge tone="warn">Contexto conservado</UiBadge></div>
+        <div className="selection-chip-row">
+          <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>Volver a Planeta</Link>
+          <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>Abrir Construccion</Link>
+          <Link className="selection-chip" to={buildDefensesUrl(activeCivilizationId, selectedPlanetId)}>Abrir Defensas</Link>
+          <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>Abrir Flotas</Link>
+          <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, undefined, selectedPlanetId ?? undefined)}>Volver a Galaxia</Link>
+        </div>
+      </UiCard>
+    </section>
+  );
+}
