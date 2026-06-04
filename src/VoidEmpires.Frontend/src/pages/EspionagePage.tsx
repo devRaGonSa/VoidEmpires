@@ -4,7 +4,7 @@ import { fetchEspionageUiState } from "../api/espionageApi";
 import { CockpitHero } from "../components/CockpitHero";
 import type { EspionageViewModel, IntelligenceSystemTargetGroup, IntelligenceTargetViewModel } from "../utils/espionageViewModel";
 import { getEspionagePrimaryAction, mapEspionageUiStateToViewModel } from "../utils/espionageViewModel";
-import { getEspionageCueDescription, getEspionageMissingDataNote } from "../utils/espionagePresentation";
+import { getEspionageActionLabel, getEspionageCueDescription, getEspionageMissingDataNote } from "../utils/espionagePresentation";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import {
@@ -166,6 +166,14 @@ const intelligenceLegend: Array<{
   { key: "unconfirmed", label: "Sin confirmar", badge: "Sin evidencia estable", tone: "warn" },
 ];
 
+const futureMissionKeys = [
+  "espionage.reconnaissance.create",
+  "espionage.infiltration.create",
+  "espionage.sabotage.create",
+  "espionage.counterintelligence.create",
+  "espionage.technologyTheft.create",
+] as const;
+
 export function EspionagePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
@@ -243,6 +251,17 @@ export function EspionagePage() {
   const activePlanetId = focusedTarget?.planetId ?? queryPlanetId ?? null;
   const coverageOverview = getCoverageOverview(viewModel);
   const catalogSections = useMemo(() => buildCatalogSections(viewModel?.groups ?? []), [viewModel]);
+  const futureMissionCards = useMemo(() => {
+    const knownActions = new Map((viewModel?.futureActions ?? []).map((action) => [action.key, action]));
+    return futureMissionKeys.map((key) => {
+      const action = knownActions.get(key);
+      return {
+        key,
+        label: getEspionageActionLabel(key) ?? "Accion futura",
+        reason: action?.reasonLabel ?? "No disponible en esta version.",
+      };
+    });
+  }, [viewModel]);
 
   return (
     <section className="page-grid">
@@ -448,6 +467,35 @@ export function EspionagePage() {
           </div>
         </UiCard>
       ) : null}
+
+      <UiCard className="panel">
+        <div className="figma-section-header">
+          <div>
+            <p className="eyebrow">Misiones futuras</p>
+            <h3>Acciones de inteligencia</h3>
+            <p>La cabina deja visible la hoja de ruta, pero mantiene todas las operaciones desactivadas y fuera del alcance de esta version.</p>
+          </div>
+          <UiBadge tone="warn">Solo lectura</UiBadge>
+        </div>
+        <div className="espionage-mission-grid">
+          {futureMissionCards.map((action) => (
+            <article key={action.key} className="subpanel figma-subpanel espionage-mission-card">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Operacion futura</p>
+                  <h4>{action.label}</h4>
+                </div>
+                <UiBadge tone="warn">No disponible</UiBadge>
+              </div>
+              <p className="figma-panel-note">{action.reason}</p>
+              <button type="button" className="planet-action-button-blocked" disabled>
+                No disponible en esta version
+              </button>
+              <p className="espionage-target-note">Solo lectura en esta cabina.</p>
+            </article>
+          ))}
+        </div>
+      </UiCard>
 
       {catalogSections.length ? (
         <UiCard className="panel">

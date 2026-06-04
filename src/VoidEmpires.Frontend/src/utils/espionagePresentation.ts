@@ -38,6 +38,11 @@ export function getEspionageActionLabel(actionKey: string | null | undefined) {
     "sensor.profile.read": "Lecturas de sensores",
     "detection.coverage.read": "Cobertura local",
     "interception.opportunity.read": "Seguimiento de trayectorias",
+    "espionage.reconnaissance.create": "Reconocimiento activo",
+    "espionage.infiltration.create": "Infiltracion",
+    "espionage.sabotage.create": "Sabotaje",
+    "espionage.counterintelligence.create": "Contraespionaje",
+    "espionage.technologyTheft.create": "Robo de tecnologia",
   };
   return actionKey ? labels[actionKey] ?? null : null;
 }
