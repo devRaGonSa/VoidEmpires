@@ -3,7 +3,7 @@
 ---
 id: TASK-25M
 title: Phase 25M - Shipyard and Fleet persisted flow scope audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

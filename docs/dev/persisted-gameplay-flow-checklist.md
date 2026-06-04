@@ -1,7 +1,7 @@
 # Persisted Gameplay Flow Checklist
 
-This document is the authoritative QA scope note for the current persisted `Construction` and `Research` development flows.
-Use it together with `docs/dev/development-seed-profiles.md`, `docs/dev/construction-cockpit-checklist.md`, and `docs/dev/research-cockpit-checklist.md`.
+This document is the authoritative QA scope note for the current persisted `Construction`, `Research`, `Shipyard`, and `Fleet read-state` development flows.
+Use it together with `docs/dev/development-seed-profiles.md`, `docs/dev/construction-cockpit-checklist.md`, `docs/dev/research-cockpit-checklist.md`, and `docs/dev/shipyard-fleet-persisted-qa.md`.
 
 ## Scope and safety rules
 
@@ -11,6 +11,9 @@ Use it together with `docs/dev/development-seed-profiles.md`, `docs/dev/construc
 - No destructive reset behavior is part of the accepted QA path.
 - No automatic completion is part of the accepted QA path unless a route is already proven safe and scoped.
 - No visual QA is required for this block.
+- Shipyard persisted QA stops at enqueue plus read-state verification; it does not use global due-processing.
+- Fleet persisted QA for this block is read-only after the Shipyard mutation.
+- Stock-to-fleet allocation remains optional and excluded from the accepted default loop until its endpoint is hardened and explicitly re-approved.
 
 ## Safe baseline
 
@@ -34,6 +37,10 @@ Shared helper defaults:
 - Default civilization id: `00000000-0000-0000-0000-000000000001`
 - Default owned planet id: `40000000-0000-0000-0000-000000000001`
 - If the backend is not running or persistence is unavailable, the helpers fail clearly and do not attempt cleanup or reseed resets.
+
+Shipyard/Fleet companion note:
+
+- Use `docs/dev/shipyard-fleet-persisted-qa.md` for the exact endpoint inventory, read-model fields, and current inclusion or exclusion rules for Shipyard and Fleets.
 
 Primary QA URLs:
 
@@ -181,6 +188,8 @@ Construction persisted mutation and read surfaces: `POST /api/dev/buildings/cons
 Research persisted mutation and read surfaces: `POST /api/dev/research/orders/enqueue`, `POST /api/dev/research/orders/complete-due`, `GET /api/dev/research/ui-state?civilizationId={id}&planetId={id}`
 
 Seed/bootstrap surfaces used by the safe QA loop: `POST /api/dev/seeds/apply`, `GET /api/dev/seeds/profiles`
+
+Shipyard/Fleet persisted mutation and read surfaces for the current block: `POST /api/dev/assets/production/enqueue`, `POST /api/dev/assets/production/process-due`, `GET /api/dev/shipyard/ui-state?civilizationId={id}&planetId={id}`, `GET /api/dev/fleets/ui-state?civilizationId={id}`, `GET /api/dev/fleets/overview?civilizationId={id}`, `GET /api/dev/fleets/action-manifest`, `POST /api/dev/fleets/orbital-groups/create-from-stock`
 
 ## Runtime contract notes for PowerShell helpers
 

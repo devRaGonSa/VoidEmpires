@@ -10,6 +10,12 @@ Fleet cockpit v1 acceptance summary:
 - Prototype-only frontend flows: `split` and `merge`
 - Visual goal: a mostly Spanish gameplay-first screen with compact development context, secondary technical ids, and a clear five-step order flow
 
+Current persisted Shipyard/Fleet audit boundary:
+
+- This block accepts Fleet read-state after a Shipyard mutation.
+- This block does not accept transfer creation, cancellation, completion, split, merge, combat, or interception execution as part of the persisted Shipyard/Fleet QA loop.
+- `POST /api/dev/fleets/orbital-groups/create-from-stock` exists, is Development-only, and mutates real stock, but it is still too thinly validated to include in the default repeated-QA flow.
+
 Development fleet routes are mapped when the web host runs in `Development` or `VoidEmpires:DevEndpoints:Enabled=true`. If the development surface is disabled, routes return `404 Not Found`. If the route is mapped but `ConnectionStrings:DefaultConnection` is empty, persistence-backed endpoints return `503 Service Unavailable`.
 
 JSON payloads use current .NET enum names such as `ScoutCraft`, `Stationed`, `Reserved`, `Planned`, `InTransit`, `Completed`, and `Cancelled`.
@@ -260,6 +266,11 @@ Restrictions: read-only. Command availability is a UI planning hint derived from
 Query: required `civilizationId`.
 
 Response: `succeeded`, `uiState`, `errors`. `uiState` contains `civilizationId`, `groups[]`, `resourceContexts[]`, `actionHints[]`, and `interceptionNotes[]`. Groups mirror the operational overview shape and include command availability plus `routeFuelReadiness` capability hints. Resource contexts include current-planet stockpile balances for `Credits`, `Metal`, `Crystal`, and `Gas` when a stockpile exists for a group's current planet. Action hints include action key, display name, route, method, read-only flag, and notes.
+
+Persisted-QA interpretation for the current Shipyard/Fleet block:
+
+- Use this endpoint after a Shipyard enqueue to confirm Fleet read-state still reflects the same stationed groups and only picks up the shared current-planet resource balance change.
+- Do not treat the manifest entries for transfer, split, merge, or completion as approved steps in the persisted Shipyard/Fleet QA loop for this block.
 
 `routeFuelReadiness` contains `canRequestTravelEstimate`, `requiresDestination`, `estimateActionKey`, `estimateRoute`, `fuelReadinessPolicy`, nullable `routeProfile`, nullable `fuelReadiness`, and `notes[]`. The current UI-state request has no destination context, so it does not include destination-specific `routeProfile` or `fuelReadiness` values. Frontend prototypes should call `fleet.travel.estimate` with `destinationPlanetId` when they need route class, risk, estimated fuel requirements, range readiness, travel costs, and affordability.
 

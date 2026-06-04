@@ -2,6 +2,7 @@
 
 This checklist documents the current `/shipyard` development cockpit, the seeded QA URL, and the intentional boundary with Fleet work.
 Use `docs/dev/development-seed-profiles.md` for the standard Development-only QA commands, ids, and reseed guidance.
+Use `docs/dev/shipyard-fleet-persisted-qa.md` for the accepted persisted backend-only QA loop for this block.
 
 Shipyard v1 is a development-safe orbital production cockpit.
 It can inspect production context and enqueue one guarded orbital order through the current dev route.
@@ -51,6 +52,8 @@ Use this after the required validation commands succeed.
 - Fleets owns orbital groups, transfer lifecycle, destination review, movement, cancellation, and due completion.
 - Shipyard may link to Fleets for already-visible groups, but it must not mutate Fleet state directly in this block.
 - The current complete-due affordance remains intentionally disabled because the backend route is still global and not safely scoped to the visible shipyard context.
+- The accepted persisted QA loop for this block is `seed -> shipyard ui-state -> one enqueue -> shipyard ui-state -> fleet ui-state`.
+- Local orbital stock should stay unchanged immediately after enqueue; produced stock changes only after due processing, which remains out of the safe repeated-QA flow because the current route is global.
 
 ## Development Gating
 
@@ -198,7 +201,7 @@ Implication for Shipyard v1:
 - `POST /api/dev/fleets/orbital-groups/create-from-stock`
   - status: development-only mutation
   - behavior: consumes orbital stock and creates a stationed orbital group
-  - scope note: too thinly validated for Shipyard v1 execution
+  - scope note: too thinly validated for Shipyard v1 execution and excluded from the accepted persisted default QA loop
 - `GET /api/dev/fleets/orbital-groups`
   - status: read-only
   - behavior: lists existing orbital groups with filters
@@ -258,6 +261,7 @@ Missing or thin:
 
 - Treating `create-from-stock` as a safe shipyard action.
 - Exposing split, merge, transfer creation, transfer cancellation, or transfer completion from Shipyard.
+- Treating `POST /api/dev/assets/production/process-due` as a repeatable shipyard QA step, because it currently processes all due asset orders globally.
 - Pretending a shipyard queue read model already exists.
 - Pretending orbital stock read endpoints already exist.
 - Inventing shipyard-specific ownership validation that the current service does not perform.
