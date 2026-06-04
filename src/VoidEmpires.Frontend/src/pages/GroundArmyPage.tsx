@@ -256,9 +256,9 @@ export function GroundArmyPage() {
             <PlanetDataRow label="Duracion" value={recommendedOption.estimatedDurationLabel} />
           </div>
           <div className="selection-chip-row">
-            <Link className="selection-chip selection-chip-active" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>Abrir Construccion</Link>
-            <button type="button" className="selection-chip" disabled>
-              {canUseDirectGroundAction ? "Confirmar preparacion" : "Preparacion terrestre no disponible"}
+            <Link className="planet-action-button-secondary planet-action-handoff" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>Abrir Construccion</Link>
+            <button type="button" className="planet-action-button-blocked" disabled>
+              {canUseDirectGroundAction ? "Confirmar" : "No disponible en esta version"}
             </button>
           </div>
           <p className="figma-panel-note">

@@ -787,10 +787,10 @@ export function ShipyardPage() {
                             <div className="selection-chip-row">
                               <button
                                 type="button"
-                                className="selection-chip"
+                                className="planet-action-button-secondary"
                                 onClick={() => handleReviewAsset(asset)}
                               >
-                                {bucket === "available" ? "Revisar produccion" : bucket === "blocked" ? "Revisar bloqueo" : "Revisar limite"}
+                                {bucket === "available" ? "Revisar orden" : bucket === "blocked" ? "Revisar bloqueo" : "Revisar limite"}
                               </button>
                             </div>
                           </article>
@@ -848,17 +848,17 @@ export function ShipyardPage() {
                     <div className="selection-chip-row">
                       <button
                         type="button"
-                        className="selection-chip"
+                        className={reviewSelection.bucket === "available" ? "" : "planet-action-button-blocked"}
                         onClick={() => void handleConfirmProduction()}
                         disabled={reviewSelection.bucket !== "available" || !hasEnqueueAcknowledgement || isSubmittingEnqueue}
                       >
                         {reviewSelection.bucket === "available"
-                          ? isSubmittingEnqueue ? "Confirmando..." : "Confirmar produccion"
-                          : "Confirmacion no disponible"}
+                          ? isSubmittingEnqueue ? "Confirmando..." : "Confirmar"
+                          : "No disponible en esta version"}
                       </button>
                       <button
                         type="button"
-                        className="selection-chip"
+                        className="planet-action-button-secondary"
                         onClick={handleCancelReview}
                         disabled={isSubmittingEnqueue}
                       >
@@ -904,8 +904,8 @@ export function ShipyardPage() {
                   <div className="figma-data-row"><span>Cierre seguro</span><strong>{hasSafeShipyardCompleteDue ? "Disponible con confirmacion" : cockpitStatusLabels.safePlaceholder}</strong></div>
                 </div>
                 <div className="selection-chip-row">
-                  <button type="button" className="selection-chip" disabled>
-                    Completar produccion vencida no disponible
+                  <button type="button" className="planet-action-button-blocked" disabled>
+                    No disponible en esta version
                   </button>
                 </div>
                 <p className="figma-panel-note">

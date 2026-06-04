@@ -437,11 +437,11 @@ export function DefensesPage() {
                     <p>{option.reasonLabel}</p>
                     <p className="figma-panel-note">Reservas de {defenses.planetName}. Preparacion visible desde Defensas, gestion segura desde Construccion.</p>
                     <div className="selection-chip-row">
-                      <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
-                        Gestionar construccion desde Construccion
+                      <Link className="planet-action-button-secondary planet-action-handoff" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
+                        Abrir Construccion
                       </Link>
-                      <button type="button" className="selection-chip" disabled>
-                        Confirmar defensa aqui no disponible
+                      <button type="button" className="planet-action-button-blocked" disabled>
+                        No disponible en esta version
                       </button>
                     </div>
                   </article>
@@ -478,8 +478,8 @@ export function DefensesPage() {
                     {option.affordabilityLabel ? <p className="figma-panel-note">{option.affordabilityLabel}</p> : null}
                     {option.requirementLabel ? <p className="figma-panel-note">{option.requirementLabel}</p> : null}
                     <div className="selection-chip-row">
-                      <button type="button" className="selection-chip" disabled>
-                        {option.statusKey === "Unsupported" ? cockpitStatusLabels.safePlaceholder : "Accion bloqueada"}
+                      <button type="button" className="planet-action-button-blocked" disabled>
+                        {option.statusKey === "Unsupported" ? cockpitStatusLabels.safePlaceholder : "No disponible en esta version"}
                       </button>
                     </div>
                   </article>
@@ -556,8 +556,8 @@ export function DefensesPage() {
                   <div className="figma-data-row"><span>Cierre visible</span><strong>{defenses.actionAvailability.completeDue.supported ? "Detectado pero no habilitado" : "No soportado"}</strong></div>
                 </div>
                 <div className="selection-chip-row">
-                  <button type="button" className="selection-chip" disabled>
-                    Completar orden defensiva no disponible
+                  <button type="button" className="planet-action-button-blocked" disabled>
+                    No disponible en esta version
                   </button>
                 </div>
                 <p className="figma-panel-note">
