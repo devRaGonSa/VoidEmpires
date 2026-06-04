@@ -243,6 +243,27 @@ function Get-DevQaFleetSnapshot {
     }
 }
 
+function Format-DevQaFleetTransferSummary {
+    param([object]$Groups)
+
+    $items = foreach ($group in (Get-DevQaEnumerable $Groups)) {
+        $activeTransfer = Get-DevQaPropertyValue -InputObject $group -PropertyNames @("activeTransfer", "ActiveTransfer")
+        if ($null -eq $activeTransfer) {
+            continue
+        }
+
+        [pscustomobject]@{
+            AssetType = Get-DevQaPropertyValue -InputObject $group -PropertyNames @("assetType", "AssetType")
+            Quantity = Get-DevQaPropertyValue -InputObject $group -PropertyNames @("quantity", "Quantity")
+            DestinationPlanetId = Get-DevQaPropertyValue -InputObject $activeTransfer -PropertyNames @("destinationPlanetId", "DestinationPlanetId")
+            Status = Get-DevQaPropertyValue -InputObject $activeTransfer -PropertyNames @("status", "Status")
+            ArrivalAtUtc = Get-DevQaPropertyValue -InputObject $activeTransfer -PropertyNames @("arrivalAtUtc", "ArrivalAtUtc")
+        }
+    }
+
+    return @($items)
+}
+
 function Get-DevQaHttpResponseBody {
     param([System.Exception]$Exception)
 

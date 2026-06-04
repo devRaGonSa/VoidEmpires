@@ -281,6 +281,7 @@ Persisted-QA interpretation for the current Shipyard/Fleet block:
 
 - Use this endpoint after a Shipyard enqueue to confirm Fleet read-state still reflects the same stationed groups and only picks up the shared current-planet resource balance change.
 - Do not treat the manifest entries for transfer, split, merge, or completion as approved steps in the persisted Shipyard/Fleet QA loop for this block.
+- Backend-only helper: `.\scripts\dev-qa-fleet-read-state.ps1` reads this endpoint, prints current group counts, stationed counts, active transfer summaries, and any local resource contexts without mutating fleet state.
 
 `routeFuelReadiness` contains `canRequestTravelEstimate`, `requiresDestination`, `estimateActionKey`, `estimateRoute`, `fuelReadinessPolicy`, nullable `routeProfile`, nullable `fuelReadiness`, and `notes[]`. The current UI-state request has no destination context, so it does not include destination-specific `routeProfile` or `fuelReadiness` values. Frontend prototypes should call `fleet.travel.estimate` with `destinationPlanetId` when they need route class, risk, estimated fuel requirements, range readiness, travel costs, and affordability.
 

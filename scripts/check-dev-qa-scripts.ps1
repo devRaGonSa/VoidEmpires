@@ -8,7 +8,8 @@ $scriptPaths = @(
     (Join-Path $PSScriptRoot "dev-qa-baseline.ps1"),
     (Join-Path $PSScriptRoot "dev-qa-create-construction-order.ps1"),
     (Join-Path $PSScriptRoot "dev-qa-create-research-order.ps1"),
-    (Join-Path $PSScriptRoot "dev-qa-create-shipyard-production-order.ps1")
+    (Join-Path $PSScriptRoot "dev-qa-create-shipyard-production-order.ps1"),
+    (Join-Path $PSScriptRoot "dev-qa-fleet-read-state.ps1")
 )
 
 $parseFailures = New-Object System.Collections.Generic.List[string]
@@ -106,6 +107,21 @@ $stockSummary = Format-DevQaStockSummary @(
 )
 if ($stockSummary.Count -ne 2 -or $stockSummary.TotalQuantity -ne 5 -or $stockSummary.Summary -notlike "*ScoutCraft=1*" -or $stockSummary.Summary -notlike "*EscortCraft=4*") {
     throw "Expected stock summary helper to summarize shipyard stock rows."
+}
+
+$transferSummary = Format-DevQaFleetTransferSummary @(
+    [pscustomobject]@{
+        assetType = "ScoutCraft"
+        quantity = 2
+        activeTransfer = [pscustomobject]@{
+            destinationPlanetId = "40000000-0000-0000-0000-000000000002"
+            status = "Planned"
+            arrivalAtUtc = "2026-01-01T12:05:00Z"
+        }
+    }
+)
+if (@($transferSummary).Count -ne 1 -or $transferSummary[0].AssetType -ne "ScoutCraft" -or $transferSummary[0].Status -ne "Planned") {
+    throw "Expected fleet transfer summary helper to summarize active transfer rows."
 }
 
 $constructionPayloadSummary = Format-DevQaPayloadSummary ([ordered]@{
