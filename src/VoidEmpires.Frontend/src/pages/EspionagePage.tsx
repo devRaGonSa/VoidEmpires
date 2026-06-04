@@ -4,6 +4,7 @@ import { fetchEspionageUiState } from "../api/espionageApi";
 import { CockpitHero } from "../components/CockpitHero";
 import type { EspionageViewModel, IntelligenceSystemTargetGroup, IntelligenceTargetViewModel } from "../utils/espionageViewModel";
 import { getEspionagePrimaryAction, mapEspionageUiStateToViewModel } from "../utils/espionageViewModel";
+import { getEspionageCueDescription, getEspionageMissingDataNote } from "../utils/espionagePresentation";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import {
@@ -151,6 +152,19 @@ function buildCatalogSections(groups: readonly IntelligenceSystemTargetGroup[]):
 
   return sections.filter((section) => section.entries.length > 0);
 }
+
+const intelligenceLegend: Array<{
+  key: "owned" | "observed" | "partial" | "signal" | "unconfirmed";
+  label: string;
+  badge: string;
+  tone: "neutral" | "good" | "warn";
+}> = [
+  { key: "owned", label: "Propio / control directo", badge: "Confirmado", tone: "good" },
+  { key: "observed", label: "Visible / observado", badge: "Lectura estable", tone: "neutral" },
+  { key: "partial", label: "Contacto parcial", badge: "Datos incompletos", tone: "warn" },
+  { key: "signal", label: "Senal orbital", badge: "Senal pasiva", tone: "warn" },
+  { key: "unconfirmed", label: "Sin confirmar", badge: "Sin evidencia estable", tone: "warn" },
+];
 
 export function EspionagePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -315,6 +329,31 @@ export function EspionagePage() {
         </UiCard>
       </div>
 
+      <UiCard className="panel">
+        <div className="figma-section-header">
+          <div>
+            <p className="eyebrow">Lectura de niveles</p>
+            <h3>Como interpretar la inteligencia</h3>
+            <p>Los datos incompletos no desbloquean acciones ofensivas. La lectura depende de la visibilidad estrategica actual.</p>
+          </div>
+          <UiBadge tone="warn">Sin precision falsa</UiBadge>
+        </div>
+        <div className="espionage-legend-grid">
+          {intelligenceLegend.map((item) => (
+            <article key={item.key} className={`subpanel figma-subpanel espionage-legend-card espionage-target-card-${item.tone}`}>
+              <div className="espionage-target-card-head">
+                <div>
+                  <p className="eyebrow">{item.label}</p>
+                  <h4>{item.badge}</h4>
+                </div>
+                <UiBadge tone={item.tone}>{item.badge}</UiBadge>
+              </div>
+              <p className="figma-panel-note">{getEspionageCueDescription(item.key)}</p>
+            </article>
+          ))}
+        </div>
+      </UiCard>
+
       {isSuspiciousContext ? (
         <UiCard className="panel">
           <div className="figma-section-header">
@@ -380,6 +419,9 @@ export function EspionagePage() {
                         {isOwnedTarget(target) ? <div className="figma-data-row"><span>Control</span><strong>Control propio</strong></div> : null}
                         <div className="figma-data-row"><span>Handoff sugerido</span><strong>{getTargetHandoffLabel(target)}</strong></div>
                       </div>
+                      {!isOwnedTarget(target) && !isVisibleTarget(target) ? (
+                        <p className="espionage-target-note">{getEspionageMissingDataNote(target.hasPassiveSignals ? "partial" : "unconfirmed")}</p>
+                      ) : null}
                     </article>
                   ))}
 
@@ -397,6 +439,7 @@ export function EspionagePage() {
                         <div className="figma-data-row"><span>Sistema</span><strong>{signal.systemLabel}</strong></div>
                         <div className="figma-data-row"><span>Handoff sugerido</span><strong>{signal.planetId ? "Galaxia -> Planeta" : "Galaxia"}</strong></div>
                       </div>
+                      <p className="espionage-target-note">{getEspionageMissingDataNote("signal")}</p>
                     </article>
                   ))}
                 </div>
@@ -450,6 +493,15 @@ export function EspionagePage() {
                         {entry.controlLabel ? <div className="figma-data-row"><span>Control</span><strong>{entry.controlLabel}</strong></div> : null}
                         <div className="figma-data-row"><span>Handoff sugerido</span><strong>{entry.handoffLabel}</strong></div>
                       </div>
+                      {entry.statusTone === "warn" ? (
+                        <p className="espionage-target-note">
+                          {section.key === "signal"
+                            ? getEspionageMissingDataNote("signal")
+                            : section.key === "partial"
+                              ? getEspionageMissingDataNote("partial")
+                              : getEspionageMissingDataNote("unconfirmed")}
+                        </p>
+                      ) : null}
                     </article>
                   ))}
                 </div>

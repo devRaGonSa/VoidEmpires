@@ -1564,6 +1564,7 @@ select {
 }
 
 .espionage-catalog-grid,
+.espionage-legend-grid,
 .espionage-target-grid,
 .espionage-system-list,
 .espionage-data-list {
@@ -1572,13 +1573,19 @@ select {
 }
 
 .espionage-catalog-grid,
+.espionage-legend-grid,
 .espionage-system-list {
   margin-top: 14px;
 }
 
+.espionage-legend-grid,
 .espionage-target-grid,
 .espionage-system-list {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.espionage-legend-card {
+  align-content: start;
 }
 
 .espionage-catalog-section {
@@ -1625,6 +1632,14 @@ select {
 .espionage-target-subtitle {
   margin-top: 6px;
   color: color-mix(in srgb, var(--ve-color-text) 78%, var(--ve-color-muted));
+}
+
+.espionage-target-note {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px dashed color-mix(in srgb, var(--ve-color-border) 34%, transparent);
+  color: color-mix(in srgb, var(--ve-color-text) 76%, var(--ve-color-muted));
+  font-size: 0.82rem;
 }
 
 @media (max-width: 1440px) {

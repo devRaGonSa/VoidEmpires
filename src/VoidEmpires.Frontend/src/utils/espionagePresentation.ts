@@ -48,6 +48,32 @@ export function getIntelConfidenceLabel(options: { visibilityLevel: DomainValue;
   return isOneOf(options.visibilityLevel, ["Visible", "1"]) || (options.detectionCount ?? 0) > 0 ? "Media" : "Sin confirmar";
 }
 
+export function getEspionageCueDescription(cue: "owned" | "observed" | "partial" | "signal" | "unconfirmed") {
+  switch (cue) {
+    case "owned":
+      return "Control directo con contexto estable y sin ambiguedad operativa.";
+    case "observed":
+      return "Objetivo visible o conocido desde la lectura estrategica actual.";
+    case "partial":
+      return "Hay fragmentos utiles, pero la cabina todavia no confirma todos los campos.";
+    case "signal":
+      return "La pista existe, pero sigue siendo solo una senal pasiva.";
+    default:
+      return "Contacto presente sin evidencia suficiente para tratarlo como objetivo completo.";
+  }
+}
+
+export function getEspionageMissingDataNote(cue: "partial" | "signal" | "unconfirmed") {
+  switch (cue) {
+    case "partial":
+      return "Los datos incompletos no desbloquean acciones ofensivas.";
+    case "signal":
+      return "La lectura depende de la visibilidad estrategica actual.";
+    default:
+      return "La cabina oculta campos no confirmados en lugar de inventarlos.";
+  }
+}
+
 export function formatIntelCoverage(options: { sensorCount?: number; detectionCount?: number; transferCount?: number; }) {
   const values = [
     (options.sensorCount ?? 0) > 0 ? `${options.sensorCount} lectura${options.sensorCount === 1 ? "" : "s"} directa${options.sensorCount === 1 ? "" : "s"}` : null,
