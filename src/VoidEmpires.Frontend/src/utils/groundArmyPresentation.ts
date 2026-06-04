@@ -1,0 +1,150 @@
+import { formatResourceType } from "./domainPresentation";
+
+type GroundArmyValue = string | number | null | undefined;
+
+interface GroundArmyLabelCatalogEntry {
+  key: string;
+  label: string;
+}
+
+export interface GroundArmyUnitPresentationEntry {
+  key: string;
+  label: string;
+  categoryKey: string;
+  categoryLabel: string;
+  roleLabel: string;
+  requiredStructureKey: string;
+}
+
+const unknownUnitFallback = "Unidad terrestre pendiente de clasificar";
+const unknownStructureFallback = "Estructura terrestre pendiente de clasificar";
+const unknownCategoryFallback = "Categoria terrestre pendiente de clasificar";
+const unknownReadinessFallback = "Preparacion terrestre pendiente de clasificar";
+const unknownActionFallback = "Accion terrestre pendiente de clasificar";
+
+const groundArmyUnitCatalog: readonly GroundArmyUnitPresentationEntry[] = [
+  { key: "PatrolGroup", label: "Patrulla de guarnicion", categoryKey: "Guarnicion", categoryLabel: "Guarnicion", roleLabel: "Vigilancia planetaria", requiredStructureKey: "Barracks" },
+  { key: "ExpeditionGroup", label: "Grupo expedicionario", categoryKey: "PreparacionColonial", categoryLabel: "Preparacion colonial", roleLabel: "Despliegue terrestre preparado", requiredStructureKey: "MilitaryAcademy" },
+  { key: "VehicleGroup", label: "Columna blindada", categoryKey: "Entrenamiento", categoryLabel: "Entrenamiento", roleLabel: "Choque terrestre pesado", requiredStructureKey: "Barracks" },
+  { key: "SupportGroup", label: "Grupo de apoyo", categoryKey: "LogisticaTerrestre", categoryLabel: "Logistica terrestre", roleLabel: "Suministro y soporte de campo", requiredStructureKey: "LogisticsHub" },
+] as const;
+
+const groundArmyStructureCatalog: readonly GroundArmyLabelCatalogEntry[] = [
+  { key: "Barracks", label: "Barracones" },
+  { key: "MilitaryAcademy", label: "Academia militar" },
+  { key: "LogisticsHub", label: "Centro logistico terrestre" },
+  { key: "CommandCenter", label: "Centro de mando terrestre" },
+] as const;
+
+const groundArmyReadinessCatalog: readonly GroundArmyLabelCatalogEntry[] = [
+  { key: "Available", label: "Lista para preparar" },
+  { key: "Blocked", label: "Bloqueada" },
+  { key: "InsufficientResources", label: "Recursos insuficientes" },
+  { key: "CapacityExceeded", label: "Capacidad agotada" },
+  { key: "MissingResourceStockpile", label: "Sin reservas" },
+  { key: "MissingCapacityData", label: "Sin capacidad confirmada" },
+  { key: "Unsupported", label: "Solo lectura" },
+  { key: "ReadOnly", label: "Solo lectura" },
+  { key: "Placeholder", label: "Cabina preparada" },
+  { key: "Pending", label: "Pendiente" },
+  { key: "Active", label: "En preparacion" },
+  { key: "Completed", label: "Completada" },
+  { key: "Cancelled", label: "Cancelada" },
+] as const;
+
+const groundArmyActionCatalog: readonly GroundArmyLabelCatalogEntry[] = [
+  { key: "catalog.read", label: "Revisar fuerzas terrestres" },
+  { key: "stock.read", label: "Revisar guarnicion planetaria" },
+  { key: "queue.read", label: "Revisar cola de entrenamiento" },
+  { key: "production.enqueue", label: "Preparar entrenamiento terrestre" },
+  { key: "production.completeDue", label: "Cerrar entrenamiento vencido" },
+  { key: "construction.link", label: "Abrir Construccion" },
+  { key: "defenses.link", label: "Abrir Defensas" },
+  { key: "fleets.link", label: "Abrir Flotas" },
+] as const;
+
+function normalizeValue(value: GroundArmyValue) {
+  if (typeof value === "number") {
+    return String(value);
+  }
+
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : null;
+}
+
+function resolveCatalogLabel(
+  value: GroundArmyValue,
+  catalog: readonly GroundArmyLabelCatalogEntry[],
+  fallback: string,
+) {
+  const normalizedValue = normalizeValue(value);
+  if (!normalizedValue) {
+    return fallback;
+  }
+
+  return catalog.find((entry) => entry.key.toLowerCase() === normalizedValue.toLowerCase())?.label ?? fallback;
+}
+
+function findGroundArmyUnit(value: GroundArmyValue) {
+  const normalizedValue = normalizeValue(value);
+  if (!normalizedValue) {
+    return null;
+  }
+
+  return groundArmyUnitCatalog.find((entry) => entry.key.toLowerCase() === normalizedValue.toLowerCase()) ?? null;
+}
+
+export function getGroundArmyUnitCatalog() {
+  return groundArmyUnitCatalog;
+}
+
+export function getGroundArmyReadinessCatalog() {
+  return groundArmyReadinessCatalog;
+}
+
+export function getGroundArmyActionCatalog() {
+  return groundArmyActionCatalog;
+}
+
+export function getGroundUnitLabel(value: GroundArmyValue) {
+  return findGroundArmyUnit(value)?.label ?? unknownUnitFallback;
+}
+
+export function getGroundArmyCategoryLabel(value: GroundArmyValue) {
+  return findGroundArmyUnit(value)?.categoryLabel ?? unknownCategoryFallback;
+}
+
+export function getGroundArmyRoleLabel(value: GroundArmyValue) {
+  return findGroundArmyUnit(value)?.roleLabel ?? unknownUnitFallback;
+}
+
+export function getGroundStructureLabel(value: GroundArmyValue) {
+  return resolveCatalogLabel(value, groundArmyStructureCatalog, unknownStructureFallback);
+}
+
+export function getGroundReadinessLabel(value: GroundArmyValue) {
+  return resolveCatalogLabel(value, groundArmyReadinessCatalog, unknownReadinessFallback);
+}
+
+export function getGroundActionLabel(value: GroundArmyValue) {
+  return resolveCatalogLabel(value, groundArmyActionCatalog, unknownActionFallback);
+}
+
+export function formatGroundTrainingCost(
+  cost: ReadonlyArray<{ resourceType: GroundArmyValue; quantity: number }>,
+  fallback = "Sin coste terrestre visible",
+) {
+  const visibleCost = cost.filter((entry) => entry.quantity > 0);
+  return visibleCost.length > 0
+    ? visibleCost.map((entry) => `${formatResourceType(entry.resourceType)} ${entry.quantity}`).join(" | ")
+    : fallback;
+}
+
+export function formatGroundTrainingDuration(value: string | number | null | undefined) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value < 60 ? `${value} min` : `${Math.floor(value / 60)} h ${value % 60} min`;
+  }
+
+  return normalizeValue(value) ?? "Duracion terrestre no disponible";
+}

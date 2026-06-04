@@ -3,7 +3,7 @@
 ---
 id: TASK-19V-ground-army-taxonomy-and-display-labels
 title: Ground Army taxonomy and display labels
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
