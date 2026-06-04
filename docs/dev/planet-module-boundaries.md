@@ -10,6 +10,7 @@ This guide documents the current frontend boundary model for the planet-related 
 - `/research`: specialized research cockpit foundation with guarded enqueue and read-model state.
 - `/ground-army`: specialized ground army cockpit foundation with readiness, structures, queue context, guarded preparation, and no combat execution.
 - `/shipyard`: specialized shipyard cockpit foundation with guarded orbital enqueue, queue and stock reads, and a disabled complete-due placeholder.
+- `/market`: read-only economy cockpit foundation with reserves, production, advisory ratios, trade-signal visibility, disabled future operations, and no transaction execution.
 - `/defenses`: specialized defenses cockpit foundation with readiness, structures, option state, and no combat execution.
 - `/fleets`: fleet command cockpit and route context hub.
 - `/espionage`: read-only intelligence cockpit foundation with grouped targets, passive signals, disabled future missions, and no active spy execution.
@@ -22,6 +23,7 @@ This guide documents the current frontend boundary model for the planet-related 
 - Do not enable unavailable specialized gameplay from placeholder or readiness-only cabinas.
 - Do not treat `/ground-army` as an invasion, combat, orbital logistics, or fleet-movement surface.
 - Do not treat `/shipyard` as a fleet movement, transfer, split, merge, or combat surface.
+- Do not treat `/market` as a buy, sell, auction, player-trade, or route-execution surface.
 - Do not treat `/defenses` as a combat, interception, fleet-command, or shield-simulation surface.
 - Do not treat `/espionage` as a mission-launch, sabotage, theft, or counter-espionage execution surface.
 
@@ -33,6 +35,7 @@ This guide documents the current frontend boundary model for the planet-related 
 - `Investigacion v1` now sits between placeholder and full gameplay: it supports read-model browsing plus guarded development enqueue, but complete-due remains intentionally disabled in the cockpit.
 - `Ejercito terrestre v1` now sits between placeholder and full gameplay: it supports readiness, visible structures, available and blocked training options, queue history, and guarded development preparation, but combat and complete-due execution remain intentionally unavailable in the cockpit.
 - `Astillero v1` now also sits between placeholder and full gameplay: it supports read-model browsing plus guarded development enqueue, but Fleet handoff stays explanatory only and complete-due remains intentionally disabled in the cockpit.
+- `Mercado v1` now also sits between placeholder and full gameplay: it supports read-only economy analysis, advisory ratios, trade-signal visibility, disabled future operations, and cross-cockpit handoffs, but it does not execute any market transaction.
 - `Defensas v1` now sits between placeholder and full gameplay: it supports readiness, structure visibility, defensive option visibility, queue context, and handoff guidance, but combat and complete-due execution remain intentionally unavailable in the cockpit.
 - `Espionaje v1` now sits between placeholder and full gameplay: it supports read-only intelligence analysis, grouped targets, passive signal context, and disabled future mission placeholders, but active mission execution remains intentionally unavailable in the cockpit.
 
@@ -43,5 +46,6 @@ This guide documents the current frontend boundary model for the planet-related 
 - Research cockpit: `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Ground army cockpit: `/ground-army?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Shipyard cockpit: `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Market cockpit: `/market?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Defenses cockpit: `/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Espionage cockpit: `/espionage?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
