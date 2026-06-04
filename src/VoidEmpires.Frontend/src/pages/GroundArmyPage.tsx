@@ -6,6 +6,7 @@ import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { formatGroundArmyRequestFailure } from "../utils/groundArmyPresentation";
 import { groupGroundOptionsByCategory, mapGroundArmyUiStateToViewModel, selectRecommendedGroundArmyAction } from "../utils/groundArmyViewModel";
+import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { buildConstructionUrl, buildDefensesUrl, buildFleetsUrl, buildGalaxyUrl, buildPlanetUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 
 function getGroundPosture(viewModel: ReturnType<typeof mapGroundArmyUiStateToViewModel>["groundArmy"]) {
@@ -150,7 +151,7 @@ export function GroundArmyPage() {
         </UiCard>
 
         <UiCard className="panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Limite de la cabina</p><h3>Boundary Ground Army</h3></div><UiBadge tone="warn">Readiness only</UiBadge></div>
+          <div className="figma-section-header"><div><p className="eyebrow">Limite de la cabina</p><h3>Preparacion terrestre</h3></div><UiBadge tone="warn">{cockpitStatusLabels.preparation}</UiBadge></div>
           <ul className="stack-list strategic-rules-list">
             <li>Prepara y lee fuerzas terrestres y readiness local.</li>
             <li>Construccion mantiene edificios militares y Defensas mantiene proteccion planetaria.</li>
@@ -161,7 +162,7 @@ export function GroundArmyPage() {
       </div>
 
       <UiCard className="panel">
-        <div className="figma-section-header"><div><p className="eyebrow">Estado de readiness</p><h3>Dashboard terrestre</h3></div><UiBadge tone={groundArmy?.actionAvailability.enqueueSupported ? "good" : "warn"}>{groundArmy?.actionAvailability.enqueueStatusLabel ?? "Pendiente"}</UiBadge></div>
+        <div className="figma-section-header"><div><p className="eyebrow">Estado de preparacion</p><h3>Dashboard terrestre</h3></div><UiBadge tone={groundArmy?.actionAvailability.enqueueSupported ? "good" : "warn"}>{groundArmy?.actionAvailability.enqueueStatusLabel ?? "Pendiente"}</UiBadge></div>
         {groundArmy ? (
           <div className="readiness-grid">
             <section className="subpanel figma-subpanel"><div className="figma-data-list">
@@ -190,7 +191,7 @@ export function GroundArmyPage() {
 
       {groundArmy ? (
         <UiCard className="panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Catalogo terrestre</p><h3>Unidades, estructuras y readiness</h3><p>Las tarjetas muestran preparacion terrestre y handoff seguro, no combate activo.</p></div><UiBadge tone={recommendedOption?.statusKey === "Available" ? "good" : "warn"}>{recommendedOption?.label ?? "Sin recomendacion"}</UiBadge></div>
+          <div className="figma-section-header"><div><p className="eyebrow">Catalogo terrestre</p><h3>Unidades, estructuras y preparacion</h3><p>Las tarjetas muestran preparacion terrestre y continuidad segura, no combate activo.</p></div><UiBadge tone={recommendedOption?.statusKey === "Available" ? "good" : "warn"}>{recommendedOption?.label ?? "Sin recomendacion"}</UiBadge></div>
           <div className="readiness-grid">
             <section className="subpanel figma-subpanel">
               <div className="figma-section-header"><div><p className="eyebrow">Guarnicion</p><h4>Unidades visibles</h4></div><UiBadge>{groundArmy.garrison.length} tipos</UiBadge></div>
@@ -205,7 +206,7 @@ export function GroundArmyPage() {
               </ul>
             </section>
           </div>
-          <div className="figma-section-header module-boundary-spacer"><div><p className="eyebrow">Opciones agrupadas</p><h4>Readiness catalog</h4></div></div>
+          <div className="figma-section-header module-boundary-spacer"><div><p className="eyebrow">Opciones agrupadas</p><h4>Catalogo de preparacion</h4></div></div>
           <div className="readiness-grid">
             {optionGroups.map((group) => (
               <section key={group.key} className="subpanel figma-subpanel">
@@ -237,7 +238,7 @@ export function GroundArmyPage() {
           ) : (
             <p className="figma-panel-note">No hay ordenes terrestres en cola.</p>
           )}
-          <div className="figma-section-header module-boundary-spacer"><div><p className="eyebrow">Completar vencidas</p><h4>Placeholder seguro</h4></div><UiBadge tone="warn">{groundArmy.actionAvailability.completeDueStatusLabel}</UiBadge></div>
+          <div className="figma-section-header module-boundary-spacer"><div><p className="eyebrow">Completar vencidas</p><h4>{cockpitStatusLabels.safePlaceholder}</h4></div><UiBadge tone="warn">{groundArmy.actionAvailability.completeDueStatusLabel}</UiBadge></div>
           <p className="figma-panel-note">{groundArmy.actionAvailability.completeDueReason}. La cola terrestre sigue visible, pero el cierre permanece deshabilitado porque el backend actual no esta acotado por planeta.</p>
         </UiCard>
       ) : null}
@@ -266,18 +267,18 @@ export function GroundArmyPage() {
       ) : null}
 
       {isSuspiciousContext ? (
-        <UiCard className="panel"><div className="figma-section-header"><div><p className="eyebrow">Contexto sospechoso</p><h3>El identificador de civilizacion no parece valido para esta cabina.</h3></div><UiBadge tone="warn">Revisar contexto</UiBadge></div><p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p></UiCard>
+        <UiCard className="panel"><div className="figma-section-header"><div><p className="eyebrow">Contexto sospechoso</p><h3>El identificador de civilizacion no parece valido para esta cabina.</h3></div><UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge></div><p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p></UiCard>
       ) : null}
 
       {technicalErrorDetail ? (
         <UiCard className="panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Diagnostico</p><h3>Detalle tecnico colapsado</h3></div><UiBadge tone="warn">Secundario</UiBadge></div>
+          <div className="figma-section-header"><div><p className="eyebrow">Diagnostico</p><h3>Detalle tecnico colapsado</h3></div><UiBadge tone="warn">{cockpitStatusLabels.diagnostics}</UiBadge></div>
           <details className="subpanel figma-subpanel"><summary>Ver detalle tecnico</summary><p className="figma-panel-note">{technicalErrorDetail}</p></details>
         </UiCard>
       ) : null}
 
       <UiCard className="panel">
-        <div className="figma-section-header"><div><p className="eyebrow">Navegacion</p><h3>Cabinas vecinas</h3></div><UiBadge tone="warn">Contexto conservado</UiBadge></div>
+        <div className="figma-section-header"><div><p className="eyebrow">Navegacion</p><h3>Cabinas vecinas</h3></div><UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge></div>
         <div className="readiness-grid">
           <section className="subpanel figma-subpanel"><div className="figma-section-header"><div><p className="eyebrow">Planeta</p><h4>Volver al resumen</h4></div></div><p className="figma-panel-note">Usa Planeta para ver el contexto general de la colonia antes de entrar en una cabina especializada.</p><Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>Volver a Planeta</Link></section>
           <section className="subpanel figma-subpanel"><div className="figma-section-header"><div><p className="eyebrow">Construccion</p><h4>Infraestructura militar</h4></div></div><p className="figma-panel-note">Barracones, academia y logistica terrestre siguen anclados a Construccion cuando pertenecen a obra e infraestructura.</p><Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>Abrir Construccion</Link></section>

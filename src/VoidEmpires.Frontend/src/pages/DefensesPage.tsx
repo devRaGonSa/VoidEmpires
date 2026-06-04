@@ -19,6 +19,7 @@ import {
   buildShipyardUrl,
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
+import { cockpitStatusLabels } from "../utils/cockpitStatus";
 
 function formatDateTime(value: string) {
   const parsed = Date.parse(value);
@@ -275,7 +276,7 @@ export function DefensesPage() {
               <p className="eyebrow">Limite actual</p>
               <h3>Que pertenece aqui</h3>
             </div>
-            <UiBadge tone="warn">Readiness</UiBadge>
+            <UiBadge tone="warn">{cockpitStatusLabels.preparation}</UiBadge>
           </div>
           <ul className="stack-list strategic-rules-list">
             <li>Preparacion de proteccion planetaria y lectura de estructuras defensivas.</li>
@@ -303,7 +304,7 @@ export function DefensesPage() {
               <p className="eyebrow">Contexto sospechoso</p>
               <h3>El identificador de civilizacion no parece valido para esta cabina.</h3>
             </div>
-            <UiBadge tone="warn">Revisar contexto</UiBadge>
+            <UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge>
           </div>
           <p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p>
         </UiCard>
@@ -476,7 +477,7 @@ export function DefensesPage() {
                     {option.requirementLabel ? <p className="figma-panel-note">{option.requirementLabel}</p> : null}
                     <div className="selection-chip-row">
                       <button type="button" className="selection-chip" disabled>
-                        {option.statusKey === "Unsupported" ? "No disponible en esta build" : "Accion bloqueada"}
+                        {option.statusKey === "Unsupported" ? cockpitStatusLabels.safePlaceholder : "Accion bloqueada"}
                       </button>
                     </div>
                   </article>
@@ -495,13 +496,13 @@ export function DefensesPage() {
                 <h3>Como se trata cada accion visible</h3>
                 <p>Defensas no duplica el flujo de confirmacion de Construccion en esta build. La cabina clasifica cada opcion y aplica el tratamiento seguro correspondiente.</p>
               </div>
-              <UiBadge tone="warn">Sin mutacion local</UiBadge>
+              <UiBadge tone="warn">Sin accion local</UiBadge>
             </div>
             <div className="readiness-grid">
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Disponible</p>
+                    <p className="eyebrow">{cockpitStatusLabels.available}</p>
                     <h4>Handoff a Construccion</h4>
                   </div>
                   <UiBadge tone="good">{availableOptions.length}</UiBadge>
@@ -511,7 +512,7 @@ export function DefensesPage() {
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Bloqueada</p>
+                    <p className="eyebrow">{cockpitStatusLabels.blocked}</p>
                     <h4>Sin accion inmediata</h4>
                   </div>
                   <UiBadge tone="warn">{blockedOptions.length}</UiBadge>
@@ -544,7 +545,7 @@ export function DefensesPage() {
                     <p className="eyebrow">Estado general</p>
                     <h4>Lectura de cola</h4>
                   </div>
-                  <UiBadge tone="neutral">Solo lectura</UiBadge>
+                  <UiBadge tone="neutral">{cockpitStatusLabels.readOnly}</UiBadge>
                 </div>
                 <div className="figma-data-list">
                   <div className="figma-data-row"><span>Origen</span><strong>{defenses.planetName}</strong></div>
@@ -610,7 +611,7 @@ export function DefensesPage() {
                 <h3>Donde continuar segun la necesidad</h3>
                 <p>Defensas resume proteccion y readiness, pero cada sistema vecino conserva su propio alcance y su propia accion segura.</p>
               </div>
-              <UiBadge tone="warn">Secundario</UiBadge>
+              <UiBadge tone="warn">{cockpitStatusLabels.diagnostics}</UiBadge>
             </div>
             <div className="readiness-grid">
               <section className="subpanel figma-subpanel">
@@ -691,7 +692,7 @@ export function DefensesPage() {
                     <p className="eyebrow">Diagnosticos</p>
                     <h3>Notas y limitaciones</h3>
                   </div>
-                  <UiBadge tone="warn">Dev only</UiBadge>
+                  <UiBadge tone="warn">{cockpitStatusLabels.developmentOnly}</UiBadge>
                 </div>
                 <ul className="stack-list compact-list">
                   {defenses.diagnostics.playerFacing.map((line) => (
@@ -714,7 +715,7 @@ export function DefensesPage() {
                 <p className="eyebrow">Estado vacio</p>
                 <h3>Sin datos defensivos</h3>
               </div>
-              <UiBadge tone="warn">Readiness limitado</UiBadge>
+              <UiBadge tone="warn">Preparacion limitada</UiBadge>
             </div>
             <p className="figma-panel-note">El backend no devolvio un contexto defensivo util para este planeta. La shell mantiene acceso, contexto y explicacion de limites.</p>
           </UiCard>
@@ -727,7 +728,7 @@ export function DefensesPage() {
             <p className="eyebrow">Navegacion</p>
             <h3>Siguientes cabinas</h3>
           </div>
-          <UiBadge tone="warn">Contexto conservado</UiBadge>
+          <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
         </div>
         <div className="selection-chip-row">
           <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>

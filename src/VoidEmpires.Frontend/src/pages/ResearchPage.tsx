@@ -12,6 +12,7 @@ import {
   selectRecommendedResearch,
   summarizeResearchCatalog,
 } from "../utils/researchPresentation";
+import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { buildConstructionUrl, buildFleetsUrl, buildGalaxyUrl, buildPlanetUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
@@ -239,11 +240,11 @@ export function ResearchPage() {
           <p>Cabina de investigacion con carga de contexto, catalogo y diagnostico sin exponer DTOs crudos en la superficie principal.</p>
         </div>
         <div className="figma-badge-row">
-          <UiBadge>Cabina de lectura</UiBadge>
+          <UiBadge>{cockpitStatusLabels.readOnly}</UiBadge>
           <UiBadge tone={hasSafeResearchEnqueue ? "good" : "warn"}>
             {hasSafeResearchEnqueue ? "Mutacion dev protegida" : "Sin mutacion segura"}
           </UiBadge>
-          <UiBadge tone="warn">Contexto conservado entre saltos</UiBadge>
+          <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
         </div>
       </UiCard>
 
@@ -318,7 +319,7 @@ export function ResearchPage() {
               <p className="eyebrow">Contexto sospechoso</p>
               <h3>El id de civilizacion no parece valido para esta cabina.</h3>
             </div>
-            <UiBadge tone="warn">Revisar contexto</UiBadge>
+            <UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge>
           </div>
           <p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p>
           <div className="selection-chip-row">
@@ -350,7 +351,7 @@ export function ResearchPage() {
                 <p className="eyebrow">Cola y progreso</p>
                 <h3>Elementos activos y completados</h3>
               </div>
-              <UiBadge tone="warn">Contexto conservado</UiBadge>
+              <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
             </div>
             <div className="figma-two-column">
               <section className="subpanel figma-subpanel">
@@ -603,7 +604,7 @@ export function ResearchPage() {
               <UiCard className="panel">
                 <div className="figma-section-header">
                   <div><p className="eyebrow">Metadatos</p><h3>Soporte tecnico</h3></div>
-                  <UiBadge>Diagnostico</UiBadge>
+                  <UiBadge>{cockpitStatusLabels.diagnostics}</UiBadge>
                 </div>
                 <div className="figma-data-list">
                   {uiState.diagnostics.lines.map((line) => <div key={line} className="figma-data-row"><span>Linea</span><strong>{line}</strong></div>)}

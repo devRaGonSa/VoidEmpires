@@ -3,7 +3,7 @@
 ---
 id: TASK-20M-common-cockpit-status-badges-and-state-labels
 title: Common cockpit status badges and state labels
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

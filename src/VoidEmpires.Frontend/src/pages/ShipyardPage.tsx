@@ -20,6 +20,7 @@ import {
   buildResearchUrl,
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
+import { cockpitStatusLabels } from "../utils/cockpitStatus";
 
 function formatDateTime(value: string) {
   const parsed = Date.parse(value);
@@ -540,7 +541,7 @@ export function ShipyardPage() {
               <p className="eyebrow">Contexto sospechoso</p>
               <h3>El identificador de civilizacion no parece valido para esta cabina.</h3>
             </div>
-            <UiBadge tone="warn">Revisar contexto</UiBadge>
+            <UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge>
           </div>
           <p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p>
         </UiCard>
@@ -695,7 +696,7 @@ export function ShipyardPage() {
                 <h3>Opciones orbitales y disponibilidad</h3>
                 <p>El catalogo separa lo producible de los bloqueos visibles sin simular acciones de cola todavia.</p>
               </div>
-              <UiBadge tone="warn">Solo lectura</UiBadge>
+                  <UiBadge tone="warn">{cockpitStatusLabels.readOnly}</UiBadge>
             </div>
             {shipyard.catalog.length === 0 ? (
               <p className="figma-panel-note">El backend no devolvio catalogo orbital util todavia. La cabina mantiene el shell y deja visible la frontera del modulo.</p>
@@ -705,7 +706,7 @@ export function ShipyardPage() {
                   <section className="subpanel figma-subpanel">
                     <div className="figma-section-header">
                       <div>
-                        <p className="eyebrow">Disponibles</p>
+                    <p className="eyebrow">{cockpitStatusLabels.available}</p>
                         <h4>Listas para entrar en cola</h4>
                       </div>
                       <UiBadge tone="good">{catalogBuckets.available.length}</UiBadge>
@@ -719,7 +720,7 @@ export function ShipyardPage() {
                   <section className="subpanel figma-subpanel">
                     <div className="figma-section-header">
                       <div>
-                        <p className="eyebrow">Bloqueadas</p>
+                        <p className="eyebrow">{cockpitStatusLabels.blocked}</p>
                         <h4>Requieren resolver contexto</h4>
                       </div>
                       <UiBadge tone="warn">{catalogBuckets.blocked.length}</UiBadge>
@@ -898,7 +899,7 @@ export function ShipyardPage() {
                 <div className="figma-data-list">
                   <div className="figma-data-row"><span>Ordenes visibles</span><strong>{formatCountLabel(shipyard.queue.length, "orden", "ordenes")}</strong></div>
                   <div className="figma-data-row"><span>Produccion vencida</span><strong>{dueQueueCount > 0 ? `${dueQueueCount} detectadas` : "No detectada"}</strong></div>
-                  <div className="figma-data-row"><span>Affordance segura</span><strong>{hasSafeShipyardCompleteDue ? "Disponible con confirmacion" : "No habilitada"}</strong></div>
+                  <div className="figma-data-row"><span>Cierre seguro</span><strong>{hasSafeShipyardCompleteDue ? "Disponible con confirmacion" : cockpitStatusLabels.safePlaceholder}</strong></div>
                 </div>
                 <div className="selection-chip-row">
                   <button type="button" className="selection-chip" disabled>
@@ -915,7 +916,7 @@ export function ShipyardPage() {
                     <p className="eyebrow">Lectura temporal</p>
                     <h4>Como interpretar la cola</h4>
                   </div>
-                  <UiBadge tone="neutral">Solo lectura</UiBadge>
+                  <UiBadge tone="neutral">{cockpitStatusLabels.readOnly}</UiBadge>
                 </div>
                 <ul className="stack-list compact-list">
                   <li>Una orden vencida significa que el backend la detecta, no que esta cabina ya pueda completarla.</li>
@@ -977,7 +978,7 @@ export function ShipyardPage() {
             <details className="fleet-technical-disclosure">
               <summary>
                 <span>Diagnosticos de desarrollo</span>
-                <UiBadge tone="warn">Secundario</UiBadge>
+                <UiBadge tone="warn">{cockpitStatusLabels.diagnostics}</UiBadge>
               </summary>
               <UiCard className="panel fleet-technical-panel">
                 <div className="figma-section-header">
@@ -985,7 +986,7 @@ export function ShipyardPage() {
                     <p className="eyebrow">Diagnosticos</p>
                     <h3>Notas del endpoint</h3>
                   </div>
-                  <UiBadge tone="warn">Dev only</UiBadge>
+                  <UiBadge tone="warn">{cockpitStatusLabels.developmentOnly}</UiBadge>
                 </div>
                 <ul className="stack-list compact-list">
                   {shipyard.diagnostics.playerFacing.map((line) => (
@@ -1101,7 +1102,7 @@ export function ShipyardPage() {
             <p className="eyebrow">Navegacion</p>
             <h3>Siguientes cabinas</h3>
           </div>
-          <UiBadge tone="warn">Contexto conservado</UiBadge>
+          <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
         </div>
         <div className="selection-chip-row">
           <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>
