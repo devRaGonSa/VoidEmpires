@@ -142,6 +142,8 @@ public sealed class DevShipyardUiStateService(VoidEmpiresDbContext dbContext) : 
         var catalog = Enum.GetValues<SpaceAssetType>()
             .Select(assetType => BuildCatalogItem(
                 assetType,
+                request.CivilizationId,
+                selectedPlanet.Planet.Id,
                 isOwnedByRequestingCivilization,
                 stockpile,
                 buildings,
@@ -207,6 +209,8 @@ public sealed class DevShipyardUiStateService(VoidEmpiresDbContext dbContext) : 
 
     private static DevShipyardCatalogItemDto BuildCatalogItem(
         SpaceAssetType assetType,
+        Guid civilizationId,
+        Guid planetId,
         bool isOwnedByRequestingCivilization,
         PlanetResourceStockpile? stockpile,
         IReadOnlyList<PlanetBuilding> buildings,
@@ -245,7 +249,18 @@ public sealed class DevShipyardUiStateService(VoidEmpiresDbContext dbContext) : 
             ],
             currentStock,
             status,
-            reason);
+            reason,
+            status == "Available"
+                ? new DevShipyardEnqueueCommandDto(
+                    "shipyard.production.enqueue",
+                    "POST",
+                    "/api/dev/assets/production/enqueue",
+                    civilizationId,
+                    planetId,
+                    AssetProductionTarget.Orbital,
+                    assetType,
+                    1)
+                : null);
     }
 
     private static (string Status, string Reason) ResolveAvailability(

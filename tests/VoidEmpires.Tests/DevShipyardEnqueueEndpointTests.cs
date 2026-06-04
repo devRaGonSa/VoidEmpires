@@ -2,7 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Development;
+using VoidEmpires.Domain.Assets;
+using VoidEmpires.Domain.Economy;
 using VoidEmpires.Infrastructure.Development;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -111,22 +114,30 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
     public async Task EnqueueReturnsCreatedAndRefreshesShipyardQueueForSeededSuccessPath()
     {
         var databaseName = Guid.NewGuid().ToString("N");
-        await using var dbContext = CreateSeededDbContext(databaseName, context =>
-        {
-            var stockpile = context.PlanetResourceStockpiles.Single(x => x.PlanetId == SeedOwnedPlanetId);
-            stockpile.Increase(VoidEmpires.Domain.Economy.ResourceType.Metal, 300);
-            stockpile.Increase(VoidEmpires.Domain.Economy.ResourceType.Crystal, 200);
-            stockpile.Increase(VoidEmpires.Domain.Economy.ResourceType.Gas, 100);
-        });
-        using var client = CreateConfiguredClient(databaseName);
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: databaseName);
+        using var client = configuredFactory.CreateClient();
 
-        using var enqueueResponse = await client.PostAsJsonAsync("/api/dev/assets/production/enqueue", new
+        using var seedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "cockpit-validation" });
+        Assert.Equal(HttpStatusCode.OK, seedResponse.StatusCode);
+
+        using var initialResponse = await client.GetAsync($"/api/dev/shipyard/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var initialPayload = await initialResponse.Content.ReadFromJsonAsync<ShipyardUiStateEnvelope>();
+
+        Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
+        Assert.NotNull(initialPayload?.UiState?.Shipyard);
+
+        var availableItem = Assert.Single(initialPayload.UiState.Shipyard.Catalog.Where(item => item.AssetType == SpaceAssetType.ScoutCraft));
+        Assert.NotNull(availableItem.EnqueueCommand);
+        var resourcesBefore = initialPayload.UiState.Shipyard.ResourceStockpile.ToDictionary(x => x.ResourceType, x => x.Quantity);
+        var queueCountBefore = initialPayload.UiState.Shipyard.Queue.Count;
+
+        using var enqueueResponse = await client.PostAsJsonAsync(availableItem.EnqueueCommand.Route, new
         {
-            civilizationId = SeedCivilizationId,
-            planetId = SeedOwnedPlanetId,
-            target = 2,
-            spaceAssetType = 1,
-            quantity = 1,
+            civilizationId = availableItem.EnqueueCommand.CivilizationId,
+            planetId = availableItem.EnqueueCommand.PlanetId,
+            target = availableItem.EnqueueCommand.Target,
+            spaceAssetType = availableItem.EnqueueCommand.SpaceAssetType,
+            quantity = availableItem.EnqueueCommand.Quantity,
             requestedAtUtc = "2026-01-01T12:00:00Z",
         });
         var enqueuePayload = await enqueueResponse.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
@@ -141,11 +152,35 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(HttpStatusCode.OK, followUpResponse.StatusCode);
         Assert.NotNull(followUpPayload?.UiState?.Shipyard);
-        Assert.Single(followUpPayload.UiState.Shipyard.Queue);
+        Assert.Equal(queueCountBefore + 1, followUpPayload.UiState.Shipyard.Queue.Count);
+        Assert.Contains(
+            followUpPayload.UiState.Shipyard.Queue,
+            item => item.OrderId == enqueuePayload.OrderId &&
+                item.AssetType == availableItem.AssetType &&
+                item.Quantity == availableItem.EnqueueCommand.Quantity &&
+                item.Status == AssetProductionOrderStatus.Active);
         Assert.False(followUpPayload.UiState.Shipyard.ActionSummary.EnqueueSupported);
         Assert.Contains(
             followUpPayload.UiState.Shipyard.Catalog,
-            item => item.AssetType == 1 && item.AvailabilityReason == "OpenProductionOrderExists");
+            item => item.AssetType == SpaceAssetType.ScoutCraft && item.AvailabilityReason == "OpenProductionOrderExists");
+
+        foreach (var cost in availableItem.Cost)
+        {
+            var before = resourcesBefore[cost.ResourceType];
+            var after = followUpPayload.UiState.Shipyard.ResourceStockpile.Single(x => x.ResourceType == cost.ResourceType).Quantity;
+            Assert.Equal(before - cost.Quantity, after);
+        }
+
+        using var scope = configuredFactory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+        var persistedOrder = await dbContext.Set<AssetProductionOrder>()
+            .SingleAsync(x => x.Id == enqueuePayload.OrderId!.Value);
+
+        Assert.Equal(SeedOwnedPlanetId, persistedOrder.PlanetId);
+        Assert.Equal(AssetProductionTarget.Orbital, persistedOrder.Target);
+        Assert.Equal(availableItem.AssetType, persistedOrder.SpaceAssetType);
+        Assert.Equal(availableItem.EnqueueCommand.Quantity, persistedOrder.Quantity);
+        Assert.Equal(AssetProductionOrderStatus.Active, persistedOrder.Status);
     }
 
     private HttpClient CreateConfiguredClient(string databaseName) =>
@@ -185,9 +220,14 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
     private sealed record ShipyardPlanetPayload(
         Guid PlanetId,
         string PlanetName,
+        IReadOnlyList<ShipyardResourceBalancePayload> ResourceStockpile,
         ShipyardActionSummaryPayload ActionSummary,
         IReadOnlyList<ShipyardQueueItemPayload> Queue,
         IReadOnlyList<ShipyardCatalogItemPayload> Catalog);
+
+    private sealed record ShipyardResourceBalancePayload(
+        ResourceType ResourceType,
+        decimal Quantity);
 
     private sealed record ShipyardActionSummaryPayload(
         string QueueActionStatus,
@@ -201,7 +241,28 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
         int OpenQueueCount,
         int DueQueueCount);
 
-    private sealed record ShipyardQueueItemPayload(Guid OrderId, int Quantity, int Sequence, bool IsDue);
+    private sealed record ShipyardQueueItemPayload(
+        Guid OrderId,
+        SpaceAssetType AssetType,
+        int Quantity,
+        int Sequence,
+        AssetProductionOrderStatus Status,
+        bool IsDue);
 
-    private sealed record ShipyardCatalogItemPayload(int AssetType, string AvailabilityStatus, string AvailabilityReason);
+    private sealed record ShipyardCatalogItemPayload(
+        SpaceAssetType AssetType,
+        string AvailabilityStatus,
+        string AvailabilityReason,
+        IReadOnlyList<ShipyardResourceBalancePayload> Cost,
+        ShipyardEnqueueCommandPayload? EnqueueCommand);
+
+    private sealed record ShipyardEnqueueCommandPayload(
+        string ActionKey,
+        string Method,
+        string Route,
+        Guid CivilizationId,
+        Guid PlanetId,
+        AssetProductionTarget Target,
+        SpaceAssetType SpaceAssetType,
+        int Quantity);
 }

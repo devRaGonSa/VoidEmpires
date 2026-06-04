@@ -84,6 +84,11 @@ public class DevShipyardUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.Contains(payload.UiState.Shipyard.Catalog, item => item.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.ScoutCraft && item.AvailabilityStatus == "Available");
         Assert.Contains(payload.UiState.Shipyard.Catalog, item => item.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.CargoCraft && item.AvailabilityReason == "InsufficientResources");
         Assert.Contains(payload.UiState.Shipyard.Catalog, item => item.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.EscortCraft && item.AvailabilityReason == "MissingRequiredBuilding");
+        var scoutCraft = Assert.Single(payload.UiState.Shipyard.Catalog.Where(item => item.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.ScoutCraft));
+        Assert.NotNull(scoutCraft.EnqueueCommand);
+        Assert.Equal("/api/dev/assets/production/enqueue", scoutCraft.EnqueueCommand.Route);
+        Assert.Equal(SeedCivilizationId, scoutCraft.EnqueueCommand.CivilizationId);
+        Assert.Equal(SeedOwnedPlanetId, scoutCraft.EnqueueCommand.PlanetId);
         Assert.True(payload.UiState.Shipyard.ActionSummary.EnqueueSupported);
         Assert.Equal("Available", payload.UiState.Shipyard.ActionSummary.EnqueueActionStatus);
         Assert.Equal(initialOrderCount, await dbContext.Set<VoidEmpires.Domain.Assets.AssetProductionOrder>().CountAsync());
@@ -111,6 +116,9 @@ public class DevShipyardUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.Contains(payload.UiState.Shipyard.Catalog, x => x.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.ScoutCraft && x.AvailabilityStatus == "Available");
         Assert.Contains(payload.UiState.Shipyard.Catalog, x => x.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.CargoCraft && x.AvailabilityStatus == "Available");
         Assert.Contains(payload.UiState.Shipyard.Catalog, x => x.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.EscortCraft && x.AvailabilityReason == "MissingRequiredBuilding");
+        Assert.All(
+            payload.UiState.Shipyard.Catalog.Where(x => x.AvailabilityStatus == "Available"),
+            item => Assert.NotNull(item.EnqueueCommand));
         Assert.True(payload.UiState.Shipyard.ActionSummary.EnqueueSupported);
         Assert.Equal("Available", payload.UiState.Shipyard.ActionSummary.EnqueueActionStatus);
     }

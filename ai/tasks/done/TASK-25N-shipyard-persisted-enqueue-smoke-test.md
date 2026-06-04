@@ -3,7 +3,7 @@
 ---
 id: TASK-25N
 title: Phase 25N - Shipyard persisted enqueue smoke test
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:

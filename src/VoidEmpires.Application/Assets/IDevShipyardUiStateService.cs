@@ -66,7 +66,18 @@ public sealed record DevShipyardCatalogItemDto(
     IReadOnlyList<DevShipyardResourceBalanceDto> Cost,
     int CurrentStock,
     string AvailabilityStatus,
-    string AvailabilityReason);
+    string AvailabilityReason,
+    DevShipyardEnqueueCommandDto? EnqueueCommand);
+
+public sealed record DevShipyardEnqueueCommandDto(
+    string ActionKey,
+    string Method,
+    string Route,
+    Guid CivilizationId,
+    Guid PlanetId,
+    AssetProductionTarget Target,
+    SpaceAssetType SpaceAssetType,
+    int Quantity);
 
 public sealed record DevShipyardQueueItemDto(
     Guid OrderId,
