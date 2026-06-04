@@ -7,7 +7,8 @@ $scriptPaths = @(
     (Join-Path $PSScriptRoot "dev-qa-common.ps1"),
     (Join-Path $PSScriptRoot "dev-qa-baseline.ps1"),
     (Join-Path $PSScriptRoot "dev-qa-create-construction-order.ps1"),
-    (Join-Path $PSScriptRoot "dev-qa-create-research-order.ps1")
+    (Join-Path $PSScriptRoot "dev-qa-create-research-order.ps1"),
+    (Join-Path $PSScriptRoot "dev-qa-create-shipyard-production-order.ps1")
 )
 
 $parseFailures = New-Object System.Collections.Generic.List[string]
@@ -97,6 +98,14 @@ $fleetSnapshot = Get-DevQaFleetSnapshot -PlanetId ([Guid]"40000000-0000-0000-000
 })
 if ($fleetSnapshot.GroupCount -ne 2 -or $fleetSnapshot.StationedCount -ne 1 -or $fleetSnapshot.ActiveTransferCount -ne 1 -or $fleetSnapshot.ResourceContextCount -ne 1) {
     throw "Expected fleet snapshot helper to summarize groups, transfers, and local resource contexts."
+}
+
+$stockSummary = Format-DevQaStockSummary @(
+    [pscustomobject]@{ assetType = "ScoutCraft"; quantity = 1 },
+    [pscustomobject]@{ assetType = "EscortCraft"; quantity = 4 }
+)
+if ($stockSummary.Count -ne 2 -or $stockSummary.TotalQuantity -ne 5 -or $stockSummary.Summary -notlike "*ScoutCraft=1*" -or $stockSummary.Summary -notlike "*EscortCraft=4*") {
+    throw "Expected stock summary helper to summarize shipyard stock rows."
 }
 
 $constructionPayloadSummary = Format-DevQaPayloadSummary ([ordered]@{

@@ -337,6 +337,41 @@ function Format-DevQaPayloadSummary {
     return ($Payload.Keys | ForEach-Object { "{0}={1}" -f $_, $Payload[$_] }) -join ", "
 }
 
+function Format-DevQaStockSummary {
+    param([object]$Rows)
+
+    $items = Get-DevQaEnumerable $Rows
+    if ($items.Count -eq 0) {
+        return [pscustomobject]@{
+            Summary = "sin stock visible"
+            Count = 0
+            TotalQuantity = 0
+        }
+    }
+
+    $summaryItems = foreach ($item in $items) {
+        $assetType = Get-DevQaPropertyValue -InputObject $item -PropertyNames @("assetType", "AssetType", "label", "Label")
+        $quantity = Get-DevQaPropertyValue -InputObject $item -PropertyNames @("quantity", "Quantity", "amount", "Amount")
+        if ($null -ne $assetType -and $null -ne $quantity) {
+            "{0}={1}" -f $assetType, $quantity
+        }
+    }
+
+    $totalQuantity = 0
+    foreach ($item in $items) {
+        $quantity = Get-DevQaPropertyValue -InputObject $item -PropertyNames @("quantity", "Quantity", "amount", "Amount")
+        if ($null -ne $quantity) {
+            $totalQuantity += [int]$quantity
+        }
+    }
+
+    return [pscustomobject]@{
+        Summary = if ($summaryItems.Count -gt 0) { $summaryItems -join ", " } else { "stock visible sin formato reconocido" }
+        Count = @($items).Count
+        TotalQuantity = $totalQuantity
+    }
+}
+
 function Test-DevQaResponseHasKnownError {
     param(
         [object]$ResponseObject,

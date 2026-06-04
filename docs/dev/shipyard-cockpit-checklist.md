@@ -48,6 +48,12 @@ Use this after the required validation commands succeed.
 16. Confirm no 3D or WebGL renderer is introduced.
 17. Confirm no combat, fleet movement, split, merge, or transfer action can be executed from Shipyard.
 
+## Backend-only helper
+
+- `.\scripts\dev-qa-create-shipyard-production-order.ps1 -ApplySeed`
+- The helper reads `GET /api/dev/shipyard/ui-state`, selects the first backend-approved orbital option, posts one real enqueue request, then re-reads Shipyard state to print queue, resource, and local stock summaries.
+- If the current reused Development database already has an open orbital production order, the helper treats that as a controlled no-op and exits without creating a second order.
+
 ## Boundary Summary
 
 - Shipyard owns orbital production context, catalog review, guarded enqueue, queue reading, and local stock reading.

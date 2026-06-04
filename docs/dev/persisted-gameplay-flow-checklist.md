@@ -32,6 +32,7 @@ Repeatable backend-only baseline helper:
 - Run `.\scripts\dev-qa-baseline.ps1` to verify the seed catalog, apply `cockpit-validation` twice, and print the current Construction/Planet, Research, Shipyard, and Fleet baseline snapshots before creating any real orders.
 - Run `.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed` to apply a deterministic Construction seed, enqueue one real Construction order through the dev API, and print queue plus stockpile deltas from the authoritative read model.
 - Run `.\scripts\dev-qa-create-research-order.ps1 -ApplySeed` to apply a deterministic Research seed, enqueue one real Research order through the dev API using backend-provided command metadata, and print queue plus stockpile deltas.
+- Run `.\scripts\dev-qa-create-shipyard-production-order.ps1 -ApplySeed` to apply the shared cockpit seed, enqueue one real orbital Shipyard order through backend-provided command metadata, and print queue, stock, and stockpile deltas.
 - Run `.\scripts\check-dev-qa-scripts.ps1` to parser-check the persisted QA PowerShell helpers and run lightweight local formatting checks without requiring the backend.
 
 Shared helper defaults:
