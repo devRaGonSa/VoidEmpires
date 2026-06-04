@@ -28,6 +28,27 @@ function Invoke-DevPost {
         -Body ($Body | ConvertTo-Json -Depth 6 -Compress)
 }
 
+function Invoke-DevOptionalGet {
+    param(
+        [string]$Path,
+        [string]$Label
+    )
+
+    try {
+        return Invoke-DevGet $Path
+    }
+    catch {
+        $responseBody = Get-DevQaHttpResponseBody $_.Exception
+        $errorText = Get-DevQaResponseErrorText -ResponseObject $null -FallbackText $responseBody
+        if ([string]::IsNullOrWhiteSpace($errorText)) {
+            $errorText = $_.Exception.Message
+        }
+
+        Write-Warning ("No se pudo leer {0}: {1}" -f $Label, $errorText)
+        return $null
+    }
+}
+
 Write-Host "Checking seed profile catalog..."
 $profilesResponse = Invoke-DevGet "/api/dev/seeds/profiles"
 $profileNames = @($profilesResponse.profiles | ForEach-Object { $_.name })
@@ -46,9 +67,17 @@ $planetState = Invoke-DevGet "/api/dev/planets/ui-state?civilizationId=$Civiliza
 Write-Host "Reading Research baseline from /api/dev/research/ui-state..."
 $researchState = Invoke-DevGet "/api/dev/research/ui-state?civilizationId=$CivilizationId&planetId=$PlanetId"
 
+Write-Host "Reading Shipyard baseline from /api/dev/shipyard/ui-state..."
+$shipyardState = Invoke-DevOptionalGet "/api/dev/shipyard/ui-state?civilizationId=$CivilizationId&planetId=$PlanetId" "el estado de Astillero"
+
+Write-Host "Reading Fleet baseline from /api/dev/fleets/ui-state..."
+$fleetState = Invoke-DevOptionalGet "/api/dev/fleets/ui-state?civilizationId=$CivilizationId" "el estado de Flotas"
+
 $planet = $planetState.uiState.planet
 $research = $researchState.uiState
 $planetResources = Format-DevQaResourceSummary $planet.stockpile
+$shipyardSnapshot = Get-DevQaShipyardSnapshot (Get-DevQaPropertyValue -InputObject $shipyardState -PropertyNames @("uiState", "UiState"))
+$fleetSnapshot = Get-DevQaFleetSnapshot -FleetUiState (Get-DevQaPropertyValue -InputObject $fleetState -PropertyNames @("uiState", "UiState")) -PlanetId $PlanetId
 
 $availableConstruction = @($planet.constructionActions | Where-Object { $_.availabilityStatus -eq "Available" }).Count
 $blockedConstruction = @($planet.constructionActions | Where-Object { $_.availabilityStatus -ne "Available" }).Count
@@ -106,5 +135,38 @@ Write-Host "Research baseline snapshot:"
     CompletedProjects = $completedResearchProjects
 } | Format-List
 
+if ($null -ne $shipyardSnapshot) {
+    Write-Host ""
+    Write-Host "Astillero baseline snapshot:"
+    [pscustomobject]@{
+        Planeta = $shipyardSnapshot.Planet
+        Recursos = $shipyardSnapshot.Resources
+        OpcionesDisponibles = $shipyardSnapshot.AvailableOptions
+        OpcionesBloqueadas = $shipyardSnapshot.BlockedOptions
+        ColaVisible = $shipyardSnapshot.QueueCount
+        StockVisible = $shipyardSnapshot.StockCount
+    } | Format-List
+
+    if ($shipyardSnapshot.ResourceWarnings.Count -gt 0) {
+        Write-Warning ($shipyardSnapshot.ResourceWarnings -join " ")
+    }
+}
+
+if ($null -ne $fleetSnapshot) {
+    Write-Host ""
+    Write-Host "Flotas baseline snapshot:"
+    [pscustomobject]@{
+        Escuadras = $fleetSnapshot.GroupCount
+        Estacionadas = $fleetSnapshot.StationedCount
+        TransferenciasActivas = $fleetSnapshot.ActiveTransferCount
+        ContextoLocal = $fleetSnapshot.ResourceContext
+        ContextosDeRecursos = $fleetSnapshot.ResourceContextCount
+    } | Format-List
+
+    if ($fleetSnapshot.ResourceWarnings.Count -gt 0) {
+        Write-Warning ($fleetSnapshot.ResourceWarnings -join " ")
+    }
+}
+
 Write-Host ""
-Write-Host "Read-only note: this script applies the documented seed baseline and inspects state only. It does not create orders, delete data, or run migrations."
+Write-Host "Read-only note: this script applies the documented seed baseline and inspects Construction, Research, Astillero, and Flotas state only. It does not create orders, delete data, or run migrations."

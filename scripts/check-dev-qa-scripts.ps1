@@ -61,6 +61,44 @@ if ($unknownShape.Summary -notlike "warning:*") {
     throw "Expected unknown resource shapes to return a warning summary."
 }
 
+$shipyardSnapshot = Get-DevQaShipyardSnapshot ([pscustomobject]@{
+    shipyard = [pscustomobject]@{
+        planetName = "Aurelia"
+        resourceStockpile = @(
+            [pscustomobject]@{ resourceType = "Credits"; quantity = 180 },
+            [pscustomobject]@{ resourceType = "Metal"; quantity = 120 }
+        )
+        catalog = @(
+            [pscustomobject]@{ availabilityStatus = "Available" },
+            [pscustomobject]@{ availabilityStatus = "Blocked" }
+        )
+        queue = @([pscustomobject]@{ id = 1 })
+        orbitalStock = @([pscustomobject]@{ assetType = "ScoutCraft"; quantity = 1 })
+    }
+})
+if ($shipyardSnapshot.Planet -ne "Aurelia" -or $shipyardSnapshot.AvailableOptions -ne 1 -or $shipyardSnapshot.BlockedOptions -ne 1 -or $shipyardSnapshot.QueueCount -ne 1 -or $shipyardSnapshot.StockCount -ne 1) {
+    throw "Expected shipyard snapshot helper to summarize the current DTO shape."
+}
+
+$fleetSnapshot = Get-DevQaFleetSnapshot -PlanetId ([Guid]"40000000-0000-0000-0000-000000000001") -FleetUiState ([pscustomobject]@{
+    groups = @(
+        [pscustomobject]@{ status = "Stationed"; hasActiveTransfer = $false },
+        [pscustomobject]@{ status = "Reserved"; hasActiveTransfer = $true }
+    )
+    resourceContexts = @(
+        [pscustomobject]@{
+            planetId = [Guid]"40000000-0000-0000-0000-000000000001"
+            balances = @(
+                [pscustomobject]@{ resourceType = "Credits"; quantity = 90 },
+                [pscustomobject]@{ resourceType = "Metal"; quantity = 30 }
+            )
+        }
+    )
+})
+if ($fleetSnapshot.GroupCount -ne 2 -or $fleetSnapshot.StationedCount -ne 1 -or $fleetSnapshot.ActiveTransferCount -ne 1 -or $fleetSnapshot.ResourceContextCount -ne 1) {
+    throw "Expected fleet snapshot helper to summarize groups, transfers, and local resource contexts."
+}
+
 $constructionPayloadSummary = Format-DevQaPayloadSummary ([ordered]@{
     planetId = "00000000-0000-0000-0000-000000000001"
     civilizationId = "00000000-0000-0000-0000-000000000002"

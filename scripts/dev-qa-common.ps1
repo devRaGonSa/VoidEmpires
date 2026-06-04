@@ -167,6 +167,82 @@ function Get-DevQaOpenQueueCount {
     return $count
 }
 
+function Get-DevQaShipyardSnapshot {
+    param([object]$ShipyardUiState)
+
+    $shipyard = Get-DevQaPropertyValue -InputObject $ShipyardUiState -PropertyNames @("shipyard", "Shipyard")
+    if ($null -eq $shipyard) {
+        $shipyard = $ShipyardUiState
+    }
+
+    if ($null -eq $shipyard) {
+        return $null
+    }
+
+    $resources = Format-DevQaResourceSummary (Get-DevQaPropertyValue -InputObject $shipyard -PropertyNames @("resourceStockpile", "ResourceStockpile"))
+    $catalog = Get-DevQaEnumerable (Get-DevQaPropertyValue -InputObject $shipyard -PropertyNames @("catalog", "Catalog"))
+    $queue = Get-DevQaEnumerable (Get-DevQaPropertyValue -InputObject $shipyard -PropertyNames @("queue", "Queue"))
+    $stock = Get-DevQaEnumerable (Get-DevQaPropertyValue -InputObject $shipyard -PropertyNames @("orbitalStock", "OrbitalStock"))
+
+    $availableCount = @($catalog | Where-Object {
+        (Get-DevQaPropertyValue -InputObject $_ -PropertyNames @("availabilityStatus", "AvailabilityStatus")) -eq "Available"
+    }).Count
+
+    return [pscustomobject]@{
+        Planet = Get-DevQaPropertyValue -InputObject $shipyard -PropertyNames @("planetName", "PlanetName")
+        Resources = $resources.Summary
+        ResourceWarnings = @($resources.Warnings)
+        AvailableOptions = $availableCount
+        BlockedOptions = @($catalog).Count - $availableCount
+        QueueCount = @($queue).Count
+        StockCount = @($stock).Count
+    }
+}
+
+function Get-DevQaFleetSnapshot {
+    param(
+        [object]$FleetUiState,
+        [Guid]$PlanetId
+    )
+
+    $fleet = Get-DevQaPropertyValue -InputObject $FleetUiState -PropertyNames @("uiState", "UiState")
+    if ($null -eq $fleet) {
+        $fleet = $FleetUiState
+    }
+
+    if ($null -eq $fleet) {
+        return $null
+    }
+
+    $groups = Get-DevQaEnumerable (Get-DevQaPropertyValue -InputObject $fleet -PropertyNames @("groups", "Groups"))
+    $resourceContexts = Get-DevQaEnumerable (Get-DevQaPropertyValue -InputObject $fleet -PropertyNames @("resourceContexts", "ResourceContexts"))
+    $activeTransfers = @($groups | Where-Object {
+        [bool](Get-DevQaPropertyValue -InputObject $_ -PropertyNames @("hasActiveTransfer", "HasActiveTransfer"))
+    }).Count
+    $stationedCount = @($groups | Where-Object {
+        (Get-DevQaPropertyValue -InputObject $_ -PropertyNames @("status", "Status")) -eq "Stationed"
+    }).Count
+
+    $selectedContext = $resourceContexts | Where-Object {
+        (Get-DevQaPropertyValue -InputObject $_ -PropertyNames @("planetId", "PlanetId")) -eq $PlanetId
+    } | Select-Object -First 1
+
+    if ($null -eq $selectedContext) {
+        $selectedContext = @($resourceContexts | Select-Object -First 1)
+    }
+
+    $resourceSummary = Format-DevQaResourceSummary (Get-DevQaPropertyValue -InputObject $selectedContext -PropertyNames @("balances", "Balances"))
+
+    return [pscustomobject]@{
+        GroupCount = @($groups).Count
+        StationedCount = $stationedCount
+        ActiveTransferCount = $activeTransfers
+        ResourceContext = $resourceSummary.Summary
+        ResourceWarnings = @($resourceSummary.Warnings)
+        ResourceContextCount = @($resourceContexts).Count
+    }
+}
+
 function Get-DevQaHttpResponseBody {
     param([System.Exception]$Exception)
 
