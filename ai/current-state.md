@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 22P - Espionage cockpit read-only intelligence foundation v1`.
+The repository is consolidated through `Phase 22Z - Espionage copy normalization and final read-only polish`.
 
 ## Repository Reality
 
@@ -33,7 +33,7 @@ Current frontend cockpit baseline:
 - Shipyard v1 now exists at `/shipyard` as a development-safe cockpit foundation upgraded from the earlier placeholder route, with deterministic seeded `Aurelia` context, visible resources, production capability and readiness summaries, categorized orbital asset options, visible queue and local stock reads, guarded development enqueue through the scoped orbital production endpoint, explicit success refresh feedback, a conservative disabled complete-due placeholder because the current backend route is still global, cross-navigation back to Planet, Construction, Research, Fleets, and Galaxy, and explicit copy that Fleet movement and command execution remain outside this cockpit.
 - Defenses v1 now exists at `/defenses` as a development-safe cockpit foundation upgraded from the earlier placeholder route, with deterministic seeded `Aurelia` context, defense readiness summaries, a visible `DefenseGrid` structure and option state, readable stockpile or missing-resource guidance, truthful queue and complete-due limitation messaging, collapsed diagnostics, and explanatory handoffs toward Construction, Shipyard, Fleets, Planet, and Galaxy while keeping unsafe mutation either disabled or handed off rather than combat-scoped.
 - Ground Army v1 now exists at `/ground-army` as a development-safe cockpit foundation upgraded from the earlier placeholder route, with deterministic seeded `Aurelia` context, visible readiness and population summary state, visible ground structures and catalog options, truthful available and blocked training comparisons, completed queue-history context, collapsed diagnostics, and explanatory handoffs toward Construction, Defenses, Fleets, Planet, and Galaxy while keeping unsafe mutation confirmation-based, disabled, or handed off rather than combat-scoped.
-- Espionage v1 now exists at `/espionage` as a read-only intelligence cockpit foundation upgraded from the earlier placeholder route, with deterministic seeded `Helios Gate` context, grouped intelligence coverage and target catalogs, explicit owned or observed or partial or signal cues, passive readings when current strategic data exposes them, disabled future mission placeholders, and handoffs toward Galaxy, Planet, Fleets, and Research while keeping spy mission execution, sabotage, and counter-espionage out of scope.
+- Espionage v1 now exists at `/espionage` as the accepted read-only intelligence cockpit, with deterministic seeded `Helios Gate` context, grouped intelligence coverage and target catalogs, Spanish-first signal and coverage labels, normalized future-mission cards that remain visibly disabled, collapsed diagnostics, and handoffs toward Galaxy, Planet, Fleets, and Research while keeping spy mission execution, sabotage, infiltration, counter-espionage, combat, and WebSockets out of scope.
 - Fleets remains the accepted dev-cockpit foundation and now supports simple URL-based context links into Planet, Construction, and Shipyard while keeping destination context optional.
 - Query-context helpers now centralize `civilizationId` and `planetId` navigation so the cockpit links stop rebuilding URLs by hand.
 - Module-specific catalog duplication has been reduced by extracting shared planet layout components and route builders.
@@ -59,6 +59,7 @@ Current intentional exclusions:
 - no real interception execution
 - no espionage gameplay beyond the current read-only cockpit foundation
 - no espionage execution
+- no infiltration
 - no sabotage
 - no counter-espionage execution
 - no alliances
@@ -287,7 +288,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 22P:
+Current validated baseline after Phase 22Z:
 
 - backend: `dotnet build --no-restore` succeeded
 - tests: `dotnet test --no-build` succeeded with `647` passing tests
@@ -305,7 +306,7 @@ Current validated cockpit QA seed baseline:
 - Reapplying richer seed profiles after manual QA queue activity is now supported without colliding on persisted queue `Sequence` uniqueness.
 - `cockpit-validation` now also seeds meaningful Defenses readiness through a visible `DefenseGrid` on `Aurelia` while keeping defense queue completion and combat behavior out of scope.
 - `cockpit-validation` now also seeds meaningful Ground Army readiness through a visible `Barracks`, one deterministic available `PatrolGroup` path, blocked comparison options, and completed planetary training history on `Aurelia` while keeping combat, invasion, and complete-due execution out of scope.
-- `cockpit-validation` now also seeds meaningful Espionage readiness through shared `Helios Gate` visibility, owned `Aurelia`, visible comparison targets, and at least one transfer-derived passive signal while keeping missions, sabotage, counter-espionage, combat, WebSockets, and production auth out of scope.
+- `cockpit-validation` now also seeds meaningful Espionage readiness through shared `Helios Gate` visibility, owned `Aurelia`, visible comparison targets, at least one transfer-derived passive signal, Spanish-first visible copy, disabled future mission cards, and collapsed diagnostics while keeping missions, sabotage, infiltration, counter-espionage, combat, WebSockets, and production auth out of scope.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, the minimal exploration mission lifecycle, the current Planet or Construction cockpit readability baseline, the minimal-validation Research seed readiness path, the development Research UI-state endpoint baseline, the full seeded Research enqueue smoke path through queue refresh, the development Shipyard UI-state endpoint baseline, the scoped Shipyard enqueue endpoint path, and the strengthened minimal-validation Shipyard seed expectations.
 

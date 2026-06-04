@@ -3,7 +3,7 @@
 ---
 id: TASK-22Y
 title: Phase 22Y - Current state update for Espionage copy polish
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
