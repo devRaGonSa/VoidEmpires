@@ -7,6 +7,29 @@ import { UiCard } from "../components/ui/UiCard";
 import { mapGroundArmyUiStateToViewModel } from "../utils/groundArmyViewModel";
 import { buildConstructionUrl, buildDefensesUrl, buildFleetsUrl, buildGalaxyUrl, buildPlanetUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 
+function getGroundPosture(viewModel: ReturnType<typeof mapGroundArmyUiStateToViewModel>["groundArmy"]) {
+  if (!viewModel) return "Lectura terrestre preparada";
+  if (!viewModel.isOwnedByRequestingCivilization) return "Observacion externa";
+  if (viewModel.readinessSummary.totalGarrisonQuantity > 0) return "Guarnicion terrestre disponible";
+  if (viewModel.readinessSummary.availableOptionCount > 0) return "Entrenamiento listo";
+  if (viewModel.readinessSummary.queueItemCount > 0) return "Preparacion en cola";
+  return "Preparacion terrestre inicial";
+}
+
+function getRecommendedNextStep(viewModel: ReturnType<typeof mapGroundArmyUiStateToViewModel>["groundArmy"]) {
+  if (!viewModel) return "Cargar contexto terrestre";
+  if (!viewModel.isOwnedByRequestingCivilization) return "Volver a una colonia propia";
+  if (viewModel.readinessSummary.queueItemCount > 0) return "Revisar cola terrestre";
+  if (viewModel.actionAvailability.enqueueSupported) return "Preparar entrenamiento";
+  if (viewModel.readinessSummary.blockedOptionCount > 0) return "Resolver bloqueo visible";
+  return "Revisar estructuras y reservas";
+}
+
+function getResourcePressureSummary(viewModel: ReturnType<typeof mapGroundArmyUiStateToViewModel>["groundArmy"]) {
+  if (!viewModel || viewModel.stockpile.length === 0) return "Sin reservas visibles";
+  return [...viewModel.stockpile].sort((left, right) => right.quantity - left.quantity).slice(0, 3).map((entry) => `${entry.label} ${entry.quantity}`).join(" | ");
+}
+
 export function GroundArmyPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
@@ -21,6 +44,9 @@ export function GroundArmyPage() {
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const selectedPlanetId = uiState?.selectedPlanetId ?? queryPlanetId ?? null;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
+  const posture = getGroundPosture(groundArmy);
+  const recommendedNextStep = getRecommendedNextStep(groundArmy);
+  const resourcePressureSummary = getResourcePressureSummary(groundArmy);
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -96,13 +122,13 @@ export function GroundArmyPage() {
         </UiCard>
 
         <UiCard className="panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Estado actual</p><h3>Resumen terrestre</h3></div><UiBadge>{groundArmy ? groundArmy.planetName : "Sin planeta"}</UiBadge></div>
+          <div className="figma-section-header"><div><p className="eyebrow">Estado actual</p><h3>Resumen terrestre</h3></div><UiBadge>{posture}</UiBadge></div>
           {groundArmy ? (
             <div className="figma-data-list">
+              <PlanetDataRow label="Planeta" value={groundArmy.planetName} />
               <PlanetDataRow label="Sistema" value={groundArmy.solarSystemName} />
               <PlanetDataRow label="Control" value={groundArmy.controlStatusLabel ?? "Sin control"} />
-              <PlanetDataRow label="Guarnicion" value={`${groundArmy.readinessSummary.totalGarrisonQuantity} unidades`} />
-              <PlanetDataRow label="Estado" value={groundArmy.isOwnedByRequestingCivilization ? "Cabina activa" : "Observacion externa"} />
+              <PlanetDataRow label="Siguiente paso" value={recommendedNextStep} />
             </div>
           ) : <p className="figma-panel-note">La cabina mostrara preparacion terrestre, estructuras y guarnicion cuando el contexto sea valido.</p>}
         </UiCard>
@@ -119,7 +145,7 @@ export function GroundArmyPage() {
       </div>
 
       <UiCard className="panel">
-        <div className="figma-section-header"><div><p className="eyebrow">Estado de readiness</p><h3>Shell de cockpit</h3></div><UiBadge tone={groundArmy?.actionAvailability.enqueueSupported ? "good" : "warn"}>{groundArmy?.actionAvailability.enqueueStatusLabel ?? "Pendiente"}</UiBadge></div>
+        <div className="figma-section-header"><div><p className="eyebrow">Estado de readiness</p><h3>Dashboard terrestre</h3></div><UiBadge tone={groundArmy?.actionAvailability.enqueueSupported ? "good" : "warn"}>{groundArmy?.actionAvailability.enqueueStatusLabel ?? "Pendiente"}</UiBadge></div>
         {groundArmy ? (
           <div className="readiness-grid">
             <section className="subpanel figma-subpanel"><div className="figma-data-list">
@@ -129,10 +155,17 @@ export function GroundArmyPage() {
               <PlanetDataRow label="Opciones visibles" value={`${groundArmy.catalog.length}`} />
             </div></section>
             <section className="subpanel figma-subpanel"><div className="figma-data-list">
+              <PlanetDataRow label="Postura" value={posture} />
               <PlanetDataRow label="Estructuras" value={`${groundArmy.readinessSummary.structureCount}`} />
               <PlanetDataRow label="Tipos en guarnicion" value={`${groundArmy.readinessSummary.garrisonUnitTypes}`} />
+              <PlanetDataRow label="Guarnicion" value={`${groundArmy.readinessSummary.totalGarrisonQuantity} unidades`} />
               <PlanetDataRow label="Bloqueadas" value={`${groundArmy.readinessSummary.blockedOptionCount}`} />
+            </div></section>
+            <section className="subpanel figma-subpanel"><div className="figma-data-list">
+              <PlanetDataRow label="Disponibles" value={`${groundArmy.readinessSummary.availableOptionCount}`} />
               <PlanetDataRow label="Cola visible" value={`${groundArmy.readinessSummary.queueItemCount}`} />
+              <PlanetDataRow label="Presion de recursos" value={resourcePressureSummary} />
+              <PlanetDataRow label="Nota de seguridad" value="Esta cabina no resuelve combate ni invasiones." />
             </div></section>
           </div>
         ) : <p className="figma-panel-note">Todavia no hay datos terrestres visibles. La cabina mantiene un estado honesto en lugar de volver a un placeholder vacio.</p>}

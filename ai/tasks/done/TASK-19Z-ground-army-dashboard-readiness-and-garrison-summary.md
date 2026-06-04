@@ -3,7 +3,7 @@
 ---
 id: TASK-19Z-ground-army-dashboard-readiness-and-garrison-summary
 title: Ground Army dashboard readiness and garrison summary
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
