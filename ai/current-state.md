@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 27P - Final Alliance cockpit closure`.
+The repository is consolidated through `Phase 28A - Ranking backend contract discovery and scope audit`.
 
 ## Repository Reality
 
@@ -65,6 +65,7 @@ Current frontend cockpit baseline:
 - The current Alliance cockpit QA flow, seeded route, read-only behavior, and diplomacy exclusions are documented in `docs/dev/alliance-cockpit-checklist.md`.
 - The current seed profile catalog, discovery endpoint, deterministic ids, and QA URLs are documented in `docs/dev/development-seed-profiles.md`.
 - The current Alliance v1 backend-safe scope is now documented in `docs/dev/alliance-cockpit-checklist.md`: `Civilization` remains the correct requester identity, the consolidated development-only Alliance UI-state read path stays metadata-only, the seeded `cockpit-validation` baseline includes one deterministic diplomatic contact for repeatable `/alliance` QA, and Alliance v1 must not imply membership authority, invitations, shared visibility, shared sensors, trade, war, espionage, or any mutation flow.
+- Ranking remains unimplemented as a cockpit route, but its backend-safe v1 scope is now documented in `docs/dev/ranking-cockpit-checklist.md`: the repository can safely support a read-time, read-only own-civilization power index assembled from current ownership, economy, research, fleet, defense, ground-army, market, espionage, and alliance metadata, while public ladders, rewards, matchmaking, persistence, and ranking workers remain explicitly out of scope.
 
 Current intentional exclusions:
 
@@ -318,7 +319,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 27P:
+Current validated baseline after Phase 28A:
 
 - backend: `dotnet build --no-restore` succeeded
 - tests: `dotnet test --no-build` succeeded with `680` passing tests

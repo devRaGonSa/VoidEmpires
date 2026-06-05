@@ -3,7 +3,7 @@
 ---
 id: TASK-28A
 title: Audit ranking-related backend contracts and define v1 scope
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
