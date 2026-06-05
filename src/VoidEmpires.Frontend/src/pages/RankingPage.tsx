@@ -210,7 +210,7 @@ export function RankingPage() {
             <span>{uiState?.summary?.recommendationLabel ?? rankingLabels.unclassifiedMetric}</span>
           </section>
           <section className="subpanel figma-subpanel alliance-summary-card">
-            <p className="eyebrow">Area a reforzar</p>
+            <p className="eyebrow">Área crítica</p>
             <strong>{weakestCategory}</strong>
             <span>{rankingLabels.unclassifiedMetric}</span>
           </section>

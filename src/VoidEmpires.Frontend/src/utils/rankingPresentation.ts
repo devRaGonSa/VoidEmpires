@@ -45,7 +45,7 @@ const rankingStaticLabels = {
   futureSeason: "Temporada futura",
   rewardsUnavailable: "Recompensas desactivadas",
   unavailable: "No disponible",
-  unclassifiedMetric: "Área por reforzar",
+  unclassifiedMetric: "Lectura estratégica incompleta",
 } as const;
 
 const rankingCategoryCatalog: readonly RankingLabelEntry[] = [
@@ -721,12 +721,12 @@ export function selectDominantRankingCategory(viewModel: RankingUiState | null) 
 
 export function selectWeakestRankingFocus(viewModel: RankingUiState | null) {
   if (!viewModel?.summary?.categories.length) {
-    return "Area a reforzar pendiente de clasificar";
+    return "Sin área crítica visible";
   }
 
   return [...viewModel.summary.categories]
     .sort((left, right) => left.score - right.score)[0]?.label
-    ?? "Area a reforzar pendiente de clasificar";
+    ?? "Pendiente de consolidar";
 }
 
 export function getRankingPrimaryAction(viewModel: RankingUiState | null) {
