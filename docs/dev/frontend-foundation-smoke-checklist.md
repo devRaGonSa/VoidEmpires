@@ -402,7 +402,10 @@ Shipyard cockpit v1 visual review:
 - `dotnet build --no-restore` passes.
 - `dotnet test --no-build` passes.
 - `npm run build --prefix src/VoidEmpires.Frontend` passes.
-- `ai/tasks/pending` contains only `.gitkeep`.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` passes.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` passes.
+- `dotnet build --no-restore` may emit the known transient `MSB3026` copy-retry warnings while `testhost` still holds test output DLLs, but the build must still complete successfully.
+- `ai/tasks/pending` contains only `.gitkeep` after the final closure task.
 - `/planet` behaves as a dashboard, not a full construction catalog.
 - `/construction` stays scoped to general construction.
 - `/research` behaves as a development-safe cockpit foundation.
