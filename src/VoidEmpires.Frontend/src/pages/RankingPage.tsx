@@ -6,9 +6,9 @@ import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import {
+  buildRankingCategoryCards,
   getRankingPrimaryAction,
   getRankingStaticLabels,
-  groupRankingCategories,
   mapRankingUiStateToViewModel,
   selectDominantRankingCategory,
   selectRecommendedRankingFocus,
@@ -89,8 +89,8 @@ export function RankingPage() {
     () => selectWeakestRankingFocus(uiState),
     [uiState],
   );
-  const categoryGroups = useMemo(
-    () => groupRankingCategories(uiState?.summary?.categories ?? []),
+  const categoryCards = useMemo(
+    () => buildRankingCategoryCards(uiState?.summary?.categories ?? []),
     [uiState?.summary?.categories],
   );
 
@@ -337,26 +337,26 @@ export function RankingPage() {
               <div>
                 <p className="eyebrow">Tablero de poder</p>
                 <h3>{uiState.summary.totalPowerIndexLabel}</h3>
-                <p>Ranking traduce el payload en un tablero estable y deja las claves tecnicas dentro del diagnostico secundario.</p>
+                <p>Ranking traduce el payload en tarjetas estables por dominio y deja las claves tecnicas dentro del diagnostico secundario.</p>
               </div>
               <UiBadge tone="resource">{uiState.summary.recommendationLabel}</UiBadge>
             </div>
-            <div className="readiness-grid">
-              {[...categoryGroups.primary, ...categoryGroups.secondary].map((category) => (
-                <section key={category.categoryKey} className="subpanel figma-subpanel">
+            <div className="ranking-category-grid">
+              {categoryCards.map((category) => (
+                <article key={category.key} className={`alliance-catalog-card ranking-category-card alliance-catalog-card-${category.emphasis}`}>
                   <div className="figma-section-header">
                     <div>
                       <p className="eyebrow">Categoria</p>
-                      <h4>{category.label}</h4>
+                      <h4>{category.title}</h4>
                     </div>
                     <UiBadge tone={category.emphasis}>{category.scoreLabel}</UiBadge>
                   </div>
+                  <p className="ranking-category-copy">{category.explanation}</p>
                   <div className="figma-data-list">
-                    <div className="figma-data-row"><span>Peso</span><strong>{category.weight}</strong></div>
                     <div className="figma-data-row"><span>Lectura</span><strong>{category.scoreLabel}</strong></div>
-                    <div className="figma-data-row"><span>Fuente</span><strong>{category.sourceNote}</strong></div>
+                    <div className="figma-data-row"><span>Confianza</span><strong>{category.readinessLabel}</strong></div>
                   </div>
-                </section>
+                </article>
               ))}
             </div>
           </UiCard>

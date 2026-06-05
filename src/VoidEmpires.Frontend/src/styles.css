@@ -2079,6 +2079,22 @@ select {
   color: color-mix(in srgb, var(--ve-color-text) 80%, var(--ve-color-muted));
 }
 
+.ranking-category-grid {
+  display: grid;
+  gap: var(--ve-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-top: 14px;
+}
+
+.ranking-category-card {
+  align-content: start;
+}
+
+.ranking-category-copy {
+  margin: 0;
+  color: color-mix(in srgb, var(--ve-color-text) 78%, var(--ve-color-muted));
+}
+
 .alliance-catalog-grid,
 .alliance-catalog-card-grid {
   display: grid;

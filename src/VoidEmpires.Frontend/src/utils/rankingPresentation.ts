@@ -109,6 +109,15 @@ export interface RankingCategoryScore {
   sourceNote: string;
 }
 
+export interface RankingCategoryCard {
+  key: string;
+  title: string;
+  scoreLabel: string;
+  explanation: string;
+  readinessLabel: string;
+  emphasis: "good" | "neutral" | "warn";
+}
+
 export interface RankingPowerSummary {
   totalPowerIndex: number;
   totalPowerIndexLabel: string;
@@ -416,6 +425,37 @@ export function groupRankingCategories(categories: readonly RankingCategoryScore
     primary: categories.filter((category) => category.weight >= 15),
     secondary: categories.filter((category) => category.weight < 15),
   };
+}
+
+export function buildRankingCategoryCards(categories: readonly RankingCategoryScore[]): RankingCategoryCard[] {
+  const byKey = new Map(categories.map((category) => [category.categoryKey, category]));
+  const orbital = byKey.get("orbitalCapacity");
+  const buildCard = (
+    key: string,
+    title: string,
+    explanation: string,
+    category?: RankingCategoryScore,
+    readinessLabel?: string,
+  ): RankingCategoryCard => ({
+    key,
+    title,
+    scoreLabel: category?.scoreLabel ?? "Sin lectura",
+    explanation,
+    readinessLabel: readinessLabel ?? (category ? category.label : "Lectura demo"),
+    emphasis: category?.emphasis ?? "warn",
+  });
+
+  return [
+    buildCard("economy", "Economia", "Resume reservas y produccion visibles de la civilizacion.", byKey.get("economicPower"), "Lectura economica"),
+    buildCard("colonies", "Colonias", "Resume control planetario, edificios y desarrollo visible.", byKey.get("colonyDevelopment"), "Despliegue colonial"),
+    buildCard("research", "Investigacion", "Resume progreso tecnologico y cola actual sin efectos ocultos.", byKey.get("technologyProgress"), "Progreso visible"),
+    buildCard("shipyard", "Astillero", "Usa la misma lectura orbital actual hasta que el backend separe industria y flotas.", orbital, "Lectura compartida"),
+    buildCard("fleets", "Flotas", "Resume capacidad orbital, grupos visibles y postura de transferencias.", orbital, "Preparacion orbital"),
+    buildCard("defense", "Defensas", "Resume estructuras defensivas sin simular combate ni mitigacion real.", byKey.get("defensiveReadiness"), "Defensa estructural"),
+    buildCard("ground", "Ejercito Tierra", "Resume guarnicion local y capacidad de reclutamiento visible.", byKey.get("groundGarrison"), "Preparacion terrestre"),
+    buildCard("intelligence", "Inteligencia", "Resume visibilidad, sensores y deteccion ya conocidos.", byKey.get("strategicIntelligence"), "Confianza estrategica"),
+    buildCard("diplomacy", "Diplomacia", "Resume contactos y metadata diplomatica ya visible.", byKey.get("diplomacy"), "Lectura diplomatica"),
+  ];
 }
 
 export function selectRecommendedRankingFocus(viewModel: RankingUiState | null) {

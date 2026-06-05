@@ -3,7 +3,7 @@
 ---
 id: TASK-28G
 title: Render read-only category score cards for Ranking
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
