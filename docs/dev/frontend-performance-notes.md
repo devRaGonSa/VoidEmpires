@@ -72,10 +72,18 @@ Watch-outs:
 
 Observed on `2026-06-05` after route-level lazy loading and the route-metadata extraction:
 
+- transformed modules: `87`
 - current entry chunk: `dist/assets/index-CDfREE6c.js` at `179.32 kB` minified and `58.48 kB` gzip
 - current CSS asset: `dist/assets/index-DnIPhZw-.css` at `45.97 kB` minified and `7.26 kB` gzip
 - current build shape: shared entry chunk plus per-route chunks for `StrategicMapPage`, `PlanetPage`, `ConstructionPage`, `ResearchPage`, `ShipyardPage`, `FleetsPage`, `DefensesPage`, `GroundArmyPage`, `EspionagePage`, `MarketPage`, and `ModuleCabinPage`
 - current Vite result: no `500 kB` chunk-size warning
+
+Largest async cockpit chunks in the current build:
+
+- `FleetsPage-TLboUIOD.js`: `48.43 kB` minified, `11.41 kB` gzip
+- `MarketPage-IQHCiS20.js`: `41.22 kB` minified, `8.79 kB` gzip
+- `StrategicMapPage-H1U1EWf4.js`: `40.09 kB` minified, `9.75 kB` gzip
+- `ShipyardPage-CsI210CZ.js`: `38.15 kB` minified, `7.88 kB` gzip
 
 Decision:
 
