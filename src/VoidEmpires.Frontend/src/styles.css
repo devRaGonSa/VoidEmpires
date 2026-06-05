@@ -533,6 +533,28 @@ select {
   overflow-x: clip;
 }
 
+.route-loading-card {
+  display: grid;
+  gap: var(--ve-space-4);
+  min-height: 220px;
+  align-content: center;
+  border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 24%, var(--ve-color-border));
+  background:
+    radial-gradient(circle at top right, rgba(70, 239, 255, 0.1), transparent 32%),
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 82%, transparent), color-mix(in srgb, var(--ve-color-panel) 82%, transparent));
+}
+
+.route-loading-copy {
+  display: grid;
+  gap: var(--ve-space-2);
+  max-width: 48ch;
+}
+
+.route-loading-copy h2,
+.route-loading-copy p {
+  margin: 0;
+}
+
 .page-grid {
   display: grid;
   gap: 20px;

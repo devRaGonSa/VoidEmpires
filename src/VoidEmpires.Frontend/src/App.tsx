@@ -1,19 +1,65 @@
+import { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
 import { appConfig } from "./config";
+import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
 import { AppShell } from "./components/ui/AppShell";
-import { ConstructionPage } from "./pages/ConstructionPage";
-import { DefensesPage } from "./pages/DefensesPage";
-import { FleetsPage } from "./pages/FleetsPage";
-import { GroundArmyPage } from "./pages/GroundArmyPage";
-import { MarketPage } from "./pages/MarketPage";
-import { ModuleCabinPage } from "./pages/ModuleCabinPage";
-import { EspionagePage } from "./pages/EspionagePage";
-import { ResearchPage } from "./pages/ResearchPage";
-import { ShipyardPage } from "./pages/ShipyardPage";
-import { PlanetPage } from "./pages/PlanetPage";
-import { StrategicMapPage } from "./pages/StrategicMapPage";
 import { specializedPlanetModuleRoutes } from "./utils/planetPresentation";
 import { buildEspionageUrl, buildGalaxyUrl, buildMarketUrl } from "./utils/routeUrls";
+
+const StrategicMapPage = lazy(async () => {
+  const module = await import("./pages/StrategicMapPage");
+  return { default: module.StrategicMapPage };
+});
+
+const PlanetPage = lazy(async () => {
+  const module = await import("./pages/PlanetPage");
+  return { default: module.PlanetPage };
+});
+
+const ConstructionPage = lazy(async () => {
+  const module = await import("./pages/ConstructionPage");
+  return { default: module.ConstructionPage };
+});
+
+const ResearchPage = lazy(async () => {
+  const module = await import("./pages/ResearchPage");
+  return { default: module.ResearchPage };
+});
+
+const ShipyardPage = lazy(async () => {
+  const module = await import("./pages/ShipyardPage");
+  return { default: module.ShipyardPage };
+});
+
+const FleetsPage = lazy(async () => {
+  const module = await import("./pages/FleetsPage");
+  return { default: module.FleetsPage };
+});
+
+const DefensesPage = lazy(async () => {
+  const module = await import("./pages/DefensesPage");
+  return { default: module.DefensesPage };
+});
+
+const GroundArmyPage = lazy(async () => {
+  const module = await import("./pages/GroundArmyPage");
+  return { default: module.GroundArmyPage };
+});
+
+const EspionagePage = lazy(async () => {
+  const module = await import("./pages/EspionagePage");
+  return { default: module.EspionagePage };
+});
+
+const MarketPage = lazy(async () => {
+  const module = await import("./pages/MarketPage");
+  return { default: module.MarketPage };
+});
+
+const ModuleCabinPage = lazy(async () => {
+  const module = await import("./pages/ModuleCabinPage");
+  return { default: module.ModuleCabinPage };
+});
 
 const sidebarItems = [
   { label: "Galaxia", to: buildGalaxyUrl(), state: "implemented" },
@@ -44,32 +90,34 @@ export default function App() {
       sidebarItems={[...sidebarItems]}
       userLabel="RaulG"
     >
-      <Routes>
-        <Route path="/" element={<StrategicMapPage />} />
-        <Route path="/galaxy" element={<StrategicMapPage />} />
-        <Route path="/planet" element={<PlanetPage />} />
-        <Route path="/construction" element={<ConstructionPage />} />
-        {specializedPlanetModuleRoutes.map((route) => (
-          <Route
-            key={route.path}
-            path={route.path}
-            element={
-              route.module === "Research"
-                ? <ResearchPage />
-                : route.module === "Defenses"
-                  ? <DefensesPage />
-                : route.module === "GroundArmy"
-                  ? <GroundArmyPage />
-                : route.module === "Shipyard"
-                  ? <ShipyardPage />
-                  : <ModuleCabinPage route={route} />
-            }
-          />
-        ))}
-        <Route path="/fleets" element={<FleetsPage />} />
-        <Route path="/market" element={<MarketPage />} />
-        <Route path="/espionage" element={<EspionagePage />} />
-      </Routes>
+      <Suspense fallback={<RouteLoadingFallback />}>
+        <Routes>
+          <Route path="/" element={<StrategicMapPage />} />
+          <Route path="/galaxy" element={<StrategicMapPage />} />
+          <Route path="/planet" element={<PlanetPage />} />
+          <Route path="/construction" element={<ConstructionPage />} />
+          {specializedPlanetModuleRoutes.map((route) => (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={
+                route.module === "Research"
+                  ? <ResearchPage />
+                  : route.module === "Defenses"
+                    ? <DefensesPage />
+                    : route.module === "GroundArmy"
+                      ? <GroundArmyPage />
+                      : route.module === "Shipyard"
+                        ? <ShipyardPage />
+                        : <ModuleCabinPage route={route} />
+              }
+            />
+          ))}
+          <Route path="/fleets" element={<FleetsPage />} />
+          <Route path="/market" element={<MarketPage />} />
+          <Route path="/espionage" element={<EspionagePage />} />
+        </Routes>
+      </Suspense>
     </AppShell>
   );
 }
