@@ -19,6 +19,35 @@ Required wording posture:
 - `comparison` must read as seeded or demo-only context, not live player competition
 - `future leaderboard` copy must stay explicitly disabled
 
+## Frontend taxonomy owner
+
+Canonical frontend presentation owner:
+
+- [src/VoidEmpires.Frontend/src/utils/rankingPresentation.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/utils/rankingPresentation.ts)
+
+Canonical visible labels for `Ranking v1`:
+
+- `Indice de poder`
+- `Potencia economica`
+- `Desarrollo colonial`
+- `Progreso tecnologico`
+- `Capacidad orbital`
+- `Preparacion defensiva`
+- `Guarnicion terrestre`
+- `Inteligencia estrategica`
+- `Diplomacia`
+- `Comparativa demo`
+- `Clasificacion no publicada`
+- `Temporada futura`
+- `Recompensas no disponibles`
+- `Metrica pendiente de clasificar`
+
+Copy rules for later tasks:
+
+- unknown keys must fall back to Spanish labels, never raw backend tokens
+- diagnostics may still show raw keys when a task explicitly exposes secondary technical detail
+- no label should imply that a live public ladder, season, or reward system is already active
+
 ## Current backend reality
 
 Current backend surfaces already provide enough read-state to support a conservative ranking cockpit:

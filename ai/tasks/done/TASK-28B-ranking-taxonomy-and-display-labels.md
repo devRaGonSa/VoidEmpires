@@ -3,7 +3,7 @@
 ---
 id: TASK-28B
 title: Define Spanish ranking terminology and player-facing labels
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
