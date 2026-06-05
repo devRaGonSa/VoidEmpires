@@ -23,6 +23,18 @@ Use this baseline before changing route loading or Vite chunking:
 - `ConstructionPage` is currently a thin wrapper over `PlanetPage`, so any route split that keeps `ConstructionPage` separate still needs to avoid duplicating the shared Planet implementation unnecessarily.
 - No chunking decision should change route paths, seeded QA URLs, shared shell navigation, or the current Spanish-first cockpit behavior.
 
+## Route Loading Verification
+
+Use these checks after route-level lazy loading lands:
+
+- `npm run build --prefix src/VoidEmpires.Frontend` should emit route chunks for the accepted cockpits instead of one oversized application chunk.
+- `/` and `/galaxy` must still resolve to the accepted Galaxy cockpit, not a blank shell or a broken redirect.
+- `/planet`, `/construction`, `/research`, `/shipyard`, `/fleets`, `/defenses`, `/ground-army`, `/espionage`, and `/market` must still load with their current query-parameter behavior unchanged.
+- The shared shell must remain visible while a lazy route resolves; only the page content area should swap to the loading state.
+- The route-loading fallback must stay Spanish-first and read as a loading state: `Carga en progreso`, `Cambio de cabina`, and `Cargando cabina...`.
+- Missing-context, empty-state, and disabled-action copy inside each cockpit must still appear after the lazy import resolves; route splitting must not replace those states with a generic loader forever.
+- Current future-state navigation items such as `Alianza` and `Ranking` must remain non-clickable future entries in the sidebar rather than turning into broken links.
+
 ## Final Cross-Cockpit Visual Pass
 
 Use this block as the one-stop manual QA pass for the accepted shared cockpit suite after the non-visual validation commands succeed.

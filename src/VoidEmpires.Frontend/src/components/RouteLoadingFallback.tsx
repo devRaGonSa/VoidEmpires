@@ -3,7 +3,13 @@ import { UiCard } from "./ui/UiCard";
 
 export function RouteLoadingFallback() {
   return (
-    <UiCard className="route-loading-card" as="section">
+    <UiCard
+      aria-busy="true"
+      aria-live="polite"
+      className="route-loading-card"
+      as="section"
+      role="status"
+    >
       <UiBadge tone="neutral">Carga en progreso</UiBadge>
       <div className="route-loading-copy">
         <p className="eyebrow">Cambio de cabina</p>
