@@ -220,6 +220,7 @@ Use these read surfaces only:
 Centralized frontend taxonomy owner:
 
 - [src/VoidEmpires.Frontend/src/utils/alliancePresentation.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/utils/alliancePresentation.ts) should remain the single owner for Spanish-first alliance, contact, pact, and disabled-future labels so raw enum or DTO tokens stay out of primary UI.
+- [src/VoidEmpires.Frontend/src/api/allianceTypes.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/api/allianceTypes.ts), [src/VoidEmpires.Frontend/src/api/allianceApi.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/api/allianceApi.ts), and [src/VoidEmpires.Frontend/src/utils/allianceViewModel.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/utils/allianceViewModel.ts) now define the typed DTO, fetch, and normalization path for the Alliance cockpit frontend.
 
 Keep the first frontend slice conservative:
 

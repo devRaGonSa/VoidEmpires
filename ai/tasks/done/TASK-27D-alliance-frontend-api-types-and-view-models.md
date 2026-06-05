@@ -3,7 +3,7 @@
 ---
 id: TASK-27D
 title: Add typed Alliance API client and normalized view models
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

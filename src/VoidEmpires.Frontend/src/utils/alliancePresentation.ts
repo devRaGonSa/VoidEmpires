@@ -9,6 +9,9 @@ const unknownAllianceStateFallback = "Lectura diplomatica pendiente de clasifica
 const unknownContactFallback = "Lectura diplomatica pendiente de clasificar";
 const unknownPactFallback = "Alianza futura";
 const unknownActionFallback = "Diplomacia solo lectura";
+const unknownRoleFallback = "Rol pendiente de clasificar";
+const unknownMembershipFallback = "Membresia pendiente de clasificar";
+const unknownConfidenceFallback = "Lectura diplomatica pendiente de clasificar";
 
 const allianceStaticLabels = {
   diplomacyStatus: "Estado diplomatico",
@@ -49,6 +52,20 @@ const allianceActionCatalog: readonly AllianceLabelEntry[] = [
   { key: "alliance.pact.trade.future", label: "Pacto comercial futuro" },
   { key: "alliance.pact.defense.future", label: "Pacto defensivo futuro" },
   { key: "alliance.pact.nonAggression.future", label: "Pacto de no agresion futuro" },
+] as const;
+
+const allianceRoleCatalog: readonly AllianceLabelEntry[] = [
+  { key: "Leader", label: "Lider" },
+  { key: "Officer", label: "Oficial" },
+  { key: "Member", label: "Miembro" },
+  { key: "Unknown", label: unknownRoleFallback },
+] as const;
+
+const allianceMembershipCatalog: readonly AllianceLabelEntry[] = [
+  { key: "Active", label: "Membresia activa" },
+  { key: "Departed", label: "Historial diplomatico" },
+  { key: "Pending", label: "Lectura diplomatica pendiente de clasificar" },
+  { key: "Unknown", label: unknownMembershipFallback },
 ] as const;
 
 function normalizeValue(value: AllianceValue) {
@@ -103,6 +120,14 @@ export function getAllianceActionLabel(value: AllianceValue, fallback = unknownA
   return resolveCatalogLabel(value, allianceActionCatalog, fallback);
 }
 
+export function getAllianceRoleLabel(value: AllianceValue, fallback = unknownRoleFallback) {
+  return resolveCatalogLabel(value, allianceRoleCatalog, fallback);
+}
+
+export function getAllianceMembershipLabel(value: AllianceValue, fallback = unknownMembershipFallback) {
+  return resolveCatalogLabel(value, allianceMembershipCatalog, fallback);
+}
+
 export function getAllianceContactLabel(value: AllianceValue, fallback = unknownContactFallback) {
   const normalizedValue = normalizeValue(value);
   if (!normalizedValue) {
@@ -141,4 +166,37 @@ export function getAllianceFutureActionReasonLabel(actionKey: AllianceValue) {
     default:
       return `${allianceStaticLabels.futureAlliance}. ${allianceStaticLabels.readOnlyDiplomacy}.`;
   }
+}
+
+export function getAllianceContactConfidenceLabel(value: AllianceValue, hasTechnicalSource = false) {
+  const normalizedValue = normalizeValue(value);
+  const normalizedLookup = normalizedValue ? normalizeLookup(normalizedValue) : null;
+
+  if (normalizedLookup && ["friendly", "neutral", "contacted", "known"].includes(normalizedLookup)) {
+    return hasTechnicalSource ? "Lectura conocida" : allianceStaticLabels.knownContact;
+  }
+
+  if (normalizedLookup && ["hostile"].includes(normalizedLookup)) {
+    return "Contacto conocido";
+  }
+
+  if (normalizedLookup && ["unknown", "unconfirmed", "pending", "tentative"].includes(normalizedLookup)) {
+    return allianceStaticLabels.unconfirmedContact;
+  }
+
+  return unknownConfidenceFallback;
+}
+
+export function formatAllianceDiagnostics(
+  notes: readonly string[] | null | undefined,
+  limitations: readonly string[] | null | undefined,
+) {
+  const technical = [...(notes ?? [])];
+  const playerFacing = technical.filter((note) => !note.toLowerCase().includes("development-only"));
+
+  return {
+    playerFacing,
+    technical,
+    limitations: [...(limitations ?? [])],
+  };
 }
