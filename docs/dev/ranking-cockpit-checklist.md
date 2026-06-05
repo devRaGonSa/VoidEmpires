@@ -18,6 +18,7 @@ Required wording posture:
 - `Ranking` must read as an internal `power index` or `readiness index`, not as a published leaderboard
 - `comparison` must read as seeded or demo-only context, not live player competition
 - `future leaderboard` copy must stay explicitly disabled
+- if only the own-civilization row exists, the cockpit must still say `Comparativa demo` and explain that v1 is missing extra public rows rather than implying a hidden ladder
 
 ## Frontend taxonomy owner
 
@@ -268,6 +269,15 @@ Do not add in v1:
 - public profile pages
 - authorization changes
 - mutation endpoints
+
+## Demo comparison posture
+
+Current deterministic comparison posture for `Ranking v1`:
+
+- own row must always be labeled as unpublished and read-only
+- seeded reference rows must be labeled `Referencia de escenario demo`
+- any future-season comparison row must stay visibly distinct from a real leaderboard season
+- future placeholder cards must remain limited to `Clasificacion global`, `Clasificacion de alianzas`, `Temporada futura`, and `Recompensas no disponibles`
 
 ## Seed and validation posture
 

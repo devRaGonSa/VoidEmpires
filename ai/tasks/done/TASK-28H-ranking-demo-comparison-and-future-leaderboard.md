@@ -3,7 +3,7 @@
 ---
 id: TASK-28H
 title: Add demo comparison and disabled future leaderboard placeholders
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

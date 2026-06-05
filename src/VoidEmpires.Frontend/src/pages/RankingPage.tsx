@@ -7,6 +7,8 @@ import { UiCard } from "../components/ui/UiCard";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import {
   buildRankingCategoryCards,
+  buildRankingComparisonCards,
+  buildRankingFutureLeaderboardCards,
   getRankingPrimaryAction,
   getRankingStaticLabels,
   mapRankingUiStateToViewModel,
@@ -92,6 +94,14 @@ export function RankingPage() {
   const categoryCards = useMemo(
     () => buildRankingCategoryCards(uiState?.summary?.categories ?? []),
     [uiState?.summary?.categories],
+  );
+  const comparisonCards = useMemo(
+    () => buildRankingComparisonCards(uiState?.comparisons ?? []),
+    [uiState?.comparisons],
+  );
+  const futureLeaderboardCards = useMemo(
+    () => buildRankingFutureLeaderboardCards(uiState?.futureActions ?? []),
+    [uiState?.futureActions],
   );
 
   useEffect(() => {
@@ -370,21 +380,28 @@ export function RankingPage() {
               </div>
               <UiBadge tone="warn">{rankingLabels.demoComparison}</UiBadge>
             </div>
+            <div className="selection-chip-row ranking-state-chip-row">
+              <span className="selection-chip selection-chip-active">{rankingLabels.unpublishedRanking}</span>
+              <span className="selection-chip">{rankingLabels.readOnly}</span>
+              <span className="selection-chip">{rankingLabels.demoScenarioReference}</span>
+            </div>
             <div className="alliance-catalog-card-grid">
-              {uiState.comparisons.map((comparison) => (
-                <article key={comparison.rowKey} className="alliance-catalog-card alliance-catalog-card-neutral">
+              {comparisonCards.map((comparison) => (
+                <article key={comparison.key} className={`alliance-catalog-card alliance-catalog-card-${comparison.emphasis}`}>
                   <div className="alliance-catalog-card-head">
                     <div>
-                      <p className="eyebrow">{comparison.isCurrentCivilization ? "Actual" : "Referencia demo"}</p>
-                      <h5>{comparison.displayName}</h5>
+                      <p className="eyebrow">{comparison.visibilityLabel}</p>
+                      <h5>{comparison.title}</h5>
                     </div>
-                    <UiBadge tone={comparison.isCurrentCivilization ? "good" : "warn"}>{comparison.totalPowerIndexLabel}</UiBadge>
+                    <UiBadge tone={comparison.emphasis}>{comparison.scoreLabel}</UiBadge>
                   </div>
                   <div className="figma-data-list">
                     <div className="figma-data-row"><span>Delta</span><strong>{comparison.deltaLabel}</strong></div>
                     <div className="figma-data-row"><span>Postura</span><strong>{comparison.postureLabel}</strong></div>
-                    <div className="figma-data-row"><span>Lectura</span><strong>{comparison.isDemoOnly ? rankingLabels.demoComparison : rankingLabels.unpublishedRanking}</strong></div>
+                    <div className="figma-data-row"><span>Estado</span><strong>{comparison.stateLabel}</strong></div>
+                    <div className="figma-data-row"><span>Visibilidad</span><strong>{comparison.visibilityLabel}</strong></div>
                   </div>
+                  <p className="alliance-catalog-note">{comparison.note}</p>
                 </article>
               ))}
             </div>
@@ -394,18 +411,18 @@ export function RankingPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Futuro visible</p>
-                <h3>Temporadas y recompensas</h3>
-                <p>Los placeholders futuros permanecen deshabilitados y se muestran como referencias de hoja de ruta.</p>
+                <h3>Leaderboards y recompensas deshabilitadas</h3>
+                <p>Las referencias futuras permanecen deshabilitadas y se muestran como hoja de ruta secundaria, nunca como acciones ejecutables.</p>
               </div>
               <UiBadge tone="warn">{rankingLabels.futureSeason}</UiBadge>
             </div>
             <div className="market-future-actions-grid">
-              {uiState.futureActions.map((action) => (
+              {futureLeaderboardCards.map((action) => (
                 <section key={action.key} className="subpanel figma-subpanel market-future-action-card">
                   <div className="figma-section-header">
                     <div>
                       <p className="eyebrow">Referencia futura</p>
-                      <h4>{action.label}</h4>
+                      <h4>{action.title}</h4>
                     </div>
                     <UiBadge tone="warn">{action.stateLabel}</UiBadge>
                   </div>
@@ -413,6 +430,7 @@ export function RankingPage() {
                     <li>{action.reasonLabel}</li>
                     <li>No disponible en esta version.</li>
                     <li>Solo lectura en esta cabina.</li>
+                    <li>No publica perfiles, temporadas ni recompensas reales.</li>
                   </ul>
                   <button type="button" className="planet-action-button-blocked" disabled>
                     No disponible en esta version

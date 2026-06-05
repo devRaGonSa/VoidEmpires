@@ -36,6 +36,10 @@ const rankingStaticLabels = {
   diplomacy: "Diplomacia",
   demoComparison: "Comparativa demo",
   unpublishedRanking: "Clasificacion no publicada",
+  readOnly: "Solo lectura",
+  demoScenarioReference: "Referencia de escenario demo",
+  globalLeaderboard: "Clasificacion global",
+  allianceLeaderboard: "Clasificacion de alianzas",
   futureSeason: "Temporada futura",
   rewardsUnavailable: "Recompensas no disponibles",
   unclassifiedMetric: "Metrica pendiente de clasificar",
@@ -144,6 +148,25 @@ export interface RankingFutureAction {
   stateLabel: string;
   reasonLabel: string;
   isAvailable: boolean;
+}
+
+export interface RankingComparisonCard {
+  key: string;
+  title: string;
+  scoreLabel: string;
+  deltaLabel: string;
+  postureLabel: string;
+  stateLabel: string;
+  visibilityLabel: string;
+  note: string;
+  emphasis: "good" | "neutral" | "warn";
+}
+
+export interface RankingLeaderboardPlaceholderCard {
+  key: string;
+  title: string;
+  stateLabel: string;
+  reasonLabel: string;
 }
 
 export interface RankingDiagnostics {
@@ -455,6 +478,84 @@ export function buildRankingCategoryCards(categories: readonly RankingCategorySc
     buildCard("ground", "Ejercito Tierra", "Resume guarnicion local y capacidad de reclutamiento visible.", byKey.get("groundGarrison"), "Preparacion terrestre"),
     buildCard("intelligence", "Inteligencia", "Resume visibilidad, sensores y deteccion ya conocidos.", byKey.get("strategicIntelligence"), "Confianza estrategica"),
     buildCard("diplomacy", "Diplomacia", "Resume contactos y metadata diplomatica ya visible.", byKey.get("diplomacy"), "Lectura diplomatica"),
+  ];
+}
+
+export function buildRankingComparisonCards(comparisons: readonly RankingComparisonRow[]): RankingComparisonCard[] {
+  return comparisons.map((comparison) => {
+    if (comparison.isCurrentCivilization) {
+      return {
+        key: comparison.rowKey,
+        title: comparison.displayName,
+        scoreLabel: comparison.totalPowerIndexLabel,
+        deltaLabel: comparison.deltaLabel,
+        postureLabel: comparison.postureLabel,
+        stateLabel: rankingStaticLabels.unpublishedRanking,
+        visibilityLabel: rankingStaticLabels.readOnly,
+        note: "Tu fila propia solo se compara contra referencias de desarrollo.",
+        emphasis: "good",
+      };
+    }
+
+    if (normalizeLookup(comparison.rowKey).includes("futureseason")) {
+      return {
+        key: comparison.rowKey,
+        title: comparison.displayName,
+        scoreLabel: comparison.totalPowerIndexLabel,
+        deltaLabel: comparison.deltaLabel,
+        postureLabel: comparison.postureLabel,
+        stateLabel: rankingStaticLabels.futureSeason,
+        visibilityLabel: rankingStaticLabels.demoScenarioReference,
+        note: "Referencia futura del escenario demo. No representa una temporada publicada.",
+        emphasis: "warn",
+      };
+    }
+
+    return {
+      key: comparison.rowKey,
+      title: comparison.displayName,
+      scoreLabel: comparison.totalPowerIndexLabel,
+      deltaLabel: comparison.deltaLabel,
+      postureLabel: comparison.postureLabel,
+      stateLabel: rankingStaticLabels.demoScenarioReference,
+      visibilityLabel: rankingStaticLabels.readOnly,
+      note: "Referencia del escenario demo para dar contexto no competitivo.",
+      emphasis: "neutral",
+    };
+  });
+}
+
+export function buildRankingFutureLeaderboardCards(actions: readonly RankingFutureAction[]): RankingLeaderboardPlaceholderCard[] {
+  const findAction = (pattern: string) => actions.find((action) => normalizeLookup(action.key).includes(pattern));
+  const leaderboard = findAction("leaderboard");
+  const season = findAction("season");
+  const rewards = findAction("rewards");
+
+  return [
+    {
+      key: "global-leaderboard",
+      title: rankingStaticLabels.globalLeaderboard,
+      stateLabel: leaderboard?.stateLabel ?? rankingStaticLabels.unpublishedRanking,
+      reasonLabel: leaderboard?.reasonLabel ?? "El ranking global permanece desactivado en esta version.",
+    },
+    {
+      key: "alliance-leaderboard",
+      title: rankingStaticLabels.allianceLeaderboard,
+      stateLabel: rankingStaticLabels.unpublishedRanking,
+      reasonLabel: "La clasificacion de alianzas sigue fuera del alcance de esta cabina.",
+    },
+    {
+      key: "future-season",
+      title: rankingStaticLabels.futureSeason,
+      stateLabel: season?.stateLabel ?? rankingStaticLabels.futureSeason,
+      reasonLabel: season?.reasonLabel ?? "La temporada futura sigue fuera del alcance de esta cabina.",
+    },
+    {
+      key: "rewards",
+      title: rankingStaticLabels.rewardsUnavailable,
+      stateLabel: rewards?.stateLabel ?? rankingStaticLabels.rewardsUnavailable,
+      reasonLabel: rewards?.reasonLabel ?? "Las recompensas no forman parte de esta fase.",
+    },
   ];
 }
 
