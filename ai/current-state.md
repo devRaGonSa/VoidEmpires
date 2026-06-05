@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 27N - Current state update for Alliance cockpit v1`.
+The repository is consolidated through `Phase 27P - Final Alliance cockpit closure`.
 
 ## Repository Reality
 
@@ -318,7 +318,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 27N:
+Current validated baseline after Phase 27P:
 
 - backend: `dotnet build --no-restore` succeeded
 - tests: `dotnet test --no-build` succeeded with `680` passing tests
@@ -332,6 +332,7 @@ Current validated baseline after Phase 27N:
 - Manual visual QA for the accepted cross-cockpit demo flow remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; the Browser runtime was unavailable in this session, so final screenshot-style acceptance is still user-driven.
 - Market visual and read-only polish is now implemented and documented through the seeded browser checklists; final screenshot-backed acceptance still remains user-driven, and the block did not expand Market into transaction gameplay or production behavior.
 - Alliance read-only diplomacy validation is now implemented and documented through the seeded browser checklists; final screenshot-backed acceptance still remains user-driven, and the block did not expand Alliance into executable diplomacy gameplay.
+- closure note: Block `27A-27P` is now closed, `ai/tasks/pending` is reduced to `.gitkeep`, and the accepted cockpit suite keeps `/alliance` inside the standard non-visual regression bundle.
 
 Current validated cockpit QA seed baseline:
 
