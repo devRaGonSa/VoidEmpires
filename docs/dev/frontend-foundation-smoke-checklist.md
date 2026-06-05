@@ -28,6 +28,7 @@ Use this baseline before changing route loading or Vite chunking:
 Use these checks after route-level lazy loading lands:
 
 - `npm run build --prefix src/VoidEmpires.Frontend` should emit route chunks for the accepted cockpits instead of one oversized application chunk.
+- After the current lazy-loading pass, the build should stay on Vite defaults without the old `500 kB` warning; reintroducing that warning is a regression for this block.
 - `/` and `/galaxy` must still resolve to the accepted Galaxy cockpit, not a blank shell or a broken redirect.
 - `/planet`, `/construction`, `/research`, `/shipyard`, `/fleets`, `/defenses`, `/ground-army`, `/espionage`, and `/market` must still load with their current query-parameter behavior unchanged.
 - The shared shell must remain visible while a lazy route resolves; only the page content area should swap to the loading state.

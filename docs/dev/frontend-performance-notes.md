@@ -67,3 +67,23 @@ Watch-outs:
 - Keep the map shell, sidebar, top resource bar, route metadata, and URL builders synchronous.
 - Rebuild immediately after the lazy-route pass and compare the new entry chunk against the `551.88 kB` baseline before considering `manualChunks`.
 - Evaluate `manualChunks` only after route-level splitting lands, so any Vite tuning reflects the real post-lazy import graph.
+
+## Post-Lazy Evaluation
+
+Observed on `2026-06-05` after route-level lazy loading and the route-metadata extraction:
+
+- current entry chunk: `dist/assets/index-CDfREE6c.js` at `179.32 kB` minified and `58.48 kB` gzip
+- current CSS asset: `dist/assets/index-DnIPhZw-.css` at `45.97 kB` minified and `7.26 kB` gzip
+- current build shape: shared entry chunk plus per-route chunks for `StrategicMapPage`, `PlanetPage`, `ConstructionPage`, `ResearchPage`, `ShipyardPage`, `FleetsPage`, `DefensesPage`, `GroundArmyPage`, `EspionagePage`, `MarketPage`, and `ModuleCabinPage`
+- current Vite result: no `500 kB` chunk-size warning
+
+Decision:
+
+- keep the default Vite chunking
+- do not add `manualChunks` in `vite.config.ts`
+
+Rationale:
+
+- route-level splitting already removed the warning and reduced the entry chunk from `551.88 kB` to `179.32 kB`
+- no remaining build symptom justifies adding manual chunk rules
+- preserving Vite defaults keeps chunk behavior simpler and avoids brittle grouping rules that would need upkeep as cockpit routes evolve
