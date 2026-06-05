@@ -8,6 +8,7 @@ using VoidEmpires.Application.Fleets;
 using VoidEmpires.Application.Galaxy;
 using VoidEmpires.Application.Markets;
 using VoidEmpires.Application.Players;
+using VoidEmpires.Application.Rankings;
 using VoidEmpires.Application.Research;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Assets;
@@ -521,6 +522,33 @@ internal static class DevEndpointMappings
             return Results.Ok(new DevAllianceUiStateApiResponse(true, uiState, []));
         });
 
+        app.MapGet("/api/dev/ranking/ui-state", async (
+            Guid? civilizationId,
+            [FromServices] IServiceProvider services,
+            [FromServices] IConfiguration configuration,
+            CancellationToken cancellationToken) =>
+        {
+            if (!IsPersistenceConfigured(configuration))
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (civilizationId is null || civilizationId == Guid.Empty)
+            {
+                return Results.BadRequest(new DevRankingUiStateApiResponse(false, null, ["Civilization id is required."]));
+            }
+
+            var service = services.GetRequiredService<IDevRankingUiStateService>();
+            var uiState = await service.GetAsync(new GetDevRankingUiStateRequest(civilizationId.Value), cancellationToken);
+
+            if (uiState.Identity is null && uiState.Errors.Count > 0)
+            {
+                return Results.NotFound(new DevRankingUiStateApiResponse(false, null, uiState.Errors));
+            }
+
+            return Results.Ok(new DevRankingUiStateApiResponse(true, uiState, []));
+        });
+
         app.MapDevOrbitalGroupLookupEndpoints();
         app.MapDevOrbitalGroupSplitEndpoints();
         app.MapDevOrbitalGroupMergeEndpoints();
@@ -947,4 +975,9 @@ internal sealed record DevEspionageUiStateApiResponse(
 internal sealed record DevAllianceUiStateApiResponse(
     bool Succeeded,
     GetDevAllianceUiStateResult? UiState,
+    IReadOnlyList<string> Errors);
+
+internal sealed record DevRankingUiStateApiResponse(
+    bool Succeeded,
+    GetDevRankingUiStateResult? UiState,
     IReadOnlyList<string> Errors);

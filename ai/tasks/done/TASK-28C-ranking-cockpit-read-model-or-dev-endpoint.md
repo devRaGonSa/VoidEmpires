@@ -3,7 +3,7 @@
 ---
 id: TASK-28C
 title: Add a stable Ranking UI read model or development endpoint
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
