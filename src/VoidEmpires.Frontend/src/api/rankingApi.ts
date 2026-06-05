@@ -77,6 +77,25 @@ export interface RankingUiStateResponse {
   errors: readonly string[];
 }
 
+export type RankingRequestFailureCode =
+  | "invalidCivilizationId"
+  | "civilizationNotFound"
+  | "rankingReadUnavailable"
+  | "endpointUnavailableOutsideDevelopment"
+  | "unsupportedFutureAction"
+  | "unexpectedError";
+
+export class RankingRequestError extends Error {
+  constructor(
+    readonly code: RankingRequestFailureCode,
+    readonly detail: string,
+    readonly status: number,
+  ) {
+    super(detail);
+    this.name = "RankingRequestError";
+  }
+}
+
 function buildUrl(path: string, query?: Record<string, string>) {
   const url = new URL(path, appConfig.apiBaseUrl);
 
@@ -111,7 +130,30 @@ async function requestJson<T>(path: string, query?: Record<string, string>) {
       detail = "Civilization id is required.";
     }
 
-    throw new Error(detail ?? `Request failed with status ${response.status}.`);
+    const normalizedDetail = detail ?? `Request failed with status ${response.status}.`;
+    let code: RankingRequestFailureCode = "unexpectedError";
+
+    switch (normalizedDetail) {
+      case "Civilization id is required.":
+        code = "invalidCivilizationId";
+        break;
+      case "Civilization was not found.":
+        code = "civilizationNotFound";
+        break;
+      case "Request failed with status 404.":
+        code = "endpointUnavailableOutsideDevelopment";
+        break;
+      case "Request failed with status 503.":
+        code = "rankingReadUnavailable";
+        break;
+      default:
+        if (normalizedDetail.toLowerCase().includes("not available in this version")) {
+          code = "unsupportedFutureAction";
+        }
+        break;
+    }
+
+    throw new RankingRequestError(code, normalizedDetail, response.status);
   }
 
   return response.json() as Promise<T>;

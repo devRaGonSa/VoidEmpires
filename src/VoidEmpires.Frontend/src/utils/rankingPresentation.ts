@@ -7,8 +7,10 @@ import type {
   RankingIdentityDto,
   RankingPowerSummaryDto,
   RankingPublicationStateDto,
+  RankingRequestFailureCode,
   RankingUiStateDto,
 } from "../api/rankingApi";
+import { RankingRequestError } from "../api/rankingApi";
 import { formatCompactGuid, formatPlanetPrimaryLabel } from "./domainPresentation";
 
 type RankingValue = string | number | null | undefined;
@@ -187,6 +189,13 @@ export interface RankingDiagnostics {
     diplomaticContacts: number;
     activeTransfers: number;
   };
+}
+
+export interface RankingErrorPresentation {
+  code: RankingRequestFailureCode;
+  primaryMessage: string;
+  followUp: string | null;
+  technicalDetail: string | null;
 }
 
 export interface RankingUiState {
@@ -417,6 +426,73 @@ function mapDiagnostics(
 
 export function getRankingStaticLabels() {
   return rankingStaticLabels;
+}
+
+export function formatRankingRequestFailure(error: unknown): RankingErrorPresentation {
+  if (error instanceof RankingRequestError) {
+    switch (error.code) {
+      case "invalidCivilizationId":
+        return {
+          code: error.code,
+          primaryMessage: "No hay contexto de civilizacion.",
+          followUp: "Introduce un id valido o entra desde otra cabina para conservar el contexto.",
+          technicalDetail: error.detail,
+        };
+      case "civilizationNotFound":
+        return {
+          code: error.code,
+          primaryMessage: "No se pudo cargar la lectura de ranking.",
+          followUp: "La civilizacion solicitada no existe dentro del contexto visible.",
+          technicalDetail: error.detail,
+        };
+      case "rankingReadUnavailable":
+        return {
+          code: error.code,
+          primaryMessage: "No se pudo cargar la lectura de ranking.",
+          followUp: "La persistencia de desarrollo no esta disponible ahora mismo.",
+          technicalDetail: error.detail,
+        };
+      case "endpointUnavailableOutsideDevelopment":
+        return {
+          code: error.code,
+          primaryMessage: "No se pudo cargar la lectura de ranking.",
+          followUp: "La ruta de Ranking solo esta disponible dentro del entorno de desarrollo.",
+          technicalDetail: error.detail,
+        };
+      case "unsupportedFutureAction":
+        return {
+          code: error.code,
+          primaryMessage: "La clasificacion global no esta disponible en esta version.",
+          followUp: "Ranking mantiene esa accion como referencia futura y no la ejecuta.",
+          technicalDetail: error.detail,
+        };
+      default:
+        return {
+          code: error.code,
+          primaryMessage: "No se pudo cargar la lectura de ranking.",
+          followUp: "Revisa el contexto actual y abre el diagnostico secundario si el problema persiste.",
+          technicalDetail: error.detail,
+        };
+    }
+  }
+
+  const detail = error instanceof Error ? error.message.trim() : null;
+
+  if (detail === "Civilization id is required.") {
+    return {
+      code: "invalidCivilizationId",
+      primaryMessage: "No hay contexto de civilizacion.",
+      followUp: "Introduce un id valido o entra desde otra cabina para conservar el contexto.",
+      technicalDetail: detail,
+    };
+  }
+
+  return {
+    code: "unexpectedError",
+    primaryMessage: "No se pudo cargar la lectura de ranking.",
+    followUp: "Revisa el contexto actual y abre el diagnostico secundario si el problema persiste.",
+    technicalDetail: detail,
+  };
 }
 
 export function getRankingMetricLabel(value: RankingValue, fallback = unknownMetricFallback) {

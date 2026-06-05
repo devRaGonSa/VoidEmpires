@@ -10,6 +10,7 @@ import {
   buildRankingComparisonCards,
   buildRankingFutureCapabilityCards,
   buildRankingFutureLeaderboardCards,
+  formatRankingRequestFailure,
   getRankingPrimaryAction,
   getRankingStaticLabels,
   mapRankingUiStateToViewModel,
@@ -57,43 +58,6 @@ const rankingHandoffCards = [
     ctaLabel: "Abrir Alianzas",
   },
 ] as const;
-
-function formatRankingRequestFailure(rawError: string | null | undefined) {
-  const technicalDetail = rawError?.trim() || null;
-
-  switch (technicalDetail) {
-    case "Civilization id is required.":
-      return {
-        primaryMessage: "Falta el id de civilizacion para abrir Ranking.",
-        followUp: "Introduce un id valido o entra desde otra cabina para conservar el contexto.",
-        technicalDetail,
-      };
-    case "Civilization was not found.":
-      return {
-        primaryMessage: "No se pudo cargar el indice de poder.",
-        followUp: "La civilizacion solicitada no existe dentro del contexto visible.",
-        technicalDetail,
-      };
-    case "Request failed with status 404.":
-      return {
-        primaryMessage: "La ruta de Ranking no esta disponible fuera del entorno de desarrollo.",
-        followUp: null,
-        technicalDetail,
-      };
-    case "Request failed with status 503.":
-      return {
-        primaryMessage: "La persistencia de desarrollo no esta disponible.",
-        followUp: "Aplica cockpit-validation antes de revisar el indice de poder.",
-        technicalDetail,
-      };
-    default:
-      return {
-        primaryMessage: "No se pudo cargar el indice de poder.",
-        followUp: "Revisa el contexto actual y abre el diagnostico secundario si el problema persiste.",
-        technicalDetail,
-      };
-  }
-}
 
 export function RankingPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -163,7 +127,7 @@ export function RankingPage() {
       try {
         const response = await fetchRankingUiState(queryCivilizationId);
         if (!response.succeeded || !response.uiState) {
-          const failure = formatRankingRequestFailure(response.errors[0] ?? null);
+          const failure = formatRankingRequestFailure(new Error(response.errors[0] ?? ""));
           setUiState(null);
           setError(failure.primaryMessage);
           setErrorFollowUp(failure.followUp);
@@ -173,7 +137,7 @@ export function RankingPage() {
 
         setUiState(mapRankingUiStateToViewModel(response.uiState));
       } catch (requestError) {
-        const failure = formatRankingRequestFailure(requestError instanceof Error ? requestError.message : null);
+        const failure = formatRankingRequestFailure(requestError);
         setUiState(null);
         setError(failure.primaryMessage);
         setErrorFollowUp(failure.followUp);
@@ -191,7 +155,7 @@ export function RankingPage() {
 
     const trimmedCivilizationId = civilizationIdInput.trim();
     if (!trimmedCivilizationId) {
-      const failure = formatRankingRequestFailure("Civilization id is required.");
+      const failure = formatRankingRequestFailure(new Error("Civilization id is required."));
       setError(failure.primaryMessage);
       setErrorFollowUp(failure.followUp);
       setTechnicalErrorDetail(failure.technicalDetail);

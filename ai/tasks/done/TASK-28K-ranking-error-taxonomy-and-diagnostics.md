@@ -3,7 +3,7 @@
 ---
 id: TASK-28K
 title: Normalize Ranking error messages and diagnostics
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
