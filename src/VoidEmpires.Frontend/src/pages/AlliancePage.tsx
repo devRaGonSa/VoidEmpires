@@ -56,6 +56,47 @@ interface AllianceCatalogSection {
   cards: AllianceCatalogCard[];
 }
 
+interface AllianceHandoffCard {
+  key: "galaxy" | "market" | "espionage" | "ranking";
+  label: string;
+  title: string;
+  description: string;
+  ctaLabel: string;
+  unavailableMessage?: string;
+}
+
+const allianceHandoffCards: readonly AllianceHandoffCard[] = [
+  {
+    key: "galaxy",
+    label: "Galaxia",
+    title: "Vista estrategica",
+    description: "Mantiene el mapa, el contexto planetario conocido y la continuidad del frente sin convertir Alianzas en una cabina de mando.",
+    ctaLabel: "Volver a Galaxia",
+  },
+  {
+    key: "market",
+    label: "Mercado",
+    title: "Economia visible",
+    description: "Recupera reservas, produccion y presion comercial usando la misma civilizacion y el mundo base cuando existe.",
+    ctaLabel: "Abrir Mercado",
+  },
+  {
+    key: "espionage",
+    label: "Espionaje",
+    title: "Seguimiento de contactos",
+    description: "Permite seguir contactos parciales y lecturas incompletas sin abrir mensajes, pactos ni invitaciones.",
+    ctaLabel: "Abrir Espionaje",
+  },
+  {
+    key: "ranking",
+    label: "Ranking",
+    title: "Referencia futura",
+    description: "La cabina de Ranking todavia no forma parte de la suite implementada, asi que Alianzas no debe insinuar una ruta navegable.",
+    ctaLabel: "Abrir Ranking",
+    unavailableMessage: "Ruta no disponible en esta version.",
+  },
+] as const;
+
 function formatAllianceRequestFailure(message: string | null | undefined): AllianceErrorPresentation {
   const detail = message?.trim() ?? null;
 
@@ -115,6 +156,8 @@ export function AlliancePage() {
   const pactFutureCount = uiState?.futurePacts.length ?? 0;
   const contactKnownCount = uiState?.contacts.length ?? 0;
   const readOnlyStatement = getAllianceReadOnlyStatement();
+  const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
+  const activeHomePlanetId = uiState?.identity?.homePlanetId ?? null;
   const catalogSections = useMemo<AllianceCatalogSection[]>(() => {
     const confirmedCards = groupedContacts.confirmed.map((contact, index) => ({
       key: `known-${contact.contactedCivilizationId}`,
@@ -743,25 +786,63 @@ export function AlliancePage() {
       <UiCard className="panel">
         <div className="figma-section-header">
           <div>
-            <p className="eyebrow">Navegacion</p>
-            <h3>Cabinas relacionadas</h3>
-            <p>Alianzas conserva el contexto de civilizacion y deriva la exploracion estrategica, economica e informativa hacia las cabinas ya implementadas.</p>
+            <p className="eyebrow">Pasar a otras cabinas</p>
+            <h3>Handoffs relacionados</h3>
+            <p>Alianzas conserva el contexto de civilizacion y solo deriva la lectura a las superficies ya implementadas, sin insinuar flujos diplomaticos ejecutables.</p>
           </div>
           <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
         </div>
+        <div className="readiness-grid">
+          {allianceHandoffCards.map((card) => {
+            const link = card.key === "galaxy"
+              ? buildGalaxyUrl(activeCivilizationId, undefined, activeHomePlanetId)
+              : card.key === "market"
+                ? buildMarketUrl(activeCivilizationId, activeHomePlanetId)
+                : card.key === "espionage"
+                  ? buildEspionageUrl(activeCivilizationId, undefined, activeHomePlanetId)
+                  : null;
+
+            return (
+              <section key={card.key} className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">{card.label}</p>
+                    <h4>{card.title}</h4>
+                  </div>
+                  <UiBadge tone={link ? "neutral" : "warn"}>{card.label}</UiBadge>
+                </div>
+                <p className="figma-panel-note">{card.description}</p>
+                {link ? (
+                  <Link
+                    className={`selection-chip${card.key === "galaxy" ? " selection-chip-active" : ""}`}
+                    to={link}
+                  >
+                    {card.ctaLabel}
+                  </Link>
+                ) : (
+                  <>
+                    <button type="button" className="planet-action-button-blocked" disabled>
+                      {card.ctaLabel}
+                    </button>
+                    <p className="planet-action-handoff-message">
+                      {card.unavailableMessage ?? "Ruta no disponible."}
+                    </p>
+                  </>
+                )}
+              </section>
+            );
+          })}
+        </div>
         <div className="selection-chip-row">
-          <Link className="selection-chip selection-chip-active" to={buildGalaxyUrl(queryCivilizationId)}>
+          <Link className="selection-chip selection-chip-active" to={buildGalaxyUrl(activeCivilizationId, undefined, activeHomePlanetId)}>
             Volver a Galaxia
           </Link>
-          <Link className="selection-chip" to={buildMarketUrl(queryCivilizationId, uiState?.identity?.homePlanetId ?? null)}>
+          <Link className="selection-chip" to={buildMarketUrl(activeCivilizationId, activeHomePlanetId)}>
             Abrir Mercado
           </Link>
-          <Link className="selection-chip" to={buildEspionageUrl(queryCivilizationId, undefined, uiState?.identity?.homePlanetId ?? null)}>
+          <Link className="selection-chip" to={buildEspionageUrl(activeCivilizationId, undefined, activeHomePlanetId)}>
             Abrir Espionaje
           </Link>
-          <span className="selection-chip" aria-disabled="true">
-            Abrir Ranking
-          </span>
         </div>
       </UiCard>
     </section>
