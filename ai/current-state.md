@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 26Y - Final lazy-loading validation and regression gate`.
+The repository is consolidated through `Phase 26Z - Frontend bundle splitting and cockpit lazy-loading closure`.
 
 ## Repository Reality
 
