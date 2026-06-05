@@ -11,6 +11,19 @@ For shared preferred terms and allowed limitation patterns, use `docs/dev/cockpi
 For deterministic local QA setup, use `docs/dev/development-seed-profiles.md` instead of manual SQL.
 For lightweight Espionage copy regression protection before visual QA, run `.\scripts\check-espionage-copy.ps1`.
 
+## Frontend Copy Regression Guard
+
+Run this guard before closing manual visual batches for the accepted cockpit suite:
+
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1`
+- This scans only `src/VoidEmpires.Frontend/src` for known recurring blocked phrases, so docs and scripts are intentionally excluded.
+- Current blocked phrases:
+  - `Recurso no clasificado`
+  - `Alliance cockpit remains read-only in this phase`
+  - `Void Seed Civilization | current`
+  - `Delta`
+  - `read-only in this phase`
+
 ## Frontend Bundle Baseline
 
 Use this baseline before changing route loading or Vite chunking:
@@ -416,6 +429,7 @@ Shipyard cockpit v1 visual review:
 - `npm run build --prefix src/VoidEmpires.Frontend` passes.
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` passes.
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` passes.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1` (explicit gate) passes.
 - `dotnet build --no-restore` may emit the known transient `MSB3026` copy-retry warnings while `testhost` still holds test output DLLs, but the build must still complete successfully.
 - `ai/tasks/pending` contains only `.gitkeep` after the final closure task.
 - `/planet` behaves as a dashboard, not a full construction catalog.
@@ -445,6 +459,7 @@ dotnet test --no-build
 npm run build --prefix src/VoidEmpires.Frontend
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1
 ```
 
 If npm registry access is unavailable in the current environment, record that limitation explicitly rather than claiming the frontend build passed.

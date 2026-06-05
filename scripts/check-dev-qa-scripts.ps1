@@ -63,6 +63,11 @@ if (Test-Path -LiteralPath $frontendRouteGuardPath) {
     & $frontendRouteGuardPath
 }
 
+$frontendCopyRegressionPath = Join-Path $PSScriptRoot "check-frontend-copy-regressions.ps1"
+if (Test-Path -LiteralPath $frontendCopyRegressionPath) {
+    & $frontendCopyRegressionPath
+}
+
 function Assert-ResourceSummaryContains {
     param(
         [Parameter(Mandatory = $true)]

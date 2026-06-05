@@ -293,6 +293,12 @@ No-go outcomes:
 - raw ids or raw backend payload wording dominating the first viewport
 - expanded diagnostics by default
 
+## 28Q-28Z Visual QA Snapshot
+
+- `/alliance` cargó correctamente y quedó bloqueado inicialmente por frase inglesa visible y un fallback técnico en UI principal (`Lectura diplomatica pendiente de clasificar | 0000000`).
+- El bloque ya corrige ese estado con copy en español y mantiene los identificadores técnicos en diagnóstico secundario colapsado.
+- `Ranking` y `Market` también recibieron correcciones de copy/fallback en este bloque; la aceptación visual final de estos cockpits sigue pendiente de validación por capturas del usuario.
+
 ## Explicit exclusions to verify
 
 Treat any of these as a regression for Alliance v1:

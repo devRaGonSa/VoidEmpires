@@ -157,6 +157,12 @@ Use `cockpit-validation` for the richer deterministic Market QA baseline:
   - at least one economy signal plus one future-route signal are visible
   - future Market actions remain disabled placeholders
 
+## 28Q-28Z Visual QA Snapshot
+
+- `/market` cargó correctamente y requería corrección de fallback repetido (`Recurso no clasificado`) en la vista visible.
+- Las correcciones de bloque ya están aplicadas: resource labels y lectura económica usan nomenclatura legible en español y el estado futuro se mantiene sin acciones ejecutables.
+- La aceptación visual final de `/market` sigue pendiente de revisión del usuario con capturas actualizadas.
+
 ## Final manual QA
 
 This visual QA pass remains user-driven. Use the checklist below as the accepted read-only baseline, but do not treat it as screenshot-backed approval unless the browser pass is actually performed.

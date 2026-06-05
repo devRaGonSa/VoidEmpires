@@ -338,6 +338,7 @@ Current validated baseline after Phase 28P:
 - Manual visual QA for the accepted cross-cockpit demo flow remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; the Browser runtime was unavailable in this session, so final screenshot-style acceptance is still user-driven.
 - Market visual and read-only polish is now implemented and documented through the seeded browser checklists; final screenshot-backed acceptance still remains user-driven, and the block did not expand Market into transaction gameplay or production behavior.
 - Alliance read-only diplomacy validation is now implemented and documented through the seeded browser checklists; final screenshot-backed acceptance still remains user-driven, and the block did not expand Alliance into executable diplomacy gameplay.
+- Block `28Q-28Z` visual QA corrections are now represented in checklist/docs: copy/fallback issues in Ranking, Alliance, and Market were corrected in code; final screenshot-backed acceptance for this corrective cycle remains pending manual validation by the user.
 - state note: the Ranking cockpit is now part of the standard lazy-loaded read-only route suite, and Galaxy or Market or Espionage or Alliance remain read-only after the Ranking rollout.
 - closure note: Block `28A-28P` is now closed, `ai/tasks/pending` is reduced to `.gitkeep`, and the accepted cockpit suite keeps `/ranking` inside the standard non-visual regression bundle without changing the non-public ranking boundary.
 

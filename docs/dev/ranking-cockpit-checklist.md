@@ -92,7 +92,7 @@ Canonical visible labels for `Ranking v1`:
 - `Clasificacion no publicada`
 - `Temporada futura`
 - `Recompensas no disponibles`
-- `Metrica pendiente de clasificar`
+- `Lectura pendiente`
 
 Copy rules for later tasks:
 
@@ -349,3 +349,14 @@ Current test posture:
 - The correct model is a non-persistent read-time aggregation scoped to the requesting civilization.
 - The repository does not yet support any truthful public ladder, competitive reward loop, or matchmaking interpretation.
 - Later Ranking tasks should reuse current cockpit/service outputs, preserve dev-only gating, and keep every comparison explicitly non-public.
+
+## 28Q-28Z Visual QA Snapshot
+
+- `/ranking` cargó correctamente y requería mejora de copy visible (fuga de inglés y texto técnico).
+- `/alliance` cargó correctamente y requería limpieza de texto inglés y texto técnico visible.
+- `/market` cargó correctamente y requería eliminar `Recurso no clasificado` repetido en vista principal.
+- `/espionage` quedó aceptable en revisiones manuales registradas.
+- `/galaxy` quedó aceptable en revisiones manuales registradas.
+- Resultado de bloque:
+  - las correcciones de copy y fallback de este bloque se aplicaron;
+  - la aceptación visual final permanece pendiente de la confirmación del usuario con capturas de `/ranking`, `/alliance` y `/market`.
