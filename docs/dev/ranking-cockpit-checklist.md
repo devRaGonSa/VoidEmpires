@@ -1,7 +1,58 @@
 # Ranking Cockpit Checklist
 
-Use this document as the source of truth for `Ranking v1` scope before any frontend route, API, or seed work lands.
-This task is documentation-first: it defines what the repository can already support safely and what must stay out of scope.
+Use this document as the source of truth for `Ranking v1` manual QA, seeded route setup, and scope boundaries.
+
+## Quick route
+
+Canonical seeded route:
+
+- `/ranking?civilizationId=00000000-0000-0000-0000-000000000001`
+
+Seed dependency:
+
+- apply `cockpit-validation` twice before screenshot or regression QA
+- use [docs/dev/development-seed-profiles.md](/D:/Proyectos/VoidEmpires/docs/dev/development-seed-profiles.md) as the canonical seed contract
+
+Validation commands:
+
+- `dotnet build --no-restore`
+- `dotnet test --no-build`
+- `npm run build --prefix src/VoidEmpires.Frontend`
+
+## Manual QA pass
+
+Use this exact pass when validating Ranking from a deterministic local database:
+
+1. Reapply `cockpit-validation` twice.
+2. Open `/ranking?civilizationId=00000000-0000-0000-0000-000000000001`.
+3. Confirm the page loads as a cockpit, not a blank shell or sidebar-only frame.
+4. Confirm `Void Seed Civilization` is visible as the current civilization context.
+5. Confirm the `Indice de poder` summary is visible and non-empty.
+6. Confirm the category score cards are visible for economy, colonies, research, orbital capacity, defenses, ground army, intelligence, and diplomacy.
+7. Confirm `Comparativa demo` is visible with three demo-only comparison rows.
+8. Confirm the future leaderboard, season, and reward placeholders are visible but disabled.
+9. Confirm the disabled future-action section stays non-clickable and read-only.
+10. Confirm handoffs toward `Galaxia`, `Mercado`, `Espionaje`, and `Alianzas` remain visible.
+11. Confirm diagnostics stay collapsed or clearly secondary to the main content.
+
+No-go conditions:
+
+- any copy implying a public ladder is already live
+- any matchmaking, rewards, or public profile language presented as implemented
+- missing civilization context on the seeded route
+- demo comparison rows rendered as if they were real players
+- diagnostics or raw technical detail dominating the first viewport
+
+## Explicit non-goals
+
+Ranking v1 must stay honest about what does not exist:
+
+- no public ranking
+- no matchmaking
+- no rewards
+- no public profiles
+- no persistent leaderboard history
+- no mutation endpoints from the Ranking cockpit
 
 ## Safe v1 scope summary
 
@@ -289,7 +340,7 @@ Current seed reality:
 Current test posture:
 
 - existing adjacent tests cover the individual read foundations
-- this task introduces no code-path changes, so no new tests are required here
+- ranking-specific endpoint and seed regressions now exist for the deterministic `cockpit-validation` baseline
 - No integration tests configured.
 
 ## Decision summary

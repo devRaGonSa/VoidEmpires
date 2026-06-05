@@ -59,6 +59,7 @@ Operational guidance:
 - `cockpit-validation` now also seeds one deterministic diplomatic contact row for the requesting civilization so Alliance can render a stable read-only contact baseline without creating any real alliance, pact, invitation, or membership state.
 - `cockpit-validation` now also advertises `/ranking?civilizationId=00000000-0000-0000-0000-000000000001` as the canonical Ranking QA route because the current ranking read model derives its demo-only category and comparison state directly from the shared Aurelia baseline.
 - Pair Alliance QA with `docs/dev/alliance-cockpit-checklist.md` so the seeded route, disabled future-action expectations, and explicit diplomacy exclusions stay aligned.
+- Pair Ranking QA with `docs/dev/ranking-cockpit-checklist.md` so the seeded route, demo-comparison posture, disabled future placeholders, and explicit non-public limitations stay aligned.
 - Richer profiles reserve high sequence ranges for their completed queue-history seed rows, avoiding collisions with pre-existing manual queue activity without resetting the database.
 - Do not use manual SQL for the standard Galaxy, Planet, Construction, Research, Shipyard, Fleet, or Market QA flows.
 - Use a fresh disposable local database only when you need the exact original pre-mutation baseline.
