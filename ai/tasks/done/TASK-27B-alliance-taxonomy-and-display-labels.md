@@ -3,7 +3,7 @@
 ---
 id: TASK-27B
 title: Define Spanish taxonomy and labels for Alliance read-only diplomacy
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

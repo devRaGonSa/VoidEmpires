@@ -217,6 +217,10 @@ Use these read surfaces only:
 - `GET /api/dev/strategic-map/diplomatic-contacts`
 - optionally `GET /api/dev/strategic-map/alliances/pacts/readiness`
 
+Centralized frontend taxonomy owner:
+
+- [src/VoidEmpires.Frontend/src/utils/alliancePresentation.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/utils/alliancePresentation.ts) should remain the single owner for Spanish-first alliance, contact, pact, and disabled-future labels so raw enum or DTO tokens stay out of primary UI.
+
 Keep the first frontend slice conservative:
 
 - summary card for requesting civilization identity
