@@ -10,6 +10,12 @@ export interface AllianceFutureActionPlaceholder {
   label: string;
 }
 
+export interface AllianceErrorFeedback {
+  primaryMessage: string;
+  followUp: string | null;
+  technicalDetail: string | null;
+}
+
 const unknownAllianceStateFallback = "Lectura diplomatica pendiente de clasificar";
 const unknownContactFallback = "Lectura diplomatica pendiente de clasificar";
 const unknownPactFallback = "Alianza futura";
@@ -253,4 +259,55 @@ export function getAllianceFutureActionPlaceholders(): readonly AllianceFutureAc
     { key: "propose-trade-pact", label: "Proponer pacto comercial" },
     { key: "manage-roles", label: "Gestionar roles" },
   ];
+}
+
+export function formatAllianceRequestFailure(rawError: string | null | undefined): AllianceErrorFeedback {
+  const technicalDetail = rawError?.trim() || null;
+
+  switch (technicalDetail) {
+    case "Civilization id is required.":
+      return {
+        primaryMessage: "No hay contexto de civilizacion.",
+        followUp: "Introduce un id valido o vuelve a entrar desde otra cabina para conservar el contexto.",
+        technicalDetail,
+      };
+    case "Civilization was not found.":
+      return {
+        primaryMessage: "No se pudo cargar la lectura diplomatica.",
+        followUp: "La civilizacion solicitada no existe en el contexto visible.",
+        technicalDetail,
+      };
+    case "Alliance read is not available for this civilization.":
+      return {
+        primaryMessage: "No se pudo cargar la lectura diplomatica.",
+        followUp: "La lectura de alianzas no esta disponible para esta civilizacion en el estado actual de desarrollo.",
+        technicalDetail,
+      };
+    case "Request failed with status 404.":
+      return {
+        primaryMessage: "No se pudo cargar la lectura diplomatica.",
+        followUp: "La ruta de Alianzas no esta disponible fuera del entorno de desarrollo.",
+        technicalDetail,
+      };
+    case "Alliance actions are not supported in this version.":
+    case "Request failed with status 405.":
+    case "Request failed with status 501.":
+      return {
+        primaryMessage: "Las acciones diplomaticas no estan disponibles en esta version.",
+        followUp: "La cabina mantiene una lectura segura y no expone acciones ejecutables.",
+        technicalDetail,
+      };
+    case "Request failed with status 503.":
+      return {
+        primaryMessage: "No se pudo cargar la lectura diplomatica.",
+        followUp: "La persistencia de desarrollo no esta disponible ahora mismo.",
+        technicalDetail,
+      };
+    default:
+      return {
+        primaryMessage: "No se pudo cargar la lectura diplomatica.",
+        followUp: "Revisa el contexto actual y abre el diagnostico secundario si el problema persiste.",
+        technicalDetail,
+      };
+  }
 }

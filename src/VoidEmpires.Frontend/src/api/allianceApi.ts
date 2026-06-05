@@ -31,6 +31,14 @@ async function requestJson<T>(path: string, query?: Record<string, string>) {
       }
     }
 
+    if (!detail) {
+      if (response.status === 400) {
+        detail = "Civilization id is required.";
+      } else if (response.status === 405 || response.status === 501) {
+        detail = "Alliance actions are not supported in this version.";
+      }
+    }
+
     throw new Error(detail ?? `Request failed with status ${response.status}.`);
   }
 

@@ -6,6 +6,7 @@ import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import {
+  formatAllianceRequestFailure,
   getAllianceCatalogPlaceholder,
   getAllianceContactCardTitle,
   getAllianceContactReadinessLabel,
@@ -27,12 +28,6 @@ import {
   buildGalaxyUrl,
   buildMarketUrl,
 } from "../utils/routeUrls";
-
-interface AllianceErrorPresentation {
-  primaryMessage: string;
-  followUp: string | null;
-  technicalDetail: string | null;
-}
 
 const allianceLabels = getAllianceStaticLabels();
 const allianceFutureActionPlaceholders = getAllianceFutureActionPlaceholders();
@@ -96,43 +91,6 @@ const allianceHandoffCards: readonly AllianceHandoffCard[] = [
     unavailableMessage: "Ruta no disponible en esta version.",
   },
 ] as const;
-
-function formatAllianceRequestFailure(message: string | null | undefined): AllianceErrorPresentation {
-  const detail = message?.trim() ?? null;
-
-  switch (detail) {
-    case "Civilization id is required.":
-      return {
-        primaryMessage: "La cabina de alianzas necesita un id de civilizacion valido.",
-        followUp: "Introduce un contexto valido antes de abrir Alianzas.",
-        technicalDetail: detail,
-      };
-    case "Civilization was not found.":
-      return {
-        primaryMessage: "No se encontro la civilizacion solicitada para esta lectura diplomatica.",
-        followUp: "Revisa el contexto actual o vuelve a entrar desde Galaxia, Mercado o Espionaje.",
-        technicalDetail: detail,
-      };
-    case "Request failed with status 404.":
-      return {
-        primaryMessage: "La ruta de Alianzas no esta disponible fuera del entorno de desarrollo.",
-        followUp: "Verifica que el backend local siga exponiendo la cabina de lectura.",
-        technicalDetail: detail,
-      };
-    case "Request failed with status 503.":
-      return {
-        primaryMessage: "La persistencia de desarrollo no esta disponible ahora mismo.",
-        followUp: "Comprueba la configuracion local antes de reintentar.",
-        technicalDetail: detail,
-      };
-    default:
-      return {
-        primaryMessage: "La lectura diplomatica no pudo cargarse con el contexto actual.",
-        followUp: "La cabina mantiene una lectura segura y no inventa estados cuando el backend no responde.",
-        technicalDetail: detail,
-      };
-  }
-}
 
 export function AlliancePage() {
   const [searchParams, setSearchParams] = useSearchParams();
