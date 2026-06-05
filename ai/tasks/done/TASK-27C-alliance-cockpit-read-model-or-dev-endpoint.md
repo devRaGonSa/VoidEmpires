@@ -3,7 +3,7 @@
 ---
 id: TASK-27C
 title: Provide stable Alliance read model for cockpit consumption
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

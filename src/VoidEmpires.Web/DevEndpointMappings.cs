@@ -494,6 +494,33 @@ internal static class DevEndpointMappings
             return Results.Ok(new DevEspionageUiStateApiResponse(true, uiState, []));
         });
 
+        app.MapGet("/api/dev/alliance/ui-state", async (
+            Guid? civilizationId,
+            [FromServices] IServiceProvider services,
+            [FromServices] IConfiguration configuration,
+            CancellationToken cancellationToken) =>
+        {
+            if (!IsPersistenceConfigured(configuration))
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (civilizationId is null || civilizationId == Guid.Empty)
+            {
+                return Results.BadRequest(new DevAllianceUiStateApiResponse(false, null, ["Civilization id is required."]));
+            }
+
+            var service = services.GetRequiredService<IDevAllianceUiStateService>();
+            var uiState = await service.GetAsync(new GetDevAllianceUiStateRequest(civilizationId.Value), cancellationToken);
+
+            if (uiState.Identity is null && uiState.Errors.Count > 0)
+            {
+                return Results.NotFound(new DevAllianceUiStateApiResponse(false, null, uiState.Errors));
+            }
+
+            return Results.Ok(new DevAllianceUiStateApiResponse(true, uiState, []));
+        });
+
         app.MapDevOrbitalGroupLookupEndpoints();
         app.MapDevOrbitalGroupSplitEndpoints();
         app.MapDevOrbitalGroupMergeEndpoints();
@@ -915,4 +942,9 @@ internal sealed record CreateOrbitalGroupApiResponse(
 internal sealed record DevEspionageUiStateApiResponse(
     bool Succeeded,
     GetDevEspionageUiStateResult? UiState,
+    IReadOnlyList<string> Errors);
+
+internal sealed record DevAllianceUiStateApiResponse(
+    bool Succeeded,
+    GetDevAllianceUiStateResult? UiState,
     IReadOnlyList<string> Errors);
