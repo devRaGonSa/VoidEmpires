@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 26R - Frontend bundle splitting results and performance guardrails`.
+The repository is consolidated through `Phase 26V - Frontend lazy-loading architecture baseline`.
 
 ## Repository Reality
 
@@ -55,6 +55,7 @@ Current frontend cockpit baseline:
 - The current frontend boundary model is documented in `docs/dev/planet-module-boundaries.md`.
 - The frontend route-loading baseline and post-lazy outcome are now documented in `docs/dev/frontend-performance-notes.md`: cockpit pages are route-lazy-loaded from `App.tsx`, the shared shell keeps synchronous navigation infrastructure only, the previous `551.88 kB` entry-chunk warning has been replaced by a `179.32 kB` shared entry chunk plus cockpit-specific async chunks, and the current Vite build no longer emits the old `500 kB` warning.
 - The frontend lazy-loading block changed route-loading architecture only. It did not change gameplay rules, backend contracts, accepted cockpit URLs, or the current Spanish-first cockpit acceptance boundaries.
+- A lightweight guard now exists at `scripts/check-frontend-route-lazy-imports.ps1` so future changes do not quietly reintroduce direct eager cockpit-page imports in `src/VoidEmpires.Frontend/src/App.tsx`. The broader `scripts/check-dev-qa-scripts.ps1` helper now runs that guard when present.
 - The current Research cockpit QA flow and acceptance boundaries are documented in `docs/dev/research-cockpit-checklist.md`.
 - The current Shipyard cockpit QA flow and accepted Fleet boundary are documented in `docs/dev/shipyard-cockpit-checklist.md`.
 - The current Defenses cockpit QA flow and accepted non-combat boundary are documented in `docs/dev/defenses-cockpit-checklist.md`.
@@ -309,12 +310,13 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 26R:
+Current validated baseline after Phase 26V:
 
 - backend: `dotnet build --no-restore` succeeded
 - tests: `dotnet test --no-build` succeeded with `672` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
 - frontend bundle baseline: current Vite output emits `87` transformed modules, one `179.32 kB` minified shared JS entry chunk (`58.48 kB` gzip), one `45.97 kB` CSS asset (`7.26 kB` gzip), and cockpit-specific async chunks for Galaxy, Planet, Construction, Research, Shipyard, Fleets, Defenses, Ground Army, Espionage, Market, and the module placeholder route
+- frontend lazy-import guard: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` succeeded
 - persisted QA scripts: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` succeeded
 - frontend note: the old Vite `500 kB` chunk-size warning is no longer present after the route-lazy-loading pass, but accepted cockpit route QA remains required because the block changes loading architecture rather than gameplay behavior
 - build note: `dotnet build --no-restore` can still emit transient `MSB3026` copy-retry warnings when `testhost` holds test output DLLs, but the build completes successfully and the test run remains clean
