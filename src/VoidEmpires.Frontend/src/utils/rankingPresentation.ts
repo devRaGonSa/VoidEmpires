@@ -42,6 +42,7 @@ const rankingStaticLabels = {
   allianceLeaderboard: "Clasificacion de alianzas",
   futureSeason: "Temporada futura",
   rewardsUnavailable: "Recompensas no disponibles",
+  unavailable: "No disponible",
   unclassifiedMetric: "Metrica pendiente de clasificar",
 } as const;
 
@@ -163,6 +164,13 @@ export interface RankingComparisonCard {
 }
 
 export interface RankingLeaderboardPlaceholderCard {
+  key: string;
+  title: string;
+  stateLabel: string;
+  reasonLabel: string;
+}
+
+export interface RankingFutureCapabilityCard {
   key: string;
   title: string;
   stateLabel: string;
@@ -555,6 +563,52 @@ export function buildRankingFutureLeaderboardCards(actions: readonly RankingFutu
       title: rankingStaticLabels.rewardsUnavailable,
       stateLabel: rewards?.stateLabel ?? rankingStaticLabels.rewardsUnavailable,
       reasonLabel: rewards?.reasonLabel ?? "Las recompensas no forman parte de esta fase.",
+    },
+  ];
+}
+
+export function buildRankingFutureCapabilityCards(actions: readonly RankingFutureAction[]): RankingFutureCapabilityCard[] {
+  const findAction = (pattern: string) => actions.find((action) => normalizeLookup(action.key).includes(pattern));
+  const leaderboard = findAction("leaderboard");
+  const season = findAction("season");
+  const rewards = findAction("rewards");
+
+  return [
+    {
+      key: "view-global-leaderboard",
+      title: "Ver clasificacion global",
+      stateLabel: leaderboard?.stateLabel ?? rankingStaticLabels.unavailable,
+      reasonLabel: leaderboard?.reasonLabel ?? "El ranking global permanece desactivado en esta version.",
+    },
+    {
+      key: "view-alliance-leaderboard",
+      title: "Ver ranking de alianzas",
+      stateLabel: rankingStaticLabels.unavailable,
+      reasonLabel: "La clasificacion de alianzas sigue fuera del alcance de esta cabina.",
+    },
+    {
+      key: "open-season",
+      title: "Abrir temporada",
+      stateLabel: season?.stateLabel ?? rankingStaticLabels.unavailable,
+      reasonLabel: season?.reasonLabel ?? "La temporada futura sigue fuera del alcance de esta cabina.",
+    },
+    {
+      key: "claim-reward",
+      title: "Reclamar recompensa",
+      stateLabel: rewards?.stateLabel ?? rankingStaticLabels.unavailable,
+      reasonLabel: rewards?.reasonLabel ?? "Las recompensas no forman parte de esta fase.",
+    },
+    {
+      key: "publish-profile",
+      title: "Publicar perfil",
+      stateLabel: rankingStaticLabels.unavailable,
+      reasonLabel: "Los perfiles publicos no existen dentro de Ranking v1.",
+    },
+    {
+      key: "compare-player",
+      title: "Comparar jugador",
+      stateLabel: rankingStaticLabels.unavailable,
+      reasonLabel: "Las comparativas entre jugadores reales permanecen fuera del alcance de esta cabina.",
     },
   ];
 }

@@ -3,7 +3,7 @@
 ---
 id: TASK-28I
 title: Show disabled future ranking actions for roadmap clarity
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

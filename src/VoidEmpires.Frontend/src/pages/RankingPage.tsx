@@ -8,6 +8,7 @@ import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import {
   buildRankingCategoryCards,
   buildRankingComparisonCards,
+  buildRankingFutureCapabilityCards,
   buildRankingFutureLeaderboardCards,
   getRankingPrimaryAction,
   getRankingStaticLabels,
@@ -101,6 +102,10 @@ export function RankingPage() {
   );
   const futureLeaderboardCards = useMemo(
     () => buildRankingFutureLeaderboardCards(uiState?.futureActions ?? []),
+    [uiState?.futureActions],
+  );
+  const futureCapabilityCards = useMemo(
+    () => buildRankingFutureCapabilityCards(uiState?.futureActions ?? []),
     [uiState?.futureActions],
   );
 
@@ -435,6 +440,39 @@ export function RankingPage() {
                   <button type="button" className="planet-action-button-blocked" disabled>
                     No disponible en esta version
                   </button>
+                </section>
+              ))}
+            </div>
+          </UiCard>
+
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Funciones futuras</p>
+                <h3>Funciones futuras de clasificacion</h3>
+                <p>Estas capacidades permanecen como referencias secundarias y no exponen navegacion, mutacion ni confirmacion desde Ranking.</p>
+              </div>
+              <UiBadge tone="warn">{cockpitStatusLabels.safePlaceholder}</UiBadge>
+            </div>
+            <div className="market-future-actions-grid">
+              {futureCapabilityCards.map((action) => (
+                <section key={action.key} className="subpanel figma-subpanel market-future-action-card">
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Accion futura</p>
+                      <h4>{action.title}</h4>
+                    </div>
+                    <UiBadge tone="warn">{action.stateLabel}</UiBadge>
+                  </div>
+                  <div className="market-future-action-state" aria-hidden="true">
+                    No disponible en esta version
+                  </div>
+                  <ul className="stack-list compact-list">
+                    <li>No disponible en esta version.</li>
+                    <li>Solo lectura en esta cabina.</li>
+                    <li>La funcion queda visible como referencia futura, pero no se puede ejecutar.</li>
+                    <li>{action.reasonLabel}</li>
+                  </ul>
                 </section>
               ))}
             </div>
