@@ -11,7 +11,7 @@ import type {
   RankingUiStateDto,
 } from "../api/rankingApi";
 import { RankingRequestError } from "../api/rankingApi";
-import { formatCompactGuid, formatPlanetPrimaryLabel } from "./domainPresentation";
+import { formatPlanetPrimaryLabel } from "./domainPresentation";
 
 type RankingValue = string | number | null | undefined;
 
@@ -20,11 +20,11 @@ interface RankingLabelEntry {
   label: string;
 }
 
-const unknownMetricFallback = "Metrica pendiente de clasificar";
-const unknownCategoryFallback = "Categoria de poder pendiente de clasificar";
-const unknownComparisonFallback = "Comparativa demo";
-const unknownStateFallback = "Clasificacion no publicada";
-const unknownActionFallback = "Operacion futura no disponible";
+const unknownMetricFallback = "Área pendiente de lectura";
+const unknownCategoryFallback = "Categoría por consolidar";
+const unknownComparisonFallback = "Referencia de validación";
+const unknownStateFallback = "Lectura interna no publicada";
+const unknownActionFallback = "Acción futura no disponible";
 
 const rankingStaticLabels = {
   powerIndex: "Indice de poder",
@@ -36,16 +36,16 @@ const rankingStaticLabels = {
   groundGarrison: "Guarnicion terrestre",
   strategicIntelligence: "Inteligencia estrategica",
   diplomacy: "Diplomacia",
-  demoComparison: "Comparativa demo",
-  unpublishedRanking: "Clasificacion no publicada",
+  demoComparison: "Comparativa de demostración",
+  unpublishedRanking: "Lectura interna no publicada",
   readOnly: "Solo lectura",
-  demoScenarioReference: "Referencia de escenario demo",
-  globalLeaderboard: "Clasificacion global",
-  allianceLeaderboard: "Clasificacion de alianzas",
+  demoScenarioReference: "Referencia de validación",
+  globalLeaderboard: "Tabla global",
+  allianceLeaderboard: "Resumen de alianzas",
   futureSeason: "Temporada futura",
-  rewardsUnavailable: "Recompensas no disponibles",
+  rewardsUnavailable: "Recompensas desactivadas",
   unavailable: "No disponible",
-  unclassifiedMetric: "Metrica pendiente de clasificar",
+  unclassifiedMetric: "Área por reforzar",
 } as const;
 
 const rankingCategoryCatalog: readonly RankingLabelEntry[] = [
@@ -281,6 +281,15 @@ function getComparisonPosture(deltaFromCurrent: number, isCurrentCivilization: b
   return rankingStaticLabels.demoComparison;
 }
 
+function normalizeCurrentCivilizationLabel(value: string) {
+  const normalized = normalizeLookup(value);
+  if (normalized === "voidseedcivilization" || normalized === "voidseed") {
+    return "Civilización semilla";
+  }
+
+  return value.trim().length > 0 ? value.trim() : "Civilización semilla";
+}
+
 function getCategoryEmphasis(score: number): "good" | "neutral" | "warn" {
   if (score >= 500) {
     return "good";
@@ -336,7 +345,9 @@ function mapSummary(summary: RankingPowerSummaryDto | null): RankingPowerSummary
 function mapComparison(entry: RankingComparisonRowDto): RankingComparisonRow {
   return {
     rowKey: entry.rowKey,
-    displayName: entry.isCurrentCivilization ? `${entry.displayName} | ${formatCompactGuid(entry.rowKey)}` : entry.displayName,
+    displayName: entry.isCurrentCivilization
+      ? normalizeCurrentCivilizationLabel(entry.displayName)
+      : entry.displayName,
     totalPowerIndex: entry.totalPowerIndex,
     totalPowerIndexLabel: formatIndex(entry.totalPowerIndex),
     deltaFromCurrent: entry.deltaFromCurrent,
@@ -576,7 +587,7 @@ export function buildRankingComparisonCards(comparisons: readonly RankingCompari
         postureLabel: comparison.postureLabel,
         stateLabel: rankingStaticLabels.unpublishedRanking,
         visibilityLabel: rankingStaticLabels.readOnly,
-        note: "Tu fila propia solo se compara contra referencias de desarrollo.",
+        note: "Tu lectura propia sólo se compara con referencias internas de validación.",
         emphasis: "good",
       };
     }
@@ -590,7 +601,7 @@ export function buildRankingComparisonCards(comparisons: readonly RankingCompari
         postureLabel: comparison.postureLabel,
         stateLabel: rankingStaticLabels.futureSeason,
         visibilityLabel: rankingStaticLabels.demoScenarioReference,
-        note: "Referencia futura del escenario demo. No representa una temporada publicada.",
+        note: "Referencia de validación del escenario. No representa una temporada publicada.",
         emphasis: "warn",
       };
     }
@@ -603,7 +614,7 @@ export function buildRankingComparisonCards(comparisons: readonly RankingCompari
       postureLabel: comparison.postureLabel,
       stateLabel: rankingStaticLabels.demoScenarioReference,
       visibilityLabel: rankingStaticLabels.readOnly,
-      note: "Referencia del escenario demo para dar contexto no competitivo.",
+      note: "Referencia del escenario de validación para contexto interno no competitivo.",
       emphasis: "neutral",
     };
   });

@@ -173,8 +173,8 @@ export function RankingPage() {
       <CockpitHero
         versionLabel="Ranking v1"
         title="Ranking"
-        description="Cabina de solo lectura para un indice de poder interno, comparativas demo y referencias futuras todavia desactivadas."
-        developmentNote="Ranking no publica una clasificacion global, no entrega recompensas y no ejecuta emparejamiento. Solo resume el estado visible de la civilizacion actual."
+        description="Cabina de solo lectura para un indice de poder interno, comparativas de validación y referencias futuras todavía desactivadas."
+        developmentNote="Ranking no publica una clasificación global, no entrega recompensas y no ejecuta emparejamiento. Solo resume el estado visible de la civilización actual."
         badges={(
           <>
             <UiBadge tone="resource">{uiState?.summary?.totalPowerIndexLabel ?? "Sin indice"}</UiBadge>
@@ -197,7 +197,7 @@ export function RankingPage() {
           <section className="subpanel figma-subpanel alliance-summary-card">
             <p className="eyebrow">{rankingLabels.powerIndex}</p>
             <strong>{uiState?.summary?.totalPowerIndexLabel ?? "Sin lectura"}</strong>
-            <span>La clasificacion actual se calcula desde el escenario demo.</span>
+            <span>La lectura actual se calcula desde el escenario de validación.</span>
           </section>
           <section className="subpanel figma-subpanel alliance-summary-card">
             <p className="eyebrow">Potencia total</p>
@@ -215,7 +215,7 @@ export function RankingPage() {
             <span>{rankingLabels.unclassifiedMetric}</span>
           </section>
           <section className="subpanel figma-subpanel alliance-summary-card">
-            <p className="eyebrow">Comparativa demo</p>
+            <p className="eyebrow">Comparativa de validación</p>
             <strong>{uiState?.comparisons[0]?.totalPowerIndexLabel ?? "Sin lectura"}</strong>
             <span>{rankingLabels.demoComparison}</span>
           </section>
@@ -226,7 +226,7 @@ export function RankingPage() {
           </section>
         </div>
         <p className="ranking-summary-note">
-          Esta cabina no publica ranking global ni recompensas. La clasificacion actual se calcula desde el escenario demo.
+          Esta cabina no publica ranking global ni recompensas. La lectura actual se calcula desde el escenario de validación.
         </p>
       </UiCard>
 
@@ -293,15 +293,15 @@ export function RankingPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Limite de la cabina</p>
-              <h3>Clasificacion no publicada</h3>
+              <h3>Lectura interna no publicada</h3>
             </div>
             <UiBadge tone="warn">Sin ladder</UiBadge>
           </div>
           <ul className="stack-list strategic-rules-list">
             <li>Lee el indice de poder y las categorias derivadas de la civilizacion actual.</li>
-            <li>Muestra comparativas demo, no jugadores reales ni perfiles publicos.</li>
+            <li>Usa comparativas de validación, no jugadores reales ni perfiles públicos.</li>
             <li>No publica temporadas, recompensas ni clasificaciones globales.</li>
-            <li>No llama endpoints de mutacion ni actualiza valores de forma optimista.</li>
+            <li>No llama endpoints de mutación ni actualiza valores de forma optimista.</li>
           </ul>
         </UiCard>
       </div>
@@ -335,7 +335,7 @@ export function RankingPage() {
             </div>
             <UiBadge>Cargando...</UiBadge>
           </div>
-          <p>Consultando categorias, comparativas demo y placeholders futuros sin publicar datos competitivos.</p>
+          <p>Consultando categorías de validación y referencias futuras sin publicar datos competitivos.</p>
         </UiCard>
       ) : null}
 
@@ -346,7 +346,7 @@ export function RankingPage() {
               <div>
                 <p className="eyebrow">Tablero de poder</p>
                 <h3>{uiState.summary.totalPowerIndexLabel}</h3>
-                <p>Ranking traduce el payload en tarjetas estables por dominio y deja las claves tecnicas dentro del diagnostico secundario.</p>
+                <p>Ranking convierte la lectura técnica en tarjetas estables por dominio y deja las claves técnicas dentro del diagnóstico secundario.</p>
               </div>
               <UiBadge tone="resource">{uiState.summary.recommendationLabel}</UiBadge>
             </div>
@@ -373,9 +373,9 @@ export function RankingPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Comparativa demo</p>
-                <h3>Referencias no publicadas</h3>
-                <p>Las filas visibles comparan la situacion actual con referencias de demostracion y nunca con un ladder real.</p>
+                <p className="eyebrow">Comparativa de validación</p>
+                <h3>Referencias de validación</h3>
+                <p>Las filas visibles comparan la situación actual con referencias internas y nunca con una clasificación real.</p>
               </div>
               <UiBadge tone="warn">{rankingLabels.demoComparison}</UiBadge>
             </div>
@@ -395,7 +395,7 @@ export function RankingPage() {
                     <UiBadge tone={comparison.emphasis}>{comparison.scoreLabel}</UiBadge>
                   </div>
                   <div className="figma-data-list">
-                    <div className="figma-data-row"><span>Delta</span><strong>{comparison.deltaLabel}</strong></div>
+                    <div className="figma-data-row"><span>Diferencia</span><strong>{comparison.deltaLabel}</strong></div>
                     <div className="figma-data-row"><span>Postura</span><strong>{comparison.postureLabel}</strong></div>
                     <div className="figma-data-row"><span>Estado</span><strong>{comparison.stateLabel}</strong></div>
                     <div className="figma-data-row"><span>Visibilidad</span><strong>{comparison.visibilityLabel}</strong></div>
