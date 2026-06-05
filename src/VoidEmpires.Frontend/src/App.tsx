@@ -4,7 +4,7 @@ import { appConfig } from "./config";
 import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
 import { AppShell } from "./components/ui/AppShell";
 import { specializedPlanetModuleRoutes } from "./utils/planetModuleRoutes";
-import { buildAllianceUrl, buildEspionageUrl, buildGalaxyUrl, buildMarketUrl } from "./utils/routeUrls";
+import { buildAllianceUrl, buildEspionageUrl, buildGalaxyUrl, buildMarketUrl, buildRankingUrl } from "./utils/routeUrls";
 
 const StrategicMapPage = lazy(async () => {
   const module = await import("./pages/StrategicMapPage");
@@ -80,7 +80,7 @@ const sidebarItems = [
   { label: "Espionaje", to: buildEspionageUrl("00000000-0000-0000-0000-000000000001"), state: "implemented" },
   { label: "Alianza", to: buildAllianceUrl("00000000-0000-0000-0000-000000000001"), state: "readOnly" },
   { label: "Mercado", to: buildMarketUrl("00000000-0000-0000-0000-000000000001"), state: "implemented" },
-  { label: "Ranking", state: "future" },
+  { label: "Ranking", to: buildRankingUrl("00000000-0000-0000-0000-000000000001"), state: "readOnly" },
 ] as const;
 
 const resources = [
