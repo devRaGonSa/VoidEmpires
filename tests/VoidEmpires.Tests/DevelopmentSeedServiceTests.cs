@@ -4,6 +4,7 @@ using VoidEmpires.Application.Markets;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Assets;
+using VoidEmpires.Domain.Diplomacy;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
@@ -28,6 +29,7 @@ public class DevelopmentSeedServiceTests
     private static readonly Guid OwnedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
     private static readonly Guid VisibleComparisonPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000002");
     private static readonly Guid KnownComparisonPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000003");
+    private static readonly Guid SeedDiplomaticContactCivilizationId = Guid.Parse("00000000-0000-0000-0000-000000000002");
     private const int SeededConstructionSequenceStart = 10_000;
     private const int SeededResearchSequenceStart = 20_000;
     private const int SeededAssetProductionSequenceStart = 30_000;
@@ -122,6 +124,37 @@ public class DevelopmentSeedServiceTests
         Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == OwnedPlanetId && x.PlanetaryAssetType == PlanetaryAssetType.PatrolGroup && x.Status == AssetProductionOrderStatus.Completed));
         Assert.True(await dbContext.Set<OrbitalAssetStock>().AnyAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == SpaceAssetType.ScoutCraft && x.Quantity == 1));
         Assert.True(await dbContext.Set<PlanetaryAssetStock>().AnyAsync(x => x.PlanetId == OwnedPlanetId && x.AssetType == PlanetaryAssetType.PatrolGroup && x.Quantity == 2));
+        Assert.Equal(1, await dbContext.Set<DiplomaticContact>().CountAsync(x =>
+            x.CivilizationId == CivilizationId &&
+            x.ContactedCivilizationId == SeedDiplomaticContactCivilizationId &&
+            x.Status == DiplomaticContactStatus.Contacted));
+    }
+
+    [Fact]
+    public async Task CockpitValidationSeedSupportsAllianceUiStateAfterReapply()
+    {
+        await using var dbContext = CreateDbContext();
+        var seedService = new DevelopmentSeedService(dbContext);
+
+        _ = await seedService.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+        _ = await seedService.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+
+        var alliance = await new DevAllianceUiStateService(dbContext)
+            .GetAsync(new GetDevAllianceUiStateRequest(CivilizationId));
+
+        Assert.Empty(alliance.Errors);
+        Assert.NotNull(alliance.Identity);
+        Assert.NotNull(alliance.Alliance);
+        Assert.Equal(CivilizationId, alliance.Identity.CivilizationId);
+        Assert.Equal("Void Seed Civilization", alliance.Identity.CivilizationName);
+        Assert.Equal("None", alliance.Alliance.StateKey);
+        Assert.False(alliance.Alliance.HasActiveAlliance);
+        Assert.Single(alliance.KnownContacts);
+        Assert.Equal(3, alliance.FuturePacts.Count);
+        Assert.Equal(3, alliance.FutureActions.Count);
+        Assert.All(alliance.FutureActions, action => Assert.False(action.IsAvailable));
+        Assert.Equal(6, alliance.ActionSummary?.DisabledActionCount);
+        Assert.Contains(alliance.Limitations, x => x.Contains("read-only", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

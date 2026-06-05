@@ -2,6 +2,7 @@ using VoidEmpires.Application.Development;
 using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Buildings;
+using VoidEmpires.Domain.Diplomacy;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Domain.Galaxy;
@@ -23,6 +24,7 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
     private static readonly Guid SeedOwnedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
     private static readonly Guid SeedOuterPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000002");
     private static readonly Guid SeedIcePlanetId = Guid.Parse("40000000-0000-0000-0000-000000000003");
+    private static readonly Guid SeedDiplomaticContactCivilizationId = Guid.Parse("00000000-0000-0000-0000-000000000002");
     private const string SeedUserId = "seed-user-minimal-validation";
     private const string SeedPlayerDisplayName = "Validation Commander";
     private const string SeedCivilizationName = "Void Seed Civilization";
@@ -65,6 +67,7 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
     private static readonly DateTime CockpitValidationProductionEndAtUtc = new(2026, 5, 31, 10, 3, 0, DateTimeKind.Utc);
     private static readonly DateTime CockpitValidationGroundArmyStartAtUtc = new(2026, 5, 31, 10, 15, 0, DateTimeKind.Utc);
     private static readonly DateTime CockpitValidationGroundArmyEndAtUtc = new(2026, 5, 31, 10, 18, 0, DateTimeKind.Utc);
+    private static readonly DateTime CockpitValidationDiplomaticContactDiscoveredAtUtc = new(2026, 5, 31, 11, 0, 0, DateTimeKind.Utc);
     private const int SeededConstructionSequenceStart = 10_000;
     private const int SeededResearchSequenceStart = 20_000;
     private const int SeededAssetProductionSequenceStart = 30_000;
@@ -522,6 +525,19 @@ public sealed class DevelopmentSeedService(VoidEmpiresDbContext dbContext) : IDe
                 cancellationToken))
         {
             dbContext.Set<PlanetaryAssetStock>().Add(PlanetaryAssetStock.Create(SeedOwnedPlanetId, PlanetaryAssetType.PatrolGroup, 2));
+        }
+
+        if (!await dbContext.Set<DiplomaticContact>().AnyAsync(
+                x => x.CivilizationId == SeedCivilizationId &&
+                    x.ContactedCivilizationId == SeedDiplomaticContactCivilizationId,
+                cancellationToken))
+        {
+            dbContext.Set<DiplomaticContact>().Add(DiplomaticContact.Create(
+                SeedCivilizationId,
+                SeedDiplomaticContactCivilizationId,
+                DiplomaticContactStatus.Contacted,
+                CockpitValidationDiplomaticContactDiscoveredAtUtc,
+                "manual-dev"));
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

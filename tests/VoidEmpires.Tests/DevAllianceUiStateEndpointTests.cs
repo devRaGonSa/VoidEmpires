@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VoidEmpires.Application.Development;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Diplomacy;
+using VoidEmpires.Infrastructure.Development;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.StrategicMap;
 
@@ -117,6 +119,35 @@ public class DevAllianceUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.Equal(6, payload.UiState.ActionSummary.DisabledActionCount);
         Assert.Contains(payload.UiState.Limitations, x => x.Contains("read-only", StringComparison.OrdinalIgnoreCase));
         Assert.Equal(countsBefore, countsAfter);
+    }
+
+    [Fact]
+    public async Task AllianceUiStateReturnsDeterministicReadOnlySeedForCockpitValidation()
+    {
+        await using var dbContext = CreateDbContext();
+        var seedService = new DevelopmentSeedService(dbContext);
+        _ = await seedService.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+        _ = await seedService.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+        using var client = CreateConfiguredClient(dbContext);
+
+        using var response = await client.GetAsync("/api/dev/alliance/ui-state?civilizationId=00000000-0000-0000-0000-000000000001");
+        var payload = await response.Content.ReadFromJsonAsync<DevAllianceUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.UiState);
+        Assert.True(payload.Succeeded);
+        Assert.NotNull(payload.UiState.Identity);
+        Assert.NotNull(payload.UiState.Alliance);
+        Assert.Equal(Guid.Parse("00000000-0000-0000-0000-000000000001"), payload.UiState.Identity.CivilizationId);
+        Assert.Equal("Void Seed Civilization", payload.UiState.Identity.CivilizationName);
+        Assert.Equal("None", payload.UiState.Alliance.StateKey);
+        Assert.False(payload.UiState.Alliance.HasActiveAlliance);
+        Assert.Equal(0, payload.UiState.Alliance.ActiveAllianceCount);
+        Assert.Single(payload.UiState.KnownContacts);
+        Assert.Equal(3, payload.UiState.FuturePacts.Count);
+        Assert.Equal(3, payload.UiState.FutureActions.Count);
+        Assert.All(payload.UiState.FutureActions, x => Assert.False(x.IsAvailable));
+        Assert.Equal(6, payload.UiState.ActionSummary?.DisabledActionCount);
     }
 
     private HttpClient CreateConfiguredClient(IDevAllianceUiStateService allianceUiStateService) =>
