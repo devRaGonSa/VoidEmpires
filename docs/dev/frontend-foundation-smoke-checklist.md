@@ -404,9 +404,16 @@ Run from repository root:
 dotnet build --no-restore
 dotnet test --no-build
 npm run build --prefix src/VoidEmpires.Frontend
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1
 ```
 
 If npm registry access is unavailable in the current environment, record that limitation explicitly rather than claiming the frontend build passed.
+
+Expected script results:
+
+- `.\scripts\check-frontend-route-lazy-imports.ps1` prints `Frontend route lazy-import guard passed.` when `App.tsx` keeps cockpit routes lazy-loaded.
+- `.\scripts\check-dev-qa-scripts.ps1` now includes that same route guard before its existing persisted-QA parser and helper checks.
 
 ## Recovery notes
 
