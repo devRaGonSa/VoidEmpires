@@ -2072,6 +2072,73 @@ select {
   color: color-mix(in srgb, var(--ve-color-text) 76%, var(--ve-color-muted));
 }
 
+.alliance-catalog-grid,
+.alliance-catalog-card-grid {
+  display: grid;
+  gap: var(--ve-space-3);
+}
+
+.alliance-catalog-grid {
+  margin-top: 14px;
+}
+
+.alliance-catalog-section {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  border-color: color-mix(in srgb, var(--ve-color-border) 26%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 58%, transparent), color-mix(in srgb, var(--ve-color-panel) 88%, transparent));
+}
+
+.alliance-catalog-card-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.alliance-catalog-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--ve-radius-md);
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 38%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 82%, transparent), color-mix(in srgb, var(--ve-color-panel) 94%, transparent));
+}
+
+.alliance-catalog-card-good {
+  border-color: color-mix(in srgb, var(--ve-color-success) 34%, transparent);
+}
+
+.alliance-catalog-card-neutral {
+  border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 30%, transparent);
+}
+
+.alliance-catalog-card-warn {
+  border-color: color-mix(in srgb, var(--ve-color-warning) 34%, transparent);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--ve-color-warning) 10%, transparent), transparent 46%),
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 82%, transparent), color-mix(in srgb, var(--ve-color-panel) 94%, transparent));
+}
+
+.alliance-catalog-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ve-space-3);
+  align-items: start;
+}
+
+.alliance-catalog-card h5,
+.alliance-catalog-note {
+  margin: 0;
+}
+
+.alliance-catalog-note {
+  padding-top: 10px;
+  border-top: 1px dashed color-mix(in srgb, var(--ve-color-border) 30%, transparent);
+  color: color-mix(in srgb, var(--ve-color-text) 76%, var(--ve-color-muted));
+  font-size: 0.82rem;
+}
+
 .transfer-prepare-button {
   width: 100%;
 }

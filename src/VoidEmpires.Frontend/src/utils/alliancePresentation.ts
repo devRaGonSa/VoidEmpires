@@ -23,6 +23,9 @@ const allianceStaticLabels = {
   knownContact: "Contacto conocido",
   unconfirmedContact: "Contacto sin confirmar",
   unclassifiedRead: "Lectura diplomatica pendiente de clasificar",
+  noOtherCivilization: "No hay otra civilizacion diplomatica activa en esta version",
+  futurePactsPrepared: "Los pactos quedan preparados para una fase futura",
+  limitedReadNote: "La lectura diplomatica sigue limitada a metadata de desarrollo",
 } as const;
 
 const allianceStateCatalog: readonly AllianceLabelEntry[] = [
@@ -203,4 +206,35 @@ export function formatAllianceDiagnostics(
 
 export function getAllianceReadOnlyStatement() {
   return "Esta cabina no crea alianzas ni pactos.";
+}
+
+export function getAllianceCatalogPlaceholder(kind: "known" | "potential" | "future" | "limited") {
+  switch (kind) {
+    case "known":
+    case "potential":
+      return allianceStaticLabels.noOtherCivilization;
+    case "future":
+      return allianceStaticLabels.futurePactsPrepared;
+    case "limited":
+      return allianceStaticLabels.limitedReadNote;
+    default:
+      return allianceStaticLabels.unclassifiedRead;
+  }
+}
+
+export function getAllianceContactCardTitle(group: "confirmed" | "unconfirmed", index: number) {
+  const prefix = group === "confirmed" ? "Contacto diplomatico conocido" : "Contacto diplomatico potencial";
+  return `${prefix} ${String(index + 1).padStart(2, "0")}`;
+}
+
+export function getAllianceContactReadinessLabel(group: "confirmed" | "unconfirmed") {
+  return group === "confirmed" ? "Listo para seguimiento entre cabinas" : "Pendiente de confirmacion";
+}
+
+export function getAllianceNextCockpitHint(group: "confirmed" | "unconfirmed", sourceLabel: string) {
+  if (group === "confirmed") {
+    return sourceLabel === "Contacto observado" ? "Seguir desde Galaxia o Espionaje" : "Seguir desde Espionaje";
+  }
+
+  return "Mantener seguimiento en Espionaje";
 }

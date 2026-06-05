@@ -5,7 +5,14 @@ import { CockpitHero } from "../components/CockpitHero";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
-import { getAllianceReadOnlyStatement, getAllianceStaticLabels } from "../utils/alliancePresentation";
+import {
+  getAllianceCatalogPlaceholder,
+  getAllianceContactCardTitle,
+  getAllianceContactReadinessLabel,
+  getAllianceNextCockpitHint,
+  getAllianceReadOnlyStatement,
+  getAllianceStaticLabels,
+} from "../utils/alliancePresentation";
 import {
   getAlliancePrimaryAction,
   groupAllianceContacts,
@@ -27,6 +34,25 @@ interface AllianceErrorPresentation {
 }
 
 const allianceLabels = getAllianceStaticLabels();
+
+interface AllianceCatalogCard {
+  key: string;
+  eyebrow: string;
+  title: string;
+  badgeLabel: string;
+  badgeTone: "neutral" | "good" | "warn";
+  facts: Array<{ label: string; value: string }>;
+  note: string;
+}
+
+interface AllianceCatalogSection {
+  key: "known" | "potential" | "future" | "limited";
+  label: string;
+  description: string;
+  badgeLabel: string;
+  badgeTone: "neutral" | "good" | "warn";
+  cards: AllianceCatalogCard[];
+}
 
 function formatAllianceRequestFailure(message: string | null | undefined): AllianceErrorPresentation {
   const detail = message?.trim() ?? null;
@@ -87,6 +113,189 @@ export function AlliancePage() {
   const pactFutureCount = uiState?.futurePacts.length ?? 0;
   const contactKnownCount = uiState?.contacts.length ?? 0;
   const readOnlyStatement = getAllianceReadOnlyStatement();
+  const catalogSections = useMemo<AllianceCatalogSection[]>(() => {
+    const confirmedCards = groupedContacts.confirmed.map((contact, index) => ({
+      key: `known-${contact.contactedCivilizationId}`,
+      eyebrow: "Contacto conocido",
+      title: getAllianceContactCardTitle("confirmed", index),
+      badgeLabel: contact.statusLabel,
+      badgeTone: "good" as const,
+      facts: [
+        { label: "Estado", value: contact.statusLabel },
+        { label: "Confianza", value: contact.confidenceLabel },
+        { label: "Lectura", value: getAllianceContactReadinessLabel("confirmed") },
+        { label: "Siguiente cabina", value: getAllianceNextCockpitHint("confirmed", contact.sourceLabel) },
+      ],
+      note: `${contact.sourceLabel} | ${contact.discoveredAtLabel}`,
+    }));
+
+    const potentialCards = groupedContacts.unconfirmed.map((contact, index) => ({
+      key: `potential-${contact.contactedCivilizationId}`,
+      eyebrow: "Contacto potencial",
+      title: getAllianceContactCardTitle("unconfirmed", index),
+      badgeLabel: contact.statusLabel,
+      badgeTone: "warn" as const,
+      facts: [
+        { label: "Estado", value: contact.statusLabel },
+        { label: "Confianza", value: contact.confidenceLabel },
+        { label: "Lectura", value: getAllianceContactReadinessLabel("unconfirmed") },
+        { label: "Siguiente cabina", value: getAllianceNextCockpitHint("unconfirmed", contact.sourceLabel) },
+      ],
+      note: `${contact.sourceLabel} | ${contact.discoveredAtLabel}`,
+    }));
+
+    const futureCards = [
+      ...((uiState?.futurePacts ?? []).map((pact) => ({
+        key: `pact-${pact.pactTypeKey}`,
+        eyebrow: "Pacto futuro",
+        title: pact.pactLabel,
+        badgeLabel: pact.stateLabel,
+        badgeTone: "warn" as const,
+        facts: [
+          { label: "Estado", value: pact.stateLabel },
+          { label: "Preparacion", value: "Preparado para fase futura" },
+          { label: "Disponibilidad", value: pact.isAvailable ? "Visible" : "Bloqueado" },
+          { label: "Siguiente cabina", value: "Seguir desde Espionaje o Mercado" },
+        ],
+        note: pact.reasonLabel,
+      })) ?? []),
+      ...((uiState?.futureActions ?? []).map((action) => ({
+        key: `action-${action.actionKey}`,
+        eyebrow: "Accion futura",
+        title: action.label,
+        badgeLabel: action.stateLabel,
+        badgeTone: "warn" as const,
+        facts: [
+          { label: "Estado", value: action.stateLabel },
+          { label: "Preparacion", value: "Bloqueado en esta version" },
+          { label: "Disponibilidad", value: action.isAvailable ? "Visible" : "No ejecutable" },
+          { label: "Siguiente cabina", value: "Mantener lectura desde Alianzas" },
+        ],
+        note: action.reasonLabel,
+      })) ?? []),
+    ];
+
+    const limitedCards: AllianceCatalogCard[] = [
+      {
+        key: "limited-readiness",
+        eyebrow: "Limite actual",
+        title: "Lectura diplomatica limitada",
+        badgeLabel: cockpitStatusLabels.readOnly,
+        badgeTone: "warn",
+        facts: [
+          { label: "Estado", value: uiState?.actionSummary?.summaryLabel ?? allianceLabels.readOnlyDiplomacy },
+          { label: "Confianza", value: "Metadata visible" },
+          { label: "Pactos activos", value: String(uiState?.status?.activePactCount ?? 0) },
+          { label: "Siguiente cabina", value: "Volver a Galaxia, Mercado o Espionaje" },
+        ],
+        note: readOnlyStatement,
+      },
+    ];
+
+    if (uiState?.diagnostics.limitations[0]) {
+      limitedCards.push({
+        key: "limited-diagnostics",
+        eyebrow: "Limitacion visible",
+        title: "Estado honesto del modulo",
+        badgeLabel: cockpitStatusLabels.diagnostics,
+        badgeTone: "warn",
+        facts: [
+          { label: "Estado", value: "Sin ejecucion diplomatica" },
+          { label: "Confianza", value: "Lectura de desarrollo" },
+          { label: "Notas", value: `${uiState.diagnostics.limitations.length} limitaciones` },
+          { label: "Siguiente cabina", value: "Conservar contexto entre cabinas" },
+        ],
+        note: uiState.diagnostics.limitations[0],
+      });
+    }
+
+    return [
+      {
+        key: "known",
+        label: "Contactos conocidos",
+        description: "Lecturas diplomaticas ya asentadas. La cabina no inventa participantes y solo muestra contexto verificable.",
+        badgeLabel: confirmedCards.length > 0 ? `${confirmedCards.length} lecturas` : "Sin contactos",
+        badgeTone: confirmedCards.length > 0 ? "good" : "warn",
+        cards: confirmedCards.length > 0 ? confirmedCards : [{
+          key: "known-empty",
+          eyebrow: "Contacto conocido",
+          title: "Sin otras civilizaciones visibles",
+          badgeLabel: allianceLabels.knownContact,
+          badgeTone: "warn",
+          facts: [
+            { label: "Estado", value: allianceLabels.noActiveAlliance },
+            { label: "Confianza", value: "Lectura determinista" },
+            { label: "Lectura", value: "Sin participantes confirmados" },
+            { label: "Siguiente cabina", value: "Seguir desde Galaxia o Espionaje" },
+          ],
+          note: getAllianceCatalogPlaceholder("known"),
+        }],
+      },
+      {
+        key: "potential",
+        label: "Contactos potenciales",
+        description: "Datos por confirmar que siguen visibles sin elevarse a relacion real ni a invitacion diplomatica.",
+        badgeLabel: potentialCards.length > 0 ? `${potentialCards.length} lecturas` : "Sin potencial",
+        badgeTone: "warn",
+        cards: potentialCards.length > 0 ? potentialCards : [{
+          key: "potential-empty",
+          eyebrow: "Contacto potencial",
+          title: "Sin contacto por confirmar",
+          badgeLabel: allianceLabels.unconfirmedContact,
+          badgeTone: "warn",
+          facts: [
+            { label: "Estado", value: allianceLabels.unconfirmedContact },
+            { label: "Confianza", value: "Sin evidencia adicional" },
+            { label: "Lectura", value: "No hay otra civilizacion visible" },
+            { label: "Siguiente cabina", value: "Mantener seguimiento en Espionaje" },
+          ],
+          note: getAllianceCatalogPlaceholder("potential"),
+        }],
+      },
+      {
+        key: "future",
+        label: "Pactos futuros",
+        description: "La hoja de ruta mantiene pactos y acciones futuras como referencia visual, siempre bloqueados en esta fase.",
+        badgeLabel: futureCards.length > 0 ? `${futureCards.length} referencias` : "Sin pactos",
+        badgeTone: "warn",
+        cards: futureCards.length > 0 ? futureCards : [{
+          key: "future-empty",
+          eyebrow: "Pacto futuro",
+          title: "Sin pactos visibles",
+          badgeLabel: allianceLabels.futureAlliance,
+          badgeTone: "warn",
+          facts: [
+            { label: "Estado", value: allianceLabels.futureAlliance },
+            { label: "Preparacion", value: "Fase futura" },
+            { label: "Disponibilidad", value: "No ejecutable" },
+            { label: "Siguiente cabina", value: "Conservar lectura en Alianzas" },
+          ],
+          note: getAllianceCatalogPlaceholder("future"),
+        }],
+      },
+      {
+        key: "limited",
+        label: "Lectura diplomatica limitada",
+        description: "La cabina muestra hasta donde llega la metadata actual y deriva el seguimiento a las superficies ya implementadas.",
+        badgeLabel: `${limitedCards.length} notas`,
+        badgeTone: "warn",
+        cards: limitedCards.length > 0 ? limitedCards : [{
+          key: "limited-empty",
+          eyebrow: "Lectura limitada",
+          title: "Sin notas adicionales",
+          badgeLabel: cockpitStatusLabels.readOnly,
+          badgeTone: "warn",
+          facts: [
+            { label: "Estado", value: allianceLabels.readOnlyDiplomacy },
+            { label: "Confianza", value: "Lectura de desarrollo" },
+            { label: "Notas", value: "Sin diagnosticos visibles" },
+            { label: "Siguiente cabina", value: "Volver a Galaxia o Mercado" },
+          ],
+          note: getAllianceCatalogPlaceholder("limited"),
+        }],
+      },
+    ];
+  }, [groupedContacts.confirmed, groupedContacts.unconfirmed, readOnlyStatement, uiState]);
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -393,87 +602,44 @@ export function AlliancePage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Contactos diplomaticos</p>
-                <h3>Catalogo de contactos</h3>
-                <p>Los contactos se agrupan por certeza de lectura para no mezclar una relacion conocida con un dato todavia sin confirmar.</p>
-              </div>
-              <UiBadge>{uiState.contacts.length} contactos</UiBadge>
-            </div>
-            <div className="readiness-grid">
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Contactos conocidos</p>
-                    <h4>{groupedContacts.confirmed.length} lecturas</h4>
-                  </div>
-                  <UiBadge tone="good">{allianceLabels.knownContact}</UiBadge>
-                </div>
-                <ul className="stack-list compact-list">
-                  {groupedContacts.confirmed.length > 0 ? groupedContacts.confirmed.map((contact) => (
-                    <li key={contact.contactedCivilizationId}>
-                      <strong>{contact.contactLabel}</strong>: {contact.sourceLabel} | {contact.discoveredAtLabel}
-                    </li>
-                  )) : (
-                    <li>Sin contactos conocidos en esta lectura.</li>
-                  )}
-                </ul>
-              </section>
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Lecturas por confirmar</p>
-                    <h4>{groupedContacts.unconfirmed.length} lecturas</h4>
-                  </div>
-                  <UiBadge tone="warn">{allianceLabels.unconfirmedContact}</UiBadge>
-                </div>
-                <ul className="stack-list compact-list">
-                  {groupedContacts.unconfirmed.length > 0 ? groupedContacts.unconfirmed.map((contact) => (
-                    <li key={contact.contactedCivilizationId}>
-                      <strong>{contact.contactLabel}</strong>: {contact.confidenceLabel}
-                    </li>
-                  )) : (
-                    <li>La lectura actual no contiene contactos sin confirmar.</li>
-                  )}
-                </ul>
-              </section>
-            </div>
-          </UiCard>
-
-          <UiCard className="panel">
-            <div className="figma-section-header">
-              <div>
-                <p className="eyebrow">Pactos y acciones futuras</p>
-                <h3>Hoja de ruta diplomatica</h3>
-                <p>Los pactos y acciones siguen visibles como referencia futura, pero todos los controles permanecen desactivados en esta fase.</p>
+                <p className="eyebrow">Catalogo diplomatico</p>
+                <h3>Contactos y preparacion diplomatica</h3>
+                <p>La cabina separa contacto conocido, potencial, pactos futuros y limites de lectura sin fabricar participantes ni acuerdos activos.</p>
               </div>
               <UiBadge tone="warn">{cockpitStatusLabels.safePlaceholder}</UiBadge>
             </div>
-            <div className="market-future-actions-grid">
-              {uiState.futurePacts.map((pact) => (
-                <section key={pact.pactTypeKey} className="subpanel figma-subpanel market-future-action-card">
+            <div className="alliance-catalog-grid">
+              {catalogSections.map((section) => (
+                <section key={section.key} className="subpanel figma-subpanel alliance-catalog-section">
                   <div className="figma-section-header">
                     <div>
-                      <p className="eyebrow">Pacto futuro</p>
-                      <h4>{pact.pactLabel}</h4>
+                      <p className="eyebrow">{section.label}</p>
+                      <h4>{section.badgeLabel}</h4>
+                      <p>{section.description}</p>
                     </div>
-                    <UiBadge tone="warn">{pact.stateLabel}</UiBadge>
+                    <UiBadge tone={section.badgeTone}>{section.label}</UiBadge>
                   </div>
-                  <div className="market-future-action-state" aria-hidden="true">
-                    {pact.reasonLabel}
-                  </div>
-                </section>
-              ))}
-              {uiState.futureActions.map((action) => (
-                <section key={action.actionKey} className="subpanel figma-subpanel market-future-action-card">
-                  <div className="figma-section-header">
-                    <div>
-                      <p className="eyebrow">Accion futura</p>
-                      <h4>{action.label}</h4>
-                    </div>
-                    <UiBadge tone="warn">{action.stateLabel}</UiBadge>
-                  </div>
-                  <div className="market-future-action-state" aria-hidden="true">
-                    {action.reasonLabel}
+                  <div className="alliance-catalog-card-grid">
+                    {section.cards.map((card) => (
+                      <article key={card.key} className={`alliance-catalog-card alliance-catalog-card-${card.badgeTone}`}>
+                        <div className="alliance-catalog-card-head">
+                          <div>
+                            <p className="eyebrow">{card.eyebrow}</p>
+                            <h5>{card.title}</h5>
+                          </div>
+                          <UiBadge tone={card.badgeTone}>{card.badgeLabel}</UiBadge>
+                        </div>
+                        <div className="figma-data-list">
+                          {card.facts.map((fact) => (
+                            <div key={`${card.key}-${fact.label}`} className="figma-data-row">
+                              <span>{fact.label}</span>
+                              <strong>{fact.value}</strong>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="alliance-catalog-note">{card.note}</p>
+                      </article>
+                    ))}
                   </div>
                 </section>
               ))}
