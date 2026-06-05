@@ -73,7 +73,7 @@ const sidebarItems = [
   ...specializedPlanetModuleRoutes.map((route) => ({ label: route.label, to: route.path, state: "implemented" as const })),
   { label: "Flotas", to: "/fleets", state: "implemented" },
   { label: "Espionaje", to: buildEspionageUrl("00000000-0000-0000-0000-000000000001"), state: "implemented" },
-  { label: "Alianza", to: buildAllianceUrl("00000000-0000-0000-0000-000000000001"), state: "implemented" },
+  { label: "Alianza", to: buildAllianceUrl("00000000-0000-0000-0000-000000000001"), state: "readOnly" },
   { label: "Mercado", to: buildMarketUrl("00000000-0000-0000-0000-000000000001"), state: "implemented" },
   { label: "Ranking", state: "future" },
 ] as const;

@@ -3,7 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 export interface SidebarNavItem {
   label: string;
   to?: string;
-  state?: "implemented" | "future";
+  state?: "implemented" | "readOnly" | "future";
 }
 
 interface SidebarNavProps {
@@ -31,6 +31,9 @@ export function SidebarNav({ items }: SidebarNavProps) {
             }}
           >
             <span className="sidebar-nav-item-label">{item.label}</span>
+            {item.state === "readOnly" ? (
+              <small className="sidebar-nav-item-note">Solo lectura</small>
+            ) : null}
           </NavLink>
         ) : (
           <span
