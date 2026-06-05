@@ -1,3 +1,16 @@
+import type {
+  RankingCategoryScoreDto,
+  RankingComparisonRowDto,
+  RankingDiagnosticsDto,
+  RankingDisabledActionDto,
+  RankingFuturePlaceholderDto,
+  RankingIdentityDto,
+  RankingPowerSummaryDto,
+  RankingPublicationStateDto,
+  RankingUiStateDto,
+} from "../api/rankingApi";
+import { formatCompactGuid, formatPlanetPrimaryLabel } from "./domainPresentation";
+
 type RankingValue = string | number | null | undefined;
 
 interface RankingLabelEntry {
@@ -36,6 +49,7 @@ const rankingCategoryCatalog: readonly RankingLabelEntry[] = [
   { key: "colonyDevelopment", label: rankingStaticLabels.colonialDevelopment },
   { key: "research", label: rankingStaticLabels.technologyProgress },
   { key: "technology", label: rankingStaticLabels.technologyProgress },
+  { key: "technologyProgress", label: rankingStaticLabels.technologyProgress },
   { key: "orbital", label: rankingStaticLabels.orbitalCapacity },
   { key: "orbitalCapacity", label: rankingStaticLabels.orbitalCapacity },
   { key: "defense", label: rankingStaticLabels.defensiveReadiness },
@@ -54,8 +68,10 @@ const rankingStateCatalog: readonly RankingLabelEntry[] = [
   { key: "readOnly", label: rankingStaticLabels.unpublishedRanking },
   { key: "private", label: rankingStaticLabels.unpublishedRanking },
   { key: "unpublished", label: rankingStaticLabels.unpublishedRanking },
+  { key: "notPublic", label: rankingStaticLabels.unpublishedRanking },
+  { key: "future", label: rankingStaticLabels.futureSeason },
   { key: "futureSeason", label: rankingStaticLabels.futureSeason },
-  { key: "rewardsDisabled", label: rankingStaticLabels.rewardsUnavailable },
+  { key: "rewardsUnavailable", label: rankingStaticLabels.rewardsUnavailable },
   { key: "demoComparison", label: rankingStaticLabels.demoComparison },
 ] as const;
 
@@ -74,6 +90,79 @@ const rankingActionCatalog: readonly RankingLabelEntry[] = [
   { key: "ranking.season.future", label: rankingStaticLabels.futureSeason },
   { key: "ranking.rewards.future", label: rankingStaticLabels.rewardsUnavailable },
 ] as const;
+
+export interface RankingIdentity {
+  civilizationId: string;
+  civilizationName: string;
+  displayName: string;
+  homePlanetId: string | null;
+  homePlanetLabel: string;
+}
+
+export interface RankingCategoryScore {
+  categoryKey: string;
+  label: string;
+  score: number;
+  scoreLabel: string;
+  weight: number;
+  emphasis: "good" | "neutral" | "warn";
+  sourceNote: string;
+}
+
+export interface RankingPowerSummary {
+  totalPowerIndex: number;
+  totalPowerIndexLabel: string;
+  categories: RankingCategoryScore[];
+  recommendationKey: string;
+  recommendationLabel: string;
+}
+
+export interface RankingComparisonRow {
+  rowKey: string;
+  displayName: string;
+  totalPowerIndex: number;
+  totalPowerIndexLabel: string;
+  deltaFromCurrent: number;
+  deltaLabel: string;
+  postureLabel: string;
+  isCurrentCivilization: boolean;
+  isDemoOnly: boolean;
+}
+
+export interface RankingFutureAction {
+  key: string;
+  label: string;
+  stateLabel: string;
+  reasonLabel: string;
+  isAvailable: boolean;
+}
+
+export interface RankingDiagnostics {
+  playerFacing: readonly string[];
+  technical: readonly string[];
+  limitations: readonly string[];
+  counts: {
+    ownedPlanets: number;
+    visibleSystems: number;
+    diplomaticContacts: number;
+    activeTransfers: number;
+  };
+}
+
+export interface RankingUiState {
+  civilizationId: string;
+  identity: RankingIdentity | null;
+  summary: RankingPowerSummary | null;
+  comparisons: RankingComparisonRow[];
+  publication: {
+    stateKey: string;
+    stateLabel: string;
+    isPublished: boolean;
+    summaryLabel: string;
+  } | null;
+  futureActions: RankingFutureAction[];
+  diagnostics: RankingDiagnostics;
+}
 
 function normalizeValue(value: RankingValue) {
   if (typeof value === "number") {
@@ -111,6 +200,181 @@ function resolveCatalogLabel(
   return catalog.find((entry) => normalizeLookup(entry.key) === normalizedLookup)?.label ?? fallback;
 }
 
+function formatIndex(value: number | null | undefined) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return "Sin lectura visible";
+  }
+
+  return new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 }).format(value);
+}
+
+function formatDelta(value: number) {
+  if (!Number.isFinite(value) || value === 0) {
+    return "Sin cambio";
+  }
+
+  return `${value > 0 ? "+" : ""}${formatIndex(value)}`;
+}
+
+function getComparisonPosture(deltaFromCurrent: number, isCurrentCivilization: boolean) {
+  if (isCurrentCivilization) {
+    return "Civilizacion actual";
+  }
+
+  if (deltaFromCurrent > 0) {
+    return "Referencia superior";
+  }
+
+  if (deltaFromCurrent < 0) {
+    return "Referencia conservadora";
+  }
+
+  return rankingStaticLabels.demoComparison;
+}
+
+function getCategoryEmphasis(score: number): "good" | "neutral" | "warn" {
+  if (score >= 500) {
+    return "good";
+  }
+
+  if (score >= 150) {
+    return "neutral";
+  }
+
+  return "warn";
+}
+
+function mapIdentity(identity: RankingIdentityDto | null): RankingIdentity | null {
+  if (!identity) {
+    return null;
+  }
+
+  return {
+    civilizationId: identity.civilizationId,
+    civilizationName: identity.civilizationName,
+    displayName: identity.displayName,
+    homePlanetId: identity.homePlanetId,
+    homePlanetLabel: formatPlanetPrimaryLabel(identity.homePlanetId),
+  };
+}
+
+function mapCategory(entry: RankingCategoryScoreDto): RankingCategoryScore {
+  return {
+    categoryKey: entry.categoryKey,
+    label: getRankingCategoryLabel(entry.categoryKey),
+    score: entry.score,
+    scoreLabel: formatIndex(entry.score),
+    weight: entry.weight,
+    emphasis: getCategoryEmphasis(entry.score),
+    sourceNote: entry.sourceNote,
+  };
+}
+
+function mapSummary(summary: RankingPowerSummaryDto | null): RankingPowerSummary | null {
+  if (!summary) {
+    return null;
+  }
+
+  return {
+    totalPowerIndex: summary.totalPowerIndex,
+    totalPowerIndexLabel: formatIndex(summary.totalPowerIndex),
+    categories: summary.categories.map(mapCategory),
+    recommendationKey: summary.recommendationKey,
+    recommendationLabel: getRankingCategoryLabel(summary.recommendationKey),
+  };
+}
+
+function mapComparison(entry: RankingComparisonRowDto): RankingComparisonRow {
+  return {
+    rowKey: entry.rowKey,
+    displayName: entry.isCurrentCivilization ? `${entry.displayName} | ${formatCompactGuid(entry.rowKey)}` : entry.displayName,
+    totalPowerIndex: entry.totalPowerIndex,
+    totalPowerIndexLabel: formatIndex(entry.totalPowerIndex),
+    deltaFromCurrent: entry.deltaFromCurrent,
+    deltaLabel: formatDelta(entry.deltaFromCurrent),
+    postureLabel: getComparisonPosture(entry.deltaFromCurrent, entry.isCurrentCivilization),
+    isCurrentCivilization: entry.isCurrentCivilization,
+    isDemoOnly: entry.isDemoOnly,
+  };
+}
+
+function getReasonLabel(reasonKey: string) {
+  switch (normalizeLookup(reasonKey)) {
+    case "notpublished":
+      return "La clasificacion global permanece desactivada en esta version.";
+    case "futureseason":
+      return "La temporada futura sigue fuera del alcance de esta cabina.";
+    case "rewardsunavailable":
+      return "Las recompensas no forman parte de esta fase.";
+    default:
+      return "La referencia futura sigue deshabilitada en esta cabina.";
+  }
+}
+
+function mapFutureAction(entry: RankingFuturePlaceholderDto | RankingDisabledActionDto): RankingFutureAction {
+  const key = "placeholderKey" in entry ? entry.placeholderKey : entry.actionKey;
+
+  return {
+    key,
+    label: getRankingActionLabel("actionKey" in entry ? entry.actionKey : `ranking.${entry.placeholderKey}.future`),
+    stateLabel: getRankingStateLabel("stateKey" in entry ? entry.stateKey : "future"),
+    reasonLabel: getReasonLabel(entry.reasonKey),
+    isAvailable: entry.isAvailable,
+  };
+}
+
+function mapPublication(publication: RankingPublicationStateDto | null) {
+  if (!publication) {
+    return null;
+  }
+
+  return {
+    stateKey: publication.stateKey,
+    stateLabel: getRankingStateLabel(publication.stateKey),
+    isPublished: publication.isPublished,
+    summaryLabel: getRankingStateLabel(publication.summaryKey),
+  };
+}
+
+function mapDiagnostics(
+  diagnostics: RankingDiagnosticsDto | null,
+  limitations: readonly string[],
+  errors: readonly string[],
+): RankingDiagnostics {
+  if (!diagnostics) {
+    return {
+      playerFacing: errors.length > 0 ? [errors[0]] : [],
+      technical: [...errors],
+      limitations: [...limitations],
+      counts: {
+        ownedPlanets: 0,
+        visibleSystems: 0,
+        diplomaticContacts: 0,
+        activeTransfers: 0,
+      },
+    };
+  }
+
+  return {
+    playerFacing: diagnostics.notes.filter((note) => !note.toLowerCase().includes("development-only")),
+    technical: [
+      ...diagnostics.notes,
+      `OwnedPlanets=${diagnostics.ownedPlanetCount}`,
+      `VisibleSystems=${diagnostics.visibleSystemCount}`,
+      `DiplomaticContacts=${diagnostics.diplomaticContactCount}`,
+      `ActiveTransfers=${diagnostics.activeTransferCount}`,
+      ...errors,
+    ],
+    limitations: [...limitations],
+    counts: {
+      ownedPlanets: diagnostics.ownedPlanetCount,
+      visibleSystems: diagnostics.visibleSystemCount,
+      diplomaticContacts: diagnostics.diplomaticContactCount,
+      activeTransfers: diagnostics.activeTransferCount,
+    },
+  };
+}
+
 export function getRankingStaticLabels() {
   return rankingStaticLabels;
 }
@@ -145,4 +409,46 @@ export function getRankingStateCatalog() {
 
 export function getRankingActionCatalog() {
   return rankingActionCatalog;
+}
+
+export function groupRankingCategories(categories: readonly RankingCategoryScore[]) {
+  return {
+    primary: categories.filter((category) => category.weight >= 15),
+    secondary: categories.filter((category) => category.weight < 15),
+  };
+}
+
+export function selectRecommendedRankingFocus(viewModel: RankingUiState | null) {
+  if (!viewModel?.summary) {
+    return rankingStaticLabels.unclassifiedMetric;
+  }
+
+  const topCategory = [...viewModel.summary.categories].sort((left, right) => right.score - left.score)[0];
+  return topCategory?.label ?? viewModel.summary.recommendationLabel;
+}
+
+export function getRankingPrimaryAction(viewModel: RankingUiState | null) {
+  if (!viewModel) {
+    return rankingStaticLabels.powerIndex;
+  }
+
+  return viewModel.futureActions.find((action) => action.isAvailable)?.label
+    ?? rankingStaticLabels.demoComparison;
+}
+
+export function mapRankingUiStateToViewModel(state: RankingUiStateDto): RankingUiState {
+  const futureActions = [
+    ...state.futurePlaceholders.map(mapFutureAction),
+    ...state.disabledActions.map(mapFutureAction),
+  ];
+
+  return {
+    civilizationId: state.civilizationId,
+    identity: mapIdentity(state.identity),
+    summary: mapSummary(state.summary),
+    comparisons: state.demoComparisons.map(mapComparison),
+    publication: mapPublication(state.publication),
+    futureActions,
+    diagnostics: mapDiagnostics(state.diagnostics, state.limitations, state.errors),
+  };
 }

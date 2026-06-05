@@ -3,7 +3,7 @@
 ---
 id: TASK-28D
 title: Add typed Ranking API contract and frontend view models
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
