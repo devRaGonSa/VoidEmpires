@@ -38,6 +38,14 @@ Use these checks after route-level lazy loading lands:
 - Missing-context, empty-state, and disabled-action copy inside each cockpit must still appear after the lazy import resolves; route splitting must not replace those states with a generic loader forever.
 - Current future-state navigation items such as `Alianza` and `Ranking` must remain non-clickable future entries in the sidebar rather than turning into broken links.
 
+Compact route-loading smoke pass:
+
+- Open `/galaxy`, `/planet`, `/construction`, `/research`, `/shipyard`, `/fleets`, `/defenses`, `/ground-army`, `/espionage`, and `/market` from the shared shell.
+- If a route resolves slowly, expect the Spanish loading state rather than a blank page: `Carga en progreso`, `Cambio de cabina`, `Cargando cabina...`.
+- After the loader clears, expect the target cockpit to render its usual first viewport and keep diagnostics secondary where that cockpit already uses collapsible diagnostics.
+- Treat a blank page, a shell-only screen that never resolves, or a generic loader that never yields cockpit content as a failed smoke pass.
+- `Alianza` and `Ranking` are not implemented routes in this block; verify they remain visible as future sidebar items instead of clickable cockpit routes.
+
 ## Final Cross-Cockpit Visual Pass
 
 Use this block as the one-stop manual QA pass for the accepted shared cockpit suite after the non-visual validation commands succeed.
