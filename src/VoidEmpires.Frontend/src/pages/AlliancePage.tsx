@@ -367,7 +367,7 @@ export function AlliancePage() {
         versionLabel="Alianzas v1"
         title="Alianzas"
         description="Cabina diplomatica de solo lectura para identidad, estado actual, contactos conocidos y pactos futuros todavia bloqueados."
-        developmentNote={`${readOnlyStatement} Esta superficie no envia invitaciones y no comparte visibilidad. Solo organiza la lectura diplomatica disponible.`}
+        developmentNote={`${readOnlyStatement} Conserva el contexto de lectura y no abre acciones de invitación o gestión.`}
         badges={(
           <>
             <UiBadge tone="resource">{uiState?.status?.stateLabel ?? "Estado diplomatico"}</UiBadge>
@@ -536,7 +536,7 @@ export function AlliancePage() {
               <div>
                 <p className="eyebrow">Identidad diplomatica</p>
                 <h3>{uiState.identity.civilizationName}</h3>
-                <p>La cabina toma como fuente principal a la civilizacion actual y deja el perfil del jugador como soporte tecnico.</p>
+                <p>La cabina toma como fuente principal a la civilización actual y deja el perfil del jugador como soporte técnico.</p>
               </div>
               <UiBadge tone={uiState.status.hasActiveAlliance ? "good" : "warn"}>
                 {uiState.status.stateLabel}

@@ -21,7 +21,7 @@ import {
   getAllianceStateLabel,
   getAllianceStaticLabels,
 } from "./alliancePresentation";
-import { formatCompactGuid, formatPlanetPrimaryLabel } from "./domainPresentation";
+import { formatPlanetPrimaryLabel } from "./domainPresentation";
 
 export interface AllianceDiplomaticIdentity {
   civilizationId: string;
@@ -293,7 +293,7 @@ function mapContact(contact: AllianceContactDto): AllianceContact {
 
   return {
     contactedCivilizationId: contact.contactedCivilizationId,
-    contactLabel: `${statusLabel} | ${formatCompactGuid(contact.contactedCivilizationId)}`,
+    contactLabel: statusLabel,
     confidenceLabel,
     statusKey: normalizeValue(contact.status),
     statusLabel,

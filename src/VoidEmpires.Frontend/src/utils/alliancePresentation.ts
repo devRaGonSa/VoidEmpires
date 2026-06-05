@@ -216,7 +216,7 @@ export function formatAllianceDiagnostics(
 }
 
 export function getAllianceReadOnlyStatement() {
-  return "Esta cabina no crea alianzas ni pactos.";
+  return "La cabina de Alianzas permanece en solo lectura durante esta fase.";
 }
 
 export function getAllianceCatalogPlaceholder(kind: "known" | "potential" | "future" | "limited") {
