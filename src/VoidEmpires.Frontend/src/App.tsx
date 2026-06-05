@@ -3,7 +3,7 @@ import { Route, Routes } from "react-router-dom";
 import { appConfig } from "./config";
 import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
 import { AppShell } from "./components/ui/AppShell";
-import { specializedPlanetModuleRoutes } from "./utils/planetPresentation";
+import { specializedPlanetModuleRoutes } from "./utils/planetModuleRoutes";
 import { buildEspionageUrl, buildGalaxyUrl, buildMarketUrl } from "./utils/routeUrls";
 
 const StrategicMapPage = lazy(async () => {
