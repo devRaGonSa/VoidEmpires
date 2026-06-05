@@ -178,7 +178,7 @@ function formatAllianceArchetype(value: string | number | null | undefined) {
     case "4":
       return "Exploratoria";
     default:
-      return "Arquetipo pendiente de clasificar";
+      return "Arquetipo por validar";
   }
 }
 
@@ -194,7 +194,7 @@ function formatCivilizationStatus(value: string | number | null | undefined) {
     case "3":
       return "Suspendida";
     default:
-      return "Estado pendiente de clasificar";
+      return "Estado en revisión";
   }
 }
 
@@ -207,8 +207,8 @@ function formatSourceLabel(value: string | null | undefined) {
       return "Contacto observado";
     case "foreign":
       return "Registro externo";
-    default:
-      return value?.trim() || "Origen no clasificado";
+  default:
+    return value?.trim() || "Origen no visible";
   }
 }
 

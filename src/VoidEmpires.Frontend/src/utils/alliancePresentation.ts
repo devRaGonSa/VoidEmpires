@@ -16,13 +16,13 @@ export interface AllianceErrorFeedback {
   technicalDetail: string | null;
 }
 
-const unknownAllianceStateFallback = "Lectura diplomatica pendiente de clasificar";
-const unknownContactFallback = "Lectura diplomatica pendiente de clasificar";
-const unknownPactFallback = "Alianza futura";
-const unknownActionFallback = "Diplomacia solo lectura";
-const unknownRoleFallback = "Rol pendiente de clasificar";
-const unknownMembershipFallback = "Membresia pendiente de clasificar";
-const unknownConfidenceFallback = "Lectura diplomatica pendiente de clasificar";
+const unknownAllianceStateFallback = "Estado diplomático pendiente de lectura";
+const unknownContactFallback = "Contacto por confirmar";
+const unknownPactFallback = "Pacto de fase futura";
+const unknownActionFallback = "Acción diplomática visible";
+const unknownRoleFallback = "Rol pendiente";
+const unknownMembershipFallback = "Membresía pendiente";
+const unknownConfidenceFallback = "Lectura incompleta";
 
 const allianceStaticLabels = {
   diplomacyStatus: "Estado diplomatico",
@@ -33,10 +33,10 @@ const allianceStaticLabels = {
   readOnlyDiplomacy: "Diplomacia solo lectura",
   knownContact: "Contacto conocido",
   unconfirmedContact: "Contacto sin confirmar",
-  unclassifiedRead: "Lectura diplomatica pendiente de clasificar",
-  noOtherCivilization: "No hay otra civilizacion diplomatica activa en esta version",
-  futurePactsPrepared: "Los pactos quedan preparados para una fase futura",
-  limitedReadNote: "La lectura diplomatica sigue limitada a metadata de desarrollo",
+  unclassifiedRead: "Lectura parcial visible",
+  noOtherCivilization: "Sin otras civilizaciones visibles en esta fase",
+  futurePactsPrepared: "Pactos y acciones en fase de definición",
+  limitedReadNote: "La lectura mantiene límites de desarrollo y no abre acciones",
 } as const;
 
 const allianceStateCatalog: readonly AllianceLabelEntry[] = [
@@ -78,7 +78,7 @@ const allianceRoleCatalog: readonly AllianceLabelEntry[] = [
 const allianceMembershipCatalog: readonly AllianceLabelEntry[] = [
   { key: "Active", label: "Membresia activa" },
   { key: "Departed", label: "Historial diplomatico" },
-  { key: "Pending", label: "Lectura diplomatica pendiente de clasificar" },
+      { key: "Pending", label: "Lectura parcial visible" },
   { key: "Unknown", label: unknownMembershipFallback },
 ] as const;
 
