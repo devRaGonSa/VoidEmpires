@@ -3,7 +3,7 @@
 ---
 id: TASK-28F
 title: Build Ranking dashboard power summary and recommended focus
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

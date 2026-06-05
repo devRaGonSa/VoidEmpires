@@ -10,7 +10,9 @@ import {
   getRankingStaticLabels,
   groupRankingCategories,
   mapRankingUiStateToViewModel,
+  selectDominantRankingCategory,
   selectRecommendedRankingFocus,
+  selectWeakestRankingFocus,
   type RankingUiState,
 } from "../utils/rankingPresentation";
 import {
@@ -77,6 +79,14 @@ export function RankingPage() {
   );
   const primaryAction = useMemo(
     () => getRankingPrimaryAction(uiState),
+    [uiState],
+  );
+  const dominantCategory = useMemo(
+    () => selectDominantRankingCategory(uiState),
+    [uiState],
+  );
+  const weakestCategory = useMemo(
+    () => selectWeakestRankingFocus(uiState),
     [uiState],
   );
   const categoryGroups = useMemo(
@@ -170,7 +180,7 @@ export function RankingPage() {
           <div>
             <p className="eyebrow">Resumen de poder</p>
             <h3>Lectura rapida de Ranking</h3>
-            <p>La cabina resume poder, categorias y comparativas demo sin crear un ladder publico.</p>
+            <p>Esta cabina no publica ranking global ni recompensas.</p>
           </div>
           <UiBadge tone="warn">{cockpitStatusLabels.readOnly}</UiBadge>
         </div>
@@ -178,27 +188,27 @@ export function RankingPage() {
           <section className="subpanel figma-subpanel alliance-summary-card">
             <p className="eyebrow">{rankingLabels.powerIndex}</p>
             <strong>{uiState?.summary?.totalPowerIndexLabel ?? "Sin lectura"}</strong>
-            <span>{primaryAction}</span>
+            <span>La clasificacion actual se calcula desde el escenario demo.</span>
           </section>
           <section className="subpanel figma-subpanel alliance-summary-card">
-            <p className="eyebrow">Civilizacion</p>
-            <strong>{uiState?.identity?.civilizationName ?? "Sin contexto cargado"}</strong>
-            <span>{uiState?.identity?.displayName ?? rankingLabels.unclassifiedMetric}</span>
+            <p className="eyebrow">Potencia total</p>
+            <strong>{uiState?.summary?.totalPowerIndexLabel ?? "Sin lectura"}</strong>
+            <span>{uiState?.publication?.stateLabel ?? rankingLabels.unpublishedRanking}</span>
           </section>
           <section className="subpanel figma-subpanel alliance-summary-card">
-            <p className="eyebrow">Estado</p>
-            <strong>{uiState?.publication?.stateLabel ?? rankingLabels.unpublishedRanking}</strong>
-            <span>{uiState?.publication?.summaryLabel ?? rankingLabels.unpublishedRanking}</span>
+            <p className="eyebrow">Categoria dominante</p>
+            <strong>{dominantCategory}</strong>
+            <span>{uiState?.summary?.recommendationLabel ?? rankingLabels.unclassifiedMetric}</span>
           </section>
           <section className="subpanel figma-subpanel alliance-summary-card">
-            <p className="eyebrow">Comparativas demo</p>
-            <strong>{uiState?.comparisons.length ?? 0}</strong>
+            <p className="eyebrow">Area a reforzar</p>
+            <strong>{weakestCategory}</strong>
+            <span>{rankingLabels.unclassifiedMetric}</span>
+          </section>
+          <section className="subpanel figma-subpanel alliance-summary-card">
+            <p className="eyebrow">Comparativa demo</p>
+            <strong>{uiState?.comparisons[0]?.totalPowerIndexLabel ?? "Sin lectura"}</strong>
             <span>{rankingLabels.demoComparison}</span>
-          </section>
-          <section className="subpanel figma-subpanel alliance-summary-card">
-            <p className="eyebrow">Futuro visible</p>
-            <strong>{uiState?.futureActions.length ?? 0}</strong>
-            <span>{rankingLabels.futureSeason}</span>
           </section>
           <section className="subpanel figma-subpanel alliance-summary-card">
             <p className="eyebrow">Foco recomendado</p>
@@ -206,6 +216,9 @@ export function RankingPage() {
             <span>{primaryAction}</span>
           </section>
         </div>
+        <p className="ranking-summary-note">
+          Esta cabina no publica ranking global ni recompensas. La clasificacion actual se calcula desde el escenario demo.
+        </p>
       </UiCard>
 
       <div className="strategic-cockpit-top">

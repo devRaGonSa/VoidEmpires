@@ -427,6 +427,26 @@ export function selectRecommendedRankingFocus(viewModel: RankingUiState | null) 
   return topCategory?.label ?? viewModel.summary.recommendationLabel;
 }
 
+export function selectDominantRankingCategory(viewModel: RankingUiState | null) {
+  if (!viewModel?.summary?.categories.length) {
+    return rankingStaticLabels.unclassifiedMetric;
+  }
+
+  return [...viewModel.summary.categories]
+    .sort((left, right) => right.score - left.score)[0]?.label
+    ?? rankingStaticLabels.unclassifiedMetric;
+}
+
+export function selectWeakestRankingFocus(viewModel: RankingUiState | null) {
+  if (!viewModel?.summary?.categories.length) {
+    return "Area a reforzar pendiente de clasificar";
+  }
+
+  return [...viewModel.summary.categories]
+    .sort((left, right) => left.score - right.score)[0]?.label
+    ?? "Area a reforzar pendiente de clasificar";
+}
+
 export function getRankingPrimaryAction(viewModel: RankingUiState | null) {
   if (!viewModel) {
     return rankingStaticLabels.powerIndex;

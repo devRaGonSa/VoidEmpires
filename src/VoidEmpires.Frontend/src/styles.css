@@ -2072,6 +2072,13 @@ select {
   color: color-mix(in srgb, var(--ve-color-text) 76%, var(--ve-color-muted));
 }
 
+.ranking-summary-note {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px dashed color-mix(in srgb, var(--ve-color-border) 30%, transparent);
+  color: color-mix(in srgb, var(--ve-color-text) 80%, var(--ve-color-muted));
+}
+
 .alliance-catalog-grid,
 .alliance-catalog-card-grid {
   display: grid;
