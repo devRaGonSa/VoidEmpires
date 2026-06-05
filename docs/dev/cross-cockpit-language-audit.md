@@ -56,6 +56,22 @@ Preferred replacements:
 - These are acceptable as safety nets, but they read like unfinished content and should surface only as secondary guidance or diagnostics.
 - References: `src/VoidEmpires.Frontend/src/utils/researchPresentation.ts`, `src/VoidEmpires.Frontend/src/utils/shipyardPresentation.ts`, `src/VoidEmpires.Frontend/src/utils/groundArmyPresentation.ts`, `src/VoidEmpires.Frontend/src/utils/defensePresentation.ts`.
 
+### Final Visual QA Audit Snapshot (Ranking/Alliance/Market)
+
+- Ruta revisada: `/ranking` -> resultado: carga correcta, cabina visible, **bloqueante por copy visible** (`Void Seed Civilization | current`, `Delta`, texto técnico de referencia).
+- Ruta revisada: `/alliance` -> resultado: carga correcta, cabina visible, **bloqueante por copia inglesa y fallback técnico visible** (`Alliance cockpit remains read-only in this phase`, `Lectura diplomatica pendiente de clasificar | 0000000`).
+- Ruta revisada: `/market` -> resultado: carga correcta, cabina visible, **bloqueante por copy repetido** (`Recurso no clasificado`) en estado primario.
+- Ruta revisada: `/espionage` -> resultado: aceptable en capturas revisadas.
+- Ruta revisada: `/galaxy` -> resultado: aceptable en capturas revisadas.
+- Estados de bloqueo para cierre visual final:
+  - Inglés visible en Ranking.
+  - Inglés visible en Alliance.
+  - Fallback con ID/fuerte técnico en UI primaria de Alliance.
+  - Repetición de `Recurso no clasificado` en Market.
+- Estado de frontera del bloque:
+  - Correcciones de texto/fallback están pendientes de ejecutar en este bloque.
+  - La aceptación visual final debe seguir siendo validada por el usuario con captura de pantalla.
+
 ## Follow-Up Priorities
 
 1. Remove mixed English or architecture labels from first-viewport headings.
