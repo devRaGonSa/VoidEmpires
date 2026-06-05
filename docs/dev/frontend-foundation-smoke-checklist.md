@@ -28,6 +28,7 @@ Use this baseline before changing route loading or Vite chunking:
 Use these checks after route-level lazy loading lands:
 
 - `npm run build --prefix src/VoidEmpires.Frontend` should emit route chunks for the accepted cockpits instead of one oversized application chunk.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` should print `Frontend route lazy-import guard passed.`
 - After the current lazy-loading pass, the build should stay on Vite defaults without the old `500 kB` warning; reintroducing that warning is a regression for this block.
 - Treat this block as a loading-architecture change only; accepted gameplay behavior, backend calls, and route URLs must remain unchanged.
 - `/` and `/galaxy` must still resolve to the accepted Galaxy cockpit, not a blank shell or a broken redirect.

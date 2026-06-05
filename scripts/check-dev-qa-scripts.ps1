@@ -58,6 +58,11 @@ if ($parseFailures.Count -gt 0) {
     throw "PowerShell parser errors were found:`n$($parseFailures -join [Environment]::NewLine)"
 }
 
+$frontendRouteGuardPath = Join-Path $PSScriptRoot "check-frontend-route-lazy-imports.ps1"
+if (Test-Path -LiteralPath $frontendRouteGuardPath) {
+    & $frontendRouteGuardPath
+}
+
 function Assert-ResourceSummaryContains {
     param(
         [Parameter(Mandatory = $true)]
