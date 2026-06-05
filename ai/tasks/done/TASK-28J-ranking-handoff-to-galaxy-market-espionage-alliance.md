@@ -3,7 +3,7 @@
 ---
 id: TASK-28J
 title: Add Ranking handoff navigation to neighboring strategic modules
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

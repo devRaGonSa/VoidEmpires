@@ -27,6 +27,36 @@ import {
 } from "../utils/routeUrls";
 
 const rankingLabels = getRankingStaticLabels();
+const rankingHandoffCards = [
+  {
+    key: "galaxy",
+    label: "Galaxia",
+    title: "Vista estrategica",
+    description: "Recupera el sistema, la visibilidad y el frente que sostienen la lectura de inteligencia y expansion.",
+    ctaLabel: "Volver a Galaxia",
+  },
+  {
+    key: "market",
+    label: "Mercado",
+    title: "Economia visible",
+    description: "Explica reservas, produccion y presion comercial que alimentan la potencia economica.",
+    ctaLabel: "Abrir Mercado",
+  },
+  {
+    key: "espionage",
+    label: "Espionaje",
+    title: "Cobertura e inteligencia",
+    description: "Detalla visibilidad, senales pasivas y objetivos observados sin convertir Ranking en una cabina de inteligencia.",
+    ctaLabel: "Abrir Espionaje",
+  },
+  {
+    key: "alliance",
+    label: "Alianzas",
+    title: "Postura diplomatica",
+    description: "Recupera contactos, pactos visibles y limites diplomaticos que sostienen la lectura de diplomacia.",
+    ctaLabel: "Abrir Alianzas",
+  },
+] as const;
 
 function formatRankingRequestFailure(rawError: string | null | undefined) {
   const technicalDetail = rawError?.trim() || null;
@@ -547,8 +577,35 @@ export function RankingPage() {
           </div>
           <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
         </div>
+        <div className="readiness-grid">
+          {rankingHandoffCards.map((card) => {
+            const link = card.key === "galaxy"
+              ? buildGalaxyUrl(activeCivilizationId, undefined, uiState?.identity?.homePlanetId ?? null)
+              : card.key === "market"
+                ? buildMarketUrl(activeCivilizationId, uiState?.identity?.homePlanetId ?? null)
+                : card.key === "espionage"
+                  ? buildEspionageUrl(activeCivilizationId, undefined, uiState?.identity?.homePlanetId ?? null)
+                  : buildAllianceUrl(activeCivilizationId);
+
+            return (
+              <section key={card.key} className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">{card.label}</p>
+                    <h4>{card.title}</h4>
+                  </div>
+                  <UiBadge tone={card.key === "galaxy" ? "neutral" : "warn"}>{card.label}</UiBadge>
+                </div>
+                <p className="figma-panel-note">{card.description}</p>
+                <Link className={`selection-chip${card.key === "galaxy" ? " selection-chip-active" : ""}`} to={link}>
+                  {card.ctaLabel}
+                </Link>
+              </section>
+            );
+          })}
+        </div>
         <div className="selection-chip-row">
-          <Link className="selection-chip selection-chip-active" to={buildGalaxyUrl(activeCivilizationId)}>
+          <Link className="selection-chip selection-chip-active" to={buildGalaxyUrl(activeCivilizationId, undefined, uiState?.identity?.homePlanetId ?? null)}>
             Volver a Galaxia
           </Link>
           <Link className="selection-chip" to={buildMarketUrl(activeCivilizationId, uiState?.identity?.homePlanetId ?? null)}>
