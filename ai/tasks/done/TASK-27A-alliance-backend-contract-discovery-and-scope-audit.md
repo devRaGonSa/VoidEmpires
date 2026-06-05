@@ -3,7 +3,7 @@
 ---
 id: TASK-27A
 title: Audit safe backend scope for Alliance read-only diplomacy v1
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 26Z - Frontend bundle splitting and cockpit lazy-loading closure`.
+The repository is consolidated through `Phase 27A - Alliance backend contract discovery and scope audit`.
 
 ## Repository Reality
 
@@ -62,6 +62,7 @@ Current frontend cockpit baseline:
 - The current Ground Army cockpit QA flow and accepted non-combat boundary are documented in `docs/dev/ground-army-cockpit-checklist.md`.
 - The current Espionage cockpit QA flow and accepted read-only intelligence boundary are documented in `docs/dev/espionage-cockpit-checklist.md`.
 - The current seed profile catalog, discovery endpoint, deterministic ids, and QA URLs are documented in `docs/dev/development-seed-profiles.md`.
+- The current Alliance v1 backend-safe scope is now documented in `docs/dev/alliance-cockpit-checklist.md`: `Civilization` remains the correct requester identity, existing development-only alliance readiness, pact readiness, and diplomatic-contact read endpoints are safe to reuse as metadata-only inputs, and Alliance v1 must not imply membership authority, invitations, shared visibility, shared sensors, trade, war, espionage, or any mutation flow.
 
 Current intentional exclusions:
 
@@ -310,7 +311,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 26V:
+Current validated baseline after Phase 27A:
 
 - backend: `dotnet build --no-restore` succeeded
 - tests: `dotnet test --no-build` succeeded with `672` passing tests
