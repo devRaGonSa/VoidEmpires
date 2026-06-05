@@ -47,6 +47,18 @@ Compact route-loading smoke pass:
 - Treat a blank page, a shell-only screen that never resolves, or a generic loader that never yields cockpit content as a failed smoke pass.
 - `Alianza` and `Ranking` are not implemented routes in this block; verify they remain visible as future sidebar items instead of clickable cockpit routes.
 
+Compact navigation regression pass:
+
+- `Galaxy -> Planet`: open `/galaxy`, follow the seeded planet handoff, and confirm `civilizationId` and `planetId` remain present.
+- `Planet -> Construction`: open the `Construccion` handoff from `Planeta` and confirm the selected colony context is preserved.
+- `Construction -> Planet`: return to `Planeta` and confirm the same colony context still resolves.
+- `Planet -> Research`: open `Investigacion` from `Planeta` and confirm the selected colony context is preserved.
+- `Planet -> Shipyard`: open `Astillero` from `Planeta` and confirm the selected colony context is preserved.
+- `Shipyard -> Fleets`: open `Flotas` from `Astillero` and confirm the planet context still appears in the destination route.
+- `Market -> Planet/Fleets/Galaxy`: verify those three handoffs preserve the current `civilizationId` and `planetId`.
+- `Espionage -> Galaxy/Planet/Fleets`: verify those handoffs preserve the current `civilizationId` and reuse available `systemId` or `planetId` context where expected.
+- Sidebar active state must continue to track the current cockpit route, with `Galaxia` still highlighted for both `/` and `/galaxy`.
+
 ## Final Cross-Cockpit Visual Pass
 
 Use this block as the one-stop manual QA pass for the accepted shared cockpit suite after the non-visual validation commands succeed.
