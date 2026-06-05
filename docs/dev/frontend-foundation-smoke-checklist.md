@@ -11,6 +11,18 @@ For shared preferred terms and allowed limitation patterns, use `docs/dev/cockpi
 For deterministic local QA setup, use `docs/dev/development-seed-profiles.md` instead of manual SQL.
 For lightweight Espionage copy regression protection before visual QA, run `.\scripts\check-espionage-copy.ps1`.
 
+## Frontend Bundle Baseline
+
+Use this baseline before changing route loading or Vite chunking:
+
+- `npm run build --prefix src/VoidEmpires.Frontend` currently succeeds with one JS entry chunk at `551.88 kB` minified (`136.02 kB` gzip) and one CSS asset at `45.44 kB` (`7.20 kB` gzip).
+- Vite still emits the standard `Some chunks are larger than 500 kB after minification` warning during the production build.
+- The current route layer is eager: `src/App.tsx` imports `StrategicMapPage`, `PlanetPage`, `ConstructionPage`, `ResearchPage`, `ShipyardPage`, `FleetsPage`, `MarketPage`, `DefensesPage`, `GroundArmyPage`, `EspionagePage`, and `ModuleCabinPage` synchronously before routing.
+- The most obvious lazy-loading candidates are the large route modules now bundled into first load: `StrategicMapPage`, `FleetsPage`, `ShipyardPage`, `PlanetPage`, `MarketPage`, `DefensesPage`, `EspionagePage`, `ResearchPage`, and `GroundArmyPage`.
+- The shared synchronous shell should stay limited to `main.tsx`, `App.tsx`, `styles.css`, `AppShell`, route URL helpers, configuration, and the lightweight route metadata from `planetPresentation.ts`.
+- `ConstructionPage` is currently a thin wrapper over `PlanetPage`, so any route split that keeps `ConstructionPage` separate still needs to avoid duplicating the shared Planet implementation unnecessarily.
+- No chunking decision should change route paths, seeded QA URLs, shared shell navigation, or the current Spanish-first cockpit behavior.
+
 ## Final Cross-Cockpit Visual Pass
 
 Use this block as the one-stop manual QA pass for the accepted shared cockpit suite after the non-visual validation commands succeed.

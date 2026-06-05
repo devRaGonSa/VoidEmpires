@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 26B - Real persisted gameplay flow QA for Shipyard and Fleets`.
+The repository is consolidated through `Phase 26M - Frontend bundle baseline and eager import audit`.
 
 ## Repository Reality
 
@@ -53,6 +53,7 @@ Current frontend cockpit baseline:
 - Richer development seed profiles now reserve deterministic high sequence ranges for their completed queue-history rows, preventing runtime collisions when `cockpit-validation` is applied over reused development databases that already contain manual QA queue activity.
 - The development seed apply endpoint now converts persisted-state write conflicts into `409 Conflict` responses with diagnostic details instead of surfacing an unhandled runtime failure.
 - The current frontend boundary model is documented in `docs/dev/planet-module-boundaries.md`.
+- The frontend route-loading baseline is now documented in `docs/dev/frontend-performance-notes.md`: the current production build still emits one `551.88 kB` minified entry chunk plus the Vite `500 kB` warning because `App.tsx` eagerly imports the accepted cockpit page modules before routing.
 - The current Research cockpit QA flow and acceptance boundaries are documented in `docs/dev/research-cockpit-checklist.md`.
 - The current Shipyard cockpit QA flow and accepted Fleet boundary are documented in `docs/dev/shipyard-cockpit-checklist.md`.
 - The current Defenses cockpit QA flow and accepted non-combat boundary are documented in `docs/dev/defenses-cockpit-checklist.md`.
@@ -307,11 +308,12 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 26B:
+Current validated baseline after Phase 26M:
 
 - backend: `dotnet build --no-restore` succeeded
 - tests: `dotnet test --no-build` succeeded with `672` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
+- frontend bundle baseline: current Vite output is one `551.88 kB` minified JS entry chunk (`136.02 kB` gzip) plus one `45.44 kB` CSS asset (`7.20 kB` gzip), and the standard chunk-size warning still appears
 - persisted QA scripts: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` succeeded
 - frontend note: Vite still reports the existing chunk-size warning around `500 kB`, but the production build completes successfully
 - build note: `dotnet build --no-restore` can still emit transient `MSB3026` copy-retry warnings when `testhost` holds test output DLLs, but the build completes successfully and the test run remains clean
