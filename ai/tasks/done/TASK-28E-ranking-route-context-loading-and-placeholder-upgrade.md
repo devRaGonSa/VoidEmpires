@@ -3,7 +3,7 @@
 ---
 id: TASK-28E
 title: Upgrade /ranking from placeholder to context-aware read-only cockpit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

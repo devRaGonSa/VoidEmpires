@@ -61,6 +61,11 @@ const AlliancePage = lazy(async () => {
   return { default: module.AlliancePage };
 });
 
+const RankingPage = lazy(async () => {
+  const module = await import("./pages/RankingPage");
+  return { default: module.RankingPage };
+});
+
 const ModuleCabinPage = lazy(async () => {
   const module = await import("./pages/ModuleCabinPage");
   return { default: module.ModuleCabinPage };
@@ -122,6 +127,7 @@ export default function App() {
           <Route path="/market" element={<MarketPage />} />
           <Route path="/espionage" element={<EspionagePage />} />
           <Route path="/alliance" element={<AlliancePage />} />
+          <Route path="/ranking" element={<RankingPage />} />
         </Routes>
       </Suspense>
     </AppShell>

@@ -85,6 +85,10 @@ export function RankingPage() {
   );
 
   useEffect(() => {
+    document.title = "Ranking";
+  }, []);
+
+  useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
 
     async function load() {
