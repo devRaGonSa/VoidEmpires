@@ -41,6 +41,10 @@ export function buildMarketUrl(civilizationId: string, planetId?: string | null)
   return buildUrl("/market", { civilizationId, planetId });
 }
 
+export function buildAllianceUrl(civilizationId: string) {
+  return buildUrl("/alliance", { civilizationId });
+}
+
 export function buildDefensesUrl(civilizationId: string, planetId?: string | null) {
   return buildUrl("/defenses", { civilizationId, planetId });
 }
@@ -63,6 +67,10 @@ export function buildEspionageUrl(
   planetId?: string | null,
 ) {
   return buildUrl("/espionage", { civilizationId, systemId, planetId });
+}
+
+export function buildRankingUrl(civilizationId?: string | null) {
+  return buildUrl("/ranking", { civilizationId });
 }
 
 export function buildSpecializedModuleUrl(

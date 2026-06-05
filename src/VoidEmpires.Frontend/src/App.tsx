@@ -4,7 +4,7 @@ import { appConfig } from "./config";
 import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
 import { AppShell } from "./components/ui/AppShell";
 import { specializedPlanetModuleRoutes } from "./utils/planetModuleRoutes";
-import { buildEspionageUrl, buildGalaxyUrl, buildMarketUrl } from "./utils/routeUrls";
+import { buildAllianceUrl, buildEspionageUrl, buildGalaxyUrl, buildMarketUrl } from "./utils/routeUrls";
 
 const StrategicMapPage = lazy(async () => {
   const module = await import("./pages/StrategicMapPage");
@@ -56,6 +56,11 @@ const MarketPage = lazy(async () => {
   return { default: module.MarketPage };
 });
 
+const AlliancePage = lazy(async () => {
+  const module = await import("./pages/AlliancePage");
+  return { default: module.AlliancePage };
+});
+
 const ModuleCabinPage = lazy(async () => {
   const module = await import("./pages/ModuleCabinPage");
   return { default: module.ModuleCabinPage };
@@ -68,7 +73,7 @@ const sidebarItems = [
   ...specializedPlanetModuleRoutes.map((route) => ({ label: route.label, to: route.path, state: "implemented" as const })),
   { label: "Flotas", to: "/fleets", state: "implemented" },
   { label: "Espionaje", to: buildEspionageUrl("00000000-0000-0000-0000-000000000001"), state: "implemented" },
-  { label: "Alianza", state: "future" },
+  { label: "Alianza", to: buildAllianceUrl("00000000-0000-0000-0000-000000000001"), state: "implemented" },
   { label: "Mercado", to: buildMarketUrl("00000000-0000-0000-0000-000000000001"), state: "implemented" },
   { label: "Ranking", state: "future" },
 ] as const;
@@ -116,6 +121,7 @@ export default function App() {
           <Route path="/fleets" element={<FleetsPage />} />
           <Route path="/market" element={<MarketPage />} />
           <Route path="/espionage" element={<EspionagePage />} />
+          <Route path="/alliance" element={<AlliancePage />} />
         </Routes>
       </Suspense>
     </AppShell>

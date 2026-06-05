@@ -3,7 +3,7 @@
 ---
 id: TASK-27E
 title: Upgrade /alliance from placeholder to context-aware read-only cockpit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
