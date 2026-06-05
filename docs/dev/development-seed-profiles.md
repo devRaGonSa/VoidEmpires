@@ -57,6 +57,7 @@ Operational guidance:
 - `cockpit-validation` is now also verified against real manual Construction and Research orders created through the supported dev endpoints; reapplying the profile preserves those active manual rows while still avoiding duplicate seeded history rows.
 - `cockpit-validation` is now also verified against a real manual Shipyard enqueue on a reused Development database; reapplying the profile preserves the active orbital production order, avoids duplicating seeded completed Shipyard history, and keeps Shipyard UI-state readable afterward.
 - `cockpit-validation` now also seeds one deterministic diplomatic contact row for the requesting civilization so Alliance can render a stable read-only contact baseline without creating any real alliance, pact, invitation, or membership state.
+- Pair Alliance QA with `docs/dev/alliance-cockpit-checklist.md` so the seeded route, disabled future-action expectations, and explicit diplomacy exclusions stay aligned.
 - Richer profiles reserve high sequence ranges for their completed queue-history seed rows, avoiding collisions with pre-existing manual queue activity without resetting the database.
 - Do not use manual SQL for the standard Galaxy, Planet, Construction, Research, Shipyard, Fleet, or Market QA flows.
 - Use a fresh disposable local database only when you need the exact original pre-mutation baseline.
@@ -181,6 +182,7 @@ Expected Alliance result for screenshot QA:
 - no active alliance is shown for the requesting civilization
 - one deterministic diplomatic contact remains visible for the read-only contact catalog
 - future pact and future action placeholders remain visible and disabled
+- handoff links toward `Galaxia`, `Mercado`, and `Espionaje` remain visible
 - no alliance, pact, invitation, membership, or messaging mutation is seeded
 
 Expected Market result for screenshot QA:

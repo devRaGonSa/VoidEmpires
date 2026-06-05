@@ -14,6 +14,7 @@ This guide documents the current frontend boundary model for the planet-related 
 - `/defenses`: specialized defenses cockpit foundation with readiness, structures, option state, and no combat execution.
 - `/fleets`: fleet command cockpit and route context hub.
 - `/espionage`: read-only intelligence cockpit foundation with grouped targets, passive signals, disabled future missions, and no active spy execution.
+- `/alliance`: read-only diplomacy cockpit foundation with identity, alliance status, contact visibility, disabled future pact or action placeholders, and no alliance gameplay execution.
 
 ## Do Not Mix
 
@@ -26,6 +27,7 @@ This guide documents the current frontend boundary model for the planet-related 
 - Do not treat `/market` as a buy, sell, auction, player-trade, or route-execution surface.
 - Do not treat `/defenses` as a combat, interception, fleet-command, or shield-simulation surface.
 - Do not treat `/espionage` as a mission-launch, sabotage, theft, or counter-espionage execution surface.
+- Do not treat `/alliance` as an alliance creation, invitation, membership-management, pact-execution, treasury, role-management, or chat surface.
 
 ## Current placeholder model
 
@@ -38,6 +40,7 @@ This guide documents the current frontend boundary model for the planet-related 
 - `Mercado v1` now also sits between placeholder and full gameplay: it supports read-only economy analysis, advisory ratios, trade-signal visibility, disabled future operations, and cross-cockpit handoffs, but it does not execute any market transaction.
 - `Defensas v1` now sits between placeholder and full gameplay: it supports readiness, structure visibility, defensive option visibility, queue context, and handoff guidance, but combat and complete-due execution remain intentionally unavailable in the cockpit.
 - `Espionaje v1` now sits between placeholder and full gameplay: it supports read-only intelligence analysis, grouped targets, passive signal context, and disabled future mission placeholders, but active mission execution remains intentionally unavailable in the cockpit.
+- `Alianza v1` now also sits between placeholder and full gameplay: it supports read-only diplomatic identity, status, contact visibility, disabled pact and action placeholders, and cross-cockpit handoffs, but it does not execute alliance gameplay.
 
 ## Seeded QA URLs
 
@@ -49,3 +52,4 @@ This guide documents the current frontend boundary model for the planet-related 
 - Market cockpit: `/market?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Defenses cockpit: `/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
 - Espionage cockpit: `/espionage?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Alliance cockpit: `/alliance?civilizationId=00000000-0000-0000-0000-000000000001`

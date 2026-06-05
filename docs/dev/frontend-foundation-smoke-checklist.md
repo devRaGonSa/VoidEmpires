@@ -3,7 +3,7 @@
 Use this checklist to validate the current frontend prototype without confusing it with production UI.
 
 For the current Fleet estimate -> confirm -> create-transfer -> confirm -> cancel-transfer or complete-due paths, pair this document with `docs/dev/fleet-controlled-mutation-checklist.md`.
-For the current Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Market, Defenses, and Espionage cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md`, `docs/dev/planet-cockpit-checklist.md`, `docs/dev/construction-cockpit-checklist.md`, `docs/dev/research-cockpit-checklist.md`, `docs/dev/ground-army-cockpit-checklist.md`, `docs/dev/shipyard-cockpit-checklist.md`, `docs/dev/market-cockpit-checklist.md`, `docs/dev/defenses-cockpit-checklist.md`, and `docs/dev/espionage-cockpit-checklist.md`.
+For the current Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Market, Defenses, Espionage, and Alliance cockpit review, also pair this document with `docs/dev/strategic-map-cockpit-checklist.md`, `docs/dev/planet-cockpit-checklist.md`, `docs/dev/construction-cockpit-checklist.md`, `docs/dev/research-cockpit-checklist.md`, `docs/dev/ground-army-cockpit-checklist.md`, `docs/dev/shipyard-cockpit-checklist.md`, `docs/dev/market-cockpit-checklist.md`, `docs/dev/defenses-cockpit-checklist.md`, `docs/dev/espionage-cockpit-checklist.md`, and `docs/dev/alliance-cockpit-checklist.md`.
 Use the dedicated espionage checklist for the route-specific pass on grouped targets, passive signals, disabled future missions, and cross-cockpit handoffs.
 For the current module boundary model and placeholder responsibilities, also pair this document with `docs/dev/planet-module-boundaries.md`.
 For cross-cockpit wording cleanup, use `docs/dev/cross-cockpit-language-audit.md` as the source of truth before changing visible copy.
@@ -37,15 +37,15 @@ Use these checks after route-level lazy loading lands:
 - The shared shell must remain visible while a lazy route resolves; only the page content area should swap to the loading state.
 - The route-loading fallback must stay Spanish-first and read as a loading state: `Carga en progreso`, `Cambio de cabina`, and `Cargando cabina...`.
 - Missing-context, empty-state, and disabled-action copy inside each cockpit must still appear after the lazy import resolves; route splitting must not replace those states with a generic loader forever.
-- Current future-state navigation items such as `Alianza` and `Ranking` must remain non-clickable future entries in the sidebar rather than turning into broken links.
+- `Alianza` must remain a lazy-loaded implemented route with explicit read-only framing, and `Ranking` must remain a non-clickable future entry in the sidebar rather than turning into a broken link.
 
 Compact route-loading smoke pass:
 
-- Open `/galaxy`, `/planet`, `/construction`, `/research`, `/shipyard`, `/fleets`, `/defenses`, `/ground-army`, `/espionage`, and `/market` from the shared shell.
+- Open `/galaxy`, `/planet`, `/construction`, `/research`, `/shipyard`, `/fleets`, `/defenses`, `/ground-army`, `/espionage`, `/alliance`, and `/market` from the shared shell.
 - If a route resolves slowly, expect the Spanish loading state rather than a blank page: `Carga en progreso`, `Cambio de cabina`, `Cargando cabina...`.
 - After the loader clears, expect the target cockpit to render its usual first viewport and keep diagnostics secondary where that cockpit already uses collapsible diagnostics.
 - Treat a blank page, a shell-only screen that never resolves, or a generic loader that never yields cockpit content as a failed smoke pass.
-- `Alianza` and `Ranking` are not implemented routes in this block; verify they remain visible as future sidebar items instead of clickable cockpit routes.
+- `Alianza` is now an implemented read-only route; verify the sidebar keeps it navigable but marked as `Solo lectura`, while `Ranking` remains a visible future sidebar item.
 
 Compact navigation regression pass:
 
@@ -57,6 +57,7 @@ Compact navigation regression pass:
 - `Shipyard -> Fleets`: open `Flotas` from `Astillero` and confirm the planet context still appears in the destination route.
 - `Market -> Planet/Fleets/Galaxy`: verify those three handoffs preserve the current `civilizationId` and `planetId`.
 - `Espionage -> Galaxy/Planet/Fleets`: verify those handoffs preserve the current `civilizationId` and reuse available `systemId` or `planetId` context where expected.
+- `Alliance -> Galaxy/Market/Espionage`: verify those handoffs preserve the current `civilizationId` and reuse homeworld context where the destination route supports it.
 - Sidebar active state must continue to track the current cockpit route, with `Galaxia` still highlighted for both `/` and `/galaxy`.
 
 ## Final Cross-Cockpit Visual Pass
@@ -142,10 +143,15 @@ Then open and compare these deterministic routes:
    Expected primary state: `Helios Gate` loads with owned `Aurelia`, visible comparison targets, passive signal cards, grouped intelligence, and disabled future mission placeholders.
    No-go: no mission execution cues, no fake real-time surveillance language, no visible English technical strings outside collapsed diagnostics, and no raw backend diagnostics in the first viewport.
    Screenshot target: grouped target catalog plus passive signals or future-missions strip in the same frame.
+11. Alliance
+   URL: `/alliance?civilizationId=00000000-0000-0000-0000-000000000001`
+   Expected primary state: `Void Seed Civilization` loads with visible diplomatic identity, `Sin alianza activa`, one deterministic contact row, disabled future pact and action placeholders, and visible handoffs toward neighboring read-only cockpits.
+   No-go: no executable alliance actions, no membership-authority implication, no raw ids leading the page, and no expanded diagnostics in the first viewport.
+   Screenshot target: diplomatic summary plus known contact and disabled future-action strip in the same frame.
 
 Cross-cockpit comparison checks:
 
-- Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Market, Fleets, Defenses, and Espionage all open from the shared `cockpit-validation` baseline without shell-only or near-empty regressions.
+- Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Market, Fleets, Defenses, Espionage, and Alliance all open from the shared `cockpit-validation` baseline without shell-only or near-empty regressions.
 - Route helpers preserve `civilizationId` and `planetId` when moving between the accepted cockpit links.
 - Galaxy remains read-only while Planet, Construction, Research, Shipyard, and Fleets keep their current guarded mutation boundaries.
 - Diagnostics stay collapsed or clearly secondary across the cockpit routes.
@@ -158,7 +164,7 @@ Market-specific visual audit note:
 - Use `docs/dev/market-cockpit-checklist.md` as the source of truth for the current Market QA target list before changing copy or hierarchy.
 - Treat a dev-loader-first first viewport, duplicated diagnostics, or action-like future Market wording as a failed visual pass even if the route remains technically read-only.
 - Treat route placeholders that overshadow the economy summary or resemble executable logistics controls as a failed Market visual pass.
-- Confirm the shared sidebar marks `Mercado` as an implemented cockpit when `/market` is active, while `Alianza` and `Ranking` remain visibly future-facing.
+- Confirm the shared sidebar marks `Mercado` as an implemented cockpit when `/market` is active, `Alianza` as a navigable `Solo lectura` cockpit when `/alliance` is active, and `Ranking` as a future-facing placeholder.
 - Keep the final Market verdict honest: polished read-only baseline implemented, screenshot-backed visual acceptance still user-driven.
 
 ## Ground Army Block Closure Pass
@@ -319,7 +325,7 @@ Neighbor cockpit regression checkpoints:
 Use this narrow final pass before declaring the polish block ready for user visual QA:
 
 1. Reapply `cockpit-validation` twice.
-2. Open `Galaxy`, `Planet`, `Construction`, `Research`, `Shipyard`, `Fleets`, `Defenses`, `Ground Army`, `Espionage`, and `Market` in that order.
+2. Open `Galaxy`, `Planet`, `Construction`, `Research`, `Shipyard`, `Fleets`, `Defenses`, `Ground Army`, `Espionage`, `Alliance`, and `Market` in that order.
 3. Confirm each cockpit renders its expected primary state without blank shells, broken handoffs, or horizontal overflow.
 4. Confirm primary UI copy stays gameplay-facing and no obvious raw technical wording dominates the first viewport.
 5. Confirm diagnostics stay collapsed by default or clearly secondary on every accepted cockpit route.
@@ -414,9 +420,10 @@ Shipyard cockpit v1 visual review:
 - `/defenses` behaves as a readiness cockpit foundation, not a placeholder and not a combat surface.
 - `/shipyard` behaves as a development-safe cockpit foundation with guarded enqueue, disabled complete-due, and explicit Fleet boundaries.
 - `/market` behaves as a read-only economy cockpit foundation with advisory ratios, visible trade signals, disabled future actions, and no transaction execution.
+- `/alliance` behaves as a read-only diplomacy cockpit foundation with visible identity, known contacts, disabled future pact and action placeholders, visible handoffs, and no alliance gameplay execution.
 - `Galaxy` remains read-only.
 - `Fleets` still preserves context and read-only command flow.
-- `Espionage` remains read-only and `Market` remains read-only.
+- `Espionage` remains read-only, `Alliance` remains read-only, and `Market` remains read-only.
 - No 3D/WebGL renderer is introduced.
 - Diagnostics stay collapsed by default on the cockpit routes.
 

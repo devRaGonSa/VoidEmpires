@@ -174,26 +174,27 @@ The current strategic-map notes already reinforce this boundary in [src/VoidEmpi
 
 Current seed reality:
 
-- [src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs) does not currently seed alliance, pact, or diplomatic-contact rows for the standard cockpit profiles.
+- [src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs) now seeds one deterministic diplomatic-contact row for `cockpit-validation` so the Alliance cockpit has a stable read-only baseline without creating alliances, pacts, invitations, or memberships.
 
 What already exists:
 
 - minimal persisted domain models
 - read-only query services
 - dev-only read endpoints
+- one consolidated development-only Alliance UI-state endpoint
 - endpoint and query tests
 - strategic-map metadata integration
 
 Current gap:
 
-- there is no Alliance-specific seeded QA baseline yet
-- there is no single cockpit-shaped Alliance aggregate endpoint yet
+- there is still no seeded active alliance, pact execution, invitation, or membership-management baseline
+- there is still no production Alliance API or gameplay authority
 
 Recommendation for later tasks:
 
-- prefer first reusing the existing three development-only read endpoints from the frontend
-- if the frontend needs one consolidated payload for loading simplicity, add a tiny development-only Alliance read-model endpoint that composes the existing query services without introducing new persistence or mutation behavior
-- add deterministic seed data only when the frontend route needs a canonical repeatable QA story
+- keep the current development-only Alliance aggregate route read-only and deterministic
+- prefer extending the existing Alliance UI-state composition rather than introducing parallel frontend-only aggregation
+- only add richer seeded diplomacy data when a future task needs a new repeatable QA story and can keep mutations out of scope
 
 ## Validation and test evidence
 
@@ -236,4 +237,71 @@ Keep the first frontend slice conservative:
 - No alliance gameplay authority.
 - No visibility or permission expansion from alliance metadata.
 - No frontend assumption that all readiness rows are active memberships.
-- No seeded Alliance QA profile in this task.
+- No seeded active alliance, pact, invitation, or messaging scenario in the current QA baseline.
+
+## Deterministic smoke route
+
+Use this seeded route for the current Alliance manual QA pass:
+
+- `/alliance?civilizationId=00000000-0000-0000-0000-000000000001`
+
+Before visual review, reapply `cockpit-validation` twice so reused local databases recover the deterministic Alliance baseline:
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:5142/api/dev/seeds/apply" `
+  -ContentType "application/json" `
+  -Body '{"profile":"cockpit-validation"}'
+
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:5142/api/dev/seeds/apply" `
+  -ContentType "application/json" `
+  -Body '{"profile":"cockpit-validation"}'
+```
+
+Expected seeded baseline:
+
+- `Void Seed Civilization` is visible as the diplomatic identity
+- `Aurelia` remains visible as the homeworld context
+- current alliance status reads as `Sin alianza activa`
+- one deterministic known diplomatic contact is visible
+- future pact placeholders remain visible and disabled
+- future diplomacy action placeholders remain visible and disabled
+- handoff cards toward `Galaxia`, `Mercado`, and `Espionaje` remain visible
+- `Ranking` stays future-facing only and does not become an implemented route
+
+## Manual route checklist
+
+1. Open `/alliance?civilizationId=00000000-0000-0000-0000-000000000001`.
+2. Confirm civilization context is visible before diagnostics.
+3. Confirm the diplomatic summary reads as read-only and does not imply membership authority.
+4. Confirm the current status area shows `Sin alianza activa` for the seeded baseline.
+5. Confirm the contact or readiness catalog shows at least one deterministic known contact.
+6. Confirm future pact rows stay visible but disabled.
+7. Confirm future diplomacy action rows stay visible but disabled.
+8. Confirm handoff links toward `Galaxia`, `Mercado`, and `Espionaje` are visible.
+9. Confirm `Ranking` remains clearly unavailable or future-facing.
+10. Confirm diagnostics stay collapsed by default and do not dominate the first viewport.
+
+No-go outcomes:
+
+- any visible create, join, leave, invite, accept, reject, kick, role-change, treasury, chat, or messaging action
+- wording that implies active alliance gameplay, treaty execution, or shared authority
+- no-contact empty-state copy when the deterministic seed contact is present
+- raw ids or raw backend payload wording dominating the first viewport
+- expanded diagnostics by default
+
+## Explicit exclusions to verify
+
+Treat any of these as a regression for Alliance v1:
+
+- no alliance creation flow
+- no pact execution flow
+- no invitations or applications
+- no membership or role management
+- no alliance treasury, contributions, or tax controls
+- no alliance messaging, bulletin, or chat
+- no shared visibility, sensors, fleets, market permissions, or combat authority
+- no hidden mutation endpoint surfaced through the UI
