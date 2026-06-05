@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 27A - Alliance backend contract discovery and scope audit`.
+The repository is consolidated through `Phase 27N - Current state update for Alliance cockpit v1`.
 
 ## Repository Reality
 
@@ -36,12 +36,13 @@ Current frontend cockpit baseline:
 - Market v1 now exists at `/market` as the accepted development-safe read-only economy cockpit for the current suite, with deterministic seeded `Aurelia` and `Helios Gate` context, Spanish-first economy copy, visible civilization and local reserves, selected-planet production, advisory reference ratios that stay non-executable, secondary trade-signal and future-route context, visibly disabled future market operations, explicit handoffs toward Planet, Construction, Shipyard, Fleets, and Galaxy, and one collapsed diagnostic surface that keeps technical detail secondary while making clear that buying, selling, auctions, player-to-player trading, resource mutation, and trade-route execution remain out of scope.
 - The Market visual and read-only polish block `26C-26L` is now complete for the implemented frontend baseline; no transaction gameplay was introduced, and final screenshot-backed acceptance still remains user-driven.
 - Espionage v1 now exists at `/espionage` as the accepted read-only intelligence cockpit, with deterministic seeded `Helios Gate` context, grouped intelligence coverage and target catalogs, Spanish-first signal and coverage labels, normalized future-mission cards that remain visibly disabled, collapsed diagnostics, and handoffs toward Galaxy, Planet, Fleets, and Research while keeping spy mission execution, sabotage, infiltration, counter-espionage, combat, and WebSockets out of scope.
+- Alliance v1 now exists at `/alliance` as the accepted read-only diplomacy cockpit, with deterministic seeded `Void Seed Civilization` context, visible alliance-status summary, known-contact or readiness catalog, disabled future pact and diplomacy action placeholders, collapsed diagnostics, and handoffs toward Galaxy, Market, and Espionage while keeping alliance creation, pact execution, invitations, role management, messaging, treasury controls, shared visibility, and any diplomacy mutation out of scope.
 - Fleets remains the accepted dev-cockpit foundation and now supports simple URL-based context links into Planet, Construction, and Shipyard while keeping destination context optional.
 - Query-context helpers now centralize `civilizationId` and `planetId` navigation so the cockpit links stop rebuilding URLs by hand.
 - Module-specific catalog duplication has been reduced by extracting shared planet layout components and route builders.
 - The accepted cockpit suite now shares a clearer polish baseline: primary copy is more gameplay-facing, diagnostics stay collapsed or clearly secondary, action hierarchy is more consistent, responsive overflow has been tightened, and sidebar or module-state cues better distinguish implemented versus future modules.
-- Development-only seed profiles now provide the standard QA setup path for Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, and Espionage without manual SQL.
-- `minimal-validation` remains the deterministic shared baseline, `cockpit-validation` is now the first coherent cross-cockpit demo scenario for Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, and Espionage together, and the current cockpit-specific richer profiles are `shipyard-validation`, `fleet-validation`, `research-validation`, and `planet-full-validation`.
+- Development-only seed profiles now provide the standard QA setup path for Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, Espionage, and Alliance without manual SQL.
+- `minimal-validation` remains the deterministic shared baseline, `cockpit-validation` is now the first coherent cross-cockpit demo scenario for Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, Espionage, and Alliance together, and the current cockpit-specific richer profiles are `shipyard-validation`, `fleet-validation`, `research-validation`, and `planet-full-validation`.
 - Seed profiles are additive, deterministic, idempotent, and Development-only. They restore documented baseline rows and minimums but do not destructively clear queues, extra transfers, or other user mutations.
 - The real persisted Development enqueue path is now covered for Construction, Research, and Shipyard through direct endpoint tests, negative-path coverage, resource-deduction checks, and cross-cockpit read-model regression coverage; Fleet coverage for this block remains the read-only post-Shipyard verification path.
 - `cockpit-validation` is now verified to preserve manual QA-created Construction, Research, and Shipyard orders created through the supported dev endpoints while still avoiding duplicate seeded history rows.
@@ -61,8 +62,9 @@ Current frontend cockpit baseline:
 - The current Defenses cockpit QA flow and accepted non-combat boundary are documented in `docs/dev/defenses-cockpit-checklist.md`.
 - The current Ground Army cockpit QA flow and accepted non-combat boundary are documented in `docs/dev/ground-army-cockpit-checklist.md`.
 - The current Espionage cockpit QA flow and accepted read-only intelligence boundary are documented in `docs/dev/espionage-cockpit-checklist.md`.
+- The current Alliance cockpit QA flow, seeded route, read-only behavior, and diplomacy exclusions are documented in `docs/dev/alliance-cockpit-checklist.md`.
 - The current seed profile catalog, discovery endpoint, deterministic ids, and QA URLs are documented in `docs/dev/development-seed-profiles.md`.
-- The current Alliance v1 backend-safe scope is now documented in `docs/dev/alliance-cockpit-checklist.md`: `Civilization` remains the correct requester identity, existing development-only alliance readiness, pact readiness, and diplomatic-contact read endpoints are safe to reuse as metadata-only inputs, and Alliance v1 must not imply membership authority, invitations, shared visibility, shared sensors, trade, war, espionage, or any mutation flow.
+- The current Alliance v1 backend-safe scope is now documented in `docs/dev/alliance-cockpit-checklist.md`: `Civilization` remains the correct requester identity, the consolidated development-only Alliance UI-state read path stays metadata-only, the seeded `cockpit-validation` baseline includes one deterministic diplomatic contact for repeatable `/alliance` QA, and Alliance v1 must not imply membership authority, invitations, shared visibility, shared sensors, trade, war, espionage, or any mutation flow.
 
 Current intentional exclusions:
 
@@ -75,7 +77,12 @@ Current intentional exclusions:
 - no infiltration
 - no sabotage
 - no counter-espionage execution
-- no alliances
+- no alliance gameplay authority
+- no alliance creation
+- no pact execution
+- no alliance invitations or applications
+- no alliance role management
+- no alliance messaging or treasury controls
 - no production authentication
 - no production auth
 - no production data
@@ -311,18 +318,19 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 27A:
+Current validated baseline after Phase 27N:
 
 - backend: `dotnet build --no-restore` succeeded
-- tests: `dotnet test --no-build` succeeded with `672` passing tests
+- tests: `dotnet test --no-build` succeeded with `680` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
-- frontend bundle baseline: current Vite output emits `87` transformed modules, one `179.32 kB` minified shared JS entry chunk (`58.48 kB` gzip), one `45.97 kB` CSS asset (`7.26 kB` gzip), and cockpit-specific async chunks for Galaxy, Planet, Construction, Research, Shipyard, Fleets, Defenses, Ground Army, Espionage, Market, and the module placeholder route
+- frontend bundle baseline: current Vite output emits `91` transformed modules, one `179.75 kB` minified shared JS entry chunk (`58.58 kB` gzip), one `48.63 kB` CSS asset (`7.50 kB` gzip), and cockpit-specific async chunks for Galaxy, Planet, Construction, Research, Shipyard, Fleets, Defenses, Ground Army, Espionage, Alliance, Market, and the module placeholder route
 - frontend lazy-import guard: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` succeeded
 - persisted QA scripts: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` succeeded
 - frontend note: the old Vite `500 kB` chunk-size warning is no longer present after the route-lazy-loading pass, but accepted cockpit route QA remains required because the block changes loading architecture rather than gameplay behavior
 - build note: `dotnet build --no-restore` can still emit transient `MSB3026` copy-retry warnings when `testhost` holds test output DLLs, but the build completes successfully and the test run remains clean
 - Manual visual QA for the accepted cross-cockpit demo flow remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; the Browser runtime was unavailable in this session, so final screenshot-style acceptance is still user-driven.
 - Market visual and read-only polish is now implemented and documented through the seeded browser checklists; final screenshot-backed acceptance still remains user-driven, and the block did not expand Market into transaction gameplay or production behavior.
+- Alliance read-only diplomacy validation is now implemented and documented through the seeded browser checklists; final screenshot-backed acceptance still remains user-driven, and the block did not expand Alliance into executable diplomacy gameplay.
 
 Current validated cockpit QA seed baseline:
 
@@ -330,7 +338,7 @@ Current validated cockpit QA seed baseline:
 - `GET /api/dev/seeds/profiles` exposes the current profile catalog for Development-only discovery.
 - Standard manual QA should start from the documented seed profiles rather than ad hoc SQL.
 - The documented canonical seeded Galaxy QA path is `/galaxy?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`, while `/?...` remains a compatibility alias.
-- `cockpit-validation` now restores a non-empty, focusable, read-only Galaxy baseline alongside the accepted Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, and Espionage cockpit flows.
+- `cockpit-validation` now restores a non-empty, focusable, read-only Galaxy baseline alongside the accepted Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, Espionage, and Alliance cockpit flows.
 - Reapplying richer seed profiles after manual QA queue activity is now supported without colliding on persisted queue `Sequence` uniqueness.
 - The real persisted Construction enqueue path is now covered through backend tests, backend-only helper scripts, and the central persisted-flow runbook.
 - The real persisted Research enqueue path is now covered through backend tests, backend-only helper scripts, and the central persisted-flow runbook.
@@ -345,6 +353,7 @@ Current validated cockpit QA seed baseline:
 - `cockpit-validation` now also seeds meaningful Defenses readiness through a visible `DefenseGrid` on `Aurelia` while keeping defense queue completion and combat behavior out of scope.
 - `cockpit-validation` now also seeds meaningful Ground Army readiness through a visible `Barracks`, one deterministic available `PatrolGroup` path, blocked comparison options, and completed planetary training history on `Aurelia` while keeping combat, invasion, and complete-due execution out of scope.
 - `cockpit-validation` now also seeds meaningful Espionage readiness through shared `Helios Gate` visibility, owned `Aurelia`, visible comparison targets, at least one transfer-derived passive signal, Spanish-first visible copy, disabled future mission cards, and collapsed diagnostics while keeping missions, sabotage, infiltration, counter-espionage, combat, WebSockets, and production auth out of scope.
+- `cockpit-validation` now also seeds meaningful Alliance readiness through `Void Seed Civilization`, `Aurelia` homeworld context, one deterministic diplomatic contact row, disabled future pact and diplomacy placeholders, and deterministic `/alliance` routing while keeping alliance, pact, invitation, role, treasury, and messaging gameplay out of scope.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, the minimal exploration mission lifecycle, the current Planet or Construction cockpit readability baseline, the minimal-validation Research seed readiness path, the development Research UI-state endpoint baseline, the full seeded Research enqueue smoke path through queue refresh, the development Shipyard UI-state endpoint baseline, the scoped Shipyard enqueue endpoint path, and the strengthened minimal-validation Shipyard seed expectations.
 
