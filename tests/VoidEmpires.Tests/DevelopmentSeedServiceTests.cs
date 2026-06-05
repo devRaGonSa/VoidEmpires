@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Development;
 using VoidEmpires.Application.Markets;
+using VoidEmpires.Application.Rankings;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Assets;
@@ -15,6 +16,7 @@ using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Development;
 using VoidEmpires.Infrastructure.Markets;
 using VoidEmpires.Infrastructure.Persistence;
+using VoidEmpires.Infrastructure.Rankings;
 using VoidEmpires.Infrastructure.StrategicMap;
 using VoidEmpires.Infrastructure.Visuals;
 
@@ -99,7 +101,9 @@ public class DevelopmentSeedServiceTests
         Assert.Contains(result.ProfileMetadata.IntendedCockpits, x => x == "Market");
         Assert.Contains(result.ProfileMetadata.IntendedCockpits, x => x == "Defenses");
         Assert.Contains(result.ProfileMetadata.IntendedCockpits, x => x == "Ground Army");
+        Assert.Contains(result.ProfileMetadata.IntendedCockpits, x => x == "Ranking");
         Assert.Contains(result.ProfileMetadata.RecommendedQaUrls, x => x.StartsWith("/market?", StringComparison.Ordinal));
+        Assert.Contains(result.ProfileMetadata.RecommendedQaUrls, x => x.StartsWith("/ranking?", StringComparison.Ordinal));
         Assert.Contains(result.ProfileMetadata.RecommendedQaUrls, x => x.StartsWith("/espionage?", StringComparison.Ordinal));
         Assert.Contains(result.ProfileMetadata.RecommendedQaUrls, x => x.StartsWith("/defenses?", StringComparison.Ordinal));
         Assert.Contains(result.ProfileMetadata.RecommendedQaUrls, x => x.StartsWith("/ground-army?", StringComparison.Ordinal));
@@ -185,6 +189,51 @@ public class DevelopmentSeedServiceTests
         Assert.Contains(market.Market.CivilizationReserves, x => x.ResourceType == ResourceType.Credits && x.Quantity >= 220);
         Assert.Contains(market.Market.SelectedPlanetReserves, x => x.ResourceType == ResourceType.Metal && x.Quantity >= 320);
         Assert.Contains(market.Market.Limitations, x => x.Contains("read-only", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task CockpitValidationSeedSupportsRankingUiStateAfterReapply()
+    {
+        await using var dbContext = CreateDbContext();
+        var seedService = new DevelopmentSeedService(dbContext);
+
+        _ = await seedService.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+        _ = await seedService.ApplyAsync(new ApplyDevelopmentSeedRequest("cockpit-validation"));
+
+        var ranking = await new DevRankingUiStateService(dbContext, CreateStrategicMapService(dbContext))
+            .GetAsync(new GetDevRankingUiStateRequest(CivilizationId));
+
+        Assert.Empty(ranking.Errors);
+        Assert.NotNull(ranking.Identity);
+        Assert.NotNull(ranking.Summary);
+        Assert.NotNull(ranking.Diagnostics);
+        Assert.Equal(CivilizationId, ranking.Identity.CivilizationId);
+        Assert.Equal("Void Seed Civilization", ranking.Identity.CivilizationName);
+        Assert.True(ranking.Summary.TotalPowerIndex > 0);
+        Assert.Contains(ranking.Summary.Categories, x => x.CategoryKey == "economicPower" && x.Score > 0);
+        Assert.Contains(ranking.Summary.Categories, x => x.CategoryKey == "orbitalCapacity" && x.Score > 0);
+        Assert.Equal(3, ranking.DemoComparisons.Count);
+        Assert.Equal(3, ranking.FuturePlaceholders.Count);
+        Assert.Equal(3, ranking.DisabledActions.Count);
+        Assert.All(ranking.DemoComparisons, x => Assert.True(x.IsDemoOnly));
+        Assert.All(ranking.DisabledActions, x => Assert.False(x.IsAvailable));
+        Assert.Contains(ranking.Limitations, x => x.Contains("read-only", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal(1, await dbContext.Set<DiplomaticContact>().CountAsync(x =>
+            x.CivilizationId == CivilizationId &&
+            x.ContactedCivilizationId == SeedDiplomaticContactCivilizationId &&
+            x.Status == DiplomaticContactStatus.Contacted));
+        Assert.Equal(1, await dbContext.Set<ResearchOrder>().CountAsync(x =>
+            x.CivilizationId == CivilizationId &&
+            x.ResearchType == ResearchType.EnergySystems &&
+            x.Status == ResearchQueueItemStatus.Completed));
+        Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
+            x.PlanetId == OwnedPlanetId &&
+            x.SpaceAssetType == SpaceAssetType.ScoutCraft &&
+            x.Status == AssetProductionOrderStatus.Completed));
+        Assert.Equal(1, await dbContext.Set<AssetProductionOrder>().CountAsync(x =>
+            x.PlanetId == OwnedPlanetId &&
+            x.PlanetaryAssetType == PlanetaryAssetType.PatrolGroup &&
+            x.Status == AssetProductionOrderStatus.Completed));
     }
 
     [Fact]

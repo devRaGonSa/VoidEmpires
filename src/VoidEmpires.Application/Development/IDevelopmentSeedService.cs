@@ -88,9 +88,9 @@ public static class DevelopmentSeedProfiles
     public static readonly DevelopmentSeedProfileMetadata CockpitValidation = new(
         "cockpit-validation",
         true,
-        "Implemented today. Use this for the richer shared Aurelia-at-Helios-Gate cross-cockpit QA baseline, including Market and Espionaje read-only validation.",
-        "Additive and idempotent. Builds on minimal-validation, preserves existing queues, and adds non-blocking completed history plus richer stockpile, defense, ground-readiness, and market-read context for the same colony scenario.",
-        ["Galaxy", "Planet", "Construction", "Research", "Shipyard", "Fleets", "Market", "Defenses", "Ground Army", "Espionage"],
+        "Implemented today. Use this for the richer shared Aurelia-at-Helios-Gate cross-cockpit QA baseline, including Market, Ranking, and Espionaje read-only validation.",
+        "Additive and idempotent. Builds on minimal-validation, preserves existing queues, and adds non-blocking completed history plus richer stockpile, defense, ground-readiness, ranking-read, and market-read context for the same colony scenario.",
+        ["Galaxy", "Planet", "Construction", "Research", "Shipyard", "Fleets", "Market", "Defenses", "Ground Army", "Ranking", "Espionage"],
         [
             "/?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
             "/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
@@ -101,6 +101,7 @@ public static class DevelopmentSeedProfiles
             "/market?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
             "/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
             "/ground-army?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001",
+            "/ranking?civilizationId=00000000-0000-0000-0000-000000000001",
             "/espionage?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001"
         ],
         [

@@ -61,6 +61,8 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
         Assert.True(payload.Succeeded);
         Assert.Contains(payload.Profiles, x => x.Name == "minimal-validation" && !x.Destructive && x.Deterministic);
         Assert.Contains(payload.Profiles, x => x.Name == "cockpit-validation" && x.IntendedCockpits.Contains("Research"));
+        Assert.Contains(payload.Profiles, x => x.Name == "cockpit-validation" && x.IntendedCockpits.Contains("Ranking"));
+        Assert.Contains(payload.Profiles, x => x.Name == "cockpit-validation" && x.RecommendedQaUrls.Contains("/ranking?civilizationId=00000000-0000-0000-0000-000000000001"));
         Assert.Contains(payload.Profiles, x => x.Name == "research-validation" && x.RecommendedQaUrls.Contains("/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001"));
         Assert.Empty(payload.Errors);
     }
