@@ -9,6 +9,7 @@ import {
   getAllianceCatalogPlaceholder,
   getAllianceContactCardTitle,
   getAllianceContactReadinessLabel,
+  getAllianceFutureActionPlaceholders,
   getAllianceNextCockpitHint,
   getAllianceReadOnlyStatement,
   getAllianceStaticLabels,
@@ -34,6 +35,7 @@ interface AllianceErrorPresentation {
 }
 
 const allianceLabels = getAllianceStaticLabels();
+const allianceFutureActionPlaceholders = getAllianceFutureActionPlaceholders();
 
 interface AllianceCatalogCard {
   key: string;
@@ -641,6 +643,38 @@ export function AlliancePage() {
                       </article>
                     ))}
                   </div>
+                </section>
+              ))}
+            </div>
+          </UiCard>
+
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Hoja de ruta</p>
+                <h3>Acciones diplomaticas futuras</h3>
+                <p>Estas referencias mantienen visible la direccion futura sin abrir ninguna accion ejecutable desde Alianzas.</p>
+              </div>
+              <UiBadge tone="warn">No disponible</UiBadge>
+            </div>
+            <div className="market-future-actions-grid">
+              {allianceFutureActionPlaceholders.map((action) => (
+                <section key={action.key} className="subpanel figma-subpanel market-future-action-card">
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Accion futura</p>
+                      <h4>{action.label}</h4>
+                    </div>
+                    <UiBadge tone="warn">No disponible</UiBadge>
+                  </div>
+                  <ul className="stack-list compact-list">
+                    <li>No disponible en esta version.</li>
+                    <li>Solo lectura en esta cabina.</li>
+                    <li>Esta accion queda visible como referencia futura, pero no se puede ejecutar.</li>
+                  </ul>
+                  <button type="button" className="planet-action-button-blocked" disabled>
+                    No disponible en esta version
+                  </button>
                 </section>
               ))}
             </div>

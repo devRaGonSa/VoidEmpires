@@ -5,6 +5,11 @@ interface AllianceLabelEntry {
   label: string;
 }
 
+export interface AllianceFutureActionPlaceholder {
+  key: string;
+  label: string;
+}
+
 const unknownAllianceStateFallback = "Lectura diplomatica pendiente de clasificar";
 const unknownContactFallback = "Lectura diplomatica pendiente de clasificar";
 const unknownPactFallback = "Alianza futura";
@@ -237,4 +242,15 @@ export function getAllianceNextCockpitHint(group: "confirmed" | "unconfirmed", s
   }
 
   return "Mantener seguimiento en Espionaje";
+}
+
+export function getAllianceFutureActionPlaceholders(): readonly AllianceFutureActionPlaceholder[] {
+  return [
+    { key: "create-alliance", label: "Crear alianza" },
+    { key: "request-membership", label: "Solicitar entrada" },
+    { key: "invite-civilization", label: "Invitar civilizacion" },
+    { key: "propose-defense-pact", label: "Proponer pacto defensivo" },
+    { key: "propose-trade-pact", label: "Proponer pacto comercial" },
+    { key: "manage-roles", label: "Gestionar roles" },
+  ];
 }
