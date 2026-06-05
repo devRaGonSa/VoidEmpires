@@ -2036,6 +2036,42 @@ select {
   font-weight: 600;
 }
 
+.alliance-summary-panel {
+  background:
+    radial-gradient(circle at top right, rgba(155, 124, 255, 0.08), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 82%, transparent), color-mix(in srgb, var(--ve-color-panel) 92%, transparent));
+}
+
+.alliance-summary-grid {
+  display: grid;
+  gap: var(--ve-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-top: 14px;
+}
+
+.alliance-summary-card {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 64%, transparent), color-mix(in srgb, var(--ve-color-panel) 88%, transparent));
+}
+
+.alliance-summary-card .eyebrow,
+.alliance-summary-card strong,
+.alliance-summary-card span {
+  margin: 0;
+}
+
+.alliance-summary-card strong {
+  font-size: 1.05rem;
+  color: color-mix(in srgb, var(--ve-color-text) 96%, white);
+}
+
+.alliance-summary-card span {
+  color: color-mix(in srgb, var(--ve-color-text) 76%, var(--ve-color-muted));
+}
+
 .transfer-prepare-button {
   width: 100%;
 }

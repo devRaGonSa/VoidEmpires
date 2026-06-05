@@ -3,7 +3,7 @@
 ---
 id: TASK-27F
 title: Build Alliance dashboard summary cards
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

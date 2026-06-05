@@ -5,7 +5,7 @@ import { CockpitHero } from "../components/CockpitHero";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
-import { getAllianceStaticLabels } from "../utils/alliancePresentation";
+import { getAllianceReadOnlyStatement, getAllianceStaticLabels } from "../utils/alliancePresentation";
 import {
   getAlliancePrimaryAction,
   groupAllianceContacts,
@@ -84,6 +84,9 @@ export function AlliancePage() {
     () => (uiState ? getAlliancePrimaryAction(uiState) : allianceLabels.futureAlliance),
     [uiState],
   );
+  const pactFutureCount = uiState?.futurePacts.length ?? 0;
+  const contactKnownCount = uiState?.contacts.length ?? 0;
+  const readOnlyStatement = getAllianceReadOnlyStatement();
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -152,15 +155,58 @@ export function AlliancePage() {
         versionLabel="Alianzas v1"
         title="Alianzas"
         description="Cabina diplomatica de solo lectura para identidad, estado actual, contactos conocidos y pactos futuros todavia bloqueados."
-        developmentNote="Esta superficie no crea alianzas, no envia invitaciones y no comparte visibilidad. Solo organiza la lectura diplomatica disponible."
+        developmentNote={`${readOnlyStatement} Esta superficie no envia invitaciones y no comparte visibilidad. Solo organiza la lectura diplomatica disponible.`}
         badges={(
           <>
-            <UiBadge tone="resource">{primaryAction}</UiBadge>
-            <UiBadge>{cockpitStatusLabels.readOnly}</UiBadge>
+            <UiBadge tone="resource">{uiState?.status?.stateLabel ?? "Estado diplomatico"}</UiBadge>
+            <UiBadge>{uiState?.identity?.civilizationName ?? "Civilizacion propia"}</UiBadge>
             <UiBadge tone="warn">{recommendedFocus}</UiBadge>
           </>
         )}
       />
+
+      <UiCard className="panel alliance-summary-panel">
+        <div className="figma-section-header">
+          <div>
+            <p className="eyebrow">Resumen diplomatico</p>
+            <h3>Lectura rapida de alianzas</h3>
+            <p>{readOnlyStatement}</p>
+          </div>
+          <UiBadge tone="warn">{cockpitStatusLabels.readOnly}</UiBadge>
+        </div>
+        <div className="alliance-summary-grid">
+          <section className="subpanel figma-subpanel alliance-summary-card">
+            <p className="eyebrow">Estado diplomatico</p>
+            <strong>{uiState?.status?.stateLabel ?? allianceLabels.noActiveAlliance}</strong>
+            <span>{uiState?.status?.headline ?? allianceLabels.unclassifiedRead}</span>
+          </section>
+          <section className="subpanel figma-subpanel alliance-summary-card">
+            <p className="eyebrow">Civilizacion propia</p>
+            <strong>{uiState?.identity?.civilizationName ?? "Sin contexto cargado"}</strong>
+            <span>{uiState?.identity?.archetypeLabel ?? "Lectura diplomatica pendiente de clasificar"}</span>
+          </section>
+          <section className="subpanel figma-subpanel alliance-summary-card">
+            <p className="eyebrow">Sin alianza activa</p>
+            <strong>{uiState?.status?.hasActiveAlliance ? "No" : "Si"}</strong>
+            <span>{uiState?.status?.supportText ?? allianceLabels.futureAlliance}</span>
+          </section>
+          <section className="subpanel figma-subpanel alliance-summary-card">
+            <p className="eyebrow">Contactos conocidos</p>
+            <strong>{contactKnownCount}</strong>
+            <span>{contactKnownCount > 0 ? allianceLabels.knownContact : "Sin contactos conocidos"}</span>
+          </section>
+          <section className="subpanel figma-subpanel alliance-summary-card">
+            <p className="eyebrow">Pactos futuros</p>
+            <strong>{pactFutureCount}</strong>
+            <span>{pactFutureCount > 0 ? allianceLabels.futureAlliance : "Sin pactos futuros visibles"}</span>
+          </section>
+          <section className="subpanel figma-subpanel alliance-summary-card">
+            <p className="eyebrow">Foco recomendado</p>
+            <strong>{recommendedFocus}</strong>
+            <span>{primaryAction}</span>
+          </section>
+        </div>
+      </UiCard>
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">
@@ -233,6 +279,7 @@ export function AlliancePage() {
             <li>Lee identidad, membresia, contactos conocidos y pactos futuros.</li>
             <li>No crea ni modifica alianzas, invitaciones o solicitudes.</li>
             <li>No comparte visibilidad, sensores, flotas, comercio ni permisos.</li>
+            <li>{readOnlyStatement}</li>
           </ul>
         </UiCard>
       </div>

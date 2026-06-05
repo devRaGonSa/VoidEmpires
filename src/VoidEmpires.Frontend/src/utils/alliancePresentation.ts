@@ -200,3 +200,7 @@ export function formatAllianceDiagnostics(
     limitations: [...(limitations ?? [])],
   };
 }
+
+export function getAllianceReadOnlyStatement() {
+  return "Esta cabina no crea alianzas ni pactos.";
+}
