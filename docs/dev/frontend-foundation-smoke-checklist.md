@@ -431,6 +431,7 @@ Shipyard cockpit v1 visual review:
 - `Galaxy` remains read-only.
 - `Fleets` still preserves context and read-only command flow.
 - `Espionage` remains read-only, `Alliance` remains read-only, `Market` remains read-only, and `Ranking` remains read-only.
+- Ranking visual acceptance remains a user-driven seeded browser pass; this closure block validates route availability, lazy loading, and non-visual regressions only.
 - No 3D/WebGL renderer is introduced.
 - Diagnostics stay collapsed by default on the cockpit routes.
 
