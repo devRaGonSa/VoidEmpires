@@ -8,8 +8,8 @@ interface MarketLabelEntry {
 const unknownResourceFallback = "Recurso visible sin etiqueta final";
 const unknownSignalFallback = "Señal economica pendiente de lectura";
 const unknownConfidenceFallback = "Confianza orientativa";
-const unknownTradeStateFallback = "Estado en observación";
-const unknownActionFallback = "Lectura de mercado orientativa";
+const unknownTradeStateFallback = "Lectura de estado orientativa";
+const unknownActionFallback = "Lectura de accion orientativa";
 
 const marketResourceCatalog: readonly MarketLabelEntry[] = [
   { key: "Credits", label: "Creditos" },
@@ -43,19 +43,19 @@ const tradeStateCatalog: readonly MarketLabelEntry[] = [
   { key: "DemandPressure", label: "Presion de demanda" },
   { key: "VisibleSurplus", label: "Excedente visible" },
   { key: "FutureTradeRoute", label: "Ruta comercial futura" },
-  { key: "OperationUnavailable", label: "No disponible en esta version" },
+  { key: "OperationUnavailable", label: "Sin operación activa" },
 ] as const;
 
 const marketActionCatalog: readonly MarketLabelEntry[] = [
   { key: "market.read", label: "Lectura economica" },
   { key: "market.signal.read", label: "Lectura economica prioritaria" },
   { key: "market.reference.read", label: "Referencias orientativas" },
-  { key: "market.route.future", label: "Crear ruta comercial no disponible" },
-  { key: "market.buy.future", label: "Compra no disponible en esta version" },
-  { key: "market.sell.future", label: "Venta no disponible en esta version" },
-  { key: "market.offer.future", label: "Crear oferta no disponible en esta version" },
-  { key: "market.transfer.future", label: "Transferencia de recursos no disponible" },
-  { key: "market.auction.future", label: "Subasta no disponible en esta version" },
+  { key: "market.route.future", label: "Ruta comercial sin operación activa" },
+  { key: "market.buy.future", label: "Compra sin operación activa" },
+  { key: "market.sell.future", label: "Venta sin operación activa" },
+  { key: "market.offer.future", label: "Oferta sin operación activa" },
+  { key: "market.transfer.future", label: "Transferencia sin operación activa" },
+  { key: "market.auction.future", label: "Subasta sin operación activa" },
 ] as const;
 
 function normalizeValue(value: MarketValue) {

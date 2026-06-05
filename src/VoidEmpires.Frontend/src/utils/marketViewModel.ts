@@ -226,7 +226,7 @@ function mapFutureActions(entries: readonly MarketFutureActionDto[]): MarketFutu
     label: getMarketActionLabel(entry.actionKey),
     isEnabled: entry.isEnabled,
     stateKey: entry.stateKey,
-    stateLabel: entry.isEnabled ? "Disponible" : "No disponible en esta version",
+    stateLabel: entry.isEnabled ? "Disponible" : "Sin acción activa",
     reasonKey: entry.reasonKey,
     reasonLabel: getTradeStateLabel(entry.reasonKey),
   }));

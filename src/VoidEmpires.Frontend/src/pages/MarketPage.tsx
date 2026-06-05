@@ -137,12 +137,12 @@ export function MarketPage() {
   );
   const futureMarketOperations = useMemo(
     () => [
-      "Comprar recursos",
-      "Vender recursos",
-      "Crear oferta",
-      "Crear ruta comercial",
-      "Exportar recursos",
-      "Importar recursos",
+      "Compra sin operacion activa",
+      "Venta sin operacion activa",
+      "Oferta sin operacion activa",
+      "Ruta comercial sin operacion activa",
+      "Exportacion sin operacion activa",
+      "Importacion sin operacion activa",
     ],
     [],
   );
@@ -229,7 +229,7 @@ export function MarketPage() {
       <CockpitHero
         versionLabel="Mercado v1"
         title="Mercado"
-        description="Lectura economica de reservas, produccion y presion comercial visible para orientar la siguiente decision del imperio."
+        description="Lectura economica de reservas, produccion y senal economica visible para orientar la siguiente decision del imperio."
         developmentNote="Esta cabina no ejecuta compras ni ventas. Solo ordena la lectura economica y mantiene las operaciones futuras fuera de esta superficie."
         badges={(
           <>
@@ -318,7 +318,7 @@ export function MarketPage() {
             <UiBadge tone="warn">Sin ejecucion</UiBadge>
           </div>
           <ul className="stack-list strategic-rules-list">
-            <li>Mercado lee reservas, produccion y presion comercial visible.</li>
+            <li>Mercado lee reservas, produccion y senal economica visible.</li>
             <li>Esta cabina no ejecuta compras ni ventas.</li>
             <li>Las rutas comerciales futuras aparecen solo como orientacion, no como ordenes activas.</li>
             <li>Los detalles tecnicos permanecen en diagnostico secundario.</li>
@@ -395,7 +395,7 @@ export function MarketPage() {
               <div>
                 <p className="eyebrow">Resumen economico</p>
                 <h3>Panorama economico</h3>
-                <p>La cabina resume reservas, flujo, presion comercial y referencias orientativas antes de pasar al detalle.</p>
+                <p>La cabina resume reservas, flujo, senal economica y referencias orientativas antes de pasar al detalle.</p>
               </div>
               <UiBadge tone="good">{market.summary.primaryActionLabel}</UiBadge>
             </div>
@@ -432,7 +432,7 @@ export function MarketPage() {
                   </div>
                   <UiBadge tone="warn">{market.routePlaceholders.length} rutas futuras</UiBadge>
                 </div>
-                <p>Mercado observa presion y excedente, pero deja cualquier confirmacion comercial fuera de esta cabina.</p>
+                <p>Mercado observa senal economica y excedente, pero deja cualquier confirmacion comercial fuera de esta cabina.</p>
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
@@ -442,7 +442,7 @@ export function MarketPage() {
                   </div>
                   <UiBadge>{market.references.length} ratios</UiBadge>
                 </div>
-                <p>Las referencias actuales son orientativas y sirven para comparar presion economica, no para confirmar una orden.</p>
+                <p>Las referencias actuales son orientativas y sirven para comparar condiciones economicas, no para confirmar una orden.</p>
               </section>
             </div>
           </UiCard>
@@ -505,7 +505,7 @@ export function MarketPage() {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Rutas futuras</p>
-                    <h4>Orientacion de ruta</h4>
+                    <h4>Ruta futura sin ejecucion</h4>
                   </div>
                   <UiBadge tone="warn">{market.routePlaceholders.length} referencias</UiBadge>
                 </div>
@@ -592,7 +592,7 @@ export function MarketPage() {
               <div>
                 <p className="eyebrow">Referencias de intercambio</p>
                 <h3>Referencias orientativas</h3>
-                <p>Estas comparaciones reutilizan referencias deterministas de la cabina y sirven para interpretar presion economica, no para cerrar un intercambio.</p>
+                <p>Estas comparaciones reutilizan referencias orientativas de la cabina y sirven para interpretar lectura economica, no para cerrar un intercambio.</p>
               </div>
               <UiBadge tone="warn">Solo lectura</UiBadge>
             </div>
@@ -626,7 +626,7 @@ export function MarketPage() {
                     <UiBadge tone="warn">Referencia ausente</UiBadge>
                   </div>
                   <p className="figma-panel-note">
-                    La cabina no recibio suficientes referencias deterministas para construir comparaciones seguras en esta fase.
+                    La cabina no recibio suficientes referencias orientativas para construir comparaciones seguras en esta fase.
                   </p>
                 </section>
               )}
@@ -637,7 +637,7 @@ export function MarketPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Senales comerciales</p>
-                <h3>Presion comercial visible</h3>
+                <h3>Senal economica visible</h3>
                 <p>Mercado relaciona excedente, tension y contexto de ruta sin apropiarse del flujo real que sigue perteneciendo a Flotas y Galaxia.</p>
               </div>
               <UiBadge tone="warn">Secundario</UiBadge>
@@ -657,7 +657,7 @@ export function MarketPage() {
                       <strong>{signal.signalLabel}</strong>: {getMarketTradeSignalSummary(signal)}
                     </li>
                   )) : (
-                    <li>Sin presion comercial visible en esta lectura.</li>
+                    <li>Sin senal economica visible en esta lectura.</li>
                   )}
                 </ul>
               </section>
@@ -682,8 +682,8 @@ export function MarketPage() {
                   Estas rutas son solo contexto. Mercado no crea rutas comerciales ni mueve flotas desde esta seccion.
                 </p>
                 <ul className="stack-list compact-list">
-                  <li>Transferencia de recursos no disponible.</li>
-                  <li>Crear ruta comercial no disponible.</li>
+                  <li>Transferencia de recursos sin operacion activa.</li>
+                  <li>Ruta comercial sin operacion activa.</li>
                 </ul>
               </section>
               <section className="subpanel figma-subpanel market-secondary-card">
@@ -695,7 +695,7 @@ export function MarketPage() {
                   <UiBadge tone="warn">Sin ejecucion</UiBadge>
                 </div>
                 <p className="figma-panel-note">
-                  Esta cabina mantiene visible la presion comercial, pero la resolucion real permanece en Flotas y Galaxia.
+                  Esta cabina mantiene visible la senal economica, pero la resolucion real permanece en Flotas y Galaxia.
                 </p>
                 <ul className="stack-list compact-list">
                   <li>Revisar logistica en Flotas.</li>
@@ -724,21 +724,20 @@ export function MarketPage() {
             </div>
             <div className="market-future-actions-grid">
               {futureMarketOperations.map((actionLabel) => (
-                <section key={actionLabel} className="subpanel figma-subpanel market-future-action-card">
+                <section key={actionLabel} className="subpanel figma-subpanel market-future-action-card market-secondary-card">
                   <div className="figma-section-header">
                     <div>
                       <p className="eyebrow">Operacion futura</p>
                       <h4>{actionLabel}</h4>
                     </div>
-                    <UiBadge tone="warn">No disponible</UiBadge>
+                    <UiBadge tone="warn">Sin operacion activa</UiBadge>
                   </div>
                   <div className="market-future-action-state" aria-hidden="true">
-                    Solo lectura en esta cabina
+                    Sin operacion activa
                   </div>
                   <ul className="stack-list compact-list">
-                    <li>No disponible en esta version.</li>
-                    <li>Esta cabina no ejecuta compras ni ventas.</li>
-                    <li>Solo lectura en esta cabina.</li>
+                    <li>Sin operacion activa en esta cabina.</li>
+                    <li>Lectura economica sin ejecucion.</li>
                     <li>La operacion queda visible como referencia futura, pero no se puede confirmar aqui.</li>
                   </ul>
                 </section>
