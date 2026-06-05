@@ -87,3 +87,18 @@ Rationale:
 - route-level splitting already removed the warning and reduced the entry chunk from `551.88 kB` to `179.32 kB`
 - no remaining build symptom justifies adding manual chunk rules
 - preserving Vite defaults keeps chunk behavior simpler and avoids brittle grouping rules that would need upkeep as cockpit routes evolve
+
+## Validation Command
+
+Run from repository root:
+
+```powershell
+npm run build --prefix src/VoidEmpires.Frontend
+```
+
+Interpret the result this way:
+
+- route-level lazy loading is healthy when Vite emits one shared entry chunk plus cockpit-specific async chunks
+- a renewed single oversized entry chunk or a returned `500 kB` warning should be treated as a regression worth investigating
+- this block changes route-loading architecture only; it does not change gameplay rules, backend contracts, or accepted cockpit URLs
+- after any route-loading change, rerun the accepted cockpit smoke checks because a clean build does not replace route-level QA

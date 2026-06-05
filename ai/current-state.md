@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Phase 26M - Frontend bundle baseline and eager import audit`.
+The repository is consolidated through `Phase 26R - Frontend bundle splitting results and performance guardrails`.
 
 ## Repository Reality
 
@@ -53,7 +53,8 @@ Current frontend cockpit baseline:
 - Richer development seed profiles now reserve deterministic high sequence ranges for their completed queue-history rows, preventing runtime collisions when `cockpit-validation` is applied over reused development databases that already contain manual QA queue activity.
 - The development seed apply endpoint now converts persisted-state write conflicts into `409 Conflict` responses with diagnostic details instead of surfacing an unhandled runtime failure.
 - The current frontend boundary model is documented in `docs/dev/planet-module-boundaries.md`.
-- The frontend route-loading baseline is now documented in `docs/dev/frontend-performance-notes.md`: the current production build still emits one `551.88 kB` minified entry chunk plus the Vite `500 kB` warning because `App.tsx` eagerly imports the accepted cockpit page modules before routing.
+- The frontend route-loading baseline and post-lazy outcome are now documented in `docs/dev/frontend-performance-notes.md`: cockpit pages are route-lazy-loaded from `App.tsx`, the shared shell keeps synchronous navigation infrastructure only, the previous `551.88 kB` entry-chunk warning has been replaced by a `179.32 kB` shared entry chunk plus cockpit-specific async chunks, and the current Vite build no longer emits the old `500 kB` warning.
+- The frontend lazy-loading block changed route-loading architecture only. It did not change gameplay rules, backend contracts, accepted cockpit URLs, or the current Spanish-first cockpit acceptance boundaries.
 - The current Research cockpit QA flow and acceptance boundaries are documented in `docs/dev/research-cockpit-checklist.md`.
 - The current Shipyard cockpit QA flow and accepted Fleet boundary are documented in `docs/dev/shipyard-cockpit-checklist.md`.
 - The current Defenses cockpit QA flow and accepted non-combat boundary are documented in `docs/dev/defenses-cockpit-checklist.md`.
@@ -308,14 +309,14 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 26M:
+Current validated baseline after Phase 26R:
 
 - backend: `dotnet build --no-restore` succeeded
 - tests: `dotnet test --no-build` succeeded with `672` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
-- frontend bundle baseline: current Vite output is one `551.88 kB` minified JS entry chunk (`136.02 kB` gzip) plus one `45.44 kB` CSS asset (`7.20 kB` gzip), and the standard chunk-size warning still appears
+- frontend bundle baseline: current Vite output emits `87` transformed modules, one `179.32 kB` minified shared JS entry chunk (`58.48 kB` gzip), one `45.97 kB` CSS asset (`7.26 kB` gzip), and cockpit-specific async chunks for Galaxy, Planet, Construction, Research, Shipyard, Fleets, Defenses, Ground Army, Espionage, Market, and the module placeholder route
 - persisted QA scripts: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` succeeded
-- frontend note: Vite still reports the existing chunk-size warning around `500 kB`, but the production build completes successfully
+- frontend note: the old Vite `500 kB` chunk-size warning is no longer present after the route-lazy-loading pass, but accepted cockpit route QA remains required because the block changes loading architecture rather than gameplay behavior
 - build note: `dotnet build --no-restore` can still emit transient `MSB3026` copy-retry warnings when `testhost` holds test output DLLs, but the build completes successfully and the test run remains clean
 - Manual visual QA for the accepted cross-cockpit demo flow remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; the Browser runtime was unavailable in this session, so final screenshot-style acceptance is still user-driven.
 - Market visual and read-only polish is now implemented and documented through the seeded browser checklists; final screenshot-backed acceptance still remains user-driven, and the block did not expand Market into transaction gameplay or production behavior.
