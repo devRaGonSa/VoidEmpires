@@ -5,11 +5,11 @@ interface MarketLabelEntry {
   label: string;
 }
 
-const unknownResourceFallback = "Recurso no clasificado";
-const unknownSignalFallback = "Senal economica no clasificada";
-const unknownConfidenceFallback = "Confianza orientativa no clasificada";
-const unknownTradeStateFallback = "Estado no clasificado";
-const unknownActionFallback = "Lectura de mercado no clasificada";
+const unknownResourceFallback = "Recurso visible sin etiqueta final";
+const unknownSignalFallback = "Señal economica pendiente de lectura";
+const unknownConfidenceFallback = "Confianza orientativa";
+const unknownTradeStateFallback = "Estado en observación";
+const unknownActionFallback = "Lectura de mercado orientativa";
 
 const marketResourceCatalog: readonly MarketLabelEntry[] = [
   { key: "Credits", label: "Creditos" },

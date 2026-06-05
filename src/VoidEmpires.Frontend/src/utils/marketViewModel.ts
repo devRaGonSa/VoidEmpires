@@ -139,12 +139,21 @@ function normalizeValue(value: string | number | null | undefined) {
   return typeof value === "string" ? value : `${value ?? ""}`;
 }
 
+function resolveResourceLabel(resourceType: string) {
+  const normalizedResourceType = normalizeValue(resourceType);
+  if (!normalizedResourceType) {
+    return "Recurso visible";
+  }
+
+  return getMarketResourceLabel(normalizedResourceType, `Recurso ${normalizedResourceType}`);
+}
+
 function mapReserves(entries: readonly MarketResourceReserveDto[]): MarketResourceReserve[] {
   return entries.map((entry) => {
     const resourceType = normalizeValue(entry.resourceType);
     return {
       resourceType,
-      label: getMarketResourceLabel(resourceType),
+      label: resolveResourceLabel(resourceType),
       quantity: entry.quantity,
       quantityLabel: formatMarketResourceAmount(entry.quantity, resourceType),
     };
@@ -165,7 +174,7 @@ function mapProduction(summary: MarketProductionSummaryDto | null): MarketProduc
     resourceType: entry.resourceType,
     label: getMarketSignalLabel("EstimatedProduction"),
     quantityPerHour: entry.quantityPerHour,
-    quantityLabel: `${getMarketResourceLabel(entry.resourceType)} +${entry.quantityPerHour}/h`,
+    quantityLabel: `${resolveResourceLabel(entry.resourceType)} +${entry.quantityPerHour}/h`,
   }));
 }
 
@@ -174,7 +183,7 @@ function mapReferences(entries: readonly MarketReferenceRatioDto[]): MarketRefer
     const resourceType = normalizeValue(entry.resourceType);
     return {
       resourceType,
-      label: getMarketResourceLabel(resourceType),
+      label: resolveResourceLabel(resourceType),
       advisoryRatio: entry.advisoryRatio,
       advisoryRatioLabel: formatMarketRatio(entry.advisoryRatio),
       confidenceKey: entry.confidenceKey,
@@ -196,7 +205,7 @@ function mapSignals(entries: readonly MarketSignalDto[]): MarketSignal[] {
       signalLabel: getMarketSignalLabel(entry.signalKey),
       tradeStateLabel: getTradeStateLabel(entry.signalKey),
       resourceType,
-      resourceLabel: resourceType ? getMarketResourceLabel(resourceType) : null,
+      resourceLabel: resourceType ? resolveResourceLabel(resourceType) : "Recurso visible",
       quantity: entry.quantity,
       quantityLabel: resourceType
         ? formatMarketResourceAmount(entry.quantity, resourceType)
