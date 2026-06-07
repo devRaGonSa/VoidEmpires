@@ -3,7 +3,7 @@
 ---
 id: TASK-29E-construction-real-enqueue-submit
 title: Wire Confirmar orden to real backend enqueue
-status: pending
+status: obsolete
 type: platform
 team: platform
 supporting_teams: [frontend]
@@ -41,6 +41,12 @@ This introduces first actual mutation flow; it must avoid optimistic updates.
 - Backend enqueue occurs only on explicit confirmation.
 - No fake success.
 - Double submit prevented.
+
+## Resolution notes
+
+- The current `/construction` route already binds the confirmation action to the real backend enqueue flow.
+- The existing implementation already disables submit while the request is in flight and does not apply optimistic queue or stockpile updates before the backend confirms success.
+- Re-applying this task would duplicate behavior that is already live in the current branch, so no frontend code change was applied here.
 
 ## Validation
 
