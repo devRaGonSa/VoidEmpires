@@ -169,6 +169,12 @@ export function ResearchPage() {
       });
 
       if (result.httpStatus !== 201 || !result.response?.succeeded) {
+        if (result.response && !result.response.succeeded && result.response.isOpenOrderNoOp) {
+          setEnqueueError("Ya existe una investigacion abierta en la cola. No se creo una orden nueva.");
+          setTechnicalErrorDetail(result.response.errors[0] ?? "Civilization already has an open research order.");
+          return;
+        }
+
         const failure = formatResearchCommandFailure(
           result.response?.errors[0] ?? null,
           result.httpStatus,
@@ -554,7 +560,6 @@ export function ResearchPage() {
                 <UiBadge tone="good">Sin optimismo local</UiBadge>
               </div>
               <div className="figma-data-list">
-                <div className="figma-data-row"><span>Orden</span><strong>{enqueueOrderDetails.orderId ?? "No devuelto"}</strong></div>
                 <div className="figma-data-row"><span>Inicio</span><strong>{enqueueOrderDetails.startsAtUtc ? formatDateTime(enqueueOrderDetails.startsAtUtc) : "No devuelto"}</strong></div>
                 <div className="figma-data-row"><span>Cierre</span><strong>{enqueueOrderDetails.endsAtUtc ? formatDateTime(enqueueOrderDetails.endsAtUtc) : "No devuelto"}</strong></div>
               </div>
@@ -621,6 +626,11 @@ export function ResearchPage() {
                 {technicalErrorDetail ? (
                   <div className="figma-data-list">
                     <div className="figma-data-row"><span>Detalle tecnico</span><strong>{technicalErrorDetail}</strong></div>
+                  </div>
+                ) : null}
+                {enqueueOrderDetails?.orderId ? (
+                  <div className="figma-data-list">
+                    <div className="figma-data-row"><span>Orden confirmada</span><strong>{enqueueOrderDetails.orderId}</strong></div>
                   </div>
                 ) : null}
               </UiCard>
