@@ -109,6 +109,53 @@ Verified refresh behavior:
   - sending the order still requires the explicit confirmation checkbox and button
   - post-submit queue or resource changes must come from the refreshed backend read, not from fabricated local state
 
+## Runtime QA sequence
+
+1. Start the backend:
+
+```powershell
+dotnet run --project .\src\VoidEmpires.Web
+```
+
+2. Reapply the shared baseline twice when you want a predictable reused-database starting point:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"cockpit-validation"}'
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"cockpit-validation"}'
+```
+
+3. Start the frontend:
+
+```powershell
+npm run dev --prefix .\src\VoidEmpires.Frontend
+```
+
+4. Choose one sanctioned runtime path:
+
+- Backend-only fallback:
+
+```powershell
+.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed
+```
+
+- Frontend-confirmed path:
+  - Open `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+  - Prepare one available action
+  - Confirm the checkbox and send the order
+
+5. Expected frontend runtime outcome:
+
+- the confirmation step remains mandatory
+- success copy stays tied to backend confirmation
+- queue and resources refresh from the backend read model
+- accepted-but-not-yet-visible state may show `La orden fue aceptada por el backend; la cola visible se actualizara con la siguiente lectura disponible.`
+
+6. Reused database warning:
+
+- repeated runs can leave a real open construction order in place
+- reseeding helps restore read-model context but does not delete manual active orders
+- when you need the exact pre-enqueue baseline again, switch to a fresh disposable local database instead of relying on cleanup
+
 ## Final manual QA
 
 Run first:

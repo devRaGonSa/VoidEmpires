@@ -3,7 +3,7 @@
 ---
 id: TASK-29L-construction-runtime-qa-command-docs
 title: Document runtime QA commands for construction enqueue
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [platform]
@@ -41,6 +41,11 @@ Documentation-only task to reduce onboarding friction for gameplay mutation veri
 ## Acceptance criteria
 
 - Manual QA is executable directly from docs.
+
+## Validation notes
+
+- `dotnet build --no-restore` passed with transient `MSB3026` copy-retry warnings while `testhost` still held test output DLLs.
+- `dotnet test --no-build` passed.
 
 ## Validation
 
