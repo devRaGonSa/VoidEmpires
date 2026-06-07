@@ -3,7 +3,7 @@
 ---
 id: TASK-29C-construction-action-selection-state
 title: Add selected action state in ConstructionPage (review only)
-status: pending
+status: obsolete
 type: platform
 team: platform
 supporting_teams: [frontend]
@@ -39,6 +39,13 @@ Selection is required, but this task must remain read-only.
 
 - A user can select available action and review details.
 - No API call or mutation exists.
+
+## Resolution notes
+
+- The current `/construction` route is `src/VoidEmpires.Frontend/src/pages/ConstructionPage.tsx` -> `PlanetPage variant="construction"`.
+- `PlanetPage` already includes available-action selection state, blocked-card handling, and a review summary for the prepared construction action.
+- The branch has already advanced beyond this read-only milestone because the same route also includes the later enqueue flow.
+- No additional code change was applied here to avoid duplicating state or regressing the newer construction flow.
 
 ## Validation
 
