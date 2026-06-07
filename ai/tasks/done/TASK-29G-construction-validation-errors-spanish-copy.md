@@ -3,7 +3,7 @@
 ---
 id: TASK-29G-construction-validation-errors-spanish-copy
 title: Map validation failures to Spanish-safe user messages
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend]
@@ -26,6 +26,10 @@ No backend masking; no failures should disappear.
 
 - ai/tasks/pending/TASK-29G-construction-validation-errors-spanish-copy.md
 - src/VoidEmpires.Frontend/src/pages/ConstructionPage.tsx
+
+Implementation note:
+
+- `src/VoidEmpires.Frontend/src/utils/planetPresentation.ts` is updated instead of `ConstructionPage.tsx` because the construction error-copy mapping lives in the shared presentation helper used by the route.
 
 ## Implementation steps
 

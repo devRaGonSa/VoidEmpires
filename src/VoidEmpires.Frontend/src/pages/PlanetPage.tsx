@@ -1345,7 +1345,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                             value={constructionRefreshAudit.visibleOrderId ?? "Pendiente de aparecer en la lectura actual"}
                           />
                           <PlanetDataRow
-                            label="Delta de recursos"
+                            label="Cambio de recursos"
                             value={constructionRefreshAudit.resourceDelta.length > 0
                               ? constructionRefreshAudit.resourceDelta.join(" | ")
                               : "Sin cambios visibles en la lectura actual"}

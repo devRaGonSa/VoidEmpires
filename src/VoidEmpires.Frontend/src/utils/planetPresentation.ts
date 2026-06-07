@@ -414,6 +414,16 @@ export function formatConstructionCommandFailure(
         primaryMessage: "El edificio base ya no esta disponible para mejorar. Recarga la cabina y revisa el estado actual antes de reintentar.",
         technicalDetail,
       };
+    case "Planet was not found.":
+      return {
+        primaryMessage: "La colonia ya no existe en la lectura actual. Recarga la cabina y vuelve a seleccionar un planeta valido.",
+        technicalDetail,
+      };
+    case "Civilization was not found.":
+      return {
+        primaryMessage: "La civilizacion activa ya no esta disponible en este entorno. Revisa el contexto local antes de reintentar.",
+        technicalDetail,
+      };
     case "Planet id is required.":
     case "Civilization id is required.":
     case "Construction action is required.":
@@ -445,6 +455,13 @@ export function formatConstructionCommandFailure(
   if (httpStatus === 400) {
     return {
       primaryMessage: "La API rechazo la orden por validacion. Revisa el planeta activo y vuelve a preparar la accion.",
+      technicalDetail,
+    };
+  }
+
+  if (httpStatus === 409) {
+    return {
+      primaryMessage: "La orden ya no es valida con el estado actual del backend. Recarga la cabina para revisar recursos, propiedad o cola antes de reintentar.",
       technicalDetail,
     };
   }
