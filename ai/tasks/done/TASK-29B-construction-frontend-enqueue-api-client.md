@@ -3,7 +3,7 @@
 ---
 id: TASK-29B-construction-frontend-enqueue-api-client
 title: Add typed frontend enqueue API client
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend]
@@ -41,6 +41,11 @@ No UI mutation occurs in this task. API shape and error parsing must be defined 
 - Typed API model and function exist.
 - No UI behavior changes.
 - npm build passes.
+
+## Implementation notes
+
+- `src/VoidEmpires.Frontend/src/api/voidEmpiresApi.ts` was updated in addition to the expected file list because the existing construction submit path already routes through that shared transport module.
+- The typed client now normalizes `400` and `409` JSON failures into a construction-specific failure shape while preserving the raw backend error strings.
 
 ## Validation
 

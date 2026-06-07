@@ -17,6 +17,8 @@ import type {
 } from "./fleetCommandTypes";
 import type { FleetUiStateResponse } from "./fleetTypes";
 import type {
+  EnqueuePlanetConstructionCommandResult,
+  EnqueuePlanetConstructionFailureResponse,
   EnqueuePlanetConstructionRequest,
   EnqueuePlanetConstructionResponse,
   PlanetUiStateResponse,
@@ -74,6 +76,68 @@ async function requestCommandJson<T>(path: string, body: unknown): Promise<Fleet
   if (hasJsonBody) {
     try {
       payload = (await response.json()) as T;
+    } catch {
+      return {
+        httpStatus: response.status,
+        hasJsonBody: true,
+        bodyParseFailed: true,
+        response: null,
+      };
+    }
+  }
+
+  return {
+    httpStatus: response.status,
+    hasJsonBody,
+    bodyParseFailed: false,
+    response: payload,
+  };
+}
+
+function toPlanetCommandFailureResponse(
+  payload: Partial<EnqueuePlanetConstructionFailureResponse> | null,
+): EnqueuePlanetConstructionFailureResponse {
+  const rawErrors = Array.isArray(payload?.errors)
+    ? payload.errors.filter((value): value is string => typeof value === "string")
+    : [];
+
+  return {
+    succeeded: false,
+    orderId: null,
+    startsAtUtc: null,
+    endsAtUtc: null,
+    errors: rawErrors,
+    errorEntries: rawErrors.map((message) => ({
+      message: message.trim(),
+      rawMessage: message,
+    })),
+  };
+}
+
+async function requestConstructionCommandJson(
+  path: string,
+  body: EnqueuePlanetConstructionRequest,
+): Promise<EnqueuePlanetConstructionCommandResult> {
+  const response = await fetch(buildUrl(path), {
+    body: JSON.stringify(body),
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
+
+  const contentType = response.headers.get("content-type") ?? "";
+  const hasJsonBody = contentType.includes("application/json");
+  let payload: EnqueuePlanetConstructionResponse | null = null;
+
+  if (hasJsonBody) {
+    try {
+      const parsed = (await response.json()) as EnqueuePlanetConstructionResponse;
+
+      payload = response.ok
+        ? parsed
+        : toPlanetCommandFailureResponse(parsed as EnqueuePlanetConstructionFailureResponse);
     } catch {
       return {
         httpStatus: response.status,
@@ -179,10 +243,7 @@ export const voidEmpiresApi = {
     return requestJson<PlanetVisualStateResponse>(`/api/dev/planets/${planetId}/visual-state`);
   },
   enqueuePlanetConstruction(request: EnqueuePlanetConstructionRequest) {
-    return requestCommandJson<EnqueuePlanetConstructionResponse>(
-      "/api/dev/buildings/construction-orders/enqueue",
-      request,
-    );
+    return enqueueConstructionOrder(request);
   },
   estimateOrbitalTravel(request: EstimateOrbitalTravelRequest) {
     return requestCommandJson<EstimateOrbitalTravelResponse>(
@@ -221,3 +282,10 @@ export const voidEmpiresApi = {
     );
   },
 };
+
+export function enqueueConstructionOrder(request: EnqueuePlanetConstructionRequest) {
+  return requestConstructionCommandJson(
+    "/api/dev/buildings/construction-orders/enqueue",
+    request,
+  );
+}

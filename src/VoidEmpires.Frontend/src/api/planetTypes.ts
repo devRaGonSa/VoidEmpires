@@ -227,10 +227,35 @@ export interface EnqueuePlanetConstructionRequest {
   requestedAtUtc: string;
 }
 
-export interface EnqueuePlanetConstructionResponse {
+export interface PlanetApiErrorEntry {
+  message: string;
+  rawMessage: string;
+}
+
+export interface EnqueuePlanetConstructionSuccessResponse {
+  succeeded: boolean;
+  orderId: string;
+  startsAtUtc: string;
+  endsAtUtc: string;
+  errors: readonly string[];
+}
+
+export interface EnqueuePlanetConstructionFailureResponse {
   succeeded: boolean;
   orderId: string | null;
   startsAtUtc: string | null;
   endsAtUtc: string | null;
-  errors: string[];
+  errors: readonly string[];
+  errorEntries: readonly PlanetApiErrorEntry[];
+}
+
+export type EnqueuePlanetConstructionResponse =
+  | EnqueuePlanetConstructionSuccessResponse
+  | EnqueuePlanetConstructionFailureResponse;
+
+export interface EnqueuePlanetConstructionCommandResult {
+  httpStatus: number;
+  hasJsonBody: boolean;
+  bodyParseFailed: boolean;
+  response: EnqueuePlanetConstructionResponse | null;
 }
