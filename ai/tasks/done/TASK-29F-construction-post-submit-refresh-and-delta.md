@@ -3,7 +3,7 @@
 ---
 id: TASK-29F-construction-post-submit-refresh-and-delta
 title: Reload state after enqueue and show authoritative delta
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend]
@@ -25,6 +25,10 @@ If read model lag exists, the UX must communicate delay honestly.
 
 - ai/tasks/pending/TASK-29F-construction-post-submit-refresh-and-delta.md
 - src/VoidEmpires.Frontend/src/pages/ConstructionPage.tsx
+
+Implementation note:
+
+- `src/VoidEmpires.Frontend/src/pages/PlanetPage.tsx` is updated instead of `ConstructionPage.tsx` because `/construction` is implemented as `PlanetPage variant="construction"` and owns the real enqueue and refresh flow.
 
 ## Implementation steps
 

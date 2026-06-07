@@ -125,6 +125,58 @@ function formatQueueState(item: PlanetCockpitDto["constructionQueue"][number]) {
   return formatConstructionStatus(item.status);
 }
 
+interface ConstructionRefreshAudit {
+  queueBefore: number;
+  queueAfter: number;
+  openQueueBefore: number;
+  openQueueAfter: number;
+  visibleOrderId: string | null;
+  resourceDelta: string[];
+}
+
+function countOpenConstructionOrders(queue: PlanetCockpitDto["constructionQueue"]) {
+  return queue.filter((item) => item.status === "Pending" || item.status === "Active").length;
+}
+
+function buildConstructionRefreshAudit(
+  beforePlanet: PlanetCockpitDto,
+  afterPlanet: PlanetCockpitDto,
+  orderId: string | null,
+) {
+  const resourceTypes = Array.from(new Set([
+    ...beforePlanet.stockpile.map((item) => String(item.resourceType)),
+    ...afterPlanet.stockpile.map((item) => String(item.resourceType)),
+  ]));
+
+  const resourceDelta = resourceTypes
+    .map((resourceType) => {
+      const before = beforePlanet.stockpile.find((item) => String(item.resourceType) === resourceType)?.quantity ?? 0;
+      const after = afterPlanet.stockpile.find((item) => String(item.resourceType) === resourceType)?.quantity ?? 0;
+      const delta = after - before;
+
+      if (delta === 0) {
+        return null;
+      }
+
+      const prefix = delta > 0 ? "+" : "";
+      return `${formatResourceType(resourceType)} ${prefix}${delta}`;
+    })
+    .filter((item): item is string => item !== null);
+
+  const visibleOrderId = orderId && afterPlanet.constructionQueue.some((item) => item.orderId === orderId)
+    ? orderId
+    : null;
+
+  return {
+    queueBefore: beforePlanet.constructionQueue.length,
+    queueAfter: afterPlanet.constructionQueue.length,
+    openQueueBefore: countOpenConstructionOrders(beforePlanet.constructionQueue),
+    openQueueAfter: countOpenConstructionOrders(afterPlanet.constructionQueue),
+    visibleOrderId,
+    resourceDelta,
+  } satisfies ConstructionRefreshAudit;
+}
+
 function formatProductionValue(value: number) {
   return value > 0 ? `+${value}` : String(value);
 }
@@ -158,6 +210,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
   const [constructionFeedback, setConstructionFeedback] = useState<string | null>(null);
   const [constructionError, setConstructionError] = useState<string | null>(null);
   const [constructionTechnicalDetail, setConstructionTechnicalDetail] = useState<string | null>(null);
+  const [constructionRefreshAudit, setConstructionRefreshAudit] = useState<ConstructionRefreshAudit | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -263,6 +316,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
       setConstructionFeedback(null);
       setConstructionError(null);
       setConstructionTechnicalDetail(null);
+      setConstructionRefreshAudit(null);
 
       try {
         const response = await voidEmpiresApi.getPlanetUiState(
@@ -344,8 +398,10 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
     setConstructionFeedback(null);
     setConstructionError(null);
     setConstructionTechnicalDetail(null);
+    setConstructionRefreshAudit(null);
 
     try {
+      const beforePlanet = planet;
       const result = await voidEmpiresApi.enqueuePlanetConstruction({
         planetId: planet.planetId,
         civilizationId: uiState.civilizationId,
@@ -378,8 +434,26 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         planet.planetId,
       );
 
-      if (refreshed.succeeded && refreshed.uiState) {
+      if (refreshed.succeeded && refreshed.uiState?.planet) {
+        const audit = buildConstructionRefreshAudit(
+          beforePlanet,
+          refreshed.uiState.planet,
+          result.response.orderId,
+        );
+
         setUiState(refreshed.uiState);
+        setConstructionRefreshAudit(audit);
+
+        if (!audit.visibleOrderId) {
+          setConstructionFeedback(
+            "La orden fue aceptada por el backend; la cola visible se actualizara con la siguiente lectura disponible.",
+          );
+          setConstructionTechnicalDetail(
+            result.response.orderId
+              ? `Order accepted with id ${result.response.orderId}, but the refreshed queue does not expose it yet.`
+              : "Order accepted by backend, but refreshed queue visibility is still pending.",
+          );
+        }
       } else {
         setConstructionError(
           "La orden se envio, pero la cabina no pudo recargar el estado actualizado. Refresca la vista para confirmar el resultado final.",
@@ -405,6 +479,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
     setConstructionFeedback(null);
     setConstructionError(null);
     setConstructionTechnicalDetail(null);
+    setConstructionRefreshAudit(null);
   }
 
   return (
@@ -1235,7 +1310,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                     </div>
                   </section>
                 </div>
-                {constructionFeedback || constructionTechnicalDetail ? (
+                {constructionFeedback || constructionTechnicalDetail || constructionRefreshAudit ? (
                   <section className="subpanel figma-subpanel">
                     <div className="figma-section-header">
                       <div>
@@ -1255,6 +1330,28 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                         label="Detalle tecnico"
                         value={constructionTechnicalDetail ?? "Sin detalle tecnico adicional"}
                       />
+                      {constructionRefreshAudit ? (
+                        <>
+                          <PlanetDataRow
+                            label="Cola visible"
+                            value={`${constructionRefreshAudit.queueBefore} -> ${constructionRefreshAudit.queueAfter}`}
+                          />
+                          <PlanetDataRow
+                            label="Ordenes abiertas"
+                            value={`${constructionRefreshAudit.openQueueBefore} -> ${constructionRefreshAudit.openQueueAfter}`}
+                          />
+                          <PlanetDataRow
+                            label="Orden visible"
+                            value={constructionRefreshAudit.visibleOrderId ?? "Pendiente de aparecer en la lectura actual"}
+                          />
+                          <PlanetDataRow
+                            label="Delta de recursos"
+                            value={constructionRefreshAudit.resourceDelta.length > 0
+                              ? constructionRefreshAudit.resourceDelta.join(" | ")
+                              : "Sin cambios visibles en la lectura actual"}
+                          />
+                        </>
+                      ) : null}
                     </div>
                   </section>
                 ) : null}
