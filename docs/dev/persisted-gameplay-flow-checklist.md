@@ -35,11 +35,17 @@ Repeatable backend-only baseline helper:
 - Run `.\scripts\dev-qa-create-shipyard-production-order.ps1 -ApplySeed` to apply the shared cockpit seed, enqueue one real orbital Shipyard order through backend-provided command metadata, and print queue, stock, and stockpile deltas.
 - Run `.\scripts\dev-qa-fleet-read-state.ps1` to re-read Fleet UI state after seed application or Shipyard enqueue and print group, stationed, transfer, and local resource-context summaries without mutating anything.
 - Run `.\scripts\check-dev-qa-scripts.ps1` to parser-check the persisted QA PowerShell helpers and run lightweight local formatting checks without requiring the backend.
+- Run `.\scripts\dev-qa-prepare-construction-ui-state.ps1` when you need to clear reused-DB blocking Construction state before attempting another Enqueue path.
 - There is intentionally no `dev-qa-create-orbital-group-from-stock.ps1` helper in this block because stock-to-fleet allocation is still excluded from the accepted reused-database QA loop.
 
-Construction now has two sanctioned Development QA paths:
+Construction now has four sanctioned Development QA paths:
 
 - Backend-only helper path:
+  - `.\scripts\dev-qa-prepare-construction-ui-state.ps1`
+  - `.\scripts\dev-qa-prepare-construction-ui-state.ps1 -CivilizationId ... -PlanetId ...`
+  - Useful for clearing open order blockers and topping stockpile minima before another repeated enqueue attempt.
+  - This helper is explicit about mutating Development data and does not reset unrelated cockpits.
+- Backend-only enqueue path:
   - `.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed`
   - Useful when you want copy-pasteable queue and resource deltas directly in the terminal
 - Frontend-confirmed cockpit path:
@@ -200,7 +206,7 @@ What to confirm:
 
 ## Endpoint inventory
 
-Construction persisted mutation and read surfaces: `POST /api/dev/buildings/construction-orders/enqueue`, `POST /api/dev/buildings/construction-orders/complete-due`, `GET /api/dev/planets/ui-state?civilizationId={id}&planetId={id}`
+Construction persisted mutation and read surfaces: `POST /api/dev/buildings/construction-orders/enqueue`, `POST /api/dev/buildings/construction-orders/complete-due`, `GET /api/dev/planets/ui-state?civilizationId={id}&planetId={id}`, `POST /api/dev/construction/qa-state/prepare`
 
 Research persisted mutation and read surfaces: `POST /api/dev/research/orders/enqueue`, `POST /api/dev/research/orders/complete-due`, `GET /api/dev/research/ui-state?civilizationId={id}&planetId={id}`
 
@@ -281,6 +287,10 @@ Safe mutation path:
 
 Repeatable backend-only helper:
 
+- `.\scripts\dev-qa-prepare-construction-ui-state.ps1`
+  - Use this first when your reused Development database has a pre-existing open construction order.
+  - Defaults to civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`.
+  - Returns exact blocking order counts before/after and resource top-up before/after if stockpile exists.
 - `.\scripts\dev-qa-create-construction-order.ps1`
 - Defaults to civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`.
 - Add `-ApplySeed` to apply `planet-full-validation` before the enqueue.
@@ -470,6 +480,13 @@ Expected success:
 4. Create one Construction order:
 
 ```powershell
+\.\scripts\dev-qa-prepare-construction-ui-state.ps1
+.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed
+```
+
+5. Create one Construction order:
+
+```powershell
 .\scripts\dev-qa-create-construction-order.ps1 -ApplySeed
 ```
 
@@ -581,3 +598,4 @@ Important reminders:
 - Expect local planet resources to drop immediately after a successful Construction or Research enqueue.
 - Treat any global completion path as out of scope for repeatable cockpit QA.
 - Keep the flow Development-only and backend-authoritative.
+

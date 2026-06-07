@@ -87,4 +87,19 @@ public sealed class PlanetConstructionOrder
 
         Status = ConstructionQueueItemStatus.Completed;
     }
+
+    public void MarkCancelled()
+    {
+        if (Status is ConstructionQueueItemStatus.Cancelled)
+        {
+            return;
+        }
+
+        if (!IsOpen)
+        {
+            throw new InvalidOperationException("Only open construction orders can be cancelled.");
+        }
+
+        Status = ConstructionQueueItemStatus.Cancelled;
+    }
 }

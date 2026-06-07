@@ -48,6 +48,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
 
         services.AddDbContext<VoidEmpiresDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<IDevelopmentSeedService, DevelopmentSeedService>();
+        services.AddScoped<IConstructionQaStatePreparationService, ConstructionQaStatePreparationService>();
         services.AddScoped<IStartingCivilizationService, StartingCivilizationService>();
         services.AddScoped<IPlanetColonizationService, PlanetColonizationService>();
         services.AddScoped<IPlanetEconomyTickService, PlanetEconomyTickService>();

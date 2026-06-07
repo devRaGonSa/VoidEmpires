@@ -234,6 +234,58 @@ internal static class DevEndpointMappings
                 []));
         });
 
+        app.MapPost("/api/dev/construction/qa-state/prepare", async (
+            PrepareConstructionQaStateApiRequest request,
+            [FromServices] IServiceProvider services,
+            [FromServices] IConfiguration configuration,
+            CancellationToken cancellationToken) =>
+        {
+            if (!IsPersistenceConfigured(configuration))
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            var errors = ValidateConstructionQaStatePreparation(request);
+            if (errors.Count > 0)
+            {
+                return Results.BadRequest(new ConstructionQaStatePreparationApiResponse(
+                    false,
+                    null,
+                    0,
+                    0,
+                    null,
+                    null,
+                    [],
+                    errors));
+            }
+
+            var service = services.GetRequiredService<IConstructionQaStatePreparationService>();
+            var result = await service.PrepareAsync(new ConstructionQaStatePreparationRequest(request.CivilizationId, request.PlanetId), cancellationToken);
+
+            if (!result.Succeeded)
+            {
+                return Results.Conflict(new ConstructionQaStatePreparationApiResponse(
+                    false,
+                    null,
+                    result.BlockingOrdersBefore,
+                    result.BlockingOrdersAfter,
+                    result.ResourcesBefore,
+                    result.ResourcesAfter,
+                    result.Notes,
+                    result.Errors));
+            }
+
+            return Results.Ok(new ConstructionQaStatePreparationApiResponse(
+                true,
+                result,
+                result.BlockingOrdersBefore,
+                result.BlockingOrdersAfter,
+                result.ResourcesBefore,
+                result.ResourcesAfter,
+                result.Notes,
+                []));
+        });
+
         app.MapPost("/api/dev/assets/production/enqueue", async (
             EnqueueAssetProductionApiRequest request,
             [FromServices] IServiceProvider services,
@@ -682,6 +734,23 @@ internal static class DevEndpointMappings
         return errors;
     }
 
+    private static IReadOnlyList<string> ValidateConstructionQaStatePreparation(PrepareConstructionQaStateApiRequest request)
+    {
+        var errors = new List<string>();
+
+        if (request.CivilizationId.HasValue && request.CivilizationId.Value == Guid.Empty)
+        {
+            errors.Add("Civilization id must not be empty.");
+        }
+
+        if (request.PlanetId.HasValue && request.PlanetId.Value == Guid.Empty)
+        {
+            errors.Add("Planet id must not be empty.");
+        }
+
+        return errors;
+    }
+
     private static IReadOnlyList<string> ValidateEnqueueAssetProduction(EnqueueAssetProductionApiRequest request)
     {
         var errors = new List<string>();
@@ -897,6 +966,20 @@ internal sealed record CompleteConstructionOrdersApiResponse(
     bool Succeeded,
     int CompletedCount,
     IReadOnlyList<Guid> CompletedOrderIds,
+    IReadOnlyList<string> Errors);
+
+internal sealed record PrepareConstructionQaStateApiRequest(
+    Guid? CivilizationId,
+    Guid? PlanetId);
+
+internal sealed record ConstructionQaStatePreparationApiResponse(
+    bool Succeeded,
+    ConstructionQaStatePreparationResult? Result,
+    int BlockingOrdersBefore,
+    int BlockingOrdersAfter,
+    ConstructionQaStatePreparationResourceState? ResourcesBefore,
+    ConstructionQaStatePreparationResourceState? ResourcesAfter,
+    IReadOnlyList<string> Notes,
     IReadOnlyList<string> Errors);
 
 internal sealed record EnqueueAssetProductionApiRequest(

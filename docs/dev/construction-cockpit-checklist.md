@@ -25,6 +25,19 @@ Use `planet-full-validation` for the richer deterministic Construction QA baseli
   - Several actions remain blocked.
   - The queue shows one completed construction-history row and no open order.
 
+### Reused-development QA preparation contract
+
+- Default scoped IDs for QA prep:
+  - `civilizationId = 00000000-0000-0000-0000-000000000001`
+  - `planetId = 40000000-0000-0000-0000-000000000001`
+- Construction blocking rows are scoped to that pair and only include queue rows with `Pending` or `Active` status.
+- Preparation operation steps:
+  - clears/neutralizes blocking open orders for the scoped target only
+  - preserves completed/history rows on the same planet
+  - preserves unrelated planets/civilizations and their rows
+  - tops up stockpile to `Credits >= 1000`, `Metal >= 1000`, `Crystal >= 1000`, `Gas >= 1000` when stockpile exists
+- This is a Development-only helper and does not run automatically.
+
 Backend-only persisted QA helper:
 
 - `.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed`
@@ -135,6 +148,7 @@ npm run dev --prefix .\src\VoidEmpires.Frontend
 - Backend-only fallback:
 
 ```powershell
+.\scripts\dev-qa-prepare-construction-ui-state.ps1
 .\scripts\dev-qa-create-construction-order.ps1 -ApplySeed
 ```
 
@@ -154,7 +168,11 @@ npm run dev --prefix .\src\VoidEmpires.Frontend
 
 - repeated runs can leave a real open construction order in place
 - reseeding helps restore read-model context but does not delete manual active orders
-- when you need the exact pre-enqueue baseline again, switch to a fresh disposable local database instead of relying on cleanup
+- when you need the exact pre-enqueue baseline again, switch to a fresh disposable local database or run the scoped preparation helper before re-testing
+
+```powershell
+.\scripts\dev-qa-prepare-construction-ui-state.ps1
+```
 
 ## Final manual QA
 

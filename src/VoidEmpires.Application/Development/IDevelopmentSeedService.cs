@@ -200,3 +200,66 @@ public interface IDevelopmentSeedService
         ApplyDevelopmentSeedRequest request,
         CancellationToken cancellationToken = default);
 }
+
+public sealed record ConstructionQaStatePreparationRequest(
+    Guid? CivilizationId = null,
+    Guid? PlanetId = null);
+
+public sealed record ConstructionQaStatePreparationResourceState(
+    decimal Credits,
+    decimal Metal,
+    decimal Crystal,
+    decimal Gas);
+
+public sealed record ConstructionQaStatePreparationResult(
+    bool Succeeded,
+    Guid CivilizationId,
+    Guid PlanetId,
+    int BlockingOrdersBefore,
+    int BlockingOrdersAfter,
+    ConstructionQaStatePreparationResourceState? ResourcesBefore,
+    ConstructionQaStatePreparationResourceState? ResourcesAfter,
+    IReadOnlyList<string> Notes,
+    IReadOnlyList<string> Errors)
+{
+    public static ConstructionQaStatePreparationResult Success(
+        Guid civilizationId,
+        Guid planetId,
+        int blockingOrdersBefore,
+        int blockingOrdersAfter,
+        ConstructionQaStatePreparationResourceState? resourcesBefore,
+        ConstructionQaStatePreparationResourceState? resourcesAfter,
+        IReadOnlyList<string> notes) =>
+        new(
+            true,
+            civilizationId,
+            planetId,
+            blockingOrdersBefore,
+            blockingOrdersAfter,
+            resourcesBefore,
+            resourcesAfter,
+            notes,
+            []);
+
+    public static ConstructionQaStatePreparationResult Failure(
+        Guid civilizationId,
+        Guid planetId,
+        IReadOnlyList<string> errors) =>
+        new(
+            false,
+            civilizationId,
+            planetId,
+            0,
+            0,
+            null,
+            null,
+            [],
+            errors);
+}
+
+public interface IConstructionQaStatePreparationService
+{
+    Task<ConstructionQaStatePreparationResult> PrepareAsync(
+        ConstructionQaStatePreparationRequest request,
+        CancellationToken cancellationToken = default);
+}
