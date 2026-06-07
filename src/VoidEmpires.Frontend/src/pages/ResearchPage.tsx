@@ -197,7 +197,7 @@ export function ResearchPage() {
       const refreshed = await reloadResearchState(civilizationId, sourcePlanetId, false, true);
       if (!refreshed) {
         setEnqueueError(
-          "La orden se envio, pero la cabina no pudo recargar el estado actualizado. Refresca la vista para confirmar el resultado final.",
+          "La investigacion fue aceptada por el backend; la cola visible se actualizara con la siguiente lectura disponible.",
         );
         setTechnicalErrorDetail("Research UI state refresh failed after a successful enqueue.");
       }
