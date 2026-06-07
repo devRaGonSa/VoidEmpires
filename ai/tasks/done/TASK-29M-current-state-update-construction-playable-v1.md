@@ -3,7 +3,7 @@
 ---
 id: TASK-29M-current-state-update-construction-playable-v1
 title: Update current-state with construction playable v1 milestone
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [platform]
@@ -36,6 +36,12 @@ Accuracy of `ai/current-state.md` is mandatory for future planning tasks.
 ## Acceptance criteria
 
 - State text is accurate, bounded, and non-overclaimed.
+
+## Validation notes
+
+- `dotnet build --no-restore` passed with transient `MSB3026` copy-retry warnings while `testhost` still held test output DLLs.
+- `dotnet test --no-build` passed with `686` tests.
+- `npm run build --prefix src/VoidEmpires.Frontend` passed.
 
 ## Validation
 
