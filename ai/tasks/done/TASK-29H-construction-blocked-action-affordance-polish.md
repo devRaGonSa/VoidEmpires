@@ -3,7 +3,7 @@
 ---
 id: TASK-29H-construction-blocked-action-affordance-polish
 title: Polish blocked action affordances in Construction cockpit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend]
@@ -25,6 +25,10 @@ This is a UX safety task without gameplay logic changes.
 
 - ai/tasks/pending/TASK-29H-construction-blocked-action-affordance-polish.md
 - src/VoidEmpires.Frontend/src/pages/ConstructionPage.tsx
+
+Implementation note:
+
+- The blocked affordance polish is owned by `src/VoidEmpires.Frontend/src/utils/planetPresentation.ts` because the route reuses shared availability labels and button copy from that helper.
 
 ## Implementation steps
 
