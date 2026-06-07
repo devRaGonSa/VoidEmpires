@@ -491,12 +491,11 @@ export function ResearchPage() {
                 <div>
                   <p className="eyebrow">Paso final</p>
                   <h3>Confirmar inicio de investigacion</h3>
-                  <p>Esta accion enviara una unica orden segura de investigacion para el planeta seleccionado.</p>
+                  <p>Esta accion creara una orden real de investigacion en la base de datos de Development.</p>
                 </div>
                 <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
               </div>
               <div className="figma-data-list">
-                <div className="figma-data-row"><span>Civilizacion</span><strong>{uiState.civilizationId}</strong></div>
                 <div className="figma-data-row"><span>Planeta</span><strong>{uiState.selectedPlanetName ?? "Sin planeta"}</strong></div>
                 <div className="figma-data-row"><span>Tecnologia</span><strong>{preparedResearch.label}</strong></div>
                 <div className="figma-data-row"><span>Categoria</span><strong>{preparedResearch.categoryLabel}</strong></div>
@@ -510,6 +509,11 @@ export function ResearchPage() {
                   ? "La orden esta lista para enviarse cuando confirmes."
                   : `La cabina validara tambien: ${preparedResearch.availability.reasonLabel}.`}
               </p>
+              <ul className="stack-list compact-list">
+                <li>Esta accion creara una orden real de investigacion en la base de datos de Development.</li>
+                <li>Los recursos se descontaran cuando el backend confirme la orden.</li>
+                <li>No se completara automaticamente desde esta cabina.</li>
+              </ul>
               <label className="confirmation-checkbox">
                 <input
                   type="checkbox"
@@ -532,7 +536,7 @@ export function ResearchPage() {
                   onClick={() => void handleResearchSubmit()}
                   disabled={isSubmittingEnqueue || !hasEnqueueAcknowledgement}
                 >
-                  {isSubmittingEnqueue ? "Confirmando..." : "Confirmar"}
+                  {isSubmittingEnqueue ? "Confirmando..." : "Confirmar investigacion"}
                 </button>
               </div>
             </UiCard>
