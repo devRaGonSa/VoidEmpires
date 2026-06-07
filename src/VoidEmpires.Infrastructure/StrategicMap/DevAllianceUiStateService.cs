@@ -115,7 +115,7 @@ public sealed class DevAllianceUiStateService(
                 pactReadiness.Pacts.Count(x => x.Status == AlliancePactStatus.Active),
                 BuildNotes(activeAllianceCount, diplomaticContacts.Contacts.Count, pactReadiness.Pacts.Count)),
             [
-                "Alliance cockpit remains read-only in this phase.",
+                "La cabina de la Alianza permanece en modo solo lectura en esta fase.",
                 "Alliance metadata does not grant shared visibility, shared sensor coverage, or shared fleet access.",
                 "Invitations, applications, pact execution, membership changes, and messaging remain disabled placeholders.",
                 "This read model does not mutate alliances, contacts, pacts, fleets, planets, or resources."

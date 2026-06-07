@@ -59,7 +59,7 @@ Preferred replacements:
 ### Final Visual QA Audit Snapshot (Ranking/Alliance/Market)
 
 - Ruta revisada: `/ranking` -> resultado: carga correcta, cabina visible, **bloqueante por copy visible** (`Void Seed Civilization | current`, `Delta`, texto técnico de referencia).
-- Ruta revisada: `/alliance` -> resultado: carga correcta, cabina visible, **bloqueante por copia inglesa y fallback técnico visible** (`Alliance cockpit remains read-only in this phase`, `Lectura diplomatica pendiente de clasificar | 0000000`).
+- Ruta revisada: `/alliance` -> resultado: carga correcta, cabina visible, **bloqueante por copia inglesa y fallback técnico visible** (`La cabina de la Alianza permanece en modo solo lectura en esta fase`, `Lectura diplomatica pendiente de clasificar | 0000000`).
 - Ruta revisada: `/market` -> resultado: carga correcta, cabina visible, **bloqueante por copy repetido** (`Recurso no clasificado`) en estado primario.
 - Ruta revisada: `/espionage` -> resultado: aceptable en capturas revisadas.
 - Ruta revisada: `/galaxy` -> resultado: aceptable en capturas revisadas.

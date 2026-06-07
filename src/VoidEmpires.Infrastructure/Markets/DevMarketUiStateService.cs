@@ -149,7 +149,7 @@ public sealed class DevMarketUiStateService(VoidEmpiresDbContext dbContext) : ID
                 selectedProduction is not null,
                 BuildNotes(selectedStockpile is not null, selectedProduction is not null, civilizationActiveTransfers)),
             [
-                "Market remains read-only in this phase.",
+                "El mercado permanece en modo solo lectura en esta fase.",
                 "Civilization reserves are aggregated from owned planet stockpiles rather than a persisted shared treasury.",
                 "Reference ratios are advisory only and derived from current reserve and production context.",
                 "Trade-route, listing, and transfer execution remain disabled placeholders."

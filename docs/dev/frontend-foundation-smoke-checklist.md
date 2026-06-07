@@ -19,10 +19,10 @@ Run this guard before closing manual visual batches for the accepted cockpit sui
 - This scans only `src/VoidEmpires.Frontend/src` for known recurring blocked phrases, so docs and scripts are intentionally excluded.
 - Current blocked phrases:
   - `Recurso no clasificado`
-  - `Alliance cockpit remains read-only in this phase`
+  - `La cabina de la Alianza permanece en modo solo lectura en esta fase`
   - `Void Seed Civilization | current`
   - `Delta`
-  - `read-only in this phase`
+  - `solo lectura en esta fase`
 
 ## Frontend Bundle Baseline
 
