@@ -355,12 +355,29 @@ Current enqueue behavior:
 
 - Requires `civilizationId`, `sourcePlanetId`, `researchType`, and UTC `requestedAtUtc`.
 - Accepts frontend string enum payloads such as `PlanetaryEngineering`.
+- The route only exists when Development endpoints are enabled, and it returns `503` if persistence is not configured.
 - Requires the source planet to be actively owned by the requesting civilization.
 - Rejects a second open research order for the civilization.
 - Spends the full research cost immediately from the source planet stockpile.
 - Persists a `ResearchOrder` row immediately with `Status = Active`.
 - Uses current `EnergySystems` project level to shorten duration.
 - Does not create or upgrade `ResearchProject` until completion.
+- Web-layer `400` validation currently covers:
+  - missing or empty `civilizationId`
+  - missing or empty `sourcePlanetId`
+  - missing `researchType`
+  - missing `requestedAtUtc`
+  - non-UTC `requestedAtUtc`
+- Current `409` conflict set from the service layer is:
+  - `Planet is not owned by the requesting civilization.`
+  - `Civilization already has an open research order.`
+  - `Planet resource stockpile was not found.`
+  - `Insufficient resources.`
+- The current backend does not yet expose dedicated enqueue rejections for:
+  - hidden prerequisite failures
+  - invalid civilization as a distinct lookup error
+  - already researched or max-level caps
+  - technology-specific availability beyond ownership, queue occupancy, stockpile presence, and resource affordability
 
 Current read behavior after mutation:
 
@@ -380,6 +397,7 @@ Scope enforcement:
 - Open queue uniqueness is enforced per civilization.
 - Ownership is checked against `PlanetOwnerships` for the requested `sourcePlanetId`.
 - The read model only exposes an owned selected planet; unknown civilization or foreign planet selection returns `404`.
+- Safe cockpit mutation should stay constrained to backend-issued `enqueueCommand` metadata from `GET /api/dev/research/ui-state`, followed by a fresh read after `201 Created`.
 
 ## Completion route classification
 

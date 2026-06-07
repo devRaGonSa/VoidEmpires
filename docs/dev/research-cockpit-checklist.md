@@ -75,6 +75,8 @@ Verified refresh behavior:
 ## Enqueue contract note
 
 The current dev enqueue route is `POST /api/dev/research/orders/enqueue`.
+It is mapped only when Development endpoints are enabled in `src/VoidEmpires.Web/Program.cs`, and the handler returns `503 Service Unavailable` when `ConnectionStrings:DefaultConnection` is missing.
+
 The frontend-safe request body is:
 
 ```json
@@ -91,9 +93,58 @@ The frontend-safe request body is:
 - `researchType` must use the stable backend enum key such as `PlanetaryEngineering`, not the Spanish label `Ingenieria planetaria`.
 - `requestedAtUtc` is required and must be a UTC timestamp.
 - `targetLevel`, `planetId`, capability ids, and action metadata are not part of the current backend enqueue contract.
-- Root cause from the enqueue audit:
-  - The cockpit already sent the correct route and core fields.
-  - The validation failure came from enum-string binding: the frontend posted `researchType` as the stable string key, but the web host had not enabled JSON string enum deserialization for the POST contract.
+
+Current response behavior:
+
+- `201 Created` returns:
+
+```json
+{
+  "succeeded": true,
+  "orderId": "00000000-0000-0000-0000-000000000000",
+  "startsAtUtc": "2026-01-01T12:00:00Z",
+  "endsAtUtc": "2026-01-01T12:10:00Z",
+  "errors": []
+}
+```
+
+- `400 Bad Request` is reserved for request-shape validation in the web layer:
+  - missing or empty `civilizationId`
+  - missing or empty `sourcePlanetId`
+  - missing `researchType`
+  - missing `requestedAtUtc`
+  - non-UTC `requestedAtUtc`
+- Invalid `researchType` strings currently rely on ASP.NET JSON enum binding before the handler logic; there is no research-specific custom error path for that case.
+- `409 Conflict` is used for current service-level rejections:
+  - `Planet is not owned by the requesting civilization.`
+  - `Civilization already has an open research order.`
+  - `Planet resource stockpile was not found.`
+  - `Insufficient resources.`
+
+Current backend boundary from the audit:
+
+- The safe source of truth for mutation is the `enqueueCommand` returned by `GET /api/dev/research/ui-state`.
+- `ResearchQueueService` persists a real `ResearchOrder` row immediately with `Status = Active`.
+- The service spends the full visible resource cost immediately from `PlanetResourceStockpile`; this is persisted state, not optimistic cache-only UI state.
+- `ResearchProject` is not created or upgraded during enqueue. Level changes happen later through the global `POST /api/dev/research/orders/complete-due` flow or the equivalent worker path.
+- The current readiness evaluator only models four research blockers:
+  - active owned source planet
+  - one open civilization-wide queue slot
+  - source-planet stockpile presence
+  - sufficient resources
+- The current backend does not model or distinguish these as dedicated enqueue rejections:
+  - unavailable technology because of hidden prerequisites
+  - invalid civilization as a separate error from ownership failure
+  - already researched or max-level caps
+  - technology-specific level gates beyond cost scaling by current level
+
+Safe UI boundary:
+
+- Only enable the confirmation CTA when the read model says `canEnqueue = true` and `enqueueCommand` is present.
+- Post only the backend-owned command fields: `civilizationId`, `sourcePlanetId`, `researchType`, and a fresh UTC `requestedAtUtc`.
+- Treat any missing `enqueueCommand` on a blocked card as a hard stop for mutation, even if the card still exposes descriptive metadata.
+- Re-read `GET /api/dev/research/ui-state` after a successful `201` before finalizing queue, hint, or resource visuals.
+- Keep `POST /api/dev/research/orders/complete-due` out of the cockpit because it completes every due open research order globally, not just the currently viewed civilization or planet.
 
 ## Final manual QA
 
