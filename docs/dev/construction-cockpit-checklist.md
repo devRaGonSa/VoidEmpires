@@ -100,6 +100,15 @@ Verified refresh behavior:
 - If the backend accepts the order but the refreshed queue does not expose the new row yet, the cockpit says: `La orden fue aceptada por el backend; la cola visible se actualizara con la siguiente lectura disponible.`
 - If that follow-up read fails, the cockpit keeps the success or failure technically honest and asks the user to refresh the view instead of inventing a local queue row.
 
+## Minimal regression guards
+
+- `npm run build --prefix src/VoidEmpires.Frontend`
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1`
+- Manual guard for `/construction`:
+  - selecting an action must not submit anything by itself
+  - sending the order still requires the explicit confirmation checkbox and button
+  - post-submit queue or resource changes must come from the refreshed backend read, not from fabricated local state
+
 ## Final manual QA
 
 Run first:

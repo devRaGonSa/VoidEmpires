@@ -3,7 +3,7 @@
 ---
 id: TASK-29J-construction-ui-state-tests-or-frontend-guard
 title: Add regression guard(s) for construction UI state
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend]
@@ -24,6 +24,12 @@ Avoid introducing a heavy test framework if none exists.
 ## Expected files to modify
 
 - ai/tasks/pending/TASK-29J-construction-ui-state-tests-or-frontend-guard.md
+
+## Tooling audit
+
+- `src/VoidEmpires.Frontend/package.json` does not define a frontend test runner.
+- No `vitest`, `jest`, `testing-library`, `playwright`, or `cypress` dependency is configured for the frontend app.
+- This task therefore uses documented guard checks instead of introducing a heavy new test stack mid-queue.
 
 ## Implementation steps
 
