@@ -3,7 +3,7 @@
 ---
 id: TASK-29N-final-validation-construction-enqueue-ux
 title: Final validation pass for construction enqueue UX block
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [platform]
@@ -37,6 +37,15 @@ Administrative validation task after all implementation tasks are done.
 
 - All listed validation commands are run and reported.
 - No scope regression is introduced.
+
+## Validation notes
+
+- `dotnet build --no-restore` passed with transient `MSB3026` copy-retry warnings while `testhost` still held test output DLLs.
+- `dotnet test --no-build` passed with `686` tests.
+- `npm run build --prefix src/VoidEmpires.Frontend` passed.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` passed.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` passed.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1` passed.
 
 ## Validation
 
