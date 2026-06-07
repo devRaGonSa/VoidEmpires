@@ -3,7 +3,7 @@
 ---
 id: TASK-29D-construction-confirmation-panel
 title: Add explicit confirmation panel before enqueue
-status: pending
+status: obsolete
 type: platform
 team: platform
 supporting_teams: [frontend]
@@ -40,6 +40,12 @@ No backend submit should happen in this task.
 
 - Confirmation is explicit and visible.
 - Selection alone does not mutate anything.
+
+## Resolution notes
+
+- The current `/construction` route already renders an explicit confirmation section through `PlanetPage variant="construction"`.
+- That route has advanced beyond this milestone and already includes real enqueue submission behavior from later work in the branch.
+- Re-implementing this task as read-only would require removing newer behavior and would be a regression, so no frontend code change was applied here.
 
 ## Validation
 
