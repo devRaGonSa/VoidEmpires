@@ -3,7 +3,7 @@
 ---
 id: TASK-29K-construction-cross-cockpit-safety-regression
 title: Verify construction mutation does not affect other cockpits
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend]
@@ -26,6 +26,11 @@ Navigation and query parameters across cockpits must remain stable.
 
 - ai/tasks/pending/TASK-29K-construction-cross-cockpit-safety-regression.md
 - docs/dev/frontend-foundation-smoke-checklist.md
+
+## Review notes
+
+- `src/VoidEmpires.Frontend/src/utils/routeUrls.ts` centralizes `civilizationId` and `planetId` preservation for `Planet`, `Construction`, `Research`, `Shipyard`, `Defenses`, `Galaxy`, and `Fleets`.
+- The current `/construction` route is still implemented through `PlanetPage variant="construction"` and does not introduce mutation helpers for non-construction cockpits.
 
 ## Implementation steps
 

@@ -65,6 +65,7 @@ Compact navigation regression pass:
 - `Galaxy -> Planet`: open `/galaxy`, follow the seeded planet handoff, and confirm `civilizationId` and `planetId` remain present.
 - `Planet -> Construction`: open the `Construccion` handoff from `Planeta` and confirm the selected colony context is preserved.
 - `Construction -> Planet`: return to `Planeta` and confirm the same colony context still resolves.
+- `Construction -> Research/Shipyard/Defenses/Fleets/Galaxy`: confirm each handoff preserves the active `civilizationId`, keeps the same `planetId` when the destination supports it, and does not expose new mutation controls outside the Construction cockpit.
 - `Planet -> Research`: open `Investigacion` from `Planeta` and confirm the selected colony context is preserved.
 - `Planet -> Shipyard`: open `Astillero` from `Planeta` and confirm the selected colony context is preserved.
 - `Shipyard -> Fleets`: open `Flotas` from `Astillero` and confirm the planet context still appears in the destination route.
@@ -173,6 +174,7 @@ Cross-cockpit comparison checks:
 - Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Market, Fleets, Defenses, Espionage, Alliance, and Ranking all open from the shared `cockpit-validation` baseline without shell-only or near-empty regressions.
 - Route helpers preserve `civilizationId` and `planetId` when moving between the accepted cockpit links.
 - Galaxy remains read-only while Planet, Construction, Research, Shipyard, and Fleets keep their current guarded mutation boundaries.
+- Construction remains the only cockpit in this handoff cluster that can enqueue construction orders; Research, Shipyard, Defenses, Planet, Galaxy, and Fleets must not gain a new construction mutation surface through navigation regressions.
 - Diagnostics stay collapsed or clearly secondary across the cockpit routes.
 - Espionage visible copy stays Spanish-first; English technical wording outside collapsed diagnostics fails visual QA.
 - Ground Army is now part of the accepted cockpit-foundation suite, but it remains readiness-only and non-combat.
