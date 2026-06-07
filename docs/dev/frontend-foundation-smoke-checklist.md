@@ -404,6 +404,21 @@ Construction cockpit v1 visual review:
 - Confirm blocked cards remain visually quieter than available actions.
 - Confirm technical details for command failures remain secondary to the primary Spanish guidance.
 
+Construction enqueue visual checklist (manual, pending execution):
+
+- [ ] Selecting an available action clearly marks it as the active review target without sending any request yet.
+- [ ] The guarded confirmation section appears only for an available prepared action.
+- [ ] The confirmation section shows planet, building, action, level, cost, and duration together.
+- [ ] The confirmation checkbox remains required before the send button becomes actionable.
+- [ ] The primary loading state during submit reads as an in-progress order send, not as a generic page reload.
+- [ ] A successful submit shows backend-confirmed success copy in the main flow without surfacing raw payload text.
+- [ ] Blocked cards keep readable Spanish reason cues such as missing resources, pending requirement, queue unavailable, or out-of-scope guidance.
+- [ ] Blocked cards and disabled buttons remain visually secondary to available actions.
+- [ ] Queue and resource changes after submit appear only after the backend refresh, not as fabricated optimistic state.
+- [ ] If the backend accepts the order but the refreshed queue still lags, the UI shows the accepted-but-not-yet-visible message instead of inventing a queue row.
+- [ ] No complete-due or auto-completion affordance appears executable from the construction cockpit.
+- [ ] Primary UI surfaces never show raw JSON, raw payload fragments, or backend field names ahead of the Spanish gameplay copy.
+
 Research cockpit v1 visual review:
 
 - Confirm the first viewport reads like a specialized management cockpit rather than a placeholder or debug page.

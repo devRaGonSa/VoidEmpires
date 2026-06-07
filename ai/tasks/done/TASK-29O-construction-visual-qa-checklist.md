@@ -3,7 +3,7 @@
 ---
 id: TASK-29O-construction-visual-qa-checklist
 title: Add visual QA checklist for construction enqueue
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [platform]
