@@ -31,6 +31,60 @@ Backend-only persisted QA helper:
 - Add `-BuildingType MetalMine` or another available building type to force the exact enqueue target.
 - The helper talks directly to `POST /api/dev/buildings/construction-orders/enqueue`, then re-reads `/api/dev/planets/ui-state` to print queue and reserve deltas.
 
+## Audited persisted enqueue contract
+
+- Mutation route: `POST /api/dev/buildings/construction-orders/enqueue`
+- Read route used for option selection and refresh: `GET /api/dev/planets/ui-state?civilizationId={id}&planetId={id}`
+- Development exposure rule:
+  - The route is mapped only when `Program.cs` enables Development endpoints.
+  - Current gate: `environment.IsDevelopment()` or `VoidEmpires:DevEndpoints:Enabled=true`.
+  - If persistence is not configured through `ConnectionStrings:DefaultConnection`, the route returns `503 Service Unavailable`.
+- Request body fields:
+  - `planetId: Guid`
+  - `civilizationId: Guid`
+  - `action: ConstructionQueueItemAction`
+  - `buildingType: BuildingType`
+  - `requestedAtUtc: DateTime` with `Utc` kind required
+- Success response:
+  - `201 Created`
+  - body fields: `succeeded`, `orderId`, `startsAtUtc`, `endsAtUtc`, `errors`
+- Request validation response:
+  - `400 Bad Request` for missing ids, missing action, missing building type, missing `requestedAtUtc`, or non-UTC `requestedAtUtc`
+- Service rejection response:
+  - `409 Conflict` with backend error text in `errors`
+
+## Safe UI boundary
+
+- The cockpit should only submit actions already surfaced by `/api/dev/planets/ui-state` with `AvailabilityStatus = "Available"`.
+- The cockpit should treat the planet UI-state response as the source of truth for `action`, `buildingType`, `targetLevel`, displayed cost, and duration.
+- The cockpit must send backend-compatible enum values from the read model, not localized labels.
+- The cockpit may allow explicit foreign-planet viewing, but it must not present enqueue as executable there.
+- The cockpit should always refresh from `/api/dev/planets/ui-state` after a `201` instead of inserting an optimistic local queue row.
+- The cockpit should keep `complete-due` unavailable here because the backend completion route is still global.
+
+## Audited rejection and guardrail matrix
+
+- Proven enqueue conflicts from the persisted POST:
+  - `Planet is not owned by the requesting civilization.`
+  - `Planet already has an open construction order.`
+  - `Insufficient resources.`
+  - `Planet building capacity would be exceeded.`
+  - `Planet resource stockpile was not found.`
+  - `Building was not found.` for an upgrade request whose building row does not exist
+- Proven read-state guardrails from `/api/dev/planets/ui-state`:
+  - Missing `civilizationId` returns `400 Bad Request`
+  - Unknown `planetId` returns `404 Not Found` with `Planet was not found.`
+  - Explicit foreign-planet selection stays readable but hides stockpile and management data, and the action summary stays blocked
+  - Open-order and affordability blocking are already surfaced before submit through action availability and summary state
+- Important contract note:
+  - The current enqueue service does not emit a distinct `civilization was not found` or `planet was not found` conflict. Unknown ids currently collapse into request validation, read-state `404`, or the ownership conflict path.
+
+## Immediate resource semantics
+
+- Successful enqueue spends the full visible construction cost immediately from `PlanetResourceStockpile`.
+- The persisted row is created immediately with `Status = Active`.
+- This flow does not use a reservation-only placeholder or deferred spend model.
+
 Verified refresh behavior:
 
 - After a successful backend `201`, the cockpit re-reads `/api/dev/planets/ui-state` before leaving the user with the final visible queue and stockpile state.

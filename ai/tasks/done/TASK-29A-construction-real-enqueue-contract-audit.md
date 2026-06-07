@@ -3,7 +3,7 @@
 ---
 id: TASK-29A-construction-real-enqueue-contract-audit
 title: Construction contract audit before UI enqueue
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend, backend]
@@ -51,6 +51,24 @@ This task is intentionally docs-only and does not mutate behavior. It must ident
 - Contract is documented with explicit path and payloads.
 - Safe boundary is updated in construction checklist.
 - No source behavior changes.
+
+## Audit notes
+
+- `POST /api/dev/buildings/construction-orders/enqueue` is mapped only when Development endpoints are enabled in `src/VoidEmpires.Web/Program.cs`.
+- Development exposure is enabled by `environment.IsDevelopment()` or `VoidEmpires:DevEndpoints:Enabled=true`.
+- The route also requires a configured `ConnectionStrings:DefaultConnection`; otherwise it returns `503 Service Unavailable`.
+- Request contract is `planetId`, `civilizationId`, `action`, `buildingType`, `requestedAtUtc`.
+- Success contract is `201 Created` with `succeeded`, `orderId`, `startsAtUtc`, `endsAtUtc`, and `errors`.
+- Invalid request shape returns `400 Bad Request`; service-level enqueue rejection returns `409 Conflict`.
+- Persisted enqueue spends the full visible construction cost immediately from `PlanetResourceStockpile` before saving the active order.
+- Distinct enqueue conflict branches currently proven in service/tests are:
+  - `Planet is not owned by the requesting civilization.`
+  - `Planet already has an open construction order.`
+  - `Insufficient resources.`
+  - `Planet building capacity would be exceeded.`
+  - `Planet resource stockpile was not found.`
+  - `Building was not found.` for upgrade requests against a missing building row.
+- There is no distinct persisted enqueue error today for an unknown civilization id or unknown planet id; those cases collapse into request validation or ownership/read-state boundaries instead.
 
 ## Validation
 
