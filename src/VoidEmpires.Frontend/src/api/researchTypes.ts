@@ -72,3 +72,58 @@ export interface ResearchUiStateResponse {
   uiState: ResearchUiStateDto | null;
   errors: readonly string[];
 }
+
+export interface EnqueueResearchOrderRequest {
+  civilizationId: string;
+  sourcePlanetId: string;
+  researchType: string;
+  requestedAtUtc: string;
+}
+
+export type ResearchApiErrorCode =
+  | "MissingCivilizationId"
+  | "MissingSourcePlanetId"
+  | "MissingResearchType"
+  | "MissingRequestedAtUtc"
+  | "RequestedAtUtcNotUtc"
+  | "SourcePlanetNotOwned"
+  | "OpenResearchOrderExists"
+  | "SourcePlanetStockpileMissing"
+  | "InsufficientResources"
+  | "UnknownValidationFailure";
+
+export interface ResearchApiErrorEntry {
+  code: ResearchApiErrorCode;
+  message: string;
+  rawMessage: string;
+}
+
+export interface EnqueueResearchOrderSuccessResponse {
+  succeeded: true;
+  orderId: string;
+  startsAtUtc: string;
+  endsAtUtc: string;
+  errors: readonly [];
+}
+
+export interface EnqueueResearchOrderFailureResponse {
+  succeeded: false;
+  orderId: string | null;
+  startsAtUtc: string | null;
+  endsAtUtc: string | null;
+  errors: readonly string[];
+  errorEntries: readonly ResearchApiErrorEntry[];
+  failureKind: "validation" | "conflict" | "unknown";
+  isOpenOrderNoOp: boolean;
+}
+
+export type EnqueueResearchOrderResponse =
+  | EnqueueResearchOrderSuccessResponse
+  | EnqueueResearchOrderFailureResponse;
+
+export interface EnqueueResearchOrderCommandResult {
+  httpStatus: number;
+  hasJsonBody: boolean;
+  bodyParseFailed: boolean;
+  response: EnqueueResearchOrderResponse | null;
+}

@@ -1,27 +1,13 @@
 import { appConfig } from "../config";
-import type { ResearchUiStateResponse } from "./researchTypes";
-
-interface JsonCommandResult<T> {
-  httpStatus: number;
-  hasJsonBody: boolean;
-  bodyParseFailed: boolean;
-  response: T | null;
-}
-
-interface EnqueueResearchOrderRequest {
-  civilizationId: string;
-  sourcePlanetId: string;
-  researchType: string;
-  requestedAtUtc: string;
-}
-
-interface EnqueueResearchOrderResponse {
-  succeeded: boolean;
-  orderId: string | null;
-  startsAtUtc: string | null;
-  endsAtUtc: string | null;
-  errors: readonly string[];
-}
+import type {
+  EnqueueResearchOrderCommandResult,
+  EnqueueResearchOrderFailureResponse,
+  EnqueueResearchOrderRequest,
+  EnqueueResearchOrderResponse,
+  EnqueueResearchOrderSuccessResponse,
+  ResearchApiErrorCode,
+  ResearchUiStateResponse,
+} from "./researchTypes";
 
 function buildUrl(path: string, query?: Record<string, string>) {
   const url = new URL(path, appConfig.apiBaseUrl);
@@ -59,7 +45,7 @@ async function requestJson<T>(path: string, query?: Record<string, string>) {
   return response.json() as Promise<T>;
 }
 
-async function requestCommandJson<T>(path: string, body: unknown): Promise<JsonCommandResult<T>> {
+async function requestCommandJson<T>(path: string, body: unknown): Promise<EnqueueResearchOrderCommandResult> {
   const response = await fetch(buildUrl(path), {
     body: JSON.stringify(body),
     headers: {
@@ -71,11 +57,14 @@ async function requestCommandJson<T>(path: string, body: unknown): Promise<JsonC
 
   const contentType = response.headers.get("content-type") ?? "";
   const hasJsonBody = contentType.includes("application/json");
-  let payload: T | null = null;
+  let payload: EnqueueResearchOrderResponse | null = null;
 
   if (hasJsonBody) {
     try {
-      payload = (await response.json()) as T;
+      const parsed = (await response.json()) as EnqueueResearchOrderSuccessResponse | Partial<EnqueueResearchOrderFailureResponse>;
+      payload = response.ok
+        ? parsed as EnqueueResearchOrderSuccessResponse
+        : toResearchCommandFailureResponse(response.status, parsed as Partial<EnqueueResearchOrderFailureResponse>);
     } catch {
       return {
         httpStatus: response.status,
@@ -106,4 +95,54 @@ export function enqueueResearchOrder(request: EnqueueResearchOrderRequest) {
     "/api/dev/research/orders/enqueue",
     request,
   );
+}
+
+function toResearchCommandFailureResponse(
+  httpStatus: number,
+  payload: Partial<EnqueueResearchOrderFailureResponse> | null,
+): EnqueueResearchOrderFailureResponse {
+  const rawErrors = Array.isArray(payload?.errors)
+    ? payload.errors.filter((value): value is string => typeof value === "string")
+    : [];
+  const errorEntries = rawErrors.map((message) => ({
+    code: classifyResearchError(message),
+    message: message.trim(),
+    rawMessage: message,
+  }));
+
+  return {
+    succeeded: false,
+    orderId: null,
+    startsAtUtc: null,
+    endsAtUtc: null,
+    errors: rawErrors,
+    errorEntries,
+    failureKind: httpStatus === 400 ? "validation" : httpStatus === 409 ? "conflict" : "unknown",
+    isOpenOrderNoOp: errorEntries.some((entry) => entry.code === "OpenResearchOrderExists"),
+  };
+}
+
+function classifyResearchError(message: string): ResearchApiErrorCode {
+  switch (message.trim()) {
+    case "Civilization id is required.":
+      return "MissingCivilizationId";
+    case "Source planet id is required.":
+      return "MissingSourcePlanetId";
+    case "Research type is required.":
+      return "MissingResearchType";
+    case "Requested date is required.":
+      return "MissingRequestedAtUtc";
+    case "Requested date must be UTC.":
+      return "RequestedAtUtcNotUtc";
+    case "Planet is not owned by the requesting civilization.":
+      return "SourcePlanetNotOwned";
+    case "Civilization already has an open research order.":
+      return "OpenResearchOrderExists";
+    case "Planet resource stockpile was not found.":
+      return "SourcePlanetStockpileMissing";
+    case "Insufficient resources.":
+      return "InsufficientResources";
+    default:
+      return "UnknownValidationFailure";
+  }
 }
