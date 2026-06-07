@@ -3,7 +3,7 @@
 ---
 id: TASK-29I-construction-dev-qa-script-alignment
 title: Align backend QA script and frontend flow docs
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [platform]

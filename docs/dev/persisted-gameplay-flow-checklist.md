@@ -37,6 +37,16 @@ Repeatable backend-only baseline helper:
 - Run `.\scripts\check-dev-qa-scripts.ps1` to parser-check the persisted QA PowerShell helpers and run lightweight local formatting checks without requiring the backend.
 - There is intentionally no `dev-qa-create-orbital-group-from-stock.ps1` helper in this block because stock-to-fleet allocation is still excluded from the accepted reused-database QA loop.
 
+Construction now has two sanctioned Development QA paths:
+
+- Backend-only helper path:
+  - `.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed`
+  - Useful when you want copy-pasteable queue and resource deltas directly in the terminal
+- Frontend-confirmed cockpit path:
+  - `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+  - Useful when you need to verify the guarded review, confirmation, Spanish copy, and post-submit refresh behavior
+- Both paths create real Development database rows through the same persisted enqueue endpoint.
+
 Shared helper defaults:
 
 - Base URL default: `http://localhost:5142`
@@ -277,6 +287,14 @@ Repeatable backend-only helper:
 - Add `-BuildingType MetalMine` or another available type to force a specific safe action instead of auto-picking the first available one.
 - The helper requires a running Development backend, creates a real persisted row, and prints before or after queue plus resource changes without running migrations or cleanup.
 
+Frontend-confirmed cockpit path:
+
+- Load `/construction` with the deterministic civilization and planet ids.
+- Select only actions the read model marks as available.
+- Confirm the guarded review step before sending the order.
+- The route posts to the same persisted enqueue endpoint as the backend helper.
+- A successful submit still requires a follow-up read from `/api/dev/planets/ui-state`; the cockpit may report accepted-but-not-yet-visible state, but it must not fabricate queue rows.
+
 Current enqueue behavior:
 
 - Requires `planetId`, `civilizationId`, `action`, `buildingType`, and UTC `requestedAtUtc`.
@@ -466,6 +484,17 @@ Expected controlled failure:
 - queue already occupied
 - no available action
 - backend conflict with a real message
+
+Alternative frontend check for the same persisted mutation:
+
+- Open `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Prepare one available action and confirm it from the UI
+- Expected success:
+  - the route shows a backend-confirmed success message
+  - the route re-reads backend state instead of inserting a fake local row
+  - diagnostics can show visible queue and resource changes from the refreshed read model
+- Expected honest lag handling:
+  - if the backend accepts the order but the immediate refresh does not yet expose it, the route says `La orden fue aceptada por el backend; la cola visible se actualizara con la siguiente lectura disponible.`
 
 5. Create one Research order:
 

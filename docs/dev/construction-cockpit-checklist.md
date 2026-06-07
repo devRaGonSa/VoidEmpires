@@ -31,6 +31,14 @@ Backend-only persisted QA helper:
 - Add `-BuildingType MetalMine` or another available building type to force the exact enqueue target.
 - The helper talks directly to `POST /api/dev/buildings/construction-orders/enqueue`, then re-reads `/api/dev/planets/ui-state` to print queue and reserve deltas.
 
+Frontend-confirmed persisted QA path:
+
+- Open `/construction?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Choose an action already marked `Disponible`
+- Review the guarded confirmation section and send the order explicitly
+- This route also creates a real persisted Development database row; it is not a mock or optimistic-only UI flow
+- The route still depends on the same backend refresh contract and must not invent queue rows or resource deltas locally
+
 ## Audited persisted enqueue contract
 
 - Mutation route: `POST /api/dev/buildings/construction-orders/enqueue`
@@ -89,6 +97,7 @@ Verified refresh behavior:
 
 - After a successful backend `201`, the cockpit re-reads `/api/dev/planets/ui-state` before leaving the user with the final visible queue and stockpile state.
 - The main success copy remains grounded in backend confirmation: `La cabina se actualizo con el estado confirmado por la API.`
+- If the backend accepts the order but the refreshed queue does not expose the new row yet, the cockpit says: `La orden fue aceptada por el backend; la cola visible se actualizara con la siguiente lectura disponible.`
 - If that follow-up read fails, the cockpit keeps the success or failure technically honest and asks the user to refresh the view instead of inventing a local queue row.
 
 ## Final manual QA
