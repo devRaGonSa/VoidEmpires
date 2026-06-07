@@ -113,7 +113,10 @@ public class DevMarketUiStateEndpointTests(WebApplicationFactory<Program> factor
         Assert.Contains(payload.UiState.Market.CivilizationReserves, x => x.ResourceType == ResourceType.Credits && x.Quantity >= 220);
         Assert.Contains(payload.UiState.Market.SelectedPlanetReserves, x => x.ResourceType == ResourceType.Metal && x.Quantity >= 320);
         Assert.Contains(payload.UiState.Market.ReferenceRatios, x => x.ResourceType == ResourceType.Gas && x.IsAdvisory);
-        Assert.Contains(payload.UiState.Market.Limitations, x => x.Contains("read-only", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(payload.UiState.Market.Limitations, x =>
+            x.Contains("mercado", StringComparison.OrdinalIgnoreCase) &&
+            x.Contains("lectura", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(payload.UiState.Market.Limitations, x => x.Contains("advisory", StringComparison.OrdinalIgnoreCase));
 
         var stockpileAfter = await dbContext.PlanetResourceStockpiles
             .AsNoTracking()

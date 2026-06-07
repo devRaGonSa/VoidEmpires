@@ -117,7 +117,10 @@ public class DevAllianceUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.Contains(payload.UiState.FuturePacts, x => x.PactTypeKey == "TradeIntent" && !x.IsAvailable);
         Assert.Contains(payload.UiState.FutureActions, x => x.ActionKey == "alliance.invitation.future" && !x.IsAvailable);
         Assert.Equal(6, payload.UiState.ActionSummary.DisabledActionCount);
-        Assert.Contains(payload.UiState.Limitations, x => x.Contains("read-only", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(payload.UiState.Limitations, x =>
+            x.Contains("cabina", StringComparison.OrdinalIgnoreCase) &&
+            x.Contains("lectura", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(payload.UiState.Limitations, x => x.Contains("does not mutate", StringComparison.OrdinalIgnoreCase));
         Assert.Equal(countsBefore, countsAfter);
     }
 

@@ -158,7 +158,10 @@ public class DevelopmentSeedServiceTests
         Assert.Equal(3, alliance.FutureActions.Count);
         Assert.All(alliance.FutureActions, action => Assert.False(action.IsAvailable));
         Assert.Equal(6, alliance.ActionSummary?.DisabledActionCount);
-        Assert.Contains(alliance.Limitations, x => x.Contains("read-only", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(alliance.Limitations, x =>
+            x.Contains("cabina", StringComparison.OrdinalIgnoreCase) &&
+            x.Contains("lectura", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(alliance.Limitations, x => x.Contains("does not mutate", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -188,7 +191,10 @@ public class DevelopmentSeedServiceTests
         Assert.Contains(market.Market.ReferenceRatios, x => x.IsAdvisory);
         Assert.Contains(market.Market.CivilizationReserves, x => x.ResourceType == ResourceType.Credits && x.Quantity >= 220);
         Assert.Contains(market.Market.SelectedPlanetReserves, x => x.ResourceType == ResourceType.Metal && x.Quantity >= 320);
-        Assert.Contains(market.Market.Limitations, x => x.Contains("read-only", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(market.Market.Limitations, x =>
+            x.Contains("mercado", StringComparison.OrdinalIgnoreCase) &&
+            x.Contains("lectura", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(market.Market.Limitations, x => x.Contains("advisory", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
