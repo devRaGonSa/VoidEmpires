@@ -48,6 +48,51 @@ function matchesResearchEnqueuePattern(value: string, patterns: readonly string[
   return patterns.some((pattern) => normalizedValue.includes(pattern));
 }
 
+function getBlockedResearchReasonLabel(reasonKey: string, canCompleteDue: boolean) {
+  if (canCompleteDue) {
+    return "investigacion en curso";
+  }
+
+  switch (reasonKey) {
+    case "InsufficientResources":
+      return "faltan recursos";
+    case "RequirementPending":
+      return "requisito pendiente";
+    case "OpenQueueSlot":
+      return "investigacion en curso";
+    case "NotAvailableInThisBuild":
+      return "no disponible en esta lectura";
+    case "SourcePlanetMissing":
+      return "fuera de alcance";
+    default:
+      return "fuera de alcance";
+  }
+}
+
+function getBlockedResearchReasonDetail(
+  technology: ResearchTechnology,
+  selectedPlanetName?: string | null,
+) {
+  if (technology.availability.canCompleteDue) {
+    return "El cierre manual de investigaciones vencidas sigue fuera de esta cabina.";
+  }
+
+  switch (technology.availability.reasonKey) {
+    case "InsufficientResources":
+      return `Faltan recursos en ${selectedPlanetName ?? "el planeta seleccionado"} para iniciar esta investigacion.`;
+    case "RequirementPending":
+      return "Todavia falta un requisito previo para habilitar esta investigacion.";
+    case "OpenQueueSlot":
+      return "Ya hay una investigacion en curso para esta civilizacion y no se puede abrir otra orden.";
+    case "NotAvailableInThisBuild":
+      return "Esta investigacion no esta disponible en la lectura actual de la cabina.";
+    case "SourcePlanetMissing":
+      return "El contexto visible ya no permite enviar esta investigacion desde este planeta.";
+    default:
+      return `No se puede iniciar: ${technology.availability.reasonLabel}`;
+  }
+}
+
 function formatResearchEnqueueValidationError(
   response: EnqueueResearchOrderFailureResponse | null,
   httpStatus: number,
@@ -527,14 +572,17 @@ export function ResearchPage() {
                       const visualState = getResearchVisualState(technology);
                       const canPrepare = hasSafeResearchEnqueue && visualState === "ready" && Boolean(technology.enqueueCommand);
                       const cardClassName = `subpanel figma-subpanel research-tech-card research-tech-card-${visualState}`;
-                      const buttonClassName = visualState === "blocked"
-                        ? "planet-action-button-blocked"
-                        : visualState === "ready"
-                          ? "research-action-button-ready"
-                          : "planet-action-button-secondary";
-                      const blockedReasonLabel = technology.availability.reasonKey === "InsufficientResources"
-                        ? `Recursos insuficientes en ${uiState.selectedPlanetName ?? "el planeta seleccionado"}.`
-                        : technology.availability.reasonLabel;
+                      const buttonClassName = visualState === "ready"
+                        ? "research-action-button-ready"
+                        : "planet-action-button-secondary";
+                      const blockedReasonLabel = getBlockedResearchReasonLabel(
+                        technology.availability.reasonKey,
+                        technology.availability.canCompleteDue,
+                      );
+                      const blockedReasonDetail = getBlockedResearchReasonDetail(
+                        technology,
+                        uiState.selectedPlanetName,
+                      );
 
                       return (
                       <article
@@ -546,7 +594,9 @@ export function ResearchPage() {
                             <p className="eyebrow">{technology.bonusLabel}</p>
                             <h4>{technology.label}</h4>
                           </div>
-                          <UiBadge tone={visualState === "ready" ? "good" : visualState === "blocked" ? "warn" : "resource"}>{technology.availability.label}</UiBadge>
+                          <UiBadge tone={visualState === "ready" ? "good" : visualState === "blocked" ? "warn" : "resource"}>
+                            {visualState === "blocked" ? blockedReasonLabel : technology.availability.label}
+                          </UiBadge>
                         </div>
                         <div className="figma-data-list">
                           <div className="figma-data-row"><span>Nivel</span><strong>{`${technology.currentLevel} -> ${technology.nextLevel}`}</strong></div>
@@ -564,23 +614,28 @@ export function ResearchPage() {
                             ))}
                           </div>
                         </div>
-                        <div className="transfer-confirmation-actions">
-                          <button
-                            type="button"
-                            className={buttonClassName}
-                            onClick={() => handleResearchPreparation(technology)}
-                            disabled={!canPrepare}
-                          >
-                            {preparedResearchType === technology.researchType
-                              ? "Revision preparada"
-                              : technology.primaryActionLabel}
-                          </button>
-                        </div>
+                        {visualState === "blocked" ? (
+                          <div className="research-blocked-affordance" aria-disabled="true">
+                            <strong>Solo lectura</strong>
+                            <span>{blockedReasonLabel}</span>
+                          </div>
+                        ) : (
+                          <div className="transfer-confirmation-actions">
+                            <button
+                              type="button"
+                              className={buttonClassName}
+                              onClick={() => handleResearchPreparation(technology)}
+                              disabled={!canPrepare}
+                            >
+                              {preparedResearchType === technology.researchType
+                                ? "Revision preparada"
+                                : technology.primaryActionLabel}
+                            </button>
+                          </div>
+                        )}
                         {visualState !== "ready" ? (
                           <p className="figma-panel-note">
-                            {technology.availability.canCompleteDue
-                              ? "El cierre manual de investigaciones vencidas sigue fuera de esta cabina."
-                              : `No se puede iniciar: ${blockedReasonLabel}`}
+                            {blockedReasonDetail}
                           </p>
                         ) : !hasSafeResearchEnqueue ? (
                           <p className="figma-panel-note">

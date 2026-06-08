@@ -3,7 +3,7 @@
 ---
 id: TASK-30H-research-blocked-hint-affordance-polish
 title: Polish blocked research affordances
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend]
