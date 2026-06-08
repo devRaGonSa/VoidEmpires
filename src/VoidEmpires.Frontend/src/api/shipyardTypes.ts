@@ -22,6 +22,18 @@ export interface ShipyardAssetOptionDto {
   currentStock: number;
   availabilityStatus: string;
   availabilityReason: string;
+  enqueueCommand?: ShipyardEnqueueCommandDto | null;
+}
+
+export interface ShipyardEnqueueCommandDto {
+  actionKey: string;
+  method: string;
+  route: string;
+  civilizationId: string;
+  planetId: string;
+  target: ShipyardApiValue;
+  spaceAssetType: ShipyardApiValue;
+  quantity: number;
 }
 
 export interface ShipyardQueueItemDto {
@@ -100,4 +112,66 @@ export interface ShipyardUiStateResponse {
   succeeded: boolean;
   uiState: ShipyardUiStateDto | null;
   errors: readonly string[];
+}
+
+export interface EnqueueShipyardProductionRequest {
+  civilizationId: string;
+  planetId: string;
+  assetType: string;
+  quantity: number;
+  requestedAtUtc: string;
+  route?: string | null;
+  target?: ShipyardApiValue;
+}
+
+export type ShipyardApiErrorCode =
+  | "MissingCivilizationId"
+  | "MissingPlanetId"
+  | "MissingAssetType"
+  | "InvalidAssetType"
+  | "MissingQuantity"
+  | "MissingRequestedAtUtc"
+  | "RequestedAtUtcNotUtc"
+  | "PlanetNotOwned"
+  | "OpenProductionOrderExists"
+  | "PlanetStockpileMissing"
+  | "InsufficientResources"
+  | "MissingRequiredBuilding"
+  | "PopulationProfileMissing"
+  | "InsufficientOperatorCapacity"
+  | "UnknownValidationFailure";
+
+export interface ShipyardApiErrorEntry {
+  code: ShipyardApiErrorCode;
+  message: string;
+  rawMessage: string;
+}
+
+export interface EnqueueShipyardProductionSuccessResponse {
+  succeeded: true;
+  orderId: string;
+  startsAtUtc: string;
+  endsAtUtc: string;
+  errors: readonly [];
+}
+
+export interface EnqueueShipyardProductionFailureResponse {
+  succeeded: false;
+  orderId: string | null;
+  startsAtUtc: string | null;
+  endsAtUtc: string | null;
+  errors: readonly string[];
+  errorEntries: readonly ShipyardApiErrorEntry[];
+  failureKind: "validation" | "conflict" | "unknown";
+}
+
+export type EnqueueShipyardProductionResponse =
+  | EnqueueShipyardProductionSuccessResponse
+  | EnqueueShipyardProductionFailureResponse;
+
+export interface EnqueueShipyardProductionCommandResult {
+  httpStatus: number;
+  hasJsonBody: boolean;
+  bodyParseFailed: boolean;
+  response: EnqueueShipyardProductionResponse | null;
 }

@@ -1,28 +1,13 @@
 import { appConfig } from "../config";
-import type { ShipyardUiStateResponse } from "./shipyardTypes";
-
-interface JsonCommandResult<T> {
-  httpStatus: number;
-  hasJsonBody: boolean;
-  bodyParseFailed: boolean;
-  response: T | null;
-}
-
-interface EnqueueShipyardProductionRequest {
-  civilizationId: string;
-  planetId: string;
-  assetType: string;
-  quantity: number;
-  requestedAtUtc: string;
-}
-
-interface EnqueueShipyardProductionResponse {
-  succeeded: boolean;
-  orderId: string | null;
-  startsAtUtc: string | null;
-  endsAtUtc: string | null;
-  errors: readonly string[];
-}
+import type {
+  EnqueueShipyardProductionCommandResult,
+  EnqueueShipyardProductionFailureResponse,
+  EnqueueShipyardProductionRequest,
+  EnqueueShipyardProductionResponse,
+  EnqueueShipyardProductionSuccessResponse,
+  ShipyardApiErrorCode,
+  ShipyardUiStateResponse,
+} from "./shipyardTypes";
 
 const orbitalTarget = 2;
 const spaceAssetTypeMap: Record<string, number> = {
@@ -68,7 +53,7 @@ async function requestJson<T>(path: string, query?: Record<string, string>) {
   return response.json() as Promise<T>;
 }
 
-async function requestCommandJson<T>(path: string, body: unknown): Promise<JsonCommandResult<T>> {
+async function requestCommandJson(path: string, body: unknown): Promise<EnqueueShipyardProductionCommandResult> {
   const response = await fetch(buildUrl(path), {
     body: JSON.stringify(body),
     headers: {
@@ -80,11 +65,14 @@ async function requestCommandJson<T>(path: string, body: unknown): Promise<JsonC
 
   const contentType = response.headers.get("content-type") ?? "";
   const hasJsonBody = contentType.includes("application/json");
-  let payload: T | null = null;
+  let payload: EnqueueShipyardProductionResponse | null = null;
 
   if (hasJsonBody) {
     try {
-      payload = (await response.json()) as T;
+      const parsed = (await response.json()) as EnqueueShipyardProductionSuccessResponse | Partial<EnqueueShipyardProductionFailureResponse>;
+      payload = response.ok
+        ? parsed as EnqueueShipyardProductionSuccessResponse
+        : toShipyardCommandFailureResponse(response.status, parsed as Partial<EnqueueShipyardProductionFailureResponse>);
     } catch {
       return {
         httpStatus: response.status,
@@ -103,6 +91,65 @@ async function requestCommandJson<T>(path: string, body: unknown): Promise<JsonC
   };
 }
 
+function toShipyardCommandFailureResponse(
+  httpStatus: number,
+  payload: Partial<EnqueueShipyardProductionFailureResponse> | null,
+): EnqueueShipyardProductionFailureResponse {
+  const rawErrors = Array.isArray(payload?.errors)
+    ? payload.errors.filter((value): value is string => typeof value === "string")
+    : [];
+
+  return {
+    succeeded: false,
+    orderId: null,
+    startsAtUtc: null,
+    endsAtUtc: null,
+    errors: rawErrors,
+    errorEntries: rawErrors.map((message) => ({
+      code: classifyShipyardError(message),
+      message: message.trim(),
+      rawMessage: message,
+    })),
+    failureKind: httpStatus === 400 ? "validation" : httpStatus === 409 ? "conflict" : "unknown",
+  };
+}
+
+function classifyShipyardError(message: string): ShipyardApiErrorCode {
+  switch (message.trim()) {
+    case "Civilization id is required.":
+      return "MissingCivilizationId";
+    case "Planet id is required.":
+      return "MissingPlanetId";
+    case "Space asset type is required.":
+    case "Asset type is required.":
+      return "MissingAssetType";
+    case "Space asset type is invalid.":
+      return "InvalidAssetType";
+    case "Quantity must be positive.":
+      return "MissingQuantity";
+    case "Requested date is required.":
+      return "MissingRequestedAtUtc";
+    case "Requested date must be UTC.":
+      return "RequestedAtUtcNotUtc";
+    case "Planet is not owned by the requesting civilization.":
+      return "PlanetNotOwned";
+    case "Planet already has an open asset production order.":
+      return "OpenProductionOrderExists";
+    case "Planet resource stockpile was not found.":
+      return "PlanetStockpileMissing";
+    case "Insufficient resources.":
+      return "InsufficientResources";
+    case "Required building is missing or below required level.":
+      return "MissingRequiredBuilding";
+    case "Planet population profile was not found.":
+      return "PopulationProfileMissing";
+    case "Insufficient local operator capacity.":
+      return "InsufficientOperatorCapacity";
+    default:
+      return "UnknownValidationFailure";
+  }
+}
+
 export function fetchShipyardUiState(civilizationId: string, planetId?: string | null) {
   return requestJson<ShipyardUiStateResponse>("/api/dev/shipyard/ui-state", {
     civilizationId,
@@ -111,12 +158,12 @@ export function fetchShipyardUiState(civilizationId: string, planetId?: string |
 }
 
 export function enqueueShipyardProduction(request: EnqueueShipyardProductionRequest) {
-  return requestCommandJson<EnqueueShipyardProductionResponse>(
-    "/api/dev/assets/production/enqueue",
+  return requestCommandJson(
+    request.route ?? "/api/dev/assets/production/enqueue",
     {
       civilizationId: request.civilizationId,
       planetId: request.planetId,
-      target: orbitalTarget,
+      target: typeof request.target === "number" ? request.target : orbitalTarget,
       spaceAssetType: spaceAssetTypeMap[request.assetType] ?? null,
       quantity: request.quantity,
       requestedAtUtc: request.requestedAtUtc,

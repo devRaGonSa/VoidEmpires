@@ -3,7 +3,7 @@
 ---
 id: TASK-31B
 title: Orbital production frontend API contracts
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

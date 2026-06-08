@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { enqueueShipyardProduction, fetchShipyardUiState } from "../api/shipyardApi";
+import type { ShipyardApiErrorCode } from "../api/shipyardTypes";
 import { CockpitHero } from "../components/CockpitHero";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -61,16 +62,26 @@ interface ShipyardErrorPresentation {
   technicalDetail: string | null;
 }
 
-function formatShipyardCommandFailure(detail: string | null, planetName?: string | null) {
-  const contextPlanetName = planetName ? `Usa el contexto de ${planetName}.` : "Revisa el contexto de planeta cargado.";
+interface ShipyardFailureContext {
+  code?: ShipyardApiErrorCode | null;
+  detail: string | null;
+  httpStatus?: number | null;
+  bodyParseFailed?: boolean;
+}
 
-  switch (detail) {
+function formatShipyardCommandFailure(failureContext: ShipyardFailureContext, planetName?: string | null) {
+  const contextPlanetName = planetName ? `Usa el contexto de ${planetName}.` : "Revisa el contexto de planeta cargado.";
+  const detail = failureContext.detail;
+
+  switch (failureContext.code ?? detail) {
+    case "MissingCivilizationId":
     case "Civilization id is required.":
       return {
         primaryMessage: "La civilizacion es obligatoria para enviar produccion.",
         followUp: "Carga una civilizacion valida antes de abrir esta cabina.",
         technicalDetail: detail,
       };
+    case "MissingPlanetId":
     case "Planet id is required.":
       return {
         primaryMessage: "El planeta es obligatorio para enviar produccion.",
@@ -83,12 +94,15 @@ function formatShipyardCommandFailure(detail: string | null, planetName?: string
         followUp: contextPlanetName,
         technicalDetail: detail,
       };
+    case "PlanetNotOwned":
     case "Planet is not owned by the requesting civilization.":
       return {
         primaryMessage: "El planeta seleccionado no pertenece a la civilizacion cargada.",
         followUp: contextPlanetName,
         technicalDetail: detail,
       };
+    case "MissingAssetType":
+    case "InvalidAssetType":
     case "Asset type is required.":
     case "Space asset type is invalid.":
       return {
@@ -96,48 +110,56 @@ function formatShipyardCommandFailure(detail: string | null, planetName?: string
         followUp: "Vuelve a abrir la revision desde una carta orbital visible.",
         technicalDetail: detail,
       };
+    case "InsufficientResources":
     case "Insufficient resources.":
       return {
         primaryMessage: `No hay recursos suficientes${planetName ? ` en ${planetName}` : ""} para enviar esta produccion.`,
         followUp: "Revisa recursos.",
         technicalDetail: detail,
       };
+    case "OpenProductionOrderExists":
     case "Planet already has an open asset production order.":
       return {
         primaryMessage: "Ya existe una orden orbital abierta en este planeta.",
         followUp: "Espera a que la cola se libere antes de enviar otra produccion.",
         technicalDetail: detail,
       };
+    case "MissingRequiredBuilding":
     case "Required building is missing or below required level.":
       return {
         primaryMessage: "La infraestructura orbital requerida todavia no esta lista.",
         followUp: "Construye o mejora Astillero.",
         technicalDetail: detail,
       };
+    case "PopulationProfileMissing":
     case "Planet population profile was not found.":
       return {
         primaryMessage: "Falta el perfil de tripulacion necesario para producir este activo.",
         followUp: "Completa la preparacion local antes de intentar producir.",
         technicalDetail: detail,
       };
+    case "InsufficientOperatorCapacity":
     case "Insufficient local operator capacity.":
       return {
         primaryMessage: "La capacidad local de tripulacion no alcanza para este activo.",
         followUp: "Mejora la capacidad orbital antes de reintentar.",
         technicalDetail: detail,
       };
+    case "PlanetStockpileMissing":
     case "Planet resource stockpile was not found.":
       return {
         primaryMessage: "El planeta no expone reservas locales utilizables para esta accion.",
         followUp: "Esta accion no esta disponible en esta build.",
         technicalDetail: detail,
       };
+    case "MissingQuantity":
     case "Quantity must be positive.":
       return {
         primaryMessage: "La cantidad solicitada no es valida para esta produccion.",
         followUp: "Vuelve a abrir la revision desde una carta orbital visible.",
         technicalDetail: detail,
       };
+    case "RequestedAtUtcNotUtc":
     case "Requested date must be UTC.":
       return {
         primaryMessage: "La cabina no pudo preparar una fecha valida para esta orden.",
@@ -163,10 +185,18 @@ function formatShipyardCommandFailure(detail: string | null, planetName?: string
         technicalDetail: detail,
       };
     default:
+      if (failureContext.bodyParseFailed) {
+        return {
+          primaryMessage: "La cabina recibio una respuesta no interpretable del backend.",
+          followUp: "Revisa los diagnosticos secundarios antes de reintentar.",
+          technicalDetail: detail ?? `Request failed with status ${failureContext.httpStatus ?? "desconocido"}.`,
+        };
+      }
+
       return {
         primaryMessage: "La produccion orbital no pudo enviarse.",
         followUp: "Consulta diagnosticos si el problema persiste.",
-        technicalDetail: detail,
+        technicalDetail: detail ?? (failureContext.httpStatus ? `Request failed with status ${failureContext.httpStatus}.` : null),
       };
   }
 }
@@ -198,7 +228,7 @@ export function ShipyardPage() {
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
   const shipyard = uiState?.shipyard ?? null;
-  const hasSafeShipyardEnqueue = true;
+  const hasSafeShipyardEnqueue = shipyard?.actionAvailability.enqueue.supported ?? false;
   const hasSafeShipyardCompleteDue = false;
   const categoryGroups = useMemo(() => groupAssetOptionsByCategory(shipyard?.catalog ?? []), [shipyard?.catalog]);
   const recommendedAsset = useMemo(() => selectRecommendedAssetProduction(shipyard?.catalog ?? []), [shipyard?.catalog]);
@@ -279,7 +309,7 @@ export function ShipyardPage() {
   ) {
     const response = await fetchShipyardUiState(civilizationId, planetId);
     if (!response.succeeded || !response.uiState) {
-      const failure = formatShipyardCommandFailure(response.errors[0] ?? null, shipyard?.planetName ?? null);
+      const failure = formatShipyardCommandFailure({ detail: response.errors[0] ?? null }, shipyard?.planetName ?? null);
       if (!preserveCurrentStateOnFailure) {
         setUiState(null);
       }
@@ -323,7 +353,7 @@ export function ShipyardPage() {
       try {
         await reloadShipyardState(queryCivilizationId, queryPlanetId, true);
       } catch (requestError) {
-        const failure = formatShipyardCommandFailure(requestError instanceof Error ? requestError.message : null, shipyard?.planetName ?? null);
+        const failure = formatShipyardCommandFailure({ detail: requestError instanceof Error ? requestError.message : null }, shipyard?.planetName ?? null);
         setUiState(null);
         setError(failure.primaryMessage);
         setErrorFollowUp(failure.followUp);
@@ -398,18 +428,26 @@ export function ShipyardPage() {
 
     try {
       const result = await enqueueShipyardProduction({
-        civilizationId: activeCivilizationId,
-        planetId: shipyard.planetId,
-        assetType: reviewSelection.asset.assetType,
-        quantity: 1,
+        civilizationId: reviewSelection.asset.enqueueCommand?.civilizationId ?? activeCivilizationId,
+        planetId: reviewSelection.asset.enqueueCommand?.planetId ?? shipyard.planetId,
+        route: reviewSelection.asset.enqueueCommand?.route,
+        target: reviewSelection.asset.enqueueCommand?.target,
+        assetType: reviewSelection.asset.enqueueCommand?.assetType ?? reviewSelection.asset.assetType,
+        quantity: reviewSelection.asset.enqueueCommand?.quantity ?? 1,
         requestedAtUtc: new Date().toISOString(),
       });
 
       if (result.httpStatus !== 201 || !result.response?.succeeded) {
-        const failure = formatShipyardCommandFailure(result.response?.errors[0] ?? null, shipyard.planetName);
+        const primaryError = result.response?.succeeded === false ? result.response.errorEntries[0] : null;
+        const failure = formatShipyardCommandFailure({
+          code: primaryError?.code ?? null,
+          detail: primaryError?.message ?? result.response?.errors[0] ?? null,
+          httpStatus: result.httpStatus,
+          bodyParseFailed: result.bodyParseFailed,
+        }, shipyard.planetName);
         setEnqueueError(failure.primaryMessage);
         setEnqueueErrorFollowUp(failure.followUp);
-        setTechnicalErrorDetail(failure.technicalDetail);
+        setTechnicalErrorDetail(primaryError?.rawMessage ?? failure.technicalDetail);
         return;
       }
 
@@ -424,13 +462,13 @@ export function ShipyardPage() {
 
       const refreshed = await reloadShipyardState(activeCivilizationId, shipyard.planetId, false, true);
       if (!refreshed) {
-        const failure = formatShipyardCommandFailure("Shipyard UI state refresh failed after a successful enqueue.", shipyard.planetName);
+        const failure = formatShipyardCommandFailure({ detail: "Shipyard UI state refresh failed after a successful enqueue." }, shipyard.planetName);
         setEnqueueError(failure.primaryMessage);
         setEnqueueErrorFollowUp(failure.followUp);
         setTechnicalErrorDetail(failure.technicalDetail);
       }
     } catch (requestError) {
-      const failure = formatShipyardCommandFailure(requestError instanceof Error ? requestError.message : null, shipyard.planetName);
+      const failure = formatShipyardCommandFailure({ detail: requestError instanceof Error ? requestError.message : null }, shipyard.planetName);
       setEnqueueError(failure.primaryMessage);
       setEnqueueErrorFollowUp(failure.followUp);
       setTechnicalErrorDetail(failure.technicalDetail);

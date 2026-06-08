@@ -38,6 +38,15 @@ export interface ShipyardActionAvailability {
   supported: boolean;
 }
 
+export interface ShipyardEnqueueCommand {
+  route: string;
+  civilizationId: string;
+  planetId: string;
+  target: string;
+  assetType: string;
+  quantity: number;
+}
+
 export interface ShipyardAssetOption {
   assetType: string;
   label: string;
@@ -54,6 +63,7 @@ export interface ShipyardAssetOption {
   estimatedCostLabel: string;
   requirements: ShipyardRequirement;
   cost: ShipyardCost[];
+  enqueueCommand: ShipyardEnqueueCommand | null;
 }
 
 export interface ShipyardQueueItem {
@@ -175,6 +185,16 @@ function mapAssetOption(item: ShipyardAssetOptionDto): ShipyardAssetOption {
       operatorCapacity: item.requiredOperatorCapacity,
     },
     cost: mapCost(item.cost),
+    enqueueCommand: item.enqueueCommand
+      ? {
+        route: item.enqueueCommand.route,
+        civilizationId: item.enqueueCommand.civilizationId,
+        planetId: item.enqueueCommand.planetId,
+        target: `${item.enqueueCommand.target ?? ""}`,
+        assetType: normalizeAssetType(item.enqueueCommand.spaceAssetType),
+        quantity: item.enqueueCommand.quantity,
+      }
+      : null,
   };
 }
 

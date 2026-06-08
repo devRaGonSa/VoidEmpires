@@ -105,6 +105,7 @@ export function DefensesPage() {
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const selectedPlanetId = uiState?.selectedPlanetId ?? queryPlanetId ?? null;
   const defenses = uiState?.defenses ?? null;
+  const hasSafeDefenseEnqueue = false;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
   const optionGroups = useMemo(() => groupDefenseOptionsByCategory(defenses?.options ?? []), [defenses?.options]);
   const recommendedAction = useMemo(() => selectRecommendedDefenseAction(defenses?.options ?? []), [defenses?.options]);
@@ -510,6 +511,7 @@ export function DefensesPage() {
                   <UiBadge tone="good">{availableOptions.length}</UiBadge>
                 </div>
                 <p>Las preparaciones viables se revisan aqui, pero la confirmacion y el enqueue siguen perteneciendo a Construccion.</p>
+                {!hasSafeDefenseEnqueue ? <p className="figma-panel-note">Defensas consume solo contratos de readiness en esta build y no expone un POST defensivo propio.</p> : null}
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
