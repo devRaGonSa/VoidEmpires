@@ -104,5 +104,5 @@ export function isSuspiciousCabinContext(
 }
 
 export function buildDevelopmentHelperUrl() {
-  return buildFleetsUrl(developmentSeedCivilizationId, developmentSeedPlanetId);
+  return buildPlanetUrl(developmentSeedCivilizationId, developmentSeedPlanetId);
 }

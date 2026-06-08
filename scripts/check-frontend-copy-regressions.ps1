@@ -83,4 +83,56 @@ if ($filteredMatches) {
   throw "Frontend copy regression check failed."
 }
 
+$requiredSafetyCopy = @(
+  @{
+    Path = "src/VoidEmpires.Frontend/src/pages/PlanetPage.tsx"
+    Fragments = @(
+      "Esta vista se centra en administracion colonial, no en combate ni maniobras espaciales.",
+      "no promueve stock orbital automaticamente"
+    )
+  },
+  @{
+    Path = "src/VoidEmpires.Frontend/src/pages/ShipyardPage.tsx"
+    Fragments = @(
+      "La cabina la mantiene visible sin completarla automaticamente.",
+      "El stock orbital no equivale automaticamente a una escuadra visible en Flotas."
+    )
+  },
+  @{
+    Path = "src/VoidEmpires.Frontend/src/pages/DefensesPage.tsx"
+    Fragments = @(
+      "Sin combate ni intercepcion",
+      "Una orden visible confirma readiness de construccion, no combate ni cierre automatico."
+    )
+  },
+  @{
+    Path = "src/VoidEmpires.Frontend/src/pages/FleetsPage.tsx"
+    Fragments = @(
+      "La estimacion sigue en solo lectura y nunca reserva escuadras ni gasta recursos.",
+      "Flotas no promueve automaticamente stock orbital a grupo operativo."
+    )
+  }
+)
+
+$missingSafetyCopy = New-Object System.Collections.Generic.List[string]
+
+foreach ($requirement in $requiredSafetyCopy) {
+  $path = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($requirement.Path)"))
+  if (-not (Test-Path -LiteralPath $path)) {
+    $missingSafetyCopy.Add("Missing protected cockpit file '$($requirement.Path)'.")
+    continue
+  }
+
+  $content = Get-Content -LiteralPath $path -Raw
+  foreach ($fragment in $requirement.Fragments) {
+    if ($content -notlike "*$fragment*") {
+      $missingSafetyCopy.Add("$($requirement.Path) is missing safety copy fragment: $fragment")
+    }
+  }
+}
+
+if ($missingSafetyCopy.Count -gt 0) {
+  throw "Frontend safety copy guard failed:`n$($missingSafetyCopy -join [Environment]::NewLine)"
+}
+
 Write-Host "Frontend copy regression check passed." -ForegroundColor Green

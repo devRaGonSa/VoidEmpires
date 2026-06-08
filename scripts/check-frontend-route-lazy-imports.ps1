@@ -68,4 +68,49 @@ if ($missingLazyDefinitions.Count -gt 0) {
     throw "Expected lazy route definitions were not found in App.tsx for: $($missingLazyDefinitions -join ', ')."
 }
 
+$routeGuardPages = @(
+    @{
+        Path = "src/VoidEmpires.Frontend/src/pages/PlanetPage.tsx"
+        RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildGalaxyUrl", "buildFleetsUrl")
+    },
+    @{
+        Path = "src/VoidEmpires.Frontend/src/pages/ShipyardPage.tsx"
+        RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildResearchUrl", "buildGalaxyUrl", "buildFleetsUrl")
+    },
+    @{
+        Path = "src/VoidEmpires.Frontend/src/pages/DefensesPage.tsx"
+        RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildShipyardUrl", "buildGalaxyUrl", "buildFleetsUrl")
+    },
+    @{
+        Path = "src/VoidEmpires.Frontend/src/pages/FleetsPage.tsx"
+        RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildShipyardUrl", "buildGalaxyUrl")
+    }
+)
+
+$hardCodedRoutePattern = '(?m)(to|href)=["'']/(planet|construction|research|shipyard|defenses|fleets|galaxy)\b'
+$routeGuardViolations = New-Object System.Collections.Generic.List[string]
+
+foreach ($page in $routeGuardPages) {
+    $pagePath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($page.Path)"))
+    if (-not (Test-Path -LiteralPath $pagePath)) {
+        $routeGuardViolations.Add("Missing protected cockpit page '$($page.Path)'.")
+        continue
+    }
+
+    $pageContent = Get-Content -LiteralPath $pagePath -Raw
+    if ($pageContent -match $hardCodedRoutePattern) {
+        $routeGuardViolations.Add("$($page.Path) contains a hard-coded cockpit route link. Use route URL helpers to preserve query params.")
+    }
+
+    foreach ($helperName in $page.RequiredHelpers) {
+        if ($pageContent -notmatch "\b$helperName\s*\(") {
+            $routeGuardViolations.Add("$($page.Path) is expected to keep using $helperName(...) for context-preserving navigation.")
+        }
+    }
+}
+
+if ($routeGuardViolations.Count -gt 0) {
+    throw "Frontend cockpit route helper guard failed:`n$($routeGuardViolations -join [Environment]::NewLine)"
+}
+
 Write-Host "Frontend route lazy-import guard passed."

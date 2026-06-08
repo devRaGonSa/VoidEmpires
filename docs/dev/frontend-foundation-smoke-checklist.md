@@ -97,6 +97,11 @@ Compact navigation regression pass:
 - `Research mutation boundary`: confirm `handleResearchSubmit` remains the only Research mutation path, no navigation chip triggers a dev write, and no neighboring cockpit gains a new mutation affordance just because it was opened after a Research enqueue attempt.
 - `Planet -> Shipyard`: open `Astillero` from `Planeta` and confirm the selected colony context is preserved.
 - `Shipyard -> Fleets`: open `Flotas` from `Astillero` and confirm the planet context still appears in the destination route.
+- `Planet -> Shipyard -> Fleets -> Planet`: confirm the same `civilizationId` and `planetId` survive the full handoff loop and that no intermediate cockpit drops to a seedless shell.
+- `Planet -> Defenses -> Construction/Shipyard/Fleets/Galaxy`: confirm each handoff preserves the active `civilizationId`, keeps the same `planetId` when the destination supports it, and never swaps in a hard-coded route without query params.
+- `Defenses mutation boundary`: confirm the cockpit never exposes a local enqueue, complete-due, combat, interception, movement, or mission action; the only allowed next steps are explicit handoffs.
+- `Shipyard mutation boundary`: confirm the cockpit never exposes combat, transfer creation, split, merge, mission creation, or safe complete-due; guarded orbital enqueue remains the only local write path.
+- `Fleets mutation boundary`: confirm only the explicit Fleet transfer controls can mutate state and that no Planet, Shipyard, or Defenses handoff implicitly sends a transfer, creates a mission, or auto-promotes stock to a fleet group.
 - `Market -> Planet/Fleets/Galaxy`: verify those three handoffs preserve the current `civilizationId` and `planetId`.
 - `Espionage -> Galaxy/Planet/Fleets`: verify those handoffs preserve the current `civilizationId` and reuse available `systemId` or `planetId` context where expected.
 - `Alliance -> Galaxy/Market/Espionage`: verify those handoffs preserve the current `civilizationId` and reuse homeworld context where the destination route supports it.

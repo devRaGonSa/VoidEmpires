@@ -3,7 +3,7 @@
 ---
 id: TASK-31M
 title: Cross-cockpit safety and guardrails
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
