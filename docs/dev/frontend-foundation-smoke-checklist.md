@@ -460,6 +460,20 @@ Research cockpit v1 visual review:
 - Confirm the summary recommendation never presents a blocked technology as immediately startable.
 - Confirm complete-due remains visibly disabled in this build.
 
+Research enqueue visual checklist (manual, pending execution):
+
+- [ ] Selecting an available research card clearly marks it as the active review target without sending any request yet.
+- [ ] The guarded confirmation panel appears only after selecting an available research item.
+- [ ] The confirmation panel shows planet, technology, category, target level, cost, duration, and readiness context together.
+- [ ] The confirmation checkbox remains required before `Confirmar investigacion` becomes actionable.
+- [ ] The primary loading state during submit reads as `Confirmando...`, not as a generic page reload or route transition.
+- [ ] A successful submit shows backend-confirmed success copy in the main flow without surfacing raw payload text in the first viewport.
+- [ ] Blocked technologies keep readable Spanish guidance and remain visually secondary to the available review target.
+- [ ] Queue, resources, and visible progress update only after the backend refresh, not as fabricated optimistic local state.
+- [ ] If the backend accepts the order but the refreshed queue still lags, the UI shows the accepted-but-not-yet-visible message instead of inventing a queue row.
+- [ ] `Completar vencidas no disponible` stays visibly disabled and never turns into an executable auto-complete control.
+- [ ] Primary UI surfaces never show raw JSON, raw payload fragments, or backend field names ahead of the Spanish gameplay copy.
+
 Shipyard cockpit v1 visual review:
 
 - Confirm the first viewport reads like a specialized orbital-production cockpit rather than a placeholder or fleet console.

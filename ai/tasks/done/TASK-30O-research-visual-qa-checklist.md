@@ -3,7 +3,7 @@
 ---
 id: TASK-30O-research-visual-qa-checklist
 title: Add visual QA checklist for Research enqueue UX
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend]
