@@ -32,11 +32,178 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
     }
 
     [Fact]
+    public async Task PrepareResearchQaStateReturnsNotFoundOutsideDevelopmentByDefault()
+    {
+        using var client = factory.WithWebHostBuilder(builder => builder.UseEnvironment("Production")).CreateClient();
+        using var response = await client.PostAsJsonAsync("/api/dev/research/qa-state/prepare", new { });
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
     public async Task UiStateReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
     {
         using var client = factory.CreateClientWithPersistenceDisabled();
         using var response = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}");
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PrepareResearchQaStateReturnsServiceUnavailableWhenPersistenceIsNotConfigured()
+    {
+        using var client = factory.CreateClientWithPersistenceDisabled();
+        using var response = await client.PostAsJsonAsync("/api/dev/research/qa-state/prepare", new { });
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PrepareResearchQaStateCancelsOpenOrdersAndRestoresEnqueueReadiness()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: databaseName);
+        using var client = configuredFactory.CreateClient();
+
+        using (var seedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "research-validation" }))
+        {
+            Assert.Equal(HttpStatusCode.OK, seedResponse.StatusCode);
+        }
+
+        using (var scope = configuredFactory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+            var civilizationId = Guid.Parse(SeedCivilizationId);
+            var planetId = Guid.Parse(SeedOwnedPlanetId);
+            var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == planetId);
+            dbContext.Entry(stockpile).Property(x => x.Credits).CurrentValue = 0m;
+            dbContext.Entry(stockpile).Property(x => x.Metal).CurrentValue = 0m;
+            dbContext.Entry(stockpile).Property(x => x.Crystal).CurrentValue = 0m;
+            dbContext.Entry(stockpile).Property(x => x.Gas).CurrentValue = 0m;
+
+            var sequence = await dbContext.ResearchOrders
+                .Where(x => x.CivilizationId == civilizationId)
+                .Select(x => (int?)x.Sequence)
+                .MaxAsync() ?? 0;
+
+            dbContext.ResearchOrders.Add(ResearchOrder.Create(
+                civilizationId,
+                planetId,
+                ResearchType.ResourceExtraction,
+                1,
+                sequence + 1,
+                new DateTime(2026, 6, 8, 12, 0, 0, DateTimeKind.Utc),
+                new DateTime(2026, 6, 8, 12, 10, 0, DateTimeKind.Utc),
+                ResearchQueueItemStatus.Active));
+
+            await dbContext.SaveChangesAsync();
+        }
+
+        using var response = await client.PostAsJsonAsync("/api/dev/research/qa-state/prepare", new { });
+        var payload = await response.Content.ReadFromJsonAsync<PrepareResearchQaStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.True(payload!.Succeeded);
+        Assert.Equal(1, payload.BlockingOrdersBefore);
+        Assert.Equal(0, payload.BlockingOrdersAfter);
+        Assert.NotNull(payload.ResourcesAfter);
+        Assert.True(payload.ResourcesAfter!.Credits >= 125m);
+        Assert.True(payload.ResourcesAfter.Metal >= 110m);
+        Assert.True(payload.ResourcesAfter.Crystal >= 70m);
+        Assert.True(payload.ResourcesAfter.Gas >= 30m);
+
+        using var uiStateResponse = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var uiStatePayload = await uiStateResponse.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, uiStateResponse.StatusCode);
+        Assert.NotNull(uiStatePayload?.UiState);
+        var availableResearch = Assert.Single(uiStatePayload.UiState.TechnologyHints.Where(x => x.CanEnqueue));
+
+        using var enqueueResponse = await client.PostAsJsonAsync(
+            "/api/dev/research/orders/enqueue",
+            new
+            {
+                civilizationId = SeedCivilizationId,
+                sourcePlanetId = SeedOwnedPlanetId,
+                researchType = availableResearch.ResearchType.ToString(),
+                requestedAtUtc = "2026-06-08T12:15:00Z"
+            });
+
+        Assert.Equal(HttpStatusCode.Created, enqueueResponse.StatusCode);
+
+        using var verificationScope = configuredFactory.Services.CreateScope();
+        var verificationDb = verificationScope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+        Assert.Equal(
+            1,
+            await verificationDb.ResearchOrders.CountAsync(x =>
+                x.CivilizationId == Guid.Parse(SeedCivilizationId) &&
+                x.Status == ResearchQueueItemStatus.Cancelled));
+    }
+
+    [Fact]
+    public async Task PrepareResearchQaStateIsIdempotentAndDoesNotMutateUnrelatedCivilizations()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: databaseName);
+        using var client = configuredFactory.CreateClient();
+
+        using (var seedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "research-validation" }))
+        {
+            Assert.Equal(HttpStatusCode.OK, seedResponse.StatusCode);
+        }
+
+        var otherCivilizationId = Guid.Parse("00000000-0000-0000-0000-000000000099");
+
+        using (var scope = configuredFactory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+            var foreignOrder = ResearchOrder.Create(
+                otherCivilizationId,
+                Guid.Parse(SeedOwnedPlanetId),
+                ResearchType.EnergySystems,
+                1,
+                90_000,
+                new DateTime(2026, 6, 8, 12, 0, 0, DateTimeKind.Utc),
+                new DateTime(2026, 6, 8, 12, 10, 0, DateTimeKind.Utc),
+                ResearchQueueItemStatus.Active);
+            dbContext.ResearchOrders.Add(foreignOrder);
+            await dbContext.SaveChangesAsync();
+        }
+
+        using var firstResponse = await client.PostAsJsonAsync("/api/dev/research/qa-state/prepare", new
+        {
+            civilizationId = SeedCivilizationId,
+            sourcePlanetId = SeedOwnedPlanetId
+        });
+        var firstPayload = await firstResponse.Content.ReadFromJsonAsync<PrepareResearchQaStateResponse>();
+
+        using var secondResponse = await client.PostAsJsonAsync("/api/dev/research/qa-state/prepare", new
+        {
+            civilizationId = SeedCivilizationId,
+            planetId = SeedOwnedPlanetId
+        });
+        var secondPayload = await secondResponse.Content.ReadFromJsonAsync<PrepareResearchQaStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
+        Assert.NotNull(firstPayload);
+        Assert.NotNull(secondPayload);
+        Assert.True(firstPayload!.Succeeded);
+        Assert.True(secondPayload!.Succeeded);
+        Assert.Equal(0, firstPayload.BlockingOrdersAfter);
+        Assert.Equal(0, secondPayload.BlockingOrdersBefore);
+        Assert.Equal(0, secondPayload.BlockingOrdersAfter);
+
+        using var verificationScope = configuredFactory.Services.CreateScope();
+        var verificationDb = verificationScope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+        Assert.Equal(
+            1,
+            await verificationDb.ResearchOrders.CountAsync(x =>
+                x.CivilizationId == otherCivilizationId &&
+                x.Status == ResearchQueueItemStatus.Active));
+        Assert.Equal(
+            1,
+            await verificationDb.ResearchOrders.CountAsync(x =>
+                x.CivilizationId == Guid.Parse(SeedCivilizationId) &&
+                x.Status == ResearchQueueItemStatus.Completed));
     }
 
     [Fact]
@@ -496,5 +663,15 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
         Guid? OrderId,
         DateTime? StartsAtUtc,
         DateTime? EndsAtUtc,
+        IReadOnlyList<string> Errors);
+
+    private sealed record PrepareResearchQaStateResponse(
+        bool Succeeded,
+        ResearchQaStatePreparationResult? Result,
+        int BlockingOrdersBefore,
+        int BlockingOrdersAfter,
+        ResearchQaStatePreparationResourceState? ResourcesBefore,
+        ResearchQaStatePreparationResourceState? ResourcesAfter,
+        IReadOnlyList<string> Notes,
         IReadOnlyList<string> Errors);
 }

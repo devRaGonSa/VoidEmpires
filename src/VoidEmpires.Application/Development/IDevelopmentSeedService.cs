@@ -263,3 +263,66 @@ public interface IConstructionQaStatePreparationService
         ConstructionQaStatePreparationRequest request,
         CancellationToken cancellationToken = default);
 }
+
+public sealed record ResearchQaStatePreparationRequest(
+    Guid? CivilizationId = null,
+    Guid? SourcePlanetId = null);
+
+public sealed record ResearchQaStatePreparationResourceState(
+    decimal Credits,
+    decimal Metal,
+    decimal Crystal,
+    decimal Gas);
+
+public sealed record ResearchQaStatePreparationResult(
+    bool Succeeded,
+    Guid CivilizationId,
+    Guid SourcePlanetId,
+    int BlockingOrdersBefore,
+    int BlockingOrdersAfter,
+    ResearchQaStatePreparationResourceState? ResourcesBefore,
+    ResearchQaStatePreparationResourceState? ResourcesAfter,
+    IReadOnlyList<string> Notes,
+    IReadOnlyList<string> Errors)
+{
+    public static ResearchQaStatePreparationResult Success(
+        Guid civilizationId,
+        Guid sourcePlanetId,
+        int blockingOrdersBefore,
+        int blockingOrdersAfter,
+        ResearchQaStatePreparationResourceState? resourcesBefore,
+        ResearchQaStatePreparationResourceState? resourcesAfter,
+        IReadOnlyList<string> notes) =>
+        new(
+            true,
+            civilizationId,
+            sourcePlanetId,
+            blockingOrdersBefore,
+            blockingOrdersAfter,
+            resourcesBefore,
+            resourcesAfter,
+            notes,
+            []);
+
+    public static ResearchQaStatePreparationResult Failure(
+        Guid civilizationId,
+        Guid sourcePlanetId,
+        IReadOnlyList<string> errors) =>
+        new(
+            false,
+            civilizationId,
+            sourcePlanetId,
+            0,
+            0,
+            null,
+            null,
+            [],
+            errors);
+}
+
+public interface IResearchQaStatePreparationService
+{
+    Task<ResearchQaStatePreparationResult> PrepareAsync(
+        ResearchQaStatePreparationRequest request,
+        CancellationToken cancellationToken = default);
+}

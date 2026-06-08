@@ -490,6 +490,61 @@ internal static class DevEndpointMappings
                 []));
         });
 
+        app.MapPost("/api/dev/research/qa-state/prepare", async (
+            PrepareResearchQaStateApiRequest request,
+            [FromServices] IServiceProvider services,
+            [FromServices] IConfiguration configuration,
+            CancellationToken cancellationToken) =>
+        {
+            if (!IsPersistenceConfigured(configuration))
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            var errors = ValidateResearchQaStatePreparation(request);
+            if (errors.Count > 0)
+            {
+                return Results.BadRequest(new ResearchQaStatePreparationApiResponse(
+                    false,
+                    null,
+                    0,
+                    0,
+                    null,
+                    null,
+                    [],
+                    errors));
+            }
+
+            var sourcePlanetId = request.SourcePlanetId ?? request.PlanetId;
+            var service = services.GetRequiredService<IResearchQaStatePreparationService>();
+            var result = await service.PrepareAsync(
+                new ResearchQaStatePreparationRequest(request.CivilizationId, sourcePlanetId),
+                cancellationToken);
+
+            if (!result.Succeeded)
+            {
+                return Results.Conflict(new ResearchQaStatePreparationApiResponse(
+                    false,
+                    null,
+                    result.BlockingOrdersBefore,
+                    result.BlockingOrdersAfter,
+                    result.ResourcesBefore,
+                    result.ResourcesAfter,
+                    result.Notes,
+                    result.Errors));
+            }
+
+            return Results.Ok(new ResearchQaStatePreparationApiResponse(
+                true,
+                result,
+                result.BlockingOrdersBefore,
+                result.BlockingOrdersAfter,
+                result.ResourcesBefore,
+                result.ResourcesAfter,
+                result.Notes,
+                []));
+        });
+
         app.MapPost("/api/dev/fleets/orbital-groups/create-from-stock", async (
             CreateOrbitalGroupApiRequest request,
             [FromServices] IServiceProvider services,
@@ -868,6 +923,28 @@ internal static class DevEndpointMappings
         return errors;
     }
 
+    private static IReadOnlyList<string> ValidateResearchQaStatePreparation(PrepareResearchQaStateApiRequest request)
+    {
+        var errors = new List<string>();
+
+        if (request.CivilizationId.HasValue && request.CivilizationId.Value == Guid.Empty)
+        {
+            errors.Add("Civilization id must not be empty.");
+        }
+
+        if (request.SourcePlanetId.HasValue && request.SourcePlanetId.Value == Guid.Empty)
+        {
+            errors.Add("Source planet id must not be empty.");
+        }
+
+        if (request.PlanetId.HasValue && request.PlanetId.Value == Guid.Empty)
+        {
+            errors.Add("Planet id must not be empty.");
+        }
+
+        return errors;
+    }
+
     private static IReadOnlyList<string> ValidateCreateOrbitalGroup(CreateOrbitalGroupApiRequest request)
     {
         var errors = new List<string>();
@@ -1036,6 +1113,21 @@ internal sealed record CompleteResearchOrdersApiResponse(
     bool Succeeded,
     int CompletedCount,
     IReadOnlyList<Guid> CompletedOrderIds,
+    IReadOnlyList<string> Errors);
+
+internal sealed record PrepareResearchQaStateApiRequest(
+    Guid? CivilizationId,
+    Guid? SourcePlanetId,
+    Guid? PlanetId);
+
+internal sealed record ResearchQaStatePreparationApiResponse(
+    bool Succeeded,
+    ResearchQaStatePreparationResult? Result,
+    int BlockingOrdersBefore,
+    int BlockingOrdersAfter,
+    ResearchQaStatePreparationResourceState? ResourcesBefore,
+    ResearchQaStatePreparationResourceState? ResourcesAfter,
+    IReadOnlyList<string> Notes,
     IReadOnlyList<string> Errors);
 
 internal sealed record CreateOrbitalGroupApiRequest(

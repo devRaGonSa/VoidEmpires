@@ -92,4 +92,14 @@ public sealed class ResearchOrder
 
         Status = ResearchQueueItemStatus.Completed;
     }
+
+    public void MarkCancelled()
+    {
+        if (!IsOpen)
+        {
+            throw new InvalidOperationException("Only open research orders can be cancelled.");
+        }
+
+        Status = ResearchQueueItemStatus.Cancelled;
+    }
 }
