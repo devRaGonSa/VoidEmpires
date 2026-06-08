@@ -3,7 +3,7 @@
 ---
 id: TASK-30T
 title: Final research QA preparation closure
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
@@ -32,6 +32,7 @@ After the contract, endpoint, and helper are complete, the repository needs its 
 
 ## Expected files to modify
 
+- ai/tasks/in-progress/TASK-30T-final-research-qa-preparation-closure.md
 - ai/current-state.md
 - ai/tasks/done/TASK-30Q-research-qa-state-preparation-contract.md
 - ai/tasks/done/TASK-30R-research-qa-state-preparation-endpoint-and-tests.md

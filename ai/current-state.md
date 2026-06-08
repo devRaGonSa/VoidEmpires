@@ -326,10 +326,10 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Phase 30M:
+Current validated baseline after Phase 30M plus Block 30Q-30T:
 
 - backend: `dotnet build --no-restore` succeeded
-- tests: `dotnet test --no-build` succeeded with `691` passing tests
+- tests: `dotnet test --no-build` succeeded with `695` passing tests
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
 - frontend bundle baseline: current Vite output emits `94` transformed modules, one `180.07 kB` minified shared JS entry chunk (`58.66 kB` gzip), one `49.12 kB` CSS asset (`7.55 kB` gzip), and cockpit-specific async chunks for Galaxy, Planet, Construction, Research, Shipyard, Fleets, Defenses, Ground Army, Espionage, Alliance, Market, Ranking, and the module placeholder route
 - frontend lazy-import guard: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` succeeded
@@ -357,6 +357,11 @@ Current validated cockpit QA seed baseline:
 - The real persisted Construction enqueue path is now also reflected in the frontend `/construction` cockpit with explicit confirmation, backend-confirmed Spanish success/failure copy, authoritative refresh behavior, secondary diagnostics for raw backend detail, and user-driven visual QA still pending final manual execution.
 - The real persisted Research enqueue path is now covered through backend tests, backend-only helper scripts, and the central persisted-flow runbook.
 - The real persisted Research enqueue path is now also reflected in the frontend `/research` cockpit with Development-only scope, explicit confirmation, backend-confirmed immediate resource deduction, authoritative refresh after success, disabled automatic completion, and final visual QA still user-driven through the seeded browser checklists.
+- Research enqueue UX is technically accepted for the current Development-only persisted boundary.
+- Manual QA has already validated the open-order no-op path on `/research`, including the guarded confirmation flow surfacing the honest backend rejection when a reused Development database already contains an open research order.
+- Manual success-path QA for `/research` was blocked on the reused Development database because additive seed reapply preserves the existing open research order instead of clearing it.
+- A Development-only research QA preparation endpoint and helper script now exist so repeated manual success-path QA can clear only the targeted civilization blocker and re-top only the targeted source-planet stockpile without changing production gameplay behavior.
+- Visual/manual QA of the actual `/research` success enqueue remains user-driven after running `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-research-ui-state.ps1`.
 - The real persisted Shipyard enqueue path is now covered through backend tests, the backend-only Shipyard helper script, and the Shipyard/Fleet companion runbook.
 - Fleet read-state after Shipyard enqueue is now covered through backend tests, the backend-only Fleet read helper script, and the Shipyard/Fleet companion runbook.
 - Current verified resource rule: both Construction and Research deduct the full visible cost immediately when enqueue succeeds.
@@ -371,6 +376,7 @@ Current validated cockpit QA seed baseline:
 - `cockpit-validation` now also seeds meaningful Alliance readiness through `Void Seed Civilization`, `Aurelia` homeworld context, one deterministic diplomatic contact row, disabled future pact and diplomacy placeholders, and deterministic `/alliance` routing while keeping alliance, pact, invitation, role, treasury, and messaging gameplay out of scope.
 - `cockpit-validation` now also seeds meaningful Ranking readiness through deterministic `/ranking` routing, a non-zero power summary, category breakdowns, demo comparison rows, disabled future placeholders, and visible handoffs while keeping public ladders, rewards, matchmaking, and profiles out of scope.
 - For repeated `/construction` manual QA on reused Development databases, run `.\scripts\dev-qa-prepare-construction-ui-state.ps1` to clear scoped blocking orders and top-up scoped resources before repeating enqueue operations, then use either `.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed` or the frontend `/construction` confirmation flow.
+- For repeated `/research` manual QA on reused Development databases, run `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-research-ui-state.ps1` before retrying either the backend helper or the frontend `/research` confirmation flow.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, the minimal exploration mission lifecycle, the current Planet or Construction cockpit readability baseline, the minimal-validation Research seed readiness path, the development Research UI-state endpoint baseline, the full seeded Research enqueue smoke path through queue refresh, the development Shipyard UI-state endpoint baseline, the scoped Shipyard enqueue endpoint path, and the strengthened minimal-validation Shipyard seed expectations.
 
