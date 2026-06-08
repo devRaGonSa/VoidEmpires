@@ -3,7 +3,7 @@
 ---
 id: TASK-31C
 title: Shipyard selection and review state
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
