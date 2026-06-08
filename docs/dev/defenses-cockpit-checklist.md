@@ -36,12 +36,14 @@ Use `docs/dev/development-seed-profiles.md` for seed setup and `docs/dev/planet-
 4. Confirm deployed defensive structure state is visible, including the seeded `DefenseGrid`.
 5. Confirm defensive option cards are visible and explain readiness or construction handoff clearly.
 6. Confirm at least one available or ready defense option is visible in the seeded baseline.
-7. Confirm blocked-state language is clear when supported. The default baseline may not show a blocked comparison because the current defensive catalog exposes only one real structure type.
-8. Confirm queue or completion messaging is truthful. If no defense queue is active, the page must say so clearly. If complete-due remains unavailable, the page must present that as a limitation, not as a hidden action.
-9. Confirm handoff links or action copy toward `Construccion`, `Astillero`, `Flotas`, `Planeta`, and `Galaxia` are visible and preserve context.
-10. Confirm diagnostics stay collapsed or clearly secondary after load.
-11. Confirm no button from this cockpit launches combat, interception, or fleet movement.
-12. Confirm the page remains free of 3D, WebGL, and tactical battle presentation.
+7. Confirm available defense options are presented as construction-backed readiness only, not as a direct Defenses submit path.
+8. Confirm blocked-state language is clear when supported. The default baseline may not show a blocked comparison because the current defensive catalog exposes only one real structure type.
+9. Confirm queue or completion messaging is truthful. If no defense queue is active, the page must say so clearly. If complete-due remains unavailable, the page must present that as a limitation, not as a hidden action.
+10. Confirm the cockpit states clearly that no safe `POST /api/dev/defenses/...` enqueue route exists in this block.
+11. Confirm handoff links or action copy toward `Construccion`, `Astillero`, `Flotas`, `Planeta`, and `Galaxia` are visible and preserve context.
+12. Confirm diagnostics stay collapsed or clearly secondary after load.
+13. Confirm no button from this cockpit launches combat, interception, or fleet movement.
+14. Confirm the page remains free of 3D, WebGL, and tactical battle presentation.
 
 ## Expected seeded result
 
@@ -50,6 +52,7 @@ Use `docs/dev/development-seed-profiles.md` for seed setup and `docs/dev/planet-
 - one deterministic defense option for `DefenseGrid` remains visible
 - stockpile and missing-resource guidance are readable
 - complete-due remains explicitly unavailable in this build
+- no safe defense-specific enqueue route is exposed
 - defensive actions stay construction-scoped or handoff-only
 
 ## Scope boundary
@@ -66,6 +69,10 @@ Use `docs/dev/development-seed-profiles.md` for seed setup and `docs/dev/planet-
 - Read-only now:
   - `GET /api/dev/defenses/ui-state` aggregates owned-planet stockpile, `DefenseGrid` structure state, defense construction-option readiness, and defense queue visibility
   - the defense read model is derived from `GET /api/dev/planets/ui-state`, so it inherits construction-backed readiness rather than owning a separate defense queue service
+- Audited backend result for this task:
+  - there is no `POST /api/dev/defenses/...` enqueue endpoint
+  - there is no defense-specific enqueue service or persisted endpoint test
+  - the accepted scope for this block remains read-only plus handoff to `Construccion`
 - Future backend work required:
   - defense-specific enqueue, scoped completion, or automation routes
   - combat, interception, bombardment, or shield-resolution behavior

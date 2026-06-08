@@ -67,7 +67,7 @@ function getRecommendedNextStep(viewModel: DefensesViewModel["defenses"]) {
   }
 
   if (viewModel.protectionSummary.availableOptionCount > 0) {
-    return "Preparar fortificacion";
+    return "Abrir Construccion";
   }
 
   if (viewModel.options.length > 0) {
@@ -436,13 +436,13 @@ export function DefensesPage() {
                       <div className="figma-data-row"><span>Duracion</span><strong>{option.estimatedDurationLabel}</strong></div>
                     </div>
                     <p>{option.reasonLabel}</p>
-                    <p className="figma-panel-note">Reservas de {defenses.planetName}. Preparacion visible desde Defensas, gestion segura desde Construccion.</p>
+                    <p className="figma-panel-note">Reservas de {defenses.planetName}. La readiness visible sale del backend actual, pero el enqueue real sigue perteneciendo a Construccion.</p>
                     <div className="selection-chip-row">
                       <Link className="planet-action-button-secondary planet-action-handoff" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
                         Abrir Construccion
                       </Link>
                       <button type="button" className="planet-action-button-blocked" disabled>
-                        No disponible en esta version
+                        Sin enqueue defensivo
                       </button>
                     </div>
                   </article>
@@ -511,7 +511,7 @@ export function DefensesPage() {
                   <UiBadge tone="good">{availableOptions.length}</UiBadge>
                 </div>
                 <p>Las preparaciones viables se revisan aqui, pero la confirmacion y el enqueue siguen perteneciendo a Construccion.</p>
-                {!hasSafeDefenseEnqueue ? <p className="figma-panel-note">Defensas consume solo contratos de readiness en esta build y no expone un POST defensivo propio.</p> : null}
+                {!hasSafeDefenseEnqueue ? <p className="figma-panel-note">La auditoria actual no encontro ningun `POST /api/dev/defenses/...` seguro. Defensas consume solo contratos de readiness derivados de Construccion.</p> : null}
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">

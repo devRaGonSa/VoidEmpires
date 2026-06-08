@@ -3,7 +3,7 @@
 ---
 id: TASK-31G
 title: Defense production scope and readiness
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
