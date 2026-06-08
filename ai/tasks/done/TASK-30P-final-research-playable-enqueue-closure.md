@@ -3,7 +3,7 @@
 ---
 id: TASK-30P-final-research-playable-enqueue-closure
 title: Close Block 30A-30P and merge task-plan state
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [platform]
@@ -76,3 +76,22 @@ This task is the administrative closure and does not add gameplay logic.
 - Prefer modifying fewer than 5 files.
 - Prefer changes under 200 lines of code.
 - Prefer fewer than 3 commits for this task.
+
+## Closure notes
+
+- The Research playable enqueue block is closed with `ai/tasks/pending` reduced to `.gitkeep`.
+- Final validated state:
+  - `/research` supports explicit real persisted enqueue through guarded confirmation
+  - no mutation occurs without confirmation
+  - backend confirmation and refresh remain the source of truth
+  - failure handling stays Spanish-first and safe
+  - no automatic completion is exposed from the cockpit
+  - no other cockpit gained a new mutation path through Research handoffs
+- Final validation results:
+  - `dotnet build --no-restore` succeeded
+  - `dotnet test --no-build` succeeded with `691` passing tests
+  - `npm run build --prefix src/VoidEmpires.Frontend` succeeded
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` succeeded
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` succeeded
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1` succeeded
+- Visual QA remains user-driven through the documented seeded browser checklists; this closure did not claim screenshot-backed execution.
