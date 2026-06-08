@@ -3,7 +3,7 @@
 ---
 id: TASK-30M-current-state-update-research-playable-v1
 title: Record Research as second controlled persisted mutation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [platform]
