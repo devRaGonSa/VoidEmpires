@@ -3,7 +3,7 @@
 ---
 id: TASK-30G-research-validation-errors-spanish-copy
 title: Normalize research validation errors into Spanish copy
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend]

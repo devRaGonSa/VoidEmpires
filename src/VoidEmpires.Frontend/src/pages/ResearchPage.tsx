@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { enqueueResearchOrder, fetchResearchUiState } from "../api/researchApi";
+import type { EnqueueResearchOrderFailureResponse, ResearchApiErrorCode } from "../api/researchTypes";
 import { CockpitHero } from "../components/CockpitHero";
 import type { ResearchTechnology, ResearchUiState } from "../utils/researchPresentation";
 import {
@@ -23,6 +24,124 @@ function formatDateTime(value: string) {
   return Number.isNaN(parsed)
     ? "No disponible"
     : new Intl.DateTimeFormat("es-ES", { dateStyle: "short", timeStyle: "short" }).format(parsed);
+}
+
+function buildResearchEnqueueTechnicalDetail(
+  response: EnqueueResearchOrderFailureResponse | null,
+  httpStatus: number,
+) {
+  if (!response) {
+    return `Research enqueue request failed with status ${httpStatus}.`;
+  }
+
+  return JSON.stringify({
+    httpStatus,
+    failureKind: response.failureKind,
+    isOpenOrderNoOp: response.isOpenOrderNoOp,
+    errors: response.errors,
+    errorEntries: response.errorEntries,
+  }, null, 2);
+}
+
+function matchesResearchEnqueuePattern(value: string, patterns: readonly string[]) {
+  const normalizedValue = value.trim().toLowerCase();
+  return patterns.some((pattern) => normalizedValue.includes(pattern));
+}
+
+function formatResearchEnqueueValidationError(
+  response: EnqueueResearchOrderFailureResponse | null,
+  httpStatus: number,
+  selectedPlanetName?: string | null,
+) {
+  const fallback = formatResearchCommandFailure(
+    response?.errors[0] ?? null,
+    httpStatus,
+    selectedPlanetName,
+  );
+  const technicalDetail = buildResearchEnqueueTechnicalDetail(response, httpStatus);
+  const scopedPlanetLabel = selectedPlanetName?.trim() || "el planeta seleccionado";
+
+  if (!response) {
+    return {
+      primaryMessage: fallback.primaryMessage,
+      technicalDetail,
+    };
+  }
+
+  const rawMessages = response.errorEntries.map((entry) => entry.message);
+  const hasPattern = (...patterns: string[]) => rawMessages.some((message) => matchesResearchEnqueuePattern(message, patterns));
+  const hasCode = (...codes: ResearchApiErrorCode[]) => response.errorEntries.some((entry) => codes.includes(entry.code));
+
+  if (hasCode("OpenResearchOrderExists") || hasPattern("open research order", "open order")) {
+    return {
+      primaryMessage: "Ya existe una investigacion en curso para esta civilizacion. Espera a que termine antes de enviar otra orden.",
+      technicalDetail,
+    };
+  }
+
+  if (hasCode("InsufficientResources") || hasPattern("insufficient resources")) {
+    return {
+      primaryMessage: `No hay recursos suficientes en ${scopedPlanetLabel} para iniciar esta investigacion.`,
+      technicalDetail,
+    };
+  }
+
+  if (hasCode("MissingCivilizationId") || hasPattern("civilization was not found", "civilization id is required")) {
+    return {
+      primaryMessage: "La civilizacion indicada no es valida para esta cabina. Recarga el contexto desde Galaxia antes de reintentar.",
+      technicalDetail,
+    };
+  }
+
+  if (
+    hasCode("MissingSourcePlanetId", "SourcePlanetNotOwned", "SourcePlanetStockpileMissing") ||
+    hasPattern("source planet id is required", "planet is not owned", "planet resource stockpile was not found", "planet was not found")
+  ) {
+    return {
+      primaryMessage: "El planeta de origen ya no es valido para esta orden. Actualiza la cabina y vuelve a seleccionar el contexto.",
+      technicalDetail,
+    };
+  }
+
+  if (hasCode("MissingResearchType") || hasPattern("research type is required", "research type was not found", "invalid research type")) {
+    return {
+      primaryMessage: "La tecnologia solicitada no es valida o ya no esta disponible en esta version. Actualiza la cabina antes de reintentar.",
+      technicalDetail,
+    };
+  }
+
+  if (hasPattern("prerequisite", "requirement", "missing prerequisite")) {
+    return {
+      primaryMessage: "Falta un requisito previo para iniciar esta investigacion. Revisa el catalogo antes de volver a enviarla.",
+      technicalDetail,
+    };
+  }
+
+  if (hasPattern("already researched", "level unavailable", "max level", "target level")) {
+    return {
+      primaryMessage: "Esta investigacion ya esta completada o no tiene mas niveles disponibles para esta civilizacion.",
+      technicalDetail,
+    };
+  }
+
+  if (hasPattern("not available", "unavailable research")) {
+    return {
+      primaryMessage: "La investigacion solicitada no esta disponible para este contexto o para esta build.",
+      technicalDetail,
+    };
+  }
+
+  if (response.failureKind === "validation" || response.failureKind === "conflict") {
+    return {
+      primaryMessage: "La API rechazo la orden de investigacion por una validacion no prevista en la cabina. Revisa el diagnostico tecnico antes de reintentar.",
+      technicalDetail,
+    };
+  }
+
+  return {
+    primaryMessage: fallback.primaryMessage,
+    technicalDetail,
+  };
 }
 
 export function ResearchPage() {
@@ -169,14 +288,8 @@ export function ResearchPage() {
       });
 
       if (result.httpStatus !== 201 || !result.response?.succeeded) {
-        if (result.response && !result.response.succeeded && result.response.isOpenOrderNoOp) {
-          setEnqueueError("Ya existe una investigacion abierta en la cola. No se creo una orden nueva.");
-          setTechnicalErrorDetail(result.response.errors[0] ?? "Civilization already has an open research order.");
-          return;
-        }
-
-        const failure = formatResearchCommandFailure(
-          result.response?.errors[0] ?? null,
+        const failure = formatResearchEnqueueValidationError(
+          result.response && !result.response.succeeded ? result.response : null,
           result.httpStatus,
           selectedPlanetName,
         );
@@ -624,9 +737,18 @@ export function ResearchPage() {
                   </ul>
                 ) : null}
                 {technicalErrorDetail ? (
-                  <div className="figma-data-list">
-                    <div className="figma-data-row"><span>Detalle tecnico</span><strong>{technicalErrorDetail}</strong></div>
-                  </div>
+                  technicalErrorDetail.includes("\n") ? (
+                    <div className="figma-data-list">
+                      <div className="figma-data-row">
+                        <span>Detalle tecnico</span>
+                        <pre style={{ margin: 0, whiteSpace: "pre-wrap" }}>{technicalErrorDetail}</pre>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="figma-data-list">
+                      <div className="figma-data-row"><span>Detalle tecnico</span><strong>{technicalErrorDetail}</strong></div>
+                    </div>
+                  )
                 ) : null}
                 {enqueueOrderDetails?.orderId ? (
                   <div className="figma-data-list">
