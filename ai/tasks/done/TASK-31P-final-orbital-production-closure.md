@@ -3,7 +3,7 @@
 ---
 id: TASK-31P
 title: Final orbital production closure
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
