@@ -3,7 +3,7 @@
 ---
 id: TASK-31E
 title: Shipyard real production submit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
