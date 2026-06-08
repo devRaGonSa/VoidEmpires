@@ -66,6 +66,18 @@ Use this after the required validation commands succeed.
 - Successful Shipyard enqueue deducts the full visible cost immediately from `PlanetResourceStockpile`; it does not reserve resources and leave balances unchanged.
 - Local orbital stock should stay unchanged immediately after enqueue; produced stock changes only after due processing, which remains out of the safe repeated-QA flow because the current route is global.
 
+## Current contract audit
+
+- Real persisted mutation now:
+  - `POST /api/dev/assets/production/enqueue` for one orbital production order on an owned planet
+- Read-only now:
+  - `GET /api/dev/shipyard/ui-state` for queue, catalog, local stock, readiness, and diagnostics
+  - Fleet follow-up reads after enqueue
+- Future backend work required:
+  - planet-scoped due processing
+  - stronger stock-to-fleet allocation validation
+  - any fleet movement or command execution from Shipyard
+
 ## Development Gating
 
 - Development routes exist only when `ASPNETCORE_ENVIRONMENT=Development` or `VoidEmpires:DevEndpoints:Enabled=true` is set in configuration. See `src/VoidEmpires.Web/Program.cs`.

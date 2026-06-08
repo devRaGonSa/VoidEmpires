@@ -63,3 +63,15 @@ Then confirm on `/planet`:
 - No production auth.
 - No Galaxy mutations.
 - No fleet split or merge enablement from Planet.
+
+## Current contract audit
+
+- Real persisted mutation now:
+  - Construction enqueue only, through the existing guarded planet or construction flow
+- Read-only orbital or military summary now:
+  - `orbitalContext` counts for stationed groups, active departures, and active arrivals
+  - building, queue, stockpile, and ownership context that Defenses or Shipyard can safely summarize without inventing mutations
+- Future backend work required before Planet can claim more:
+  - direct orbital production submit
+  - defense-specific mutation
+  - fleet command execution, allocation, or combat actions

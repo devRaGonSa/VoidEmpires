@@ -3,6 +3,23 @@
 This document is the authoritative QA scope note for the current persisted `Construction`, `Research`, `Shipyard`, and `Fleet read-state` development flows.
 Use it together with `docs/dev/development-seed-profiles.md`, `docs/dev/construction-cockpit-checklist.md`, `docs/dev/research-cockpit-checklist.md`, and `docs/dev/shipyard-fleet-persisted-qa.md`.
 
+## Orbital production and military block audit
+
+Current accepted block boundary for `Shipyard`, `Defenses`, `Fleets`, and `Planet`:
+
+- Real persisted mutation now:
+  - `Shipyard` enqueue through `POST /api/dev/assets/production/enqueue`
+- Read-only now:
+  - `Shipyard` queue, catalog, stock, and readiness through `GET /api/dev/shipyard/ui-state`
+  - `Defenses` readiness through `GET /api/dev/defenses/ui-state`, which is derived from `GET /api/dev/planets/ui-state`
+  - `Fleets` post-Shipyard verification through `GET /api/dev/fleets/ui-state`, `GET /api/dev/fleets/overview`, and `GET /api/dev/fleets/action-manifest`
+  - `Planet` orbital and military summary context through `GET /api/dev/planets/ui-state`
+- Requires future backend work before it becomes an accepted cockpit mutation:
+  - defense-specific production enqueue or completion
+  - shipyard-safe due processing scoped to the visible planet
+  - shipyard-safe stock-to-fleet allocation
+  - any fleet mutation being driven from the Shipyard, Defenses, or Planet cockpits for this block
+
 ## Scope and safety rules
 
 - Development-only flow.
@@ -113,6 +130,12 @@ Shipyard/Fleet companion note:
 
 - Use `docs/dev/shipyard-fleet-persisted-qa.md` for the exact endpoint inventory, read-model fields, and current inclusion or exclusion rules for Shipyard and Fleets.
 - The companion note now also carries the copy-pasteable backend-only runbook for `baseline -> shipyard enqueue -> fleet read-state` using the final helper script names.
+
+Current cockpit audit note for the wider orbital or military block:
+
+- `Defenses` remains a read-only readiness cockpit backed by planet construction data and does not have an accepted defense-specific mutation route.
+- `Planet` may surface orbital or military summaries only as already-backed read state such as stationed-group counts, active transfer counts, building readiness, queue visibility, and resource context.
+- `Fleets` still owns transfer, split, merge, and completion mutations in the broader repository, but those flows are outside this block's accepted persisted Shipyard verification loop.
 
 Primary QA URLs:
 

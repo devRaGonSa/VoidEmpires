@@ -3,7 +3,7 @@
 ---
 id: TASK-31A
 title: Orbital production contract audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

@@ -59,6 +59,17 @@ Use `docs/dev/development-seed-profiles.md` for seed setup and `docs/dev/planet-
 - Fleet endpoints own movement, transfer, split, merge, and related mutation flows. Defenses must not call them.
 - There is still no shield hit-point model, interception execution, bombardment logic, invasion-defense resolution, or defense automation.
 
+## Current contract audit
+
+- Real persisted mutation now:
+  - none accepted directly from `Defenses`
+- Read-only now:
+  - `GET /api/dev/defenses/ui-state` aggregates owned-planet stockpile, `DefenseGrid` structure state, defense construction-option readiness, and defense queue visibility
+  - the defense read model is derived from `GET /api/dev/planets/ui-state`, so it inherits construction-backed readiness rather than owning a separate defense queue service
+- Future backend work required:
+  - defense-specific enqueue, scoped completion, or automation routes
+  - combat, interception, bombardment, or shield-resolution behavior
+
 ## Final statement
 
 Defenses v1 is a truthful readiness cockpit.
