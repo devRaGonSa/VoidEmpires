@@ -691,6 +691,7 @@ Expected result:
 7. Create one Shipyard order:
 
 ```powershell
+.\scripts\dev-qa-prepare-orbital-production-ui-state.ps1
 .\scripts\dev-qa-create-shipyard-production-order.ps1 -ApplySeed
 ```
 
@@ -706,6 +707,16 @@ Expected controlled no-op:
 
 - repeated runs on a reused database may report that an open orbital production order already exists
 - the helper re-reads Shipyard state, prints the current queue summary, and exits without creating a second order
+- the explicit recovery path is `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-orbital-production-ui-state.ps1`, which cancels only the targeted planet blockers and does not imply that visual QA has already been rerun
+
+Alternative frontend-confirmed runtime order for this orbital-preparation pass:
+
+- start backend with `dotnet run --project .\src\VoidEmpires.Web`
+- apply `cockpit-validation` twice
+- run `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-orbital-production-ui-state.ps1` before repeated Shipyard success-path QA on a reused Development database
+- start frontend with `npm run dev --prefix src/VoidEmpires.Frontend`
+- open `/shipyard`, then `/defenses`, then `/fleets`, then `/planet` with the deterministic seeded ids
+- treat that browser sequence as a user-driven validation pass; this document does not claim it has already been executed
 
 8. Re-read Fleet state after the Shipyard mutation:
 

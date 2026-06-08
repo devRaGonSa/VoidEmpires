@@ -62,6 +62,11 @@ Use this after the required validation commands succeed.
 - The preparation endpoint is the explicit Development-only escape hatch for reused databases: it cancels only open orbital production blockers on the targeted owned planet and tops that planet up to the shared orbital QA minimums without running global due processing.
 - The PowerShell helper wraps that endpoint with the seeded defaults so repeated Shipyard QA does not require manual JSON or SQL.
 
+Repeated-QA warning:
+
+- On a reused Development database, run `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-orbital-production-ui-state.ps1` before repeating the guarded enqueue success path.
+- This checklist still requires a human browser pass after the helper finishes; the helper itself is not visual acceptance.
+
 ## Boundary Summary
 
 - Shipyard owns orbital production context, catalog review, guarded enqueue, queue reading, and local stock reading.

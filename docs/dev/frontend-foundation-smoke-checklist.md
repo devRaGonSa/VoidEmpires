@@ -11,6 +11,30 @@ For shared preferred terms and allowed limitation patterns, use `docs/dev/cockpi
 For deterministic local QA setup, use `docs/dev/development-seed-profiles.md` instead of manual SQL.
 For lightweight Espionage copy regression protection before visual QA, run `.\scripts\check-espionage-copy.ps1`.
 
+## Orbital Preparation Runtime Order
+
+Use this exact manual sequence for the current orbital production or military preparation pass. This remains a user-driven visual QA checklist, not proof that the browser checks have already been performed.
+
+1. Start the backend:
+   - `dotnet run --project .\src\VoidEmpires.Web`
+2. Reapply the shared deterministic seed twice:
+   - `Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"cockpit-validation"}'`
+   - `Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"cockpit-validation"}'`
+3. If the reused Development database already has an open orbital production order, clear only the scoped Shipyard blockers first:
+   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-orbital-production-ui-state.ps1`
+4. Start the frontend:
+   - `npm run dev --prefix src/VoidEmpires.Frontend`
+5. Open `/shipyard?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` and run the guarded enqueue check if the catalog still shows one available orbital option.
+6. Open `/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` and confirm the same planet context remains read-only plus handoff-only.
+7. Open `/fleets?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` and confirm the read-state reflects the same colony context without auto-promoting Shipyard stock to a fleet group.
+8. Return to `/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` and confirm the orbital or military summary still reads as a handoff surface rather than a new mutation cockpit.
+
+Reused-database warning:
+
+- If Shipyard reports an existing open orbital production order, treat it as a real persisted state, not as a hidden reset path.
+- Run the preparation helper explicitly before repeating the Shipyard success path.
+- The visual checks above remain pending until a human actually performs them in the browser.
+
 ## Frontend Copy Regression Guard
 
 Run this guard before closing manual visual batches for the accepted cockpit suite:

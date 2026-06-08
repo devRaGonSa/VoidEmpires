@@ -55,6 +55,7 @@ Then confirm on `/planet`:
 - Handoff links toward `Astillero`, `Defensas`, and `Flotas` preserve `civilizationId` and `planetId`.
 - Diagnostics stay collapsed by default.
 - Desktop layout avoids horizontal overflow.
+- For the orbital-preparation runtime pass, revisit `Planeta` after `Shipyard -> Defenses -> Fleets` and confirm the same colony context survives the full loop without granting any new orbital or military mutation authority.
 
 ## Intentional exclusions
 

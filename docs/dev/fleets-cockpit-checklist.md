@@ -41,3 +41,4 @@ Use `docs/dev/fleet-api-contracts.md` for the full development endpoint inventor
 3. Confirm Fleet explains clearly that local orbital stock is not exposed by this API and that a new stock row is not the same thing as a visible fleet group.
 4. Confirm the Shipyard success state offers a direct handoff to Fleets with preserved query parameters.
 5. Confirm no new fleet mutation path is introduced by this readiness-oriented handoff.
+6. For repeated QA on a reused Development database, run the Shipyard preparation helper before the Shipyard step, then use Fleet only as the next read-state checkpoint; this checklist does not treat Fleet as already visually verified.

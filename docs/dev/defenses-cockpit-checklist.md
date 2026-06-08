@@ -8,8 +8,14 @@ Use `docs/dev/development-seed-profiles.md` for seed setup and `docs/dev/planet-
 ## Seeded route
 
 - Apply `cockpit-validation`.
+- If the reused Development database already has Shipyard queue blockers from a previous run, clear them first with `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-orbital-production-ui-state.ps1`.
 - Open `/defenses?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`.
 - Expected planet: `Aurelia`.
+
+Runtime placement for this block:
+
+- Visit `Defenses` after the Shipyard preparation or enqueue step and before the Fleet read-state check.
+- Treat this as a user-driven visual confirmation that the same `civilizationId` and `planetId` survived the handoff while Defenses stayed non-mutating.
 
 ## What this cockpit is for
 
