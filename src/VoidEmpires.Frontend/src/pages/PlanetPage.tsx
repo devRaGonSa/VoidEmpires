@@ -181,6 +181,40 @@ function formatProductionValue(value: number) {
   return value > 0 ? `+${value}` : String(value);
 }
 
+function getOrbitalActivitySummary(planet: PlanetCockpitDto) {
+  const orbitalContext = planet.orbitalContext;
+
+  if (orbitalContext.stationedGroups > 0) {
+    return `${orbitalContext.stationedGroups} escuadras estacionadas y ${orbitalContext.activeDepartures + orbitalContext.activeArrivals} movimientos visibles.`;
+  }
+
+  if (orbitalContext.activeDepartures > 0 || orbitalContext.activeArrivals > 0) {
+    return `${orbitalContext.activeDepartures} salidas y ${orbitalContext.activeArrivals} llegadas visibles en la orbita local.`;
+  }
+
+  return "No hay grupos orbitales visibles en esta lectura del planeta.";
+}
+
+function getDefenseReadinessSummary(planet: PlanetCockpitDto) {
+  const defenseBuildings = planet.buildings.filter((building) => building.category === "Defense");
+  const defenseActions = planet.constructionActions.filter((action) => action.category === "Defense");
+  const availableDefenseActions = defenseActions.filter((action) => action.availabilityStatus === "Available");
+
+  if (defenseBuildings.length > 0) {
+    return `${defenseBuildings.length} estructuras defensivas visibles y ${availableDefenseActions.length} preparaciones listas.`;
+  }
+
+  if (availableDefenseActions.length > 0) {
+    return `${availableDefenseActions.length} preparaciones defensivas listas desde Construccion o Defensas.`;
+  }
+
+  if (defenseActions.length > 0) {
+    return `${defenseActions.length} preparaciones defensivas visibles, pero ninguna lista para ejecutar.`;
+  }
+
+  return "La defensa local sigue limitada a readiness y handoff; no hay una superficie propia mas profunda en este resumen.";
+}
+
 function findPreparedAction(
   planet: PlanetCockpitDto | null,
   preparedActionKey: string,
@@ -971,6 +1005,52 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                   ))}
                 </div>
               </UiCard>
+            ) : null}
+
+            {!isConstructionRoute ? (
+              <section className="subpanel figma-subpanel planet-related-modules-panel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Actividad orbital y militar</p>
+                    <h3>Resumen del hub planetario</h3>
+                  </div>
+                  <UiBadge tone="warn">Solo lectura</UiBadge>
+                </div>
+                <div className="readiness-grid">
+                  <section className="subpanel figma-subpanel">
+                    <div className="figma-data-list">
+                      <PlanetDataRow label="Orbita local" value={getOrbitalActivitySummary(planet)} />
+                      <PlanetDataRow label="Escuadras estacionadas" value={String(planet.orbitalContext.stationedGroups)} />
+                      <PlanetDataRow label="Salidas activas" value={String(planet.orbitalContext.activeDepartures)} />
+                      <PlanetDataRow label="Llegadas activas" value={String(planet.orbitalContext.activeArrivals)} />
+                    </div>
+                  </section>
+                  <section className="subpanel figma-subpanel">
+                    <div className="figma-data-list">
+                      <PlanetDataRow label="Astillero" value="Consulta cola orbital, stock local y gasto confirmado" />
+                      <PlanetDataRow label="Defensas" value={getDefenseReadinessSummary(planet)} />
+                      <PlanetDataRow label="Flotas" value="Consulta grupos visibles y reservas por planeta; no promueve stock orbital automaticamente" />
+                      <PlanetDataRow label="Mutacion local" value="No disponible desde Planeta" />
+                    </div>
+                  </section>
+                </div>
+                <ul className="stack-list compact-list">
+                  <li>Planeta solo resume actividad visible: la cola orbital detallada sigue en Astillero.</li>
+                  <li>Defensas y Flotas conservan sus propios limites seguros y no reciben ordenes ejecutables desde esta cabina.</li>
+                  <li>Si faltan stock orbital o grupos nuevos, este hub lo declara como limite de lectura en vez de inventar estado.</li>
+                </ul>
+                <div className="selection-chip-row">
+                  <Link className="selection-chip" to={buildSpecializedModuleUrl("Shipyard", activeCivilizationId, planet.planetId)}>
+                    Astillero
+                  </Link>
+                  <Link className="selection-chip" to={buildSpecializedModuleUrl("Defenses", activeCivilizationId, planet.planetId)}>
+                    Defensas
+                  </Link>
+                  <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, planet.planetId)}>
+                    Flotas
+                  </Link>
+                </div>
+              </section>
             ) : null}
 
             {!isConstructionRoute ? (

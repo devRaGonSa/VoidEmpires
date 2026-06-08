@@ -39,6 +39,7 @@ Then confirm on `/planet`:
 
 - The deterministic seeded scenario can open as `/planet?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`.
 - The dashboard route should stay focused on `Planeta`, `Construccion`, `Flotas`, and `Galaxia` handoff cards instead of showing the full construction catalog.
+- The dashboard route should also show a compact read-only orbital or military preparation summary that points toward `Astillero`, `Defensas`, and `Flotas`.
 - The route loads with Spanish loading, error, and empty states.
 - When `civilizationId` is present and `planetId` is omitted, the primary or first owned planet is selected.
 - The page header prioritizes planet identity, system, ownership, type, and colony state.
@@ -50,6 +51,8 @@ Then confirm on `/planet`:
 - The enqueue flow requires explicit confirmation and refreshes the cockpit after success.
 - The complete-due area stays visibly disabled and reads `No disponible en esta build`.
 - Links back to Galaxy and toward Fleets preserve context without introducing shared global state.
+- The orbital or military hub summary uses backend-backed counts such as `orbitalContext` and honest limitation copy instead of inventing stock or queue rows that Planet does not receive directly.
+- Handoff links toward `Astillero`, `Defensas`, and `Flotas` preserve `civilizationId` and `planetId`.
 - Diagnostics stay collapsed by default.
 - Desktop layout avoids horizontal overflow.
 
@@ -71,6 +74,8 @@ Then confirm on `/planet`:
 - Read-only orbital or military summary now:
   - `orbitalContext` counts for stationed groups, active departures, and active arrivals
   - building, queue, stockpile, and ownership context that Defenses or Shipyard can safely summarize without inventing mutations
+  - Planet may explain defense readiness from visible defense-category construction data, but it must hand off any deeper flow to `Defensas`
+  - Planet may explain Fleet readiness from visible orbital counts, but it must not claim that local orbital stock or Shipyard queue rows are exposed here
 - Future backend work required before Planet can claim more:
   - direct orbital production submit
   - defense-specific mutation

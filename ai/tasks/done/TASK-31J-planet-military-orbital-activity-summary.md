@@ -3,7 +3,7 @@
 ---
 id: TASK-31J
 title: Planet military and orbital activity summary
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
