@@ -3,7 +3,7 @@
 ---
 id: TASK-31H
 title: Defense errors and blocked affordance
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

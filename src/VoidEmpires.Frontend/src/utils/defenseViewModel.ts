@@ -17,6 +17,7 @@ import {
   getDefenseStatusLabel,
   getDefenseStructureLabel,
 } from "./defensePresentation";
+import { formatResourceType } from "./domainPresentation";
 
 export interface DefenseCost {
   resourceType: string;
@@ -120,13 +121,13 @@ export interface DefensesViewModel {
 }
 
 const reasonLabels: Record<string, string> = {
-  "Ready for explicit development confirmation.": "Lista para confirmacion explicita",
-  "Planet already has an open construction order.": "Ya existe una obra abierta en la colonia",
-  "Planet resource stockpile was not found.": "No se encontro la reserva local",
-  "Planet building capacity was not found.": "No se encontro la capacidad defensiva",
-  "Planet building capacity would be exceeded.": "La capacidad planetaria se agotaria",
-  "Insufficient resources.": "Recursos insuficientes",
-  "Planet is not controlled by the requesting civilization.": "Planeta fuera de control",
+  "Ready for explicit development confirmation.": "Lista para abrir Construccion",
+  "Planet already has an open construction order.": "La cola de Construccion ya tiene una obra abierta",
+  "Planet resource stockpile was not found.": "La colonia no expone reservas locales utilizables",
+  "Planet building capacity was not found.": "La colonia no expone capacidad defensiva suficiente",
+  "Planet building capacity would be exceeded.": "La capacidad planetaria impediria esta fortificacion",
+  "Insufficient resources.": "No hay recursos suficientes en la colonia",
+  "Planet is not controlled by the requesting civilization.": "La colonia no esta bajo control local",
 };
 
 function mapCost(entries: readonly DefenseResourceStockpileItemDto[]): DefenseCost[] {
@@ -149,7 +150,7 @@ function getMissingResourceLabel(
       };
     })
     .filter((entry) => entry.quantity > 0)
-    .map((entry) => `Falta ${entry.resourceType} ${entry.quantity}`);
+    .map((entry) => `Falta ${formatResourceType(entry.resourceType)} ${entry.quantity}`);
 
   return missing.length > 0 ? missing.join(" | ") : null;
 }
@@ -202,9 +203,15 @@ function mapOption(item: DefenseOptionDto, stockpile: DefenseCost[]): DefenseOpt
       ? getMissingResourceLabel(cost, stockpile)
       : null,
     requirementLabel: item.availabilityReason === "Planet already has an open construction order."
-      ? "Requiere liberar la cola de construccion"
+      ? "La cola de Construccion debe quedar libre antes de preparar otra defensa"
       : item.availabilityReason === "Planet is not controlled by the requesting civilization."
-        ? "Requiere control local de la colonia"
+        ? "Defensas solo revisa colonias propias en esta fase"
+        : item.availabilityReason === "Planet building capacity was not found."
+          ? "La build actual no expone una capacidad defensiva valida para esta colonia"
+          : item.availabilityReason === "Planet building capacity would be exceeded."
+            ? "La fortificacion superaria la capacidad planetaria visible"
+            : item.availabilityReason === "Planet resource stockpile was not found."
+              ? "No hay reservas locales suficientes para validar esta preparacion"
         : null,
     cost,
   };
@@ -337,7 +344,7 @@ export function getDefensePrimaryAction(option: DefenseOption | null | undefined
   }
 
   return option.statusKey === "Available"
-    ? getDefenseActionLabel("construction.enqueue")
+    ? getDefenseActionLabel("construction.link")
     : getDefenseActionLabel("coverage.read");
 }
 

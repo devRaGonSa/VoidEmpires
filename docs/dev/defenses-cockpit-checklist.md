@@ -37,12 +37,12 @@ Use `docs/dev/development-seed-profiles.md` for seed setup and `docs/dev/planet-
 5. Confirm defensive option cards are visible and explain readiness or construction handoff clearly.
 6. Confirm at least one available or ready defense option is visible in the seeded baseline.
 7. Confirm available defense options are presented as construction-backed readiness only, not as a direct Defenses submit path.
-8. Confirm blocked-state language is clear when supported. The default baseline may not show a blocked comparison because the current defensive catalog exposes only one real structure type.
+8. Confirm blocked-state language is clear when supported and uses Spanish-first labels such as queue occupied, insufficient resources, missing capacity, or non-owned colony instead of raw backend wording.
 9. Confirm queue or completion messaging is truthful. If no defense queue is active, the page must say so clearly. If complete-due remains unavailable, the page must present that as a limitation, not as a hidden action.
 10. Confirm the cockpit states clearly that no safe `POST /api/dev/defenses/...` enqueue route exists in this block.
 11. Confirm handoff links or action copy toward `Construccion`, `Astillero`, `Flotas`, `Planeta`, and `Galaxia` are visible and preserve context.
 12. Confirm diagnostics stay collapsed or clearly secondary after load.
-13. Confirm no button from this cockpit launches combat, interception, or fleet movement.
+13. Confirm blocked or unsupported cards never present a misleading primary action such as a local confirm or submit path.
 14. Confirm the page remains free of 3D, WebGL, and tactical battle presentation.
 
 ## Expected seeded result

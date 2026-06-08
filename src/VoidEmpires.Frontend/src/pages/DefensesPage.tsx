@@ -4,6 +4,7 @@ import { fetchDefensesUiState } from "../api/defenseApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
+import { formatResourceType } from "../utils/domainPresentation";
 import { formatDefenseRequestFailure } from "../utils/defensePresentation";
 import {
   getDefensePrimaryAction,
@@ -85,7 +86,7 @@ function getResourcePressureSummary(viewModel: DefensesViewModel["defenses"]) {
   const ordered = [...viewModel.stockpile]
     .sort((left, right) => right.quantity - left.quantity)
     .slice(0, 3)
-    .map((entry) => `${entry.resourceType} ${entry.quantity}`);
+    .map((entry) => `${formatResourceType(entry.resourceType)} ${entry.quantity}`);
 
   return ordered.join(" | ");
 }
@@ -480,7 +481,7 @@ export function DefensesPage() {
                     {option.requirementLabel ? <p className="figma-panel-note">{option.requirementLabel}</p> : null}
                     <div className="selection-chip-row">
                       <button type="button" className="planet-action-button-blocked" disabled>
-                        {option.statusKey === "Unsupported" ? cockpitStatusLabels.safePlaceholder : "No disponible en esta version"}
+                        {option.statusKey === "Unsupported" ? cockpitStatusLabels.readOnly : "Bloqueada en esta lectura"}
                       </button>
                     </div>
                   </article>

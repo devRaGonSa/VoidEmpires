@@ -67,6 +67,10 @@ $filteredMatches = $allMatches | Where-Object {
     return $false
   }
 
+  if ($_.Line -match "Delta de recursos") {
+    return $false
+  }
+
   $_.Path -notmatch "generated"
 }
 
