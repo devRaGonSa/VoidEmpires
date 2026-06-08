@@ -3,7 +3,7 @@
 ---
 id: TASK-31I
 title: Fleets readiness from orbital production
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

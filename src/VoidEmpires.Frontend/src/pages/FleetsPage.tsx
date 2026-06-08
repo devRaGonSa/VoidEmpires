@@ -6,7 +6,7 @@ import type {
   FleetCommandApiResult,
 } from "../api/fleetCommandTypes";
 import type { FleetCommandPresentationItem } from "../utils/fleetCommandPresentation";
-import type { FleetGroupSummary, FleetUiState } from "../api/fleetTypes";
+import type { FleetGroupSummary, FleetResourceContext, FleetUiState } from "../api/fleetTypes";
 import type { ReadinessNote } from "../api/strategicMapTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
@@ -118,6 +118,20 @@ function formatFleetDestinationOptionLabel(planetId: string) {
   return secondaryLabel ? `${primaryLabel} | ${secondaryLabel}` : primaryLabel;
 }
 
+function formatFleetResourceDigest(context: FleetResourceContext | null | undefined) {
+  const balances = context?.balances ?? [];
+  if (balances.length === 0) {
+    return "Sin reservas visibles en esta lectura";
+  }
+
+  return balances
+    .slice()
+    .sort((left, right) => right.quantity - left.quantity)
+    .slice(0, 3)
+    .map((balance) => `${formatResourceType(balance.resourceType)} ${balance.quantity}`)
+    .join(" | ");
+}
+
 function isTransferDueForUi(group: FleetGroupSummary) {
   const arrivalAtUtc = group.activeTransfer?.arrivalAtUtc;
   if (!arrivalAtUtc) {
@@ -174,6 +188,7 @@ export function FleetsPage() {
 
     return {
       groups: uiState.groups.length,
+      stationedGroups: uiState.groups.filter((group) => group.status === "Stationed").length,
       transfers: uiState.groups.filter((group) => group.activeTransfer).length,
       resourceContexts: uiState.resourceContexts?.length ?? 0,
       actionHints: uiState.actionHints?.length ?? 0,
@@ -226,6 +241,23 @@ export function FleetsPage() {
   const selectedGroup = useMemo(
     () => estimateEligibleGroups.find((group) => group.id === effectiveGroupId) ?? null,
     [effectiveGroupId, estimateEligibleGroups],
+  );
+  const focusedPlanetId = queryPlanetId ?? inspectedGroup?.currentPlanetId ?? selectedGroup?.currentPlanetId ?? "";
+  const focusedPlanetResourceContext = useMemo(
+    () => uiState?.resourceContexts?.find((context) => context.planetId === focusedPlanetId) ?? null,
+    [focusedPlanetId, uiState],
+  );
+  const focusedPlanetGroups = useMemo(
+    () => uiState?.groups.filter((group) => group.currentPlanetId === focusedPlanetId) ?? [],
+    [focusedPlanetId, uiState],
+  );
+  const stationedFocusedPlanetGroups = useMemo(
+    () => focusedPlanetGroups.filter((group) => group.status === "Stationed" && !group.activeTransfer),
+    [focusedPlanetGroups],
+  );
+  const focusedPlanetTransferGroups = useMemo(
+    () => focusedPlanetGroups.filter((group) => group.activeTransfer),
+    [focusedPlanetGroups],
   );
 
   const destinationOptions = useMemo(() => {
@@ -924,6 +956,7 @@ export function FleetsPage() {
           </div>
           <div className="figma-stat-grid">
             <SummaryMetric label="Escuadras" value={summary.groups} />
+            <SummaryMetric label="Estacionadas" value={summary.stationedGroups} />
             <SummaryMetric label="Traslados activos" value={summary.transfers} />
             <SummaryMetric label="Reservas locales" value={summary.resourceContexts} />
             <SummaryMetric label="Senales tacticas" value={summary.actionHints} />
@@ -1055,6 +1088,50 @@ export function FleetsPage() {
                 onCancelTransfer={handleCancelTransfer}
               />
             ) : null}
+
+            <UiCard className="panel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Readiness desde Astillero</p>
+                  <h3>Que puede confirmar Flotas ahora mismo</h3>
+                  <p>Flotas relee grupos visibles y reservas del planeta actual, pero no inventa stock orbital ni convierte produccion en una escuadra por su cuenta.</p>
+                </div>
+                <UiBadge tone={focusedPlanetGroups.length > 0 ? "good" : "neutral"}>
+                  {focusedPlanetId ? formatPlanetPrimaryLabel(focusedPlanetId) : "Sin planeta en foco"}
+                </UiBadge>
+              </div>
+              <div className="readiness-grid">
+                <section className="subpanel figma-subpanel">
+                  <div className="figma-data-list">
+                    <FleetDataRow label="Planeta en foco" value={focusedPlanetId ? formatFleetDestinationOptionLabel(focusedPlanetId) : "Sin contexto de planeta"} />
+                    <FleetDataRow label="Escuadras visibles" value={String(focusedPlanetGroups.length)} />
+                    <FleetDataRow label="Estacionadas listas" value={String(stationedFocusedPlanetGroups.length)} />
+                    <FleetDataRow label="En ruta" value={String(focusedPlanetTransferGroups.length)} />
+                  </div>
+                </section>
+                <section className="subpanel figma-subpanel">
+                  <div className="figma-data-list">
+                    <FleetDataRow label="Reservas visibles" value={formatFleetResourceDigest(focusedPlanetResourceContext)} />
+                    <FleetDataRow label="Stock orbital local" value="No expuesto por esta API de Flotas" />
+                    <FleetDataRow label="Lectura segura" value="Grupos y stockpile por planeta" />
+                    <FleetDataRow label="Siguiente cabina" value="Astillero para cola y stock local" />
+                  </div>
+                </section>
+              </div>
+              <ul className="stack-list compact-list">
+                <li>Si Astillero acaba de gastar recursos, el cambio visible aqui debe aparecer en `resourceContexts[]` del mismo planeta.</li>
+                <li>Si no aparece una escuadra nueva, eso no implica fallo: Flotas no promueve automaticamente stock orbital a grupo operativo.</li>
+                <li>La asignacion desde stock orbital a una escuadra sigue fuera del alcance seguro de este bloque.</li>
+              </ul>
+              <div className="selection-chip-row">
+                <Link className="selection-chip" to={buildShipyardUrl(uiState.civilizationId, focusedPlanetId || queryPlanetId)}>
+                  {cockpitNavigationLabels.openShipyard}
+                </Link>
+                <Link className="selection-chip" to={buildPlanetUrl(uiState.civilizationId, focusedPlanetId || queryPlanetId)}>
+                  {cockpitNavigationLabels.returnToPlanet}
+                </Link>
+              </div>
+            </UiCard>
 
             <UiCard className="panel fleet-orders-panel">
               <div className="figma-section-header">

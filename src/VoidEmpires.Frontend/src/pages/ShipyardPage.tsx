@@ -1224,6 +1224,11 @@ export function ShipyardPage() {
               <div className="figma-data-row"><span>Delta de recursos</span><strong>{enqueueRefreshAudit.resourceDelta.length > 0 ? enqueueRefreshAudit.resourceDelta.join(" · ") : "Sin cambios visibles"}</strong></div>
             </div>
           ) : null}
+          <div className="selection-chip-row">
+            <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
+              Ver readiness en Flotas
+            </Link>
+          </div>
         </UiCard>
       ) : null}
       {enqueueError ? (

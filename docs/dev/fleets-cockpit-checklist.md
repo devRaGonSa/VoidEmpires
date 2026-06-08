@@ -17,6 +17,7 @@ Use `docs/dev/fleet-api-contracts.md` for the full development endpoint inventor
 - Safe now:
   - re-read stationed groups, active-transfer summaries, command-readiness flags, and current-planet resource contexts
   - confirm Shipyard resource spending appears in Fleet `resourceContexts[]`
+  - explain, from the Fleet UI itself, that Shipyard queue or stock readiness does not automatically create a visible orbital group
 - Keep read-only for this block:
   - all Fleet interactions initiated from Shipyard, Defenses, or Planet
 - Requires future hardening before this block can treat it as safe:
@@ -28,3 +29,15 @@ Use `docs/dev/fleet-api-contracts.md` for the full development endpoint inventor
 - `resourceContexts[]`: current-planet `Credits`, `Metal`, `Crystal`, and `Gas` balances
 - `actionHints[]`: metadata only, not an approval to execute the route from this block
 - `interceptionNotes[]`: read-only explanatory notes only
+- Not exposed here:
+  - local orbital stock rows
+  - shipyard production queue rows
+  - automatic stock-to-group promotion after a Shipyard enqueue
+
+## Manual QA additions for this block
+
+1. After a real Shipyard enqueue, open `/fleets` with the same `civilizationId` and `planetId`.
+2. Confirm the focused readiness summary uses backend-backed `groups[]` and `resourceContexts[]` only.
+3. Confirm Fleet explains clearly that local orbital stock is not exposed by this API and that a new stock row is not the same thing as a visible fleet group.
+4. Confirm the Shipyard success state offers a direct handoff to Fleets with preserved query parameters.
+5. Confirm no new fleet mutation path is introduced by this readiness-oriented handoff.
