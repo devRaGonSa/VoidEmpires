@@ -67,6 +67,8 @@ Backend-only persisted QA helper:
 - `.\scripts\dev-qa-prepare-research-ui-state.ps1`
 - Run this first on a reused Development database when you need to clear the existing open-order blocker before another manual `/research` enqueue pass.
 - Defaults to the seeded civilization and planet above, but supports explicit overrides when a narrower QA target is needed.
+- Exact command:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-research-ui-state.ps1`
 - `.\scripts\dev-qa-create-research-order.ps1 -ApplySeed`
 - Add `-ResearchType PlanetaryEngineering` or another available backend key to force the exact enqueue target.
 - The helper reads `enqueueCommand` metadata from `/api/dev/research/ui-state`, posts the real enqueue request, and then re-reads Research and Planet state to print queue and reserve deltas.

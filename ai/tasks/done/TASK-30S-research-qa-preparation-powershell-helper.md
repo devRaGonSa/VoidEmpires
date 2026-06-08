@@ -3,7 +3,7 @@
 ---
 id: TASK-30S
 title: Research QA preparation PowerShell helper
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
@@ -33,6 +33,7 @@ The repository already uses backend-only PowerShell helpers for safe Development
 
 ## Expected files to modify
 
+- ai/tasks/in-progress/TASK-30S-research-qa-preparation-powershell-helper.md
 - scripts/dev-qa-prepare-research-ui-state.ps1
 - scripts/check-dev-qa-scripts.ps1
 - docs/dev/persisted-gameplay-flow-checklist.md

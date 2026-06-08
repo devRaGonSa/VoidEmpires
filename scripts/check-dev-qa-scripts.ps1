@@ -10,6 +10,7 @@ function Get-ExistingDevQaScriptPaths {
         "dev-qa-create-construction-order.ps1",
         "dev-qa-prepare-construction-ui-state.ps1",
         "dev-qa-create-research-order.ps1",
+        "dev-qa-prepare-research-ui-state.ps1",
         "dev-qa-create-shipyard-production-order.ps1",
         "dev-qa-fleet-read-state.ps1"
     )
