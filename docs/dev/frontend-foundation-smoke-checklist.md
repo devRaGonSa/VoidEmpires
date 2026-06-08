@@ -24,6 +24,31 @@ Run this guard before closing manual visual batches for the accepted cockpit sui
   - `Delta`
   - `solo lectura en esta fase`
 
+## Research Enqueue Lightweight Guard
+
+There is no dedicated frontend test runner in the current repository. Until one exists, protect the Research enqueue flow with these lightweight static checks:
+
+- `npm run build --prefix src/VoidEmpires.Frontend`
+  - This is the compile-time guard that confirms `enqueueResearchOrder`, its imported types, and the current `ResearchPage.tsx` flow still type-check together.
+- Inspect `src/VoidEmpires.Frontend/src/pages/ResearchPage.tsx` and confirm the guarded confirmation copy still exists:
+  - `Confirmar inicio de investigacion`
+  - `Confirmo que quiero iniciar esta investigacion`
+  - `La investigacion no se enviara hasta que confirmes la orden en el paso final.`
+- Confirm the component still keeps mutation behind the prepared-plus-confirmed path:
+  - `handleResearchSubmit` remains the only place that calls `enqueueResearchOrder(...)`
+  - the confirm button stays disabled until `hasEnqueueAcknowledgement` is true
+  - blocked research cards remain read-only and do not call `handleResearchPreparation` through a primary action affordance
+- Treat any of the following as a regression even if the build passes:
+  - direct enqueue from a catalog card without the confirmation panel
+  - confirmation copy removed or renamed without replacing the explicit guard language
+  - blocked research rendered as an immediately actionable primary button
+
+Manual QA fallback:
+
+- Open `/research` with the deterministic seeded ids from `docs/dev/research-cockpit-checklist.md`.
+- Prepare one available research item and confirm the checkbox is still required before submit.
+- Verify blocked cards remain non-mutating and visually secondary during the same pass.
+
 ## Frontend Bundle Baseline
 
 Use this baseline before changing route loading or Vite chunking:

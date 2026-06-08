@@ -3,7 +3,7 @@
 ---
 id: TASK-30J-research-ui-state-tests-or-frontend-guard
 title: Add regression protection for research enqueue UX
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend]
