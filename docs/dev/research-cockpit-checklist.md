@@ -44,14 +44,38 @@ POST /api/dev/seeds/apply
   - The profile intentionally resets the owned-planet stockpile to `125` credits, `110` metal, `70` crystal, and `30` gas so `Ingenieria planetaria` remains the deterministic available item while higher-cost research stays blocked.
   - Reapplying the seed preserves completed history but does not delete an already enqueued active research order. For an exact pre-enqueue baseline, use a fresh disposable local database before applying the seed.
 
+Development-only repeated-QA preparation contract:
+
+- Target defaults:
+  - `civilizationId = 00000000-0000-0000-0000-000000000001`
+  - `sourcePlanetId = 40000000-0000-0000-0000-000000000001`
+- Intended result for repeated `/research` QA:
+  - the targeted civilization has enough source-planet resources to enqueue at least one available research item
+  - the targeted civilization has no open `Pending` or `Active` research order that blocks enqueue
+  - existing completed history and completed `ResearchProject` rows may remain when they do not block enqueue
+- Safe scope:
+  - only open research orders for the targeted civilization may be neutralized
+  - the preferred neutralization is `Cancelled`, because `ResearchQueueItemStatus` already supports that state and it preserves history without pretending completion
+  - the helper or endpoint must not use global `complete-due`, must not delete unrelated rows, and must not reset other cockpits
+- Safety boundary:
+  - this preparation path is Development-only
+  - it is a manual explicit QA step, not part of normal page load or ordinary seed application
+  - it must not change production gameplay semantics or hide backend enqueue guards
+
 Backend-only persisted QA helper:
 
+- `.\scripts\dev-qa-prepare-research-ui-state.ps1`
+- Run this first on a reused Development database when you need to clear the existing open-order blocker before another manual `/research` enqueue pass.
+- Defaults to the seeded civilization and planet above, but supports explicit overrides when a narrower QA target is needed.
 - `.\scripts\dev-qa-create-research-order.ps1 -ApplySeed`
 - Add `-ResearchType PlanetaryEngineering` or another available backend key to force the exact enqueue target.
 - The helper reads `enqueueCommand` metadata from `/api/dev/research/ui-state`, posts the real enqueue request, and then re-reads Research and Planet state to print queue and reserve deltas.
 
 Approved persisted QA paths for this cockpit:
 
+- Backend-only preparation path:
+  - `.\scripts\dev-qa-prepare-research-ui-state.ps1`
+  - Calls the Development-only research QA preparation route, cancels only blocking open research orders for the targeted civilization, and tops up only the targeted source-planet stockpile when needed.
 - Backend-only helper path:
   - `.\scripts\dev-qa-create-research-order.ps1 -ApplySeed`
   - Uses backend-issued `enqueueCommand` metadata and creates a real `ResearchOrder` row in the Development database when successful.
@@ -67,6 +91,7 @@ Use this ordered local runbook when you need to verify the persisted Research en
 
 ```powershell
 dotnet run --project .\src\VoidEmpires.Web
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-research-ui-state.ps1
 Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"cockpit-validation"}'
 Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"cockpit-validation"}'
 npm run dev --prefix src/VoidEmpires.Frontend
@@ -79,6 +104,7 @@ Then open `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetI
 - Submit one real enqueue request and wait for the route to refresh from backend state.
 - Expect success copy, reduced local reserves, updated queue state, and the reviewed technology to stop appearing as immediately available.
 - If the Development database already contains an open research order, treat `Civilization already has an open research order.` as an expected reused-DB no-op warning instead of a second success.
+- If repeated success-path QA is blocked by a reused Development database, rerun `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-research-ui-state.ps1` before trying again.
 - Backend-only fallback for the same persisted order remains `.\scripts\dev-qa-create-research-order.ps1 -ApplySeed`.
 
 Verified refresh behavior:

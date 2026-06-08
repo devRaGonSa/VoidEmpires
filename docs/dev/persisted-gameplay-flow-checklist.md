@@ -36,6 +36,7 @@ Repeatable backend-only baseline helper:
 - Run `.\scripts\dev-qa-fleet-read-state.ps1` to re-read Fleet UI state after seed application or Shipyard enqueue and print group, stationed, transfer, and local resource-context summaries without mutating anything.
 - Run `.\scripts\check-dev-qa-scripts.ps1` to parser-check the persisted QA PowerShell helpers and run lightweight local formatting checks without requiring the backend.
 - Run `.\scripts\dev-qa-prepare-construction-ui-state.ps1` when you need to clear reused-DB blocking Construction state before attempting another Enqueue path.
+- Run `.\scripts\dev-qa-prepare-research-ui-state.ps1` when you need to clear reused-DB blocking Research state before attempting another Enqueue path.
 - There is intentionally no `dev-qa-create-orbital-group-from-stock.ps1` helper in this block because stock-to-fleet allocation is still excluded from the accepted reused-database QA loop.
 
 Construction now has four sanctioned Development QA paths:
@@ -55,6 +56,9 @@ Construction now has four sanctioned Development QA paths:
 
 Research now has two sanctioned Development QA paths:
 
+- Backend-only preparation path:
+  - `.\scripts\dev-qa-prepare-research-ui-state.ps1`
+  - Useful for clearing only open `Pending` or `Active` research orders for the targeted civilization and topping only the targeted source-planet stockpile before another repeated enqueue attempt.
 - Backend-only helper path:
   - `.\scripts\dev-qa-create-research-order.ps1 -ApplySeed`
   - Useful when you want queue and resource deltas directly in the terminal while staying on backend-issued `enqueueCommand` metadata.
@@ -64,10 +68,26 @@ Research now has two sanctioned Development QA paths:
 - Both Research paths create real Development database rows through the same persisted enqueue endpoint.
 - On a reused Development database, either path may encounter `Civilization already has an open research order.`; this is an expected no-op state rather than a hidden reset path.
 
+Research QA state preparation contract:
+
+- Development-only boundary.
+- Default target:
+  - civilization `00000000-0000-0000-0000-000000000001`
+  - source planet `40000000-0000-0000-0000-000000000001`
+- Safe mutation scope:
+  - neutralize only blocking open research orders for the targeted civilization
+  - preserve completed or historical research rows that do not block enqueue
+  - top up only the targeted source-planet stockpile to a deterministic QA minimum when needed
+- Preferred implementation rule:
+  - mark open research orders as `Cancelled` instead of completing them or deleting them
+  - do not use `POST /api/dev/research/orders/complete-due` for this preparation path because it is global and unsafe for cockpit QA
+- This preparation step must stay explicit and manual. It must not run during ordinary page load or ordinary seed application.
+
 Ordered runtime QA command sequence for the frontend-confirmed Research path:
 
 ```powershell
 dotnet run --project .\src\VoidEmpires.Web
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-research-ui-state.ps1
 Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"cockpit-validation"}'
 Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"cockpit-validation"}'
 npm run dev --prefix src/VoidEmpires.Frontend
@@ -77,6 +97,7 @@ npm run dev --prefix src/VoidEmpires.Frontend
 - Select the seeded available research card, open the guarded confirmation panel, and check the acknowledgement box before submit.
 - On success, expect backend-confirmed feedback plus refreshed resources, queue state, and visible progress from the follow-up read model.
 - On a reused Development database, an existing open order is an expected no-op warning, not evidence that the route or helper created a second order.
+- For repeated success-path QA on a reused Development database, run `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-research-ui-state.ps1` first.
 - Backend-only fallback for the same persisted mutation remains `.\scripts\dev-qa-create-research-order.ps1 -ApplySeed`.
 
 Shared helper defaults:
@@ -371,6 +392,14 @@ Safe mutation path:
 
 Repeatable backend-only helper:
 
+- `.\scripts\dev-qa-prepare-research-ui-state.ps1`
+  - Use this first when your reused Development database has a pre-existing open research order.
+  - Defaults to civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`.
+  - Safe target state:
+    - no open `Pending` or `Active` research order for the targeted civilization
+    - enough targeted source-planet resources for at least one available enqueue candidate
+    - existing completed history may remain
+  - Open research blockers should be preserved as history by moving them to `Cancelled`, not by deleting them or forcing global completion.
 - `.\scripts\dev-qa-create-research-order.ps1`
 - Defaults to civilization `00000000-0000-0000-0000-000000000001` and planet `40000000-0000-0000-0000-000000000001`.
 - Add `-ApplySeed` to apply `research-validation` before the enqueue.
