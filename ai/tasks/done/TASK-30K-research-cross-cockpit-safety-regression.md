@@ -3,7 +3,7 @@
 ---
 id: TASK-30K-research-cross-cockpit-safety-regression
 title: Verify research mutation does not break cockpit handoffs
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend]

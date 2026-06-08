@@ -92,6 +92,9 @@ Compact navigation regression pass:
 - `Construction -> Planet`: return to `Planeta` and confirm the same colony context still resolves.
 - `Construction -> Research/Shipyard/Defenses/Fleets/Galaxy`: confirm each handoff preserves the active `civilizationId`, keeps the same `planetId` when the destination supports it, and does not expose new mutation controls outside the Construction cockpit.
 - `Planet -> Research`: open `Investigacion` from `Planeta` and confirm the selected colony context is preserved.
+- `Research -> Planet/Construction/Galaxy`: from `/research`, verify `Volver a Planeta`, `Abrir Construccion`, and `Volver a Galaxia` keep the active `civilizationId` and preserve the same `planetId` whenever the destination supports it.
+- `Research -> neighboring mutable/read-only cluster`: while the current Research cockpit does not link directly to `Mercado`, `Espionaje`, or `Ranking`, confirm the shared `buildUrl(...)` helpers still trim and preserve query params consistently so handoffs into those cockpits keep the same visible civilization context instead of inventing a new route state.
+- `Research mutation boundary`: confirm `handleResearchSubmit` remains the only Research mutation path, no navigation chip triggers a dev write, and no neighboring cockpit gains a new mutation affordance just because it was opened after a Research enqueue attempt.
 - `Planet -> Shipyard`: open `Astillero` from `Planeta` and confirm the selected colony context is preserved.
 - `Shipyard -> Fleets`: open `Flotas` from `Astillero` and confirm the planet context still appears in the destination route.
 - `Market -> Planet/Fleets/Galaxy`: verify those three handoffs preserve the current `civilizationId` and `planetId`.
@@ -199,6 +202,7 @@ Cross-cockpit comparison checks:
 - Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Market, Fleets, Defenses, Espionage, Alliance, and Ranking all open from the shared `cockpit-validation` baseline without shell-only or near-empty regressions.
 - Route helpers preserve `civilizationId` and `planetId` when moving between the accepted cockpit links.
 - Galaxy remains read-only while Planet, Construction, Research, Shipyard, and Fleets keep their current guarded mutation boundaries.
+- Research keeps its guarded real-enqueue path without spreading new mutation authority into Planet, Galaxy, Market, Espionage, Ranking, or any navigation-only cockpit handoff.
 - Construction remains the only cockpit in this handoff cluster that can enqueue construction orders; Research, Shipyard, Defenses, Planet, Galaxy, and Fleets must not gain a new construction mutation surface through navigation regressions.
 - Diagnostics stay collapsed or clearly secondary across the cockpit routes.
 - Espionage visible copy stays Spanish-first; English technical wording outside collapsed diagnostics fails visual QA.
@@ -452,6 +456,7 @@ Research cockpit v1 visual review:
 - Confirm blocked cards remain visually quieter than available actions.
 - Confirm requirement chips, long technology names, and cost rows wrap cleanly without horizontal overflow.
 - Confirm guarded enqueue is the only executable Research mutation path and still requires explicit confirmation.
+- Confirm the Research navigation chips remain handoff-only controls: they preserve `civilizationId` and `planetId`, do not trigger a route-level eager import regression, and do not introduce Market, Espionage, or Ranking mutation affordances by way of neighboring cockpit context.
 - Confirm the summary recommendation never presents a blocked technology as immediately startable.
 - Confirm complete-due remains visibly disabled in this build.
 
