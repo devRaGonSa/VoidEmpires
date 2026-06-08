@@ -72,6 +72,7 @@ Use `docs/dev/development-seed-profiles.md` for seed setup and `docs/dev/planet-
 - Audited backend result for this task:
   - there is no `POST /api/dev/defenses/...` enqueue endpoint
   - there is no defense-specific enqueue service or persisted endpoint test
+  - `POST /api/dev/shipyard/qa-state/prepare` exists only for orbital Shipyard blockers on an owned planet and must not be presented as a Defenses mutation path
   - the accepted scope for this block remains read-only plus handoff to `Construccion`
 - Future backend work required:
   - defense-specific enqueue, scoped completion, or automation routes

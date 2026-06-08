@@ -51,4 +51,25 @@ public class AssetProductionOrderTests
         Assert.Equal(AssetProductionOrderStatus.Completed, order.Status);
         Assert.False(order.IsOpen);
     }
+
+    [Fact]
+    public void MarkCancelledClosesOpenOrder()
+    {
+        var startsAtUtc = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
+        var order = AssetProductionOrder.Create(
+            Guid.NewGuid(),
+            AssetProductionTarget.Orbital,
+            null,
+            SpaceAssetType.ScoutCraft,
+            1,
+            1,
+            startsAtUtc,
+            startsAtUtc.AddMinutes(3),
+            AssetProductionOrderStatus.Active);
+
+        order.MarkCancelled();
+
+        Assert.Equal(AssetProductionOrderStatus.Cancelled, order.Status);
+        Assert.False(order.IsOpen);
+    }
 }

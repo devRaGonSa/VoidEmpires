@@ -326,3 +326,66 @@ public interface IResearchQaStatePreparationService
         ResearchQaStatePreparationRequest request,
         CancellationToken cancellationToken = default);
 }
+
+public sealed record OrbitalProductionQaStatePreparationRequest(
+    Guid? CivilizationId = null,
+    Guid? PlanetId = null);
+
+public sealed record OrbitalProductionQaStatePreparationResourceState(
+    decimal Credits,
+    decimal Metal,
+    decimal Crystal,
+    decimal Gas);
+
+public sealed record OrbitalProductionQaStatePreparationResult(
+    bool Succeeded,
+    Guid CivilizationId,
+    Guid PlanetId,
+    int BlockingOrdersBefore,
+    int BlockingOrdersAfter,
+    OrbitalProductionQaStatePreparationResourceState? ResourcesBefore,
+    OrbitalProductionQaStatePreparationResourceState? ResourcesAfter,
+    IReadOnlyList<string> Notes,
+    IReadOnlyList<string> Errors)
+{
+    public static OrbitalProductionQaStatePreparationResult Success(
+        Guid civilizationId,
+        Guid planetId,
+        int blockingOrdersBefore,
+        int blockingOrdersAfter,
+        OrbitalProductionQaStatePreparationResourceState? resourcesBefore,
+        OrbitalProductionQaStatePreparationResourceState? resourcesAfter,
+        IReadOnlyList<string> notes) =>
+        new(
+            true,
+            civilizationId,
+            planetId,
+            blockingOrdersBefore,
+            blockingOrdersAfter,
+            resourcesBefore,
+            resourcesAfter,
+            notes,
+            []);
+
+    public static OrbitalProductionQaStatePreparationResult Failure(
+        Guid civilizationId,
+        Guid planetId,
+        IReadOnlyList<string> errors) =>
+        new(
+            false,
+            civilizationId,
+            planetId,
+            0,
+            0,
+            null,
+            null,
+            [],
+            errors);
+}
+
+public interface IOrbitalProductionQaStatePreparationService
+{
+    Task<OrbitalProductionQaStatePreparationResult> PrepareAsync(
+        OrbitalProductionQaStatePreparationRequest request,
+        CancellationToken cancellationToken = default);
+}

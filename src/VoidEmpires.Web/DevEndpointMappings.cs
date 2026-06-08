@@ -399,6 +399,60 @@ internal static class DevEndpointMappings
             return Results.Ok(new DevShipyardUiStateApiResponse(true, uiState, []));
         });
 
+        app.MapPost("/api/dev/shipyard/qa-state/prepare", async (
+            PrepareOrbitalProductionQaStateApiRequest request,
+            [FromServices] IServiceProvider services,
+            [FromServices] IConfiguration configuration,
+            CancellationToken cancellationToken) =>
+        {
+            if (!IsPersistenceConfigured(configuration))
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            var errors = ValidateOrbitalProductionQaStatePreparation(request);
+            if (errors.Count > 0)
+            {
+                return Results.BadRequest(new OrbitalProductionQaStatePreparationApiResponse(
+                    false,
+                    null,
+                    0,
+                    0,
+                    null,
+                    null,
+                    [],
+                    errors));
+            }
+
+            var service = services.GetRequiredService<IOrbitalProductionQaStatePreparationService>();
+            var result = await service.PrepareAsync(
+                new OrbitalProductionQaStatePreparationRequest(request.CivilizationId, request.PlanetId),
+                cancellationToken);
+
+            if (!result.Succeeded)
+            {
+                return Results.Conflict(new OrbitalProductionQaStatePreparationApiResponse(
+                    false,
+                    null,
+                    result.BlockingOrdersBefore,
+                    result.BlockingOrdersAfter,
+                    result.ResourcesBefore,
+                    result.ResourcesAfter,
+                    result.Notes,
+                    result.Errors));
+            }
+
+            return Results.Ok(new OrbitalProductionQaStatePreparationApiResponse(
+                true,
+                result,
+                result.BlockingOrdersBefore,
+                result.BlockingOrdersAfter,
+                result.ResourcesBefore,
+                result.ResourcesAfter,
+                result.Notes,
+                []));
+        });
+
         app.MapGet("/api/dev/market/ui-state", async (
             Guid? civilizationId,
             Guid? planetId,
@@ -945,6 +999,23 @@ internal static class DevEndpointMappings
         return errors;
     }
 
+    private static IReadOnlyList<string> ValidateOrbitalProductionQaStatePreparation(PrepareOrbitalProductionQaStateApiRequest request)
+    {
+        var errors = new List<string>();
+
+        if (request.CivilizationId.HasValue && request.CivilizationId.Value == Guid.Empty)
+        {
+            errors.Add("Civilization id must not be empty.");
+        }
+
+        if (request.PlanetId.HasValue && request.PlanetId.Value == Guid.Empty)
+        {
+            errors.Add("Planet id must not be empty.");
+        }
+
+        return errors;
+    }
+
     private static IReadOnlyList<string> ValidateCreateOrbitalGroup(CreateOrbitalGroupApiRequest request)
     {
         var errors = new List<string>();
@@ -1086,6 +1157,20 @@ internal sealed record ProcessAssetProductionApiResponse(
 internal sealed record DevShipyardUiStateApiResponse(
     bool Succeeded,
     GetDevShipyardUiStateResult? UiState,
+    IReadOnlyList<string> Errors);
+
+internal sealed record PrepareOrbitalProductionQaStateApiRequest(
+    Guid? CivilizationId,
+    Guid? PlanetId);
+
+internal sealed record OrbitalProductionQaStatePreparationApiResponse(
+    bool Succeeded,
+    OrbitalProductionQaStatePreparationResult? Result,
+    int BlockingOrdersBefore,
+    int BlockingOrdersAfter,
+    OrbitalProductionQaStatePreparationResourceState? ResourcesBefore,
+    OrbitalProductionQaStatePreparationResourceState? ResourcesAfter,
+    IReadOnlyList<string> Notes,
     IReadOnlyList<string> Errors);
 
 internal sealed record DevMarketUiStateApiResponse(

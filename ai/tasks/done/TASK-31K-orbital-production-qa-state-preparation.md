@@ -3,7 +3,7 @@
 ---
 id: TASK-31K
 title: Orbital production QA state preparation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

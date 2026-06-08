@@ -101,4 +101,19 @@ public sealed class AssetProductionOrder
 
         Status = AssetProductionOrderStatus.Completed;
     }
+
+    public void MarkCancelled()
+    {
+        if (Status is AssetProductionOrderStatus.Cancelled)
+        {
+            return;
+        }
+
+        if (!IsOpen)
+        {
+            throw new InvalidOperationException("Only open asset production orders can be cancelled.");
+        }
+
+        Status = AssetProductionOrderStatus.Cancelled;
+    }
 }

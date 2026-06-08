@@ -54,6 +54,7 @@ Repeatable backend-only baseline helper:
 - Run `.\scripts\check-dev-qa-scripts.ps1` to parser-check the persisted QA PowerShell helpers and run lightweight local formatting checks without requiring the backend.
 - Run `.\scripts\dev-qa-prepare-construction-ui-state.ps1` when you need to clear reused-DB blocking Construction state before attempting another Enqueue path.
 - Run `.\scripts\dev-qa-prepare-research-ui-state.ps1` when you need to clear reused-DB blocking Research state before attempting another Enqueue path.
+- Run `POST /api/dev/shipyard/qa-state/prepare` when you need to clear reused-DB blocking orbital production state before another Shipyard enqueue attempt.
 - Exact repeated Research QA preparation command:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-research-ui-state.ps1`
 - There is intentionally no `dev-qa-create-orbital-group-from-stock.ps1` helper in this block because stock-to-fleet allocation is still excluded from the accepted reused-database QA loop.
@@ -101,6 +102,22 @@ Research QA state preparation contract:
   - mark open research orders as `Cancelled` instead of completing them or deleting them
   - do not use `POST /api/dev/research/orders/complete-due` for this preparation path because it is global and unsafe for cockpit QA
 - This preparation step must stay explicit and manual. It must not run during ordinary page load or ordinary seed application.
+
+Shipyard QA state preparation contract:
+
+- Development-only boundary.
+- Default target:
+  - civilization `00000000-0000-0000-0000-000000000001`
+  - planet `40000000-0000-0000-0000-000000000001`
+- Safe mutation scope:
+  - cancel only open `Pending` or `Active` asset production orders for the targeted planet
+  - preserve completed or historical orbital production rows
+  - top up only the targeted planet stockpile to the shared orbital QA minimums needed for the deterministic `ScoutCraft` path
+- Preferred implementation rule:
+  - mark open asset production blockers as `Cancelled` instead of completing them, deleting them, or calling `POST /api/dev/assets/production/process-due`
+  - do not mutate unrelated planets or civilizations while preparing the target Shipyard state
+- Current Defenses scope note:
+  - there is still no safe `POST /api/dev/defenses/...` enqueue route in this block, so this preparation contract is Shipyard-only even though Defenses may reuse the same planet resource context for read-state QA
 
 Ordered runtime QA command sequence for the frontend-confirmed Research path:
 
@@ -284,7 +301,7 @@ Research persisted mutation and read surfaces: `POST /api/dev/research/orders/en
 
 Seed/bootstrap surfaces used by the safe QA loop: `POST /api/dev/seeds/apply`, `GET /api/dev/seeds/profiles`
 
-Shipyard/Fleet persisted mutation and read surfaces for the current block: `POST /api/dev/assets/production/enqueue`, `POST /api/dev/assets/production/process-due`, `GET /api/dev/shipyard/ui-state?civilizationId={id}&planetId={id}`, `GET /api/dev/fleets/ui-state?civilizationId={id}`, `GET /api/dev/fleets/overview?civilizationId={id}`, `GET /api/dev/fleets/action-manifest`, `POST /api/dev/fleets/orbital-groups/create-from-stock`
+Shipyard/Fleet persisted mutation and read surfaces for the current block: `POST /api/dev/assets/production/enqueue`, `POST /api/dev/assets/production/process-due`, `POST /api/dev/shipyard/qa-state/prepare`, `GET /api/dev/shipyard/ui-state?civilizationId={id}&planetId={id}`, `GET /api/dev/fleets/ui-state?civilizationId={id}`, `GET /api/dev/fleets/overview?civilizationId={id}`, `GET /api/dev/fleets/action-manifest`, `POST /api/dev/fleets/orbital-groups/create-from-stock`
 
 ## Runtime contract notes for PowerShell helpers
 
