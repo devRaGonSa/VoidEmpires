@@ -3,7 +3,7 @@
 ---
 id: TASK-31D
 title: Shipyard confirmation panel
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
