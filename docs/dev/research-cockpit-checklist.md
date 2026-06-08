@@ -50,11 +50,23 @@ Backend-only persisted QA helper:
 - Add `-ResearchType PlanetaryEngineering` or another available backend key to force the exact enqueue target.
 - The helper reads `enqueueCommand` metadata from `/api/dev/research/ui-state`, posts the real enqueue request, and then re-reads Research and Planet state to print queue and reserve deltas.
 
+Approved persisted QA paths for this cockpit:
+
+- Backend-only helper path:
+  - `.\scripts\dev-qa-create-research-order.ps1 -ApplySeed`
+  - Uses backend-issued `enqueueCommand` metadata and creates a real `ResearchOrder` row in the Development database when successful.
+- Frontend-confirmed cockpit path:
+  - `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+  - Uses the same persisted enqueue endpoint behind the guarded confirmation panel and creates the same real Development database row when successful.
+- Reused-DB note:
+  - If an open research order already exists, either path may surface `Civilization already has an open research order.` as an expected no-op state rather than as proof that a second order was created.
+
 Verified refresh behavior:
 
 - After a successful backend `201`, the cockpit re-runs the Research read flow before treating the queue and catalog as final visible state.
 - The success path stays grounded in backend confirmation and keeps API-returned order timing in the support panel rather than inventing optimistic queue entries.
 - If the post-enqueue refresh fails, the cockpit reports that the order was sent but the refreshed read-state could not be confirmed yet.
+- If the backend rejects the submit because an open research order already exists, the cockpit keeps that rejection visible as a reused-Development-database state and does not pretend the queue changed.
 
 ## Browser checkpoints
 
@@ -126,6 +138,7 @@ Current backend boundary from the audit:
 - The safe source of truth for mutation is the `enqueueCommand` returned by `GET /api/dev/research/ui-state`.
 - `ResearchQueueService` persists a real `ResearchOrder` row immediately with `Status = Active`.
 - The service spends the full visible resource cost immediately from `PlanetResourceStockpile`; this is persisted state, not optimistic cache-only UI state.
+- The backend helper script and the `/research` confirmation flow both hit `POST /api/dev/research/orders/enqueue`, so both paths mutate the same Development database state.
 - `ResearchProject` is not created or upgraded during enqueue. Level changes happen later through the global `POST /api/dev/research/orders/complete-due` flow or the equivalent worker path.
 - The current readiness evaluator only models four research blockers:
   - active owned source planet
@@ -174,6 +187,7 @@ Then confirm on `/research`:
 - Sending the confirmed order refreshes the queue and updates the catalog from the read model instead of adding optimistic local entries.
 - After one successful enqueue, `Ingenieria planetaria` no longer appears as immediately available and the queue shows one active order.
 - A successful enqueue reduces the visible source-planet reserves immediately by the full research cost; this flow does not leave resources untouched as a reservation-only placeholder.
+- On a reused Development database, a second attempt may honestly surface `Civilization already has an open research order.`; treat that as a documented no-op guard, not as an acceptable silent success.
 - Any generic validation rejection during this guarded enqueue flow is a QA failure, not an acceptable fallback state.
 - The success state can show order details returned by the API without exposing raw payloads in the main cockpit.
 - `Completar vencidas no disponible` stays disabled with a clear placeholder because the current backend route is not scoped safely to this cabin.
@@ -190,7 +204,7 @@ Then confirm on `/research`:
 - The summary shows available `>= 1` before enqueue.
 - The summary shows blocked `>= 1`.
 - An available card shows `Revisar investigacion`.
-- A blocked card cannot mutate and keeps a visually secondary button.
+- A blocked card cannot mutate and keeps a clearly read-only blocked affordance.
 - `Requisito pendiente de clasificar` does not appear in primary seeded blocker text.
 - `Completar vencidas no disponible` stays disabled unless a safer cockpit-scoped path is implemented later.
 - Confirmation appears before enqueue.

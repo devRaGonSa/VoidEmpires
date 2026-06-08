@@ -3,7 +3,7 @@
 ---
 id: TASK-30I-research-dev-qa-script-alignment
 title: Align QA scripts and docs with research enqueue flow
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend]

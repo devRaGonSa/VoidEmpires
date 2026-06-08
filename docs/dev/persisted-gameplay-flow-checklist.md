@@ -53,6 +53,17 @@ Construction now has four sanctioned Development QA paths:
   - Useful when you need to verify the guarded review, confirmation, Spanish copy, and post-submit refresh behavior
 - Both paths create real Development database rows through the same persisted enqueue endpoint.
 
+Research now has two sanctioned Development QA paths:
+
+- Backend-only helper path:
+  - `.\scripts\dev-qa-create-research-order.ps1 -ApplySeed`
+  - Useful when you want queue and resource deltas directly in the terminal while staying on backend-issued `enqueueCommand` metadata.
+- Frontend-confirmed cockpit path:
+  - `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+  - Useful when you need to verify the guarded review step, confirmation checkbox, Spanish blocker copy, and post-submit refresh behavior.
+- Both Research paths create real Development database rows through the same persisted enqueue endpoint.
+- On a reused Development database, either path may encounter `Civilization already has an open research order.`; this is an expected no-op state rather than a hidden reset path.
+
 Shared helper defaults:
 
 - Base URL default: `http://localhost:5142`
@@ -351,6 +362,14 @@ Repeatable backend-only helper:
 - Add `-ResearchType PlanetaryEngineering` or another available type to force the exact enqueue target instead of auto-picking the first available hint.
 - The helper reads Research command metadata from `/api/dev/research/ui-state`, posts the real enqueue request, then re-reads Research and Planet state to print queue plus resource changes without running migrations or cleanup.
 
+Frontend-confirmed cockpit path:
+
+- Load `/research` with the deterministic civilization and planet ids.
+- Prepare only a card whose read model exposes `canEnqueue = true` and a non-null `enqueueCommand`.
+- Confirm the acknowledgement checkbox before sending the real order.
+- The route posts to the same persisted enqueue endpoint as the backend helper and then re-reads backend state before finalizing the visible queue.
+- On a reused Development database, the route may surface `Civilization already has an open research order.` as a safe no-op state rather than pretending a second order was created.
+
 Current enqueue behavior:
 
 - Requires `civilizationId`, `sourcePlanetId`, `researchType`, and UTC `requestedAtUtc`.
@@ -550,6 +569,18 @@ Expected controlled failure:
 - backend conflict with a real message
 - repeated runs on a reused database may report that an open research order already exists; this is now treated as a safe no-op state, not as an unhandled fatal failure
 
+Alternative frontend check for the same persisted mutation:
+
+- Open `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Prepare the available research card and confirm the guarded submit from the UI.
+- Expected success:
+  - the route shows a backend-confirmed success message
+  - the route re-reads backend state instead of inserting a fake local queue row
+  - diagnostics keep the backend payload secondary while the main cockpit stays Spanish-first
+- Expected controlled no-op:
+  - on a reused Development database, the route may report that an open research order already exists
+  - that state still reflects the real persisted Development database and must not be presented as a fresh enqueue success
+
 6. Reapply `cockpit-validation` and baseline again:
 
 ```powershell
@@ -601,6 +632,7 @@ Expected controlled no-op:
 Important reminders:
 
 - These scripts create real Development database rows when you run the Construction or Research helpers.
+- The `/research` confirmation flow also creates a real Development database row when the backend accepts the order.
 - The Shipyard helper also creates a real Development database row when enqueue succeeds.
 - Repeated runs may find the queue already occupied and should now report that clearly.
 - Fleet read-state is accepted only as a post-Shipyard read. Stock-to-fleet allocation, new movement, split, merge, combat, and due-processing stay out of this default loop.
