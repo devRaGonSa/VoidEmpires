@@ -54,10 +54,12 @@ Repeatable backend-only baseline helper:
 - Run `.\scripts\check-dev-qa-scripts.ps1` to parser-check the persisted QA PowerShell helpers and run lightweight local formatting checks without requiring the backend.
 - Run `.\scripts\dev-qa-prepare-construction-ui-state.ps1` when you need to clear reused-DB blocking Construction state before attempting another Enqueue path.
 - Run `.\scripts\dev-qa-prepare-research-ui-state.ps1` when you need to clear reused-DB blocking Research state before attempting another Enqueue path.
-- Run `POST /api/dev/shipyard/qa-state/prepare` when you need to clear reused-DB blocking orbital production state before another Shipyard enqueue attempt.
+- Run `.\scripts\dev-qa-prepare-orbital-production-ui-state.ps1` when you need to clear reused-DB blocking orbital production state before another Shipyard enqueue attempt.
 - Exact repeated Research QA preparation command:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-research-ui-state.ps1`
 - There is intentionally no `dev-qa-create-orbital-group-from-stock.ps1` helper in this block because stock-to-fleet allocation is still excluded from the accepted reused-database QA loop.
+- Exact repeated Shipyard QA preparation command:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-orbital-production-ui-state.ps1`
 
 Construction now has four sanctioned Development QA paths:
 

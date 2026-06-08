@@ -53,12 +53,14 @@ Use this after the required validation commands succeed.
 ## Backend-only helper
 
 - `.\scripts\dev-qa-create-shipyard-production-order.ps1 -ApplySeed`
+- `.\scripts\dev-qa-prepare-orbital-production-ui-state.ps1`
 - `.\scripts\dev-qa-fleet-read-state.ps1`
 - `POST /api/dev/shipyard/qa-state/prepare`
 - The helper reads `GET /api/dev/shipyard/ui-state`, selects the first backend-approved orbital option, posts one real enqueue request, then re-reads Shipyard state to print queue, resource, and local stock summaries.
 - The Fleet helper re-reads `GET /api/dev/fleets/ui-state`, prints group and transfer summaries, and stays strictly non-mutating.
 - If the current reused Development database already has an open orbital production order, the helper treats that as a controlled no-op and exits without creating a second order.
 - The preparation endpoint is the explicit Development-only escape hatch for reused databases: it cancels only open orbital production blockers on the targeted owned planet and tops that planet up to the shared orbital QA minimums without running global due processing.
+- The PowerShell helper wraps that endpoint with the seeded defaults so repeated Shipyard QA does not require manual JSON or SQL.
 
 ## Boundary Summary
 
