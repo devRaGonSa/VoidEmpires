@@ -41,12 +41,14 @@ Use this after the required validation commands succeed.
 9. Confirm the guarded confirmation appears before enqueue when the dev action is enabled.
 10. Confirm one successful enqueue refreshes queue, catalog, and local reserves from backend-confirmed state.
 11. Confirm the successful enqueue immediately reduces the visible local resource balances by the exact asset cost.
-12. Confirm `Completar produccion vencida no disponible` stays disabled or placeholder-only unless a future planet-scoped safe route exists.
-13. Confirm the cockpit explains clearly that local stock is not the same thing as an operational fleet group.
-14. Confirm the links to `Planeta`, `Construccion`, `Investigacion`, `Flotas`, and `Galaxia` preserve `civilizationId` and `planetId`.
-15. Confirm diagnostics remain collapsed or visually secondary.
-16. Confirm no 3D or WebGL renderer is introduced.
-17. Confirm no combat, fleet movement, split, merge, or transfer action can be executed from Shipyard.
+12. Confirm the post-submit confirmation shows queue, refreshed order visibility, resource delta, and stock visibility only from the refreshed backend state.
+13. Confirm the cockpit shows `La orden fue aceptada por el backend; la cola visible se actualizara con la siguiente lectura disponible.` if the enqueue succeeds but the immediate refreshed queue still does not expose the accepted order.
+14. Confirm `Completar produccion vencida no disponible` stays disabled or placeholder-only unless a future planet-scoped safe route exists.
+15. Confirm the cockpit explains clearly that local stock is not the same thing as an operational fleet group.
+16. Confirm the links to `Planeta`, `Construccion`, `Investigacion`, `Flotas`, and `Galaxia` preserve `civilizationId` and `planetId`.
+17. Confirm diagnostics remain collapsed or visually secondary.
+18. Confirm no 3D or WebGL renderer is introduced.
+19. Confirm no combat, fleet movement, split, merge, or transfer action can be executed from Shipyard.
 
 ## Backend-only helper
 

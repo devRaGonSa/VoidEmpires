@@ -69,6 +69,74 @@ interface ShipyardFailureContext {
   bodyParseFailed?: boolean;
 }
 
+interface ShipyardRefreshAudit {
+  queueBefore: number;
+  queueAfter: number;
+  visibleOrderId: string | null;
+  visibleOrderLabel: string | null;
+  visibleOrderWindow: string | null;
+  resourceDelta: string[];
+  stockDigest: string;
+}
+
+function buildShipyardStockDigest(shipyard: ShipyardViewModel["shipyard"]) {
+  if (!shipyard || shipyard.orbitalStock.length === 0) {
+    return "Sin reservas orbitales registradas";
+  }
+
+  const totalUnits = shipyard.orbitalStock.reduce((sum, entry) => sum + entry.quantity, 0);
+  const leadStock = [...shipyard.orbitalStock]
+    .sort((left, right) => right.quantity - left.quantity)
+    .slice(0, 2)
+    .map((entry) => `${entry.label} ${entry.quantityLabel}`);
+
+  return `${formatCountLabel(totalUnits, "unidad local", "unidades locales")} en ${formatCountLabel(shipyard.orbitalStock.length, "tipo", "tipos")}${leadStock.length > 0 ? ` · ${leadStock.join(" · ")}` : ""}`;
+}
+
+function buildShipyardRefreshAudit(
+  beforeShipyard: ShipyardViewModel["shipyard"],
+  afterShipyard: ShipyardViewModel["shipyard"],
+  orderId: string | null,
+) {
+  const beforeStockpile = beforeShipyard?.stockpile ?? [];
+  const afterStockpile = afterShipyard?.stockpile ?? [];
+  const resourceTypes = Array.from(new Set([
+    ...beforeStockpile.map((item) => item.resourceType),
+    ...afterStockpile.map((item) => item.resourceType),
+  ]));
+
+  const resourceDelta = resourceTypes
+    .map((resourceType) => {
+      const before = beforeStockpile.find((item) => item.resourceType === resourceType)?.quantity ?? 0;
+      const after = afterStockpile.find((item) => item.resourceType === resourceType)?.quantity ?? 0;
+      const delta = after - before;
+
+      if (delta === 0) {
+        return null;
+      }
+
+      const prefix = delta > 0 ? "+" : "";
+      return `${formatResourceType(resourceType)} ${prefix}${delta}`;
+    })
+    .filter((item): item is string => item !== null);
+
+  const visibleOrder = orderId
+    ? afterShipyard?.queue.find((item) => item.orderId === orderId) ?? null
+    : null;
+
+  return {
+    queueBefore: beforeShipyard?.queue.length ?? 0,
+    queueAfter: afterShipyard?.queue.length ?? 0,
+    visibleOrderId: visibleOrder?.orderId ?? null,
+    visibleOrderLabel: visibleOrder ? `${visibleOrder.label} ${visibleOrder.quantityLabel}` : null,
+    visibleOrderWindow: visibleOrder
+      ? `${formatDateTime(visibleOrder.startsAtUtc)} -> ${formatDateTime(visibleOrder.endsAtUtc)}`
+      : null,
+    resourceDelta,
+    stockDigest: buildShipyardStockDigest(afterShipyard),
+  } satisfies ShipyardRefreshAudit;
+}
+
 function formatShipyardCommandFailure(failureContext: ShipyardFailureContext, planetName?: string | null) {
   const contextPlanetName = planetName ? `Usa el contexto de ${planetName}.` : "Revisa el contexto de planeta cargado.";
   const detail = failureContext.detail;
@@ -221,6 +289,7 @@ export function ShipyardPage() {
     startsAtUtc: string | null;
     endsAtUtc: string | null;
   } | null>(null);
+  const [enqueueRefreshAudit, setEnqueueRefreshAudit] = useState<ShipyardRefreshAudit | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -343,6 +412,7 @@ export function ShipyardPage() {
         setError(null);
         setErrorFollowUp(null);
         setTechnicalErrorDetail(null);
+        setEnqueueRefreshAudit(null);
         return;
       }
 
@@ -393,6 +463,7 @@ export function ShipyardPage() {
     setEnqueueError(null);
     setEnqueueErrorFollowUp(null);
     setEnqueueOrderDetails(null);
+    setEnqueueRefreshAudit(null);
     setTechnicalErrorDetail(null);
     setReviewSelection({
       asset,
@@ -406,6 +477,7 @@ export function ShipyardPage() {
     setEnqueueError(null);
     setEnqueueErrorFollowUp(null);
     setEnqueueOrderDetails(null);
+    setEnqueueRefreshAudit(null);
   }
 
   async function handleConfirmProduction() {
@@ -424,9 +496,11 @@ export function ShipyardPage() {
     setEnqueueError(null);
     setEnqueueErrorFollowUp(null);
     setEnqueueOrderDetails(null);
+    setEnqueueRefreshAudit(null);
     setTechnicalErrorDetail(null);
 
     try {
+      const beforeShipyard = uiState?.shipyard ?? null;
       const result = await enqueueShipyardProduction({
         civilizationId: reviewSelection.asset.enqueueCommand?.civilizationId ?? activeCivilizationId,
         planetId: reviewSelection.asset.enqueueCommand?.planetId ?? shipyard.planetId,
@@ -456,7 +530,6 @@ export function ShipyardPage() {
         startsAtUtc: result.response.startsAtUtc,
         endsAtUtc: result.response.endsAtUtc,
       });
-      setEnqueueFeedback("Produccion enviada a la cola.");
       setReviewSelection(null);
       setHasEnqueueAcknowledgement(false);
 
@@ -466,7 +539,23 @@ export function ShipyardPage() {
         setEnqueueError(failure.primaryMessage);
         setEnqueueErrorFollowUp(failure.followUp);
         setTechnicalErrorDetail(failure.technicalDetail);
+        return;
       }
+
+      const audit = buildShipyardRefreshAudit(beforeShipyard, refreshed.shipyard, result.response.orderId);
+      setEnqueueRefreshAudit(audit);
+
+      if (!audit.visibleOrderId) {
+        setEnqueueFeedback("La orden fue aceptada por el backend; la cola visible se actualizara con la siguiente lectura disponible.");
+        setTechnicalErrorDetail(
+          result.response.orderId
+            ? `Order accepted with id ${result.response.orderId}, but the refreshed queue does not expose it yet.`
+            : "Order accepted by backend, but refreshed queue visibility is still pending.",
+        );
+        return;
+      }
+
+      setEnqueueFeedback("Produccion enviada a la cola con lectura backend actualizada.");
     } catch (requestError) {
       const failure = formatShipyardCommandFailure({ detail: requestError instanceof Error ? requestError.message : null }, shipyard.planetName);
       setEnqueueError(failure.primaryMessage);
@@ -1126,6 +1215,15 @@ export function ShipyardPage() {
             <UiBadge tone="good">Actualizada</UiBadge>
           </div>
           <p>{enqueueFeedback}</p>
+          {enqueueRefreshAudit ? (
+            <div className="figma-data-list">
+              <div className="figma-data-row"><span>Cola visible</span><strong>{`${enqueueRefreshAudit.queueBefore} -> ${enqueueRefreshAudit.queueAfter}`}</strong></div>
+              <div className="figma-data-row"><span>Orden refrescada</span><strong>{enqueueRefreshAudit.visibleOrderLabel ?? "Pendiente de aparecer en la lectura actual"}</strong></div>
+              <div className="figma-data-row"><span>Ventana visible</span><strong>{enqueueRefreshAudit.visibleOrderWindow ?? "Pendiente de lectura backend"}</strong></div>
+              <div className="figma-data-row"><span>Stock orbital visible</span><strong>{enqueueRefreshAudit.stockDigest}</strong></div>
+              <div className="figma-data-row"><span>Delta de recursos</span><strong>{enqueueRefreshAudit.resourceDelta.length > 0 ? enqueueRefreshAudit.resourceDelta.join(" · ") : "Sin cambios visibles"}</strong></div>
+            </div>
+          ) : null}
         </UiCard>
       ) : null}
       {enqueueError ? (

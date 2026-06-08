@@ -3,7 +3,7 @@
 ---
 id: TASK-31F
 title: Shipyard backend-first refresh and stock reflection
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
