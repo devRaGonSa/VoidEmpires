@@ -64,6 +64,21 @@ Research now has two sanctioned Development QA paths:
 - Both Research paths create real Development database rows through the same persisted enqueue endpoint.
 - On a reused Development database, either path may encounter `Civilization already has an open research order.`; this is an expected no-op state rather than a hidden reset path.
 
+Ordered runtime QA command sequence for the frontend-confirmed Research path:
+
+```powershell
+dotnet run --project .\src\VoidEmpires.Web
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"cockpit-validation"}'
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"cockpit-validation"}'
+npm run dev --prefix src/VoidEmpires.Frontend
+```
+
+- Then open `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`.
+- Select the seeded available research card, open the guarded confirmation panel, and check the acknowledgement box before submit.
+- On success, expect backend-confirmed feedback plus refreshed resources, queue state, and visible progress from the follow-up read model.
+- On a reused Development database, an existing open order is an expected no-op warning, not evidence that the route or helper created a second order.
+- Backend-only fallback for the same persisted mutation remains `.\scripts\dev-qa-create-research-order.ps1 -ApplySeed`.
+
 Shared helper defaults:
 
 - Base URL default: `http://localhost:5142`
@@ -572,10 +587,15 @@ Expected controlled failure:
 Alternative frontend check for the same persisted mutation:
 
 - Open `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`
+- Runtime command order for this pass:
+  - start backend with `dotnet run --project .\src\VoidEmpires.Web`
+  - apply `cockpit-validation` twice with `POST /api/dev/seeds/apply`
+  - start frontend with `npm run dev --prefix src/VoidEmpires.Frontend`
 - Prepare the available research card and confirm the guarded submit from the UI.
 - Expected success:
   - the route shows a backend-confirmed success message
   - the route re-reads backend state instead of inserting a fake local queue row
+  - the refreshed state shows updated queue, resources, and visible progress rather than only a local toast
   - diagnostics keep the backend payload secondary while the main cockpit stays Spanish-first
 - Expected controlled no-op:
   - on a reused Development database, the route may report that an open research order already exists

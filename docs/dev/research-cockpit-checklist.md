@@ -61,6 +61,26 @@ Approved persisted QA paths for this cockpit:
 - Reused-DB note:
   - If an open research order already exists, either path may surface `Civilization already has an open research order.` as an expected no-op state rather than as proof that a second order was created.
 
+## Runtime QA command sequence
+
+Use this ordered local runbook when you need to verify the persisted Research enqueue from the actual cockpit:
+
+```powershell
+dotnet run --project .\src\VoidEmpires.Web
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"cockpit-validation"}'
+Invoke-RestMethod -Method Post -Uri "http://localhost:5142/api/dev/seeds/apply" -ContentType "application/json" -Body '{"profile":"cockpit-validation"}'
+npm run dev --prefix src/VoidEmpires.Frontend
+```
+
+Then open `/research?civilizationId=00000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001` and confirm this sequence:
+
+- Select the seeded available item, currently expected to be `Ingenieria planetaria`.
+- Open the guarded confirmation panel and keep the checkbox requirement intact before submit.
+- Submit one real enqueue request and wait for the route to refresh from backend state.
+- Expect success copy, reduced local reserves, updated queue state, and the reviewed technology to stop appearing as immediately available.
+- If the Development database already contains an open research order, treat `Civilization already has an open research order.` as an expected reused-DB no-op warning instead of a second success.
+- Backend-only fallback for the same persisted order remains `.\scripts\dev-qa-create-research-order.ps1 -ApplySeed`.
+
 Verified refresh behavior:
 
 - After a successful backend `201`, the cockpit re-runs the Research read flow before treating the queue and catalog as final visible state.

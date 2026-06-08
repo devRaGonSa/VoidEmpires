@@ -3,7 +3,7 @@
 ---
 id: TASK-30L-research-runtime-qa-command-docs
 title: Add runtime QA commands for research enqueue
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend]
