@@ -3,7 +3,7 @@
 ---
 id: TASK-30N-final-validation-research-enqueue-ux
 title: Run final validation for Research real enqueue UX
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [platform]
@@ -69,3 +69,17 @@ This task is the close gate before moving the block to `done`.
 - Prefer modifying fewer than 5 files.
 - Prefer changes under 200 lines of code.
 - Prefer fewer than 3 commits for this task.
+
+## Execution notes
+
+- Final validation completed successfully with:
+  - `dotnet build --no-restore`
+  - `dotnet test --no-build`
+  - `npm run build --prefix src/VoidEmpires.Frontend`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1`
+- `dotnet test --no-build` passed with `691` tests.
+- `ai/tasks/pending` contained only `.gitkeep` at the time of closure.
+- Known limitation: `dotnet build --no-restore` still emitted transient `MSB3026` copy-retry warnings while `testhost` and antivirus held test output DLLs, but the build completed successfully with no errors.
+- No accidental gameplay expansion was introduced: Research keeps explicit confirmation, backend-confirmed refresh, safe Spanish failures, no auto-complete path, and no new cross-cockpit mutation surface.
