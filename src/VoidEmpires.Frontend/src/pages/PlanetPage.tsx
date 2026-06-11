@@ -12,6 +12,7 @@ import type {
 } from "../api/planetTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
+import { GameModal } from "../components/GameModal";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { ModuleStatusCard, PlanetDataRow } from "../components/PlanetModuleLayout";
@@ -1231,79 +1232,6 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
               )}
             </div>
 
-            {preparedAction && preparedAction.availabilityStatus === "Available" ? (
-              <section className="subpanel figma-subpanel transfer-confirmation-panel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Paso final</p>
-                    <h4>Confirmar orden de construccion</h4>
-                    <p>
-                      Esta orden enviara una unica accion segura a la cola de
-                      construccion del planeta actual.
-                    </p>
-                  </div>
-                  <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
-                </div>
-                <div className="figma-data-list">
-                  <PlanetDataRow
-                    label="Planeta"
-                    value={planet.planetName}
-                  />
-                  <PlanetDataRow
-                    label="Edificio"
-                    value={preparedAction.display?.buildingTypeLabel ?? formatBuildingType(preparedAction.buildingType)}
-                  />
-                  <PlanetDataRow
-                    label="Modulo"
-                    value={preparedActionModuleLabel ?? "Pendiente de clasificar"}
-                  />
-                  <PlanetDataRow
-                    label="Accion"
-                    value={`${preparedAction.display?.actionLabel ?? formatConstructionAction(preparedAction.action)} a nivel ${preparedAction.targetLevel}`}
-                  />
-                  <PlanetDataRow
-                    label="Estado actual"
-                    value={preparedAction.currentLevel > 0 ? `Nivel ${preparedAction.currentLevel}` : "Sin construir"}
-                  />
-                  <PlanetDataRow label="Coste" value={formatCompactResourceCost(preparedAction.cost)} />
-                  <PlanetDataRow
-                    label="Duracion"
-                    value={formatDuration(preparedAction.estimatedDuration)}
-                  />
-                </div>
-                <p className="figma-panel-note">
-                  {preparedAction.display?.availabilityReasonLabel ?? "La orden esta lista para enviarse cuando confirmes."}
-                </p>
-                <label className="confirmation-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={hasConstructionAcknowledgement}
-                    onChange={(event) =>
-                      setHasConstructionAcknowledgement(event.target.checked)
-                    }
-                  />
-                  <span>Confirmo que quiero enviar esta orden de construccion</span>
-                </label>
-                <div className="transfer-confirmation-actions">
-                  <button
-                    type="button"
-                    className="planet-action-button-secondary"
-                    onClick={handleConstructionCancel}
-                    disabled={isSubmittingConstruction}
-                  >
-                    Cancelar revision
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleConstructionSubmit()}
-                    disabled={isSubmittingConstruction || !hasConstructionAcknowledgement}
-                  >
-                    {isSubmittingConstruction ? "Enviando..." : "Enviar orden"}
-                  </button>
-                </div>
-              </section>
-            ) : null}
-
             {constructionFeedback ? <p>{constructionFeedback}</p> : null}
             {constructionError ? <p className="error-text">{constructionError}</p> : null}
             </>
@@ -1439,6 +1367,69 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             </div>
           </details>
         </>
+      ) : null}
+
+      {isConstructionRoute && preparedAction && preparedAction.availabilityStatus === "Available" && planet ? (
+        <GameModal
+          canClose={!isSubmittingConstruction}
+          closeLabel="Cerrar"
+          description="Esta orden enviara una unica accion segura a la cola de construccion del planeta actual."
+          isBusy={isSubmittingConstruction}
+          isOpen
+          onClose={handleConstructionCancel}
+          primaryAction={{
+            label: "Enviar orden",
+            onClick: () => void handleConstructionSubmit(),
+            disabled: !hasConstructionAcknowledgement,
+          }}
+          secondaryAction={{
+            label: "Cancelar revision",
+            onClick: handleConstructionCancel,
+          }}
+          title="Confirmar orden de construccion"
+        >
+          <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
+          <div className="figma-data-list">
+            <PlanetDataRow
+              label="Planeta"
+              value={planet.planetName}
+            />
+            <PlanetDataRow
+              label="Edificio"
+              value={preparedAction.display?.buildingTypeLabel ?? formatBuildingType(preparedAction.buildingType)}
+            />
+            <PlanetDataRow
+              label="Modulo"
+              value={preparedActionModuleLabel ?? "Pendiente de clasificar"}
+            />
+            <PlanetDataRow
+              label="Accion"
+              value={`${preparedAction.display?.actionLabel ?? formatConstructionAction(preparedAction.action)} a nivel ${preparedAction.targetLevel}`}
+            />
+            <PlanetDataRow
+              label="Estado actual"
+              value={preparedAction.currentLevel > 0 ? `Nivel ${preparedAction.currentLevel}` : "Sin construir"}
+            />
+            <PlanetDataRow label="Coste" value={formatCompactResourceCost(preparedAction.cost)} />
+            <PlanetDataRow
+              label="Duracion"
+              value={formatDuration(preparedAction.estimatedDuration)}
+            />
+          </div>
+          <p className="figma-panel-note">
+            {preparedAction.display?.availabilityReasonLabel ?? "La orden esta lista para enviarse cuando confirmes."}
+          </p>
+          <label className="confirmation-checkbox">
+            <input
+              type="checkbox"
+              checked={hasConstructionAcknowledgement}
+              onChange={(event) =>
+                setHasConstructionAcknowledgement(event.target.checked)
+              }
+            />
+            <span>Confirmo que quiero enviar esta orden de construccion</span>
+          </label>
+        </GameModal>
       ) : null}
     </section>
   );

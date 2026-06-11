@@ -83,9 +83,9 @@ Frontend-confirmed persisted QA path:
 - The cockpit should always refresh from `/api/dev/planets/ui-state` after a `201` instead of inserting an optimistic local queue row.
 - The cockpit should keep `complete-due` unavailable here because the backend completion route is still global.
 - Current confirmation audit:
-  - `/construction` is not using a reusable modal or dialog component.
-  - The guarded submit step is an inline confirmation panel rendered by the shared `PlanetPage` construction variant.
-  - Any future modal migration should preserve the current explicit checkbox-and-button guardrail before submit.
+  - `/construction` now uses the reusable `GameModal` confirmation component.
+  - The guarded submit step still lives in the shared `PlanetPage` construction variant and stays read-only until the modal primary action runs.
+  - The explicit acknowledgement checkbox remains required before submit.
 
 ## Audited rejection and guardrail matrix
 
