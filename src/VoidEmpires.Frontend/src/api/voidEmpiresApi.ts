@@ -42,6 +42,31 @@ interface JsonRequestOptions {
   query?: Record<string, string>;
 }
 
+export interface PlayableStartRequest {
+  displayName: string;
+  civilizationName: string;
+  homePlanetName?: string;
+}
+
+export interface PlayableStartResponse {
+  succeeded: boolean;
+  userId: string | null;
+  playerProfileId: string | null;
+  civilizationId: string | null;
+  homePlanetId: string | null;
+  homePlanetName: string | null;
+  homeSystemId: string | null;
+  homeSystemName: string | null;
+  startingResources: {
+    credits: number;
+    metal: number;
+    crystal: number;
+    gas: number;
+  } | null;
+  limitations: string[];
+  errors: string[];
+}
+
 async function requestJson<T>(path: string, options?: JsonRequestOptions): Promise<T> {
   const response = await fetch(buildUrl(path, options?.query), {
     body: options?.body ? JSON.stringify(options.body) : undefined,
@@ -60,6 +85,41 @@ async function requestJson<T>(path: string, options?: JsonRequestOptions): Promi
 }
 
 async function requestCommandJson<T>(path: string, body: unknown): Promise<FleetCommandApiResult<T>> {
+  const response = await fetch(buildUrl(path), {
+    body: JSON.stringify(body),
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
+
+  const contentType = response.headers.get("content-type") ?? "";
+  const hasJsonBody = contentType.includes("application/json");
+  let payload: T | null = null;
+
+  if (hasJsonBody) {
+    try {
+      payload = (await response.json()) as T;
+    } catch {
+      return {
+        httpStatus: response.status,
+        hasJsonBody: true,
+        bodyParseFailed: true,
+        response: null,
+      };
+    }
+  }
+
+  return {
+    httpStatus: response.status,
+    hasJsonBody,
+    bodyParseFailed: false,
+    response: payload,
+  };
+}
+
+async function requestActionJson<T>(path: string, body: unknown): Promise<FleetCommandApiResult<T>> {
   const response = await fetch(buildUrl(path), {
     body: JSON.stringify(body),
     headers: {
@@ -241,6 +301,9 @@ export const voidEmpiresApi = {
   },
   getPlanetVisualState(planetId: string) {
     return requestJson<PlanetVisualStateResponse>(`/api/dev/planets/${planetId}/visual-state`);
+  },
+  createPlayableStart(request: PlayableStartRequest) {
+    return requestActionJson<PlayableStartResponse>("/api/dev/players/starting-civilization", request);
   },
   enqueuePlanetConstruction(request: EnqueuePlanetConstructionRequest) {
     return enqueueConstructionOrder(request);

@@ -66,12 +66,18 @@ const RankingPage = lazy(async () => {
   return { default: module.RankingPage };
 });
 
+const OnboardingPage = lazy(async () => {
+  const module = await import("./pages/OnboardingPage");
+  return { default: module.OnboardingPage };
+});
+
 const ModuleCabinPage = lazy(async () => {
   const module = await import("./pages/ModuleCabinPage");
   return { default: module.ModuleCabinPage };
 });
 
 const sidebarItems = [
+  { label: "Nuevo inicio", to: "/onboarding", state: "implemented" },
   { label: "Galaxia", to: buildGalaxyUrl(), state: "implemented" },
   { label: "Planeta", to: "/planet", state: "implemented" },
   { label: "Construccion", to: "/construction", state: "implemented" },
@@ -104,6 +110,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<StrategicMapPage />} />
           <Route path="/galaxy" element={<StrategicMapPage />} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/planet" element={<PlanetPage />} />
           <Route path="/construction" element={<ConstructionPage />} />
           {specializedPlanetModuleRoutes.map((route) => (
