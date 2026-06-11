@@ -72,11 +72,19 @@ Then confirm on `/planet`:
 
 - Real persisted mutation now:
   - Construction enqueue only, through the existing guarded planet or construction flow
+- Current onboarding and context reality:
+  - Planet still depends on explicit `civilizationId` query context instead of an authenticated session handoff.
+  - When `planetId` is omitted, the backend selects the owned home or first owned planet for the provided civilization.
+  - Current QA and sidebar helper flows still center on the seeded civilization `00000000-0000-0000-0000-000000000001` and owned planet `40000000-0000-0000-0000-000000000001`.
 - Read-only orbital or military summary now:
   - `orbitalContext` counts for stationed groups, active departures, and active arrivals
   - building, queue, stockpile, and ownership context that Defenses or Shipyard can safely summarize without inventing mutations
   - Planet may explain defense readiness from visible defense-category construction data, but it must hand off any deeper flow to `Defensas`
   - Planet may explain Fleet readiness from visible orbital counts, but it must not claim that local orbital stock or Shipyard queue rows are exposed here
+- Current resource-economy audit:
+  - local balances come from persisted `PlanetResourceStockpile`
+  - production summaries come from persisted `PlanetProductionProfile`
+  - elapsed-time accrual exists in backend services, but Planet read-state does not auto-apply a live tick during page load
 - Future backend work required before Planet can claim more:
   - direct orbital production submit
   - defense-specific mutation

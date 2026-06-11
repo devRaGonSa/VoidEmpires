@@ -24,6 +24,10 @@ Current accepted block boundary for `Shipyard`, `Defenses`, `Fleets`, and `Plane
 
 - Development-only flow.
 - No production auth work is required for this block.
+- Current auth or onboarding reality is still partial:
+  - `POST /api/auth/register` and `GET /api/auth/confirm-email` exist for ASP.NET Core Identity accounts.
+  - Starting civilization creation exists only as the Development endpoint `POST /api/dev/players/starting-civilization`.
+  - No current cockpit route consumes an authenticated session or resolves the active civilization from login state; cockpit routing still depends on explicit `civilizationId` and often seeded QA ids.
 - No manual SQL is part of the accepted QA path.
 - No destructive reset behavior is part of the accepted QA path.
 - No automatic completion is part of the accepted QA path unless a route is already proven safe and scoped.
@@ -34,6 +38,17 @@ Current accepted block boundary for `Shipyard`, `Defenses`, `Fleets`, and `Plane
 - Fleet persisted QA for this block is read-only after the Shipyard mutation.
 - Stock-to-fleet allocation remains optional and excluded from the accepted default loop until its endpoint is hardened and explicitly re-approved.
 - Current allocation audit result: `POST /api/dev/fleets/orbital-groups/create-from-stock` is Development-only, consumes real stock, creates new groups per call, is not idempotent, and remains excluded from the repeated-QA runbook.
+- Current frontend confirmation audit result:
+  - `Construction` uses the shared `PlanetPage` route variant and renders an inline confirmation panel before submit.
+  - `Research` renders its own inline confirmation panel inside `ResearchPage`.
+  - `Shipyard` renders its own inline review-and-confirm panel inside `ShipyardPage`.
+  - No reusable modal or dialog foundation is currently present under `src/VoidEmpires.Frontend/src/components` or the cockpit pages; this block should not assume one already exists.
+- Current resource-economy audit result:
+  - Planet resources are persisted in `PlanetResourceStockpile`.
+  - Per-planet production rates are persisted in `PlanetProductionProfile`.
+  - Elapsed-time accrual exists in backend code through `PlanetEconomyTickService` plus `ResourceProductionService`.
+  - The cockpit read endpoints do not automatically apply elapsed production during page load, so visible balances remain whatever persistence last stored.
+  - Construction, Research, and Shipyard each spend the full visible cost immediately when enqueue succeeds.
 
 ## Safe baseline
 
@@ -144,6 +159,24 @@ Shared helper defaults:
 - Default civilization id: `00000000-0000-0000-0000-000000000001`
 - Default owned planet id: `40000000-0000-0000-0000-000000000001`
 - If the backend is not running or persistence is unavailable, the helpers fail clearly and do not attempt cleanup or reseed resets.
+
+## Playable session foundation audit
+
+Confirmed current baseline before Block `32A-32P` implementation:
+
+- Identity and player model:
+  - ASP.NET Core Identity owns account registration and email confirmation.
+  - `PlayerProfile` persists `UserId`, `DisplayName`, and related `Civilization` rows.
+  - `Civilization` persists `PlayerProfileId`, `Name`, `Archetype`, `Status`, and optional `HomePlanetId`.
+  - `PlanetOwnership` is the active ownership link between a planet and a civilization.
+- Current onboarding gap:
+  - The repository has no production-safe session-to-civilization bootstrap flow yet.
+  - The existing starting-civilization creation route is Development-only and separate from account registration.
+  - Frontend cockpit helpers and sidebar links still embed the deterministic seed civilization for discovery and QA.
+- Safe implementation scope for this block:
+  - treat current cockpit work as seeded Development-only gameplay foundation
+  - preserve explicit `civilizationId` and `planetId` handoff behavior unless a later task adds a real authenticated bootstrap contract
+  - do not claim production authentication, player session resolution, or automatic user-to-civilization onboarding
 
 Shipyard/Fleet companion note:
 

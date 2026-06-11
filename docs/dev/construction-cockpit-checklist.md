@@ -82,6 +82,10 @@ Frontend-confirmed persisted QA path:
 - The cockpit may allow explicit foreign-planet viewing, but it must not present enqueue as executable there.
 - The cockpit should always refresh from `/api/dev/planets/ui-state` after a `201` instead of inserting an optimistic local queue row.
 - The cockpit should keep `complete-due` unavailable here because the backend completion route is still global.
+- Current confirmation audit:
+  - `/construction` is not using a reusable modal or dialog component.
+  - The guarded submit step is an inline confirmation panel rendered by the shared `PlanetPage` construction variant.
+  - Any future modal migration should preserve the current explicit checkbox-and-button guardrail before submit.
 
 ## Audited rejection and guardrail matrix
 

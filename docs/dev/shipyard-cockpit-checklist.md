@@ -85,6 +85,13 @@ Repeated-QA warning:
 - Read-only now:
   - `GET /api/dev/shipyard/ui-state` for queue, catalog, local stock, readiness, and diagnostics
   - Fleet follow-up reads after enqueue
+- Current confirmation audit:
+  - `/shipyard` does not use a shared modal or dialog component today.
+  - The guarded enqueue path is an inline review-and-confirm panel rendered inside `ShipyardPage`.
+  - Any future modal migration must preserve the current backend refresh audit and explicit acknowledgement before submit.
+- Current ownership and scope audit:
+  - Shipyard read-state selects an owned home or first owned planet for the provided civilization when `planetId` is omitted.
+  - The cockpit still depends on explicit `civilizationId` query context and seeded QA ids rather than authenticated session onboarding.
 - Future backend work required:
   - planet-scoped due processing
   - stronger stock-to-fleet allocation validation

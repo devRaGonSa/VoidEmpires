@@ -206,6 +206,10 @@ Safe UI boundary:
 - Treat any missing `enqueueCommand` on a blocked card as a hard stop for mutation, even if the card still exposes descriptive metadata.
 - Re-read `GET /api/dev/research/ui-state` after a successful `201` before finalizing queue, hint, or resource visuals.
 - Keep `POST /api/dev/research/orders/complete-due` out of the cockpit because it completes every due open research order globally, not just the currently viewed civilization or planet.
+- Current confirmation audit:
+  - `/research` does not use a shared modal or dialog foundation today.
+  - The guarded submit step is an inline confirmation panel rendered directly inside `ResearchPage`.
+  - Any future reusable confirmation component must keep the current backend-command-driven submit boundary and explicit acknowledgement checkbox.
 
 ## Final manual QA
 
