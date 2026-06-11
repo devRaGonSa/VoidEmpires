@@ -114,6 +114,30 @@ $requiredSafetyCopy = @(
   }
 )
 
+$requiredGameplayModalGuards = @(
+  @{
+    Path = "src/VoidEmpires.Frontend/src/pages/PlanetPage.tsx"
+    Fragments = @(
+      "GameModal",
+      "Confirmo que quiero enviar esta orden de construccion"
+    )
+  },
+  @{
+    Path = "src/VoidEmpires.Frontend/src/pages/ResearchPage.tsx"
+    Fragments = @(
+      "GameModal",
+      "Confirmo que quiero iniciar esta investigacion"
+    )
+  },
+  @{
+    Path = "src/VoidEmpires.Frontend/src/pages/ShipyardPage.tsx"
+    Fragments = @(
+      "GameModal",
+      "Confirmo que quiero enviar esta produccion orbital a la cola"
+    )
+  }
+)
+
 $missingSafetyCopy = New-Object System.Collections.Generic.List[string]
 
 foreach ($requirement in $requiredSafetyCopy) {
@@ -133,6 +157,27 @@ foreach ($requirement in $requiredSafetyCopy) {
 
 if ($missingSafetyCopy.Count -gt 0) {
   throw "Frontend safety copy guard failed:`n$($missingSafetyCopy -join [Environment]::NewLine)"
+}
+
+$missingGameplayModalGuards = New-Object System.Collections.Generic.List[string]
+
+foreach ($requirement in $requiredGameplayModalGuards) {
+  $path = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($requirement.Path)"))
+  if (-not (Test-Path -LiteralPath $path)) {
+    $missingGameplayModalGuards.Add("Missing gameplay modal file '$($requirement.Path)'.")
+    continue
+  }
+
+  $content = Get-Content -LiteralPath $path -Raw
+  foreach ($fragment in $requirement.Fragments) {
+    if ($content -notlike "*$fragment*") {
+      $missingGameplayModalGuards.Add("$($requirement.Path) is missing gameplay modal guard fragment: $fragment")
+    }
+  }
+}
+
+if ($missingGameplayModalGuards.Count -gt 0) {
+  throw "Frontend gameplay modal guard failed:`n$($missingGameplayModalGuards -join [Environment]::NewLine)"
 }
 
 Write-Host "Frontend copy regression check passed." -ForegroundColor Green

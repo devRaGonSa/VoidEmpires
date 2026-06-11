@@ -11,6 +11,30 @@ For shared preferred terms and allowed limitation patterns, use `docs/dev/cockpi
 For deterministic local QA setup, use `docs/dev/development-seed-profiles.md` instead of manual SQL.
 For lightweight Espionage copy regression protection before visual QA, run `.\scripts\check-espionage-copy.ps1`.
 
+## Gameplay Modal Guardrails
+
+Use this shared interaction contract for the current gameplay confirmation pattern in `Construction`, `Research`, and `Shipyard`:
+
+- opening the modal is a review step only and must not mutate backend state
+- selecting a candidate is a local UI-state change only and must not mutate backend state
+- the explicit modal primary action is the only allowed mutation trigger
+- the acknowledgement checkbox remains required before the primary action becomes available
+- success stays backend-first:
+  - the cockpit posts the real Development mutation
+  - then refreshes from the authoritative backend read model
+  - then shows success or accepted-but-not-yet-visible guidance from the refreshed result
+- failure stays honest and useful:
+  - Spanish-first primary feedback remains in the main flow
+  - raw payloads stay out of the first viewport
+  - useful local review state may remain available when it helps retry safely
+
+Non-goals for this pattern:
+
+- no auto-submit on card click
+- no auto-complete or auto-process follow-up action
+- no optimistic queue fabrication before backend refresh
+- no expansion into fleet movement, combat, or other adjacent mutations
+
 ## Orbital Preparation Runtime Order
 
 Use this exact manual sequence for the current orbital production or military preparation pass. This remains a user-driven visual QA checklist, not proof that the browser checks have already been performed.
@@ -511,6 +535,15 @@ Shipyard cockpit v1 visual review:
 - Confirm guarded enqueue is the only executable Shipyard mutation path and still requires explicit confirmation.
 - Confirm complete-due remains visibly disabled in this build.
 - Confirm the Fleet handoff copy stays explicit that Shipyard does not move or command fleets directly.
+
+Shared gameplay modal visual checklist (manual, pending execution):
+
+- [ ] `Construction`, `Research`, and `Shipyard` open the shared modal only after a local review action, never on initial page load.
+- [ ] Opening the modal by itself does not create a backend row or mutate visible queue or resource state.
+- [ ] Each modal keeps its acknowledgement checkbox requirement before the primary confirm action becomes actionable.
+- [ ] Closing the modal does not mutate backend state and preserves the surrounding cockpit context.
+- [ ] A successful confirm path refreshes visible state from the backend instead of fabricating optimistic queue rows.
+- [ ] A failed confirm path keeps Spanish-first guidance in the main cockpit flow while technical detail stays secondary.
 
 ## Final Block Checklist
 
