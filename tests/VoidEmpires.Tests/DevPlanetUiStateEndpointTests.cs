@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Development;
 using VoidEmpires.Application.Planets;
+using VoidEmpires.Domain.Economy;
 using VoidEmpires.Infrastructure.Development;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.Planets;
@@ -152,6 +153,67 @@ public class DevPlanetUiStateEndpointTests(WebApplicationFactory<Program> factor
     }
 
     [Fact]
+    public async Task ApplyPlanetResourceEconomyPersistsAccrualAndUiStateRemainsReadOnly()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: databaseName);
+        using var client = configuredFactory.CreateClient();
+
+        using (var seedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "minimal-validation" }))
+        {
+            Assert.Equal(HttpStatusCode.OK, seedResponse.StatusCode);
+        }
+
+        decimal firstCreditsBefore, firstMetalBefore, firstCrystalBefore, firstGasBefore;
+
+        using (var scope = configuredFactory.Services.CreateScope())
+        {
+            var setupDbContext = scope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+            setupDbContext.PlanetResourceStockpiles.Add(PlanetResourceStockpile.Create(Guid.Parse(SeedOuterPlanetId)));
+            var baselineStockpile = await setupDbContext.PlanetResourceStockpiles.AsNoTracking().SingleAsync(x => x.PlanetId == Guid.Parse(SeedOwnedPlanetId));
+            (firstCreditsBefore, firstMetalBefore, firstCrystalBefore, firstGasBefore) = (
+                baselineStockpile.Credits,
+                baselineStockpile.Metal,
+                baselineStockpile.Crystal,
+                baselineStockpile.Gas);
+            await setupDbContext.SaveChangesAsync();
+        }
+
+        using var applyResponse = await client.PostAsJsonAsync("/api/dev/planets/resource-economy/apply", new
+        {
+            civilizationId = SeedCivilizationId,
+            planetId = SeedOwnedPlanetId,
+            elapsedSeconds = 3600
+        });
+        Assert.Equal(HttpStatusCode.OK, applyResponse.StatusCode);
+
+        using var firstUiResponse = await client.GetAsync($"/api/dev/planets/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var firstUiPayload = await firstUiResponse.Content.ReadFromJsonAsync<DevPlanetUiStateResponse>();
+        using var secondUiResponse = await client.GetAsync($"/api/dev/planets/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var secondUiPayload = await secondUiResponse.Content.ReadFromJsonAsync<DevPlanetUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, firstUiResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, secondUiResponse.StatusCode);
+        Assert.NotNull(firstUiPayload?.UiState?.Planet);
+        Assert.NotNull(secondUiPayload?.UiState?.Planet);
+        Assert.Equal(firstCreditsBefore + 18m, firstUiPayload.UiState.Planet.Stockpile.Single(x => x.ResourceType == ResourceType.Credits).Quantity);
+        Assert.Equal(firstCreditsBefore + 18m, secondUiPayload.UiState.Planet.Stockpile.Single(x => x.ResourceType == ResourceType.Credits).Quantity);
+
+        using var verificationScope = configuredFactory.Services.CreateScope();
+        var verificationDbContext = verificationScope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+        var ownedStockpile = await verificationDbContext.PlanetResourceStockpiles.AsNoTracking().SingleAsync(x => x.PlanetId == Guid.Parse(SeedOwnedPlanetId));
+        var foreignStockpile = await verificationDbContext.PlanetResourceStockpiles.AsNoTracking().SingleAsync(x => x.PlanetId == Guid.Parse(SeedOuterPlanetId));
+        Assert.Equal(firstCreditsBefore + 18m, ownedStockpile.Credits);
+        Assert.Equal(firstMetalBefore + 14m, ownedStockpile.Metal);
+        Assert.Equal(firstCrystalBefore + 6m, ownedStockpile.Crystal);
+        Assert.Equal(firstGasBefore + 3m, ownedStockpile.Gas);
+        Assert.Equal(0m, foreignStockpile.Credits);
+        Assert.Equal(0m, foreignStockpile.Metal);
+        Assert.Equal(0m, foreignStockpile.Crystal);
+        Assert.Equal(0m, foreignStockpile.Gas);
+    }
+
+    [Fact]
     public async Task ReapplyingPlanetFullValidationDoesNotDuplicateBuildingsOrCompletedQueueHistory()
     {
         await using var dbContext = CreateSeededDbContext("planet-full-validation");
@@ -197,4 +259,5 @@ public class DevPlanetUiStateEndpointTests(WebApplicationFactory<Program> factor
         bool Succeeded,
         GetDevPlanetUiStateResult? UiState,
         string[] Errors);
+
 }

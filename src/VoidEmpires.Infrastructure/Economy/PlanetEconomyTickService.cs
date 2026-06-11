@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Economy;
+using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Persistence;
@@ -27,6 +28,18 @@ public sealed class PlanetEconomyTickService(VoidEmpiresDbContext dbContext) : I
         if (request.Elapsed < TimeSpan.Zero)
         {
             return ApplyPlanetProductionResult.Failure("Elapsed time cannot be negative.");
+        }
+
+        var hasOwnership = await dbContext.PlanetOwnerships
+            .AnyAsync(item =>
+                item.PlanetId == request.PlanetId &&
+                item.CivilizationId == request.CivilizationId &&
+                item.Status == PlanetControlStatus.Active,
+                cancellationToken);
+
+        if (!hasOwnership)
+        {
+            return ApplyPlanetProductionResult.Failure("Planet is not owned by the requesting civilization.");
         }
 
         var profile = await dbContext.PlanetProductionProfiles

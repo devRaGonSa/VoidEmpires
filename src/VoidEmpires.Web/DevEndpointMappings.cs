@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using VoidEmpires.Application.Development;
+using VoidEmpires.Application.Economy;
 using VoidEmpires.Application.Assets;
 using VoidEmpires.Application.Buildings;
 using VoidEmpires.Application.Fleets;
@@ -174,6 +175,44 @@ internal static class DevEndpointMappings
             return result.Succeeded
                 ? Results.Created($"/api/dev/players/{result.PlayerProfileId}/civilizations/{result.CivilizationId}", response)
                 : Results.Conflict(response);
+        });
+
+        app.MapPost("/api/dev/planets/resource-economy/apply", async (
+            ApplyPlanetResourceEconomyApiRequest request,
+            [FromServices] IServiceProvider services,
+            [FromServices] IConfiguration configuration,
+            CancellationToken cancellationToken) =>
+        {
+            if (!IsPersistenceConfigured(configuration))
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            var errors = ValidateApplyPlanetResourceEconomy(request);
+            if (errors.Count > 0)
+            {
+                return Results.BadRequest(new ApplyPlanetResourceEconomyApiResponse(
+                    false,
+                    errors));
+            }
+
+            var economyService = services.GetRequiredService<IPlanetEconomyTickService>();
+            var result = await economyService.ApplyProductionAsync(new ApplyPlanetProductionRequest(
+                request.PlanetId!.Value,
+                request.CivilizationId!.Value,
+                TimeSpan.FromSeconds(request.ElapsedSeconds!.Value)),
+                cancellationToken);
+
+            if (!result.Succeeded)
+            {
+                return Results.Conflict(new ApplyPlanetResourceEconomyApiResponse(
+                    false,
+                    result.Errors));
+            }
+
+            return Results.Ok(new ApplyPlanetResourceEconomyApiResponse(
+                true,
+                []));
         });
 
         app.MapPost("/api/dev/buildings/construction-orders/enqueue", async (
@@ -828,6 +867,32 @@ internal static class DevEndpointMappings
         return errors;
     }
 
+    private static IReadOnlyList<string> ValidateApplyPlanetResourceEconomy(ApplyPlanetResourceEconomyApiRequest request)
+    {
+        var errors = new List<string>();
+
+        if (request.CivilizationId is null || request.CivilizationId == Guid.Empty)
+        {
+            errors.Add("Civilization id is required.");
+        }
+
+        if (request.PlanetId is null || request.PlanetId == Guid.Empty)
+        {
+            errors.Add("Planet id is required.");
+        }
+
+        if (request.ElapsedSeconds is null)
+        {
+            errors.Add("Elapsed seconds is required.");
+        }
+        else if (request.ElapsedSeconds < 0)
+        {
+            errors.Add("Elapsed seconds cannot be negative.");
+        }
+
+        return errors;
+    }
+
     private static IReadOnlyList<string> ValidateCompleteConstructionOrders(CompleteConstructionOrdersApiRequest request)
     {
         var errors = new List<string>();
@@ -1099,6 +1164,15 @@ internal sealed record StartingCivilizationApiResponse(
     string? HomeSystemName,
     CreateStartingCivilizationResourceSnapshot? StartingResources,
     IReadOnlyList<string> Limitations,
+    IReadOnlyList<string> Errors);
+
+internal sealed record ApplyPlanetResourceEconomyApiRequest(
+    Guid? CivilizationId,
+    Guid? PlanetId,
+    double? ElapsedSeconds);
+
+internal sealed record ApplyPlanetResourceEconomyApiResponse(
+    bool Succeeded,
     IReadOnlyList<string> Errors);
 
 internal sealed record EnqueueConstructionOrderApiRequest(

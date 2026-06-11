@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Economy;
+using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Economy;
@@ -14,7 +15,7 @@ public class PlanetEconomyTickServiceTests
     {
         await using var dbContext = CreateDbContext();
         var civilizationId = Guid.NewGuid();
-        var planetId = await SeedEconomyAsync(dbContext);
+        var planetId = await SeedEconomyAsync(dbContext, civilizationId);
         var service = new PlanetEconomyTickService(dbContext);
 
         var result = await service.ApplyProductionAsync(new ApplyPlanetProductionRequest(
@@ -38,7 +39,7 @@ public class PlanetEconomyTickServiceTests
     {
         await using var dbContext = CreateDbContext();
         var civilizationId = Guid.NewGuid();
-        var planetId = await SeedEconomyAsync(dbContext);
+        var planetId = await SeedEconomyAsync(dbContext, civilizationId);
         var project = ResearchProject.Create(civilizationId, ResearchType.ResourceExtraction);
         project.Upgrade();
         dbContext.ResearchProjects.Add(project);
@@ -64,7 +65,7 @@ public class PlanetEconomyTickServiceTests
     {
         await using var dbContext = CreateDbContext();
         var civilizationId = Guid.NewGuid();
-        var planetId = await SeedEconomyAsync(dbContext);
+        var planetId = await SeedEconomyAsync(dbContext, civilizationId);
         var service = new PlanetEconomyTickService(dbContext);
 
         var result = await service.ApplyProductionAsync(new ApplyPlanetProductionRequest(
@@ -116,7 +117,7 @@ public class PlanetEconomyTickServiceTests
     {
         await using var dbContext = CreateDbContext();
         var civilizationId = Guid.NewGuid();
-        var planetId = await SeedEconomyAsync(dbContext);
+        var planetId = await SeedEconomyAsync(dbContext, civilizationId);
         var service = new PlanetEconomyTickService(dbContext);
 
         var result = await service.ApplyProductionAsync(new ApplyPlanetProductionRequest(
@@ -133,13 +134,15 @@ public class PlanetEconomyTickServiceTests
     {
         await using var dbContext = CreateDbContext();
         var planetId = Guid.NewGuid();
+        var civilizationId = Guid.NewGuid();
         dbContext.PlanetResourceStockpiles.Add(PlanetResourceStockpile.Create(planetId));
+        dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(planetId, civilizationId));
         await dbContext.SaveChangesAsync();
         var service = new PlanetEconomyTickService(dbContext);
 
         var result = await service.ApplyProductionAsync(new ApplyPlanetProductionRequest(
             planetId,
-            Guid.NewGuid(),
+            civilizationId,
             TimeSpan.FromMinutes(1)));
 
         Assert.False(result.Succeeded);
@@ -151,17 +154,56 @@ public class PlanetEconomyTickServiceTests
     {
         await using var dbContext = CreateDbContext();
         var planetId = Guid.NewGuid();
+        var civilizationId = Guid.NewGuid();
         dbContext.PlanetProductionProfiles.Add(PlanetProductionProfile.Create(planetId, 1, 1, 1, 1));
+        dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(planetId, civilizationId));
         await dbContext.SaveChangesAsync();
         var service = new PlanetEconomyTickService(dbContext);
 
         var result = await service.ApplyProductionAsync(new ApplyPlanetProductionRequest(
             planetId,
-            Guid.NewGuid(),
+            civilizationId,
             TimeSpan.FromMinutes(1)));
 
         Assert.False(result.Succeeded);
         Assert.Equal(["Planet resource stockpile was not found."], result.Errors);
+    }
+
+    [Fact]
+    public async Task ApplyProductionAsyncRemainsCoherentAfterResourceSpend()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var planetId = await SeedEconomyAsync(dbContext, civilizationId);
+        var spendService = new ResourceSpendService(dbContext);
+        var economyService = new PlanetEconomyTickService(dbContext);
+
+        await economyService.ApplyProductionAsync(new ApplyPlanetProductionRequest(
+            planetId,
+            civilizationId,
+            TimeSpan.FromHours(1)));
+
+        var spendResult = await spendService.SpendAsync(new ResourceSpendRequest(
+            planetId,
+            [
+                new ResourceCostDto(ResourceType.Credits, 30),
+                new ResourceCostDto(ResourceType.Metal, 20),
+                new ResourceCostDto(ResourceType.Crystal, 10),
+                new ResourceCostDto(ResourceType.Gas, 5)
+            ]));
+
+        await economyService.ApplyProductionAsync(new ApplyPlanetProductionRequest(
+            planetId,
+            civilizationId,
+            TimeSpan.FromMinutes(30)));
+
+        var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(item => item.PlanetId == planetId);
+
+        Assert.True(spendResult.Succeeded);
+        Assert.Equal(120, stockpile.Credits);
+        Assert.Equal(160, stockpile.Metal);
+        Assert.Equal(110, stockpile.Crystal);
+        Assert.Equal(55, stockpile.Gas);
     }
 
     private static VoidEmpiresDbContext CreateDbContext()
@@ -173,12 +215,13 @@ public class PlanetEconomyTickServiceTests
         return new VoidEmpiresDbContext(options);
     }
 
-    private static async Task<Guid> SeedEconomyAsync(VoidEmpiresDbContext dbContext)
+    private static async Task<Guid> SeedEconomyAsync(VoidEmpiresDbContext dbContext, Guid civilizationId)
     {
         var planetId = Guid.NewGuid();
 
         dbContext.PlanetProductionProfiles.Add(PlanetProductionProfile.Create(planetId, 100, 120, 80, 40));
         dbContext.PlanetResourceStockpiles.Add(PlanetResourceStockpile.Create(planetId));
+        dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(planetId, civilizationId));
         await dbContext.SaveChangesAsync();
 
         return planetId;
