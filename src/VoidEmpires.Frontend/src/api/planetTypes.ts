@@ -67,6 +67,24 @@ export interface PlanetUiStateResponse {
   errors: string[];
 }
 
+export interface ApplyPlanetResourceEconomyRequest {
+  civilizationId: string;
+  planetId: string;
+  elapsedSeconds: number;
+}
+
+export interface ApplyPlanetResourceEconomyResponse {
+  succeeded: boolean;
+  errors: string[];
+}
+
+export interface ApplyPlanetResourceEconomyCommandResult {
+  httpStatus: number;
+  hasJsonBody: boolean;
+  bodyParseFailed: boolean;
+  response: ApplyPlanetResourceEconomyResponse | null;
+}
+
 export interface PlanetUiStateResult {
   civilizationId: string;
   selectedPlanetId: string | null;

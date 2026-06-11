@@ -17,6 +17,9 @@ import type {
 } from "./fleetCommandTypes";
 import type { FleetUiStateResponse } from "./fleetTypes";
 import type {
+  ApplyPlanetResourceEconomyCommandResult,
+  ApplyPlanetResourceEconomyRequest,
+  ApplyPlanetResourceEconomyResponse,
   EnqueuePlanetConstructionCommandResult,
   EnqueuePlanetConstructionFailureResponse,
   EnqueuePlanetConstructionRequest,
@@ -289,6 +292,9 @@ export const voidEmpiresApi = {
     return requestJson<PlanetUiStateResponse>("/api/dev/planets/ui-state", {
       query: planetId ? { civilizationId, planetId } : { civilizationId },
     });
+  },
+  applyPlanetResourceEconomy(request: ApplyPlanetResourceEconomyRequest) {
+    return requestActionJson<ApplyPlanetResourceEconomyResponse>("/api/dev/planets/resource-economy/apply", request) as Promise<ApplyPlanetResourceEconomyCommandResult>;
   },
   getFleetActionManifest() {
     return requestJson<ActionManifestResponse>("/api/dev/fleets/action-manifest");

@@ -135,24 +135,29 @@ interface ConstructionRefreshAudit {
   resourceDelta: string[];
 }
 
+interface EconomyRefreshAudit {
+  elapsedLabel: string;
+  refreshedAt: string;
+  resourceDelta: string[];
+}
+
 function countOpenConstructionOrders(queue: PlanetCockpitDto["constructionQueue"]) {
   return queue.filter((item) => item.status === "Pending" || item.status === "Active").length;
 }
 
-function buildConstructionRefreshAudit(
-  beforePlanet: PlanetCockpitDto,
-  afterPlanet: PlanetCockpitDto,
-  orderId: string | null,
+function buildResourceDelta(
+  beforeStockpile: PlanetCockpitDto["stockpile"],
+  afterStockpile: PlanetCockpitDto["stockpile"],
 ) {
   const resourceTypes = Array.from(new Set([
-    ...beforePlanet.stockpile.map((item) => String(item.resourceType)),
-    ...afterPlanet.stockpile.map((item) => String(item.resourceType)),
+    ...beforeStockpile.map((item) => String(item.resourceType)),
+    ...afterStockpile.map((item) => String(item.resourceType)),
   ]));
 
-  const resourceDelta = resourceTypes
+  return resourceTypes
     .map((resourceType) => {
-      const before = beforePlanet.stockpile.find((item) => String(item.resourceType) === resourceType)?.quantity ?? 0;
-      const after = afterPlanet.stockpile.find((item) => String(item.resourceType) === resourceType)?.quantity ?? 0;
+      const before = beforeStockpile.find((item) => String(item.resourceType) === resourceType)?.quantity ?? 0;
+      const after = afterStockpile.find((item) => String(item.resourceType) === resourceType)?.quantity ?? 0;
       const delta = after - before;
 
       if (delta === 0) {
@@ -163,7 +168,13 @@ function buildConstructionRefreshAudit(
       return `${formatResourceType(resourceType)} ${prefix}${delta}`;
     })
     .filter((item): item is string => item !== null);
+}
 
+function buildConstructionRefreshAudit(
+  beforePlanet: PlanetCockpitDto,
+  afterPlanet: PlanetCockpitDto,
+  orderId: string | null,
+) {
   const visibleOrderId = orderId && afterPlanet.constructionQueue.some((item) => item.orderId === orderId)
     ? orderId
     : null;
@@ -174,7 +185,7 @@ function buildConstructionRefreshAudit(
     openQueueBefore: countOpenConstructionOrders(beforePlanet.constructionQueue),
     openQueueAfter: countOpenConstructionOrders(afterPlanet.constructionQueue),
     visibleOrderId,
-    resourceDelta,
+    resourceDelta: buildResourceDelta(beforePlanet.stockpile, afterPlanet.stockpile),
   } satisfies ConstructionRefreshAudit;
 }
 
@@ -246,6 +257,10 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
   const [constructionError, setConstructionError] = useState<string | null>(null);
   const [constructionTechnicalDetail, setConstructionTechnicalDetail] = useState<string | null>(null);
   const [constructionRefreshAudit, setConstructionRefreshAudit] = useState<ConstructionRefreshAudit | null>(null);
+  const [isRefreshingEconomy, setIsRefreshingEconomy] = useState(false);
+  const [economyFeedback, setEconomyFeedback] = useState<string | null>(null);
+  const [economyError, setEconomyError] = useState<string | null>(null);
+  const [economyRefreshAudit, setEconomyRefreshAudit] = useState<EconomyRefreshAudit | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -352,6 +367,9 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
       setConstructionError(null);
       setConstructionTechnicalDetail(null);
       setConstructionRefreshAudit(null);
+      setEconomyFeedback(null);
+      setEconomyError(null);
+      setEconomyRefreshAudit(null);
 
       try {
         const response = await voidEmpiresApi.getPlanetUiState(
@@ -515,6 +533,62 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
     setConstructionError(null);
     setConstructionTechnicalDetail(null);
     setConstructionRefreshAudit(null);
+  }
+
+  async function handleEconomyRefresh(elapsedSeconds: number, elapsedLabel: string) {
+    if (!planet || !uiState?.civilizationId) {
+      return;
+    }
+
+    setIsRefreshingEconomy(true);
+    setEconomyFeedback(null);
+    setEconomyError(null);
+    setEconomyRefreshAudit(null);
+
+    try {
+      const beforePlanet = planet;
+      const result = await voidEmpiresApi.applyPlanetResourceEconomy({
+        civilizationId: uiState.civilizationId,
+        planetId: planet.planetId,
+        elapsedSeconds,
+      });
+
+      if (result.httpStatus !== 200 || !result.response?.succeeded) {
+        setEconomyError(result.response?.errors[0] ?? "La materializacion backend no pudo aplicarse.");
+        return;
+      }
+
+      const refreshed = await voidEmpiresApi.getPlanetUiState(
+        uiState.civilizationId,
+        planet.planetId,
+      );
+
+      if (!refreshed.succeeded || !refreshed.uiState?.planet) {
+        setEconomyError("La produccion se aplico, pero la cabina no pudo releer el estado actualizado.");
+        return;
+      }
+
+      const resourceDelta = buildResourceDelta(beforePlanet.stockpile, refreshed.uiState.planet.stockpile);
+      setUiState(refreshed.uiState);
+      setEconomyRefreshAudit({
+        elapsedLabel,
+        refreshedAt: formatDateTime(new Date().toISOString()),
+        resourceDelta,
+      });
+      setEconomyFeedback(
+        resourceDelta.length > 0
+          ? `Produccion backend materializada para ${elapsedLabel}.`
+          : `La materializacion de ${elapsedLabel} no cambio las reservas visibles.`,
+      );
+    } catch (requestError) {
+      setEconomyError(
+        requestError instanceof Error
+          ? requestError.message
+          : "La materializacion backend no pudo completarse.",
+      );
+    } finally {
+      setIsRefreshingEconomy(false);
+    }
   }
 
   return (
@@ -833,6 +907,48 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                   </p>
                 </>
               )}
+              </div>
+              <div className="planet-inline-summary">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Materializacion segura</p>
+                    <h4>Refrescar economia desde backend</h4>
+                  </div>
+                  <UiBadge tone="warn">Sin temporizador local</UiBadge>
+                </div>
+                <p className="figma-panel-note">
+                  Esta cabina no simula crecimiento en el navegador. Si quieres ver progresion real, aplica un tramo de produccion en backend y relee el planeta.
+                </p>
+                <div className="selection-chip-row">
+                  {[
+                    { label: "Aplicar 15 min", seconds: 900 },
+                    { label: "Aplicar 30 min", seconds: 1800 },
+                    { label: "Aplicar 1 h", seconds: 3600 },
+                  ].map((option) => (
+                    <button
+                      key={option.seconds}
+                      type="button"
+                      className="selection-chip"
+                      disabled={isRefreshingEconomy || !planet.isOwnedByRequestingCivilization || !uiState?.civilizationId}
+                      onClick={() => void handleEconomyRefresh(option.seconds, option.label)}
+                    >
+                      {isRefreshingEconomy ? "Aplicando..." : option.label}
+                    </button>
+                  ))}
+                </div>
+                {economyFeedback ? <p className="figma-panel-note">{economyFeedback}</p> : null}
+                {economyError ? <p className="error-text">{economyError}</p> : null}
+                {economyRefreshAudit ? (
+                  <div className="figma-data-list">
+                    <PlanetDataRow label="Ultima materializacion" value={`${economyRefreshAudit.elapsedLabel} | ${economyRefreshAudit.refreshedAt}`} />
+                    <PlanetDataRow
+                      label="Delta visible"
+                      value={economyRefreshAudit.resourceDelta.length > 0
+                        ? economyRefreshAudit.resourceDelta.join(" | ")
+                        : "Sin cambios visibles"}
+                    />
+                  </div>
+                ) : null}
               </div>
             </UiCard>
           </div>
