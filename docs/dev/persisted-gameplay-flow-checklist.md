@@ -169,14 +169,70 @@ Confirmed current baseline before Block `32A-32P` implementation:
   - `PlayerProfile` persists `UserId`, `DisplayName`, and related `Civilization` rows.
   - `Civilization` persists `PlayerProfileId`, `Name`, `Archetype`, `Status`, and optional `HomePlanetId`.
   - `PlanetOwnership` is the active ownership link between a planet and a civilization.
+- Current runtime wiring:
+  - `Program.cs` maps `POST /api/auth/register` and `GET /api/auth/confirm-email`.
+  - `Program.cs` does not enable `UseAuthentication()` or `UseAuthorization()`.
+  - Current cockpit and development routes still require explicit `civilizationId` and, for most planet-bound views, explicit `planetId`.
+- Current Development-only bootstrap contract:
+  - `POST /api/dev/players/starting-civilization` creates only `PlayerProfile` and `Civilization`.
+  - The request currently requires `userId`, `displayName`, and `civilizationName`, accepts `archetype`, and optionally accepts `homePlanetId`.
+  - The response currently returns only `playerProfileId`, `civilizationId`, and `homePlanetId`.
+  - The route does not verify an authenticated session, does not claim a planet, does not create `PlanetOwnership`, and does not top up resources, buildings, population, production, orbital stock, or QA queue history.
 - Current onboarding gap:
   - The repository has no production-safe session-to-civilization bootstrap flow yet.
   - The existing starting-civilization creation route is Development-only and separate from account registration.
   - Frontend cockpit helpers and sidebar links still embed the deterministic seed civilization for discovery and QA.
 - Safe implementation scope for this block:
-  - treat current cockpit work as seeded Development-only gameplay foundation
+  - treat current cockpit work as a seeded Development-only gameplay foundation
   - preserve explicit `civilizationId` and `planetId` handoff behavior unless a later task adds a real authenticated bootstrap contract
   - do not claim production authentication, player session resolution, or automatic user-to-civilization onboarding
+  - do not treat `POST /api/dev/players/starting-civilization` as a complete playable-session bootstrap because it does not produce owned-planet gameplay state
+
+Safe onboarding decision for this block:
+
+- Use a Development-only playable-start flow, not a production auth-backed onboarding flow.
+- The correct baseline for current cockpit work is still the deterministic seed system, especially `cockpit-validation`.
+- Real account registration may coexist in the repository, but it is not yet wired to civilization resolution, owned-planet bootstrap, or cockpit navigation.
+
+Expected result payload for the safe Development-only playable-start contract used by follow-up tasks:
+
+- Identity block:
+  - `userId`
+  - `playerProfileId`
+  - `displayName`
+- Civilization block:
+  - `civilizationId`
+  - `civilizationName`
+  - `archetype`
+  - `status = Active`
+- Homeworld block:
+  - `homePlanetId`
+  - `homePlanetName`
+  - `systemId`
+  - `systemName`
+  - `ownershipStatus = Active`
+- Seed baseline block:
+  - `seedProfile = "cockpit-validation"` for the richer default playable-start path in this block
+  - deterministic ids when the standard seed baseline is used:
+    - `civilizationId = 00000000-0000-0000-0000-000000000001`
+    - `homePlanetId = 40000000-0000-0000-0000-000000000001`
+    - `systemId = 20000000-0000-0000-0000-000000000001`
+  - minimum starting homeworld state expected from that seeded playable path:
+    - resources at or above `220` credits, `320` metal, `220` crystal, and `120` gas
+    - one active ownership row for `Aurelia`
+    - homeworld production profile present
+    - homeworld population profile present
+    - baseline buildings including `CommandCenter`, `HabitationDistrict`, `Shipyard`, `DefenseGrid`, and `Barracks`
+    - no required open construction, research, or orbital production blocker at bootstrap time
+- Navigation block:
+  - canonical QA URLs or query ids needed to open `/galaxy`, `/planet`, `/construction`, `/research`, `/shipyard`, `/defenses`, `/ground-army`, `/market`, `/espionage`, `/alliance`, `/ranking`, and `/fleets`
+
+Explicit limitations of the current onboarding story:
+
+- No authenticated session is currently resolved into an active civilization automatically.
+- No production-safe login or session middleware protects cockpit routes today.
+- No current endpoint combines account creation, email confirmation, player profile creation, civilization creation, homeworld claiming, and seeded economy bootstrap into one safe production flow.
+- The existing Development-only starting-civilization route is still narrower than the playable-start contract described above and should be extended or wrapped by a later Development-only task rather than being overclaimed as already complete.
 
 Shipyard/Fleet companion note:
 
