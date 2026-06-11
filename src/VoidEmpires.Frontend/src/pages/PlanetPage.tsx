@@ -942,7 +942,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                   <div className="figma-data-list">
                     <PlanetDataRow label="Ultima materializacion" value={`${economyRefreshAudit.elapsedLabel} | ${economyRefreshAudit.refreshedAt}`} />
                     <PlanetDataRow
-                      label="Delta visible"
+                      label="Cambio visible"
                       value={economyRefreshAudit.resourceDelta.length > 0
                         ? economyRefreshAudit.resourceDelta.join(" | ")
                         : "Sin cambios visibles"}
