@@ -147,22 +147,28 @@ internal static class DevEndpointMappings
             var errors = ValidateStartingCivilization(request);
             if (errors.Count > 0)
             {
-                return Results.BadRequest(new StartingCivilizationApiResponse(false, null, null, null, errors));
+                return Results.BadRequest(new StartingCivilizationApiResponse(false, null, null, null, null, null, null, null, null, [], errors));
             }
 
             var service = services.GetRequiredService<IStartingCivilizationService>();
             var result = await service.CreateAsync(new CreateStartingCivilizationRequest(
-                request.UserId!,
                 request.DisplayName!,
                 request.CivilizationName!,
-                request.Archetype,
-                request.HomePlanetId), cancellationToken);
+                request.HomePlanetName,
+                request.UserId,
+                request.Archetype), cancellationToken);
 
             var response = new StartingCivilizationApiResponse(
                 result.Succeeded,
+                result.UserId,
                 result.PlayerProfileId,
                 result.CivilizationId,
                 result.HomePlanetId,
+                result.HomePlanetName,
+                result.HomeSystemId,
+                result.HomeSystemName,
+                result.StartingResources,
+                result.Limitations,
                 result.Errors);
 
             return result.Succeeded
@@ -773,11 +779,6 @@ internal static class DevEndpointMappings
     {
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(request.UserId))
-        {
-            errors.Add("User id is required.");
-        }
-
         if (string.IsNullOrWhiteSpace(request.DisplayName))
         {
             errors.Add("Display name is required.");
@@ -1081,17 +1082,23 @@ internal sealed record GalaxyGenerationApiResponse(
     IReadOnlyList<string> Errors);
 
 internal sealed record CreateStartingCivilizationApiRequest(
-    string? UserId,
     string? DisplayName,
     string? CivilizationName,
-    CivilizationArchetype Archetype,
-    Guid? HomePlanetId = null);
+    string? HomePlanetName = null,
+    string? UserId = null,
+    CivilizationArchetype Archetype = CivilizationArchetype.Balanced);
 
 internal sealed record StartingCivilizationApiResponse(
     bool Succeeded,
+    string? UserId,
     Guid? PlayerProfileId,
     Guid? CivilizationId,
     Guid? HomePlanetId,
+    string? HomePlanetName,
+    Guid? HomeSystemId,
+    string? HomeSystemName,
+    CreateStartingCivilizationResourceSnapshot? StartingResources,
+    IReadOnlyList<string> Limitations,
     IReadOnlyList<string> Errors);
 
 internal sealed record EnqueueConstructionOrderApiRequest(
