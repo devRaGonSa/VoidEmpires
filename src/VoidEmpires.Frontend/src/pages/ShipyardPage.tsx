@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { enqueueShipyardProduction, fetchShipyardUiState } from "../api/shipyardApi";
 import type { ShipyardApiErrorCode } from "../api/shipyardTypes";
 import { CockpitHero } from "../components/CockpitHero";
+import { GameModal } from "../components/GameModal";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { formatPlanetPrimaryLabel, formatPlanetSecondaryLabel, formatResourceType } from "../utils/domainPresentation";
@@ -928,73 +929,6 @@ export function ShipyardPage() {
                   </section>
                 ))}
 
-                {reviewSelection ? (
-                  <UiCard className="panel">
-                    <div className="figma-section-header">
-                      <div>
-                        <p className="eyebrow">Revision controlada</p>
-                        <h3>Confirmacion de produccion orbital</h3>
-                    <p>La cabina revisa el impacto visible antes de habilitar cualquier accion real, incluido el gasto inmediato de recursos cuando el envio se acepta.</p>
-                      </div>
-                      <UiBadge tone={reviewSelection.bucket === "available" ? "good" : "warn"}>
-                        {reviewSelection.bucket === "available" ? "Lista para futura cola" : "No enviable"}
-                      </UiBadge>
-                    </div>
-                    <div className="readiness-grid">
-                      <section className="subpanel figma-subpanel">
-                        <div className="figma-data-list">
-                          <div className="figma-data-row"><span>Planeta</span><strong>{shipyard.planetName}</strong></div>
-                          <div className="figma-data-row"><span>Activo</span><strong>{reviewSelection.asset.label}</strong></div>
-                          <div className="figma-data-row"><span>Salida</span><strong>{reviewSelection.asset.quantityLabel}</strong></div>
-                          <div className="figma-data-row"><span>Duracion</span><strong>{reviewSelection.asset.estimatedDurationLabel}</strong></div>
-                        </div>
-                      </section>
-                      <section className="subpanel figma-subpanel">
-                        <div className="figma-data-list">
-                          <div className="figma-data-row"><span>Coste</span><strong>{reviewSelection.asset.estimatedCostLabel}</strong></div>
-                          <div className="figma-data-row"><span>Readiness</span><strong>{reviewSelection.asset.statusLabel}</strong></div>
-                          <div className="figma-data-row"><span>Requisitos</span><strong>{formatRequirementLabel(reviewSelection.asset)}</strong></div>
-                          <div className="figma-data-row"><span>Motivo visible</span><strong>{reviewSelection.asset.reasonLabel}</strong></div>
-                        </div>
-                      </section>
-                    </div>
-                    <p>
-                      {reviewSelection.bucket === "available"
-                        ? "La opcion ya puede enviarse por la via protegida de desarrollo si confirmas la revision. Si el backend la acepta, el coste visible se descuenta al momento."
-                        : "Esta revision permanece en modo diagnostico. La cabina no intentara enviar nada mientras el estado siga bloqueado o no soportado."}
-                    </p>
-                    {reviewSelection.bucket === "available" ? (
-                      <label className="confirmation-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={hasEnqueueAcknowledgement}
-                          onChange={(event) => setHasEnqueueAcknowledgement(event.target.checked)}
-                        />
-                        <span>Confirmo que quiero enviar esta produccion orbital a la cola</span>
-                      </label>
-                    ) : null}
-                    <div className="selection-chip-row">
-                      <button
-                        type="button"
-                        className={reviewSelection.bucket === "available" ? "" : "planet-action-button-blocked"}
-                        onClick={() => void handleConfirmProduction()}
-                        disabled={reviewSelection.bucket !== "available" || !hasEnqueueAcknowledgement || isSubmittingEnqueue}
-                      >
-                        {reviewSelection.bucket === "available"
-                          ? isSubmittingEnqueue ? "Confirmando..." : "Confirmar"
-                          : "No disponible en esta version"}
-                      </button>
-                      <button
-                        type="button"
-                        className="planet-action-button-secondary"
-                        onClick={handleCancelReview}
-                        disabled={isSubmittingEnqueue}
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-                  </UiCard>
-                ) : null}
               </>
             )}
           </UiCard>
@@ -1243,6 +1177,65 @@ export function ShipyardPage() {
           <p className="error-text">{enqueueError}</p>
           {enqueueErrorFollowUp ? <p>{enqueueErrorFollowUp}</p> : null}
         </UiCard>
+      ) : null}
+
+      {reviewSelection && shipyard ? (
+        <GameModal
+          canClose={!isSubmittingEnqueue}
+          closeLabel="Cerrar"
+          description="La cabina revisa el impacto visible antes de habilitar cualquier accion real, incluido el gasto inmediato de recursos cuando el envio se acepta."
+          isBusy={isSubmittingEnqueue}
+          isOpen
+          onClose={handleCancelReview}
+          primaryAction={{
+            label: reviewSelection.bucket === "available" ? "Confirmar" : "No disponible en esta version",
+            onClick: () => void handleConfirmProduction(),
+            disabled: reviewSelection.bucket !== "available" || !hasEnqueueAcknowledgement,
+          }}
+          secondaryAction={{
+            label: "Cancelar",
+            onClick: handleCancelReview,
+            disabled: isSubmittingEnqueue,
+          }}
+          title="Confirmacion de produccion orbital"
+        >
+          <UiBadge tone={reviewSelection.bucket === "available" ? "good" : "warn"}>
+            {reviewSelection.bucket === "available" ? "Lista para futura cola" : "No enviable"}
+          </UiBadge>
+          <div className="readiness-grid">
+            <section className="subpanel figma-subpanel">
+              <div className="figma-data-list">
+                <div className="figma-data-row"><span>Planeta</span><strong>{shipyard.planetName}</strong></div>
+                <div className="figma-data-row"><span>Activo</span><strong>{reviewSelection.asset.label}</strong></div>
+                <div className="figma-data-row"><span>Salida</span><strong>{reviewSelection.asset.quantityLabel}</strong></div>
+                <div className="figma-data-row"><span>Duracion</span><strong>{reviewSelection.asset.estimatedDurationLabel}</strong></div>
+              </div>
+            </section>
+            <section className="subpanel figma-subpanel">
+              <div className="figma-data-list">
+                <div className="figma-data-row"><span>Coste</span><strong>{reviewSelection.asset.estimatedCostLabel}</strong></div>
+                <div className="figma-data-row"><span>Readiness</span><strong>{reviewSelection.asset.statusLabel}</strong></div>
+                <div className="figma-data-row"><span>Requisitos</span><strong>{formatRequirementLabel(reviewSelection.asset)}</strong></div>
+                <div className="figma-data-row"><span>Motivo visible</span><strong>{reviewSelection.asset.reasonLabel}</strong></div>
+              </div>
+            </section>
+          </div>
+          <p>
+            {reviewSelection.bucket === "available"
+              ? "La opcion ya puede enviarse por la via protegida de desarrollo si confirmas la revision. Si el backend la acepta, el coste visible se descuenta al momento."
+              : "Esta revision permanece en modo diagnostico. La cabina no intentara enviar nada mientras el estado siga bloqueado o no soportado."}
+          </p>
+          {reviewSelection.bucket === "available" ? (
+            <label className="confirmation-checkbox">
+              <input
+                type="checkbox"
+                checked={hasEnqueueAcknowledgement}
+                onChange={(event) => setHasEnqueueAcknowledgement(event.target.checked)}
+              />
+              <span>Confirmo que quiero enviar esta produccion orbital a la cola</span>
+            </label>
+          ) : null}
+        </GameModal>
       ) : null}
 
       <UiCard className="panel">
