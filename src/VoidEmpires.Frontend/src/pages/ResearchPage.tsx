@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { enqueueResearchOrder, fetchResearchUiState } from "../api/researchApi";
 import type { EnqueueResearchOrderFailureResponse, ResearchApiErrorCode } from "../api/researchTypes";
 import { CockpitHero } from "../components/CockpitHero";
+import { GameModal } from "../components/GameModal";
 import type { ResearchTechnology, ResearchUiState } from "../utils/researchPresentation";
 import {
   formatResearchCommandFailure,
@@ -659,63 +660,6 @@ export function ResearchPage() {
             </div>
           </UiCard>
 
-          {preparedResearch && preparedResearch.availability.canEnqueue ? (
-            <UiCard className="panel transfer-confirmation-panel research-confirmation-panel">
-              <div className="figma-section-header">
-                <div>
-                  <p className="eyebrow">Paso final</p>
-                  <h3>Confirmar inicio de investigacion</h3>
-                  <p>Esta accion creara una orden real de investigacion en la base de datos de Development.</p>
-                </div>
-                <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
-              </div>
-              <div className="figma-data-list">
-                <div className="figma-data-row"><span>Planeta</span><strong>{uiState.selectedPlanetName ?? "Sin planeta"}</strong></div>
-                <div className="figma-data-row"><span>Tecnologia</span><strong>{preparedResearch.label}</strong></div>
-                <div className="figma-data-row"><span>Categoria</span><strong>{preparedResearch.categoryLabel}</strong></div>
-                <div className="figma-data-row"><span>Nivel objetivo</span><strong>{preparedResearch.nextLevel}</strong></div>
-                <div className="figma-data-row"><span>Coste</span><strong>{preparedResearch.estimatedCostLabel}</strong></div>
-                <div className="figma-data-row"><span>Duracion</span><strong>{preparedResearch.estimatedDurationLabel}</strong></div>
-                <div className="figma-data-row"><span>Requisitos</span><strong>{preparedResearch.availability.reasonKey === "Ready" ? "Listos para envio" : preparedResearch.availability.reasonLabel}</strong></div>
-              </div>
-              <p className="figma-panel-note">
-                {preparedResearch.availability.reasonKey === "Ready"
-                  ? "La orden esta lista para enviarse cuando confirmes."
-                  : `La cabina validara tambien: ${preparedResearch.availability.reasonLabel}.`}
-              </p>
-              <ul className="stack-list compact-list">
-                <li>Esta accion creara una orden real de investigacion en la base de datos de Development.</li>
-                <li>Los recursos se descontaran cuando el backend confirme la orden.</li>
-                <li>No se completara automaticamente desde esta cabina.</li>
-              </ul>
-              <label className="confirmation-checkbox">
-                <input
-                  type="checkbox"
-                  checked={hasEnqueueAcknowledgement}
-                  onChange={(event) => setHasEnqueueAcknowledgement(event.target.checked)}
-                />
-                <span>Confirmo que quiero iniciar esta investigacion</span>
-              </label>
-              <div className="transfer-confirmation-actions">
-                <button
-                  type="button"
-                  className="planet-action-button-secondary"
-                  onClick={handleResearchCancel}
-                  disabled={isSubmittingEnqueue}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleResearchSubmit()}
-                  disabled={isSubmittingEnqueue || !hasEnqueueAcknowledgement}
-                >
-                  {isSubmittingEnqueue ? "Confirmando..." : "Confirmar investigacion"}
-                </button>
-              </div>
-            </UiCard>
-          ) : null}
-
           {enqueueFeedback ? <p>{enqueueFeedback}</p> : null}
           {enqueueError ? <p className="error-text">{enqueueError}</p> : null}
           {enqueueOrderDetails ? (
@@ -814,6 +758,56 @@ export function ResearchPage() {
             </div>
           </details>
         </>
+      ) : null}
+
+      {preparedResearch && preparedResearch.availability.canEnqueue ? (
+        <GameModal
+          canClose={!isSubmittingEnqueue}
+          closeLabel="Cerrar"
+          description="Esta accion creara una orden real de investigacion en la base de datos de Development."
+          isBusy={isSubmittingEnqueue}
+          isOpen
+          onClose={handleResearchCancel}
+          primaryAction={{
+            label: "Confirmar investigacion",
+            onClick: () => void handleResearchSubmit(),
+            disabled: !hasEnqueueAcknowledgement,
+          }}
+          secondaryAction={{
+            label: "Cancelar",
+            onClick: handleResearchCancel,
+          }}
+          title="Confirmar inicio de investigacion"
+        >
+          <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
+          <div className="figma-data-list">
+            <div className="figma-data-row"><span>Planeta</span><strong>{uiState?.selectedPlanetName ?? "Sin planeta"}</strong></div>
+            <div className="figma-data-row"><span>Tecnologia</span><strong>{preparedResearch.label}</strong></div>
+            <div className="figma-data-row"><span>Categoria</span><strong>{preparedResearch.categoryLabel}</strong></div>
+            <div className="figma-data-row"><span>Nivel objetivo</span><strong>{preparedResearch.nextLevel}</strong></div>
+            <div className="figma-data-row"><span>Coste</span><strong>{preparedResearch.estimatedCostLabel}</strong></div>
+            <div className="figma-data-row"><span>Duracion</span><strong>{preparedResearch.estimatedDurationLabel}</strong></div>
+            <div className="figma-data-row"><span>Requisitos</span><strong>{preparedResearch.availability.reasonKey === "Ready" ? "Listos para envio" : preparedResearch.availability.reasonLabel}</strong></div>
+          </div>
+          <p className="figma-panel-note">
+            {preparedResearch.availability.reasonKey === "Ready"
+              ? "La orden esta lista para enviarse cuando confirmes."
+              : `La cabina validara tambien: ${preparedResearch.availability.reasonLabel}.`}
+          </p>
+          <ul className="stack-list compact-list">
+            <li>Esta accion creara una orden real de investigacion en la base de datos de Development.</li>
+            <li>Los recursos se descontaran cuando el backend confirme la orden.</li>
+            <li>No se completara automaticamente desde esta cabina.</li>
+          </ul>
+          <label className="confirmation-checkbox">
+            <input
+              type="checkbox"
+              checked={hasEnqueueAcknowledgement}
+              onChange={(event) => setHasEnqueueAcknowledgement(event.target.checked)}
+            />
+            <span>Confirmo que quiero iniciar esta investigacion</span>
+          </label>
+        </GameModal>
       ) : null}
     </section>
   );

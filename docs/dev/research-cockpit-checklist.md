@@ -207,9 +207,9 @@ Safe UI boundary:
 - Re-read `GET /api/dev/research/ui-state` after a successful `201` before finalizing queue, hint, or resource visuals.
 - Keep `POST /api/dev/research/orders/complete-due` out of the cockpit because it completes every due open research order globally, not just the currently viewed civilization or planet.
 - Current confirmation audit:
-  - `/research` does not use a shared modal or dialog foundation today.
-  - The guarded submit step is an inline confirmation panel rendered directly inside `ResearchPage`.
-  - Any future reusable confirmation component must keep the current backend-command-driven submit boundary and explicit acknowledgement checkbox.
+  - `/research` now uses the reusable `GameModal` confirmation component.
+  - The guarded submit step remains read-only until the modal primary action runs.
+  - The backend-command-driven submit boundary and explicit acknowledgement checkbox remain mandatory.
 
 ## Final manual QA
 
