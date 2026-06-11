@@ -85,7 +85,19 @@ Then confirm on `/planet`:
   - local balances come from persisted `PlanetResourceStockpile`
   - production summaries come from persisted `PlanetProductionProfile`
   - elapsed-time accrual exists in backend services, but Planet read-state does not auto-apply a live tick during page load
+  - the accepted v1 accrual contract is explicit backend materialization through the existing economy tick service, not frontend timers and not silent `GET /planet` mutation
+  - current seeded and playable-start baseline production remains `18` credits, `14` metal, `6` crystal, and `3` gas per hour before any research multiplier
+  - current `ResourceExtraction` research is the only documented production-rate multiplier in scope for v1
 - Future backend work required before Planet can claim more:
+  - explicit resource-accrual apply path that materializes elapsed production safely before Planet claims live growth
+  - authoritative refresh flow that shows backend-confirmed balances after an accrual step
   - direct orbital production submit
   - defense-specific mutation
   - fleet command execution, allocation, or combat actions
+
+## Resource accrual contract note
+
+- Planet must stay honest about balance freshness.
+- Until the explicit accrual path exists, the page may show persisted reserves and persisted per-hour production together, but it must not imply that balances are increasing live in the browser.
+- Ordinary page load must not mutate stockpiles just because the user opened or refreshed `/planet`.
+- Any future resource refresh shown in Planet must come from a backend-confirmed accrual step plus a follow-up read, using the same authoritative pattern already used for Construction, Research, and Shipyard refreshes.

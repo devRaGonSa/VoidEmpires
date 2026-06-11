@@ -50,6 +50,65 @@ Current accepted block boundary for `Shipyard`, `Defenses`, `Fleets`, and `Plane
   - The cockpit read endpoints do not automatically apply elapsed production during page load, so visible balances remain whatever persistence last stored.
   - Construction, Research, and Shipyard each spend the full visible cost immediately when enqueue succeeds.
 
+## Resource economy accrual contract v1
+
+Chosen authoritative strategy:
+
+- Keep accrual backend-authoritative and explicit.
+- Use a materialized backend application step for accrual, not a frontend timer and not an automatic mutation during ordinary cockpit page load.
+- The current repository already has the safe primitive for this shape: `IPlanetEconomyTickService` -> `PlanetEconomyTickService` -> `ResourceProductionService`.
+
+Why this strategy is the accepted v1 contract:
+
+- `PlanetResourceStockpile` is the persisted source of truth for visible balances.
+- `PlanetProductionProfile` is the persisted source of truth for base hourly income.
+- `ResourceProductionService` already defines deterministic proportional accrual from `elapsed.TotalHours`.
+- `PlanetEconomyTickService` already materializes those gains into persistence and applies the current `ResourceExtraction` research multiplier.
+- The current read endpoints do not store or expose a persisted `lastAppliedAtUtc` watermark, so automatically mutating balances on every page load would risk repeated uncontrolled accrual.
+
+Deterministic accrual rules for v1:
+
+- Accrual is planet-scoped.
+- Base rates come from persisted `PlanetProductionProfile`:
+  - `CreditsPerHour`
+  - `MetalPerHour`
+  - `CrystalPerHour`
+  - `GasPerHour`
+- Effective rates are multiplied by the civilization's current `ResourceExtraction` research bonus through `ResearchBonusCalculator`.
+- Produced amounts are linear over elapsed real time:
+  - `produced = effectivePerHour * elapsed.TotalHours`
+- Zero elapsed time is a valid no-op.
+- Negative elapsed time is invalid and must be rejected.
+- Production and stockpile rows must belong to the same planet; mismatched or missing persistence state must fail clearly rather than fabricating balances.
+- v1 accepts decimal resource accumulation in persistence; it does not require integer-only truncation.
+
+Current baseline rates that v1 must preserve when profile data is seeded or created:
+
+- Shared seeded minimal/profile baseline for `Aurelia`:
+  - credits per hour `18`
+  - metal per hour `14`
+  - crystal per hour `6`
+  - gas per hour `3`
+- Current Development-only playable-start backend baseline:
+  - credits per hour `18`
+  - metal per hour `14`
+  - crystal per hour `6`
+  - gas per hour `3`
+
+Explicit v1 limitations and non-goals:
+
+- No frontend-only increasing timer.
+- No hidden resource mutation on normal `GET /api/dev/planets/ui-state` reads.
+- No premium acceleration, boosts, officers, consumables, or catch-up bundles.
+- No claim that background workers already own resource accrual.
+- No claim that Planet, Market, Research, Construction, or Shipyard currently show freshly materialized gains unless an explicit backend accrual step ran first.
+- No visual QA claim for accrual behavior in this documentation-only task.
+
+Implementation guidance for follow-up tasks:
+
+- `TASK-32K` should introduce the first explicit backend application path for resource accrual using the existing tick-service contract rather than inventing a second accrual formula.
+- `TASK-32L` should refresh frontend-visible balances only from backend-confirmed state after that explicit accrual path exists.
+
 ## Safe baseline
 
 Recommended deterministic setup:
