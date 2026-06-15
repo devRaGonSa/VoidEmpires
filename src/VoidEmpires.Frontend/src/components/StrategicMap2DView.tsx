@@ -96,7 +96,7 @@ export function StrategicMap2DView({
             className={`map-node map-node-${tone(system.visibilityLevel)}${selectedSystemId === system.systemId ? " map-node-selected" : ""}`}
             role="button"
             tabIndex={0}
-            aria-label={`Select ${system.systemName ?? "unknown system"}`}
+            aria-label={`Seleccionar ${system.systemName ?? "sistema desconocido"}`}
             onClick={() => onSelectSystem?.(system.systemId)}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
@@ -105,7 +105,7 @@ export function StrategicMap2DView({
               }
             }}
           >
-            <title>{system.systemName ?? "Unknown system"}</title>
+            <title>{system.systemName ?? "Sistema desconocido"}</title>
             <circle r="30" className="map-node-halo" />
             {(system.transferOverlays?.length ?? 0) > 0 && (
               <>
@@ -144,7 +144,7 @@ export function StrategicMap2DView({
               />
             )}
             <text className="map-node-title" x="0" y="44">
-              {system.systemName ?? "Unknown system"}
+              {system.systemName ?? "Sistema desconocido"}
             </text>
             <text className="map-node-meta" x="0" y="63">
               {formatVisibilityLevel(system.visibilityLevel)} | P {system.planets?.length ?? 0} | F{" "}

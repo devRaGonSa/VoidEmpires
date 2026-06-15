@@ -7,6 +7,8 @@ $frontendSrc = Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src"
 $resolvedFrontendSrc = [System.IO.Path]::GetFullPath($frontendSrc)
 $docsRoot = Join-Path $PSScriptRoot "..\docs"
 $resolvedDocsRoot = [System.IO.Path]::GetFullPath($docsRoot)
+$scriptsRoot = Join-Path $PSScriptRoot "..\scripts"
+$resolvedScriptsRoot = [System.IO.Path]::GetFullPath($scriptsRoot)
 $seedUiStateRoot = Join-Path $PSScriptRoot "..\src\VoidEmpires.Infrastructure"
 $resolvedSeedUiStateRoot = [System.IO.Path]::GetFullPath($seedUiStateRoot)
 
@@ -16,12 +18,17 @@ if (-not (Test-Path -LiteralPath $resolvedFrontendSrc)) {
 if (-not (Test-Path -LiteralPath $resolvedDocsRoot)) {
   throw "Docs root was not found at '$resolvedDocsRoot'."
 }
+if (-not (Test-Path -LiteralPath $resolvedScriptsRoot)) {
+  throw "Scripts root was not found at '$resolvedScriptsRoot'."
+}
 if (-not (Test-Path -LiteralPath $resolvedSeedUiStateRoot)) {
   throw "Infrastructure src root was not found at '$resolvedSeedUiStateRoot'."
 }
 
 $frontendFiles = Get-ChildItem -Path $resolvedFrontendSrc -Recurse -Include *.ts, *.tsx -File
 $docsFiles = Get-ChildItem -Path $resolvedDocsRoot -Recurse -Include *.md -File
+$scriptFiles = Get-ChildItem -Path $resolvedScriptsRoot -Recurse -Include *.ps1 -File |
+  Where-Object { $_.FullName -ne $PSCommandPath }
 $seedPayloadFiles = Get-ChildItem -Path $resolvedSeedUiStateRoot -Recurse -Include *UiStateService.cs, *UiState*Service.cs -File |
   Where-Object { $_.FullName -notmatch "\\bin\\" -and $_.FullName -notmatch "\\obj\\" }
 
@@ -83,6 +90,49 @@ if ($filteredMatches) {
   throw "Frontend copy regression check failed."
 }
 
+$copyHygieneFailures = New-Object System.Collections.Generic.List[string]
+
+$mojibakePatterns = @(
+  (-join @([char]0x00C3, [char]0x0192, [char]0x00C6, [char]0x2019)),
+  (-join @([char]0x00C3, [char]0x0192, [char]0x00E2, [char]0x20AC, [char]0x0161)),
+  (-join @([char]0x00C3, [char]0x2020, [char]0x00E2, [char]0x20AC, [char]0x2122))
+)
+$mojibakeFiles = $frontendFiles + $docsFiles + $scriptFiles
+$mojibakeMatches = Select-String -Path ($mojibakeFiles | Select-Object -ExpandProperty FullName) -Pattern $mojibakePatterns -SimpleMatch -CaseSensitive:$true
+foreach ($match in @($mojibakeMatches)) {
+  $copyHygieneFailures.Add(("{0}:{1}: corrupted encoding sequence detected: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
+}
+
+$placeholderIdPattern = "<(CivilizationId|PlanetId|SystemId|UserId|PlayerProfileId)>"
+$placeholderSearchFiles = $frontendFiles + $docsFiles
+$placeholderMatches = Select-String -Path ($placeholderSearchFiles | Select-Object -ExpandProperty FullName) -Pattern $placeholderIdPattern -CaseSensitive:$true
+foreach ($match in @($placeholderMatches)) {
+  $copyHygieneFailures.Add(("{0}:{1}: replace angle-bracket id placeholder with a real seeded id, local-session guidance, or braces-only docs notation: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
+}
+
+$englishFallbackPatterns = @(
+  '"Loading\.\.\."',
+  '"No data"',
+  '"Unavailable"',
+  '"Unknown system"',
+  '"Unknown planet"',
+  ">Loading\.\.\.<",
+  ">No data<",
+  ">Unavailable<",
+  ">Unknown system<",
+  ">Unknown planet<"
+)
+$primaryUiFiles = $frontendFiles |
+  Where-Object { $_.FullName -match "\\(pages|components)\\" }
+$englishFallbackMatches = Select-String -Path ($primaryUiFiles | Select-Object -ExpandProperty FullName) -Pattern $englishFallbackPatterns -CaseSensitive:$true
+foreach ($match in @($englishFallbackMatches)) {
+  $copyHygieneFailures.Add(("{0}:{1}: English fallback copy in primary UI should be Spanish-first: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
+}
+
+if ($copyHygieneFailures.Count -gt 0) {
+  throw "Frontend copy hygiene guard failed:`n$($copyHygieneFailures -join [Environment]::NewLine)"
+}
+
 $forbiddenActionPatterns = @(
   "Attack",
   "Atacar",
@@ -122,6 +172,28 @@ if ($forbiddenActionMatches) {
   }
 
   throw "Frontend forbidden-action guard failed."
+}
+
+$forbiddenCheatPatterns = @(
+  "Instant completion",
+  "Instant complete",
+  "Complete instantly",
+  "Cheat",
+  "Cheats",
+  "Truco",
+  "Trucos",
+  "Modo trampa",
+  "Completar ahora sin esperar",
+  "Completar sin esperar"
+)
+$forbiddenCheatMatches = Select-String -Path $frontendActionSurfacePaths -Pattern $forbiddenCheatPatterns -SimpleMatch -CaseSensitive:$false
+if ($forbiddenCheatMatches) {
+  Write-Host "Forbidden cheat or instant-completion copy detected in frontend page or component files:" -ForegroundColor Red
+  $forbiddenCheatMatches | ForEach-Object {
+    Write-Host ("{0}:{1}: {2}" -f $_.Path, $_.LineNumber, $_.Line.Trim())
+  }
+
+  throw "Frontend cheat-copy guard failed."
 }
 
 $playableSessionPath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\utils\playableSession.ts"))
