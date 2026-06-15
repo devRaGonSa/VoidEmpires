@@ -291,6 +291,7 @@ Safe local navigation persistence contract for follow-up tasks:
 - The backend remains the source of truth for player, civilization, planet ownership, resources, queues, fleets, and every gameplay mutation.
 - Do not store production auth data, login state, bearer tokens, cookies, email-confirmation state, role claims, or any session claim in this local cockpit context.
 - Do not infer production authentication from the presence of a local playable context. Missing or stale local values must fall back to explicit route entry or onboarding, not hidden backend authority.
+- The current frontend has no unit-test runner; the static guard for the typed helper is `npm run build --prefix src/VoidEmpires.Frontend`, which type-checks `src/VoidEmpires.Frontend/src/utils/playableSession.ts`.
 
 Explicit limitations of the current onboarding story:
 
