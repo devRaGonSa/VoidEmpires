@@ -21,8 +21,9 @@ public sealed class GameplayQueueMaterializationService(VoidEmpiresDbContext dbC
         if (request.PlanetId == Guid.Empty) return Failure("Planet id must be omitted or non-empty.");
         if (request.NowUtc.Kind != DateTimeKind.Utc) return Failure("Materialization date must be UTC.");
 
+        var notes = new List<string>();
         var construction = request.IncludeConstruction
-            ? await CountConstructionAsync(request, cancellationToken)
+            ? await MaterializeConstructionAsync(request, notes, cancellationToken)
             : EmptySummary;
         var research = request.IncludeResearch
             ? await CountResearchAsync(request, cancellationToken)
@@ -31,11 +32,13 @@ public sealed class GameplayQueueMaterializationService(VoidEmpiresDbContext dbC
             ? await CountShipyardAsync(request, cancellationToken)
             : EmptySummary;
 
-        return new(true, construction, research, shipyard, ["Scoped materialization boundary prepared."]);
+        if (notes.Count == 0) notes.Add("Scoped materialization completed.");
+        return new(true, construction, research, shipyard, notes);
     }
 
-    private async Task<QueueMaterializationSummary> CountConstructionAsync(
+    private async Task<QueueMaterializationSummary> MaterializeConstructionAsync(
         MaterializeGameplayQueuesRequest request,
+        List<string> notes,
         CancellationToken cancellationToken)
     {
         var query =
@@ -48,7 +51,48 @@ public sealed class GameplayQueueMaterializationService(VoidEmpiresDbContext dbC
 
         if (request.PlanetId is not null) query = query.Where(x => x.PlanetId == request.PlanetId.Value);
 
-        return await CountOpenQueueAsync(query.Select(x => x.EndsAtUtc), request.NowUtc, cancellationToken);
+        var dueOrders = await query
+            .Where(x => x.EndsAtUtc <= request.NowUtc)
+            .OrderBy(x => x.EndsAtUtc)
+            .ThenBy(x => x.Sequence)
+            .ToListAsync(cancellationToken);
+        var notDueCount = await query.CountAsync(x => x.EndsAtUtc > request.NowUtc, cancellationToken);
+        var processedCount = 0;
+
+        foreach (var order in dueOrders)
+        {
+            if (order.Action == ConstructionQueueItemAction.Construct)
+            {
+                var existingBuilding = await dbContext.PlanetBuildings
+                    .SingleOrDefaultAsync(x => x.PlanetId == order.PlanetId && x.BuildingType == order.BuildingType, cancellationToken);
+
+                if (existingBuilding is null)
+                {
+                    var definition = BuildingCatalog.Get(order.BuildingType);
+                    dbContext.PlanetBuildings.Add(PlanetBuilding.Create(order.PlanetId, order.BuildingType, order.TargetLevel, definition.Footprint));
+                }
+            }
+            else if (order.Action == ConstructionQueueItemAction.Upgrade)
+            {
+                var building = await dbContext.PlanetBuildings
+                    .SingleOrDefaultAsync(x => x.PlanetId == order.PlanetId && x.BuildingType == order.BuildingType, cancellationToken);
+
+                if (building is null)
+                {
+                    notes.Add($"Construction order {order.Id} was due but its target building was not found.");
+                    continue;
+                }
+
+                while (building.Level < order.TargetLevel) building.Upgrade();
+            }
+
+            order.MarkCompleted();
+            processedCount++;
+        }
+
+        if (processedCount > 0) await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new(processedCount, dueOrders.Count, notDueCount);
     }
 
     private async Task<QueueMaterializationSummary> CountResearchAsync(
