@@ -86,6 +86,10 @@ Frontend-confirmed persisted QA path:
   - `/construction` now uses the reusable `GameModal` confirmation component.
   - The guarded submit step still lives in the shared `PlanetPage` construction variant and stays read-only until the modal primary action runs.
   - The explicit acknowledgement checkbox remains required before submit.
+- Current playable-session audit:
+  - `/construction` is still the shared `PlanetPage` construction variant, so session context, the playable-session banner, and missing-id local-session continuation are owned by that shared route implementation.
+  - Local playable-session memory only rebuilds navigation URLs; it does not change construction selection, modal opening, enqueue confirmation, resource spend, or backend-first refresh behavior.
+  - Handoffs back to `Planeta` use the active `civilizationId` and `planetId` from the loaded construction context.
 
 ## Audited rejection and guardrail matrix
 
