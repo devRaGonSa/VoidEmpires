@@ -61,6 +61,7 @@ import {
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
+import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
 
 interface PlanetPageProps {
   variant?: "planet" | "construction";
@@ -268,6 +269,13 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const isConstructionRoute = variant === "construction";
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
+  const playableRouteContext = usePlayableRouteContext(queryCivilizationId);
+  const playableSession = playableRouteContext.playableSession;
+  const playableSessionUrl = playableSession
+    ? isConstructionRoute
+      ? buildConstructionUrl(playableSession.civilizationId, playableSession.planetId)
+      : buildPlanetUrl(playableSession.civilizationId, playableSession.planetId)
+    : null;
 
   const preparedAction = useMemo(
     () => findPreparedAction(planet, preparedActionKey),
@@ -711,6 +719,26 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>
               Abrir contexto de desarrollo
+            </Link>
+          </div>
+        </UiCard>
+      ) : null}
+
+      {!queryCivilizationId && playableSession && playableSessionUrl ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Inicio local disponible</p>
+              <h3>Continuar con {playableSession.planetName ?? "la ultima colonia"}</h3>
+            </div>
+            <UiBadge tone="good">Memoria local</UiBadge>
+          </div>
+          <p className="figma-panel-note">
+            Este enlace solo reconstruye la URL con ids guardados por `/onboarding`; el backend seguira validando el estado real.
+          </p>
+          <div className="selection-chip-row">
+            <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
+              {isConstructionRoute ? "Abrir Construccion" : "Abrir Planeta"}
             </Link>
           </div>
         </UiCard>

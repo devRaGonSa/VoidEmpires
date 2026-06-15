@@ -21,9 +21,11 @@ import {
   buildGalaxyUrl,
   buildPlanetUrl,
   buildResearchUrl,
+  buildShipyardUrl,
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
 import { cockpitNavigationLabels, cockpitStatusLabels } from "../utils/cockpitStatus";
+import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
 
 function formatDateTime(value: string) {
   const parsed = Date.parse(value);
@@ -297,6 +299,11 @@ export function ShipyardPage() {
   const selectedPlanetId = uiState?.selectedPlanetId ?? queryPlanetId ?? null;
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
+  const playableRouteContext = usePlayableRouteContext(queryCivilizationId);
+  const playableSession = playableRouteContext.playableSession;
+  const playableSessionUrl = playableSession
+    ? buildShipyardUrl(playableSession.civilizationId, playableSession.planetId)
+    : null;
   const shipyard = uiState?.shipyard ?? null;
   const hasSafeShipyardEnqueue = shipyard?.actionAvailability.enqueue.supported ?? false;
   const hasSafeShipyardCompleteDue = false;
@@ -675,6 +682,26 @@ export function ShipyardPage() {
             <UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge>
           </div>
           <p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p>
+        </UiCard>
+      ) : null}
+
+      {!queryCivilizationId && playableSession && playableSessionUrl ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Inicio local disponible</p>
+              <h3>Continuar con {playableSession.planetName ?? "la ultima colonia"}</h3>
+            </div>
+            <UiBadge tone="good">Memoria local</UiBadge>
+          </div>
+          <p className="figma-panel-note">
+            Este enlace solo reconstruye la URL con ids guardados por `/onboarding`; el backend seguira validando el estado real.
+          </p>
+          <div className="selection-chip-row">
+            <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
+              Abrir Astillero
+            </Link>
+          </div>
         </UiCard>
       ) : null}
 

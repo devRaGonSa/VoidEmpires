@@ -18,7 +18,8 @@ import {
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
-import { buildConstructionUrl, buildFleetsUrl, buildGalaxyUrl, buildPlanetUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
+import { buildConstructionUrl, buildFleetsUrl, buildGalaxyUrl, buildPlanetUrl, buildResearchUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
+import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
 
 function formatDateTime(value: string) {
   const parsed = Date.parse(value);
@@ -215,6 +216,11 @@ export function ResearchPage() {
   const selectedPlanetId = uiState?.selectedPlanetId ?? queryPlanetId ?? null;
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
+  const playableRouteContext = usePlayableRouteContext(queryCivilizationId);
+  const playableSession = playableRouteContext.playableSession;
+  const playableSessionUrl = playableSession
+    ? buildResearchUrl(playableSession.civilizationId, playableSession.planetId)
+    : null;
   const recommendedResearch = useMemo(() => selectRecommendedResearch(uiState?.catalog ?? []), [uiState?.catalog]);
   const catalogGroups = useMemo(() => groupResearchTechnologiesByCategory(uiState?.catalog ?? []), [uiState?.catalog]);
   const catalogSummary = useMemo(() => summarizeResearchCatalog(uiState?.catalog ?? []), [uiState?.catalog]);
@@ -489,6 +495,26 @@ export function ResearchPage() {
           <p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p>
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>Abrir Planeta</Link>
+          </div>
+        </UiCard>
+      ) : null}
+
+      {!queryCivilizationId && playableSession && playableSessionUrl ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Inicio local disponible</p>
+              <h3>Continuar con {playableSession.planetName ?? "la ultima colonia"}</h3>
+            </div>
+            <UiBadge tone="good">Memoria local</UiBadge>
+          </div>
+          <p className="figma-panel-note">
+            Este enlace solo reconstruye la URL con ids guardados por `/onboarding`; el backend seguira validando el estado real.
+          </p>
+          <div className="selection-chip-row">
+            <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
+              Abrir Investigacion
+            </Link>
           </div>
         </UiCard>
       ) : null}
