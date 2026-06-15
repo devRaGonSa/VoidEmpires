@@ -26,7 +26,7 @@ public sealed class GameplayQueueMaterializationService(VoidEmpiresDbContext dbC
             ? await MaterializeConstructionAsync(request, notes, cancellationToken)
             : EmptySummary;
         var research = request.IncludeResearch
-            ? await CountResearchAsync(request, cancellationToken)
+            ? await MaterializeResearchAsync(request, cancellationToken)
             : EmptySummary;
         var shipyard = request.IncludeShipyard
             ? await CountShipyardAsync(request, cancellationToken)
@@ -95,7 +95,7 @@ public sealed class GameplayQueueMaterializationService(VoidEmpiresDbContext dbC
         return new(processedCount, dueOrders.Count, notDueCount);
     }
 
-    private async Task<QueueMaterializationSummary> CountResearchAsync(
+    private async Task<QueueMaterializationSummary> MaterializeResearchAsync(
         MaterializeGameplayQueuesRequest request,
         CancellationToken cancellationToken)
     {
@@ -105,7 +105,31 @@ public sealed class GameplayQueueMaterializationService(VoidEmpiresDbContext dbC
 
         if (request.PlanetId is not null) query = query.Where(x => x.SourcePlanetId == request.PlanetId.Value);
 
-        return await CountOpenQueueAsync(query.Select(x => x.EndsAtUtc), request.NowUtc, cancellationToken);
+        var dueOrders = await query
+            .Where(x => x.EndsAtUtc <= request.NowUtc)
+            .OrderBy(x => x.EndsAtUtc)
+            .ThenBy(x => x.Sequence)
+            .ToListAsync(cancellationToken);
+        var notDueCount = await query.CountAsync(x => x.EndsAtUtc > request.NowUtc, cancellationToken);
+
+        foreach (var order in dueOrders)
+        {
+            var project = await dbContext.ResearchProjects
+                .SingleOrDefaultAsync(x => x.CivilizationId == order.CivilizationId && x.ResearchType == order.ResearchType, cancellationToken);
+
+            if (project is null)
+            {
+                project = ResearchProject.Create(order.CivilizationId, order.ResearchType);
+                dbContext.ResearchProjects.Add(project);
+            }
+
+            while (project.Level < order.TargetLevel) project.Upgrade();
+            order.MarkCompleted();
+        }
+
+        if (dueOrders.Count > 0) await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new(dueOrders.Count, dueOrders.Count, notDueCount);
     }
 
     private async Task<QueueMaterializationSummary> CountShipyardAsync(

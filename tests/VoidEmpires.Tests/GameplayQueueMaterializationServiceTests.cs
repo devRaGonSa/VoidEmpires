@@ -23,13 +23,14 @@ public class GameplayQueueMaterializationServiceTests
         var dueConstruction = CreateConstructionOrder(planetId, 1, nowUtc.AddMinutes(-1), ConstructionQueueItemStatus.Active);
         var notDueConstruction = CreateConstructionOrder(planetId, 2, nowUtc.AddMinutes(5), ConstructionQueueItemStatus.Pending);
         var unrelatedConstruction = CreateConstructionOrder(otherPlanetId, 1, nowUtc.AddMinutes(-1), ConstructionQueueItemStatus.Active);
+        var dueResearch = CreateResearchOrder(civilizationId, planetId, 1, nowUtc.AddMinutes(-1), ResearchQueueItemStatus.Active);
+        var notDueResearch = CreateResearchOrder(civilizationId, planetId, 2, nowUtc.AddMinutes(5), ResearchQueueItemStatus.Pending);
+        var unrelatedResearch = CreateResearchOrder(otherCivilizationId, otherPlanetId, 1, nowUtc.AddMinutes(-1), ResearchQueueItemStatus.Active);
 
         dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(planetId, civilizationId));
         dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(otherPlanetId, otherCivilizationId));
         dbContext.PlanetConstructionOrders.AddRange(dueConstruction, notDueConstruction, unrelatedConstruction);
-        dbContext.ResearchOrders.Add(CreateResearchOrder(civilizationId, planetId, 1, nowUtc.AddMinutes(-1), ResearchQueueItemStatus.Active));
-        dbContext.ResearchOrders.Add(CreateResearchOrder(civilizationId, planetId, 2, nowUtc.AddMinutes(5), ResearchQueueItemStatus.Pending));
-        dbContext.ResearchOrders.Add(CreateResearchOrder(otherCivilizationId, otherPlanetId, 1, nowUtc.AddMinutes(-1), ResearchQueueItemStatus.Active));
+        dbContext.ResearchOrders.AddRange(dueResearch, notDueResearch, unrelatedResearch);
         dbContext.Set<AssetProductionOrder>().Add(CreateAssetOrder(planetId, 1, nowUtc.AddMinutes(-1), AssetProductionOrderStatus.Active));
         dbContext.Set<AssetProductionOrder>().Add(CreateAssetOrder(planetId, 2, nowUtc.AddMinutes(5), AssetProductionOrderStatus.Pending));
         dbContext.Set<AssetProductionOrder>().Add(CreateAssetOrder(otherPlanetId, 1, nowUtc.AddMinutes(-1), AssetProductionOrderStatus.Active));
@@ -40,12 +41,42 @@ public class GameplayQueueMaterializationServiceTests
 
         Assert.True(result.Succeeded);
         Assert.Equal(new QueueMaterializationSummary(1, 1, 1), result.Construction);
-        Assert.Equal(new QueueMaterializationSummary(0, 1, 1), result.Research);
+        Assert.Equal(new QueueMaterializationSummary(1, 1, 1), result.Research);
         Assert.Equal(new QueueMaterializationSummary(0, 1, 1), result.Shipyard);
         Assert.Equal(ConstructionQueueItemStatus.Completed, dueConstruction.Status);
         Assert.Equal(ConstructionQueueItemStatus.Pending, notDueConstruction.Status);
         Assert.Equal(ConstructionQueueItemStatus.Active, unrelatedConstruction.Status);
+        Assert.Equal(ResearchQueueItemStatus.Completed, dueResearch.Status);
+        Assert.Equal(ResearchQueueItemStatus.Pending, notDueResearch.Status);
+        Assert.Equal(ResearchQueueItemStatus.Active, unrelatedResearch.Status);
         Assert.Contains(dbContext.PlanetBuildings, x => x.PlanetId == planetId && x.BuildingType == BuildingType.MetalMine);
+        Assert.Contains(dbContext.ResearchProjects, x => x.CivilizationId == civilizationId && x.ResearchType == ResearchType.PlanetaryEngineering);
+    }
+
+    [Fact]
+    public async Task MaterializeDueAsyncDoesNotRepeatResearchUpgradeAndClearsOpenOrder()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var planetId = Guid.NewGuid();
+        var nowUtc = new DateTime(2026, 6, 15, 12, 0, 0, DateTimeKind.Utc);
+        var project = ResearchProject.Create(civilizationId, ResearchType.PlanetaryEngineering);
+        var order = ResearchOrder.Create(civilizationId, planetId, ResearchType.PlanetaryEngineering, 2, 1, nowUtc.AddMinutes(-11), nowUtc.AddMinutes(-1), ResearchQueueItemStatus.Active);
+
+        dbContext.ResearchProjects.Add(project);
+        dbContext.ResearchOrders.Add(order);
+        await dbContext.SaveChangesAsync();
+
+        var service = new GameplayQueueMaterializationService(dbContext);
+        var request = new MaterializeGameplayQueuesRequest(civilizationId, planetId, nowUtc, false, true, false);
+        var first = await service.MaterializeDueAsync(request);
+        var second = await service.MaterializeDueAsync(request);
+
+        Assert.Equal(new QueueMaterializationSummary(1, 1, 0), first.Research);
+        Assert.Equal(new QueueMaterializationSummary(0, 0, 0), second.Research);
+        Assert.Equal(2, project.Level);
+        Assert.Equal(ResearchQueueItemStatus.Completed, order.Status);
+        Assert.False(await dbContext.ResearchOrders.AnyAsync(x => x.CivilizationId == civilizationId && (x.Status == ResearchQueueItemStatus.Pending || x.Status == ResearchQueueItemStatus.Active)));
     }
 
     [Fact]
