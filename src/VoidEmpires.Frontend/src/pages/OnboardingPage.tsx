@@ -1,10 +1,30 @@
 import { FormEvent, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
-import { buildGalaxyUrl, buildPlanetUrl } from "../utils/routeUrls";
+import { savePlayableSession } from "../utils/playableSession";
+import {
+  buildConstructionUrl,
+  buildGalaxyUrl,
+  buildPlanetUrl,
+  buildResearchUrl,
+  buildShipyardUrl,
+} from "../utils/routeUrls";
+
+interface CreatedPlayableStart {
+  civilizationId: string;
+  planetId: string;
+  playerDisplayName: string;
+  civilizationName: string;
+  planetName: string;
+  planetUrl: string;
+  constructionUrl: string;
+  researchUrl: string;
+  shipyardUrl: string;
+  storedLocally: boolean;
+}
 
 function toSpanishOnboardingError(message: string) {
   switch (message.trim()) {
@@ -24,13 +44,13 @@ function toSpanishOnboardingError(message: string) {
 }
 
 export function OnboardingPage() {
-  const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
   const [civilizationName, setCivilizationName] = useState("");
   const [homePlanetName, setHomePlanetName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [technicalDetail, setTechnicalDetail] = useState<string | null>(null);
+  const [createdStart, setCreatedStart] = useState<CreatedPlayableStart | null>(null);
   const [limitations, setLimitations] = useState<string[]>([
     "Flujo solo para desarrollo.",
     "No crea una sesion autenticada.",
@@ -42,11 +62,14 @@ export function OnboardingPage() {
     setIsSubmitting(true);
     setError(null);
     setTechnicalDetail(null);
+    setCreatedStart(null);
 
     try {
+      const submittedDisplayName = displayName.trim();
+      const submittedCivilizationName = civilizationName.trim();
       const result = await voidEmpiresApi.createPlayableStart({
-        displayName: displayName.trim(),
-        civilizationName: civilizationName.trim(),
+        displayName: submittedDisplayName,
+        civilizationName: submittedCivilizationName,
         ...(homePlanetName.trim() ? { homePlanetName: homePlanetName.trim() } : {}),
       });
 
@@ -69,7 +92,31 @@ export function OnboardingPage() {
         return;
       }
 
-      navigate(buildPlanetUrl(result.response.civilizationId, result.response.homePlanetId));
+      const planetName = result.response.homePlanetName ?? (homePlanetName.trim() || "Planeta inicial");
+      const storedSession = savePlayableSession({
+        civilizationId: result.response.civilizationId,
+        planetId: result.response.homePlanetId,
+        playerDisplayName: submittedDisplayName,
+        civilizationName: submittedCivilizationName,
+        planetName,
+      });
+
+      setCreatedStart({
+        civilizationId: result.response.civilizationId,
+        planetId: result.response.homePlanetId,
+        playerDisplayName: submittedDisplayName,
+        civilizationName: submittedCivilizationName,
+        planetName,
+        planetUrl: buildPlanetUrl(result.response.civilizationId, result.response.homePlanetId),
+        constructionUrl: buildConstructionUrl(result.response.civilizationId, result.response.homePlanetId),
+        researchUrl: buildResearchUrl(result.response.civilizationId, result.response.homePlanetId),
+        shipyardUrl: buildShipyardUrl(result.response.civilizationId, result.response.homePlanetId),
+        storedLocally: storedSession !== null,
+      });
+
+      if (!storedSession) {
+        setTechnicalDetail("El inicio fue creado, pero el navegador no permitio guardar la memoria local de navegacion.");
+      }
     } catch (requestError) {
       setError("No se pudo contactar con la ruta de inicio jugable.");
       setTechnicalDetail(requestError instanceof Error ? requestError.message : "Error desconocido.");
@@ -144,6 +191,46 @@ export function OnboardingPage() {
 
         {error ? <p className="error-text">{error}</p> : null}
         {technicalDetail ? <p className="figma-panel-note">{technicalDetail}</p> : null}
+
+        {createdStart ? (
+          <div className="subpanel figma-subpanel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Inicio creado</p>
+                <h3>{createdStart.planetName}</h3>
+              </div>
+              <UiBadge tone="good">Contexto listo</UiBadge>
+            </div>
+            <p className="figma-panel-note">
+              La colonia inicial ya existe en el backend. La memoria local solo conserva los enlaces de navegacion para este navegador.
+            </p>
+            <div className="selection-chip-row">
+              <Link className="selection-chip selection-chip-active" to={createdStart.planetUrl}>
+                Abrir Planeta
+              </Link>
+              <Link className="selection-chip" to={createdStart.constructionUrl}>
+                Construccion
+              </Link>
+              <Link className="selection-chip" to={createdStart.researchUrl}>
+                Investigacion
+              </Link>
+              <Link className="selection-chip" to={createdStart.shipyardUrl}>
+                Astillero
+              </Link>
+            </div>
+            <details className="technical-disclosure">
+              <summary>Detalles de navegacion local</summary>
+              <div className="figma-data-list">
+                <div className="figma-data-row"><span>Jugador</span><strong>{createdStart.playerDisplayName}</strong></div>
+                <div className="figma-data-row"><span>Civilizacion</span><strong>{createdStart.civilizationName}</strong></div>
+                <div className="figma-data-row"><span>Planeta</span><strong>{createdStart.planetName}</strong></div>
+                <div className="figma-data-row"><span>Memoria local</span><strong>{createdStart.storedLocally ? "Guardada" : "No disponible"}</strong></div>
+                <div className="figma-data-row"><span>civilizationId</span><strong>{createdStart.civilizationId}</strong></div>
+                <div className="figma-data-row"><span>planetId</span><strong>{createdStart.planetId}</strong></div>
+              </div>
+            </details>
+          </div>
+        ) : null}
 
         <div className="selection-chip-row">
           <Link className="selection-chip" to={buildGalaxyUrl()}>
