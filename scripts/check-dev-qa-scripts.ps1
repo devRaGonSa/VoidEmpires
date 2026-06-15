@@ -23,7 +23,8 @@ function Get-ExistingDevQaScriptPaths {
         "dev-qa-fleet-read-state.ps1",
         "dev-qa-prepare-playable-session-state.ps1",
         "dev-qa-materialize-due-queues.ps1",
-        "dev-qa-get-playable-session-diagnostics.ps1"
+        "dev-qa-get-playable-session-diagnostics.ps1",
+        "dev-qa-playable-loop-guide.ps1"
     )
 
     $optionalScriptNames = @(
