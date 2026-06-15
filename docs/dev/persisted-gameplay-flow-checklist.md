@@ -329,6 +329,12 @@ Playable session QA helper:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-playable-session-state.ps1 -ElapsedSeconds 3600`
 - Exact command when you also want the helper to print, but not run, the scoped due-queue materialization command for the created ids:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-playable-session-state.ps1 -ElapsedSeconds 3600 -PrintQueueMaterializationCommand`
+- Single-command guide for the full local loop:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-playable-loop-guide.ps1`
+- Read-only diagnostics helper after you have concrete ids:
+  - `$civilizationId = "00000000-0000-0000-0000-000000000001"`
+  - `$planetId = "40000000-0000-0000-0000-000000000001"`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-get-playable-session-diagnostics.ps1 -CivilizationId $civilizationId -PlanetId $planetId`
 - The helper creates a real Development-only playable start through `POST /api/dev/players/starting-civilization`.
 - When `-ElapsedSeconds` is greater than zero, it applies backend resource accrual through the explicit Development economy endpoint and then re-reads the planet state.
 - The helper prints the created `UserId`, `PlayerProfileId`, `CivilizationId`, `HomePlanetId`, homeworld names, starting resources, current resources, and resource deltas when accrual is materialized.
@@ -341,7 +347,9 @@ Playable session queue materialization flow:
 1. Create the playable start with the command above and keep the printed `CivilizationId` and `HomePlanetId`.
 2. Enqueue Construction, Research, and Shipyard orders through the guarded cockpit paths or existing backend QA helpers for that same civilization and planet.
 3. Materialize due queues explicitly only when you are ready to test completed state:
-   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-materialize-due-queues.ps1 -CivilizationId <printed CivilizationId> -PlanetId <printed HomePlanetId> -ElapsedSeconds 3600`
+   - `$civilizationId = "PASTE-PRINTED-CIVILIZATION-ID-HERE"`
+   - `$planetId = "PASTE-PRINTED-HOME-PLANET-ID-HERE"`
+   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-materialize-due-queues.ps1 -CivilizationId $civilizationId -PlanetId $planetId -ElapsedSeconds 3600`
 4. Refresh Planet, Construction, Research, and Shipyard from their authoritative read endpoints after materialization. Do not infer completed state from the print-only command.
 
 ## Playable loop hardening audit scope
@@ -360,6 +368,8 @@ Hardening gaps identified before behavior changes:
 
 - Script output consistency:
   - `dev-qa-materialize-due-queues.ps1` correctly warns that it mutates the Development database, prints the target civilization, planet, and `NowUtc`, handles backend-offline failures with an actionable `dotnet run --project .\src\VoidEmpires.Web` hint, and prints per-queue counts.
+  - `dev-qa-get-playable-session-diagnostics.ps1` reads only diagnostics for a concrete civilization and planet and can print raw JSON when explicitly requested.
+  - `dev-qa-playable-loop-guide.ps1` prints the ordered backend, helper, frontend, materialization, and diagnostics sequence without running mutating steps by default.
   - The script warning currently contains mojibake for `ordenes`, so a follow-up encoding task should normalize PowerShell output to UTF-8-safe ASCII or consistently encoded Spanish text.
   - `dev-qa-prepare-playable-session-state.ps1` prints the ids needed for later QA and can print, but not execute, the queue materialization helper command.
 - Documentation consistency:

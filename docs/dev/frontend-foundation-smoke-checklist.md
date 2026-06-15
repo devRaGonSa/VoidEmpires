@@ -189,6 +189,12 @@ Playable-session helper setup for later manual QA:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-playable-session-state.ps1 -ElapsedSeconds 3600`
 - Print-only setup command when the later due-queue helper command should be emitted for the created ids:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-playable-session-state.ps1 -ElapsedSeconds 3600 -PrintQueueMaterializationCommand`
+- Single-command printed guide for the full safe sequence:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-playable-loop-guide.ps1`
+- Read-only diagnostics command template after copying concrete ids:
+  - `$civilizationId = "00000000-0000-0000-0000-000000000001"`
+  - `$planetId = "40000000-0000-0000-0000-000000000001"`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-get-playable-session-diagnostics.ps1 -CivilizationId $civilizationId -PlanetId $planetId`
 - The helper creates a Development-safe playable start, can materialize one hour of backend resource accrual, and prints the created player, civilization, home planet, resource, and delta ids or values needed for follow-up checks.
 - The printed queue command is a manual next step only. The playable-session helper does not enqueue, auto-complete, or call due-queue materialization by default.
 - The helper does not perform browser QA, does not open `/onboarding`, and does not visually inspect any cockpit.
@@ -236,7 +242,9 @@ Deferred queue progression manual QA checklist:
 - Status for Block 34: browser and visual QA for this queue progression loop was not performed in this block. The checklist below is for a later manual pass only.
 - Backend setup commands:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-playable-session-state.ps1 -ElapsedSeconds 3600 -PrintQueueMaterializationCommand`
-  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-materialize-due-queues.ps1 -CivilizationId <printed CivilizationId> -PlanetId <printed HomePlanetId> -ElapsedSeconds 3600`
+  - `$civilizationId = "PASTE-PRINTED-CIVILIZATION-ID-HERE"`
+  - `$planetId = "PASTE-PRINTED-HOME-PLANET-ID-HERE"`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-materialize-due-queues.ps1 -CivilizationId $civilizationId -PlanetId $planetId -ElapsedSeconds 3600`
 - Manual pass:
   - [ ] Start the Development backend and frontend dev server.
   - [ ] Create a playable Development session with the first command, then keep the printed `CivilizationId` and `HomePlanetId`.
