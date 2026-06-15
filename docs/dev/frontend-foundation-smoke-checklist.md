@@ -171,6 +171,36 @@ Playable-session helper setup for later manual QA:
   - verify resources and cockpit handoffs visually during that later browser pass
 - Keep the result honest: passing the helper only proves backend setup and optional accrual succeeded, not that the browser or visual cockpit QA has been executed.
 
+Deferred playable-loop visual QA checklist:
+
+- Status for Block 33: visual/browser QA was not performed in this block. The checks below are a later manual browser pass, not a claim of completed validation.
+- Setup:
+  - [ ] Start the Development backend.
+  - [ ] Start the frontend dev server.
+  - [ ] Use `/onboarding` to create a playable Development start, or run the helper command above and open the returned Planet context.
+- Onboarding and local session:
+  - [ ] `/onboarding` creates a playable start through the Development endpoint and redirects to Planet with returned ids.
+  - [ ] Local playable-session memory is saved with navigation context only.
+  - [ ] Reopening a cockpit without manual ids offers the local session continuation path instead of requiring copied ids.
+  - [ ] Planet opens from the onboarding flow without manually typing `civilizationId` or `planetId`.
+- Cross-cockpit navigation:
+  - [ ] Planet hub links preserve `civilizationId` and `planetId` into Construction, Research, Shipyard, Defenses, Fleets, and Galaxy.
+  - [ ] Returning to Planet preserves the same colony context after `Planet -> Shipyard -> Fleets -> Planet`.
+  - [ ] Sidebar links keep the active ids instead of dropping to seedless routes.
+- Guarded mutation checks:
+  - [ ] Construction still opens the shared confirmation modal only after selecting an available action.
+  - [ ] Research still opens the shared confirmation modal only after selecting an available research item.
+  - [ ] Shipyard still opens the shared confirmation modal only after selecting an available orbital production item.
+  - [ ] Each modal still requires its acknowledgement checkbox before the primary action can submit.
+  - [ ] Queue and resource changes appear only after backend-confirmed refreshes, not as optimistic local rows.
+- Resource refresh:
+  - [ ] Planet resource refresh applies only through the explicit backend economy action.
+  - [ ] Refreshed balances are re-read from the backend and do not animate as a frontend-only timer.
+- Read-only and forbidden-action boundaries:
+  - [ ] Defenses remains read-only or handoff-only with no local defense enqueue, combat, interception, or auto-complete action.
+  - [ ] Fleets keeps only its accepted explicit fleet controls and does not gain actions from Planet, Shipyard, or Defenses handoffs.
+  - [ ] No combat, attack, fleet movement, mission creation, or auto-complete action is visible as an active action in Planet, Construction, Research, Shipyard, Defenses, or the playable-session handoff surfaces.
+
 Safe local navigation persistence for later tasks:
 
 - `localStorage` may store only non-sensitive navigation context returned by the Development-only playable start: `civilizationId`, `planetId` or `homePlanetId`, player/display name, civilization name, planet name, and client timestamps when useful.
