@@ -6,6 +6,7 @@ import {
   planetModuleCatalog,
 } from "../api/planetTypes";
 import type {
+  MaterializeDueQueuesResponse,
   PlanetCockpitDto,
   PlanetUiStateResult,
   PlanetModule,
@@ -131,6 +132,12 @@ interface EconomyRefreshAudit {
   resourceDelta: string[];
 }
 
+interface QueueMaterializationAudit {
+  refreshedAt: string;
+  response: MaterializeDueQueuesResponse;
+  technicalDetail: string;
+}
+
 function countOpenConstructionOrders(queue: PlanetCockpitDto["constructionQueue"]) {
   return queue.filter((item) => item.status === "Pending" || item.status === "Active").length;
 }
@@ -176,6 +183,14 @@ function buildConstructionRefreshAudit(
     visibleOrderId,
     resourceDelta: buildResourceDelta(beforePlanet.stockpile, afterPlanet.stockpile),
   } satisfies ConstructionRefreshAudit;
+}
+
+function formatQueueMaterializationSummary(label: string, summary: MaterializeDueQueuesResponse["construction"]) {
+  if (!summary) {
+    return `${label}: no solicitada`;
+  }
+
+  return `${label}: ${summary.processedCount} procesadas, ${summary.skippedNotDueCount} no vencidas`;
 }
 
 function formatProductionValue(value: number) {
@@ -250,6 +265,10 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
   const [economyFeedback, setEconomyFeedback] = useState<string | null>(null);
   const [economyError, setEconomyError] = useState<string | null>(null);
   const [economyRefreshAudit, setEconomyRefreshAudit] = useState<EconomyRefreshAudit | null>(null);
+  const [isMaterializingQueues, setIsMaterializingQueues] = useState(false);
+  const [queueMaterializationFeedback, setQueueMaterializationFeedback] = useState<string | null>(null);
+  const [queueMaterializationError, setQueueMaterializationError] = useState<string | null>(null);
+  const [queueMaterializationAudit, setQueueMaterializationAudit] = useState<QueueMaterializationAudit | null>(null);
   const [localSessionCleared, setLocalSessionCleared] = useState(false);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
@@ -378,6 +397,9 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
       setEconomyFeedback(null);
       setEconomyError(null);
       setEconomyRefreshAudit(null);
+      setQueueMaterializationFeedback(null);
+      setQueueMaterializationError(null);
+      setQueueMaterializationAudit(null);
 
       try {
         const response = await voidEmpiresApi.getPlanetUiState(
@@ -596,6 +618,62 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
       );
     } finally {
       setIsRefreshingEconomy(false);
+    }
+  }
+
+  async function handleQueueMaterializationRefresh() {
+    if (!planet || !uiState?.civilizationId) {
+      return;
+    }
+
+    setIsMaterializingQueues(true);
+    setQueueMaterializationFeedback(null);
+    setQueueMaterializationError(null);
+    setQueueMaterializationAudit(null);
+
+    try {
+      const result = await voidEmpiresApi.materializeDueQueues({
+        civilizationId: uiState.civilizationId,
+        planetId: planet.planetId,
+        nowUtc: new Date().toISOString(),
+        includeConstruction: true,
+        includeResearch: true,
+        includeShipyard: true,
+      });
+
+      if (result.httpStatus !== 200 || !result.response?.succeeded) {
+        setQueueMaterializationError(
+          result.response?.notes[0] ?? "La materializacion de colas no pudo completarse.",
+        );
+        return;
+      }
+
+      const refreshed = await voidEmpiresApi.getPlanetUiState(uiState.civilizationId, planet.planetId);
+      if (!refreshed.succeeded || !refreshed.uiState?.planet) {
+        setQueueMaterializationError("El backend materializo las colas, pero la cabina no pudo releer el planeta.");
+        setQueueMaterializationAudit({
+          refreshedAt: formatDateTime(new Date().toISOString()),
+          response: result.response,
+          technicalDetail: JSON.stringify(result.response),
+        });
+        return;
+      }
+
+      setUiState(refreshed.uiState);
+      setQueueMaterializationAudit({
+        refreshedAt: formatDateTime(new Date().toISOString()),
+        response: result.response,
+        technicalDetail: JSON.stringify(result.response),
+      });
+      setQueueMaterializationFeedback("Colas vencidas materializadas por backend y planeta releido.");
+    } catch (requestError) {
+      setQueueMaterializationError(
+        requestError instanceof Error
+          ? requestError.message
+          : "La materializacion de colas no pudo completarse.",
+      );
+    } finally {
+      setIsMaterializingQueues(false);
     }
   }
 
@@ -979,6 +1057,43 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                       value={economyRefreshAudit.resourceDelta.length > 0
                         ? economyRefreshAudit.resourceDelta.join(" | ")
                         : "Sin cambios visibles"}
+                    />
+                  </div>
+                ) : null}
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Colas vencidas</p>
+                    <h4>Actualizar desde backend</h4>
+                  </div>
+                  <UiBadge tone="warn">Development QA</UiBadge>
+                </div>
+                <p className="figma-panel-note">
+                  Materializa solo ordenes vencidas en backend para Construccion, Investigacion y Astillero, y despues relee el planeta. Las ordenes no vencidas se mantienen abiertas.
+                </p>
+                <button
+                  type="button"
+                  className="figma-button secondary"
+                  disabled={isMaterializingQueues || !planet.isOwnedByRequestingCivilization || !uiState?.civilizationId}
+                  onClick={() => void handleQueueMaterializationRefresh()}
+                >
+                  {isMaterializingQueues ? "Actualizando..." : "Actualizar colas vencidas"}
+                </button>
+                {queueMaterializationFeedback ? <p className="figma-panel-note">{queueMaterializationFeedback}</p> : null}
+                {queueMaterializationError ? <p className="error-text">{queueMaterializationError}</p> : null}
+                {queueMaterializationAudit ? (
+                  <div className="figma-data-list">
+                    <PlanetDataRow label="Lectura confirmada" value={queueMaterializationAudit.refreshedAt} />
+                    <PlanetDataRow
+                      label="Construccion"
+                      value={formatQueueMaterializationSummary("Construccion", queueMaterializationAudit.response.construction)}
+                    />
+                    <PlanetDataRow
+                      label="Investigacion"
+                      value={formatQueueMaterializationSummary("Investigacion", queueMaterializationAudit.response.research)}
+                    />
+                    <PlanetDataRow
+                      label="Astillero"
+                      value={formatQueueMaterializationSummary("Astillero", queueMaterializationAudit.response.shipyard)}
                     />
                   </div>
                 ) : null}
@@ -1509,6 +1624,29 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                           />
                         </>
                       ) : null}
+                    </div>
+                  </section>
+                ) : null}
+                {queueMaterializationAudit ? (
+                  <section className="subpanel figma-subpanel">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">Ultima materializacion de colas</p>
+                        <h4>Payload tecnico</h4>
+                      </div>
+                      <UiBadge tone={queueMaterializationError ? "warn" : "good"}>
+                        {queueMaterializationError ? "Con observaciones" : "Backend confirmado"}
+                      </UiBadge>
+                    </div>
+                    <div className="figma-data-list">
+                      <PlanetDataRow
+                        label="Resultado visible"
+                        value={queueMaterializationError ?? queueMaterializationFeedback ?? "Sin actividad reciente"}
+                      />
+                      <PlanetDataRow
+                        label="Respuesta backend"
+                        value={queueMaterializationAudit.technicalDetail}
+                      />
                     </div>
                   </section>
                 ) : null}
