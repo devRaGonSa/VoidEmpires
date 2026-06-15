@@ -344,6 +344,39 @@ Playable session queue materialization flow:
    - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-materialize-due-queues.ps1 -CivilizationId <printed CivilizationId> -PlanetId <printed HomePlanetId> -ElapsedSeconds 3600`
 4. Refresh Planet, Construction, Research, and Shipyard from their authoritative read endpoints after materialization. Do not infer completed state from the print-only command.
 
+## Playable loop hardening audit scope
+
+This audit covers the current end-to-end Development playable loop only:
+
+1. `/onboarding` creates a Development-only player, civilization, and homeworld.
+2. Local playable-session storage keeps only non-sensitive navigation context.
+3. `/planet` becomes the hub for the returned `civilizationId` and `homePlanetId`.
+4. Resource accrual is materialized only by the explicit backend economy action.
+5. Construction, Research, and Shipyard enqueue paths remain guarded and backend-authoritative.
+6. Due queue materialization runs only through the scoped Development endpoint or helper.
+7. Planet, Construction, Research, and Shipyard must be refreshed from backend reads after materialization.
+
+Hardening gaps identified before behavior changes:
+
+- Script output consistency:
+  - `dev-qa-materialize-due-queues.ps1` correctly warns that it mutates the Development database, prints the target civilization, planet, and `NowUtc`, handles backend-offline failures with an actionable `dotnet run --project .\src\VoidEmpires.Web` hint, and prints per-queue counts.
+  - The script warning currently contains mojibake for `ordenes`, so a follow-up encoding task should normalize PowerShell output to UTF-8-safe ASCII or consistently encoded Spanish text.
+  - `dev-qa-prepare-playable-session-state.ps1` prints the ids needed for later QA and can print, but not execute, the queue materialization helper command.
+- Documentation consistency:
+  - The runtime checklist had duplicated Construction numbering and an outdated command typo before this audit.
+  - Manual browser checks must remain explicitly deferred; passing helper scripts is not visual QA.
+- Frontend copy and diagnostics:
+  - Planet labels queue materialization as `Development QA` and says it processes only due backend orders while leaving not-yet-due orders open.
+  - Diagnostics stay secondary, but the repeated materialization summary should remain compact and useful: target ids, processed counts, skipped-not-due counts, notes, and backend refresh status.
+- Empty or blocked states:
+  - Missing ids, backend-offline reads, occupied queues, unavailable catalog items, and not-yet-due queues should keep Spanish-first actionable copy and must not be presented as successful progression.
+
+Boundaries for this hardening block:
+
+- No gameplay rules, endpoint behavior, queue timing, resource formulas, or production auth behavior change in this audit.
+- No visual QA is performed or claimed by this document update.
+- Follow-up tasks should prefer script/copy/diagnostic hardening over new gameplay domains.
+
 Expected result payload for the safe Development-only playable-start contract:
 
 - Identity block:
@@ -846,16 +879,10 @@ Expected success:
 - Construction, Research, Shipyard, and Fleet baseline snapshots print
 - resources print or a readable formatting warning is shown
 
-4. Create one Construction order:
+4. Prepare and create one Construction order:
 
 ```powershell
-\.\scripts\dev-qa-prepare-construction-ui-state.ps1
-.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed
-```
-
-5. Create one Construction order:
-
-```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-construction-ui-state.ps1
 .\scripts\dev-qa-create-construction-order.ps1 -ApplySeed
 ```
 
@@ -982,6 +1009,8 @@ Important reminders:
 - These scripts create real Development database rows when you run the Construction or Research helpers.
 - The `/research` confirmation flow also creates a real Development database row when the backend accepts the order.
 - The Shipyard helper also creates a real Development database row when enqueue succeeds.
+- The queue materialization helper also mutates Development data by completing due scoped Construction, Research, or Shipyard orders; use the printed ids deliberately.
+- Script output should stay UTF-8 clean or ASCII-safe, print the target ids and useful counts, and fail with actionable backend-offline or HTTP-response messages.
 - Repeated runs may find the queue already occupied and should now report that clearly.
 - Fleet read-state is accepted only as a post-Shipyard read. Stock-to-fleet allocation, new movement, split, merge, combat, and due-processing stay out of this default loop.
 - The scripts do not delete, cancel, or complete existing orders automatically.

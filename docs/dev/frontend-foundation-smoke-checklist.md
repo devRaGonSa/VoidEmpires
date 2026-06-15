@@ -43,6 +43,22 @@ Queue materialization guardrails:
 - `scripts/check-frontend-copy-regressions.ps1` guards against instant-complete/page-load phrasing, forbidden combat or mission actions, and missing Development QA materialization copy.
 - `scripts/check-frontend-route-lazy-imports.ps1` remains the route import guard for cockpit pages.
 
+## Playable Loop Hardening Audit
+
+Current audit boundary:
+
+- This checklist covers manual QA preparation for the Development playable loop from `/onboarding` through Planet, Construction, Research, Shipyard, explicit due-queue materialization, and backend refresh.
+- The browser checks below remain deferred and user-driven. This document does not claim visual QA, screenshot acceptance, or successful browser execution.
+- Backend remains source of truth for local session context, resources, queues, buildings, research projects, orbital stock, and all mutation results.
+
+Hardening gaps to track before visual acceptance:
+
+- Script output should consistently warn when a helper mutates the Development database, print target `CivilizationId` and `PlanetId`, and fail with a direct backend-start hint when `http://localhost:5142` is offline.
+- PowerShell helper output should be UTF-8 clean or ASCII-safe; mojibake in warnings or Spanish labels is a documentation and QA readability regression.
+- Empty, missing-id, backend-offline, occupied-queue, and not-yet-due states should show Spanish-first actionable copy rather than raw payloads in the primary viewport.
+- Diagnostics should remain collapsed or secondary but still expose enough information to debug the latest enqueue, resource materialization, or due-queue materialization attempt.
+- The queue materialization action should keep the `Development QA` badge and must not be restyled or renamed as ordinary gameplay progression.
+
 ## Orbital Preparation Runtime Order
 
 Use this exact manual sequence for the current orbital production or military preparation pass. This remains a user-driven visual QA checklist, not proof that the browser checks have already been performed.
