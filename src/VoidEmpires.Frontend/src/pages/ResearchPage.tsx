@@ -4,6 +4,7 @@ import { enqueueResearchOrder, fetchResearchUiState } from "../api/researchApi";
 import type { EnqueueResearchOrderFailureResponse, ResearchApiErrorCode } from "../api/researchTypes";
 import { CockpitHero } from "../components/CockpitHero";
 import { GameModal } from "../components/GameModal";
+import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import type { ResearchTechnology, ResearchUiState } from "../utils/researchPresentation";
 import {
   formatResearchCommandFailure,
@@ -210,6 +211,7 @@ export function ResearchPage() {
     startsAtUtc: string | null;
     endsAtUtc: string | null;
   } | null>(null);
+  const [localSessionCleared, setLocalSessionCleared] = useState(false);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -217,7 +219,17 @@ export function ResearchPage() {
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
   const playableRouteContext = usePlayableRouteContext(queryCivilizationId);
-  const playableSession = playableRouteContext.playableSession;
+  const playableSession = localSessionCleared ? null : playableRouteContext.playableSession;
+  const routeSession = uiState?.civilizationId && selectedPlanetId
+    ? {
+      civilizationId: uiState.civilizationId,
+      planetId: selectedPlanetId,
+      planetName: uiState.selectedPlanetName ?? undefined,
+      createdAt: "route-context",
+      updatedAt: "route-context",
+    }
+    : null;
+  const bannerSession = routeSession ?? playableSession;
   const playableSessionUrl = playableSession
     ? buildResearchUrl(playableSession.civilizationId, playableSession.planetId)
     : null;
@@ -417,6 +429,11 @@ export function ResearchPage() {
             <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
           </>
         }
+      />
+
+      <PlayableSessionBanner
+        session={bannerSession}
+        onClear={() => setLocalSessionCleared(true)}
       />
 
       <div className="strategic-cockpit-top">
