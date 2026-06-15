@@ -13,6 +13,7 @@ import type {
 } from "../api/planetTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
+import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { GameModal } from "../components/GameModal";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
@@ -1496,11 +1497,30 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
               )}
             </div>
 
-            {constructionFeedback ? <p>{constructionFeedback}</p> : null}
-            {constructionError ? <p className="error-text">{constructionError}</p> : null}
-            </>
+          {constructionFeedback ? <p>{constructionFeedback}</p> : null}
+          {constructionError ? <p className="error-text">{constructionError}</p> : null}
+          </>
           ) : null}
           </UiCard>
+
+          <DevDiagnosticsPanel
+            title={isConstructionRoute ? "Diagnostico de construccion" : "Diagnostico de planeta"}
+            summaryItems={[
+              { label: "Civilizacion", value: activeCivilizationId },
+              { label: "Planeta", value: planet.planetId },
+              { label: "Reserva persistida", value: planet.diagnostics.hasResourceStockpile ? "Si" : "No" },
+              { label: "Perfil de produccion", value: planet.diagnostics.hasProductionProfile ? "Si" : "No" },
+              { label: "Ordenes abiertas", value: planet.diagnostics.openConstructionOrderCount },
+              { label: "Cola visible", value: planet.constructionQueue.length },
+            ]}
+            notes={planet.diagnostics.notes}
+            rawPayload={{
+              diagnostics: planet.diagnostics,
+              constructionRefreshAudit,
+              economyRefreshAudit,
+              queueMaterializationAudit,
+            }}
+          />
 
           <details className="technical-disclosure">
             <summary>

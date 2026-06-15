@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { enqueueResearchOrder, fetchResearchUiState } from "../api/researchApi";
 import type { EnqueueResearchOrderFailureResponse, ResearchApiErrorCode } from "../api/researchTypes";
 import { CockpitHero } from "../components/CockpitHero";
+import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { GameModal } from "../components/GameModal";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import type { ResearchTechnology, ResearchUiState } from "../utils/researchPresentation";
@@ -755,6 +756,26 @@ export function ResearchPage() {
               <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, null, selectedPlanetId)}>Volver a Galaxia</Link>
             </div>
           </UiCard>
+
+          <DevDiagnosticsPanel
+            title="Diagnostico de investigacion"
+            summaryItems={[
+              { label: "Civilizacion", value: activeCivilizationId },
+              { label: "Planeta", value: selectedPlanetId },
+              { label: "Tecnologias", value: uiState.catalog.length },
+              { label: "Cola visible", value: uiState.queue.length },
+              { label: "Ordenes vencidas", value: dueQueueCount },
+              { label: "Proyectos completados", value: uiState.projects.length },
+            ]}
+            notes={[
+              ...uiState.diagnostics.limitations,
+              ...(technicalErrorDetail ? [technicalErrorDetail] : []),
+            ]}
+            rawPayload={{
+              diagnostics: uiState.diagnostics,
+              enqueueOrderDetails,
+            }}
+          />
 
           <details className="technical-disclosure">
             <summary>

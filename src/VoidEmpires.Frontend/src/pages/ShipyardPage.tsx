@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { enqueueShipyardProduction, fetchShipyardUiState } from "../api/shipyardApi";
 import type { ShipyardApiErrorCode } from "../api/shipyardTypes";
 import { CockpitHero } from "../components/CockpitHero";
+import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { GameModal } from "../components/GameModal";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
@@ -1082,6 +1083,30 @@ export function ShipyardPage() {
                 ))}
               </div>
             </UiCard>
+          ) : null}
+
+          {shipyard.diagnostics.playerFacing.length > 0 || technicalErrorDetail || enqueueOrderDetails ? (
+            <DevDiagnosticsPanel
+              title="Diagnostico de astillero"
+              summaryItems={[
+                { label: "Civilizacion", value: activeCivilizationId },
+                { label: "Planeta", value: shipyard.planetId },
+                { label: "Cola visible", value: shipyard.queue.length },
+                { label: "Ordenes vencidas", value: dueQueueCount },
+                { label: "Opciones disponibles", value: catalogBuckets.available.length },
+                { label: "Stock orbital", value: shipyard.orbitalStock.length },
+              ]}
+              notes={[
+                ...shipyard.diagnostics.playerFacing,
+                ...readinessNotes,
+                ...(technicalErrorDetail ? [technicalErrorDetail] : []),
+              ]}
+              rawPayload={{
+                diagnostics: shipyard.diagnostics,
+                enqueueOrderDetails,
+                enqueueRefreshAudit,
+              }}
+            />
           ) : null}
 
           {shipyard.diagnostics.playerFacing.length > 0 || technicalErrorDetail || enqueueOrderDetails ? (
