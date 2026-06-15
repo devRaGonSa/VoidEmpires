@@ -20,8 +20,8 @@ import {
   formatCompactGuid,
   formatPlanetType,
   formatColonizationStatus,
-  formatResourceType,
 } from "./domainPresentation";
+import { formatResourceAmount, formatResourceAmountList } from "./resourceDisplay";
 
 type PlanetValue = PlanetApiValue | null | undefined;
 
@@ -518,17 +518,14 @@ export function formatPlanetOverviewLine(planet: PlanetCockpitDto) {
 }
 
 export function formatResourceBalanceLine(resourceType: PlanetValue, quantity: number) {
-  return `${formatResourceType(resourceType)} ${quantity}`;
+  return formatResourceAmount({ resourceType, quantity });
 }
 
 export function formatCompactResourceCost(
   cost: ReadonlyArray<{ resourceType: PlanetValue; quantity: number }>,
 ) {
   return cost.length
-    ? cost
-      .filter((item) => item.quantity > 0)
-      .map((item) => `${formatResourceType(item.resourceType)} ${item.quantity}`)
-      .join(" | ")
+    ? formatResourceAmountList(cost, { fallback: "Sin coste", positiveOnly: true })
     : "Sin coste";
 }
 
@@ -549,7 +546,10 @@ export function formatMissingPlanetResources(
     .filter((item) => item.missing > 0);
 
   return missingResources.length > 0
-    ? `Faltan ${missingResources.map((item) => `${formatResourceType(item.resourceType)} ${item.missing}`).join(" | ")}`
+    ? `Faltan ${formatResourceAmountList(
+      missingResources.map((item) => ({ resourceType: item.resourceType, quantity: item.missing })),
+      { positiveOnly: true },
+    )}`
     : null;
 }
 

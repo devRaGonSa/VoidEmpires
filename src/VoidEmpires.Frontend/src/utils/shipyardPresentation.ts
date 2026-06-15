@@ -1,4 +1,5 @@
-import { formatResourceType, formatSpaceAssetType } from "./domainPresentation";
+import { formatSpaceAssetType } from "./domainPresentation";
+import { formatResourceAmountList } from "./resourceDisplay";
 
 type ShipyardValue = string | number | null | undefined;
 
@@ -156,7 +157,7 @@ export function formatAssetProductionCost(
     return fallback;
   }
 
-  return visibleCost.map((entry) => `${formatResourceType(entry.resourceType)} ${entry.quantity}`).join(" | ");
+  return formatResourceAmountList(visibleCost, { fallback, positiveOnly: true });
 }
 
 export function formatAssetProductionDuration(value: string | number | null | undefined) {

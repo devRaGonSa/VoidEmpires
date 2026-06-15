@@ -7,7 +7,7 @@ import { GameModal } from "../components/GameModal";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
-import { formatPlanetPrimaryLabel, formatPlanetSecondaryLabel, formatResourceType } from "../utils/domainPresentation";
+import { formatPlanetPrimaryLabel, formatPlanetSecondaryLabel } from "../utils/domainPresentation";
 import {
   getShipyardPrimaryAction,
   groupAssetOptionsByCategory,
@@ -26,6 +26,7 @@ import {
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
 import { cockpitNavigationLabels, cockpitStatusLabels } from "../utils/cockpitStatus";
+import { formatResourceAmountList, formatResourceDelta, formatResourceLabel } from "../utils/resourceDisplay";
 import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
 
 function formatDateTime(value: string) {
@@ -119,8 +120,7 @@ function buildShipyardRefreshAudit(
         return null;
       }
 
-      const prefix = delta > 0 ? "+" : "";
-      return `${formatResourceType(resourceType)} ${prefix}${delta}`;
+      return formatResourceDelta({ resourceType, quantity: delta });
     })
     .filter((item): item is string => item !== null);
 
@@ -373,12 +373,13 @@ export function ShipyardPage() {
       return "El backend todavia no expone reservas locales utiles.";
     }
 
-    return shipyard.stockpile
-      .slice()
-      .sort((left, right) => right.quantity - left.quantity)
-      .slice(0, 3)
-      .map((entry) => `${formatResourceType(entry.resourceType)} ${entry.quantity}`)
-      .join(" · ");
+    return formatResourceAmountList(
+      shipyard.stockpile
+        .slice()
+        .sort((left, right) => right.quantity - left.quantity)
+        .slice(0, 3),
+      { separator: " · " },
+    );
   }, [shipyard]);
   const readinessTone = shipyard?.actionAvailability.enqueue.supported
     ? "good"
@@ -1075,7 +1076,7 @@ export function ShipyardPage() {
                 {shipyard.stockpile.map((entry) => (
                   <section key={entry.resourceType} className="subpanel figma-subpanel">
                     <div className="figma-data-list">
-                      <div className="figma-data-row"><span>{formatResourceType(entry.resourceType)}</span><strong>{entry.quantity}</strong></div>
+                      <div className="figma-data-row"><span>{formatResourceLabel(entry.resourceType)}</span><strong>{entry.quantity}</strong></div>
                     </div>
                   </section>
                 ))}

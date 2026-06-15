@@ -21,7 +21,6 @@ import {
   formatColonizationStatus,
   formatCompactGuid,
   formatPlanetType,
-  formatResourceType,
 } from "../utils/domainPresentation";
 import {
   formatBuildingType,
@@ -62,6 +61,7 @@ import {
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
+import { formatResourceDelta, formatResourceLabel } from "../utils/resourceDisplay";
 import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
 
 interface PlanetPageProps {
@@ -107,18 +107,6 @@ function formatDuration(value: string) {
   return parts.length > 0 ? parts.join(" ") : "Menos de 1 min";
 }
 
-function formatCost(cost: PlanetCockpitDto["stockpile"]) {
-  return formatCompactResourceCost(cost);
-}
-
-function formatCompactCost(cost: PlanetCockpitDto["stockpile"]) {
-  return cost.length
-    ? cost
-      .filter((item) => item.quantity > 0)
-      .map((item) => `${formatResourceType(item.resourceType)} ${item.quantity}`)
-      .join(" · ")
-    : "Sin coste";
-}
 
 function formatQueueState(item: PlanetCockpitDto["constructionQueue"][number]) {
   if (item.isDue) {
@@ -166,8 +154,7 @@ function buildResourceDelta(
         return null;
       }
 
-      const prefix = delta > 0 ? "+" : "";
-      return `${formatResourceType(resourceType)} ${prefix}${delta}`;
+      return formatResourceDelta({ resourceType, quantity: delta });
     })
     .filter((item): item is string => item !== null);
 }
@@ -900,7 +887,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                       className="figma-stat"
                     >
                       <strong>{balance.quantity}</strong>
-                      <span>{formatResourceType(balance.resourceType)}</span>
+                      <span>{formatResourceLabel(balance.resourceType)}</span>
                     </div>
                   ))}
                 </div>
@@ -921,19 +908,19 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                   <div className="figma-stat-grid">
                     <div className="figma-stat">
                       <strong>{formatProductionValue(planet.productionSummary.creditsPerHour)}</strong>
-                      <span>Creditos / h</span>
+                      <span>{formatResourceLabel("Credits")} / h</span>
                     </div>
                     <div className="figma-stat">
                       <strong>{formatProductionValue(planet.productionSummary.metalPerHour)}</strong>
-                      <span>Metal / h</span>
+                      <span>{formatResourceLabel("Metal")} / h</span>
                     </div>
                     <div className="figma-stat">
                       <strong>{formatProductionValue(planet.productionSummary.crystalPerHour)}</strong>
-                      <span>Cristal / h</span>
+                      <span>{formatResourceLabel("Crystal")} / h</span>
                     </div>
                     <div className="figma-stat">
                       <strong>{formatProductionValue(planet.productionSummary.gasPerHour)}</strong>
-                      <span>Gas / h</span>
+                      <span>{formatResourceLabel("Gas")} / h</span>
                     </div>
                   </div>
                   <PlanetDataRow

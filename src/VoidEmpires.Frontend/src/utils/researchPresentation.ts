@@ -1,4 +1,4 @@
-import { formatResourceType } from "./domainPresentation";
+import { formatResourceAmountList } from "./resourceDisplay";
 import type {
   ResearchCost as ResearchCostDto,
   ResearchDefinitionDto,
@@ -399,7 +399,7 @@ export function formatResearchCost(
     ];
 
   return entries.length
-    ? entries.filter((item) => item.quantity > 0).map((item) => `${formatResourceType(item.resourceType)} ${item.quantity}`).join(", ")
+    ? formatResourceAmountList(entries, { fallback, positiveOnly: true, separator: ", " })
     : fallback;
 }
 
