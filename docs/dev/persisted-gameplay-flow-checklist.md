@@ -221,7 +221,7 @@ Shared helper defaults:
 
 ## Playable session foundation audit
 
-Confirmed current baseline before Block `32A-32P` implementation:
+Confirmed current baseline after the current playable-start foundation:
 
 - Identity and player model:
   - ASP.NET Core Identity owns account registration and email confirmation.
@@ -233,65 +233,71 @@ Confirmed current baseline before Block `32A-32P` implementation:
   - `Program.cs` does not enable `UseAuthentication()` or `UseAuthorization()`.
   - Current cockpit and development routes still require explicit `civilizationId` and, for most planet-bound views, explicit `planetId`.
 - Current Development-only bootstrap contract:
-  - `POST /api/dev/players/starting-civilization` creates only `PlayerProfile` and `Civilization`.
-  - The request currently requires `userId`, `displayName`, and `civilizationName`, accepts `archetype`, and optionally accepts `homePlanetId`.
-  - The response currently returns only `playerProfileId`, `civilizationId`, and `homePlanetId`.
-  - The route does not verify an authenticated session, does not claim a planet, does not create `PlanetOwnership`, and does not top up resources, buildings, population, production, orbital stock, or QA queue history.
+  - `POST /api/dev/players/starting-civilization` creates a Development-only playable start, not a production-auth session.
+  - The frontend sends `displayName`, `civilizationName`, and optional `homePlanetName`; the backend API shape also accepts optional `userId` and `archetype`.
+  - A successful response returns `succeeded`, `userId`, `playerProfileId`, `civilizationId`, `homePlanetId`, `homePlanetName`, `homeSystemId`, `homeSystemName`, `startingResources`, `limitations`, and `errors`.
+  - The current service creates `PlayerProfile`, `Civilization`, a home solar system, a colonized home planet, active `PlanetOwnership`, starting resource stockpile, production, population, capacity, and baseline buildings for the new Development-only start.
+  - The route still does not verify an authenticated session and does not create login cookies, bearer tokens, production authorization claims, or a production active-civilization session.
 - Current onboarding gap:
   - The repository has no production-safe session-to-civilization bootstrap flow yet.
   - The existing starting-civilization creation route is Development-only and separate from account registration.
-  - Frontend cockpit helpers and sidebar links still embed the deterministic seed civilization for discovery and QA.
+  - `/onboarding` redirects to `/planet` with the returned `civilizationId` and `homePlanetId` as `planetId`.
+  - Frontend cockpit routes still resolve context from explicit query parameters rather than from authenticated user state.
 - Safe implementation scope for this block:
   - treat current cockpit work as a seeded Development-only gameplay foundation
   - preserve explicit `civilizationId` and `planetId` handoff behavior unless a later task adds a real authenticated bootstrap contract
   - do not claim production authentication, player session resolution, or automatic user-to-civilization onboarding
-  - do not treat `POST /api/dev/players/starting-civilization` as a complete playable-session bootstrap because it does not produce owned-planet gameplay state
+  - treat `POST /api/dev/players/starting-civilization` as a Development-only playable-start helper only, even though it now produces owned homeworld gameplay state
 
 Safe onboarding decision for this block:
 
 - Use a Development-only playable-start flow, not a production auth-backed onboarding flow.
-- The correct baseline for current cockpit work is still the deterministic seed system, especially `cockpit-validation`.
+- The correct baseline for repeatable shared cockpit QA is still the deterministic seed system, especially `cockpit-validation`.
 - Real account registration may coexist in the repository, but it is not yet wired to civilization resolution, owned-planet bootstrap, or cockpit navigation.
 
-Expected result payload for the safe Development-only playable-start contract used by follow-up tasks:
+Expected result payload for the safe Development-only playable-start contract:
 
 - Identity block:
   - `userId`
   - `playerProfileId`
-  - `displayName`
+  - display name from the submitted request
 - Civilization block:
   - `civilizationId`
-  - `civilizationName`
-  - `archetype`
+  - civilization name from the submitted request
+  - optional `archetype` from the submitted request
   - `status = Active`
 - Homeworld block:
   - `homePlanetId`
   - `homePlanetName`
-  - `systemId`
-  - `systemName`
+  - `homeSystemId`
+  - `homeSystemName`
   - `ownershipStatus = Active`
-- Seed baseline block:
-  - `seedProfile = "cockpit-validation"` for the richer default playable-start path in this block
-  - deterministic ids when the standard seed baseline is used:
-    - `civilizationId = 00000000-0000-0000-0000-000000000001`
-    - `homePlanetId = 40000000-0000-0000-0000-000000000001`
-    - `systemId = 20000000-0000-0000-0000-000000000001`
-  - minimum starting homeworld state expected from that seeded playable path:
-    - resources at or above `220` credits, `320` metal, `220` crystal, and `120` gas
-    - one active ownership row for `Aurelia`
-    - homeworld production profile present
-    - homeworld population profile present
-    - baseline buildings including `CommandCenter`, `HabitationDistrict`, `Shipyard`, `DefenseGrid`, and `Barracks`
-    - no required open construction, research, or orbital production blocker at bootstrap time
+- Starting resources block:
+  - `credits`
+  - `metal`
+  - `crystal`
+  - `gas`
+- Limitations block:
+  - explicit Development-only limitation strings
+  - error strings on validation or duplicate-name failures
 - Navigation block:
   - canonical QA URLs or query ids needed to open `/galaxy`, `/planet`, `/construction`, `/research`, `/shipyard`, `/defenses`, `/ground-army`, `/market`, `/espionage`, `/alliance`, `/ranking`, and `/fleets`
+
+Safe local navigation persistence contract for follow-up tasks:
+
+- `localStorage` may store only non-sensitive navigation context returned by the Development-only playable start.
+- Allowed fields are `civilizationId`, `planetId` or `homePlanetId`, player/display name, civilization name, planet name, and client timestamps when useful for debugging stale local context.
+- `localStorage` is only a navigation convenience for rebuilding cockpit URLs. It is never authoritative game state, ownership, entitlement, authorization, or identity.
+- The backend remains the source of truth for player, civilization, planet ownership, resources, queues, fleets, and every gameplay mutation.
+- Do not store production auth data, login state, bearer tokens, cookies, email-confirmation state, role claims, or any session claim in this local cockpit context.
+- Do not infer production authentication from the presence of a local playable context. Missing or stale local values must fall back to explicit route entry or onboarding, not hidden backend authority.
 
 Explicit limitations of the current onboarding story:
 
 - No authenticated session is currently resolved into an active civilization automatically.
 - No production-safe login or session middleware protects cockpit routes today.
 - No current endpoint combines account creation, email confirmation, player profile creation, civilization creation, homeworld claiming, and seeded economy bootstrap into one safe production flow.
-- The existing Development-only starting-civilization route is still narrower than the playable-start contract described above and should be extended or wrapped by a later Development-only task rather than being overclaimed as already complete.
+- The existing Development-only starting-civilization route is the accepted local playable-start helper, but it must not be overclaimed as production onboarding.
 
 Shipyard/Fleet companion note:
 

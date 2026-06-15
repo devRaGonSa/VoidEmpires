@@ -133,6 +133,38 @@ Compact route-loading smoke pass:
 - Treat a blank page, a shell-only screen that never resolves, or a generic loader that never yields cockpit content as a failed smoke pass.
 - `Alianza` and `Ranking` are now implemented read-only routes; verify the sidebar keeps both navigable and marked as `Solo lectura`.
 
+## Playable Session Navigation Contract
+
+Current query-parameter dependencies:
+
+- `App.tsx` reads `civilizationId`, `planetId`, and `systemId` from the active URL and passes them through sidebar links with the shared route helpers.
+- `/planet` reads `civilizationId` and optional `planetId`; if `planetId` is missing and the backend selects an owned planet, the page replaces the URL with the backend-selected `planetId`.
+- `/construction` is `PlanetPage` in the `construction` variant, so it has the same `civilizationId` and optional `planetId` behavior as `/planet`.
+- `/research`, `/shipyard`, and `/defenses` read `civilizationId` and optional `planetId`; each route can replace the URL with the backend-selected planet when the read model returns one.
+- `/fleets` reads `civilizationId` for the Fleet UI-state request and treats `planetId` as focus context for resource, group, and handoff panels.
+- Existing helper usage is centralized in `src/VoidEmpires.Frontend/src/utils/routeUrls.ts`: `buildPlanetUrl`, `buildConstructionUrl`, `buildResearchUrl`, `buildShipyardUrl`, `buildDefensesUrl`, `buildFleetsUrl`, `buildGalaxyUrl`, and related cockpit helpers trim empty values and omit missing query params instead of fabricating ids. `buildDevelopmentHelperUrl()` is the explicit deterministic seeded shortcut.
+
+Current missing-id behavior:
+
+- Missing `civilizationId` prevents backend reads on `/planet`, `/construction`, `/research`, `/shipyard`, `/defenses`, and `/fleets`; the route stays on a local entry form or guidance state instead of assuming a logged-in civilization.
+- Missing `planetId` is accepted on planet-bound reads when the backend can choose a selected owned planet for the supplied civilization; the route then writes that selected planet back into the URL.
+- Invalid, foreign, suspicious, or unavailable ids surface route-specific Spanish error or warning copy and keep diagnostics secondary; they must not silently switch to production auth or an unrelated local session.
+- Handoff links should preserve the active ids when present, and when ids are absent they should remain plain routes or explicit seeded helper links rather than creating hidden authority.
+
+`/onboarding` success response and redirect:
+
+- The page posts `displayName`, `civilizationName`, and optional `homePlanetName` to `POST /api/dev/players/starting-civilization`.
+- A successful response is expected to include `succeeded = true`, `userId`, `playerProfileId`, `civilizationId`, `homePlanetId`, `homePlanetName`, `homeSystemId`, `homeSystemName`, `startingResources`, `limitations`, and `errors`.
+- `/onboarding` requires both `civilizationId` and `homePlanetId` before navigation, then redirects to `buildPlanetUrl(civilizationId, homePlanetId)`.
+- This is Development-only navigation context. It is not a login, production session, token, cookie, role claim, or authenticated active-civilization resolver.
+
+Safe local navigation persistence for later tasks:
+
+- `localStorage` may store only non-sensitive navigation context returned by the Development-only playable start: `civilizationId`, `planetId` or `homePlanetId`, player/display name, civilization name, planet name, and client timestamps when useful.
+- Stored context is only a URL rebuilding convenience. The backend remains authoritative for ownership, resources, queues, fleets, and all gameplay state.
+- Do not store or imply production auth data, bearer tokens, cookies, email-confirmation state, login state, roles, or session claims.
+- Missing or stale local context must fall back to explicit route entry or `/onboarding`; it must not create hidden gameplay authority.
+
 Compact navigation regression pass:
 
 - `Onboarding -> Planet`: submit `/onboarding` through the Development-only playable start flow and confirm the redirect lands on `/planet` with the backend-returned `civilizationId` and `homePlanetId` as `planetId`.
