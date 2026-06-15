@@ -26,14 +26,15 @@ public class GameplayQueueMaterializationServiceTests
         var dueResearch = CreateResearchOrder(civilizationId, planetId, 1, nowUtc.AddMinutes(-1), ResearchQueueItemStatus.Active);
         var notDueResearch = CreateResearchOrder(civilizationId, planetId, 2, nowUtc.AddMinutes(5), ResearchQueueItemStatus.Pending);
         var unrelatedResearch = CreateResearchOrder(otherCivilizationId, otherPlanetId, 1, nowUtc.AddMinutes(-1), ResearchQueueItemStatus.Active);
+        var dueShipyard = CreateAssetOrder(planetId, 1, nowUtc.AddMinutes(-1), AssetProductionOrderStatus.Active);
+        var notDueShipyard = CreateAssetOrder(planetId, 2, nowUtc.AddMinutes(5), AssetProductionOrderStatus.Pending);
+        var unrelatedShipyard = CreateAssetOrder(otherPlanetId, 1, nowUtc.AddMinutes(-1), AssetProductionOrderStatus.Active);
 
         dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(planetId, civilizationId));
         dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(otherPlanetId, otherCivilizationId));
         dbContext.PlanetConstructionOrders.AddRange(dueConstruction, notDueConstruction, unrelatedConstruction);
         dbContext.ResearchOrders.AddRange(dueResearch, notDueResearch, unrelatedResearch);
-        dbContext.Set<AssetProductionOrder>().Add(CreateAssetOrder(planetId, 1, nowUtc.AddMinutes(-1), AssetProductionOrderStatus.Active));
-        dbContext.Set<AssetProductionOrder>().Add(CreateAssetOrder(planetId, 2, nowUtc.AddMinutes(5), AssetProductionOrderStatus.Pending));
-        dbContext.Set<AssetProductionOrder>().Add(CreateAssetOrder(otherPlanetId, 1, nowUtc.AddMinutes(-1), AssetProductionOrderStatus.Active));
+        dbContext.Set<AssetProductionOrder>().AddRange(dueShipyard, notDueShipyard, unrelatedShipyard);
         await dbContext.SaveChangesAsync();
 
         var result = await new GameplayQueueMaterializationService(dbContext).MaterializeDueAsync(
@@ -42,15 +43,45 @@ public class GameplayQueueMaterializationServiceTests
         Assert.True(result.Succeeded);
         Assert.Equal(new QueueMaterializationSummary(1, 1, 1), result.Construction);
         Assert.Equal(new QueueMaterializationSummary(1, 1, 1), result.Research);
-        Assert.Equal(new QueueMaterializationSummary(0, 1, 1), result.Shipyard);
+        Assert.Equal(new QueueMaterializationSummary(1, 1, 1), result.Shipyard);
         Assert.Equal(ConstructionQueueItemStatus.Completed, dueConstruction.Status);
         Assert.Equal(ConstructionQueueItemStatus.Pending, notDueConstruction.Status);
         Assert.Equal(ConstructionQueueItemStatus.Active, unrelatedConstruction.Status);
         Assert.Equal(ResearchQueueItemStatus.Completed, dueResearch.Status);
         Assert.Equal(ResearchQueueItemStatus.Pending, notDueResearch.Status);
         Assert.Equal(ResearchQueueItemStatus.Active, unrelatedResearch.Status);
+        Assert.Equal(AssetProductionOrderStatus.Completed, dueShipyard.Status);
+        Assert.Equal(AssetProductionOrderStatus.Pending, notDueShipyard.Status);
+        Assert.Equal(AssetProductionOrderStatus.Active, unrelatedShipyard.Status);
         Assert.Contains(dbContext.PlanetBuildings, x => x.PlanetId == planetId && x.BuildingType == BuildingType.MetalMine);
         Assert.Contains(dbContext.ResearchProjects, x => x.CivilizationId == civilizationId && x.ResearchType == ResearchType.PlanetaryEngineering);
+        Assert.Contains(dbContext.Set<OrbitalAssetStock>(), x => x.PlanetId == planetId && x.AssetType == SpaceAssetType.ScoutCraft && x.Quantity == 1);
+    }
+
+    [Fact]
+    public async Task MaterializeDueAsyncDoesNotRepeatShipyardStockIncrease()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var planetId = Guid.NewGuid();
+        var nowUtc = new DateTime(2026, 6, 15, 12, 0, 0, DateTimeKind.Utc);
+        var stock = OrbitalAssetStock.Create(planetId, SpaceAssetType.ScoutCraft, 5);
+        var order = AssetProductionOrder.Create(planetId, AssetProductionTarget.Orbital, null, SpaceAssetType.ScoutCraft, 2, 1, nowUtc.AddMinutes(-4), nowUtc.AddMinutes(-1), AssetProductionOrderStatus.Active);
+
+        dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(planetId, civilizationId));
+        dbContext.Set<OrbitalAssetStock>().Add(stock);
+        dbContext.Set<AssetProductionOrder>().Add(order);
+        await dbContext.SaveChangesAsync();
+
+        var service = new GameplayQueueMaterializationService(dbContext);
+        var request = new MaterializeGameplayQueuesRequest(civilizationId, planetId, nowUtc, false, false, true);
+        var first = await service.MaterializeDueAsync(request);
+        var second = await service.MaterializeDueAsync(request);
+
+        Assert.Equal(new QueueMaterializationSummary(1, 1, 0), first.Shipyard);
+        Assert.Equal(new QueueMaterializationSummary(0, 0, 0), second.Shipyard);
+        Assert.Equal(7, stock.Quantity);
+        Assert.Equal(AssetProductionOrderStatus.Completed, order.Status);
     }
 
     [Fact]

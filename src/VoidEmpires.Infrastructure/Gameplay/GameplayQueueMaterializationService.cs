@@ -29,7 +29,7 @@ public sealed class GameplayQueueMaterializationService(VoidEmpiresDbContext dbC
             ? await MaterializeResearchAsync(request, cancellationToken)
             : EmptySummary;
         var shipyard = request.IncludeShipyard
-            ? await CountShipyardAsync(request, cancellationToken)
+            ? await MaterializeShipyardAsync(request, notes, cancellationToken)
             : EmptySummary;
 
         if (notes.Count == 0) notes.Add("Scoped materialization completed.");
@@ -132,8 +132,9 @@ public sealed class GameplayQueueMaterializationService(VoidEmpiresDbContext dbC
         return new(dueOrders.Count, dueOrders.Count, notDueCount);
     }
 
-    private async Task<QueueMaterializationSummary> CountShipyardAsync(
+    private async Task<QueueMaterializationSummary> MaterializeShipyardAsync(
         MaterializeGameplayQueuesRequest request,
+        List<string> notes,
         CancellationToken cancellationToken)
     {
         var query =
@@ -147,18 +148,39 @@ public sealed class GameplayQueueMaterializationService(VoidEmpiresDbContext dbC
 
         if (request.PlanetId is not null) query = query.Where(x => x.PlanetId == request.PlanetId.Value);
 
-        return await CountOpenQueueAsync(query.Select(x => x.EndsAtUtc), request.NowUtc, cancellationToken);
-    }
+        var dueOrders = await query
+            .Where(x => x.EndsAtUtc <= request.NowUtc)
+            .OrderBy(x => x.EndsAtUtc)
+            .ThenBy(x => x.Sequence)
+            .ToListAsync(cancellationToken);
+        var notDueCount = await query.CountAsync(x => x.EndsAtUtc > request.NowUtc, cancellationToken);
+        var processedCount = 0;
 
-    private static async Task<QueueMaterializationSummary> CountOpenQueueAsync(
-        IQueryable<DateTime> endsAtUtcQuery,
-        DateTime nowUtc,
-        CancellationToken cancellationToken)
-    {
-        var dueCount = await endsAtUtcQuery.CountAsync(x => x <= nowUtc, cancellationToken);
-        var notDueCount = await endsAtUtcQuery.CountAsync(x => x > nowUtc, cancellationToken);
+        foreach (var order in dueOrders)
+        {
+            if (order.SpaceAssetType is not { } assetType)
+            {
+                notes.Add($"Shipyard order {order.Id} was due but its orbital asset type was missing.");
+                continue;
+            }
 
-        return new(0, dueCount, notDueCount);
+            var stock = await dbContext.Set<OrbitalAssetStock>()
+                .SingleOrDefaultAsync(x => x.PlanetId == order.PlanetId && x.AssetType == assetType, cancellationToken);
+
+            if (stock is null)
+            {
+                stock = OrbitalAssetStock.Create(order.PlanetId, assetType);
+                dbContext.Set<OrbitalAssetStock>().Add(stock);
+            }
+
+            stock.Increase(order.Quantity);
+            order.MarkCompleted();
+            processedCount++;
+        }
+
+        if (processedCount > 0) await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new(processedCount, dueOrders.Count, notDueCount);
     }
 
     private static MaterializeGameplayQueuesResult Failure(string error) =>
