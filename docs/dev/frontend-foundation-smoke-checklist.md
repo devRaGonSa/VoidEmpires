@@ -214,6 +214,26 @@ Deferred playable-loop visual QA checklist:
   - [ ] Fleets keeps only its accepted explicit fleet controls and does not gain actions from Planet, Shipyard, or Defenses handoffs.
   - [ ] No combat, attack, fleet movement, mission creation, or auto-complete action is visible as an active action in Planet, Construction, Research, Shipyard, Defenses, or the playable-session handoff surfaces.
 
+Deferred queue progression manual QA checklist:
+
+- Status for Block 34: browser and visual QA for this queue progression loop was not performed in this block. The checklist below is for a later manual pass only.
+- Backend setup commands:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-playable-session-state.ps1 -ElapsedSeconds 3600 -PrintQueueMaterializationCommand`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-materialize-due-queues.ps1 -CivilizationId <printed CivilizationId> -PlanetId <printed HomePlanetId> -ElapsedSeconds 3600`
+- Manual pass:
+  - [ ] Start the Development backend and frontend dev server.
+  - [ ] Create a playable Development session with the first command, then keep the printed `CivilizationId` and `HomePlanetId`.
+  - [ ] Open Planet for those ids and verify the queue materialization action is labeled as Development QA, not normal gameplay.
+  - [ ] Enqueue one Construction order through the guarded Construction or Planet flow for the same context.
+  - [ ] Enqueue one Research order through the guarded Research flow for the same context.
+  - [ ] Enqueue one Shipyard orbital production order through the guarded Shipyard flow for the same context.
+  - [ ] Run the materialization helper only after the queued orders should be due.
+  - [ ] Refresh Planet, Construction, Research, and Shipyard from backend state.
+  - [ ] Verify completed Construction changes building state without charging resources a second time.
+  - [ ] Verify completed Research changes project state and no longer appears as an open queue blocker.
+  - [ ] Verify completed Shipyard production changes orbital stock or backend-confirmed history without promoting fleets automatically.
+  - [ ] Verify no combat, attack, fleet movement, mission creation, or auto-complete affordance appeared as a side effect of the queue progression pass.
+
 Safe local navigation persistence for later tasks:
 
 - `localStorage` may store only non-sensitive navigation context returned by the Development-only playable start: `civilizationId`, `planetId` or `homePlanetId`, player/display name, civilization name, planet name, and client timestamps when useful.
