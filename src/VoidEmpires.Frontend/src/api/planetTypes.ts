@@ -85,6 +85,36 @@ export interface ApplyPlanetResourceEconomyCommandResult {
   response: ApplyPlanetResourceEconomyResponse | null;
 }
 
+export interface QueueMaterializationSummaryDto {
+  processedCount: number;
+  dueCount: number;
+  skippedNotDueCount: number;
+}
+
+export interface MaterializeDueQueuesRequest {
+  civilizationId: string;
+  planetId?: string | null;
+  nowUtc?: string | null;
+  includeConstruction: boolean;
+  includeResearch: boolean;
+  includeShipyard: boolean;
+}
+
+export interface MaterializeDueQueuesResponse {
+  succeeded: boolean;
+  construction: QueueMaterializationSummaryDto | null;
+  research: QueueMaterializationSummaryDto | null;
+  shipyard: QueueMaterializationSummaryDto | null;
+  notes: string[];
+}
+
+export interface MaterializeDueQueuesCommandResult {
+  httpStatus: number;
+  hasJsonBody: boolean;
+  bodyParseFailed: boolean;
+  response: MaterializeDueQueuesResponse | null;
+}
+
 export interface PlanetUiStateResult {
   civilizationId: string;
   selectedPlanetId: string | null;

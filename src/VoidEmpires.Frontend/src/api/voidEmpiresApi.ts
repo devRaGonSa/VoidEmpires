@@ -24,6 +24,9 @@ import type {
   EnqueuePlanetConstructionFailureResponse,
   EnqueuePlanetConstructionRequest,
   EnqueuePlanetConstructionResponse,
+  MaterializeDueQueuesCommandResult,
+  MaterializeDueQueuesRequest,
+  MaterializeDueQueuesResponse,
   PlanetUiStateResponse,
 } from "./planetTypes";
 import type { StrategicMapResponse } from "./strategicMapTypes";
@@ -295,6 +298,9 @@ export const voidEmpiresApi = {
   },
   applyPlanetResourceEconomy(request: ApplyPlanetResourceEconomyRequest) {
     return requestActionJson<ApplyPlanetResourceEconomyResponse>("/api/dev/planets/resource-economy/apply", request) as Promise<ApplyPlanetResourceEconomyCommandResult>;
+  },
+  materializeDueQueues(request: MaterializeDueQueuesRequest) {
+    return requestActionJson<MaterializeDueQueuesResponse>("/api/dev/queues/materialize-due", request) as Promise<MaterializeDueQueuesCommandResult>;
   },
   getFleetActionManifest() {
     return requestJson<ActionManifestResponse>("/api/dev/fleets/action-manifest");
