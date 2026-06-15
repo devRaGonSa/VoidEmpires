@@ -71,6 +71,47 @@ public class DevQueueMaterializationEndpointTests(WebApplicationFactory<Program>
         Assert.Contains(verifyContext.PlanetConstructionOrders, x => x.PlanetId == otherPlanetId && x.Status == ConstructionQueueItemStatus.Active);
     }
 
+    [Fact]
+    public async Task MaterializeDueSkipsNotDueOrdersWithoutMutatingState()
+    {
+        var civilizationId = Guid.NewGuid();
+        var planetId = Guid.NewGuid();
+        var nowUtc = new DateTime(2026, 6, 15, 12, 0, 0, DateTimeKind.Utc);
+        using var configuredFactory = factory.WithInMemoryPersistence();
+        using var client = configuredFactory.CreateClient();
+
+        Guid orderId;
+        using (var scope = configuredFactory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+            dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(planetId, civilizationId));
+            var order = CreateConstructionOrder(planetId, 1, nowUtc.AddMinutes(30));
+            dbContext.PlanetConstructionOrders.Add(order);
+            await dbContext.SaveChangesAsync();
+            orderId = order.Id;
+        }
+
+        using var response = await client.PostAsJsonAsync("/api/dev/queues/materialize-due", new
+        {
+            civilizationId,
+            planetId,
+            nowUtc,
+            includeConstruction = true,
+            includeResearch = false,
+            includeShipyard = false
+        });
+        var payload = await response.Content.ReadFromJsonAsync<MaterializeQueuesResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(new QueueMaterializationSummary(0, 0, 1), payload!.Construction);
+
+        using var verifyScope = configuredFactory.Services.CreateScope();
+        var verifyContext = verifyScope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+        var storedOrder = await verifyContext.PlanetConstructionOrders.SingleAsync(x => x.Id == orderId);
+        Assert.Equal(ConstructionQueueItemStatus.Active, storedOrder.Status);
+        Assert.Empty(await verifyContext.PlanetBuildings.Where(x => x.PlanetId == planetId).ToListAsync());
+    }
+
     private static PlanetConstructionOrder CreateConstructionOrder(Guid planetId, int sequence, DateTime endsAtUtc)
         => PlanetConstructionOrder.Create(planetId, ConstructionQueueItemAction.Construct, BuildingType.MetalMine, 1, sequence, endsAtUtc.AddMinutes(-5), endsAtUtc, ConstructionQueueItemStatus.Active);
 

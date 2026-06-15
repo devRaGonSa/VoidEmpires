@@ -109,8 +109,16 @@ public class DevPlayableSessionDiagnosticsEndpointTests(WebApplicationFactory<Pr
             stockpile.Crystal,
             stockpile.Gas,
             await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId),
+            await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId && (x.Status == ConstructionQueueItemStatus.Pending || x.Status == ConstructionQueueItemStatus.Active)),
+            await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId && x.Status == ConstructionQueueItemStatus.Completed),
             await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == SeedCivilizationId),
+            await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == SeedCivilizationId && (x.Status == ResearchQueueItemStatus.Pending || x.Status == ResearchQueueItemStatus.Active)),
+            await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == SeedCivilizationId && x.Status == ResearchQueueItemStatus.Completed),
             await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId),
+            await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId && (x.Status == AssetProductionOrderStatus.Pending || x.Status == AssetProductionOrderStatus.Active)),
+            await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId && x.Status == AssetProductionOrderStatus.Completed),
+            await dbContext.Set<PlanetBuilding>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId),
+            await dbContext.Set<ResearchProject>().CountAsync(x => x.CivilizationId == SeedCivilizationId),
             await dbContext.Set<OrbitalAssetStock>().SumAsync(x => x.PlanetId == SeedOwnedPlanetId ? x.Quantity : 0));
     }
 
@@ -151,7 +159,15 @@ public class DevPlayableSessionDiagnosticsEndpointTests(WebApplicationFactory<Pr
         decimal Crystal,
         decimal Gas,
         int ConstructionOrderCount,
+        int OpenConstructionOrderCount,
+        int CompletedConstructionOrderCount,
         int ResearchOrderCount,
+        int OpenResearchOrderCount,
+        int CompletedResearchOrderCount,
         int AssetProductionOrderCount,
+        int OpenAssetProductionOrderCount,
+        int CompletedAssetProductionOrderCount,
+        int BuildingCount,
+        int ResearchProjectCount,
         int OrbitalStockQuantity);
 }
