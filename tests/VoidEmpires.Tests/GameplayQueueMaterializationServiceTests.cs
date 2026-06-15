@@ -59,6 +59,38 @@ public class GameplayQueueMaterializationServiceTests
     }
 
     [Fact]
+    public async Task MaterializeDueAsyncLeavesAllQueuesUntouchedWhenOrdersAreNotYetDue()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var planetId = Guid.NewGuid();
+        var nowUtc = new DateTime(2026, 6, 15, 12, 0, 0, DateTimeKind.Utc);
+        var construction = CreateConstructionOrder(planetId, 1, nowUtc.AddMinutes(5), ConstructionQueueItemStatus.Active);
+        var research = CreateResearchOrder(civilizationId, planetId, 1, nowUtc.AddMinutes(10), ResearchQueueItemStatus.Active);
+        var shipyard = CreateAssetOrder(planetId, 1, nowUtc.AddMinutes(15), AssetProductionOrderStatus.Active);
+
+        dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(planetId, civilizationId));
+        dbContext.PlanetConstructionOrders.Add(construction);
+        dbContext.ResearchOrders.Add(research);
+        dbContext.Set<AssetProductionOrder>().Add(shipyard);
+        await dbContext.SaveChangesAsync();
+
+        var result = await new GameplayQueueMaterializationService(dbContext).MaterializeDueAsync(
+            new MaterializeGameplayQueuesRequest(civilizationId, planetId, nowUtc, true, true, true));
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(new QueueMaterializationSummary(0, 0, 1), result.Construction);
+        Assert.Equal(new QueueMaterializationSummary(0, 0, 1), result.Research);
+        Assert.Equal(new QueueMaterializationSummary(0, 0, 1), result.Shipyard);
+        Assert.Equal(ConstructionQueueItemStatus.Active, construction.Status);
+        Assert.Equal(ResearchQueueItemStatus.Active, research.Status);
+        Assert.Equal(AssetProductionOrderStatus.Active, shipyard.Status);
+        Assert.Empty(dbContext.PlanetBuildings);
+        Assert.Empty(dbContext.ResearchProjects);
+        Assert.Empty(dbContext.Set<OrbitalAssetStock>());
+    }
+
+    [Fact]
     public async Task MaterializeDueAsyncDoesNotRepeatShipyardStockIncrease()
     {
         await using var dbContext = CreateDbContext();
