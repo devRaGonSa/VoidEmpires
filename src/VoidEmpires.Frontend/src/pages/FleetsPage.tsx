@@ -13,6 +13,7 @@ import { CockpitHero } from "../components/CockpitHero";
 import { FleetSelectedGroupPanel } from "../components/FleetSelectedGroupPanel";
 import { FleetSummaryPanel } from "../components/FleetSummaryPanel";
 import { ActionManifestPanel } from "../components/ActionManifestPanel";
+import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { UiProgressBar } from "../components/ui/UiProgressBar";
@@ -25,11 +26,13 @@ import {
 } from "../utils/domainPresentation";
 import {
   buildConstructionUrl,
+  buildFleetsUrl,
   buildGalaxyUrl,
   buildPlanetUrl,
   buildShipyardUrl,
 } from "../utils/routeUrls";
 import { cockpitNavigationLabels } from "../utils/cockpitStatus";
+import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
 import {
   buildFleetCommandReadiness,
   buildFleetEstimateReviewCard,
@@ -178,6 +181,7 @@ export function FleetsPage() {
   const [createTransferResult, setCreateTransferResult] = useState<FleetCommandPresentationItem | null>(null);
   const [createTransferNetworkError, setCreateTransferNetworkError] = useState<string | null>(null);
   const createTransferInFlightRef = useRef(false);
+  const [localSessionCleared, setLocalSessionCleared] = useState(false);
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
 
@@ -243,6 +247,21 @@ export function FleetsPage() {
     [effectiveGroupId, estimateEligibleGroups],
   );
   const focusedPlanetId = queryPlanetId ?? inspectedGroup?.currentPlanetId ?? selectedGroup?.currentPlanetId ?? "";
+  const playableRouteContext = usePlayableRouteContext(queryCivilizationId);
+  const playableSession = localSessionCleared ? null : playableRouteContext.playableSession;
+  const routeSession = uiState?.civilizationId && focusedPlanetId
+    ? {
+      civilizationId: uiState.civilizationId,
+      planetId: focusedPlanetId,
+      planetName: formatPlanetPrimaryLabel(focusedPlanetId),
+      createdAt: "route-context",
+      updatedAt: "route-context",
+    }
+    : null;
+  const bannerSession = routeSession ?? playableSession;
+  const playableSessionUrl = playableSession
+    ? buildFleetsUrl(playableSession.civilizationId, playableSession.planetId)
+    : null;
   const focusedPlanetResourceContext = useMemo(
     () => uiState?.resourceContexts?.find((context) => context.planetId === focusedPlanetId) ?? null,
     [focusedPlanetId, uiState],
@@ -896,6 +915,11 @@ export function FleetsPage() {
         }
       />
 
+      <PlayableSessionBanner
+        session={bannerSession}
+        onClear={() => setLocalSessionCleared(true)}
+      />
+
       <div className="fleet-preflight-strip">
         <UiCard className="panel fleet-dev-loader-panel">
           <div className="figma-section-header">
@@ -963,6 +987,26 @@ export function FleetsPage() {
           </div>
         </UiCard>
       )}
+
+      {!queryCivilizationId && playableSession && playableSessionUrl ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Inicio local disponible</p>
+              <h3>Continuar con {playableSession.planetName ?? "la ultima colonia"}</h3>
+            </div>
+            <UiBadge tone="good">Memoria local</UiBadge>
+          </div>
+          <p className="figma-panel-note">
+            Este enlace abre Flotas con ids locales de navegacion. No crea misiones, movimientos ni combate.
+          </p>
+          <div className="selection-chip-row">
+            <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
+              Abrir Flotas
+            </Link>
+          </div>
+        </UiCard>
+      ) : null}
 
       {uiState && summary && summary.groups === 0 && summary.resourceContexts === 0 && (
         <UiCard className="panel">
