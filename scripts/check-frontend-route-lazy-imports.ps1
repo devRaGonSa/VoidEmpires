@@ -23,6 +23,7 @@ $protectedPages = @(
     "AlliancePage",
     "MarketPage",
     "RankingPage",
+    "OnboardingPage",
     "ModuleCabinPage"
 )
 
@@ -52,6 +53,7 @@ $requiredLazyPages = @(
     "AlliancePage",
     "MarketPage",
     "RankingPage",
+    "OnboardingPage",
     "ModuleCabinPage"
 )
 
@@ -111,6 +113,36 @@ foreach ($page in $routeGuardPages) {
 
 if ($routeGuardViolations.Count -gt 0) {
     throw "Frontend cockpit route helper guard failed:`n$($routeGuardViolations -join [Environment]::NewLine)"
+}
+
+$routeUrlsPath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\utils\routeUrls.ts"))
+if (-not (Test-Path -LiteralPath $routeUrlsPath)) {
+    throw "Route URL helper file was not found at '$routeUrlsPath'."
+}
+
+$routeUrlsContent = Get-Content -LiteralPath $routeUrlsPath -Raw
+$requiredRouteHelperFragments = @(
+    @{ Name = "buildPlanetUrl"; Pattern = 'return buildUrl\("/planet", \{ civilizationId, planetId \}\);' },
+    @{ Name = "buildConstructionUrl"; Pattern = 'return buildUrl\("/construction", \{ civilizationId, planetId \}\);' },
+    @{ Name = "buildResearchUrl"; Pattern = 'return buildUrl\("/research", \{ civilizationId, planetId \}\);' },
+    @{ Name = "buildShipyardUrl"; Pattern = 'return buildUrl\("/shipyard", \{ civilizationId, planetId \}\);' },
+    @{ Name = "buildDefensesUrl"; Pattern = 'return buildUrl\("/defenses", \{ civilizationId, planetId \}\);' },
+    @{ Name = "buildFleetsUrl"; Pattern = 'return buildUrl\("/fleets", \{ civilizationId, planetId \}\);' }
+)
+
+$routeUrlHelperViolations = New-Object System.Collections.Generic.List[string]
+foreach ($helper in $requiredRouteHelperFragments) {
+    if ($routeUrlsContent -notmatch $helper.Pattern) {
+        $routeUrlHelperViolations.Add("$($helper.Name) must preserve civilizationId and planetId through buildUrl(...).")
+    }
+}
+
+if ($routeUrlsContent -notmatch "new URLSearchParams\(\)" -or $routeUrlsContent -notmatch "\.trim\(\)") {
+    $routeUrlHelperViolations.Add("buildUrl(...) must continue trimming values and using URLSearchParams instead of manual query concatenation.")
+}
+
+if ($routeUrlHelperViolations.Count -gt 0) {
+    throw "Frontend route URL helper guard failed:`n$($routeUrlHelperViolations -join [Environment]::NewLine)"
 }
 
 Write-Host "Frontend route lazy-import guard passed."

@@ -83,6 +83,78 @@ if ($filteredMatches) {
   throw "Frontend copy regression check failed."
 }
 
+$forbiddenActionPatterns = @(
+  "Attack",
+  "Atacar",
+  "Move fleet",
+  "Mover flota",
+  "Create mission",
+  "Crear mision",
+  "Crear misión",
+  "Auto-complete",
+  "Autocomplete",
+  "autoComplete",
+  "auto complete"
+)
+
+$frontendActionSurfacePaths = $frontendFiles |
+  Where-Object { $_.FullName -match "\\(pages|components)\\" } |
+  Select-Object -ExpandProperty FullName
+
+$forbiddenActionMatches = Select-String -Path $frontendActionSurfacePaths -Pattern $forbiddenActionPatterns -SimpleMatch -CaseSensitive:$false
+if ($forbiddenActionMatches) {
+  Write-Host "Forbidden active-action copy detected in frontend page or component files:" -ForegroundColor Red
+  $forbiddenActionMatches | ForEach-Object {
+    Write-Host ("{0}:{1}: {2}" -f $_.Path, $_.LineNumber, $_.Line.Trim())
+  }
+
+  throw "Frontend forbidden-action guard failed."
+}
+
+$playableSessionPath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\utils\playableSession.ts"))
+if (-not (Test-Path -LiteralPath $playableSessionPath)) {
+  throw "Playable session helper was not found at '$playableSessionPath'."
+}
+
+$playableSessionContent = Get-Content -LiteralPath $playableSessionPath -Raw
+$requiredPlayableSessionFragments = @(
+  "civilizationId: string;",
+  "planetId: string;",
+  "playerDisplayName?: string;",
+  "civilizationName?: string;",
+  "planetName?: string;",
+  "createdAt: string;",
+  "updatedAt: string;"
+)
+$forbiddenPlayableSessionFragments = @(
+  "token",
+  "credential",
+  "password",
+  "cookie",
+  "bearer",
+  "email",
+  "role",
+  "claim",
+  "auth"
+)
+
+$playableSessionViolations = New-Object System.Collections.Generic.List[string]
+foreach ($fragment in $requiredPlayableSessionFragments) {
+  if ($playableSessionContent -notlike "*$fragment*") {
+    $playableSessionViolations.Add("playableSession.ts is missing allowed navigation field fragment: $fragment")
+  }
+}
+
+foreach ($fragment in $forbiddenPlayableSessionFragments) {
+  if ($playableSessionContent -match "(?i)$([regex]::Escape($fragment))") {
+    $playableSessionViolations.Add("playableSession.ts must not store credential-like field or wording: $fragment")
+  }
+}
+
+if ($playableSessionViolations.Count -gt 0) {
+  throw "Playable session storage guard failed:`n$($playableSessionViolations -join [Environment]::NewLine)"
+}
+
 $requiredSafetyCopy = @(
   @{
     Path = "src/VoidEmpires.Frontend/src/pages/PlanetPage.tsx"
