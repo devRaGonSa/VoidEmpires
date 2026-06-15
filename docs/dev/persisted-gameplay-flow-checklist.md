@@ -377,6 +377,41 @@ Boundaries for this hardening block:
 - No visual QA is performed or claimed by this document update.
 - Follow-up tasks should prefer script/copy/diagnostic hardening over new gameplay domains.
 
+## Unified Development diagnostics contract
+
+Existing read and summary surfaces audited for this contract:
+
+- `GET /api/dev/planets/ui-state` returns the selected owned planet, resources, production, buildings, construction queue, orbital context, defense context, and secondary diagnostics.
+- `GET /api/dev/research/ui-state` returns selected source-planet context, research queue, completed projects, catalog readiness hints, and errors.
+- `GET /api/dev/shipyard/ui-state` returns selected planet context, orbital production catalog, queue, stock, and readiness notes.
+- `GET /api/dev/defenses/ui-state` and `GET /api/dev/fleets/ui-state` provide read-only neighboring readiness context.
+- `POST /api/dev/queues/materialize-due` returns the latest explicit materialization summary when that action is run, but the current repository does not persist a durable "last materialization" record for later reads.
+
+Safe response shape for a future `GET /api/dev/playable-session/diagnostics` style endpoint:
+
+- `succeeded`: boolean command/read status.
+- `civilizationId`: requested or resolved Development civilization id.
+- `planetId`: requested or resolved selected planet id.
+- `identity`: Development-only display labels such as civilization name, owner name, planet name, and compact system context.
+- `resources`: current backend-read stockpile rows with resource type, quantity, and optional production-rate summary.
+- `construction`: open-order count, next open order id, status, building type, target level, due timestamp, and blocked/available summary from the Planet read model.
+- `research`: open-order count, next open order id, status, research type, target level, due timestamp, and readiness-note summary from the Research read model.
+- `shipyard`: open-order count, next open order id, status, target asset type, quantity, due timestamp, and orbital stock summary from the Shipyard read model.
+- `lastMaterialization`: optional echo of the last materialization response only when supplied by the caller or when a later task persists one; omit or return `null` when unknown.
+- `defenses`: read-only readiness notes derived from the current Defense/Planet read models, with no enqueue or combat authority.
+- `fleets`: read-only group, stationed, transfer, and resource-context counts derived from Fleet read models, with no movement or combat authority.
+- `warnings`: missing persistence, missing ids, foreign or unavailable planet, occupied queues, backend-offline helper guidance, and reused-Development-database limitations.
+- `limitations`: explicit strings stating Development-only, read-only, not production auth, not admin authority, not a reset path, and not proof of visual QA.
+
+Safety boundaries:
+
+- The diagnostics endpoint must be `GET`, read-only, Development-only, and gated by the same dev endpoint rules as the existing `/api/dev/*` surfaces.
+- It must not apply seeds, prepare QA state, accrue resources, enqueue orders, materialize queues, move fleets, complete transfers, create stock, or clear blockers.
+- It should compose existing read services or direct read models instead of inventing a second source of truth for resources, queues, stock, or readiness.
+- It may expose raw ids for debugging, but UI usage should keep ids secondary to readable labels and summaries.
+- Missing or invalid context should return actionable warnings/errors rather than falling back to production auth, localStorage authority, or a different civilization.
+- A later implementation should add endpoint tests that prove the diagnostics read does not mutate construction, research, shipyard, resource, fleet, or defense state.
+
 Expected result payload for the safe Development-only playable-start contract:
 
 - Identity block:
