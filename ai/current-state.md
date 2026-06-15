@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Block 32A-32O - Playable Session Foundation`.
+The repository is consolidated through `Block 32A-32P - Playable Session Foundation`.
 
 ## Repository Reality
 
@@ -116,7 +116,7 @@ Current intentional exclusions:
 - no real specialized module execution yet outside the current backend-supported Research and Shipyard enqueue paths plus the accepted Fleets flow; Espionage remains analysis-only
 - no real research effects beyond queue and completion state
 - no destructive seed reset behavior
-- no final screenshot-backed visual QA performed in the Block 32O validation pass
+- no final screenshot-backed visual QA performed in the Block 32P validation pass
 
 Current implemented foundations:
 
@@ -334,7 +334,7 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Block 32A-32O:
+Current validated baseline after Block 32A-32P:
 
 - backend: `dotnet build --no-restore` succeeded with `0` warnings and `0` errors
 - tests: `dotnet test --no-build` succeeded with `707` passing tests, `0` failed, and `0` skipped
@@ -347,14 +347,15 @@ Current validated baseline after Block 32A-32O:
 - tooling note: both `dotnet build --no-restore` and `dotnet test --no-build` reported available .NET workload updates; this is informational and did not fail validation
 - technical regression note: the standard non-visual Alliance follow-up pass kept both `check-frontend-route-lazy-imports.ps1` and `check-dev-qa-scripts.ps1` green without reopening any accepted cockpit route behavior
 - frontend note: the old Vite `500 kB` chunk-size warning is no longer present after the route-lazy-loading pass, but accepted cockpit route QA remains required because the block changes loading architecture rather than gameplay behavior
-- build note: this Block 32O validation run did not emit the previously documented transient `MSB3026` copy-retry warnings
+- build note: this Block 32P validation run did not emit the previously documented transient `MSB3026` copy-retry warnings
 - orbital-preparation note: the repeated Shipyard QA preparation command is `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-orbital-production-ui-state.ps1`
-- Manual visual QA for the accepted cross-cockpit demo flow remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; it was explicitly not performed during this Block 32O non-visual validation pass, so final screenshot-style acceptance is still user-driven.
+- Manual visual QA for the accepted cross-cockpit demo flow remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; it was explicitly not performed during this Block 32P non-visual validation pass, so final screenshot-style acceptance is still user-driven.
 - Market visual and read-only polish is now implemented and documented through the seeded browser checklists; final screenshot-backed acceptance still remains user-driven, and the block did not expand Market into transaction gameplay or production behavior.
 - Alliance read-only diplomacy validation is now implemented and documented through the seeded browser checklists; final screenshot-backed acceptance still remains user-driven, and the block did not expand Alliance into executable diplomacy gameplay.
 - Block `28Q-28Z` visual QA corrections are now represented in checklist/docs: copy/fallback issues in Ranking, Alliance, and Market were corrected in code; final screenshot-backed acceptance for this corrective cycle remains pending manual validation by the user.
 - state note: the Ranking cockpit is now part of the standard lazy-loaded read-only route suite, and Galaxy or Market or Espionage or Alliance remain read-only after the Ranking rollout.
 - closure note: Block `28A-28P` is now closed, `ai/tasks/pending` is reduced to `.gitkeep`, and the accepted cockpit suite keeps `/ranking` inside the standard non-visual regression bundle without changing the non-public ranking boundary.
+- closure note: Block `32A-32P` is now closed, `ai/tasks/pending` is reduced to `.gitkeep`, and the accepted playable-session foundation remains Development-only with explicit id handoffs rather than production-auth session resolution.
 
 Current validated cockpit QA seed baseline:
 
