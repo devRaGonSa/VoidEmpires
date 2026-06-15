@@ -104,6 +104,10 @@ if (-not [string]::IsNullOrWhiteSpace($HomePlanetName)) {
 }
 
 Write-Warning "Esta script muta la base Development. Crea un inicio jugable real y puede materializar produccion de recursos."
+Write-Host ""
+Write-Host "Target"
+Write-Host "BaseUrl: $BaseUrl"
+Write-Host "Action: Create Development playable session"
 Write-Host "Payload summary: $(Format-DevQaPayloadSummary $createPayload)"
 
 $createResult = Invoke-DevPostDetailed "/api/dev/players/starting-civilization" $createPayload
@@ -192,6 +196,13 @@ Write-Host "Current planet snapshot:"
     }
 } | Format-List
 
+Write-Host ""
+Write-Host "Next frontend routes:"
+Write-Host "/planet?civilizationId=$civilizationId&planetId=$planetId"
+Write-Host "/construction?civilizationId=$civilizationId&planetId=$planetId"
+Write-Host "/research?civilizationId=$civilizationId&planetId=$planetId"
+Write-Host "/shipyard?civilizationId=$civilizationId&planetId=$planetId"
+
 if ($economyApplied) {
     Write-Host ""
     Write-Host "Resource delta after backend accrual:"
@@ -203,7 +214,7 @@ if ($PrintQueueMaterializationCommand) {
     $materializationCommand = "powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-materialize-due-queues.ps1 -BaseUrl `"$materializationBaseUrl`" -CivilizationId $civilizationId -PlanetId $planetId -ElapsedSeconds 3600"
 
     Write-Host ""
-    Write-Host "Queue materialization helper command for later manual QA:"
+    Write-Host "Next suggested command for later manual QA:"
     Write-Host $materializationCommand
     Write-Host "Run it only after enqueueing due Construction, Research, or Shipyard orders for this playable start."
 }

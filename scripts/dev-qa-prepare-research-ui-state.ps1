@@ -18,6 +18,12 @@ catch {
 $targetPlanetId = if ($PSBoundParameters.ContainsKey("PlanetId")) { $PlanetId } else { $SourcePlanetId }
 
 Write-Warning "Este script modifica la base de datos de Development para preparar QA manual de Investigacion."
+Write-Host ""
+Write-Host "Target"
+Write-Host "BaseUrl: $BaseUrl"
+Write-Host "CivilizationId: $CivilizationId"
+Write-Host "SourcePlanetId: $targetPlanetId"
+Write-Host "Action: Prepare Research QA state"
 
 try {
     $request = [ordered]@{
@@ -86,6 +92,10 @@ try {
         Write-Host "Notas:"
         Write-Host $notes
     }
+
+    Write-Host ""
+    Write-Host "Next suggested command:"
+    Write-Host "powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-create-research-order.ps1 -BaseUrl `"$($BaseUrl.TrimEnd("/"))`" -CivilizationId $targetCivilizationId -PlanetId $preparedSourcePlanetId"
 }
 catch {
     $response = $_.Exception.Response

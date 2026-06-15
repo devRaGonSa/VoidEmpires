@@ -15,6 +15,12 @@ catch {
 }
 
 Write-Warning "Este script modifica la base de datos de Development para preparar QA manual de produccion orbital."
+Write-Host ""
+Write-Host "Target"
+Write-Host "BaseUrl: $BaseUrl"
+Write-Host "CivilizationId: $CivilizationId"
+Write-Host "PlanetId: $PlanetId"
+Write-Host "Action: Prepare Shipyard QA state"
 
 try {
     $request = [ordered]@{
@@ -82,6 +88,10 @@ try {
         Write-Host "Notas:"
         Write-Host $notes
     }
+
+    Write-Host ""
+    Write-Host "Next suggested command:"
+    Write-Host "powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-create-shipyard-production-order.ps1 -BaseUrl `"$($BaseUrl.TrimEnd("/"))`" -CivilizationId $targetCivilizationId -PlanetId $targetPlanetId"
 }
 catch {
     $response = $_.Exception.Response

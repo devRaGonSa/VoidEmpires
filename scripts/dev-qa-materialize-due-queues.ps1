@@ -20,6 +20,12 @@ catch {
 }
 
 Write-Warning "Este script modifica la base de datos de Development materializando ordenes vencidas."
+Write-Host ""
+Write-Host "Target"
+Write-Host "BaseUrl: $BaseUrl"
+Write-Host "CivilizationId: $CivilizationId"
+Write-Host "PlanetId: $PlanetId"
+Write-Host "Action: Materialize due queues"
 
 $anyIncludeSwitch = $IncludeConstruction -or $IncludeResearch -or $IncludeShipyard
 if (-not $anyIncludeSwitch) {
@@ -96,6 +102,14 @@ try {
             Write-Host " - $note"
         }
     }
+
+    Write-Host ""
+    Write-Host "Next suggested checks:"
+    Write-Host "/planet?civilizationId=$CivilizationId&planetId=$PlanetId"
+    Write-Host "/construction?civilizationId=$CivilizationId&planetId=$PlanetId"
+    Write-Host "/research?civilizationId=$CivilizationId&planetId=$PlanetId"
+    Write-Host "/shipyard?civilizationId=$CivilizationId&planetId=$PlanetId"
+    Write-Host "powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-fleet-read-state.ps1 -BaseUrl `"$($BaseUrl.TrimEnd("/"))`" -CivilizationId $CivilizationId"
 }
 catch {
     $response = $_.Exception.Response
