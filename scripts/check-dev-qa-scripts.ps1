@@ -14,7 +14,8 @@ function Get-ExistingDevQaScriptPaths {
         "dev-qa-create-shipyard-production-order.ps1",
         "dev-qa-prepare-orbital-production-ui-state.ps1",
         "dev-qa-fleet-read-state.ps1",
-        "dev-qa-prepare-playable-session-state.ps1"
+        "dev-qa-prepare-playable-session-state.ps1",
+        "dev-qa-materialize-due-queues.ps1"
     )
 
     $optionalScriptNames = @(
@@ -52,8 +53,8 @@ foreach ($scriptPath in $scriptPaths) {
     [void][System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$tokens, [ref]$errors)
 
     if ($errors.Count -gt 0) {
-        foreach ($error in $errors) {
-            $parseFailures.Add("${scriptPath}:$($error.Extent.StartLineNumber): $($error.Message)")
+        foreach ($parseError in $errors) {
+            $parseFailures.Add("${scriptPath}:$($parseError.Extent.StartLineNumber): $($parseError.Message)")
         }
     }
 }
