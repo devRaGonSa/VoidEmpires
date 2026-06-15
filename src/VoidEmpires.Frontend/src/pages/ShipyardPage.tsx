@@ -4,6 +4,7 @@ import { enqueueShipyardProduction, fetchShipyardUiState } from "../api/shipyard
 import type { ShipyardApiErrorCode } from "../api/shipyardTypes";
 import { CockpitHero } from "../components/CockpitHero";
 import { GameModal } from "../components/GameModal";
+import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { formatPlanetPrimaryLabel, formatPlanetSecondaryLabel, formatResourceType } from "../utils/domainPresentation";
@@ -293,6 +294,7 @@ export function ShipyardPage() {
     endsAtUtc: string | null;
   } | null>(null);
   const [enqueueRefreshAudit, setEnqueueRefreshAudit] = useState<ShipyardRefreshAudit | null>(null);
+  const [localSessionCleared, setLocalSessionCleared] = useState(false);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -300,11 +302,22 @@ export function ShipyardPage() {
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
   const playableRouteContext = usePlayableRouteContext(queryCivilizationId);
-  const playableSession = playableRouteContext.playableSession;
+  const playableSession = localSessionCleared ? null : playableRouteContext.playableSession;
+  const shipyard = uiState?.shipyard ?? null;
+  const routeSession = uiState?.civilizationId && shipyard
+    ? {
+      civilizationId: uiState.civilizationId,
+      planetId: shipyard.planetId,
+      civilizationName: shipyard.ownerCivilizationName ?? undefined,
+      planetName: shipyard.planetName,
+      createdAt: "route-context",
+      updatedAt: "route-context",
+    }
+    : null;
+  const bannerSession = routeSession ?? playableSession;
   const playableSessionUrl = playableSession
     ? buildShipyardUrl(playableSession.civilizationId, playableSession.planetId)
     : null;
-  const shipyard = uiState?.shipyard ?? null;
   const hasSafeShipyardEnqueue = shipyard?.actionAvailability.enqueue.supported ?? false;
   const hasSafeShipyardCompleteDue = false;
   const categoryGroups = useMemo(() => groupAssetOptionsByCategory(shipyard?.catalog ?? []), [shipyard?.catalog]);
@@ -588,6 +601,11 @@ export function ShipyardPage() {
             <UiBadge tone="warn">Sin movimiento de flota</UiBadge>
           </>
         }
+      />
+
+      <PlayableSessionBanner
+        session={bannerSession}
+        onClear={() => setLocalSessionCleared(true)}
       />
 
       <div className="strategic-cockpit-top">
