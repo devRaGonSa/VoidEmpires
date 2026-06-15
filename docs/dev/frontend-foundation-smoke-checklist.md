@@ -135,6 +135,8 @@ Compact route-loading smoke pass:
 
 Compact navigation regression pass:
 
+- `Onboarding -> Planet`: submit `/onboarding` through the Development-only playable start flow and confirm the redirect lands on `/planet` with the backend-returned `civilizationId` and `homePlanetId` as `planetId`.
+- `Sidebar context handoff`: while any seeded or newly created cockpit URL includes `civilizationId` and `planetId`, use the shared shell links for `Planeta`, `Construccion`, `Investigacion`, `Astillero`, `Defensas`, `Flotas`, `Mercado`, and `Galaxia`; confirm each supported destination keeps the active ids instead of falling back to a bare route.
 - `Galaxy -> Planet`: open `/galaxy`, follow the seeded planet handoff, and confirm `civilizationId` and `planetId` remain present.
 - `Planet -> Construction`: open the `Construccion` handoff from `Planeta` and confirm the selected colony context is preserved.
 - `Construction -> Planet`: return to `Planeta` and confirm the same colony context still resolves.

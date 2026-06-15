@@ -1,10 +1,21 @@
-import { Suspense, lazy } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Suspense, lazy, useMemo } from "react";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { appConfig } from "./config";
 import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
 import { AppShell } from "./components/ui/AppShell";
+import type { SidebarNavItem } from "./components/ui/SidebarNav";
 import { specializedPlanetModuleRoutes } from "./utils/planetModuleRoutes";
-import { buildAllianceUrl, buildEspionageUrl, buildGalaxyUrl, buildMarketUrl, buildRankingUrl } from "./utils/routeUrls";
+import {
+  buildAllianceUrl,
+  buildConstructionUrl,
+  buildEspionageUrl,
+  buildFleetsUrl,
+  buildGalaxyUrl,
+  buildMarketUrl,
+  buildPlanetUrl,
+  buildRankingUrl,
+  buildSpecializedModuleUrl,
+} from "./utils/routeUrls";
 
 const StrategicMapPage = lazy(async () => {
   const module = await import("./pages/StrategicMapPage");
@@ -76,19 +87,6 @@ const ModuleCabinPage = lazy(async () => {
   return { default: module.ModuleCabinPage };
 });
 
-const sidebarItems = [
-  { label: "Nuevo inicio", to: "/onboarding", state: "implemented" },
-  { label: "Galaxia", to: buildGalaxyUrl(), state: "implemented" },
-  { label: "Planeta", to: "/planet", state: "implemented" },
-  { label: "Construccion", to: "/construction", state: "implemented" },
-  ...specializedPlanetModuleRoutes.map((route) => ({ label: route.label, to: route.path, state: "implemented" as const })),
-  { label: "Flotas", to: "/fleets", state: "implemented" },
-  { label: "Espionaje", to: buildEspionageUrl("00000000-0000-0000-0000-000000000001"), state: "implemented" },
-  { label: "Alianza", to: buildAllianceUrl("00000000-0000-0000-0000-000000000001"), state: "readOnly" },
-  { label: "Mercado", to: buildMarketUrl("00000000-0000-0000-0000-000000000001"), state: "implemented" },
-  { label: "Ranking", to: buildRankingUrl("00000000-0000-0000-0000-000000000001"), state: "readOnly" },
-] as const;
-
 const resources = [
   { label: "Metal", value: "128.4k", progress: 72, tone: "metal" },
   { label: "Cristal", value: "84.1k", progress: 58, tone: "crystal" },
@@ -98,6 +96,31 @@ const resources = [
 ] as const;
 
 export default function App() {
+  const location = useLocation();
+  const sidebarItems = useMemo<SidebarNavItem[]>(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const civilizationId = searchParams.get("civilizationId") ?? "";
+    const planetId = civilizationId ? searchParams.get("planetId") : null;
+    const systemId = civilizationId ? searchParams.get("systemId") : null;
+
+    return [
+      { label: "Nuevo inicio", to: "/onboarding", state: "implemented" },
+      { label: "Galaxia", to: buildGalaxyUrl(civilizationId, systemId, planetId), state: "implemented" },
+      { label: "Planeta", to: buildPlanetUrl(civilizationId, planetId), state: "implemented" },
+      { label: "Construccion", to: buildConstructionUrl(civilizationId, planetId), state: "implemented" },
+      ...specializedPlanetModuleRoutes.map((route) => ({
+        label: route.label,
+        to: buildSpecializedModuleUrl(route.module, civilizationId, planetId),
+        state: "implemented" as const,
+      })),
+      { label: "Flotas", to: buildFleetsUrl(civilizationId, planetId), state: "implemented" },
+      { label: "Espionaje", to: buildEspionageUrl(civilizationId, systemId, planetId), state: "implemented" },
+      { label: "Alianza", to: buildAllianceUrl(civilizationId), state: "readOnly" },
+      { label: "Mercado", to: buildMarketUrl(civilizationId, planetId), state: "implemented" },
+      { label: "Ranking", to: buildRankingUrl(civilizationId), state: "readOnly" },
+    ];
+  }, [location.search]);
+
   return (
     <AppShell
       apiBaseUrl={appConfig.apiBaseUrl}
