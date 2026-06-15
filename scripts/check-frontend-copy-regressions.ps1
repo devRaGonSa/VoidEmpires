@@ -94,7 +94,20 @@ $forbiddenActionPatterns = @(
   "Auto-complete",
   "Autocomplete",
   "autoComplete",
-  "auto complete"
+  "auto complete",
+  "Completar instantaneamente",
+  "Completar instantáneamente",
+  "Completa instantaneamente",
+  "Completa instantáneamente",
+  "Autocompletar al cargar",
+  "Auto completar al cargar",
+  "Auto-complete on page load",
+  "Completar al cargar",
+  "Materializar al cargar",
+  "Materializa automaticamente al abrir",
+  "Materializa automáticamente al abrir",
+  "Materializacion como gameplay normal",
+  "Materialización como gameplay normal"
 )
 
 $frontendActionSurfacePaths = $frontendFiles |
@@ -250,6 +263,29 @@ foreach ($requirement in $requiredGameplayModalGuards) {
 
 if ($missingGameplayModalGuards.Count -gt 0) {
   throw "Frontend gameplay modal guard failed:`n$($missingGameplayModalGuards -join [Environment]::NewLine)"
+}
+
+$materializationGuardPath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\pages\PlanetPage.tsx"))
+if (-not (Test-Path -LiteralPath $materializationGuardPath)) {
+  throw "Planet materialization guard file was not found at '$materializationGuardPath'."
+}
+
+$materializationContent = Get-Content -LiteralPath $materializationGuardPath -Raw
+$requiredMaterializationFragments = @(
+  "Development QA",
+  "Materializa solo ordenes vencidas en backend",
+  "Las ordenes no vencidas se mantienen abiertas.",
+  "onClick={() => void handleQueueMaterializationRefresh()}"
+)
+$missingMaterializationFragments = New-Object System.Collections.Generic.List[string]
+foreach ($fragment in $requiredMaterializationFragments) {
+  if ($materializationContent -notlike "*$fragment*") {
+    $missingMaterializationFragments.Add("PlanetPage.tsx is missing materialization guard fragment: $fragment")
+  }
+}
+
+if ($missingMaterializationFragments.Count -gt 0) {
+  throw "Frontend materialization copy guard failed:`n$($missingMaterializationFragments -join [Environment]::NewLine)"
 }
 
 Write-Host "Frontend copy regression check passed." -ForegroundColor Green

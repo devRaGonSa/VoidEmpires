@@ -35,6 +35,14 @@ Non-goals for this pattern:
 - no optimistic queue fabrication before backend refresh
 - no expansion into fleet movement, combat, or other adjacent mutations
 
+Queue materialization guardrails:
+
+- The only accepted visible queue materialization action is explicitly labeled as Development QA and stays out of normal gameplay framing.
+- Materialization copy must say it processes only due backend orders and keeps not-yet-due orders open.
+- No page-load, route-entry, sidebar navigation, or card-selection copy may imply automatic completion or automatic materialization.
+- `scripts/check-frontend-copy-regressions.ps1` guards against instant-complete/page-load phrasing, forbidden combat or mission actions, and missing Development QA materialization copy.
+- `scripts/check-frontend-route-lazy-imports.ps1` remains the route import guard for cockpit pages.
+
 ## Orbital Preparation Runtime Order
 
 Use this exact manual sequence for the current orbital production or military preparation pass. This remains a user-driven visual QA checklist, not proof that the browser checks have already been performed.
