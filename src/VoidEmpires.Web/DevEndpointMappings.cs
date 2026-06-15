@@ -7,6 +7,7 @@ using VoidEmpires.Application.Assets;
 using VoidEmpires.Application.Buildings;
 using VoidEmpires.Application.Fleets;
 using VoidEmpires.Application.Galaxy;
+using VoidEmpires.Application.Gameplay;
 using VoidEmpires.Application.Markets;
 using VoidEmpires.Application.Players;
 using VoidEmpires.Application.Rankings;
@@ -213,6 +214,42 @@ internal static class DevEndpointMappings
             return Results.Ok(new ApplyPlanetResourceEconomyApiResponse(
                 true,
                 []));
+        });
+
+        app.MapPost("/api/dev/queues/materialize-due", async (
+            MaterializeGameplayQueuesApiRequest request,
+            [FromServices] IServiceProvider services,
+            [FromServices] IConfiguration configuration,
+            CancellationToken cancellationToken) =>
+        {
+            if (!IsPersistenceConfigured(configuration))
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            var errors = ValidateMaterializeGameplayQueues(request);
+            if (errors.Count > 0)
+            {
+                return Results.BadRequest(new MaterializeGameplayQueuesApiResponse(false, null, null, null, errors));
+            }
+
+            var service = services.GetRequiredService<IGameplayQueueMaterializationService>();
+            var result = await service.MaterializeDueAsync(new MaterializeGameplayQueuesRequest(
+                request.CivilizationId!.Value,
+                request.PlanetId,
+                request.NowUtc ?? DateTime.UtcNow,
+                request.IncludeConstruction,
+                request.IncludeResearch,
+                request.IncludeShipyard), cancellationToken);
+
+            var response = new MaterializeGameplayQueuesApiResponse(
+                result.Succeeded,
+                result.Construction,
+                result.Research,
+                result.Shipyard,
+                result.Notes);
+
+            return result.Succeeded ? Results.Ok(response) : Results.BadRequest(response);
         });
 
         app.MapPost("/api/dev/buildings/construction-orders/enqueue", async (
@@ -893,6 +930,33 @@ internal static class DevEndpointMappings
         return errors;
     }
 
+    private static IReadOnlyList<string> ValidateMaterializeGameplayQueues(MaterializeGameplayQueuesApiRequest request)
+    {
+        var errors = new List<string>();
+
+        if (request.CivilizationId is null || request.CivilizationId == Guid.Empty)
+        {
+            errors.Add("Civilization id is required.");
+        }
+
+        if (request.PlanetId == Guid.Empty)
+        {
+            errors.Add("Planet id must be omitted or non-empty.");
+        }
+
+        if (request.NowUtc is not null && request.NowUtc.Value.Kind != DateTimeKind.Utc)
+        {
+            errors.Add("Materialization date must be UTC.");
+        }
+
+        if (!request.IncludeConstruction && !request.IncludeResearch && !request.IncludeShipyard)
+        {
+            errors.Add("At least one queue type must be included.");
+        }
+
+        return errors;
+    }
+
     private static IReadOnlyList<string> ValidateCompleteConstructionOrders(CompleteConstructionOrdersApiRequest request)
     {
         var errors = new List<string>();
@@ -1174,6 +1238,21 @@ internal sealed record ApplyPlanetResourceEconomyApiRequest(
 internal sealed record ApplyPlanetResourceEconomyApiResponse(
     bool Succeeded,
     IReadOnlyList<string> Errors);
+
+internal sealed record MaterializeGameplayQueuesApiRequest(
+    Guid? CivilizationId,
+    Guid? PlanetId,
+    DateTime? NowUtc,
+    bool IncludeConstruction,
+    bool IncludeResearch,
+    bool IncludeShipyard);
+
+internal sealed record MaterializeGameplayQueuesApiResponse(
+    bool Succeeded,
+    QueueMaterializationSummary? Construction,
+    QueueMaterializationSummary? Research,
+    QueueMaterializationSummary? Shipyard,
+    IReadOnlyList<string> Notes);
 
 internal sealed record EnqueueConstructionOrderApiRequest(
     Guid? PlanetId,
