@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Block 31A-31O - Orbital Production & Military Preparation Gameplay v1`.
+The repository is consolidated through `Block 32A-32O - Playable Session Foundation`.
 
 ## Repository Reality
 
@@ -26,11 +26,12 @@ The repository contains `VoidEmpires.sln` with:
 
 Current frontend cockpit baseline:
 
+- `/onboarding` now exists as a Development-only playable-start entry route. It posts to `POST /api/dev/players/starting-civilization`, creates the backend-owned player/civilization/homeworld context for development, and redirects to `/planet` with the returned `civilizationId` and `homePlanetId` as `planetId`. It is not a production login flow and does not consume an authenticated session.
 - Galaxy v1 remains read-only and has been restored as the accepted seeded cockpit baseline: `/galaxy` is now the canonical route, `/` remains a compatibility alias, shared navigation stays active on both paths, missing or invalid or failed or empty context now renders explicit Spanish states, seeded focus falls back to owned or visible systems instead of leaving the screen blank, diagnostics now expose a compact state summary when context exists, and cross-cockpit handoffs preserve owning Fleet context without exposing gameplay mutations from Galaxy.
-- Planet v1 now exists at `/planet` as a 2D dashboard and context hub with a development-only UI-state read endpoint, Spanish-first presentation helpers, deterministic seeded economy and construction context, readable resources or production or capacity sections, grouped buildings, queue visibility, guarded construction enqueue, and dashboard handoff cards for Construction, Fleets, Galaxy, and the specialized placeholders.
-- Construction v1 now exists at `/construction` as a focused general-infrastructure route for the same owned-planet construction state, with catalog readability, safe explicit confirmations, Spanish error guidance, guarded real enqueue through the Development backend only, authoritative queue/resource refresh feedback after success, visible accepted-but-not-yet-refreshed lag handling, and secondary handoff cards for Research, Ground Army, Shipyard, and Defenses.
-- Research v1 now exists at `/research` as the second accepted controlled persisted mutation cockpit after Construction, with a deterministic seeded QA path that exposes at least one available item (`Ingenieria planetaria`), visible blocked items with meaningful Spanish reasons, category-grouped catalog state, truthful summary counts and recommendation fallback, visible requirements, costs, durations, queue and completed-project summaries, explicit confirmation before enqueue, backend-confirmed immediate resource deduction, backend state refresh after success, specific Spanish error mapping with secondary diagnostics, non-mutating blocked research cards, no automatic completion, and a conservative disabled complete-due placeholder when the backend route is not scoped safely to the cockpit.
-- Shipyard v1 now exists at `/shipyard` as a development-safe cockpit foundation upgraded from the earlier placeholder route, with deterministic seeded `Aurelia` context, visible resources, production capability and readiness summaries, categorized orbital asset options, visible queue and local stock reads, guarded development enqueue through the scoped orbital production endpoint, explicit success refresh feedback, a conservative disabled complete-due placeholder because the current backend route is still global, cross-navigation back to Planet, Construction, Research, Fleets, and Galaxy, explicit copy that Fleet movement and command execution remain outside this cockpit, and a dedicated Development-only repeated-QA preparation path through `POST /api/dev/shipyard/qa-state/prepare` plus `scripts/dev-qa-prepare-orbital-production-ui-state.ps1`.
+- Planet v1 now exists at `/planet` as a 2D dashboard and context hub with a development-only UI-state read endpoint, Spanish-first presentation helpers, deterministic seeded economy and construction context, readable resources or production or capacity sections, explicit backend materialization controls for planet resource accrual, grouped buildings, queue visibility, guarded construction enqueue, and dashboard handoff cards for Construction, Fleets, Galaxy, and the specialized cockpits.
+- Construction v1 now exists at `/construction` as a focused general-infrastructure route for the same owned-planet construction state, with catalog readability, shared modal-based confirmation, Spanish error guidance, guarded real enqueue through the Development backend only, authoritative queue/resource refresh feedback after success, visible accepted-but-not-yet-refreshed lag handling, and secondary handoff cards for Research, Ground Army, Shipyard, and Defenses.
+- Research v1 now exists at `/research` as the second accepted controlled persisted mutation cockpit after Construction, with a deterministic seeded QA path that exposes at least one available item (`Ingenieria planetaria`), visible blocked items with meaningful Spanish reasons, category-grouped catalog state, truthful summary counts and recommendation fallback, visible requirements, costs, durations, queue and completed-project summaries, shared modal-based confirmation before enqueue, backend-confirmed immediate resource deduction, backend state refresh after success, specific Spanish error mapping with secondary diagnostics, non-mutating blocked research cards, no automatic completion, and a conservative disabled complete-due placeholder when the backend route is not scoped safely to the cockpit.
+- Shipyard v1 now exists at `/shipyard` as a development-safe cockpit foundation upgraded from the earlier placeholder route, with deterministic seeded `Aurelia` context, visible resources, production capability and readiness summaries, categorized orbital asset options, visible queue and local stock reads, shared modal-based confirmation for guarded development enqueue through the scoped orbital production endpoint, explicit success refresh feedback, a conservative disabled complete-due placeholder because the current backend route is still global, cross-navigation back to Planet, Construction, Research, Fleets, and Galaxy, explicit copy that Fleet movement and command execution remain outside this cockpit, and a dedicated Development-only repeated-QA preparation path through `POST /api/dev/shipyard/qa-state/prepare` plus `scripts/dev-qa-prepare-orbital-production-ui-state.ps1`.
 - Defenses v1 now exists at `/defenses` as a development-safe cockpit foundation upgraded from the earlier placeholder route, with deterministic seeded `Aurelia` context, defense readiness summaries, a visible `DefenseGrid` structure and option state, readable stockpile or missing-resource guidance, truthful queue and complete-due limitation messaging, collapsed diagnostics, explanatory handoffs toward Construction, Shipyard, Fleets, Planet, and Galaxy, and an explicit read-only posture for this block because there is still no accepted `POST /api/dev/defenses/...` enqueue path.
 - Ground Army v1 now exists at `/ground-army` as a development-safe cockpit foundation upgraded from the earlier placeholder route, with deterministic seeded `Aurelia` context, visible readiness and population summary state, visible ground structures and catalog options, truthful available and blocked training comparisons, completed queue-history context, collapsed diagnostics, and explanatory handoffs toward Construction, Defenses, Fleets, Planet, and Galaxy while keeping unsafe mutation confirmation-based, disabled, or handed off rather than combat-scoped.
 - Market v1 now exists at `/market` as the accepted development-safe read-only economy cockpit for the current suite, with deterministic seeded `Aurelia` and `Helios Gate` context, Spanish-first economy copy, visible civilization and local reserves, selected-planet production, advisory reference ratios that stay non-executable, secondary trade-signal and future-route context, visibly disabled future market operations, explicit handoffs toward Planet, Construction, Shipyard, Fleets, and Galaxy, and one collapsed diagnostic surface that keeps technical detail secondary while making clear that buying, selling, auctions, player-to-player trading, resource mutation, and trade-route execution remain out of scope.
@@ -39,7 +40,9 @@ Current frontend cockpit baseline:
 - Alliance v1 now exists at `/alliance` as the accepted read-only diplomacy cockpit, with deterministic seeded `Void Seed Civilization` context, visible alliance-status summary, known-contact or readiness catalog, disabled future pact and diplomacy action placeholders, collapsed diagnostics, and handoffs toward Galaxy, Market, and Espionage while keeping alliance creation, pact execution, invitations, role management, messaging, treasury controls, shared visibility, and any diplomacy mutation out of scope.
 - Ranking v1 now exists at `/ranking` as the accepted read-only power-index cockpit, with deterministic seeded `Void Seed Civilization` context, visible power summary, explicit category cards, demo-only comparison rows, disabled future leaderboard or season or reward placeholders, collapsed diagnostics, and handoffs toward Galaxy, Market, Espionage, and Alliance while keeping public ladders, matchmaking, rewards, public profiles, persistence, and production-auth changes out of scope.
 - Fleets remains the accepted dev-cockpit foundation and now supports simple URL-based context links into Planet, Construction, and Shipyard while keeping destination context optional.
-- Query-context helpers now centralize `civilizationId` and `planetId` navigation so the cockpit links stop rebuilding URLs by hand.
+- Query-context helpers now centralize `civilizationId` and `planetId` navigation so cockpit links and the shared sidebar preserve returned or seeded ids across Planet, Construction, Research, Shipyard, Defenses, Fleets, Market, and Galaxy handoffs.
+- `GameModal` is now the shared frontend confirmation foundation for Construction, Research, and Shipyard review steps. Opening a modal is local UI state only; the explicit primary action plus acknowledgement checkbox remains the only mutation trigger.
+- Planet resource economy v1 is explicit and backend-authoritative: visible accrual is materialized only through the Development resource-economy action and then re-read from backend state. Normal page load does not silently mutate resources or run a frontend timer.
 - Module-specific catalog duplication has been reduced by extracting shared planet layout components and route builders.
 - The accepted cockpit suite now shares a clearer polish baseline: primary copy is more gameplay-facing, diagnostics stay collapsed or clearly secondary, action hierarchy is more consistent, responsive overflow has been tightened, and sidebar or module-state cues better distinguish implemented versus future modules.
 - Development-only seed profiles now provide the standard QA setup path for Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, Espionage, Alliance, and Ranking without manual SQL.
@@ -91,9 +94,13 @@ Current intentional exclusions:
 - no matchmaking
 - no ranking rewards
 - no public player ranking profiles
+- no auth-backed playable session bootstrap
+- no production login-to-civilization resolution
 - no production authentication
 - no production auth
 - no production data
+- no hidden resource accrual on ordinary page load
+- no frontend-only resource timer
 - no manual SQL standard path for the accepted persisted QA loop
 - no market transactions
 - no buying
@@ -109,6 +116,7 @@ Current intentional exclusions:
 - no real specialized module execution yet outside the current backend-supported Research and Shipyard enqueue paths plus the accepted Fleets flow; Espionage remains analysis-only
 - no real research effects beyond queue and completion state
 - no destructive seed reset behavior
+- no final screenshot-backed visual QA performed in the Block 32O validation pass
 
 Current implemented foundations:
 
@@ -326,20 +334,22 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Block 31A-31O:
+Current validated baseline after Block 32A-32O:
 
-- backend: `dotnet build --no-restore` succeeded
-- tests: `dotnet test --no-build` succeeded with `700` passing tests
+- backend: `dotnet build --no-restore` succeeded with `0` warnings and `0` errors
+- tests: `dotnet test --no-build` succeeded with `707` passing tests, `0` failed, and `0` skipped
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
-- frontend bundle baseline: current Vite output emits `94` transformed modules, one `180.07 kB` minified shared JS entry chunk (`58.66 kB` gzip), one `49.12 kB` CSS asset (`7.55 kB` gzip), and cockpit-specific async chunks for Galaxy, Planet, Construction, Research, Shipyard, Fleets, Defenses, Ground Army, Espionage, Alliance, Market, Ranking, and the module placeholder route
+- frontend bundle baseline: current Vite output emits `96` transformed modules, one `180.43 kB` minified shared JS entry chunk (`58.81 kB` gzip), one `51.59 kB` CSS asset (`7.88 kB` gzip), and cockpit-specific async chunks for Onboarding, Galaxy, Planet, Construction, Research, Shipyard, Fleets, Defenses, Ground Army, Espionage, Alliance, Market, Ranking, and the module placeholder route
 - frontend lazy-import guard: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` succeeded
 - frontend copy regression guard: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1` succeeded
 - persisted QA scripts: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` succeeded
+- validation note: `check-dev-qa-scripts.ps1` also invoked the frontend lazy-import and copy-regression guards successfully before its PowerShell parser, resource-format, payload, Shipyard, Fleet, and known no-op helper checks passed
+- tooling note: both `dotnet build --no-restore` and `dotnet test --no-build` reported available .NET workload updates; this is informational and did not fail validation
 - technical regression note: the standard non-visual Alliance follow-up pass kept both `check-frontend-route-lazy-imports.ps1` and `check-dev-qa-scripts.ps1` green without reopening any accepted cockpit route behavior
 - frontend note: the old Vite `500 kB` chunk-size warning is no longer present after the route-lazy-loading pass, but accepted cockpit route QA remains required because the block changes loading architecture rather than gameplay behavior
-- build note: `dotnet build --no-restore` can still emit transient `MSB3026` copy-retry warnings when `testhost` holds test output DLLs, but the build completes successfully and the test run remains clean
+- build note: this Block 32O validation run did not emit the previously documented transient `MSB3026` copy-retry warnings
 - orbital-preparation note: the repeated Shipyard QA preparation command is `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-orbital-production-ui-state.ps1`
-- Manual visual QA for the accepted cross-cockpit demo flow remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; the Browser runtime was unavailable in this session, so final screenshot-style acceptance is still user-driven.
+- Manual visual QA for the accepted cross-cockpit demo flow remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; it was explicitly not performed during this Block 32O non-visual validation pass, so final screenshot-style acceptance is still user-driven.
 - Market visual and read-only polish is now implemented and documented through the seeded browser checklists; final screenshot-backed acceptance still remains user-driven, and the block did not expand Market into transaction gameplay or production behavior.
 - Alliance read-only diplomacy validation is now implemented and documented through the seeded browser checklists; final screenshot-backed acceptance still remains user-driven, and the block did not expand Alliance into executable diplomacy gameplay.
 - Block `28Q-28Z` visual QA corrections are now represented in checklist/docs: copy/fallback issues in Ranking, Alliance, and Market were corrected in code; final screenshot-backed acceptance for this corrective cycle remains pending manual validation by the user.
@@ -351,6 +361,7 @@ Current validated cockpit QA seed baseline:
 - `POST /api/dev/seeds/apply` supports `minimal-validation`, `cockpit-validation`, `shipyard-validation`, `fleet-validation`, `research-validation`, and `planet-full-validation`.
 - `GET /api/dev/seeds/profiles` exposes the current profile catalog for Development-only discovery.
 - Standard manual QA should start from the documented seed profiles rather than ad hoc SQL.
+- Development-only playable-start QA may begin at `/onboarding`, but the accepted production-auth boundary is unchanged: successful onboarding returns explicit ids and the frontend still navigates by query string rather than resolving an authenticated active civilization.
 - The documented canonical seeded Galaxy QA path is `/galaxy?civilizationId=00000000-0000-0000-0000-000000000001&systemId=20000000-0000-0000-0000-000000000001&planetId=40000000-0000-0000-0000-000000000001`, while `/?...` remains a compatibility alias.
 - `cockpit-validation` now restores a non-empty, focusable, read-only Galaxy baseline alongside the accepted Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, Espionage, Alliance, and Ranking cockpit flows.
 - Reapplying richer seed profiles after manual QA queue activity is now supported without colliding on persisted queue `Sequence` uniqueness.
@@ -380,6 +391,7 @@ Current validated cockpit QA seed baseline:
 - For repeated `/construction` manual QA on reused Development databases, run `.\scripts\dev-qa-prepare-construction-ui-state.ps1` to clear scoped blocking orders and top-up scoped resources before repeating enqueue operations, then use either `.\scripts\dev-qa-create-construction-order.ps1 -ApplySeed` or the frontend `/construction` confirmation flow.
 - For repeated `/research` manual QA on reused Development databases, run `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-research-ui-state.ps1` before retrying either the backend helper or the frontend `/research` confirmation flow.
 - For repeated `/shipyard` manual QA on reused Development databases, run `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-orbital-production-ui-state.ps1` before retrying either the backend helper or the frontend `/shipyard` confirmation flow.
+- Visual QA for modal behavior, onboarding redirect, and cross-cockpit navigation remains documented but deferred to a user-driven browser pass; the current repository validation is non-visual.
 
 Recent expected coverage includes orbital groups, orbital transfers, workers, visual state services/endpoints, system layout hints, markers, transfer overlays, static sandbox asset serving, overlay sandbox hooks, static sandbox gating behavior, fleet UI state service, fleet action manifest service, the strategic map read model, the strategic map development endpoint, the map visibility read model, exploration preview readiness, the minimal exploration mission lifecycle, the current Planet or Construction cockpit readability baseline, the minimal-validation Research seed readiness path, the development Research UI-state endpoint baseline, the full seeded Research enqueue smoke path through queue refresh, the development Shipyard UI-state endpoint baseline, the scoped Shipyard enqueue endpoint path, and the strengthened minimal-validation Shipyard seed expectations.
 
