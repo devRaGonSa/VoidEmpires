@@ -10,6 +10,7 @@ For cross-cockpit wording cleanup, use `docs/dev/cross-cockpit-language-audit.md
 For shared preferred terms and allowed limitation patterns, use `docs/dev/cockpit-copy-guidelines.md`.
 For deterministic local QA setup, use `docs/dev/development-seed-profiles.md` instead of manual SQL.
 For lightweight Espionage copy regression protection before visual QA, run `.\scripts\check-espionage-copy.ps1`.
+For the later playable-loop browser pass, use `docs/dev/deferred-visual-qa-master-checklist.md`; that checklist is deferred and does not claim visual QA has been performed.
 
 ## Gameplay Modal Guardrails
 
