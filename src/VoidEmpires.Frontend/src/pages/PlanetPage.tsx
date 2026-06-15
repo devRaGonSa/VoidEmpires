@@ -13,6 +13,7 @@ import type {
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { GameModal } from "../components/GameModal";
+import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { ModuleStatusCard, PlanetDataRow } from "../components/PlanetModuleLayout";
@@ -262,6 +263,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
   const [economyFeedback, setEconomyFeedback] = useState<string | null>(null);
   const [economyError, setEconomyError] = useState<string | null>(null);
   const [economyRefreshAudit, setEconomyRefreshAudit] = useState<EconomyRefreshAudit | null>(null);
+  const [localSessionCleared, setLocalSessionCleared] = useState(false);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -270,7 +272,18 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
   const isConstructionRoute = variant === "construction";
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
   const playableRouteContext = usePlayableRouteContext(queryCivilizationId);
-  const playableSession = playableRouteContext.playableSession;
+  const playableSession = localSessionCleared ? null : playableRouteContext.playableSession;
+  const routeSession = planet && activeCivilizationId
+    ? {
+      civilizationId: activeCivilizationId,
+      planetId: planet.planetId,
+      civilizationName: planet.ownerCivilizationName ?? undefined,
+      planetName: planet.planetName,
+      createdAt: "route-context",
+      updatedAt: "route-context",
+    }
+    : null;
+  const bannerSession = routeSession ?? playableSession;
   const playableSessionUrl = playableSession
     ? isConstructionRoute
       ? buildConstructionUrl(playableSession.civilizationId, playableSession.planetId)
@@ -621,6 +634,11 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             <UiBadge tone="warn">Galaxia sigue en observacion</UiBadge>
           </>
         }
+      />
+
+      <PlayableSessionBanner
+        session={bannerSession}
+        onClear={() => setLocalSessionCleared(true)}
       />
 
       <div className="strategic-cockpit-top">
