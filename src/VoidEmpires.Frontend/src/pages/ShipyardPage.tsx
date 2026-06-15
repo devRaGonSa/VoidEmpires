@@ -983,12 +983,12 @@ export function ShipyardPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Cola orbital</p>
-                <h3>Produccion en curso y readiness temporal</h3>
-                <p>La cola muestra progreso visible y detecta vencimientos sin convertirlos todavia en una accion ejecutable.</p>
+                <h3>Produccion visible y readiness temporal</h3>
+                <p>La cola muestra progreso o historial visible desde backend sin inventar cierres locales.</p>
               </div>
               <div className="figma-badge-row">
                 <UiBadge tone={shipyard.queue.length > 0 ? "warn" : "neutral"}>
-                  {shipyard.queue.length > 0 ? `${shipyard.queue.length} activas` : "Sin cola activa"}
+                  {shipyard.queue.length > 0 ? `${shipyard.queue.length} visibles` : "Sin cola visible"}
                 </UiBadge>
                 <UiBadge tone={dueQueueCount > 0 ? "warn" : "neutral"}>
                   {dueQueueCount > 0 ? `${dueQueueCount} vencidas` : "Sin vencidas"}
@@ -1009,7 +1009,7 @@ export function ShipyardPage() {
                 <div className="figma-data-list">
                   <div className="figma-data-row"><span>Ordenes visibles</span><strong>{formatCountLabel(shipyard.queue.length, "orden", "ordenes")}</strong></div>
                   <div className="figma-data-row"><span>Produccion vencida</span><strong>{dueQueueCount > 0 ? `${dueQueueCount} detectadas` : "No detectada"}</strong></div>
-                  <div className="figma-data-row"><span>Cierre seguro</span><strong>{hasSafeShipyardCompleteDue ? "Disponible con confirmacion" : cockpitStatusLabels.safePlaceholder}</strong></div>
+                  <div className="figma-data-row"><span>Cierre seguro</span><strong>{hasSafeShipyardCompleteDue ? "Disponible con confirmacion" : "Usar Planeta para QA"}</strong></div>
                 </div>
                 <div className="selection-chip-row">
                   <button type="button" className="planet-action-button-blocked" disabled>
@@ -1017,7 +1017,7 @@ export function ShipyardPage() {
                   </button>
                 </div>
                 <p className="figma-panel-note">
-                  El repositorio solo expone un cierre global de produccion vencida. Esta cabina no lo activa hasta que exista una via segura y acotada al contexto del planeta.
+                  Esta cabina no ejecuta materializacion directa. Usa la accion Development QA de Planeta para materializar ordenes vencidas y volver a leer stock, cola y readiness desde backend.
                 </p>
               </section>
               <section className="subpanel figma-subpanel">
@@ -1029,14 +1029,14 @@ export function ShipyardPage() {
                   <UiBadge tone="neutral">{cockpitStatusLabels.readOnly}</UiBadge>
                 </div>
                 <ul className="stack-list compact-list">
-                  <li>Una orden vencida significa que el backend la detecta, no que esta cabina ya pueda completarla.</li>
+                  <li>Una orden vencida significa que el backend la detecta; esta cabina espera una lectura posterior para mostrar stock o historial actualizado.</li>
                   <li>Las fechas muestran la ventana visible de produccion para que un futuro refresh refleje cambios reales.</li>
                   <li>La cola vacia sigue siendo un estado util y no se rellena con placeholders.</li>
                 </ul>
               </section>
             </div>
             {shipyard.queue.length === 0 ? (
-              <p className="figma-panel-note">No hay ordenes orbitales activas en este planeta. Cuando llegue el enqueue, este panel sera el destino visible del refresh.</p>
+              <p className="figma-panel-note">No hay ordenes orbitales abiertas ni historial visible en este planeta. Tras materializar desde Planeta, este panel debe seguir mostrando solo estado backend.</p>
             ) : (
               <div className="readiness-grid">
                 {shipyard.queue.map((item) => (

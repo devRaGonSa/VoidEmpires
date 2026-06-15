@@ -564,7 +564,7 @@ export function ResearchPage() {
             <div className="figma-two-column">
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
-                  <div><p className="eyebrow">Cola</p><h4>Ordenes activas</h4></div>
+                  <div><p className="eyebrow">Cola</p><h4>Ordenes e historial visible</h4></div>
                   <UiBadge>{uiState.queue.length}</UiBadge>
                 </div>
                 {uiState.queue.length > 0 ? (
@@ -575,7 +575,7 @@ export function ResearchPage() {
                       </li>
                     ))}
                   </ul>
-                ) : <p className="figma-panel-note">No hay ordenes activas en la cola.</p>}
+                ) : <p className="figma-panel-note">No hay ordenes abiertas ni historial de cola para mostrar.</p>}
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
