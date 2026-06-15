@@ -3,7 +3,8 @@ param(
     [string]$DisplayName = ("QA Commander {0}" -f (Get-Date -Format "yyyyMMddHHmmss")),
     [string]$CivilizationName = ("QA Civ {0}" -f (Get-Date -Format "yyyyMMddHHmmss")),
     [string]$HomePlanetName = "",
-    [double]$ElapsedSeconds = 0
+    [double]$ElapsedSeconds = 0,
+    [switch]$PrintQueueMaterializationCommand
 )
 
 Set-StrictMode -Version Latest
@@ -188,6 +189,16 @@ if ($economyApplied) {
     Write-Host ""
     Write-Host "Resource delta after backend accrual:"
     Format-ResourceDelta -Before $beforeResources -After $afterResources | Format-Table -AutoSize
+}
+
+if ($PrintQueueMaterializationCommand) {
+    $materializationBaseUrl = $BaseUrl.TrimEnd("/")
+    $materializationCommand = "powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-materialize-due-queues.ps1 -BaseUrl `"$materializationBaseUrl`" -CivilizationId $civilizationId -PlanetId $planetId -ElapsedSeconds 3600"
+
+    Write-Host ""
+    Write-Host "Queue materialization helper command for later manual QA:"
+    Write-Host $materializationCommand
+    Write-Host "Run it only after enqueueing due Construction, Research, or Shipyard orders for this playable start."
 }
 
 Write-Host ""

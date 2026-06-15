@@ -162,13 +162,18 @@ Playable-session helper setup for later manual QA:
 
 - Exact backend setup command:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-playable-session-state.ps1 -ElapsedSeconds 3600`
+- Print-only setup command when the later due-queue helper command should be emitted for the created ids:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-playable-session-state.ps1 -ElapsedSeconds 3600 -PrintQueueMaterializationCommand`
 - The helper creates a Development-safe playable start, can materialize one hour of backend resource accrual, and prints the created player, civilization, home planet, resource, and delta ids or values needed for follow-up checks.
+- The printed queue command is a manual next step only. The playable-session helper does not enqueue, auto-complete, or call due-queue materialization by default.
 - The helper does not perform browser QA, does not open `/onboarding`, and does not visually inspect any cockpit.
 - Recommended later manual flow:
   - run the helper command while the Development backend is running
   - open `/onboarding` to create a fresh start through the UI, or use the returned `CivilizationId` and `HomePlanetId` to open the printed Planet context directly
+  - enqueue Construction, Research, and Shipyard orders through the guarded cockpit flows for that same context
+  - run the printed `dev-qa-materialize-due-queues.ps1` command only after those orders should be due
   - navigate from Planet through the hub links into `Construccion`, `Investigacion`, `Astillero`, `Defensas`, `Flotas`, and back to Planet
-  - verify resources and cockpit handoffs visually during that later browser pass
+  - refresh Planet and the three queue cockpits from backend state before checking resources, queue history, stock, and handoffs
 - Keep the result honest: passing the helper only proves backend setup and optional accrual succeeded, not that the browser or visual cockpit QA has been executed.
 
 Deferred playable-loop visual QA checklist:
