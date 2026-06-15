@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Block 32A-32P - Playable Session Foundation`.
+The repository is consolidated through `Block 33A-33P - Playable Loop Integration & Session Navigation v1`.
 
 ## Repository Reality
 
@@ -26,7 +26,7 @@ The repository contains `VoidEmpires.sln` with:
 
 Current frontend cockpit baseline:
 
-- `/onboarding` now exists as a Development-only playable-start entry route. It posts to `POST /api/dev/players/starting-civilization`, creates the backend-owned player/civilization/homeworld context for development, and redirects to `/planet` with the returned `civilizationId` and `homePlanetId` as `planetId`. It is not a production login flow and does not consume an authenticated session.
+- `/onboarding` now exists as a Development-only playable-start entry route. It posts to `POST /api/dev/players/starting-civilization`, creates the backend-owned player/civilization/homeworld context for development, saves local playable-session navigation context, and redirects to `/planet` with the returned `civilizationId` and `homePlanetId` as `planetId`. It is not a production login flow and does not consume an authenticated session.
 - Galaxy v1 remains read-only and has been restored as the accepted seeded cockpit baseline: `/galaxy` is now the canonical route, `/` remains a compatibility alias, shared navigation stays active on both paths, missing or invalid or failed or empty context now renders explicit Spanish states, seeded focus falls back to owned or visible systems instead of leaving the screen blank, diagnostics now expose a compact state summary when context exists, and cross-cockpit handoffs preserve owning Fleet context without exposing gameplay mutations from Galaxy.
 - Planet v1 now exists at `/planet` as a 2D dashboard and context hub with a development-only UI-state read endpoint, Spanish-first presentation helpers, deterministic seeded economy and construction context, readable resources or production or capacity sections, explicit backend materialization controls for planet resource accrual, grouped buildings, queue visibility, guarded construction enqueue, and dashboard handoff cards for Construction, Fleets, Galaxy, and the specialized cockpits.
 - Construction v1 now exists at `/construction` as a focused general-infrastructure route for the same owned-planet construction state, with catalog readability, shared modal-based confirmation, Spanish error guidance, guarded real enqueue through the Development backend only, authoritative queue/resource refresh feedback after success, visible accepted-but-not-yet-refreshed lag handling, and secondary handoff cards for Research, Ground Army, Shipyard, and Defenses.
@@ -41,6 +41,10 @@ Current frontend cockpit baseline:
 - Ranking v1 now exists at `/ranking` as the accepted read-only power-index cockpit, with deterministic seeded `Void Seed Civilization` context, visible power summary, explicit category cards, demo-only comparison rows, disabled future leaderboard or season or reward placeholders, collapsed diagnostics, and handoffs toward Galaxy, Market, Espionage, and Alliance while keeping public ladders, matchmaking, rewards, public profiles, persistence, and production-auth changes out of scope.
 - Fleets remains the accepted dev-cockpit foundation and now supports simple URL-based context links into Planet, Construction, and Shipyard while keeping destination context optional.
 - Query-context helpers now centralize `civilizationId` and `planetId` navigation so cockpit links and the shared sidebar preserve returned or seeded ids across Planet, Construction, Research, Shipyard, Defenses, Fleets, Market, and Galaxy handoffs.
+- Local playable-session storage is a non-sensitive URL rebuilding convenience only. It may preserve ids and friendly labels from the Development playable start, but it is not authentication, authorization, ownership, a bearer token, a cookie, a role claim, or production session state.
+- Planet is the playable-loop hub for the current Block 33 frontend. It owns the primary return point for local session continuation and handoffs into Construction, Research, Shipyard, Defenses, Fleets, and Galaxy while keeping backend reads authoritative.
+- Planet, Construction, Research, Shipyard, Defenses, and Fleets are now session-aware enough to offer local playable-session continuation when query ids are missing, while still revalidating state through backend reads once ids are present.
+- Resource display is now normalized for the playable loop through shared resource formatting helpers, keeping primary labels consistent for `Metal`, `Cristal`, `Gas`, and `Energía` while preserving backend-sourced quantities and calculations.
 - `GameModal` is now the shared frontend confirmation foundation for Construction, Research, and Shipyard review steps. Opening a modal is local UI state only; the explicit primary action plus acknowledgement checkbox remains the only mutation trigger.
 - Planet resource economy v1 is explicit and backend-authoritative: visible accrual is materialized only through the Development resource-economy action and then re-read from backend state. Normal page load does not silently mutate resources or run a frontend timer.
 - Module-specific catalog duplication has been reduced by extracting shared planet layout components and route builders.
@@ -117,6 +121,8 @@ Current intentional exclusions:
 - no real research effects beyond queue and completion state
 - no destructive seed reset behavior
 - no final screenshot-backed visual QA performed in the Block 32P validation pass
+- no final screenshot-backed visual QA performed in the Block 33 validation pass
+- no playable-loop combat, attack, fleet movement, mission creation, or auto-complete action introduced by session navigation
 
 Current implemented foundations:
 
@@ -334,12 +340,12 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Block 32A-32P:
+Current validated baseline after Block 33A-33O:
 
-- backend: `dotnet build --no-restore` succeeded with `0` warnings and `0` errors
+- backend: `dotnet build --no-restore` succeeded with `8` transient `MSB3026` copy-retry warnings and `0` errors while `testhost` still held test output DLLs
 - tests: `dotnet test --no-build` succeeded with `707` passing tests, `0` failed, and `0` skipped
 - frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
-- frontend bundle baseline: current Vite output emits `96` transformed modules, one `180.43 kB` minified shared JS entry chunk (`58.81 kB` gzip), one `51.59 kB` CSS asset (`7.88 kB` gzip), and cockpit-specific async chunks for Onboarding, Galaxy, Planet, Construction, Research, Shipyard, Fleets, Defenses, Ground Army, Espionage, Alliance, Market, Ranking, and the module placeholder route
+- frontend bundle baseline: current Vite output emits `100` transformed modules, one `180.59 kB` minified shared JS entry chunk (`58.88 kB` gzip), one `51.59 kB` CSS asset (`7.88 kB` gzip), and cockpit-specific async chunks for Onboarding, Galaxy, Planet, Construction, Research, Shipyard, Fleets, Defenses, Ground Army, Espionage, Alliance, Market, Ranking, and the module placeholder route
 - frontend lazy-import guard: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` succeeded
 - frontend copy regression guard: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1` succeeded
 - persisted QA scripts: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` succeeded
@@ -347,9 +353,9 @@ Current validated baseline after Block 32A-32P:
 - tooling note: both `dotnet build --no-restore` and `dotnet test --no-build` reported available .NET workload updates; this is informational and did not fail validation
 - technical regression note: the standard non-visual Alliance follow-up pass kept both `check-frontend-route-lazy-imports.ps1` and `check-dev-qa-scripts.ps1` green without reopening any accepted cockpit route behavior
 - frontend note: the old Vite `500 kB` chunk-size warning is no longer present after the route-lazy-loading pass, but accepted cockpit route QA remains required because the block changes loading architecture rather than gameplay behavior
-- build note: this Block 32P validation run did not emit the previously documented transient `MSB3026` copy-retry warnings
+- build note: this Block 33 validation run did emit the previously documented transient `MSB3026` copy-retry warnings, but the build still completed successfully
 - orbital-preparation note: the repeated Shipyard QA preparation command is `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-orbital-production-ui-state.ps1`
-- Manual visual QA for the accepted cross-cockpit demo flow remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; it was explicitly not performed during this Block 32P non-visual validation pass, so final screenshot-style acceptance is still user-driven.
+- Manual visual QA for the accepted cross-cockpit demo flow remains a documented seeded-browser pass through `docs/dev/frontend-foundation-smoke-checklist.md` and the cockpit-specific checklists; it was explicitly not performed during this Block 33 non-visual validation pass, so final screenshot-style acceptance is still user-driven.
 - Market visual and read-only polish is now implemented and documented through the seeded browser checklists; final screenshot-backed acceptance still remains user-driven, and the block did not expand Market into transaction gameplay or production behavior.
 - Alliance read-only diplomacy validation is now implemented and documented through the seeded browser checklists; final screenshot-backed acceptance still remains user-driven, and the block did not expand Alliance into executable diplomacy gameplay.
 - Block `28Q-28Z` visual QA corrections are now represented in checklist/docs: copy/fallback issues in Ranking, Alliance, and Market were corrected in code; final screenshot-backed acceptance for this corrective cycle remains pending manual validation by the user.
