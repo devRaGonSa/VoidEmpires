@@ -158,6 +158,19 @@ Current missing-id behavior:
 - `/onboarding` requires both `civilizationId` and `homePlanetId` before navigation, then redirects to `buildPlanetUrl(civilizationId, homePlanetId)`.
 - This is Development-only navigation context. It is not a login, production session, token, cookie, role claim, or authenticated active-civilization resolver.
 
+Playable-session helper setup for later manual QA:
+
+- Exact backend setup command:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-playable-session-state.ps1 -ElapsedSeconds 3600`
+- The helper creates a Development-safe playable start, can materialize one hour of backend resource accrual, and prints the created player, civilization, home planet, resource, and delta ids or values needed for follow-up checks.
+- The helper does not perform browser QA, does not open `/onboarding`, and does not visually inspect any cockpit.
+- Recommended later manual flow:
+  - run the helper command while the Development backend is running
+  - open `/onboarding` to create a fresh start through the UI, or use the returned `CivilizationId` and `HomePlanetId` to open the printed Planet context directly
+  - navigate from Planet through the hub links into `Construccion`, `Investigacion`, `Astillero`, `Defensas`, `Flotas`, and back to Planet
+  - verify resources and cockpit handoffs visually during that later browser pass
+- Keep the result honest: passing the helper only proves backend setup and optional accrual succeeded, not that the browser or visual cockpit QA has been executed.
+
 Safe local navigation persistence for later tasks:
 
 - `localStorage` may store only non-sensitive navigation context returned by the Development-only playable start: `civilizationId`, `planetId` or `homePlanetId`, player/display name, civilization name, planet name, and client timestamps when useful.

@@ -255,6 +255,16 @@ Safe onboarding decision for this block:
 - The correct baseline for repeatable shared cockpit QA is still the deterministic seed system, especially `cockpit-validation`.
 - Real account registration may coexist in the repository, but it is not yet wired to civilization resolution, owned-planet bootstrap, or cockpit navigation.
 
+Playable session QA helper:
+
+- Exact command for a one-hour materialized Development start:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-playable-session-state.ps1 -ElapsedSeconds 3600`
+- The helper creates a real Development-only playable start through `POST /api/dev/players/starting-civilization`.
+- When `-ElapsedSeconds` is greater than zero, it applies backend resource accrual through the explicit Development economy endpoint and then re-reads the planet state.
+- The helper prints the created `UserId`, `PlayerProfileId`, `CivilizationId`, `HomePlanetId`, homeworld names, starting resources, current resources, and resource deltas when accrual is materialized.
+- The helper does not open a browser, does not inspect frontend rendering, and does not perform visual QA.
+- Treat its printed ids and route-ready context as setup input for a later manual browser pass, not as proof that cockpit screens were visually verified.
+
 Expected result payload for the safe Development-only playable-start contract:
 
 - Identity block:
