@@ -194,6 +194,14 @@ function formatQueueMaterializationSummary(label: string, summary: MaterializeDu
   return `${label}: ${summary.processedCount} procesadas, ${summary.skippedNotDueCount} no vencidas`;
 }
 
+function countMaterializedQueues(response: MaterializeDueQueuesResponse) {
+  return (
+    (response.construction?.processedCount ?? 0) +
+    (response.research?.processedCount ?? 0) +
+    (response.shipyard?.processedCount ?? 0)
+  );
+}
+
 function formatProductionValue(value: number) {
   return value > 0 ? `+${value}` : String(value);
 }
@@ -428,8 +436,8 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         setUiState(null);
         setError(
           requestError instanceof Error
-            ? requestError.message
-            : "La cabina de planeta no pudo cargarse.",
+            ? `No se pudo contactar con el backend de planeta. Detalle: ${requestError.message}`
+            : "No se pudo contactar con el backend de planeta.",
         );
       } finally {
         setIsLoading(false);
@@ -666,12 +674,16 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         response: result.response,
         technicalDetail: JSON.stringify(result.response),
       });
-      setQueueMaterializationFeedback("Colas vencidas materializadas por backend y planeta releido.");
+      setQueueMaterializationFeedback(
+        countMaterializedQueues(result.response) > 0
+          ? "Colas vencidas materializadas por backend y planeta releido."
+          : "No habia colas vencidas para materializar; el backend confirmo la lectura y el planeta fue releido sin cambios de cola.",
+      );
     } catch (requestError) {
       setQueueMaterializationError(
         requestError instanceof Error
-          ? requestError.message
-          : "La materializacion de colas no pudo completarse.",
+          ? `No se pudo contactar con el backend para materializar colas. Detalle: ${requestError.message}`
+          : "No se pudo contactar con el backend para materializar colas.",
       );
     } finally {
       setIsMaterializingQueues(false);
@@ -734,8 +746,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           {error ? <p className="error-text">{error}</p> : null}
           {!queryCivilizationId ? (
             <p className="figma-panel-note">
-              Introduce un `civilizationId` valido o entra desde Galaxia para fijar
-              el contexto automaticamente.
+              Introduce un `civilizationId` valido, entra desde Galaxia o usa el inicio local disponible para reconstruir la URL con contexto.
             </p>
           ) : null}
         </UiCard>
@@ -851,6 +862,9 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             <UiBadge tone="warn">Estado vacio</UiBadge>
           </div>
           <p>Esta civilizacion todavia no expone un planeta propio o el contexto no incluye un `planetId` valido.</p>
+          <p className="figma-panel-note">
+            No se inventa una colonia alternativa: vuelve a Galaxia, Onboarding o al inicio local si necesitas recuperar ids validos.
+          </p>
         </UiCard>
       ) : null}
 

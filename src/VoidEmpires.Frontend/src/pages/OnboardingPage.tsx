@@ -38,6 +38,8 @@ function toSpanishOnboardingError(message: string) {
       return "Ese nombre de jugador ya esta en uso.";
     case "Civilization name is already in use.":
       return "Ese nombre de civilizacion ya esta en uso.";
+    case "Persistence is not configured.":
+      return "El backend no tiene persistencia configurada para crear el inicio jugable.";
     default:
       return message;
   }
@@ -76,7 +78,7 @@ export function OnboardingPage() {
       if (result.httpStatus !== 201 || !result.response?.succeeded) {
         const backendError = result.response?.errors[0] ?? "El backend no pudo crear el inicio jugable.";
         setError(toSpanishOnboardingError(backendError));
-        setTechnicalDetail(`HTTP ${result.httpStatus}${result.bodyParseFailed ? " sin cuerpo JSON legible." : "."}`);
+        setTechnicalDetail(`Backend response: HTTP ${result.httpStatus}${result.bodyParseFailed ? " sin cuerpo JSON legible." : "."}`);
         return;
       }
 
@@ -118,7 +120,7 @@ export function OnboardingPage() {
         setTechnicalDetail("El inicio fue creado, pero el navegador no permitio guardar la memoria local de navegacion.");
       }
     } catch (requestError) {
-      setError("No se pudo contactar con la ruta de inicio jugable.");
+      setError("No se pudo contactar con el backend de Development para crear el inicio jugable.");
       setTechnicalDetail(requestError instanceof Error ? requestError.message : "Error desconocido.");
     } finally {
       setIsSubmitting(false);
@@ -191,6 +193,11 @@ export function OnboardingPage() {
 
         {error ? <p className="error-text">{error}</p> : null}
         {technicalDetail ? <p className="figma-panel-note">{technicalDetail}</p> : null}
+        {error ? (
+          <p className="figma-panel-note">
+            Arranca la API local y reintenta; si el backend responde con error, el detalle tecnico queda visible arriba.
+          </p>
+        ) : null}
 
         {createdStart ? (
           <div className="subpanel figma-subpanel">

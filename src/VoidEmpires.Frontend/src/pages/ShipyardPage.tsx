@@ -448,7 +448,7 @@ export function ShipyardPage() {
       } catch (requestError) {
         const failure = formatShipyardCommandFailure({ detail: requestError instanceof Error ? requestError.message : null }, shipyard?.planetName ?? null);
         setUiState(null);
-        setError(failure.primaryMessage);
+        setError(`No se pudo contactar con el backend del astillero. ${failure.primaryMessage}`);
         setErrorFollowUp(failure.followUp);
         setTechnicalErrorDetail(failure.technicalDetail);
       } finally {
@@ -652,7 +652,7 @@ export function ShipyardPage() {
           ) : null}
           {isLoading ? <p className="figma-panel-note">Cargando catalogo, cola, stock y capacidad orbital...</p> : null}
           {!queryCivilizationId && !isLoading ? (
-            <p className="figma-panel-note">Introduce un `civilizationId` valido para abrir la cabina del astillero.</p>
+            <p className="figma-panel-note">Introduce un `civilizationId` valido, entra desde Galaxia o usa el inicio local disponible para abrir Astillero con contexto.</p>
           ) : null}
         </UiCard>
 
@@ -672,7 +672,7 @@ export function ShipyardPage() {
               <div className="figma-data-row"><span>Accion principal</span><strong>{getShipyardPrimaryAction(recommendedAsset)}</strong></div>
             </div>
           ) : (
-            <p className="figma-panel-note">La cabina mostrara el planeta seleccionado cuando el servicio del astillero devuelva un contexto valido.</p>
+            <p className="figma-panel-note">La cabina mostrara el planeta seleccionado cuando el servicio del astillero devuelva un contexto valido; no se inventa stock ni cola sin backend.</p>
           )}
         </UiCard>
 

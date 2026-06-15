@@ -297,7 +297,7 @@ export function ResearchPage() {
       } catch (requestError) {
         const failure = formatResearchRequestFailure(requestError instanceof Error ? requestError.message : null);
         setUiState(null);
-        setError(failure.primaryMessage);
+        setError(`No se pudo contactar con el backend de investigacion. ${failure.primaryMessage}`);
         setTechnicalErrorDetail(failure.technicalDetail);
       } finally {
         setIsLoading(false);
@@ -458,7 +458,7 @@ export function ResearchPage() {
             <button type="submit" disabled={isLoading}>{isLoading ? "Cargando..." : "Abrir cabina"}</button>
           </form>
           {error ? <p className="error-text">{error}</p> : null}
-          {!queryCivilizationId ? <p className="figma-panel-note">Introduce un `civilizationId` valido o entra desde Galaxia para fijar el contexto automaticamente.</p> : null}
+          {!queryCivilizationId ? <p className="figma-panel-note">Introduce un `civilizationId` valido, entra desde Galaxia o usa el inicio local disponible para reconstruir la URL con contexto.</p> : null}
         </UiCard>
 
         <UiCard className="panel">
@@ -548,7 +548,7 @@ export function ResearchPage() {
             </div>
             <UiBadge tone="warn">Sin catalogo</UiBadge>
           </div>
-          <p className="figma-panel-note">La cabina esta preparada, pero el backend no devolvio tecnologias de investigacion para este contexto.</p>
+          <p className="figma-panel-note">La cabina esta preparada, pero el backend no devolvio tecnologias de investigacion para este contexto; no se muestran opciones falsas.</p>
         </UiCard>
       ) : null}
 
