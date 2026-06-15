@@ -11,8 +11,15 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+try {
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    $OutputEncoding = [System.Text.Encoding]::UTF8
+}
+catch {
+    Write-Verbose "Console UTF-8 encoding setup was not available in this host."
+}
 
-Write-Warning "Este script modifica la base de datos de Development materializando Ã³rdenes vencidas."
+Write-Warning "Este script modifica la base de datos de Development materializando ordenes vencidas."
 
 $anyIncludeSwitch = $IncludeConstruction -or $IncludeResearch -or $IncludeShipyard
 if (-not $anyIncludeSwitch) {

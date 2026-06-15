@@ -6,6 +6,13 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+try {
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    $OutputEncoding = [System.Text.Encoding]::UTF8
+}
+catch {
+    Write-Verbose "Console UTF-8 encoding setup was not available in this host."
+}
 
 Write-Warning "Este script modifica la base de datos de Development para preparar QA manual de produccion orbital."
 
