@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Block 33A-33P - Playable Loop Integration & Session Navigation v1`.
+The repository is consolidated through `Block 34A-34P - Queue Progression & Completion Materialization v1`.
 
 ## Repository Reality
 
@@ -47,6 +47,13 @@ Current frontend cockpit baseline:
 - Resource display is now normalized for the playable loop through shared resource formatting helpers, keeping primary labels consistent for `Metal`, `Cristal`, `Gas`, and `Energía` while preserving backend-sourced quantities and calculations.
 - `GameModal` is now the shared frontend confirmation foundation for Construction, Research, and Shipyard review steps. Opening a modal is local UI state only; the explicit primary action plus acknowledgement checkbox remains the only mutation trigger.
 - Planet resource economy v1 is explicit and backend-authoritative: visible accrual is materialized only through the Development resource-economy action and then re-read from backend state. Normal page load does not silently mutate resources or run a frontend timer.
+- Queue materialization v1 is implemented as a Development-only, scoped backend boundary through `IGameplayQueueMaterializationService`, `GameplayQueueMaterializationService`, and `POST /api/dev/queues/materialize-due`. It processes only due open orders for the requested civilization and optional planet, returns per-queue summaries, and keeps terminal or not-yet-due rows idempotent.
+- Construction queue materialization now applies already-paid due construction orders to persisted building state, including construct and upgrade behavior, without charging resources a second time. Missing upgrade targets stay open with notes instead of being force-completed.
+- Research queue materialization now applies already-paid due research orders to persisted `ResearchProject` state, creates the project when needed, upgrades it to the target level, and clears the open order by marking it completed.
+- Shipyard queue materialization now applies already-paid due orbital production orders to local `OrbitalAssetStock` for the scoped owned planet and marks those orders completed. Planetary asset production, fleet creation, and stock-to-fleet allocation remain outside this materialization boundary.
+- Planet exposes the only current frontend queue materialization action, clearly labeled as `Development QA`. It is an explicit user action that calls the scoped Development endpoint, re-reads Planet state afterward, and does not run on page load, navigation, or card selection.
+- Development-only queue materialization helpers are now documented and parser-checked: `scripts/dev-qa-materialize-due-queues.ps1` calls the scoped endpoint, while `scripts/dev-qa-prepare-playable-session-state.ps1 -PrintQueueMaterializationCommand` only prints a follow-up command for later manual QA.
+- Browser and visual QA for the completed queue progression loop remains deferred to the documented manual checklist; this block validated backend behavior, frontend build/type safety, scripts, and static guardrails only.
 - Module-specific catalog duplication has been reduced by extracting shared planet layout components and route builders.
 - The accepted cockpit suite now shares a clearer polish baseline: primary copy is more gameplay-facing, diagnostics stay collapsed or clearly secondary, action hierarchy is more consistent, responsive overflow has been tightened, and sidebar or module-state cues better distinguish implemented versus future modules.
 - Development-only seed profiles now provide the standard QA setup path for Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, Espionage, Alliance, and Ranking without manual SQL.
@@ -105,6 +112,8 @@ Current intentional exclusions:
 - no production data
 - no hidden resource accrual on ordinary page load
 - no frontend-only resource timer
+- no automatic queue materialization on ordinary page load, sidebar navigation, route entry, or card selection
+- no queue materialization framed as normal gameplay cheating; the current visible action is Development QA only
 - no manual SQL standard path for the accepted persisted QA loop
 - no market transactions
 - no buying
@@ -122,7 +131,9 @@ Current intentional exclusions:
 - no destructive seed reset behavior
 - no final screenshot-backed visual QA performed in the Block 32P validation pass
 - no final screenshot-backed visual QA performed in the Block 33 validation pass
+- no final screenshot-backed visual QA performed in the Block 34 validation pass
 - no playable-loop combat, attack, fleet movement, mission creation, or auto-complete action introduced by session navigation
+- no queue-progression combat, attack, fleet movement, mission creation, or auto-complete action introduced by materialization
 
 Current implemented foundations:
 
@@ -340,7 +351,20 @@ dotnet build --no-restore
 dotnet test --no-build
 ```
 
-Current validated baseline after Block 33A-33O:
+Current validated baseline after Block 34A-34O:
+
+- backend: `dotnet build --no-restore` succeeded with `0` warnings and `0` errors
+- tests: `dotnet test --no-build` succeeded with `714` passing tests, `0` failed, and `0` skipped
+- frontend: `npm run build --prefix src/VoidEmpires.Frontend` succeeded
+- frontend bundle baseline: current Vite output emits `100` transformed modules, one `180.59 kB` minified shared JS entry chunk (`58.89 kB` gzip), one `51.59 kB` CSS asset (`7.88 kB` gzip), and cockpit-specific async chunks for Onboarding, Galaxy, Planet, Construction, Research, Shipyard, Fleets, Defenses, Ground Army, Espionage, Alliance, Market, Ranking, and the module placeholder route
+- persisted QA scripts: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` succeeded
+- frontend lazy-import guard: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` succeeded
+- frontend copy regression guard: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1` succeeded
+- validation note: `check-dev-qa-scripts.ps1` also invoked the frontend lazy-import and copy-regression guards successfully before its PowerShell parser, resource-format, payload, Shipyard, Fleet, and known no-op helper checks passed
+- tooling note: `dotnet build --no-restore` and `dotnet test --no-build` reported available .NET workload updates; this is informational and did not fail validation
+- visual QA note: no browser, screenshot, or manual visual QA was performed during this Block 34 validation pass; the deferred manual checklist remains in `docs/dev/frontend-foundation-smoke-checklist.md`
+
+Previous validated baseline after Block 33A-33O:
 
 - backend: `dotnet build --no-restore` succeeded with `8` transient `MSB3026` copy-retry warnings and `0` errors while `testhost` still held test output DLLs
 - tests: `dotnet test --no-build` succeeded with `707` passing tests, `0` failed, and `0` skipped
