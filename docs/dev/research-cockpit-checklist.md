@@ -12,6 +12,20 @@ Use `docs/dev/development-seed-profiles.md` for the standard Development-only QA
 - Completing due research remains disabled here because the current backend complete-due endpoint is global rather than cockpit-scoped.
 - Diagnostics stay collapsed unless explicitly opened.
 
+## Completion materialization contract
+
+- Persisted model: `ResearchOrder`.
+- Open states: `Pending` and `Active`.
+- Terminal states: `Completed` and `Cancelled`.
+- Due field: `EndsAtUtc`.
+- Existing service: `ResearchOrderCompletionService`.
+- Current route: `POST /api/dev/research/orders/complete-due`.
+- Current route classification: global, not cockpit-safe.
+- Completion effect: create or upgrade the civilization `ResearchProject` for the order `ResearchType` to `TargetLevel`, then mark the order `Completed`.
+- Resource rule: the research cost was already spent from the source planet when enqueue succeeded; completion must not spend resources again.
+- Safe future `/research` action must be scoped by the current `civilizationId`, optionally validate the selected `sourcePlanetId` when present, process only due open orders for that civilization, skip terminal rows, return backend-confirmed completed ids, and refresh `/api/dev/research/ui-state` afterward.
+- Ordinary page load, local-session continuation, and read-state refresh must not materialize research orders.
+
 ## Seeded QA scenario
 
 Use the current `research-validation` seed for richer deterministic Research checks:

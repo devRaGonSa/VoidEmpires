@@ -77,6 +77,23 @@ Repeated-QA warning:
 - Successful Shipyard enqueue deducts the full visible cost immediately from `PlanetResourceStockpile`; it does not reserve resources and leave balances unchanged.
 - Local orbital stock should stay unchanged immediately after enqueue; produced stock changes only after due processing, which remains out of the safe repeated-QA flow because the current route is global.
 
+## Completion materialization contract
+
+- Persisted model: `AssetProductionOrder`.
+- Open states: `Pending` and `Active`.
+- Terminal states: `Completed` and `Cancelled`.
+- Due field: `EndsAtUtc`.
+- Existing service: `AssetOrderProcessor`.
+- Current route: `POST /api/dev/assets/production/process-due`.
+- Current route classification: global, not cockpit-safe.
+- Completion effect:
+  - `Target = Orbital` increases `OrbitalAssetStock` for the order planet and `SpaceAssetType`.
+  - `Target = Planetary` increases `PlanetaryAssetStock` for the order planet and `PlanetaryAssetType`.
+  - the order is then marked `Completed`.
+- Resource rule: the asset cost was already spent from the planet stockpile when enqueue succeeded; processing must not spend resources again.
+- Safe future `/shipyard` action must be scoped by the current `civilizationId` and `planetId`, verify ownership, process only due open orbital orders for that owned planet, skip terminal rows, return backend-confirmed completed ids, and refresh `/api/dev/shipyard/ui-state` afterward.
+- Ordinary page load, local-session continuation, and read-state refresh must not process production orders.
+
 ## Current contract audit
 
 - Real persisted mutation now:

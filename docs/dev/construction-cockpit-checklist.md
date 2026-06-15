@@ -12,6 +12,20 @@ Use `docs/dev/development-seed-profiles.md` for the standard Development-only QA
 - Queue completion remains disabled here because the backend complete-due endpoint is still global.
 - Diagnostics stay collapsed unless explicitly opened.
 
+## Completion materialization contract
+
+- Persisted model: `PlanetConstructionOrder`.
+- Open states: `Pending` and `Active`.
+- Terminal states: `Completed` and `Cancelled`.
+- Due field: `EndsAtUtc`.
+- Existing service: `ConstructionOrderCompletionService`.
+- Current route: `POST /api/dev/buildings/construction-orders/complete-due`.
+- Current route classification: global, not cockpit-safe.
+- Completion effect: create or upgrade the target `PlanetBuilding` to the order `TargetLevel`, then mark the order `Completed`.
+- Resource rule: the construction cost was already spent when enqueue succeeded; completion must not spend resources again.
+- Safe future `/construction` action must be scoped by the current `civilizationId` and `planetId`, process only due open orders for that owned planet, skip terminal rows, return backend-confirmed completed ids, and refresh `/api/dev/planets/ui-state` afterward.
+- Ordinary page load, local-session continuation, and read-state refresh must not materialize construction orders.
+
 ## Seeded QA scenario
 
 Use `planet-full-validation` for the richer deterministic Construction QA baseline:

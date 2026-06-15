@@ -12,6 +12,16 @@ Use `docs/dev/development-seed-profiles.md` for the standard Development-only QA
 - Construction enqueue is allowed only through an explicit confirmation flow.
 - Completing due constructions remains disabled in this build because the current backend endpoint is global rather than planet-scoped.
 
+## Queue materialization boundary
+
+- Planet may summarize construction, research, and orbital/asset queue readiness from backend read models, but it must not materialize queued work from ordinary page load.
+- Current global routes remain out of the Planet cockpit action surface:
+  - `POST /api/dev/buildings/construction-orders/complete-due`
+  - `POST /api/dev/research/orders/complete-due`
+  - `POST /api/dev/assets/production/process-due`
+- A future Planet refresh action may call only scoped Development materialization routes after they exist, using the active `civilizationId` and selected owned `planetId`, and must re-read backend state before showing changed buildings, research progress, stock, or queues.
+- Completion does not spend resources again because Construction, Research, and Shipyard enqueue already deduct the visible cost immediately.
+
 ## Seeded QA scenario
 
 Use `planet-full-validation` for the richer deterministic Planet QA baseline:

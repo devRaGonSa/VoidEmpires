@@ -50,6 +50,74 @@ Current accepted block boundary for `Shipyard`, `Defenses`, `Fleets`, and `Plane
   - The cockpit read endpoints do not automatically apply elapsed production during page load, so visible balances remain whatever persistence last stored.
   - Construction, Research, and Shipyard each spend the full visible cost immediately when enqueue succeeds.
 
+## Queue completion materialization contract v1
+
+Persisted order models audited for this block:
+
+- Construction uses `PlanetConstructionOrder`.
+  - Scope fields: `PlanetId`.
+  - Queue identity fields: `Id`, `Sequence`.
+  - Due fields: `StartsAtUtc`, `EndsAtUtc`.
+  - Completion payload fields: `Action`, `BuildingType`, `TargetLevel`.
+  - Status values: `Pending`, `Active`, `Completed`, `Cancelled`.
+  - Open states: `Pending` or `Active`.
+- Research uses `ResearchOrder`.
+  - Scope fields: `CivilizationId`, `SourcePlanetId`.
+  - Queue identity fields: `Id`, `Sequence`.
+  - Due fields: `StartsAtUtc`, `EndsAtUtc`.
+  - Completion payload fields: `ResearchType`, `TargetLevel`.
+  - Status values: `Pending`, `Active`, `Completed`, `Cancelled`.
+  - Open states: `Pending` or `Active`.
+- Shipyard and ground/asset production use `AssetProductionOrder`.
+  - Scope fields: `PlanetId`.
+  - Queue identity fields: `Id`, `Sequence`.
+  - Due fields: `StartsAtUtc`, `EndsAtUtc`.
+  - Completion payload fields: `Target`, `PlanetaryAssetType`, `SpaceAssetType`, `Quantity`.
+  - Status values: `Pending`, `Active`, `Completed`, `Cancelled`.
+  - Open states: `Pending` or `Active`.
+
+Existing materialization services:
+
+- Construction: `IConstructionOrderCompletionService` -> `ConstructionOrderCompletionService`.
+  - It selects all open construction orders with `EndsAtUtc <= nowUtc`.
+  - It marks due orders completed after creating or upgrading the target `PlanetBuilding`.
+  - The current Development route is `POST /api/dev/buildings/construction-orders/complete-due`.
+- Research: `IResearchOrderCompletionService` -> `ResearchOrderCompletionService`.
+  - It selects all open research orders with `EndsAtUtc <= nowUtc`.
+  - It creates or upgrades the target `ResearchProject`, then marks the order completed.
+  - The current Development route is `POST /api/dev/research/orders/complete-due`.
+- Shipyard and other asset production: `IAssetOrderProcessor` -> `AssetOrderProcessor`.
+  - It selects all open asset production orders with `EndsAtUtc <= nowUtc`.
+  - It increases `PlanetaryAssetStock` or `OrbitalAssetStock`, then marks the order completed.
+  - The current Development route is `POST /api/dev/assets/production/process-due`.
+
+Completion state changes:
+
+- Construction materialization is the only step that applies the already-paid order to buildings:
+  - `Construct` creates the requested building at `TargetLevel` when it does not already exist.
+  - `Upgrade` upgrades the existing building until it reaches `TargetLevel`.
+- Research materialization is the only step that applies the already-paid order to technology state:
+  - it creates `ResearchProject` if needed.
+  - it upgrades the project until it reaches `TargetLevel`.
+- Shipyard/orbital materialization is the only step that applies the already-paid production order to local stock:
+  - `Target = Orbital` increases `OrbitalAssetStock`.
+  - `Target = Planetary` increases `PlanetaryAssetStock`.
+- Resources are spent at enqueue time for Construction, Research, and Shipyard. Completion/materialization must not deduct resources a second time.
+
+Safe v1 materialization policy for follow-up implementation:
+
+- Process only due orders where `EndsAtUtc <= nowUtc`.
+- Treat terminal states as idempotency guards: `Completed` and `Cancelled` must not be processed again.
+- Scope requests as narrowly as the cockpit context allows:
+  - Construction by `civilizationId` plus `planetId`, with ownership checked before mutation.
+  - Research by `civilizationId`; include `sourcePlanetId` only as an extra filter or validation aid when it is supplied by a planet-bound cockpit.
+  - Shipyard by `civilizationId` plus `planetId`, and restrict cockpit usage to orbital production when the request comes from `/shipyard`.
+- Return completed order ids and counts from backend-confirmed state.
+- Do not run materialization from ordinary page load, sidebar navigation, or read-only UI-state endpoints.
+- Keep the first explicit routes/helpers Development-only until production auth and ownership contracts exist.
+- A page may offer a manual refresh action only after a scoped backend materialization route exists and a follow-up read confirms the new queue, building/project, stock, and resource state.
+- Avoid using current global completion/process routes as cockpit actions because they mutate every due order of that type across the Development database.
+
 ## Resource economy accrual contract v1
 
 Chosen authoritative strategy:
