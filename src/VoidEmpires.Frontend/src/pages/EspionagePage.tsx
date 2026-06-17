@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchEspionageUiState } from "../api/espionageApi";
 import { CockpitHero } from "../components/CockpitHero";
+import { PageContextStrip } from "../components/PageContextStrip";
 import type { EspionageViewModel, IntelligenceSystemTargetGroup, IntelligenceTargetViewModel } from "../utils/espionageViewModel";
 import { getEspionagePrimaryAction, mapEspionageUiStateToViewModel } from "../utils/espionageViewModel";
 import {
@@ -22,6 +23,7 @@ import {
   buildResearchUrl,
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
+import { formatCompactGuid } from "../utils/domainPresentation";
 
 function pickFocusedGroup(groups: readonly IntelligenceSystemTargetGroup[], systemId: string | null, recommendedTarget: EspionageViewModel["recommendedTarget"]) {
   return groups.find((group) => group.systemId === systemId)
@@ -42,6 +44,13 @@ function getCoverageOverview(viewModel: EspionageViewModel | null) {
   if (viewModel.summary.partialTargetCount >= viewModel.summary.visibleTargetCount) return "Cobertura parcial";
   if (viewModel.summary.passiveSignalCount === 0) return "Cobertura limitada";
   return "Cobertura amplia";
+}
+
+function getReadinessPosture(viewModel: EspionageViewModel | null) {
+  if (!viewModel) return "Esperando lectura";
+  if (viewModel.summary.partialTargetCount > 0 || viewModel.summary.passiveSignalCount > 0) return "Preparacion activa";
+  if (viewModel.summary.visibleTargetCount > 0 || viewModel.summary.ownedTargetCount > 0) return "Lectura estable";
+  return "Cobertura minima";
 }
 
 interface IntelligenceCatalogEntry {
@@ -300,6 +309,7 @@ export function EspionagePage() {
   );
   const activePlanetId = focusedTarget?.planetId ?? queryPlanetId ?? null;
   const coverageOverview = getCoverageOverview(viewModel);
+  const readinessPosture = getReadinessPosture(viewModel);
   const catalogSections = useMemo(() => buildCatalogSections(viewModel?.groups ?? []), [viewModel]);
   const futureMissionCards = useMemo(() => {
     const knownActions = new Map((viewModel?.futureActions ?? []).map((action) => [action.key, action]));
@@ -328,6 +338,54 @@ export function EspionagePage() {
           </>
         }
       />
+
+      {queryCivilizationId ? (
+        <PageContextStrip
+          eyebrow="Cabina de inteligencia"
+          title={focusedTarget?.label ?? focusedGroup?.label ?? "Lectura de inteligencia"}
+          purpose="Preparacion de objetivos, senales pasivas y handoffs sin habilitar operaciones ni inventar informacion no confirmada."
+          statusLabel={readinessPosture}
+          statusTone={viewModel ? "good" : "warn"}
+          contextItems={[
+            { label: "Civilizacion", value: formatCompactGuid(viewModel?.civilizationId ?? queryCivilizationId) },
+            {
+              label: "Foco",
+              value: focusedTarget?.label ?? focusedGroup?.label ?? "Sin objetivo enfocado",
+              detail: focusedTarget?.systemLabel ?? focusedGroup?.label,
+            },
+            {
+              label: "Sistemas",
+              value: viewModel ? String(viewModel.groups.length) : "Sin lectura",
+              detail: viewModel ? `${viewModel.summary.visibleTargetCount} observados` : "Carga pendiente",
+            },
+            {
+              label: "Senales",
+              value: viewModel ? String(viewModel.summary.passiveSignalCount) : "Sin lectura",
+              detail: coverageOverview,
+            },
+          ]}
+          resourceItems={[
+            { label: "Inteligencia", value: "Solo lectura", tone: "good" },
+            { label: "Misiones", value: "Bloqueadas", tone: "warn" },
+            { label: "Datos", value: "Cobertura existente", tone: "neutral" },
+          ]}
+          primaryAction={
+            <div className="selection-chip-row">
+              <Link className="selection-chip selection-chip-active" to={buildGalaxyUrl(queryCivilizationId, focusedGroup?.systemId ?? querySystemId, activePlanetId)}>
+                Abrir Galaxia
+              </Link>
+              {activePlanetId ? (
+                <Link className="selection-chip" to={buildPlanetUrl(queryCivilizationId, activePlanetId)}>
+                  Abrir Planeta
+                </Link>
+              ) : null}
+              <Link className="selection-chip" to={buildResearchUrl(queryCivilizationId, activePlanetId)}>
+                Abrir Investigacion
+              </Link>
+            </div>
+          }
+        />
+      ) : null}
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">
@@ -403,6 +461,55 @@ export function EspionagePage() {
           )}
         </UiCard>
       </div>
+
+      <UiCard className="panel">
+        <div className="figma-section-header">
+          <div>
+            <p className="eyebrow">Preparacion de producto</p>
+            <h3>Frontera de inteligencia</h3>
+            <p>Espionaje organiza la lectura disponible para futuras operaciones, pero no ejecuta acciones encubiertas ni consolida un modelo final de inteligencia.</p>
+          </div>
+          <UiBadge tone="warn">Fase futura</UiBadge>
+        </div>
+        <div className="readiness-grid">
+          <section className="subpanel figma-subpanel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Entrada actual</p>
+                <h4>Lectura reutilizada</h4>
+              </div>
+              <UiBadge>{viewModel ? "Cargada" : "Pendiente"}</UiBadge>
+            </div>
+            <p className="figma-panel-note">
+              La cabina usa visibilidad estrategica, senales pasivas y objetivos ya expuestos por los contratos de desarrollo.
+            </p>
+          </section>
+          <section className="subpanel figma-subpanel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Operaciones</p>
+                <h4>Misiones no ejecutables</h4>
+              </div>
+              <UiBadge tone="warn">Bloqueadas</UiBadge>
+            </div>
+            <p className="figma-panel-note">
+              Reconocimiento activo, infiltracion, sabotaje, robo de tecnologia y contraespionaje permanecen como referencias desactivadas.
+            </p>
+          </section>
+          <section className="subpanel figma-subpanel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Dependencias finales</p>
+                <h4>Consolidacion pendiente</h4>
+              </div>
+              <UiBadge tone="warn">No final</UiBadge>
+            </div>
+            <p className="figma-panel-note">
+              Persistencia final, autorizacion de produccion, activos finales, combate y movimiento siguen fuera de esta cabina.
+            </p>
+          </section>
+        </div>
+      </UiCard>
 
       <UiCard className="panel">
         <div className="figma-section-header">
