@@ -5,6 +5,8 @@ It does not claim that visual QA, screenshots, or manual browser verification ha
 
 Use it with:
 
+- `docs/dev/single-product-demo-guide.md`
+- `docs/dev/product-completion-audit.md`
 - `docs/dev/frontend-foundation-smoke-checklist.md`
 - `docs/dev/persisted-gameplay-flow-checklist.md`
 - `docs/dev/planet-cockpit-checklist.md`
@@ -17,7 +19,7 @@ Use it with:
 - Status: pending human browser execution.
 - Screenshots: pending capture.
 - Visual acceptance: not yet claimed.
-- Scope: `/onboarding`, `/planet`, `/construction`, `/research`, `/shipyard`, `/defenses`, and `/fleets`.
+- Scope: `/onboarding`, `/galaxy`, `/planet`, `/construction`, `/research`, `/shipyard`, `/defenses`, `/ground-army`, `/fleets`, `/market`, `/espionage`, `/alliance`, and `/ranking`.
 - Non-scope: production auth, real combat, fleet movement from Shipyard or Planet, exploration missions, WebGL/3D acceptance, and hidden auto-completion.
 
 ## Screenshot-Derived Decluttering Checks
@@ -87,15 +89,37 @@ These checks come from the user's observed overloaded Planet and Construction sc
 28. Verify Fleets read-state remains honest:
    - visible groups, transfers, estimates, and resource contexts are readable
    - no movement, cancellation, complete-due, split, merge, or stock promotion runs without explicit guarded Fleet actions
-29. Return to Planet and verify the hub still preserves the same `civilizationId` and `planetId`.
-30. Confirm no route turns combat, movement, exploration missions, or materialization into normal always-on gameplay copy.
+29. Open Galaxy with the same civilization and any known planet/system context.
+30. Verify Galaxy remains read-only and map-first, with selected-system and planet detail adjacent to the map.
+31. Open Ground Army, Market, Espionage, Alliance, and Ranking.
+32. Verify those routes keep their accepted boundaries:
+   - Ground Army is readiness only and does not execute invasion or combat
+   - Market is advisory and does not buy, sell, auction, trade, or execute routes
+   - Espionage is intelligence-readiness only and does not run missions
+   - Alliance is diplomacy-readiness only and does not create alliances, pacts, invitations, roles, treasury changes, or messages
+   - Ranking is a power-index read and does not claim public ladder, reward, matchmaking, or profile readiness
+33. Return to Planet and verify the hub still preserves the same `civilizationId` and `planetId`.
+34. Confirm no route turns combat, movement, exploration missions, or materialization into normal always-on gameplay copy.
+
+## Screenshot Naming Convention
+
+Use stable names so captures can be compared across passes without relying on local machine paths:
+
+- `01-onboarding-entry.png`
+- `02-onboarding-success.png`
+- `03-planet-hub-initial.png`
+- continue with two-digit route order plus short state, for example `08-research-post-enqueue.png`
+- use `desktop` or `mobile` suffix only when the same state is captured at multiple viewport sizes
+
+Do not commit screenshots in this task. Capture files belong to the later human/browser QA artifact location selected for that pass.
 
 ## Screenshot Capture List
 
-Capture these screenshots during the later browser pass:
+Capture these screenshots during the later browser pass. Each capture should show the primary workflow first and keep diagnostics collapsed or visibly secondary unless the row says otherwise.
 
 - `/onboarding` before submit.
 - `/onboarding` success state with returned cockpit links.
+- `/galaxy` map-first read-only view with selected system and planet context.
 - `/planet` initial loaded hub for the created playable session.
 - `/planet` local-session continuation state with ids absent.
 - `/planet` resource materialization feedback, including a no-op case if no due work changed.
@@ -109,7 +133,14 @@ Capture these screenshots during the later browser pass:
 - `/research` after due-queue materialization.
 - `/shipyard` after due-queue materialization with updated orbital stock when produced.
 - `/defenses` read-only readiness and handoff state.
+- `/ground-army` readiness state with available or blocked training comparison.
 - `/fleets` read-state with same planet context.
+- `/fleets` travel estimate result, if the dedicated Fleet checklist is included in the pass.
+- `/fleets` guarded transfer confirmation and refreshed state, only if the dedicated Fleet controlled-mutation pass is intentionally executed.
+- `/market` advisory economy state with disabled transaction actions.
+- `/espionage` intelligence coverage and disabled mission actions.
+- `/alliance` diplomacy identity/contact state with disabled diplomacy actions.
+- `/ranking` power-index category and comparison state.
 - A diagnostics panel screenshot showing raw details secondary, not dominant.
 
 ## Failure Conditions
@@ -122,6 +153,11 @@ Treat the later pass as failed if any of these appear:
 - a page fabricates resources, buildings, research, queues, stock, or fleet groups before backend confirmation
 - materialization runs from page load, route entry, sidebar navigation, or ordinary card selection
 - Defenses presents real combat/interception execution
+- Ground Army presents invasion or combat execution
+- Market presents buying, selling, auctions, player trading, or route execution
+- Espionage presents mission, sabotage, infiltration, or counter-espionage execution
+- Alliance presents creation, invitation, pact, role, treasury, or messaging execution
+- Ranking presents public ladder, reward, matchmaking, or profile readiness as implemented
 - Shipyard or Planet presents fleet movement as executable
 - Fleets presents movement, cancel, complete-due, split, merge, or stock promotion without explicit guarded user action
 - diagnostics dominate the primary viewport instead of staying secondary
