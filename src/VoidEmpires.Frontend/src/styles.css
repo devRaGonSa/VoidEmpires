@@ -1283,6 +1283,59 @@ select {
   align-items: center;
 }
 
+.development-tools-panel summary {
+  border-color: color-mix(in srgb, var(--ve-color-warning) 30%, transparent);
+}
+
+.development-tools-card {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--ve-color-warning) 34%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-warning) 7%, transparent), transparent 42%),
+    color-mix(in srgb, var(--ve-color-panel) 94%, transparent);
+}
+
+.development-tools-grid,
+.development-tools-action-list,
+.development-tools-actions,
+.development-tools-result,
+.development-tools-diagnostics {
+  display: grid;
+  gap: var(--ve-space-3);
+}
+
+.development-tools-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.development-tools-actions,
+.development-tools-result,
+.development-tools-diagnostics {
+  padding: 14px;
+  border-radius: var(--ve-radius-md);
+  border: 1px solid color-mix(in srgb, var(--ve-color-warning) 24%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 42%, transparent);
+}
+
+.development-tools-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--ve-space-3);
+}
+
+.development-tools-section-head h4,
+.development-tools-result p {
+  margin: 0;
+}
+
+.development-tools-link {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ve-space-3);
+}
+
 .figma-stat-grid {
   display: grid;
   gap: var(--ve-space-3);

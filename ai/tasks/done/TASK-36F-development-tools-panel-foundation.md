@@ -3,7 +3,7 @@
 ---
 id: TASK-36F
 title: Development tools panel foundation
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
