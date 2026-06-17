@@ -90,6 +90,19 @@ Before claiming visual acceptance:
 - Capture every required screenshot.
 - Record failures and corrections in follow-up tasks instead of treating documentation as proof of visual quality.
 
+## Latest No-Gameplay Regression Validation
+
+Recorded on 2026-06-17 for `TASK-37BM`:
+
+- `dotnet build --no-restore` succeeded with `0` warnings and `0` errors.
+- `dotnet test --no-build` succeeded with `720` passing tests, `0` failed, and `0` skipped.
+- `npm run build --prefix src/VoidEmpires.Frontend` succeeded; Vite transformed `105` modules and kept the shared entry chunk at `181.33 kB` minified / `59.14 kB` gzip.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` succeeded, including the route lazy-import guard and copy regression guard.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` succeeded.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1` succeeded.
+
+This was a non-visual validation pass. It did not perform browser screenshot acceptance, final database/model readiness, final asset readiness, combat readiness, final movement readiness, market transaction readiness, alliance mutation readiness, or production-auth readiness.
+
 ## Current Readiness Decision
 
 Decision: ready for Development-only local product-shell demo after the validation commands above pass.
