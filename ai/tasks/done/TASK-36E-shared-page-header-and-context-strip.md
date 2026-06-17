@@ -3,7 +3,7 @@
 ---
 id: TASK-36E
 title: Shared page header and context strip
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

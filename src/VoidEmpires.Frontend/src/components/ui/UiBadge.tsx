@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 
+export type UiBadgeTone = "neutral" | "good" | "warn" | "resource";
+
 interface UiBadgeProps {
   children: ReactNode;
-  tone?: "neutral" | "good" | "warn" | "resource";
+  tone?: UiBadgeTone;
 }
 
 export function UiBadge({ children, tone = "neutral" }: UiBadgeProps) {
