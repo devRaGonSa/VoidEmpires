@@ -91,6 +91,7 @@ No integration tests are configured for this documentation-only prep update.
 ## Final Image And Asset Needs
 
 - Final generated or curated assets are still pending.
+- The placeholder-to-final replacement plan is documented in `docs/dev/product-placeholder-asset-contract.md`.
 - Current UI should not be treated as final art direction or screenshot acceptance.
 - Future asset work must preserve readable cockpit information density and avoid hiding backend-owned state behind decorative media.
 

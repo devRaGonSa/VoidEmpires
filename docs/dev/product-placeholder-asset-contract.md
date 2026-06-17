@@ -44,6 +44,48 @@ Before replacing placeholders with final assets, each asset set should define:
 5. Bundle/loading strategy that preserves lazy cockpit routes.
 6. Visual QA checklist entries for desktop and mobile.
 
+## Final Asset Phase Prep Plan
+
+The later final generated-asset phase should treat this contract as the replacement boundary for the current `PlaceholderAsset` component and CSS marks. It should not add gameplay state, availability, ownership, queue progress, stock, rankings, production auth, combat, fleet movement, market transactions, or alliance mutations.
+
+Recommended entry criteria:
+
+1. Final DB/catalog metadata either exposes nullable final asset ids or documents the temporary source for the key-to-asset map.
+2. Every generated or authored asset has source/licensing metadata, generation prompt or art-source notes when applicable, dimensions, format, and owner.
+3. Each asset maps to an existing stable backend/domain key already documented in catalog readiness notes.
+4. Missing assets have an explicit fallback to the current deterministic placeholder treatment.
+5. Route-level loading remains lazy; final assets must not create a global eager bundle for all cockpits.
+6. Accessibility text uses the Spanish visible label for the represented entity, not raw enum keys.
+
+Recommended asset sets for the first final pass:
+
+| Asset set | Key source | First consumer | Replacement target |
+|---|---|---|---|
+| Building cards | `BuildingType` and catalog metadata | Planet, Construction, Defenses, Ground Army | `PlaceholderAsset` building/defense marks |
+| Research cards | `ResearchType` and catalog metadata | Research | `PlaceholderAsset` technology marks |
+| Orbital assets | `SpaceAssetType` and catalog metadata | Shipyard, Fleets | `PlaceholderAsset` ship marks |
+| Resources | resource metadata keys | resource strips, costs, Market advisory views | compact swatches or resource marks |
+| Civilizations | civilization/faction metadata | Onboarding, Alliance, Ranking, diagnostics summaries | civilization initials or identity marks |
+
+Recommended implementation sequence:
+
+1. Add an asset manifest shape that maps stable keys to final asset ids, file paths or URLs, dimensions, alt-text source, and fallback behavior.
+2. Add validation that all manifest keys are known catalog/domain keys and that missing final assets fall back to placeholders.
+3. Introduce asset loading at the cockpit/component boundary so lazy routes keep their split chunks.
+4. Replace one asset set at a time, starting with the most repeated card surfaces, and keep cards readable when images fail or load slowly.
+5. Update visual QA checklist entries with desktop and mobile screenshot targets for every replaced route.
+6. Keep the current placeholder component available until every accepted route has passed visual QA with the final asset set.
+
+Required validation gates for that phase:
+
+- `npm run build --prefix src/VoidEmpires.Frontend`
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1`
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1`
+- asset manifest/key drift validation once a manifest exists
+- browser screenshot QA through `docs/dev/deferred-visual-qa-master-checklist.md`
+
+No generated images, sprites, textures, icons, manifests, or browser screenshots were added for this prep update.
+
 ## Deferred Dependencies
 
 - Final generated images and sprites.
