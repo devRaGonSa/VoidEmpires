@@ -5,24 +5,52 @@ export interface ResourceAmount {
   quantity: number;
 }
 
+export const resourceTerminologyV1 = {
+  credits: "Creditos",
+  metal: "Metal",
+  crystal: "Cristal",
+  gas: "Gas",
+  deuterium: "Deuterio",
+  energy: "Energia",
+  population: "Poblacion",
+} as const;
+
+export const resourceTerminologyNotesV1 = [
+  "Creditos is the spendable economy balance.",
+  "Energia is a power or infrastructure signal, not a synonym for Creditos.",
+  "Poblacion is colony capacity context, not a stockpile currency.",
+] as const;
+
 const resourceLabelsByName: Record<string, string> = {
-  Credits: "Creditos",
-  Metal: "Metal",
-  Crystal: "Cristal",
-  Gas: "Gas",
-  Energy: "Energía",
+  Credit: resourceTerminologyV1.credits,
+  Credits: resourceTerminologyV1.credits,
+  Creditos: resourceTerminologyV1.credits,
+  Metal: resourceTerminologyV1.metal,
+  Crystal: resourceTerminologyV1.crystal,
+  Cristal: resourceTerminologyV1.crystal,
+  Gas: resourceTerminologyV1.gas,
+  Deuterium: resourceTerminologyV1.deuterium,
+  Deuterio: resourceTerminologyV1.deuterium,
+  Energy: resourceTerminologyV1.energy,
+  Energia: resourceTerminologyV1.energy,
+  Population: resourceTerminologyV1.population,
+  Poblacion: resourceTerminologyV1.population,
 };
 
 const resourceLabelsByNumber: Record<number, string> = {
-  1: "Creditos",
-  2: "Metal",
-  3: "Cristal",
-  4: "Gas",
-  5: "Energía",
+  1: resourceTerminologyV1.credits,
+  2: resourceTerminologyV1.metal,
+  3: resourceTerminologyV1.crystal,
+  4: resourceTerminologyV1.gas,
+  5: resourceTerminologyV1.energy,
 };
 
 function normalizeResourceName(value: string) {
-  return value.replace(/[\s_-]+/g, "").toLowerCase();
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\s_-]+/g, "")
+    .toLowerCase();
 }
 
 export function formatResourceLabel(value: ResourceValue, fallback = "Recurso") {

@@ -145,7 +145,7 @@ function resolveResourceLabel(resourceType: string) {
     return "Recurso visible";
   }
 
-  return getMarketResourceLabel(normalizedResourceType, `Recurso ${normalizedResourceType}`);
+  return getMarketResourceLabel(normalizedResourceType);
 }
 
 function mapReserves(entries: readonly MarketResourceReserveDto[]): MarketResourceReserve[] {

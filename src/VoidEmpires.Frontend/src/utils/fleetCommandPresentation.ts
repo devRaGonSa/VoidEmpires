@@ -462,7 +462,7 @@ export function presentEstimateResult(result: FleetCommandApiResult<EstimateOrbi
   const response = result.response;
   const errors = response?.errors ?? [];
   const costSummary = response?.resourceCosts.length
-    ? response.resourceCosts.map((cost) => `${cost.resourceType} ${cost.quantity}`).join(", ")
+    ? response.resourceCosts.map((cost) => `${formatResourceType(cost.resourceType)} ${cost.quantity}`).join(", ")
     : "Sin costes proyectados visibles.";
   const defaultSummary =
     result.httpStatus === 400
@@ -493,7 +493,7 @@ export function presentEstimateResult(result: FleetCommandApiResult<EstimateOrbi
           ]
         : []),
       ...(response?.fuelReadiness ? [`Combustible listo: ${response.fuelReadiness.isFuelReady ? "si" : "no"}`] : []),
-      ...(response?.insufficientResources.map((resource) => `Falta ${resource.resourceType}: ${resource.requiredQuantity - resource.availableQuantity}`) ?? []),
+      ...(response?.insufficientResources.map((resource) => `Falta ${formatResourceType(resource.resourceType)}: ${resource.requiredQuantity - resource.availableQuantity}`) ?? []),
       ...errors.slice(1),
     ],
   };

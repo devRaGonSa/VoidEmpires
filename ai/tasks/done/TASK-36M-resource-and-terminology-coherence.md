@@ -3,7 +3,7 @@
 ---
 id: TASK-36M
 title: Resource and terminology coherence
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: [gameplay]

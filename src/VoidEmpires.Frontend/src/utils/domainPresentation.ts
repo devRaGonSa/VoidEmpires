@@ -1,3 +1,5 @@
+import { formatResourceLabel } from "./resourceDisplay";
+
 type DomainValue = string | number | null | undefined;
 
 interface LabelCatalog {
@@ -79,21 +81,6 @@ const orbitalGroupStatusLabels: LabelCatalog = {
     1: "Estacionado",
     2: "Reservado",
     3: "Retirado",
-  },
-};
-
-const resourceTypeLabels: LabelCatalog = {
-  names: {
-    Credits: "Creditos",
-    Metal: "Metal",
-    Crystal: "Cristal",
-    Gas: "Gas",
-  },
-  numbers: {
-    1: "Creditos",
-    2: "Metal",
-    3: "Cristal",
-    4: "Gas",
   },
 };
 
@@ -278,7 +265,7 @@ export function formatOrbitalGroupStatus(value: DomainValue, fallback?: string) 
 }
 
 export function formatResourceType(value: DomainValue, fallback?: string) {
-  return resolveLabel(value, resourceTypeLabels, fallback);
+  return formatResourceLabel(value, fallback);
 }
 
 export function formatVisibilityLevel(value: DomainValue, fallback?: string) {
