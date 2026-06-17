@@ -2,7 +2,7 @@
 
 ## Phase
 
-The repository is consolidated through `Block 36A-36P - UI Information Architecture Audit & Decluttering v1`.
+The repository is consolidated through the Block 37 near-product documentation and readiness checkpoint for the current Development-only product shell.
 
 ## Repository Reality
 
@@ -66,6 +66,8 @@ Current frontend cockpit baseline:
 - Browser and visual QA for the hardened playable loop remains deferred to `docs/dev/deferred-visual-qa-master-checklist.md`; this block validated backend behavior, frontend build/type safety, scripts, docs, and static guardrails only.
 - Module-specific catalog duplication has been reduced by extracting shared planet layout components and route builders.
 - The accepted cockpit suite now shares a clearer polish baseline: primary copy is more gameplay-facing, diagnostics stay collapsed or clearly secondary, action hierarchy is more consistent, responsive overflow has been tightened, and sidebar or module-state cues better distinguish implemented versus future modules.
+- Block 37 now documents the near-product frontend information architecture, canonical local demo path, deferred visual screenshot checklist, and product readiness decision through `docs/dev/product-completion-audit.md`, `docs/dev/single-product-demo-guide.md`, `docs/dev/deferred-visual-qa-master-checklist.md`, and `docs/dev/product-readiness-report.md`.
+- Current readiness decision: the shell is ready for Development-only local product demo after the documented validation commands pass; production readiness, final visual acceptance, final database/model readiness, final art/asset readiness, combat readiness, final movement readiness, market readiness, alliance readiness, and production-auth readiness are not granted.
 - Development-only seed profiles now provide the standard QA setup path for Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, Espionage, Alliance, and Ranking without manual SQL.
 - `minimal-validation` remains the deterministic shared baseline, `cockpit-validation` is now the first coherent cross-cockpit demo scenario for Galaxy, Planet, Construction, Research, Ground Army, Shipyard, Fleets, Market, Defenses, Espionage, Alliance, and Ranking together, and the current cockpit-specific richer profiles are `shipyard-validation`, `fleet-validation`, `research-validation`, and `planet-full-validation`.
 - Seed profiles are additive, deterministic, idempotent, and Development-only. They restore documented baseline rows and minimums but do not destructively clear queues, extra transfers, or other user mutations.
@@ -120,6 +122,9 @@ Current intentional exclusions:
 - no production authentication
 - no production auth
 - no production data
+- no final database/model consolidation
+- no final generated image or asset integration
+- no production-ready active civilization resolver
 - no hidden resource accrual on ordinary page load
 - no frontend-only resource timer
 - no automatic queue materialization on ordinary page load, sidebar navigation, route entry, or card selection
@@ -373,6 +378,7 @@ Current validated baseline after Block 36A-36O:
 - validation note: `check-dev-qa-scripts.ps1` also invoked the frontend lazy-import and copy-regression guards successfully before its PowerShell parser, resource-format, payload, Shipyard, Fleet, and known no-op helper checks passed
 - tooling note: `dotnet build --no-restore` and `dotnet test --no-build` reported available .NET workload updates; this is informational and did not fail validation
 - visual QA note: no browser, screenshot, or manual visual QA was performed during this Block 36 validation pass; the deferred master checklist remains in `docs/dev/deferred-visual-qa-master-checklist.md`
+- Block 37BJ documentation update: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1` succeeded; no browser, screenshot, frontend build, backend build, or backend test pass was performed for this docs-only update.
 
 Previous validated baseline after Block 33A-33O:
 
