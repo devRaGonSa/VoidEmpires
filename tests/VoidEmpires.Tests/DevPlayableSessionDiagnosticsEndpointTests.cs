@@ -44,6 +44,51 @@ public class DevPlayableSessionDiagnosticsEndpointTests(WebApplicationFactory<Pr
     }
 
     [Fact]
+    public async Task DiagnosticsReadsPlayableStartHomeworldWithoutMutatingState()
+    {
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: Guid.NewGuid().ToString("N"));
+        using var client = configuredFactory.CreateClient();
+
+        using var startResponse = await client.PostAsJsonAsync("/api/dev/players/starting-civilization", new
+        {
+            displayName = "Flow Tester",
+            civilizationName = "Smoke Dominion",
+            homePlanetName = "Testhaven",
+            userId = "dev-smoke-flow"
+        });
+        var startPayload = await startResponse.Content.ReadFromJsonAsync<StartingCivilizationPayload>();
+
+        Assert.Equal(HttpStatusCode.Created, startResponse.StatusCode);
+        Assert.NotNull(startPayload);
+        Assert.True(startPayload!.Succeeded);
+        Assert.NotNull(startPayload.CivilizationId);
+        Assert.NotNull(startPayload.HomePlanetId);
+
+        var civilizationId = startPayload.CivilizationId.Value;
+        var homePlanetId = startPayload.HomePlanetId.Value;
+        var before = await CaptureSnapshotAsync(configuredFactory.Services, civilizationId, homePlanetId);
+
+        using var diagnosticsResponse = await client.GetAsync($"/api/dev/playable-session/diagnostics?civilizationId={civilizationId}&planetId={homePlanetId}");
+        var diagnosticsPayload = await diagnosticsResponse.Content.ReadFromJsonAsync<DiagnosticsEnvelope>();
+
+        Assert.Equal(HttpStatusCode.OK, diagnosticsResponse.StatusCode);
+        Assert.NotNull(diagnosticsPayload?.Diagnostics);
+        Assert.True(diagnosticsPayload.Succeeded);
+        Assert.Equal(civilizationId, diagnosticsPayload.Diagnostics.CivilizationId);
+        Assert.Equal(homePlanetId, diagnosticsPayload.Diagnostics.PlanetId);
+        Assert.Equal("Testhaven", diagnosticsPayload.Diagnostics.PlanetName);
+        Assert.Contains(diagnosticsPayload.Diagnostics.Resources, x => x.ResourceType == "Credits" && x.Quantity == 220);
+        Assert.Contains(diagnosticsPayload.Diagnostics.Resources, x => x.ResourceType == "Metal" && x.Quantity == 320);
+        Assert.Equal(0, diagnosticsPayload.Diagnostics.Construction.OpenCount);
+        Assert.Equal(0, diagnosticsPayload.Diagnostics.Research.OpenCount);
+        Assert.Equal(0, diagnosticsPayload.Diagnostics.Shipyard.OpenCount);
+        Assert.Contains(diagnosticsPayload.Diagnostics.Limitations, x => x.Contains("Read-only", StringComparison.OrdinalIgnoreCase));
+
+        var after = await CaptureSnapshotAsync(configuredFactory.Services, civilizationId, homePlanetId);
+        Assert.Equal(before, after);
+    }
+
+    [Fact]
     public async Task DiagnosticsReturnsBadRequestForInvalidIds()
     {
         using var client = factory.WithInMemoryPersistence(databaseName: Guid.NewGuid().ToString("N")).CreateClient();
@@ -67,12 +112,12 @@ public class DevPlayableSessionDiagnosticsEndpointTests(WebApplicationFactory<Pr
         using var seedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "cockpit-validation" });
         Assert.Equal(HttpStatusCode.OK, seedResponse.StatusCode);
 
-        var before = await CaptureSnapshotAsync(configuredFactory.Services);
+        var before = await CaptureSnapshotAsync(configuredFactory.Services, SeedCivilizationId, SeedOwnedPlanetId);
 
         using var response = await client.GetAsync($"/api/dev/playable-session/diagnostics?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var after = await CaptureSnapshotAsync(configuredFactory.Services);
+        var after = await CaptureSnapshotAsync(configuredFactory.Services, SeedCivilizationId, SeedOwnedPlanetId);
         Assert.Equal(before, after);
     }
 
@@ -95,32 +140,38 @@ public class DevPlayableSessionDiagnosticsEndpointTests(WebApplicationFactory<Pr
         Assert.Contains("Planet was not found for the requested civilization.", payload.Errors);
     }
 
-    private static async Task<DiagnosticsMutationSnapshot> CaptureSnapshotAsync(IServiceProvider services)
+    private static async Task<DiagnosticsMutationSnapshot> CaptureSnapshotAsync(IServiceProvider services, Guid civilizationId, Guid planetId)
     {
         using var scope = services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
         var stockpile = await dbContext.Set<PlanetResourceStockpile>()
             .AsNoTracking()
-            .SingleAsync(x => x.PlanetId == SeedOwnedPlanetId);
+            .SingleAsync(x => x.PlanetId == planetId);
 
         return new DiagnosticsMutationSnapshot(
             stockpile.Credits,
             stockpile.Metal,
             stockpile.Crystal,
             stockpile.Gas,
-            await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId),
-            await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId && (x.Status == ConstructionQueueItemStatus.Pending || x.Status == ConstructionQueueItemStatus.Active)),
-            await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId && x.Status == ConstructionQueueItemStatus.Completed),
-            await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == SeedCivilizationId),
-            await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == SeedCivilizationId && (x.Status == ResearchQueueItemStatus.Pending || x.Status == ResearchQueueItemStatus.Active)),
-            await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == SeedCivilizationId && x.Status == ResearchQueueItemStatus.Completed),
-            await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId),
-            await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId && (x.Status == AssetProductionOrderStatus.Pending || x.Status == AssetProductionOrderStatus.Active)),
-            await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId && x.Status == AssetProductionOrderStatus.Completed),
-            await dbContext.Set<PlanetBuilding>().CountAsync(x => x.PlanetId == SeedOwnedPlanetId),
-            await dbContext.Set<ResearchProject>().CountAsync(x => x.CivilizationId == SeedCivilizationId),
-            await dbContext.Set<OrbitalAssetStock>().SumAsync(x => x.PlanetId == SeedOwnedPlanetId ? x.Quantity : 0));
+            await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == planetId),
+            await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == planetId && (x.Status == ConstructionQueueItemStatus.Pending || x.Status == ConstructionQueueItemStatus.Active)),
+            await dbContext.Set<PlanetConstructionOrder>().CountAsync(x => x.PlanetId == planetId && x.Status == ConstructionQueueItemStatus.Completed),
+            await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == civilizationId),
+            await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == civilizationId && (x.Status == ResearchQueueItemStatus.Pending || x.Status == ResearchQueueItemStatus.Active)),
+            await dbContext.Set<ResearchOrder>().CountAsync(x => x.CivilizationId == civilizationId && x.Status == ResearchQueueItemStatus.Completed),
+            await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == planetId),
+            await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == planetId && (x.Status == AssetProductionOrderStatus.Pending || x.Status == AssetProductionOrderStatus.Active)),
+            await dbContext.Set<AssetProductionOrder>().CountAsync(x => x.PlanetId == planetId && x.Status == AssetProductionOrderStatus.Completed),
+            await dbContext.Set<PlanetBuilding>().CountAsync(x => x.PlanetId == planetId),
+            await dbContext.Set<ResearchProject>().CountAsync(x => x.CivilizationId == civilizationId),
+            await dbContext.Set<OrbitalAssetStock>().SumAsync(x => x.PlanetId == planetId ? x.Quantity : 0));
     }
+
+    private sealed record StartingCivilizationPayload(
+        bool Succeeded,
+        Guid? CivilizationId,
+        Guid? HomePlanetId,
+        string[] Errors);
 
     private sealed record DiagnosticsEnvelope(
         bool Succeeded,
