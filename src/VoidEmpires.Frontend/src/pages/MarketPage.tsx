@@ -2,12 +2,14 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchMarketUiState } from "../api/marketApi";
 import { CockpitHero } from "../components/CockpitHero";
+import { PageContextStrip } from "../components/PageContextStrip";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { buildConstructionUrl, buildDevelopmentHelperUrl, buildFleetsUrl, buildGalaxyUrl, buildPlanetUrl, buildShipyardUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 import { cockpitNavigationLabels, cockpitStatusLabels } from "../utils/cockpitStatus";
 import { getMarketPrimaryAction, getMarketResourceSignalLabel, getMarketTradeSignalSummary, groupMarketSignals, mapMarketUiStateToViewModel, marketResourceOrder, selectRecommendedMarketFocus, type MarketUiState } from "../utils/marketViewModel";
 import { formatMarketResourceAmount, getMarketResourceLabel } from "../utils/marketPresentation";
+import { formatCompactGuid } from "../utils/domainPresentation";
 
 interface MarketErrorPresentation {
   primaryMessage: string;
@@ -88,6 +90,13 @@ function formatMarketRequestFailure(message: string | null | undefined): MarketE
   }
 }
 
+function getMarketReadinessStatus(market: MarketUiState["market"]) {
+  if (!market) return "Esperando lectura";
+  if (market.summary.activeSignalCount > 0 || market.routePlaceholders.length > 0) return "Preparacion economica";
+  if (market.civilizationReserves.length > 0 || market.production.length > 0) return "Lectura estable";
+  return "Economia limitada";
+}
+
 export function MarketPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
@@ -135,17 +144,7 @@ export function MarketPage() {
     })),
     [market],
   );
-  const futureMarketOperations = useMemo(
-    () => [
-      "Compra sin operacion activa",
-      "Venta sin operacion activa",
-      "Oferta sin operacion activa",
-      "Ruta comercial sin operacion activa",
-      "Exportacion sin operacion activa",
-      "Importacion sin operacion activa",
-    ],
-    [],
-  );
+  const marketReadinessStatus = getMarketReadinessStatus(market);
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -239,6 +238,54 @@ export function MarketPage() {
           </>
         )}
       />
+
+      {queryCivilizationId ? (
+        <PageContextStrip
+          eyebrow="Cabina economica"
+          title={market?.selectedPlanetName ?? "Lectura de Mercado"}
+          purpose="Reservas, produccion, referencias y senales economicas visibles sin transacciones ni traslado de recursos."
+          statusLabel={marketReadinessStatus}
+          statusTone={market ? "good" : "warn"}
+          contextItems={[
+            { label: "Civilizacion", value: formatCompactGuid(activeCivilizationId) },
+            {
+              label: "Planeta",
+              value: market?.selectedPlanetName ?? formatCompactGuid(selectedPlanetId) ?? "Sin planeta enfocado",
+              detail: market?.selectedSolarSystemName ?? undefined,
+            },
+            {
+              label: "Reservas",
+              value: market ? `${market.summary.totalReserveTypes} tipos` : "Sin lectura",
+              detail: market?.summary.reservePosture ?? "Carga pendiente",
+            },
+            {
+              label: "Referencias",
+              value: market ? `${market.references.length} ratios` : "Sin lectura",
+              detail: market?.summary.referenceAvailability ?? "Sin comparar",
+            },
+          ]}
+          resourceItems={[
+            { label: "Mercado", value: "Solo lectura", tone: "good" },
+            { label: "Transacciones", value: "No disponibles", tone: "warn" },
+            { label: "Rutas", value: "Contexto futuro", tone: "neutral" },
+          ]}
+          primaryAction={
+            <div className="selection-chip-row">
+              {selectedPlanetId ? (
+                <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>
+                  Abrir Planeta
+                </Link>
+              ) : null}
+              <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
+                Abrir Construccion
+              </Link>
+              <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, undefined, selectedPlanetId)}>
+                Abrir Galaxia
+              </Link>
+            </div>
+          }
+        />
+      ) : null}
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">
@@ -716,32 +763,43 @@ export function MarketPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Operaciones futuras</p>
-                <h3>Operaciones no disponibles en esta version</h3>
-                <p>La hoja de ruta sigue visible como orientacion. Esta cabina no ejecuta compras ni ventas.</p>
+                <p className="eyebrow">Preparacion comercial</p>
+                <h3>Transacciones no disponibles en esta version</h3>
+                <p>La hoja de ruta comercial queda resumida como contexto secundario. Mercado no confirma compras, ventas, ofertas ni rutas.</p>
               </div>
               <UiBadge tone="warn">{cockpitStatusLabels.safePlaceholder}</UiBadge>
             </div>
-            <div className="market-future-actions-grid">
-              {futureMarketOperations.map((actionLabel) => (
-                <section key={actionLabel} className="subpanel figma-subpanel market-future-action-card market-secondary-card">
-                  <div className="figma-section-header">
-                    <div>
-                      <p className="eyebrow">Operacion futura</p>
-                      <h4>{actionLabel}</h4>
-                    </div>
-                    <UiBadge tone="warn">Sin operacion activa</UiBadge>
+            <div className="readiness-grid">
+              <section className="subpanel figma-subpanel market-secondary-card">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Intercambio</p>
+                    <h4>Compra, venta y oferta diferidas</h4>
                   </div>
-                  <div className="market-future-action-state" aria-hidden="true">
-                    Sin operacion activa
+                  <UiBadge tone="warn">No disponible</UiBadge>
+                </div>
+                <p className="figma-panel-note">Las referencias economicas no son ofertas activas y no alteran reservas.</p>
+              </section>
+              <section className="subpanel figma-subpanel market-secondary-card">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Logistica comercial</p>
+                    <h4>Rutas e importacion futuras</h4>
                   </div>
-                  <ul className="stack-list compact-list">
-                    <li>Sin operacion activa en esta cabina.</li>
-                    <li>Lectura economica sin ejecucion.</li>
-                    <li>La operacion queda visible como referencia futura, pero no se puede confirmar aqui.</li>
-                  </ul>
-                </section>
-              ))}
+                  <UiBadge tone="warn">Contexto</UiBadge>
+                </div>
+                <p className="figma-panel-note">Las rutas visibles explican presion economica, pero la ejecucion pertenece a futuros sistemas de comercio y logistica.</p>
+              </section>
+              <section className="subpanel figma-subpanel market-secondary-card">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Dependencias finales</p>
+                    <h4>Modelo comercial pendiente</h4>
+                  </div>
+                  <UiBadge tone="warn">Fase futura</UiBadge>
+                </div>
+                <p className="figma-panel-note">Persistencia final, autorizacion de produccion, activos finales, movimiento y alianzas siguen fuera de Mercado.</p>
+              </section>
             </div>
           </UiCard>
 
