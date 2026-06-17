@@ -16,14 +16,13 @@ import { CockpitHero } from "../components/CockpitHero";
 import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { DevelopmentToolsPanel } from "../components/DevelopmentToolsPanel";
 import { GameModal } from "../components/GameModal";
+import { PageContextStrip } from "../components/PageContextStrip";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { ModuleStatusCard, PlanetDataRow } from "../components/PlanetModuleLayout";
 import {
-  formatColonizationStatus,
   formatCompactGuid,
-  formatPlanetType,
 } from "../utils/domainPresentation";
 import {
   formatBuildingType,
@@ -944,92 +943,76 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
       {planet ? (
         <>
-          <UiCard className="panel planet-header-panel">
-            <div className="figma-section-header">
-              <div>
-                <p className="eyebrow">Cabina activa</p>
-                <h3>{planet.planetName}</h3>
-                <p>{formatPlanetOverviewLine(planet)}</p>
-              </div>
-              <div className="figma-badge-row">
-                <UiBadge tone={planet.isOwnedByRequestingCivilization ? "good" : "warn"}>
-                  {formatPlanetOwnerLabel(planet)}
-                </UiBadge>
-                <UiBadge>
-                  {planet.controlStatus
-                    ? formatPlanetControlStatus(planet.controlStatus)
-                    : "Sin control"}
-                </UiBadge>
-              </div>
-            </div>
-
-            <div className="selection-chip-row">
-              {(uiState?.knownPlanets ?? []).map((item) => (
-                <button
-                  key={item.planetId}
-                  type="button"
-                  className={`selection-chip${
-                    item.planetId === planet.planetId ? " selection-chip-active" : ""
-                  }`}
-                  onClick={() => void handlePlanetSelection(item.planetId)}
-                >
-                  {item.planetName} | {item.solarSystemName}
-                </button>
-              ))}
-            </div>
-
-            <div className="selection-chip-row">
-              {isConstructionRoute ? (
-                <Link
-                  className="selection-chip selection-chip-active"
-                  to={buildPlanetUrl(activeCivilizationId, planet.planetId)}
-                >
-                  Abrir Planeta
+          <PageContextStrip
+            eyebrow="Hub planetario"
+            title={planet.planetName}
+            purpose={formatPlanetOverviewLine(planet)}
+            statusLabel={planet.controlStatus ? formatPlanetControlStatus(planet.controlStatus) : "Sin control"}
+            statusTone={planet.isOwnedByRequestingCivilization ? "good" : "warn"}
+            contextItems={[
+              { label: "Propiedad", value: formatPlanetOwnerLabel(planet) },
+              { label: "Sistema", value: planet.solarSystemName },
+              {
+                label: "Cola abierta",
+                value: `${planet.diagnostics.openConstructionOrderCount} ordenes`,
+                detail: planet.actionSummary.display?.queueActionStatusLabel
+                  ?? formatConstructionAvailability(planet.actionSummary.queueActionStatus),
+              },
+            ]}
+            resourceItems={planet.stockpile.slice(0, 4).map((balance) => ({
+              label: formatResourceLabel(balance.resourceType),
+              value: String(balance.quantity),
+            }))}
+            primaryAction={
+              <div className="selection-chip-row">
+                {isConstructionRoute ? (
+                  <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, planet.planetId)}>
+                    Planeta
+                  </Link>
+                ) : (
+                  <Link className="selection-chip selection-chip-active" to={buildConstructionUrl(activeCivilizationId, planet.planetId)}>
+                    Construccion
+                  </Link>
+                )}
+                <Link className="selection-chip" to={buildSpecializedModuleUrl("Research", activeCivilizationId, planet.planetId)}>
+                  Investigacion
                 </Link>
-              ) : (
-                <Link
-                  className="selection-chip selection-chip-active"
-                  to={buildConstructionUrl(activeCivilizationId, planet.planetId)}
-                >
-                  Abrir Construccion
+                <Link className="selection-chip" to={buildSpecializedModuleUrl("Shipyard", activeCivilizationId, planet.planetId)}>
+                  Astillero
                 </Link>
-              )}
-              <Link
-                className={`selection-chip${isConstructionRoute ? "" : " selection-chip-active"}`}
-                to={buildGalaxyUrl(activeCivilizationId, planet.solarSystemId, planet.planetId)}
-              >
-                Volver a Galaxia
-              </Link>
-              <Link
-                className="selection-chip"
-                to={buildFleetsUrl(activeCivilizationId, planet.planetId)}
-              >
-                Abrir Flotas
-              </Link>
-            </div>
-          </UiCard>
+                <Link className="selection-chip" to={buildSpecializedModuleUrl("Defenses", activeCivilizationId, planet.planetId)}>
+                  Defensas
+                </Link>
+                <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, planet.planetId)}>
+                  Flotas
+                </Link>
+              </div>
+            }
+            secondaryAction={
+              <div className="selection-chip-row">
+                {(uiState?.knownPlanets ?? []).map((item) => (
+                  <button
+                    key={item.planetId}
+                    type="button"
+                    className={`selection-chip${
+                      item.planetId === planet.planetId ? " selection-chip-active" : ""
+                    }`}
+                    onClick={() => void handlePlanetSelection(item.planetId)}
+                  >
+                    {item.planetName} | {item.solarSystemName}
+                  </button>
+                ))}
+                <Link
+                  className="selection-chip"
+                  to={buildGalaxyUrl(activeCivilizationId, planet.solarSystemId, planet.planetId)}
+                >
+                  Galaxia
+                </Link>
+              </div>
+            }
+          />
 
           <div className="figma-two-column planet-overview-grid">
-            <UiCard className="panel">
-              <div className="figma-section-header">
-                <div>
-                  <p className="eyebrow">{isConstructionRoute ? "Planeta de trabajo" : "Panorama colonial"}</p>
-                  <h3>{isConstructionRoute ? "Contexto activo" : "Identidad y estado"}</h3>
-                </div>
-                <UiBadge>{formatPlanetShortReference(planet.planetId)}</UiBadge>
-              </div>
-              <div className="figma-data-list">
-                <PlanetDataRow label="Sistema" value={planet.solarSystemName} />
-                <PlanetDataRow label="Tipo" value={formatPlanetType(planet.planetType)} />
-                <PlanetDataRow
-                  label="Colonizacion"
-                  value={formatColonizationStatus(planet.colonizationStatus)}
-                />
-                <PlanetDataRow label="Tamano" value={String(planet.size)} />
-                <PlanetDataRow label="Orbita" value={`Slot ${planet.orbitalSlot}`} />
-              </div>
-            </UiCard>
-
             <UiCard className="panel">
               <div className="figma-section-header">
                 <div>

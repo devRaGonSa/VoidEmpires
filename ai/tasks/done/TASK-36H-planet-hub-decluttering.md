@@ -3,7 +3,7 @@
 ---
 id: TASK-36H
 title: Planet hub decluttering
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: [gameplay]
