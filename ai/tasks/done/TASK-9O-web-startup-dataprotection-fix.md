@@ -134,7 +134,7 @@ After the task is implemented and merged locally, rerun:
 
 ```powershell
 $env:ASPNETCORE_ENVIRONMENT="Development"
-$env:ConnectionStrings__DefaultConnection="Host=192.168.178.28;Port=5432;Database=appdb;Username=postgreuser;Password=P5wPduHq2Metallica2"
+$env:ConnectionStrings__DefaultConnection="Host=LOCAL_OR_PRIVATE_HOST;Port=5432;Database=appdb;Username=LOCAL_USER;Password=LOCAL_PASSWORD"
 dotnet run --project src/VoidEmpires.Web
 ```
 

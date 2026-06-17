@@ -11,7 +11,7 @@ Canonical seeded route:
 Seed dependency:
 
 - apply `cockpit-validation` twice before screenshot or regression QA
-- use [docs/dev/development-seed-profiles.md](/D:/Proyectos/VoidEmpires/docs/dev/development-seed-profiles.md) as the canonical seed contract
+- use [docs/dev/development-seed-profiles.md](docs/dev/development-seed-profiles.md) as the canonical seed contract
 
 Validation commands:
 
@@ -75,7 +75,7 @@ Required wording posture:
 
 Canonical frontend presentation owner:
 
-- [src/VoidEmpires.Frontend/src/utils/rankingPresentation.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/utils/rankingPresentation.ts)
+- [src/VoidEmpires.Frontend/src/utils/rankingPresentation.ts](src/VoidEmpires.Frontend/src/utils/rankingPresentation.ts)
 
 Canonical visible labels for `Ranking v1`:
 
@@ -104,16 +104,16 @@ Copy rules for later tasks:
 
 Current backend surfaces already provide enough read-state to support a conservative ranking cockpit:
 
-- civilization identity and homeworld context from [src/VoidEmpires.Domain/Players/Civilization.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Players/Civilization.cs) and [src/VoidEmpires.Domain/Players/PlayerProfile.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Players/PlayerProfile.cs)
-- owned-planet, stockpile, production, building, and construction state through [src/VoidEmpires.Infrastructure/Planets/DevPlanetUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/Planets/DevPlanetUiStateService.cs)
-- research queue and completed-project state through [src/VoidEmpires.Web/DevResearchUiStateEndpoints.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Web/DevResearchUiStateEndpoints.cs), [src/VoidEmpires.Domain/Research/ResearchProject.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Research/ResearchProject.cs), and [src/VoidEmpires.Domain/Research/ResearchOrder.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Research/ResearchOrder.cs)
-- orbital production, stock, and readiness through [src/VoidEmpires.Infrastructure/Assets/DevShipyardUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/Assets/DevShipyardUiStateService.cs)
-- fleet, transfer, route, and interception-readiness metadata through [src/VoidEmpires.Infrastructure/Fleets/DevFleetUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/Fleets/DevFleetUiStateService.cs) and [src/VoidEmpires.Infrastructure/Fleets/FleetOperationalOverviewService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/Fleets/FleetOperationalOverviewService.cs)
-- defensive readiness through [src/VoidEmpires.Infrastructure/Planets/DevDefenseUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/Planets/DevDefenseUiStateService.cs)
-- ground-army readiness through [src/VoidEmpires.Infrastructure/Planets/DevGroundArmyUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/Planets/DevGroundArmyUiStateService.cs)
-- market and logistics advisory state through [src/VoidEmpires.Infrastructure/Markets/DevMarketUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/Markets/DevMarketUiStateService.cs)
-- intelligence, visibility, and passive-signal metadata through [src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs) and [src/VoidEmpires.Infrastructure/StrategicMap/StrategicMapService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/StrategicMapService.cs)
-- alliance and contact metadata through [src/VoidEmpires.Infrastructure/StrategicMap/DevAllianceUiStateService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/DevAllianceUiStateService.cs)
+- civilization identity and homeworld context from [src/VoidEmpires.Domain/Players/Civilization.cs](src/VoidEmpires.Domain/Players/Civilization.cs) and [src/VoidEmpires.Domain/Players/PlayerProfile.cs](src/VoidEmpires.Domain/Players/PlayerProfile.cs)
+- owned-planet, stockpile, production, building, and construction state through [src/VoidEmpires.Infrastructure/Planets/DevPlanetUiStateService.cs](src/VoidEmpires.Infrastructure/Planets/DevPlanetUiStateService.cs)
+- research queue and completed-project state through [src/VoidEmpires.Web/DevResearchUiStateEndpoints.cs](src/VoidEmpires.Web/DevResearchUiStateEndpoints.cs), [src/VoidEmpires.Domain/Research/ResearchProject.cs](src/VoidEmpires.Domain/Research/ResearchProject.cs), and [src/VoidEmpires.Domain/Research/ResearchOrder.cs](src/VoidEmpires.Domain/Research/ResearchOrder.cs)
+- orbital production, stock, and readiness through [src/VoidEmpires.Infrastructure/Assets/DevShipyardUiStateService.cs](src/VoidEmpires.Infrastructure/Assets/DevShipyardUiStateService.cs)
+- fleet, transfer, route, and interception-readiness metadata through [src/VoidEmpires.Infrastructure/Fleets/DevFleetUiStateService.cs](src/VoidEmpires.Infrastructure/Fleets/DevFleetUiStateService.cs) and [src/VoidEmpires.Infrastructure/Fleets/FleetOperationalOverviewService.cs](src/VoidEmpires.Infrastructure/Fleets/FleetOperationalOverviewService.cs)
+- defensive readiness through [src/VoidEmpires.Infrastructure/Planets/DevDefenseUiStateService.cs](src/VoidEmpires.Infrastructure/Planets/DevDefenseUiStateService.cs)
+- ground-army readiness through [src/VoidEmpires.Infrastructure/Planets/DevGroundArmyUiStateService.cs](src/VoidEmpires.Infrastructure/Planets/DevGroundArmyUiStateService.cs)
+- market and logistics advisory state through [src/VoidEmpires.Infrastructure/Markets/DevMarketUiStateService.cs](src/VoidEmpires.Infrastructure/Markets/DevMarketUiStateService.cs)
+- intelligence, visibility, and passive-signal metadata through [src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs](src/VoidEmpires.Infrastructure/StrategicMap/DevEspionageUiStateService.cs) and [src/VoidEmpires.Infrastructure/StrategicMap/StrategicMapService.cs](src/VoidEmpires.Infrastructure/StrategicMap/StrategicMapService.cs)
+- alliance and contact metadata through [src/VoidEmpires.Infrastructure/StrategicMap/DevAllianceUiStateService.cs](src/VoidEmpires.Infrastructure/StrategicMap/DevAllianceUiStateService.cs)
 
 Important current constraint:
 
@@ -125,11 +125,11 @@ Important current constraint:
 
 Most relevant components for Ranking scope work:
 
-- dev endpoint gating and composition root: [src/VoidEmpires.Web/Program.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Web/Program.cs)
-- shared dev endpoint inventory: [src/VoidEmpires.Web/DevEndpointMappings.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Web/DevEndpointMappings.cs)
-- DI wiring: [src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs)
-- deterministic seed owner: [src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs)
-- current accepted adjacent cockpit docs: [docs/dev/market-cockpit-checklist.md](/D:/Proyectos/VoidEmpires/docs/dev/market-cockpit-checklist.md), [docs/dev/alliance-cockpit-checklist.md](/D:/Proyectos/VoidEmpires/docs/dev/alliance-cockpit-checklist.md), and [docs/dev/frontend-foundation-smoke-checklist.md](/D:/Proyectos/VoidEmpires/docs/dev/frontend-foundation-smoke-checklist.md)
+- dev endpoint gating and composition root: [src/VoidEmpires.Web/Program.cs](src/VoidEmpires.Web/Program.cs)
+- shared dev endpoint inventory: [src/VoidEmpires.Web/DevEndpointMappings.cs](src/VoidEmpires.Web/DevEndpointMappings.cs)
+- DI wiring: [src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs](src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs)
+- deterministic seed owner: [src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs](src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs)
+- current accepted adjacent cockpit docs: [docs/dev/market-cockpit-checklist.md](docs/dev/market-cockpit-checklist.md), [docs/dev/alliance-cockpit-checklist.md](docs/dev/alliance-cockpit-checklist.md), and [docs/dev/frontend-foundation-smoke-checklist.md](docs/dev/frontend-foundation-smoke-checklist.md)
 
 ## Dependency map
 
@@ -137,7 +137,7 @@ Current safe read chain:
 
 - `Program.cs` -> development gating -> `MapDevEndpointMappings` plus specialized cockpit read endpoints
 - dev endpoints -> typed application contracts or direct infrastructure read services
-- DI registrations -> [src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs)
+- DI registrations -> [src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs](src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs)
 - read services -> `VoidEmpiresDbContext` plus existing derived helpers such as strategic-map, fleet-overview, sensor, detection, and alliance-readiness services
 - seed baseline -> `DevelopmentSeedService` creates deterministic owned planets, stockpiles, production, fleets, queues, contacts, and visibility rows used by the current cockpits
 
@@ -165,8 +165,8 @@ Assessment:
 
 Safe sources:
 
-- [src/VoidEmpires.Domain/Colonization/PlanetOwnership.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Colonization/PlanetOwnership.cs)
-- planet identity and system placement from [src/VoidEmpires.Domain/Galaxy/Planet.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Galaxy/Planet.cs)
+- [src/VoidEmpires.Domain/Colonization/PlanetOwnership.cs](src/VoidEmpires.Domain/Colonization/PlanetOwnership.cs)
+- planet identity and system placement from [src/VoidEmpires.Domain/Galaxy/Planet.cs](src/VoidEmpires.Domain/Galaxy/Planet.cs)
 - current owned-planet projections already used by Planet, Market, and Shipyard read models
 
 Assessment:
@@ -178,8 +178,8 @@ Assessment:
 
 Safe sources:
 
-- [src/VoidEmpires.Domain/Economy/PlanetResourceStockpile.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Economy/PlanetResourceStockpile.cs)
-- [src/VoidEmpires.Domain/Economy/PlanetProductionProfile.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Economy/PlanetProductionProfile.cs)
+- [src/VoidEmpires.Domain/Economy/PlanetResourceStockpile.cs](src/VoidEmpires.Domain/Economy/PlanetResourceStockpile.cs)
+- [src/VoidEmpires.Domain/Economy/PlanetProductionProfile.cs](src/VoidEmpires.Domain/Economy/PlanetProductionProfile.cs)
 - Market aggregation already sums owned-planet reserves without introducing a shared treasury
 
 Assessment:
@@ -191,9 +191,9 @@ Assessment:
 
 Safe sources:
 
-- [src/VoidEmpires.Domain/Buildings/PlanetBuilding.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Buildings/PlanetBuilding.cs)
-- [src/VoidEmpires.Domain/Buildings/PlanetBuildingCapacity.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Buildings/PlanetBuildingCapacity.cs)
-- [src/VoidEmpires.Domain/Buildings/PlanetConstructionOrder.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Buildings/PlanetConstructionOrder.cs)
+- [src/VoidEmpires.Domain/Buildings/PlanetBuilding.cs](src/VoidEmpires.Domain/Buildings/PlanetBuilding.cs)
+- [src/VoidEmpires.Domain/Buildings/PlanetBuildingCapacity.cs](src/VoidEmpires.Domain/Buildings/PlanetBuildingCapacity.cs)
+- [src/VoidEmpires.Domain/Buildings/PlanetConstructionOrder.cs](src/VoidEmpires.Domain/Buildings/PlanetConstructionOrder.cs)
 
 Assessment:
 
@@ -204,9 +204,9 @@ Assessment:
 
 Safe sources:
 
-- [src/VoidEmpires.Domain/Research/ResearchProject.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Research/ResearchProject.cs)
-- [src/VoidEmpires.Domain/Research/ResearchOrder.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Research/ResearchOrder.cs)
-- [src/VoidEmpires.Domain/Research/ResearchCatalog.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Research/ResearchCatalog.cs)
+- [src/VoidEmpires.Domain/Research/ResearchProject.cs](src/VoidEmpires.Domain/Research/ResearchProject.cs)
+- [src/VoidEmpires.Domain/Research/ResearchOrder.cs](src/VoidEmpires.Domain/Research/ResearchOrder.cs)
+- [src/VoidEmpires.Domain/Research/ResearchCatalog.cs](src/VoidEmpires.Domain/Research/ResearchCatalog.cs)
 
 Assessment:
 
@@ -218,9 +218,9 @@ Assessment:
 
 Safe sources:
 
-- [src/VoidEmpires.Domain/Assets/OrbitalAssetStock.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Assets/OrbitalAssetStock.cs)
-- [src/VoidEmpires.Domain/Assets/AssetProductionOrder.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Assets/AssetProductionOrder.cs)
-- [src/VoidEmpires.Domain/Assets/OrbitalAssetCatalog.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Assets/OrbitalAssetCatalog.cs)
+- [src/VoidEmpires.Domain/Assets/OrbitalAssetStock.cs](src/VoidEmpires.Domain/Assets/OrbitalAssetStock.cs)
+- [src/VoidEmpires.Domain/Assets/AssetProductionOrder.cs](src/VoidEmpires.Domain/Assets/AssetProductionOrder.cs)
+- [src/VoidEmpires.Domain/Assets/OrbitalAssetCatalog.cs](src/VoidEmpires.Domain/Assets/OrbitalAssetCatalog.cs)
 
 Assessment:
 
@@ -231,8 +231,8 @@ Assessment:
 
 Safe sources:
 
-- [src/VoidEmpires.Domain/Fleets/OrbitalGroup.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Fleets/OrbitalGroup.cs)
-- [src/VoidEmpires.Domain/Fleets/OrbitalTransfer.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Fleets/OrbitalTransfer.cs)
+- [src/VoidEmpires.Domain/Fleets/OrbitalGroup.cs](src/VoidEmpires.Domain/Fleets/OrbitalGroup.cs)
+- [src/VoidEmpires.Domain/Fleets/OrbitalTransfer.cs](src/VoidEmpires.Domain/Fleets/OrbitalTransfer.cs)
 - fleet overview and UI-state read models already expose stationed groups, active transfers, travel-readiness hints, and interception notes
 
 Assessment:
@@ -257,9 +257,9 @@ Assessment:
 
 Safe sources:
 
-- [src/VoidEmpires.Domain/Population/PlanetPopulationProfile.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Population/PlanetPopulationProfile.cs)
-- [src/VoidEmpires.Domain/Assets/PlanetaryAssetStock.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Assets/PlanetaryAssetStock.cs)
-- [src/VoidEmpires.Domain/Assets/PlanetaryAssetCatalog.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Assets/PlanetaryAssetCatalog.cs)
+- [src/VoidEmpires.Domain/Population/PlanetPopulationProfile.cs](src/VoidEmpires.Domain/Population/PlanetPopulationProfile.cs)
+- [src/VoidEmpires.Domain/Assets/PlanetaryAssetStock.cs](src/VoidEmpires.Domain/Assets/PlanetaryAssetStock.cs)
+- [src/VoidEmpires.Domain/Assets/PlanetaryAssetCatalog.cs](src/VoidEmpires.Domain/Assets/PlanetaryAssetCatalog.cs)
 
 Assessment:
 

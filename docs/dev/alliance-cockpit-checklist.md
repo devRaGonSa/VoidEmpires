@@ -22,11 +22,11 @@ Required status framing for the cockpit:
 
 Current alliance-adjacent backend foundations already exist and are safe to read:
 
-- Player identity lives in [src/VoidEmpires.Domain/Players/PlayerProfile.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Players/PlayerProfile.cs) and civilization identity lives in [src/VoidEmpires.Domain/Players/Civilization.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Players/Civilization.cs).
-- Alliance metadata lives in [src/VoidEmpires.Domain/Diplomacy/Alliance.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Diplomacy/Alliance.cs).
-- Membership metadata lives in [src/VoidEmpires.Domain/Diplomacy/AllianceMembership.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Diplomacy/AllianceMembership.cs).
-- Pact metadata lives in [src/VoidEmpires.Domain/Diplomacy/AlliancePact.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Diplomacy/AlliancePact.cs).
-- Diplomatic contact metadata lives in [src/VoidEmpires.Domain/Diplomacy/DiplomaticContact.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Domain/Diplomacy/DiplomaticContact.cs).
+- Player identity lives in [src/VoidEmpires.Domain/Players/PlayerProfile.cs](src/VoidEmpires.Domain/Players/PlayerProfile.cs) and civilization identity lives in [src/VoidEmpires.Domain/Players/Civilization.cs](src/VoidEmpires.Domain/Players/Civilization.cs).
+- Alliance metadata lives in [src/VoidEmpires.Domain/Diplomacy/Alliance.cs](src/VoidEmpires.Domain/Diplomacy/Alliance.cs).
+- Membership metadata lives in [src/VoidEmpires.Domain/Diplomacy/AllianceMembership.cs](src/VoidEmpires.Domain/Diplomacy/AllianceMembership.cs).
+- Pact metadata lives in [src/VoidEmpires.Domain/Diplomacy/AlliancePact.cs](src/VoidEmpires.Domain/Diplomacy/AlliancePact.cs).
+- Diplomatic contact metadata lives in [src/VoidEmpires.Domain/Diplomacy/DiplomaticContact.cs](src/VoidEmpires.Domain/Diplomacy/DiplomaticContact.cs).
 
 Important current constraint:
 
@@ -37,14 +37,14 @@ Important current constraint:
 
 Most relevant components for this audit:
 
-- Entrypoint and dev gating: [src/VoidEmpires.Web/Program.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Web/Program.cs)
-- Dev-only alliance/contact endpoints: [src/VoidEmpires.Web/DevAllianceReadinessEndpoints.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Web/DevAllianceReadinessEndpoints.cs), [src/VoidEmpires.Web/DevAlliancePactReadinessEndpoints.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Web/DevAlliancePactReadinessEndpoints.cs), [src/VoidEmpires.Web/DevDiplomaticContactEndpoints.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Web/DevDiplomaticContactEndpoints.cs)
-- Query contracts: [src/VoidEmpires.Application/StrategicMap/GetAllianceReadinessResult.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Application/StrategicMap/GetAllianceReadinessResult.cs), [src/VoidEmpires.Application/StrategicMap/GetAlliancePactReadinessResult.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Application/StrategicMap/GetAlliancePactReadinessResult.cs), [src/VoidEmpires.Application/StrategicMap/GetDiplomaticContactsResult.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Application/StrategicMap/GetDiplomaticContactsResult.cs)
-- Query implementations: [src/VoidEmpires.Infrastructure/StrategicMap/AllianceReadinessQueryService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/AllianceReadinessQueryService.cs), [src/VoidEmpires.Infrastructure/StrategicMap/AlliancePactReadinessQueryService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/AlliancePactReadinessQueryService.cs), [src/VoidEmpires.Infrastructure/StrategicMap/DiplomaticContactQueryService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/DiplomaticContactQueryService.cs)
-- Strategic-map reuse boundary: [src/VoidEmpires.Infrastructure/StrategicMap/StrategicMapService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/StrategicMapService.cs)
-- DI wiring: [src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs)
-- Seed baseline owner: [src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs)
-- Relevant tests: [tests/VoidEmpires.Tests/AllianceReadinessQueryServiceTests.cs](/D:/Proyectos/VoidEmpires/tests/VoidEmpires.Tests/AllianceReadinessQueryServiceTests.cs), [tests/VoidEmpires.Tests/AlliancePactReadinessQueryServiceTests.cs](/D:/Proyectos/VoidEmpires/tests/VoidEmpires.Tests/AlliancePactReadinessQueryServiceTests.cs), [tests/VoidEmpires.Tests/DiplomaticContactQueryServiceTests.cs](/D:/Proyectos/VoidEmpires/tests/VoidEmpires.Tests/DiplomaticContactQueryServiceTests.cs), [tests/VoidEmpires.Tests/AllianceReadinessSmokeTests.cs](/D:/Proyectos/VoidEmpires/tests/VoidEmpires.Tests/AllianceReadinessSmokeTests.cs)
+- Entrypoint and dev gating: [src/VoidEmpires.Web/Program.cs](src/VoidEmpires.Web/Program.cs)
+- Dev-only alliance/contact endpoints: [src/VoidEmpires.Web/DevAllianceReadinessEndpoints.cs](src/VoidEmpires.Web/DevAllianceReadinessEndpoints.cs), [src/VoidEmpires.Web/DevAlliancePactReadinessEndpoints.cs](src/VoidEmpires.Web/DevAlliancePactReadinessEndpoints.cs), [src/VoidEmpires.Web/DevDiplomaticContactEndpoints.cs](src/VoidEmpires.Web/DevDiplomaticContactEndpoints.cs)
+- Query contracts: [src/VoidEmpires.Application/StrategicMap/GetAllianceReadinessResult.cs](src/VoidEmpires.Application/StrategicMap/GetAllianceReadinessResult.cs), [src/VoidEmpires.Application/StrategicMap/GetAlliancePactReadinessResult.cs](src/VoidEmpires.Application/StrategicMap/GetAlliancePactReadinessResult.cs), [src/VoidEmpires.Application/StrategicMap/GetDiplomaticContactsResult.cs](src/VoidEmpires.Application/StrategicMap/GetDiplomaticContactsResult.cs)
+- Query implementations: [src/VoidEmpires.Infrastructure/StrategicMap/AllianceReadinessQueryService.cs](src/VoidEmpires.Infrastructure/StrategicMap/AllianceReadinessQueryService.cs), [src/VoidEmpires.Infrastructure/StrategicMap/AlliancePactReadinessQueryService.cs](src/VoidEmpires.Infrastructure/StrategicMap/AlliancePactReadinessQueryService.cs), [src/VoidEmpires.Infrastructure/StrategicMap/DiplomaticContactQueryService.cs](src/VoidEmpires.Infrastructure/StrategicMap/DiplomaticContactQueryService.cs)
+- Strategic-map reuse boundary: [src/VoidEmpires.Infrastructure/StrategicMap/StrategicMapService.cs](src/VoidEmpires.Infrastructure/StrategicMap/StrategicMapService.cs)
+- DI wiring: [src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs](src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs)
+- Seed baseline owner: [src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs](src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs)
+- Relevant tests: [tests/VoidEmpires.Tests/AllianceReadinessQueryServiceTests.cs](tests/VoidEmpires.Tests/AllianceReadinessQueryServiceTests.cs), [tests/VoidEmpires.Tests/AlliancePactReadinessQueryServiceTests.cs](tests/VoidEmpires.Tests/AlliancePactReadinessQueryServiceTests.cs), [tests/VoidEmpires.Tests/DiplomaticContactQueryServiceTests.cs](tests/VoidEmpires.Tests/DiplomaticContactQueryServiceTests.cs), [tests/VoidEmpires.Tests/AllianceReadinessSmokeTests.cs](tests/VoidEmpires.Tests/AllianceReadinessSmokeTests.cs)
 
 ## Dependency map
 
@@ -168,13 +168,13 @@ UI guidance:
 - trade execution
 - any mutation endpoint or any write flow
 
-The current strategic-map notes already reinforce this boundary in [src/VoidEmpires.Infrastructure/StrategicMap/StrategicMapService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/StrategicMap/StrategicMapService.cs).
+The current strategic-map notes already reinforce this boundary in [src/VoidEmpires.Infrastructure/StrategicMap/StrategicMapService.cs](src/VoidEmpires.Infrastructure/StrategicMap/StrategicMapService.cs).
 
 ## Seed and backend gap assessment
 
 Current seed reality:
 
-- [src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs) now seeds one deterministic diplomatic-contact row for `cockpit-validation` so the Alliance cockpit has a stable read-only baseline without creating alliances, pacts, invitations, or memberships.
+- [src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs](src/VoidEmpires.Infrastructure/Development/DevelopmentSeedService.cs) now seeds one deterministic diplomatic-contact row for `cockpit-validation` so the Alliance cockpit has a stable read-only baseline without creating alliances, pacts, invitations, or memberships.
 
 What already exists:
 
@@ -200,11 +200,11 @@ Recommendation for later tasks:
 
 Current evidence for the safe read-only boundary:
 
-- [tests/VoidEmpires.Tests/AllianceReadinessQueryServiceTests.cs](/D:/Proyectos/VoidEmpires/tests/VoidEmpires.Tests/AllianceReadinessQueryServiceTests.cs) verifies requester scoping, deterministic ordering, invalid-id handling, and no mutation
-- [tests/VoidEmpires.Tests/AlliancePactReadinessQueryServiceTests.cs](/D:/Proyectos/VoidEmpires/tests/VoidEmpires.Tests/AlliancePactReadinessQueryServiceTests.cs) verifies active-membership scoping, deterministic ordering, invalid-id handling, and no mutation
-- [tests/VoidEmpires.Tests/DiplomaticContactQueryServiceTests.cs](/D:/Proyectos/VoidEmpires/tests/VoidEmpires.Tests/DiplomaticContactQueryServiceTests.cs) verifies requester scoping, deterministic ordering, invalid-id handling, and no mutation
-- [tests/VoidEmpires.Tests/DevAllianceReadinessEndpointTests.cs](/D:/Proyectos/VoidEmpires/tests/VoidEmpires.Tests/DevAllianceReadinessEndpointTests.cs), [tests/VoidEmpires.Tests/DevAlliancePactReadinessEndpointTests.cs](/D:/Proyectos/VoidEmpires/tests/VoidEmpires.Tests/DevAlliancePactReadinessEndpointTests.cs), and [tests/VoidEmpires.Tests/DevDiplomaticContactEndpointTests.cs](/D:/Proyectos/VoidEmpires/tests/VoidEmpires.Tests/DevDiplomaticContactEndpointTests.cs) verify development gating and request validation
-- [tests/VoidEmpires.Tests/AllianceReadinessSmokeTests.cs](/D:/Proyectos/VoidEmpires/tests/VoidEmpires.Tests/AllianceReadinessSmokeTests.cs) verifies alliance metadata does not leak allied systems or change visibility
+- [tests/VoidEmpires.Tests/AllianceReadinessQueryServiceTests.cs](tests/VoidEmpires.Tests/AllianceReadinessQueryServiceTests.cs) verifies requester scoping, deterministic ordering, invalid-id handling, and no mutation
+- [tests/VoidEmpires.Tests/AlliancePactReadinessQueryServiceTests.cs](tests/VoidEmpires.Tests/AlliancePactReadinessQueryServiceTests.cs) verifies active-membership scoping, deterministic ordering, invalid-id handling, and no mutation
+- [tests/VoidEmpires.Tests/DiplomaticContactQueryServiceTests.cs](tests/VoidEmpires.Tests/DiplomaticContactQueryServiceTests.cs) verifies requester scoping, deterministic ordering, invalid-id handling, and no mutation
+- [tests/VoidEmpires.Tests/DevAllianceReadinessEndpointTests.cs](tests/VoidEmpires.Tests/DevAllianceReadinessEndpointTests.cs), [tests/VoidEmpires.Tests/DevAlliancePactReadinessEndpointTests.cs](tests/VoidEmpires.Tests/DevAlliancePactReadinessEndpointTests.cs), and [tests/VoidEmpires.Tests/DevDiplomaticContactEndpointTests.cs](tests/VoidEmpires.Tests/DevDiplomaticContactEndpointTests.cs) verify development gating and request validation
+- [tests/VoidEmpires.Tests/AllianceReadinessSmokeTests.cs](tests/VoidEmpires.Tests/AllianceReadinessSmokeTests.cs) verifies alliance metadata does not leak allied systems or change visibility
 
 Integration note:
 
@@ -220,8 +220,8 @@ Use these read surfaces only:
 
 Centralized frontend taxonomy owner:
 
-- [src/VoidEmpires.Frontend/src/utils/alliancePresentation.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/utils/alliancePresentation.ts) should remain the single owner for Spanish-first alliance, contact, pact, and disabled-future labels so raw enum or DTO tokens stay out of primary UI.
-- [src/VoidEmpires.Frontend/src/api/allianceTypes.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/api/allianceTypes.ts), [src/VoidEmpires.Frontend/src/api/allianceApi.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/api/allianceApi.ts), and [src/VoidEmpires.Frontend/src/utils/allianceViewModel.ts](/D:/Proyectos/VoidEmpires/src/VoidEmpires.Frontend/src/utils/allianceViewModel.ts) now define the typed DTO, fetch, and normalization path for the Alliance cockpit frontend.
+- [src/VoidEmpires.Frontend/src/utils/alliancePresentation.ts](src/VoidEmpires.Frontend/src/utils/alliancePresentation.ts) should remain the single owner for Spanish-first alliance, contact, pact, and disabled-future labels so raw enum or DTO tokens stay out of primary UI.
+- [src/VoidEmpires.Frontend/src/api/allianceTypes.ts](src/VoidEmpires.Frontend/src/api/allianceTypes.ts), [src/VoidEmpires.Frontend/src/api/allianceApi.ts](src/VoidEmpires.Frontend/src/api/allianceApi.ts), and [src/VoidEmpires.Frontend/src/utils/allianceViewModel.ts](src/VoidEmpires.Frontend/src/utils/allianceViewModel.ts) now define the typed DTO, fetch, and normalization path for the Alliance cockpit frontend.
 
 Keep the first frontend slice conservative:
 

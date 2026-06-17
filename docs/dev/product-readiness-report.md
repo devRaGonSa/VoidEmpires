@@ -159,6 +159,22 @@ Recorded on 2026-06-17 for `TASK-37BO`:
 
 This was still a non-visual validation pass. It did not perform browser screenshot acceptance or grant production readiness, final database/model readiness, final asset readiness, combat readiness, final movement readiness, market transaction readiness, alliance mutation readiness, or production-auth readiness.
 
+## Repository Cleanliness Check
+
+Recorded on 2026-06-17 for `TASK-37BV`:
+
+- Tracked-file scans found no committed `bin`, `obj`, `node_modules`, `dist`, screenshot, capture, image, video, archive, temp, or log artifacts.
+- The local ignored workspace still contains expected ignored outputs such as `.vs/`, `ai/worker.lock`, `bin/`, `obj/`, `src/VoidEmpires.Frontend/dist/`, and `src/VoidEmpires.Frontend/node_modules/`; these are not tracked.
+- Machine-local `D:/Proyectos/VoidEmpires` markdown links in dev checklists were converted to repository-relative links.
+- An old completed task note containing a concrete private-style PostgreSQL connection string example was redacted to placeholder values.
+- Follow-up secret scan hits were limited to placeholder examples such as `YOUR_LOCAL_PASSWORD` and `LOCAL_PASSWORD`.
+- `dotnet build --no-restore` succeeded with `0` warnings and `0` errors.
+- `dotnet test --no-build` succeeded with `720` passing tests, `0` failed, and `0` skipped.
+- `npm run build --prefix src/VoidEmpires.Frontend` succeeded with `105` transformed modules and the shared entry chunk at `181.33 kB` minified / `59.14 kB` gzip.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` succeeded, including the route lazy-import and copy-regression guards.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` succeeded.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1` succeeded.
+
 ## Current Readiness Decision
 
 Decision: ready for Development-only local product-shell demo after the validation commands above pass.
