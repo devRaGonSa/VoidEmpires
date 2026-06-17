@@ -129,13 +129,15 @@ Reused-database warning:
 Run this guard before closing manual visual batches for the accepted cockpit suite:
 
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1`
-- This scans only `src/VoidEmpires.Frontend/src` for known recurring blocked phrases, so docs and scripts are intentionally excluded.
-- Current blocked phrases:
-  - `Recurso no clasificado`
-  - `La cabina de la Alianza permanece en modo solo lectura en esta fase`
-  - `Void Seed Civilization | current`
-  - `Delta`
-  - `solo lectura en esta fase`
+- This scans frontend source, docs, scripts, and selected Development UI-state seed/read services for recurring copy and safety regressions.
+- Current guard themes:
+  - mojibake or corrupted Spanish text
+  - risky angle-bracket id placeholders in docs or primary UI
+  - English fallback copy in primary UI components/pages
+  - obsolete prototype-era wording on primary cockpit surfaces
+  - fake resource, stock, queue, auth, or production-auth-overclaim wording
+  - forbidden combat, mission, instant-completion, and normal-gameplay materialization phrasing
+  - local playable-session storage drift, including browser storage outside `playableSession.ts`
 
 ## Research Enqueue Lightweight Guard
 
@@ -166,10 +168,10 @@ Manual QA fallback:
 
 Use this baseline before changing route loading or Vite chunking:
 
-- `npm run build --prefix src/VoidEmpires.Frontend` currently succeeds with one JS entry chunk at `551.88 kB` minified (`136.02 kB` gzip) and one CSS asset at `45.44 kB` (`7.20 kB` gzip).
-- Vite still emits the standard `Some chunks are larger than 500 kB after minification` warning during the production build.
-- The current route layer is eager: `src/App.tsx` imports `StrategicMapPage`, `PlanetPage`, `ConstructionPage`, `ResearchPage`, `ShipyardPage`, `FleetsPage`, `MarketPage`, `DefensesPage`, `GroundArmyPage`, `EspionagePage`, and `ModuleCabinPage` synchronously before routing.
-- The most obvious lazy-loading candidates are the large route modules now bundled into first load: `StrategicMapPage`, `FleetsPage`, `ShipyardPage`, `PlanetPage`, `MarketPage`, `DefensesPage`, `EspionagePage`, `ResearchPage`, and `GroundArmyPage`.
+- `npm run build --prefix src/VoidEmpires.Frontend` currently succeeds with route-level lazy chunks for the accepted cockpit suite.
+- The latest Block 37BM validation emitted `105` transformed modules, one shared JS entry chunk at `181.33 kB` minified (`59.14 kB` gzip), and one CSS asset at `58.88 kB` (`8.91 kB` gzip).
+- The old single-entry `551.88 kB` build and `Some chunks are larger than 500 kB after minification` warning are historical baselines only; their return is a regression.
+- `src/App.tsx` must keep cockpit page modules behind route-level `lazy(...)` imports instead of direct page imports.
 - The shared synchronous shell should stay limited to `main.tsx`, `App.tsx`, `styles.css`, `AppShell`, route URL helpers, configuration, and the lightweight route metadata from `planetPresentation.ts`.
 - `ConstructionPage` is currently a thin wrapper over `PlanetPage`, so any route split that keeps `ConstructionPage` separate still needs to avoid duplicating the shared Planet implementation unnecessarily.
 - No chunking decision should change route paths, seeded QA URLs, shared shell navigation, or the current Spanish-first cockpit behavior.
@@ -179,9 +181,9 @@ Use this baseline before changing route loading or Vite chunking:
 Use these checks after route-level lazy loading lands:
 
 - `npm run build --prefix src/VoidEmpires.Frontend` should emit route chunks for the accepted cockpits instead of one oversized application chunk.
-- The current expected production result is `87` transformed modules, one `179.32 kB` shared entry chunk, one `45.97 kB` CSS asset, and separate async cockpit chunks.
+- The current expected production result is the Block 37BM shape: `105` transformed modules, one `181.33 kB` shared entry chunk, one `58.88 kB` CSS asset, and separate async cockpit chunks.
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` should print `Frontend route lazy-import guard passed.`
-- After the current lazy-loading pass, the build should stay on Vite defaults without the old `500 kB` warning; reintroducing that warning is a regression for this block.
+- After the current lazy-loading pass, the build should stay on Vite defaults without the old `500 kB` warning; reintroducing that warning or exceeding the route guard entry budgets is a regression for this block.
 - Treat this block as a loading-architecture change only; accepted gameplay behavior, backend calls, and route URLs must remain unchanged.
 - `/` and `/galaxy` must still resolve to the accepted Galaxy cockpit, not a blank shell or a broken redirect.
 - `/planet`, `/construction`, `/research`, `/shipyard`, `/fleets`, `/defenses`, `/ground-army`, `/espionage`, `/alliance`, `/market`, and `/ranking` must still load with their current query-parameter behavior unchanged.

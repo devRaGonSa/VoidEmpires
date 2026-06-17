@@ -13,6 +13,7 @@ Use it with:
 - `docs/dev/construction-cockpit-checklist.md`
 - `docs/dev/research-cockpit-checklist.md`
 - `docs/dev/shipyard-cockpit-checklist.md`
+- `docs/dev/product-readiness-report.md`
 
 ## Deferred Status
 
@@ -171,5 +172,6 @@ dotnet build --no-restore
 dotnet test --no-build
 npm run build --prefix src/VoidEmpires.Frontend
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1
 ```
