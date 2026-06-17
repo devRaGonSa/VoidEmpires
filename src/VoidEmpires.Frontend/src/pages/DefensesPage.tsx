@@ -487,9 +487,9 @@ export function DefensesPage() {
                       <Link className="planet-action-button-secondary planet-action-handoff" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
                         Abrir Construccion
                       </Link>
-                      <button type="button" className="planet-action-button-blocked" disabled>
+                      <span className="planet-action-handoff-message">
                         Sin enqueue defensivo
-                      </button>
+                      </span>
                     </div>
                   </article>
                 ))}
@@ -525,9 +525,9 @@ export function DefensesPage() {
                     {option.affordabilityLabel ? <p className="figma-panel-note">{option.affordabilityLabel}</p> : null}
                     {option.requirementLabel ? <p className="figma-panel-note">{option.requirementLabel}</p> : null}
                     <div className="selection-chip-row">
-                      <button type="button" className="planet-action-button-blocked" disabled>
+                      <span className="planet-action-handoff-message">
                         {option.statusKey === "Unsupported" ? cockpitStatusLabels.readOnly : "Bloqueada en esta lectura"}
-                      </button>
+                      </span>
                     </div>
                   </article>
                 ))}
@@ -604,9 +604,9 @@ export function DefensesPage() {
                   <div className="figma-data-row"><span>Cierre visible</span><strong>{defenses.actionAvailability.completeDue.supported ? "Detectado pero no habilitado" : "No soportado"}</strong></div>
                 </div>
                 <div className="selection-chip-row">
-                  <button type="button" className="planet-action-button-blocked" disabled>
-                    No disponible en esta version
-                  </button>
+                  <span className="planet-action-handoff-message">
+                    Cierre pendiente de ruta acotada
+                  </span>
                 </div>
                 <p className="figma-panel-note">
                   El backend actual conserva un cierre global de construccion. Esta cabina no lo ejecuta hasta que exista una ruta segura y acotada al planeta.

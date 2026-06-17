@@ -3,7 +3,7 @@
 ---
 id: TASK-36L
 title: Readiness pages decluttering
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: [gameplay]

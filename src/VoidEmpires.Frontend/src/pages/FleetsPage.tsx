@@ -924,7 +924,7 @@ export function FleetsPage() {
         <UiCard className="panel fleet-dev-loader-panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Entrada de desarrollo</p>
+              <p className="eyebrow">Entrada de cabina</p>
               <h3>Cargar cabina</h3>
               <p>El cargador sigue visible, pero ya no ocupa la cabecera principal.</p>
             </div>
@@ -962,7 +962,7 @@ export function FleetsPage() {
             <li>La estimacion sigue en solo lectura y nunca reserva escuadras ni gasta recursos.</li>
             <li>Crear traslado exige una estimacion vigente y una confirmacion explicita.</li>
             <li>Anular traslado exige un traslado activo visible y una confirmacion explicita.</li>
-            <li>Cerrar llegadas, dividir y fusionar siguen visibles solo como referencia de prototipo.</li>
+            <li>Cerrar llegadas, dividir y fusionar siguen visibles solo como referencia bloqueada.</li>
           </ul>
         </UiCard>
       </div>
@@ -1181,10 +1181,10 @@ export function FleetsPage() {
               <div className="figma-section-header">
                 <div>
                   <p className="eyebrow">Secuencia de orden</p>
-                  <h3>Mover una escuadra</h3>
-                  <p>El flujo de juego queda en cinco pasos: eliges escuadra, eliges destino, calculas, revisas y confirmas.</p>
+                  <h3>Traslado protegido de escuadra</h3>
+                  <p>El flujo disponible queda en cinco pasos: eliges escuadra, eliges destino, calculas, revisas y confirmas.</p>
                 </div>
-                <UiBadge tone="good">Flujo principal</UiBadge>
+                <UiBadge tone="good">Orden protegida</UiBadge>
               </div>
               <div className="fleet-action-stage">
                 <div className="fleet-order-step-grid">
@@ -1364,7 +1364,7 @@ export function FleetsPage() {
                         {isCreatingTransfer ? "Enviando..." : "Enviar flota"}
                       </button>
                     </div>
-                    <p className="figma-panel-note">Sigue siendo una accion protegida de prototipo y nunca se ejecuta sin esta confirmacion.</p>
+                    <p className="figma-panel-note">Sigue siendo una orden protegida y nunca se ejecuta sin esta confirmacion.</p>
                   </div>
                 </section>
               ) : null}
@@ -1630,24 +1630,24 @@ export function FleetsPage() {
             <UiCard className="panel fleet-prototype-panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">Solo prototipo</p>
-                  <h3>Futuras mutaciones de flota</h3>
+                  <p className="eyebrow">Solo referencia</p>
+                  <h3>Capacidades de flota bloqueadas</h3>
                   <p>Se dejan visibles como referencia tecnica, pero no forman parte del flujo principal de ordenes.</p>
                 </div>
-                <UiBadge tone="warn">Solo prototipo</UiBadge>
+                <UiBadge tone="warn">Referencia bloqueada</UiBadge>
               </div>
               <div className="prototype-control-grid prototype-control-grid-compact">
                 {mutationConfirmations.map((control) => (
                   <section key={control.actionKey} className="subpanel prototype-control-card">
                     <div className="figma-section-header">
                       <div>
-                        <p className="eyebrow">Accion futura</p>
+                        <p className="eyebrow">Capacidad futura</p>
                         <h4>{control.label}</h4>
                       </div>
                       <div className="figma-badge-row">
                         <UiBadge tone={control.readinessTone}>{control.readinessLabel}</UiBadge>
                         <UiBadge tone={control.prototypeLevel === "danger" ? "warn" : "neutral"}>
-                          {control.prototypeLevel === "danger" ? "Riesgo" : "Solo prototipo"}
+                          {control.prototypeLevel === "danger" ? "Riesgo" : "Referencia bloqueada"}
                         </UiBadge>
                       </div>
                     </div>
