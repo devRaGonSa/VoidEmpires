@@ -103,6 +103,20 @@ Recorded on 2026-06-17 for `TASK-37BM`:
 
 This was a non-visual validation pass. It did not perform browser screenshot acceptance, final database/model readiness, final asset readiness, combat readiness, final movement readiness, market transaction readiness, alliance mutation readiness, or production-auth readiness.
 
+## Latest Full Validation Pass
+
+Recorded on 2026-06-17 for `TASK-37BO`:
+
+- `dotnet build --no-restore` succeeded with `0` warnings and `0` errors.
+- `dotnet test --no-build` succeeded with `720` passing tests, `0` failed, and `0` skipped.
+- `npm run build --prefix src/VoidEmpires.Frontend` succeeded; Vite transformed `105` modules, emitted cockpit lazy chunks, kept the shared entry chunk at `181.33 kB` minified / `59.14 kB` gzip, and did not emit the old `500 kB` chunk warning.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` succeeded, including the route lazy-import guard and copy regression guard.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` succeeded.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1` succeeded.
+- Tooling note: the .NET commands reported available workload updates; this was informational and did not fail validation.
+
+This was still a non-visual validation pass. It did not perform browser screenshot acceptance or grant production readiness, final database/model readiness, final asset readiness, combat readiness, final movement readiness, market transaction readiness, alliance mutation readiness, or production-auth readiness.
+
 ## Current Readiness Decision
 
 Decision: ready for Development-only local product-shell demo after the validation commands above pass.
