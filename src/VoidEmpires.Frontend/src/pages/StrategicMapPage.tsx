@@ -42,6 +42,7 @@ import {
   buildConstructionUrl,
   buildDevelopmentHelperUrl,
   buildFleetsUrl,
+  buildGalaxyUrl,
   buildPlanetUrl,
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
@@ -1234,6 +1235,81 @@ export function StrategicMapPage() {
                 ) : (
                   <p className="figma-panel-note">
                     No hay metadatos de acciones visibles para este sistema.
+                  </p>
+                )}
+              </section>
+            </div>
+          </UiCard>
+
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">Navegacion preparada</p>
+                <h3>Sistema y planeta</h3>
+                <p>Los saltos conservan el contexto de civilizacion, sistema y planeta cuando el backend ya devolvio esos datos.</p>
+              </div>
+              <UiBadge tone={selectedSystem.planets?.length ? "good" : "warn"}>
+                {selectedSystem.planets?.length ? "Datos listos" : "Dependencia pendiente"}
+              </UiBadge>
+            </div>
+            <div className="readiness-grid">
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Sistema</p>
+                    <h4>{selectedSystem.systemName ?? "Sistema desconocido"}</h4>
+                  </div>
+                  <UiBadge tone={getVisibilityTone(selectedSystem.visibilityLevel)}>
+                    {formatVisibilityLevel(selectedSystem.visibilityLevel)}
+                  </UiBadge>
+                </div>
+                <div className="figma-data-list">
+                  <DataRow label="Planetas devueltos" value={String(selectedSystem.planets?.length ?? 0)} />
+                  <DataRow label="Rutas visibles" value={String(selectedSystem.transferOverlays?.length ?? 0)} />
+                  <DataRow label="Marcadores de flota" value={String(selectedSystem.fleetPresence?.length ?? 0)} />
+                </div>
+                <div className="selection-chip-row">
+                  <Link
+                    className="selection-chip selection-chip-active"
+                    to={buildGalaxyUrl(result.civilizationId, selectedSystem.systemId, selectedPlanet?.planetId)}
+                  >
+                    Mantener foco en Galaxia
+                  </Link>
+                </div>
+              </section>
+
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Planeta</p>
+                    <h4>{selectedPlanet?.planetName ?? "Seleccion pendiente"}</h4>
+                  </div>
+                  <UiBadge tone={selectedPlanet ? "good" : "warn"}>
+                    {selectedPlanet ? "Handoff listo" : "Sin planeta activo"}
+                  </UiBadge>
+                </div>
+                {selectedPlanet ? (
+                  <>
+                    <div className="figma-data-list">
+                      <DataRow label="Control" value={Boolean(selectedPlanetRecord?.isOwnedByRequestingCivilization) ? "Propio" : formatVisibilityLevel(selectedPlanet.visibilityLevel)} />
+                      <DataRow label="Tipo" value={formatPlanetType(readDomainValue(selectedPlanetRecord ?? {}, "planetType"), "Tipo pendiente")} />
+                      <DataRow label="Gestion" value={selectedPlanet.isVisible ? "Cabinas con contexto preservado" : "Lectura limitada"} />
+                    </div>
+                    <div className="selection-chip-row">
+                      <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(result.civilizationId, selectedPlanet.planetId)}>
+                        Abrir Planeta
+                      </Link>
+                      <Link className="selection-chip" to={buildConstructionUrl(result.civilizationId, selectedPlanet.planetId)}>
+                        Abrir Construccion
+                      </Link>
+                      <Link className="selection-chip" to={buildFleetsUrl(result.civilizationId, selectedPlanet.planetId)}>
+                        Abrir Flotas
+                      </Link>
+                    </div>
+                  </>
+                ) : (
+                  <p className="figma-panel-note">
+                    Selecciona un planeta devuelto por el mapa. Si el sistema no trae `planets[]`, falta consolidar el contrato final de sistema/planeta en DB o API.
                   </p>
                 )}
               </section>
