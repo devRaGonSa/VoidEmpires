@@ -1912,6 +1912,40 @@ select {
   padding: 0 var(--ve-space-4);
 }
 
+.dev-diagnostics-card {
+  border-color: color-mix(in srgb, var(--ve-color-border) 42%, transparent);
+  background: color-mix(in srgb, var(--ve-color-panel) 68%, transparent);
+}
+
+.dev-diagnostics-technical-details {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px dashed color-mix(in srgb, var(--ve-color-border) 34%, transparent);
+  border-radius: var(--ve-radius-sm);
+  background: color-mix(in srgb, var(--ve-color-bg) 44%, transparent);
+}
+
+.dev-diagnostics-technical-details summary {
+  cursor: pointer;
+  color: color-mix(in srgb, var(--ve-color-text) 72%, var(--ve-color-muted));
+  font-size: 0.86rem;
+}
+
+.dev-diagnostics-technical-list {
+  margin-top: 10px;
+}
+
+.dev-diagnostics-technical-list .figma-data-row strong {
+  color: color-mix(in srgb, var(--ve-color-text) 68%, var(--ve-color-muted));
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.dev-diagnostics-raw-payload .json-preview {
+  max-height: 260px;
+}
+
 .figma-fleet-grid {
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
