@@ -110,6 +110,8 @@ No integration tests are configured for this documentation-only prep update.
 
 The remaining product risks are tracked in `docs/dev/final-risk-register.md`.
 
+The accepted near-product shell criteria are tracked in `docs/dev/final-acceptance-criteria.md`.
+
 ## Validation Needs
 
 Before using the shell for a local demo:
