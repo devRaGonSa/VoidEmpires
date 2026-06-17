@@ -5,6 +5,7 @@ import type { EnqueueResearchOrderFailureResponse, ResearchApiErrorCode } from "
 import { CockpitHero } from "../components/CockpitHero";
 import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { GameModal } from "../components/GameModal";
+import { PageContextStrip } from "../components/PageContextStrip";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import type { ResearchTechnology, ResearchUiState } from "../utils/researchPresentation";
 import {
@@ -14,7 +15,6 @@ import {
   getResearchVisualState,
   groupResearchTechnologiesByCategory,
   mapResearchUiStateToViewModel,
-  selectRecommendedResearch,
   summarizeResearchCatalog,
 } from "../utils/researchPresentation";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
@@ -234,7 +234,6 @@ export function ResearchPage() {
   const playableSessionUrl = playableSession
     ? buildResearchUrl(playableSession.civilizationId, playableSession.planetId)
     : null;
-  const recommendedResearch = useMemo(() => selectRecommendedResearch(uiState?.catalog ?? []), [uiState?.catalog]);
   const catalogGroups = useMemo(() => groupResearchTechnologiesByCategory(uiState?.catalog ?? []), [uiState?.catalog]);
   const catalogSummary = useMemo(() => summarizeResearchCatalog(uiState?.catalog ?? []), [uiState?.catalog]);
   const preparedResearch = useMemo(
@@ -437,6 +436,36 @@ export function ResearchPage() {
         onClear={() => setLocalSessionCleared(true)}
       />
 
+      {uiState ? (
+        <PageContextStrip
+          eyebrow="Cabina de investigacion"
+          title={uiState.selectedPlanetName ?? "Investigacion imperial"}
+          purpose="Cola, catalogo y bloqueos visibles desde la lectura backend actual."
+          statusLabel={`${catalogSummary.availableCount} disponibles`}
+          statusTone={catalogSummary.availableCount > 0 ? "good" : "warn"}
+          contextItems={[
+            { label: "Civilizacion", value: "Contexto activo" },
+            { label: "Planeta fuente", value: uiState.selectedPlanetName ?? "Sin planeta seleccionado" },
+            { label: "Cola", value: `${uiState.queue.length} ordenes`, detail: `${dueQueueCount} vencidas` },
+            { label: "Bloqueadas", value: String(catalogSummary.blockedCount), detail: "Razones en catalogo" },
+          ]}
+          primaryAction={
+            <div className="selection-chip-row">
+              <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>
+                Planeta
+              </Link>
+              <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
+                Construccion
+              </Link>
+              {selectedPlanetId ? <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>Flotas</Link> : null}
+              <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, null, selectedPlanetId)}>
+                Galaxia
+              </Link>
+            </div>
+          }
+        />
+      ) : null}
+
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">
           <div className="figma-section-header">
@@ -459,29 +488,6 @@ export function ResearchPage() {
           </form>
           {error ? <p className="error-text">{error}</p> : null}
           {!queryCivilizationId ? <p className="figma-panel-note">Introduce un `civilizationId` valido, entra desde Galaxia o usa el inicio local disponible para reconstruir la URL con contexto.</p> : null}
-        </UiCard>
-
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Resumen</p>
-              <h3>Estado de investigacion</h3>
-            </div>
-            <UiBadge>{uiState ? `${uiState.catalog.length} tecnologias` : "Sin datos"}</UiBadge>
-          </div>
-          {uiState ? (
-            <div className="figma-data-list">
-              <div className="figma-data-row"><span>Planeta seleccionado</span><strong>{uiState.selectedPlanetName ?? "Sin planeta"}</strong></div>
-              <div className="figma-data-row"><span>Disponibles</span><strong>{catalogSummary.availableCount}</strong></div>
-              <div className="figma-data-row"><span>Bloqueadas</span><strong>{catalogSummary.blockedCount}</strong></div>
-              <div className="figma-data-row"><span>Cola</span><strong>{uiState.queue.length}</strong></div>
-              <div className="figma-data-row"><span>En espera de cierre</span><strong>{dueQueueCount}</strong></div>
-              <div className="figma-data-row"><span>Proyectos</span><strong>{catalogSummary.completedCount}</strong></div>
-              <div className="figma-data-row"><span>Recomendacion</span><strong>{recommendedResearch ? recommendedResearch.label : "No hay investigaciones disponibles ahora."}</strong></div>
-            </div>
-          ) : (
-            <p className="figma-panel-note">La cabina mostrara catalogo, cola y diagnostico cuando exista un contexto valido.</p>
-          )}
         </UiCard>
 
         <UiCard className="panel">
