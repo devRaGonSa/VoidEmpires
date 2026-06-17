@@ -3,7 +3,7 @@
 ---
 id: TASK-36G
 title: Development actions modal confirmation
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: [gameplay]

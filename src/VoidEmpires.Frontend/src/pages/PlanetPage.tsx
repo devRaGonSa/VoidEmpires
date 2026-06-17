@@ -14,6 +14,7 @@ import type {
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
+import { DevelopmentToolsPanel } from "../components/DevelopmentToolsPanel";
 import { GameModal } from "../components/GameModal";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
@@ -69,6 +70,10 @@ import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
 interface PlanetPageProps {
   variant?: "planet" | "construction";
 }
+
+type PendingDevelopmentAction =
+  | { kind: "economy"; elapsedSeconds: number; elapsedLabel: string }
+  | { kind: "queues" };
 
 function formatDateTime(value: string) {
   const parsed = Date.parse(value);
@@ -278,6 +283,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
   const [queueMaterializationFeedback, setQueueMaterializationFeedback] = useState<string | null>(null);
   const [queueMaterializationError, setQueueMaterializationError] = useState<string | null>(null);
   const [queueMaterializationAudit, setQueueMaterializationAudit] = useState<QueueMaterializationAudit | null>(null);
+  const [pendingDevelopmentAction, setPendingDevelopmentAction] = useState<PendingDevelopmentAction | null>(null);
   const [localSessionCleared, setLocalSessionCleared] = useState(false);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
@@ -574,7 +580,11 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
     setConstructionRefreshAudit(null);
   }
 
-  async function handleEconomyRefresh(elapsedSeconds: number, elapsedLabel: string) {
+  function handleEconomyRefresh(elapsedSeconds: number, elapsedLabel: string) {
+    setPendingDevelopmentAction({ kind: "economy", elapsedSeconds, elapsedLabel });
+  }
+
+  async function confirmEconomyRefresh(elapsedSeconds: number, elapsedLabel: string) {
     if (!planet || !uiState?.civilizationId) {
       return;
     }
@@ -630,7 +640,11 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
     }
   }
 
-  async function handleQueueMaterializationRefresh() {
+  function handleQueueMaterializationRefresh() {
+    setPendingDevelopmentAction({ kind: "queues" });
+  }
+
+  async function confirmQueueMaterializationRefresh() {
     if (!planet || !uiState?.civilizationId) {
       return;
     }
@@ -689,6 +703,66 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
       setIsMaterializingQueues(false);
     }
   }
+
+  async function handleDevelopmentActionConfirm() {
+    if (!pendingDevelopmentAction) {
+      return;
+    }
+
+    if (pendingDevelopmentAction.kind === "economy") {
+      await confirmEconomyRefresh(
+        pendingDevelopmentAction.elapsedSeconds,
+        pendingDevelopmentAction.elapsedLabel,
+      );
+    } else {
+      await confirmQueueMaterializationRefresh();
+    }
+
+    setPendingDevelopmentAction(null);
+  }
+
+  function handleDevelopmentActionCancel() {
+    if (isRefreshingEconomy || isMaterializingQueues) {
+      return;
+    }
+
+    setPendingDevelopmentAction(null);
+  }
+
+  const developmentToolsLastResult = queueMaterializationError
+    ? {
+      label: "Colas con observaciones",
+      summary: queueMaterializationError,
+      detail: queueMaterializationAudit?.technicalDetail,
+      tone: "warn" as const,
+    }
+    : queueMaterializationFeedback
+      ? {
+        label: "Colas confirmadas",
+        summary: queueMaterializationFeedback,
+        detail: queueMaterializationAudit?.refreshedAt,
+        tone: "good" as const,
+      }
+      : economyError
+        ? {
+          label: "Economia con observaciones",
+          summary: economyError,
+          tone: "warn" as const,
+        }
+        : economyFeedback
+          ? {
+            label: "Economia confirmada",
+            summary: economyFeedback,
+            detail: economyRefreshAudit
+              ? `${economyRefreshAudit.elapsedLabel} | ${economyRefreshAudit.refreshedAt}`
+              : undefined,
+            tone: "good" as const,
+          }
+          : null;
+  const pendingDevelopmentActionLabel = pendingDevelopmentAction?.kind === "economy"
+    ? pendingDevelopmentAction.elapsedLabel
+    : "Actualizar colas vencidas";
+  const isDevelopmentActionBusy = isRefreshingEconomy || isMaterializingQueues;
 
   return (
     <section className="page-grid">
@@ -1034,36 +1108,54 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                 </>
               )}
               </div>
-              <div className="planet-inline-summary">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Materializacion segura</p>
-                    <h4>Refrescar economia desde backend</h4>
+            </UiCard>
+          </div>
+
+          <DevelopmentToolsPanel
+            title="Materializaciones Development"
+            description="Esta cabina no simula crecimiento en el navegador. Las acciones QA mutan la base de datos Development y despues releen el planeta."
+            lastResult={developmentToolsLastResult}
+            diagnosticsLink={<a className="selection-chip" href="#planet-dev-diagnostics">Ver diagnostico tecnico</a>}
+            actions={
+              <>
+                <section className="development-tools-action-group">
+                  <UiBadge tone="warn">Development QA</UiBadge>
+                  <p className="figma-panel-note">
+                    Materializa produccion backend por tramo y refresca reservas desde la lectura autorizada.
+                  </p>
+                  <div className="selection-chip-row">
+                    {[
+                      { label: "Aplicar 15 min", seconds: 900 },
+                      { label: "Aplicar 30 min", seconds: 1800 },
+                      { label: "Aplicar 1 h", seconds: 3600 },
+                    ].map((option) => (
+                      <button
+                        key={option.seconds}
+                        type="button"
+                        className="selection-chip"
+                        disabled={isDevelopmentActionBusy || !planet.isOwnedByRequestingCivilization || !uiState?.civilizationId}
+                        onClick={() => void handleEconomyRefresh(option.seconds, option.label)}
+                      >
+                        {isRefreshingEconomy ? "Aplicando..." : option.label}
+                      </button>
+                    ))}
                   </div>
-                  <UiBadge tone="warn">Sin temporizador local</UiBadge>
-                </div>
-                <p className="figma-panel-note">
-                  Esta cabina no simula crecimiento en el navegador. Si quieres ver progresion real, aplica un tramo de produccion en backend y relee el planeta.
-                </p>
-                <div className="selection-chip-row">
-                  {[
-                    { label: "Aplicar 15 min", seconds: 900 },
-                    { label: "Aplicar 30 min", seconds: 1800 },
-                    { label: "Aplicar 1 h", seconds: 3600 },
-                  ].map((option) => (
-                    <button
-                      key={option.seconds}
-                      type="button"
-                      className="selection-chip"
-                      disabled={isRefreshingEconomy || !planet.isOwnedByRequestingCivilization || !uiState?.civilizationId}
-                      onClick={() => void handleEconomyRefresh(option.seconds, option.label)}
-                    >
-                      {isRefreshingEconomy ? "Aplicando..." : option.label}
-                    </button>
-                  ))}
-                </div>
-                {economyFeedback ? <p className="figma-panel-note">{economyFeedback}</p> : null}
-                {economyError ? <p className="error-text">{economyError}</p> : null}
+                </section>
+
+                <section className="development-tools-action-group">
+                  <p className="figma-panel-note">
+                    Materializa solo ordenes vencidas en backend para Construccion, Investigacion y Astillero, y despues relee el planeta. Las ordenes no vencidas se mantienen abiertas.
+                  </p>
+                  <button
+                    type="button"
+                    className="figma-button secondary"
+                    disabled={isDevelopmentActionBusy || !planet.isOwnedByRequestingCivilization || !uiState?.civilizationId}
+                    onClick={() => void handleQueueMaterializationRefresh()}
+                  >
+                    {isMaterializingQueues ? "Actualizando..." : "Actualizar colas vencidas"}
+                  </button>
+                </section>
+
                 {economyRefreshAudit ? (
                   <div className="figma-data-list">
                     <PlanetDataRow label="Ultima materializacion" value={`${economyRefreshAudit.elapsedLabel} | ${economyRefreshAudit.refreshedAt}`} />
@@ -1075,26 +1167,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                     />
                   </div>
                 ) : null}
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Colas vencidas</p>
-                    <h4>Actualizar desde backend</h4>
-                  </div>
-                  <UiBadge tone="warn">Development QA</UiBadge>
-                </div>
-                <p className="figma-panel-note">
-                  Materializa solo ordenes vencidas en backend para Construccion, Investigacion y Astillero, y despues relee el planeta. Las ordenes no vencidas se mantienen abiertas.
-                </p>
-                <button
-                  type="button"
-                  className="figma-button secondary"
-                  disabled={isMaterializingQueues || !planet.isOwnedByRequestingCivilization || !uiState?.civilizationId}
-                  onClick={() => void handleQueueMaterializationRefresh()}
-                >
-                  {isMaterializingQueues ? "Actualizando..." : "Actualizar colas vencidas"}
-                </button>
-                {queueMaterializationFeedback ? <p className="figma-panel-note">{queueMaterializationFeedback}</p> : null}
-                {queueMaterializationError ? <p className="error-text">{queueMaterializationError}</p> : null}
+
                 {queueMaterializationAudit ? (
                   <div className="figma-data-list">
                     <PlanetDataRow label="Lectura confirmada" value={queueMaterializationAudit.refreshedAt} />
@@ -1112,9 +1185,9 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                     />
                   </div>
                 ) : null}
-              </div>
-            </UiCard>
-          </div>
+              </>
+            }
+          />
 
           <div className="figma-two-column planet-overview-grid">
             {!isConstructionRoute ? (
@@ -1517,24 +1590,26 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           ) : null}
           </UiCard>
 
-          <DevDiagnosticsPanel
-            title={isConstructionRoute ? "Diagnostico de construccion" : "Diagnostico de planeta"}
-            summaryItems={[
-              { label: "Civilizacion", value: activeCivilizationId },
-              { label: "Planeta", value: planet.planetId },
-              { label: "Reserva persistida", value: planet.diagnostics.hasResourceStockpile ? "Si" : "No" },
-              { label: "Perfil de produccion", value: planet.diagnostics.hasProductionProfile ? "Si" : "No" },
-              { label: "Ordenes abiertas", value: planet.diagnostics.openConstructionOrderCount },
-              { label: "Cola visible", value: planet.constructionQueue.length },
-            ]}
-            notes={planet.diagnostics.notes}
-            rawPayload={{
-              diagnostics: planet.diagnostics,
-              constructionRefreshAudit,
-              economyRefreshAudit,
-              queueMaterializationAudit,
-            }}
-          />
+          <div id="planet-dev-diagnostics">
+            <DevDiagnosticsPanel
+              title={isConstructionRoute ? "Diagnostico de construccion" : "Diagnostico de planeta"}
+              summaryItems={[
+                { label: "Civilizacion", value: activeCivilizationId },
+                { label: "Planeta", value: planet.planetId },
+                { label: "Reserva persistida", value: planet.diagnostics.hasResourceStockpile ? "Si" : "No" },
+                { label: "Perfil de produccion", value: planet.diagnostics.hasProductionProfile ? "Si" : "No" },
+                { label: "Ordenes abiertas", value: planet.diagnostics.openConstructionOrderCount },
+                { label: "Cola visible", value: planet.constructionQueue.length },
+              ]}
+              notes={planet.diagnostics.notes}
+              rawPayload={{
+                diagnostics: planet.diagnostics,
+                constructionRefreshAudit,
+                economyRefreshAudit,
+                queueMaterializationAudit,
+              }}
+            />
+          </div>
 
           <details className="technical-disclosure">
             <summary>
@@ -1688,6 +1763,35 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             </div>
           </details>
         </>
+      ) : null}
+
+      {pendingDevelopmentAction && planet ? (
+        <GameModal
+          canClose={!isDevelopmentActionBusy}
+          closeLabel="Cerrar"
+          description="Esta accion es solo Development: muta la base de datos de Development y solo materializa estado backend-authoritative."
+          isBusy={isDevelopmentActionBusy}
+          isOpen
+          onClose={handleDevelopmentActionCancel}
+          primaryAction={{
+            label: "Confirmar accion Development",
+            onClick: () => void handleDevelopmentActionConfirm(),
+            disabled: !planet.isOwnedByRequestingCivilization || !uiState?.civilizationId,
+          }}
+          secondaryAction={{
+            label: "Cancelar",
+            onClick: handleDevelopmentActionCancel,
+          }}
+          title={`Confirmar ${pendingDevelopmentActionLabel}`}
+        >
+          <UiBadge tone="warn">Development-only</UiBadge>
+          <ul className="stack-list compact-list">
+            <li>Esta accion muta la base de datos de Development.</li>
+            <li>Solo materializa estado backend-authoritative y despues refresca la lectura del planeta.</li>
+            <li>No completa ordenes no vencidas salvo que el backend diga que ya estan vencidas.</li>
+            <li>No sustituye una accion normal de gameplay ni ejecuta cambios al cargar la pagina.</li>
+          </ul>
+        </GameModal>
       ) : null}
 
       {isConstructionRoute && preparedAction && preparedAction.availabilityStatus === "Available" && planet ? (
