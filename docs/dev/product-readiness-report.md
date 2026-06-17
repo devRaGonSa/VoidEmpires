@@ -114,6 +114,19 @@ The accepted near-product shell criteria are tracked in `docs/dev/final-acceptan
 
 The future-chat handoff summary is tracked in `docs/dev/final-orchestrator-summary.md`.
 
+Block 37 closure is complete when `ai/tasks/pending` contains only `.gitkeep`, every `TASK-37*` task file is in `ai/tasks/done`, the latest closure commit is pushed on `main`, and the deferred phases above remain explicitly outside the accepted scope.
+
+## Block 37 Closure
+
+Recorded on 2026-06-17 for `TASK-37BZ`:
+
+- `ai/tasks/pending` contains only `.gitkeep`.
+- All `TASK-37*` task files are now expected to be in `ai/tasks/done` after this closure task is moved.
+- The current accepted state remains a Development-only near-product shell for local demo and QA.
+- The latest full validation baseline remains the `TASK-37BO` pass: backend build succeeded with `0` warnings and `0` errors, backend tests succeeded with `720` passing tests, frontend build succeeded with `105` transformed modules, and the development QA, lazy-route, and copy-regression guards succeeded.
+- The repository cleanliness pass from `TASK-37BV` found no tracked build artifacts, screenshots, captures, archives, temp files, logs, or non-placeholder secret examples.
+- This closure does not add or accept final database/model consolidation, final generated assets, browser screenshot acceptance, production authentication, combat, final fleet movement productization, market transactions, or alliance mutations.
+
 ## Validation Needs
 
 Before using the shell for a local demo:

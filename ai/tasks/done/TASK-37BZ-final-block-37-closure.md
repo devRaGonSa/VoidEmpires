@@ -3,7 +3,7 @@
 ---
 id: TASK-37BZ
 title: Final Block 37 closure
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
@@ -90,3 +90,10 @@ At the end:
 - Prefer changes under 200 lines of code.
 - Prefer fewer than 3 commits per task.
 - If the change would exceed these limits, create a follow-up task and stop expanding scope.
+
+## Completion notes
+
+- `ai/tasks/pending` contains only `.gitkeep`.
+- Block 37 closure was recorded in `ai/current-state.md` and `docs/dev/product-readiness-report.md`.
+- Deferred phases remain explicit: final database/model consolidation, final generated assets, browser screenshot acceptance, production authentication, combat, final fleet movement productization, market transactions, and alliance mutations.
+- Validation: `git diff --stat`, `git diff --name-only`, and `git status` were run before moving the task to done.
