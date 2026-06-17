@@ -387,6 +387,7 @@ Current validated baseline after Block 36A-36O:
 - Block 37BR final DB phase prep note: `docs/dev/product-readiness-report.md` now records the final DB/model phase entry criteria, ownership decisions, seed/migration sequence, and validation gates while keeping the current shell Development-only and without adding migrations or schema changes.
 - Block 37BS final assets phase prep note: `docs/dev/product-placeholder-asset-contract.md` now records the placeholder-to-final asset replacement criteria, asset-set sequence, manifest validation gates, lazy-loading constraints, and screenshot QA dependency without adding generated asset files.
 - Block 37BT final corrections phase prep note: `docs/dev/deferred-visual-qa-master-checklist.md` now records the post-DB/post-asset correction entry criteria, screenshot review loop, finding classes, validation gates, and acceptance boundaries without performing browser or screenshot QA.
+- Block 37BU README/demo update note: `README.md` now points readers to the canonical near-product local demo guide and summarizes the Development-only caveats, explicit-id route context, guarded mutation boundary, read-only route boundaries, and deferred product dependencies.
 - Block 37BJ documentation update: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1` succeeded; no browser, screenshot, frontend build, backend build, or backend test pass was performed for this docs-only update.
 
 Previous validated baseline after Block 33A-33O:

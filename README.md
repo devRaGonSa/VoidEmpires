@@ -11,6 +11,26 @@ The repository defines the project direction, keeps the AI-assisted task workflo
 - `VoidEmpires.sln` contains the initial Web, Application, Domain, Infrastructure, and Tests projects
 - `VoidEmpires.Web` exposes `/`, `/health`, `/api/auth/register`, `/api/auth/confirm-email`, and a controlled development galaxy generation endpoint
 - `VoidEmpires.Infrastructure` contains EF Core/Npgsql persistence, ASP.NET Core Identity, Identity and galaxy migrations, Brevo transactional email wiring, deterministic galaxy generation, and a persisted galaxy generation service
+- The current cockpit suite is a coherent Development-only product shell for local demo and QA; it is not production-ready.
+
+## Near-Product Local Demo
+
+Use `docs/dev/single-product-demo-guide.md` as the canonical local demo path. It covers backend startup, frontend startup, Development playable-session creation, Planet/Construction/Research/Shipyard guarded enqueue flows, deliberate due-queue materialization, diagnostics, and expected visible route states.
+
+Current demo boundary:
+
+- Run against a local or disposable Development database only.
+- Use Development endpoints and seed/profile helpers explicitly; they do not run automatically on startup.
+- `/onboarding` creates a local playable start with explicit ids. It is not production login, and cockpit routes still use visible `civilizationId` and `planetId` context.
+- Construction, Research, and Shipyard enqueue real Development database rows only after explicit confirmation and backend refresh.
+- Galaxy, Defenses, Ground Army, Market, Espionage, Alliance, and Ranking remain read-only or readiness/advisory surfaces unless a narrower accepted mutation path is documented.
+- Final database/model consolidation, final generated assets, browser screenshot acceptance, production auth hardening, combat, final fleet movement, market transactions, and alliance mutations remain deferred.
+
+Quick guide command:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-playable-loop-guide.ps1
+```
 
 ## Development
 
