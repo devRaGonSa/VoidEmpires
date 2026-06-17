@@ -13,6 +13,7 @@ import { CockpitHero } from "../components/CockpitHero";
 import { FleetSelectedGroupPanel } from "../components/FleetSelectedGroupPanel";
 import { FleetSummaryPanel } from "../components/FleetSummaryPanel";
 import { ActionManifestPanel } from "../components/ActionManifestPanel";
+import { PageContextStrip } from "../components/PageContextStrip";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -278,6 +279,15 @@ export function FleetsPage() {
     () => focusedPlanetGroups.filter((group) => group.activeTransfer),
     [focusedPlanetGroups],
   );
+  const fleetContextStatus = summary
+    ? summary.groups > 0
+      ? summary.transfers > 0
+        ? "Traslados visibles"
+        : "Escuadras estacionadas"
+      : "Sin escuadras visibles"
+    : queryCivilizationId
+      ? "Pendiente de lectura"
+      : "Sin civilizacion cargada";
 
   const destinationOptions = useMemo(() => {
     const candidates = new Set<string>(knownDevelopmentPlanetIds);
@@ -920,6 +930,58 @@ export function FleetsPage() {
         onClear={() => setLocalSessionCleared(true)}
       />
 
+      {uiState && summary ? (
+        <PageContextStrip
+          eyebrow="Cabina orbital"
+          title={focusedPlanetId ? formatPlanetPrimaryLabel(focusedPlanetId) : "Civilizacion cargada"}
+          purpose="Grupos orbitales visibles, reservas compartidas y handoff seguro hacia Astillero sin inventar stock ni combate."
+          statusLabel={fleetContextStatus}
+          statusTone={summary.groups > 0 ? "good" : "neutral"}
+          contextItems={[
+            { label: "Civilizacion", value: formatCompactGuid(uiState.civilizationId) },
+            {
+              label: "Planeta en foco",
+              value: focusedPlanetId ? formatFleetDestinationOptionLabel(focusedPlanetId) : "Sin planeta en foco",
+            },
+            {
+              label: "Escuadras",
+              value: String(summary.groups),
+              detail: `${summary.stationedGroups} estacionadas`,
+            },
+            {
+              label: "Traslados",
+              value: String(summary.transfers),
+              detail: dueTransferGroups.length > 0 ? `${dueTransferGroups.length} vencidos` : "Sin llegadas vencidas",
+            },
+            {
+              label: "Stock orbital local",
+              value: "No expuesto en Flotas",
+              detail: "Astillero conserva cola y stock",
+            },
+          ]}
+          resourceItems={(focusedPlanetResourceContext?.balances ?? []).slice(0, 4).map((balance) => ({
+            label: formatResourceType(balance.resourceType),
+            value: String(balance.quantity),
+          }))}
+          primaryAction={
+            <div className="selection-chip-row">
+              <Link className="selection-chip selection-chip-active" to={buildFleetsUrl(uiState.civilizationId, focusedPlanetId || queryPlanetId)}>
+                Flotas
+              </Link>
+              <Link className="selection-chip" to={buildShipyardUrl(uiState.civilizationId, focusedPlanetId || queryPlanetId)}>
+                {cockpitNavigationLabels.openShipyard}
+              </Link>
+              <Link className="selection-chip" to={buildPlanetUrl(uiState.civilizationId, focusedPlanetId || queryPlanetId)}>
+                {cockpitNavigationLabels.returnToPlanet}
+              </Link>
+              <Link className="selection-chip" to={buildGalaxyUrl(uiState.civilizationId, undefined, focusedPlanetId || queryPlanetId)}>
+                {cockpitNavigationLabels.returnToGalaxy}
+              </Link>
+            </div>
+          }
+        />
+      ) : null}
+
       <div className="fleet-preflight-strip">
         <UiCard className="panel fleet-dev-loader-panel">
           <div className="figma-section-header">
@@ -962,7 +1024,7 @@ export function FleetsPage() {
             <li>La estimacion sigue en solo lectura y nunca reserva escuadras ni gasta recursos.</li>
             <li>Crear traslado exige una estimacion vigente y una confirmacion explicita.</li>
             <li>Anular traslado exige un traslado activo visible y una confirmacion explicita.</li>
-            <li>Cerrar llegadas, dividir y fusionar siguen visibles solo como referencia bloqueada.</li>
+            <li>Cerrar llegadas exige una ruta vencida visible; dividir y fusionar siguen como conceptos bloqueados.</li>
           </ul>
         </UiCard>
       </div>
@@ -1174,6 +1236,49 @@ export function FleetsPage() {
                 <Link className="selection-chip" to={buildPlanetUrl(uiState.civilizationId, focusedPlanetId || queryPlanetId)}>
                   {cockpitNavigationLabels.returnToPlanet}
                 </Link>
+              </div>
+            </UiCard>
+
+            <UiCard className="panel">
+              <div className="figma-section-header">
+                <div>
+                  <p className="eyebrow">Conceptos de mando</p>
+                  <h3>Fronteras orbitales futuras</h3>
+                  <p>La cabina muestra que piezas existen hoy y que decisiones siguen pendientes antes de convertir stock o ejecutar combate.</p>
+                </div>
+                <UiBadge tone="warn">Sin nueva mutacion</UiBadge>
+              </div>
+              <div className="readiness-grid">
+                <section className="subpanel figma-subpanel">
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Stock a grupo</p>
+                      <h4>Asignacion pendiente</h4>
+                    </div>
+                    <UiBadge tone="warn">Fuera del flujo</UiBadge>
+                  </div>
+                  <p className="figma-panel-note">El stock orbital local pertenece a Astillero. Flotas no crea escuadras desde stock en esta vista.</p>
+                </section>
+                <section className="subpanel figma-subpanel">
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Agrupacion</p>
+                      <h4>Dividir y fusionar</h4>
+                    </div>
+                    <UiBadge tone="neutral">Concepto bloqueado</UiBadge>
+                  </div>
+                  <p className="figma-panel-note">Las capacidades pueden aparecer en el manifiesto tecnico, pero no se elevan a accion jugable aqui.</p>
+                </section>
+                <section className="subpanel figma-subpanel">
+                  <div className="figma-section-header">
+                    <div>
+                      <p className="eyebrow">Conflicto</p>
+                      <h4>Intercepcion y combate</h4>
+                    </div>
+                    <UiBadge tone="neutral">Lectura solamente</UiBadge>
+                  </div>
+                  <p className="figma-panel-note">Las senales de intercepcion son contexto operativo; no abren combate, persecucion ni orden hostil.</p>
+                </section>
               </div>
             </UiCard>
 
