@@ -5,6 +5,7 @@ import type { ShipyardApiErrorCode } from "../api/shipyardTypes";
 import { CockpitHero } from "../components/CockpitHero";
 import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { GameModal } from "../components/GameModal";
+import { PageContextStrip } from "../components/PageContextStrip";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -610,6 +611,45 @@ export function ShipyardPage() {
         onClear={() => setLocalSessionCleared(true)}
       />
 
+      {shipyard ? (
+        <PageContextStrip
+          eyebrow="Cabina de astillero"
+          title={shipyard.planetName}
+          purpose="Produccion orbital, cola y stock local desde la lectura backend actual."
+          statusLabel={shipyard.actionAvailability.enqueue.reasonLabel}
+          statusTone={readinessTone}
+          contextItems={[
+            { label: "Sistema", value: shipyard.solarSystemName },
+            { label: "Control", value: shipyard.isOwnedByRequestingCivilization ? "Propio" : shipyard.ownerCivilizationName ?? "Sin control local" },
+            { label: "Cola", value: shipyard.queue.length > 0 ? formatCountLabel(shipyard.queue.length, "orden", "ordenes") : "Sin cola", detail: `${dueQueueCount} vencidas` },
+            { label: "Stock orbital", value: stockDigest },
+          ]}
+          resourceItems={shipyard.stockpile.slice(0, 4).map((resource) => ({
+            label: formatResourceLabel(resource.resourceType),
+            value: String(resource.quantity),
+          }))}
+          primaryAction={
+            <div className="selection-chip-row">
+              <Link className="selection-chip selection-chip-active" to={buildFleetsUrl(activeCivilizationId, shipyard.planetId)}>
+                Flotas
+              </Link>
+              <Link className="selection-chip" to={buildPlanetUrl(activeCivilizationId, shipyard.planetId)}>
+                Planeta
+              </Link>
+              <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, shipyard.planetId)}>
+                Construccion
+              </Link>
+              <Link className="selection-chip" to={buildResearchUrl(activeCivilizationId, shipyard.planetId)}>
+                Investigacion
+              </Link>
+              <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, null, shipyard.planetId)}>
+                Galaxia
+              </Link>
+            </div>
+          }
+        />
+      ) : null}
+
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">
           <div className="figma-section-header">
@@ -654,26 +694,6 @@ export function ShipyardPage() {
           {!queryCivilizationId && !isLoading ? (
             <p className="figma-panel-note">Introduce un `civilizationId` valido, entra desde Galaxia o usa el inicio local disponible para abrir Astillero con contexto.</p>
           ) : null}
-        </UiCard>
-
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Resumen de planeta</p>
-              <h3>Contexto cargado</h3>
-            </div>
-            <UiBadge>{selectedPlanetId ? formatPlanetSecondaryLabel(selectedPlanetId) ?? formatPlanetPrimaryLabel(selectedPlanetId) : "Sin planeta"}</UiBadge>
-          </div>
-          {shipyard ? (
-            <div className="figma-data-list">
-              <div className="figma-data-row"><span>Planeta</span><strong>{shipyard.planetName}</strong></div>
-              <div className="figma-data-row"><span>Sistema</span><strong>{shipyard.solarSystemName}</strong></div>
-              <div className="figma-data-row"><span>Control</span><strong>{shipyard.isOwnedByRequestingCivilization ? "Propio" : "Sin control local"}</strong></div>
-              <div className="figma-data-row"><span>Accion principal</span><strong>{getShipyardPrimaryAction(recommendedAsset)}</strong></div>
-            </div>
-          ) : (
-            <p className="figma-panel-note">La cabina mostrara el planeta seleccionado cuando el servicio del astillero devuelva un contexto valido; no se inventa stock ni cola sin backend.</p>
-          )}
         </UiCard>
 
         <UiCard className="panel">
@@ -811,57 +831,6 @@ export function ShipyardPage() {
                 <div className="figma-data-list">
                   <div className="figma-data-row"><span>Enqueue</span><strong>{shipyard.actionAvailability.enqueue.reasonLabel}</strong></div>
                   <div className="figma-data-row"><span>Completar vencidas</span><strong>{shipyard.actionAvailability.completeDue.reasonLabel}</strong></div>
-                </div>
-              </section>
-            </div>
-          </UiCard>
-
-          <UiCard className="panel">
-            <div className="figma-section-header">
-              <div>
-                <p className="eyebrow">Estado de shell</p>
-                <h3>Cockpit listo para ampliar</h3>
-              </div>
-              <div className="figma-badge-row">
-                <UiBadge tone={recommendedAsset?.statusKey === "Available" ? "good" : "neutral"}>
-                  {recommendedAsset?.statusLabel ?? "Sin recomendacion"}
-                </UiBadge>
-                <UiBadge tone={shipyard.actionAvailability.completeDue.supported ? "warn" : "neutral"}>
-                  {shipyard.actionAvailability.completeDue.label}
-                </UiBadge>
-              </div>
-            </div>
-            <div className="readiness-grid">
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Capacidad local</p>
-                    <h4>Infraestructura visible</h4>
-                  </div>
-                  <UiBadge>{shipyard.catalog.length} activos</UiBadge>
-                </div>
-                <div className="figma-data-list">
-                  <div className="figma-data-row"><span>Astillero</span><strong>Nivel {shipyard.buildingReadiness.shipyardLevel}</strong></div>
-                  <div className="figma-data-row"><span>Mando de flota</span><strong>Nivel {shipyard.buildingReadiness.fleetCommandCenterLevel}</strong></div>
-                  <div className="figma-data-row"><span>Centro logistico</span><strong>Nivel {shipyard.buildingReadiness.logisticsHubLevel}</strong></div>
-                  <div className="figma-data-row"><span>Tripulacion</span><strong>{shipyard.buildingReadiness.hasPopulationProfile ? "Perfil disponible" : "Sin perfil"}</strong></div>
-                </div>
-              </section>
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Reservas y cola</p>
-                    <h4>Lectura actual</h4>
-                  </div>
-                  <UiBadge tone={shipyard.queue.length > 0 ? "warn" : "neutral"}>
-                    {shipyard.queue.length > 0 ? `${shipyard.queue.length} ordenes` : "Sin cola"}
-                  </UiBadge>
-                </div>
-                <div className="figma-data-list">
-                  <div className="figma-data-row"><span>Reservas visibles</span><strong>{shipyard.stockpile.length}</strong></div>
-                  <div className="figma-data-row"><span>Stock orbital</span><strong>{shipyard.orbitalStock.length}</strong></div>
-                  <div className="figma-data-row"><span>Ordenes vencidas</span><strong>{shipyard.actionAvailability.completeDue.supported ? "Si" : "No"}</strong></div>
-                  <div className="figma-data-row"><span>Enqueue</span><strong>{shipyard.actionAvailability.enqueue.reasonLabel}</strong></div>
                 </div>
               </section>
             </div>
