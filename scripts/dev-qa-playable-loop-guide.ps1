@@ -15,10 +15,32 @@ try {
 catch {
     Write-Verbose "Console UTF-8 encoding setup was not available in this host."
 }
+. (Join-Path $PSScriptRoot "dev-qa-common.ps1")
 
-$backendCommand = "dotnet run --project .\src\VoidEmpires.Web"
+$backendCommand = Format-DevQaBackendRunCommand
 $frontendCommand = "npm run dev --prefix src\VoidEmpires.Frontend"
-$prepareCommand = "powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-prepare-playable-session-state.ps1 -BaseUrl `"$($BaseUrl.TrimEnd("/"))`" -ElapsedSeconds 3600 -PrintQueueMaterializationCommand"
+$prepareCommand = Format-DevQaPowerShellCommand `
+    -ScriptName "dev-qa-prepare-playable-session-state.ps1" `
+    -Parameters ([ordered]@{
+        BaseUrl = $BaseUrl.TrimEnd("/")
+        ElapsedSeconds = 3600
+        PrintQueueMaterializationCommand = $true
+    })
+$materializeCommand = Format-DevQaPowerShellCommand `
+    -ScriptName "dev-qa-materialize-due-queues.ps1" `
+    -Parameters ([ordered]@{
+        BaseUrl = $BaseUrl.TrimEnd("/")
+        CivilizationId = "<CivilizationId>"
+        PlanetId = "<PlanetId>"
+        ElapsedSeconds = 3600
+    })
+$diagnosticsCommand = Format-DevQaPowerShellCommand `
+    -ScriptName "dev-qa-get-playable-session-diagnostics.ps1" `
+    -Parameters ([ordered]@{
+        BaseUrl = $BaseUrl.TrimEnd("/")
+        CivilizationId = "<CivilizationId>"
+        PlanetId = "<PlanetId>"
+    })
 
 Write-Host "Target"
 Write-Host "BaseUrl: $BaseUrl"
@@ -48,11 +70,11 @@ Write-Host "5. Encola acciones solo desde las cabinas protegidas y con confirmac
 Write-Host "   No uses esta guia como auto-enqueue: Planeta/Construccion, Investigacion y Astillero siguen siendo los unicos puntos de mutacion del loop."
 Write-Host ""
 Write-Host "6. Materializa colas vencidas solo cuando ya existan ordenes vencidas:"
-Write-Host "   powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-materialize-due-queues.ps1 -BaseUrl `"$($BaseUrl.TrimEnd("/"))`" -CivilizationId <CivilizationId> -PlanetId <PlanetId> -ElapsedSeconds 3600"
+Write-Host "   $materializeCommand"
 Write-Host "   Nota: este paso muta la base Development. No se ejecuta automaticamente desde esta guia."
 Write-Host ""
 Write-Host "7. Lee diagnosticos despues de cada tramo relevante:"
-Write-Host "   powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-get-playable-session-diagnostics.ps1 -BaseUrl `"$($BaseUrl.TrimEnd("/"))`" -CivilizationId <CivilizationId> -PlanetId <PlanetId>"
+Write-Host "   $diagnosticsCommand"
 Write-Host ""
 Write-Host "Opciones de esta guia:"
 Write-Host " -RunDiagnostics ejecuta solo la lectura de diagnosticos y requiere -CivilizationId y -PlanetId."

@@ -1,4 +1,127 @@
 Set-StrictMode -Version Latest
+try {
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    $OutputEncoding = [System.Text.Encoding]::UTF8
+}
+catch {
+    Write-Verbose "Console UTF-8 encoding setup was not available in this host."
+}
+
+function ConvertTo-DevQaResourceDisplayName {
+    param([object]$ResourceName)
+
+    if ($null -eq $ResourceName) {
+        return "Recurso"
+    }
+
+    switch ("$ResourceName".ToLowerInvariant()) {
+        "credits" { return "Creditos" }
+        "metal" { return "Metal" }
+        "crystal" { return "Cristal" }
+        "gas" { return "Gas" }
+        "energy" { return "Energia" }
+        "deuterium" { return "Deuterio" }
+        "population" { return "Poblacion" }
+        default { return "$ResourceName" }
+    }
+}
+
+function ConvertTo-DevQaAssetDisplayName {
+    param([object]$AssetName)
+
+    if ($null -eq $AssetName) {
+        return "Activo"
+    }
+
+    switch ("$AssetName".ToLowerInvariant()) {
+        "scoutcraft" { return "Nave exploradora" }
+        "escortcraft" { return "Nave escolta" }
+        "interceptorcraft" { return "Interceptor" }
+        "corvette" { return "Corbeta" }
+        "frigate" { return "Fragata" }
+        "defenseplatform" { return "Plataforma defensiva" }
+        default { return "$AssetName" }
+    }
+}
+
+function Format-DevQaBackendRunCommand {
+    return "dotnet run --project .\src\VoidEmpires.Web"
+}
+
+function Format-DevQaBackendUnavailableMessage {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$BaseUrl,
+        [string]$Method,
+        [string]$Path,
+        [string]$Detail
+    )
+
+    $endpoint = if ([string]::IsNullOrWhiteSpace($Path)) { $BaseUrl } else { "$Method $Path" }
+    $message = "Backend no disponible en '$BaseUrl' o error de red. Arranca el backend Development con: $(Format-DevQaBackendRunCommand). Endpoint: $endpoint."
+    if (-not [string]::IsNullOrWhiteSpace($Detail)) {
+        $message = "$message Detalle: $Detail"
+    }
+
+    return $message
+}
+
+function Format-DevQaPowerShellArgumentValue {
+    param([object]$Value)
+
+    if ($null -eq $Value) {
+        return '""'
+    }
+
+    if ($Value -is [bool]) {
+        if ($Value) {
+            return '$true'
+        }
+
+        return '$false'
+    }
+
+    $escaped = "$Value".Replace('`', '``').Replace('"', '`"')
+    return "`"$escaped`""
+}
+
+function Format-DevQaPowerShellCommand {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ScriptName,
+        [System.Collections.IDictionary]$Parameters
+    )
+
+    $parts = New-Object System.Collections.Generic.List[string]
+    $parts.Add("powershell")
+    $parts.Add("-NoProfile")
+    $parts.Add("-ExecutionPolicy")
+    $parts.Add("Bypass")
+    $parts.Add("-File")
+    $parts.Add(".\scripts\$ScriptName")
+
+    if ($null -ne $Parameters) {
+        foreach ($key in $Parameters.Keys) {
+            $value = $Parameters[$key]
+            if ($null -eq $value) {
+                continue
+            }
+
+            if ($value -is [bool]) {
+                if ($value) {
+                    $parts.Add("-$key")
+                }
+
+                continue
+            }
+
+            $parts.Add("-$key")
+            $parts.Add((Format-DevQaPowerShellArgumentValue $value))
+        }
+    }
+
+    return ($parts -join " ")
+}
 
 function Get-DevQaPropertyValue {
     param(
@@ -136,7 +259,7 @@ function Format-DevQaResourceSummary {
         }
     }
 
-    $summary = ($map.Keys | Sort-Object | ForEach-Object { "{0}={1}" -f $_, $map[$_] }) -join ", "
+    $summary = ($map.Keys | Sort-Object | ForEach-Object { "{0}={1}" -f (ConvertTo-DevQaResourceDisplayName $_), $map[$_] }) -join ", "
     return [pscustomobject]@{
         Summary = $summary
         Warnings = @($resourceState.Warnings)
@@ -253,7 +376,7 @@ function Format-DevQaFleetTransferSummary {
         }
 
         [pscustomobject]@{
-            AssetType = Get-DevQaPropertyValue -InputObject $group -PropertyNames @("assetType", "AssetType")
+            AssetType = ConvertTo-DevQaAssetDisplayName (Get-DevQaPropertyValue -InputObject $group -PropertyNames @("assetType", "AssetType"))
             Quantity = Get-DevQaPropertyValue -InputObject $group -PropertyNames @("quantity", "Quantity")
             DestinationPlanetId = Get-DevQaPropertyValue -InputObject $activeTransfer -PropertyNames @("destinationPlanetId", "DestinationPlanetId")
             Status = Get-DevQaPropertyValue -InputObject $activeTransfer -PropertyNames @("status", "Status")
@@ -371,7 +494,7 @@ function Format-DevQaStockSummary {
     }
 
     $summaryItems = foreach ($item in $items) {
-        $assetType = Get-DevQaPropertyValue -InputObject $item -PropertyNames @("assetType", "AssetType", "label", "Label")
+        $assetType = ConvertTo-DevQaAssetDisplayName (Get-DevQaPropertyValue -InputObject $item -PropertyNames @("assetType", "AssetType", "label", "Label"))
         $quantity = Get-DevQaPropertyValue -InputObject $item -PropertyNames @("quantity", "Quantity", "amount", "Amount")
         if ($null -ne $assetType -and $null -ne $quantity) {
             "{0}={1}" -f $assetType, $quantity

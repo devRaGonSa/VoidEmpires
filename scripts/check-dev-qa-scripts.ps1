@@ -101,14 +101,14 @@ function Assert-ResourceSummaryContains {
 Assert-ResourceSummaryContains -InputObject @(
     [pscustomobject]@{ resourceType = "Credits"; amount = 1250 },
     [pscustomobject]@{ resourceType = "Metal"; amount = 40 }
-) -ExpectedFragments @("Credits=1250", "Metal=40")
+) -ExpectedFragments @("Creditos=1250", "Metal=40")
 
 Assert-ResourceSummaryContains -InputObject ([pscustomobject]@{
     credits = 1000
     metal = 80
     crystal = 60
     gas = 20
-}) -ExpectedFragments @("credits=1000", "metal=80", "crystal=60", "gas=20")
+}) -ExpectedFragments @("Creditos=1000", "Metal=80", "Cristal=60", "Gas=20")
 
 $unknownShape = Format-DevQaResourceSummary ([pscustomobject]@{ unexpected = 1 })
 if ($unknownShape.Summary -notlike "warning:*") {
@@ -157,7 +157,7 @@ $stockSummary = Format-DevQaStockSummary @(
     [pscustomobject]@{ assetType = "ScoutCraft"; quantity = 1 },
     [pscustomobject]@{ assetType = "EscortCraft"; quantity = 4 }
 )
-if ($stockSummary.Count -ne 2 -or $stockSummary.TotalQuantity -ne 5 -or $stockSummary.Summary -notlike "*ScoutCraft=1*" -or $stockSummary.Summary -notlike "*EscortCraft=4*") {
+if ($stockSummary.Count -ne 2 -or $stockSummary.TotalQuantity -ne 5 -or $stockSummary.Summary -notlike "*Nave exploradora=1*" -or $stockSummary.Summary -notlike "*Nave escolta=4*") {
     throw "Expected stock summary helper to summarize shipyard stock rows."
 }
 
@@ -172,7 +172,7 @@ $transferSummary = Format-DevQaFleetTransferSummary @(
         }
     }
 )
-if (@($transferSummary).Count -ne 1 -or $transferSummary[0].AssetType -ne "ScoutCraft" -or $transferSummary[0].Status -ne "Planned") {
+if (@($transferSummary).Count -ne 1 -or $transferSummary[0].AssetType -ne "Nave exploradora" -or $transferSummary[0].Status -ne "Planned") {
     throw "Expected fleet transfer summary helper to summarize active transfer rows."
 }
 
@@ -221,5 +221,26 @@ if (-not (Test-DevQaResponseHasKnownError -ResponseObject $null -FallbackText $s
     throw "Expected known shipyard 409 detection helper to match the current backend JSON body text."
 }
 
+$offlineMessage = Format-DevQaBackendUnavailableMessage `
+    -BaseUrl "http://localhost:5142" `
+    -Method "GET" `
+    -Path "/api/dev/seeds/profiles" `
+    -Detail "connection refused"
+if ($offlineMessage -notlike "*dotnet run --project .\src\VoidEmpires.Web*" -or $offlineMessage -notlike "*GET /api/dev/seeds/profiles*" -or $offlineMessage -notlike "*connection refused*") {
+    throw "Expected backend-offline helper to print the start command, endpoint, and detail."
+}
+
+$copySafeCommand = Format-DevQaPowerShellCommand `
+    -ScriptName "dev-qa-materialize-due-queues.ps1" `
+    -Parameters ([ordered]@{
+        BaseUrl = "http://localhost:5142"
+        CivilizationId = "00000000-0000-0000-0000-000000000001"
+        PlanetId = "40000000-0000-0000-0000-000000000001"
+        ElapsedSeconds = 3600
+    })
+if ($copySafeCommand -notlike 'powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-materialize-due-queues.ps1*' -or $copySafeCommand -notlike '*-BaseUrl "http://localhost:5142"*' -or $copySafeCommand -notlike '*-ElapsedSeconds "3600"*') {
+    throw "Expected command formatter to produce a copy-safe PowerShell command."
+}
+
 Write-Host "Persisted QA PowerShell scripts parsed successfully."
-Write-Host "Resource-format and payload helper checks passed."
+Write-Host "Resource-format, command, offline-error, and payload helper checks passed."

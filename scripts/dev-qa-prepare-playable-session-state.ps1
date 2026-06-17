@@ -185,10 +185,14 @@ Write-Host "Current planet snapshot:"
     Owner = $planet.ownerCivilizationName
     Resources = (Format-DevQaResourceSummary $planet.stockpile).Summary
     ProductionPerHour = if ($null -ne $planet.productionSummary) {
-        "Credits={0}, Metal={1}, Crystal={2}, Gas={3}, Multiplier=x{4}" -f `
+        "{0}={1}, {2}={3}, {4}={5}, {6}={7}, Multiplicador=x{8}" -f `
+            (ConvertTo-DevQaResourceDisplayName "Credits"), `
             $planet.productionSummary.creditsPerHour, `
+            (ConvertTo-DevQaResourceDisplayName "Metal"), `
             $planet.productionSummary.metalPerHour, `
+            (ConvertTo-DevQaResourceDisplayName "Crystal"), `
             $planet.productionSummary.crystalPerHour, `
+            (ConvertTo-DevQaResourceDisplayName "Gas"), `
             $planet.productionSummary.gasPerHour, `
             $planet.productionSummary.researchMultiplier
     } else {
@@ -210,8 +214,14 @@ if ($economyApplied) {
 }
 
 if ($PrintQueueMaterializationCommand) {
-    $materializationBaseUrl = $BaseUrl.TrimEnd("/")
-    $materializationCommand = "powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-materialize-due-queues.ps1 -BaseUrl `"$materializationBaseUrl`" -CivilizationId $civilizationId -PlanetId $planetId -ElapsedSeconds 3600"
+    $materializationCommand = Format-DevQaPowerShellCommand `
+        -ScriptName "dev-qa-materialize-due-queues.ps1" `
+        -Parameters ([ordered]@{
+            BaseUrl = $BaseUrl.TrimEnd("/")
+            CivilizationId = $civilizationId
+            PlanetId = $planetId
+            ElapsedSeconds = 3600
+        })
 
     Write-Host ""
     Write-Host "Next suggested command for later manual QA:"

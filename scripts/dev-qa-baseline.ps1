@@ -16,7 +16,7 @@ function Invoke-DevGet {
         Invoke-RestMethod -Method Get -Uri ($BaseUrl.TrimEnd("/") + $Path)
     }
     catch {
-        throw "GET $Path failed. Ensure the Development backend is running at $BaseUrl. $($_.Exception.Message)"
+        throw (Format-DevQaBackendUnavailableMessage -BaseUrl $BaseUrl -Method "GET" -Path $Path -Detail $_.Exception.Message)
     }
 }
 
@@ -34,7 +34,7 @@ function Invoke-DevPost {
             -Body ($Body | ConvertTo-Json -Depth 6 -Compress)
     }
     catch {
-        throw "POST $Path failed. Ensure the Development backend is running at $BaseUrl. $($_.Exception.Message)"
+        throw (Format-DevQaBackendUnavailableMessage -BaseUrl $BaseUrl -Method "POST" -Path $Path -Detail $_.Exception.Message)
     }
 }
 
