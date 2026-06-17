@@ -209,6 +209,7 @@ Do not commit real Brevo API keys, SMTP credentials, verified sender addresses, 
 - `ai/architecture-index.md`: intended module boundaries for the future solution
 - `ai/reports/solution-bootstrap-plan.md`: actionable plan for the first implementation task
 - `src/VoidEmpires.Frontend/README.md`: frontend prototype setup, routes, and limitations
+- `docs/dev/single-product-demo-guide.md`: canonical local product-shell demo path
 - `docs/dev/frontend-foundation-smoke-checklist.md`: frontend smoke validation steps
 - `docs/dev/development-tools-action-inventory.md`: current Development-only UI action inventory and confirmation boundary
 - `docs/dev/fleet-controlled-mutation-checklist.md`: focused non-visual regression steps for the Fleet estimate, create-transfer, and cancel-transfer flows
