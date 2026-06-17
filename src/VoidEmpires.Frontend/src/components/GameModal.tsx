@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type ReactNode, useId } from "react";
+import { type KeyboardEvent, type ReactNode, useEffect, useId, useRef } from "react";
 import { ActionStateBadge, type ActionState } from "./ActionStateBadge";
 import { UiBadge } from "./ui/UiBadge";
 
@@ -39,6 +39,7 @@ export function GameModal({
 }: GameModalProps) {
   const titleId = useId();
   const descriptionId = useId();
+  const dialogRef = useRef<HTMLElement | null>(null);
   const closeAllowed = canClose && !isBusy;
   const primaryActionState: ActionState = isBusy ? "loading" : primaryAction.disabled ? "blocked" : "pending";
   const scopeBadge =
@@ -47,6 +48,12 @@ export function GameModal({
     ) : actionScope === "gameplay" ? (
       <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
     ) : null;
+
+  useEffect(() => {
+    if (isOpen) {
+      dialogRef.current?.focus();
+    }
+  }, [isOpen]);
 
   if (!isOpen) {
     return null;
@@ -79,6 +86,7 @@ export function GameModal({
         className="game-modal"
         onClick={(event) => event.stopPropagation()}
         onKeyDown={handleKeyDown}
+        ref={dialogRef}
         role="dialog"
         tabIndex={-1}
       >
@@ -125,6 +133,7 @@ export function GameModal({
           ) : null}
           <button
             disabled={primaryAction.disabled || isBusy}
+            aria-busy={isBusy ? "true" : undefined}
             onClick={primaryAction.onClick}
             type="button"
           >

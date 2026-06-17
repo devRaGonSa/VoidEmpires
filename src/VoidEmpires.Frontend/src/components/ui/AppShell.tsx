@@ -28,6 +28,9 @@ export function AppShell({
 
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main-content">
+        Saltar al contenido principal
+      </a>
       <header className="app-topbar">
         <div className="app-topbar-brand">
           <span className="app-topbar-brand-mark">VE</span>
@@ -40,7 +43,7 @@ export function AppShell({
       </header>
 
       <div className="app-shell-frame">
-        <aside className="app-sidebar">
+        <aside className="app-sidebar" aria-label="Navegacion de cabinas">
           <div className="app-sidebar-head">
             <p className="eyebrow">Superficie imperial</p>
             <h2>Mapa de mando</h2>
@@ -89,7 +92,7 @@ export function AppShell({
             />
           </section>
 
-          <main className="page-frame">{children}</main>
+          <main className="page-frame" id="main-content" tabIndex={-1}>{children}</main>
         </div>
       </div>
     </div>

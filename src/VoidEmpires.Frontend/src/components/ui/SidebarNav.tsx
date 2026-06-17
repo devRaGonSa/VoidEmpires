@@ -31,7 +31,7 @@ export function SidebarNav({ items }: SidebarNavProps) {
   const location = useLocation();
 
   return (
-    <nav className="sidebar-nav" aria-label="Primary">
+    <nav className="sidebar-nav" aria-label="Navegacion principal">
       {items.map((item) => {
         const stateNote = getSidebarStateNote(item.state);
         const stateClass = `sidebar-nav-item-${item.state ?? "readiness"}`;
