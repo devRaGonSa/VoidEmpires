@@ -2,14 +2,13 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchRankingUiState } from "../api/rankingApi";
 import { CockpitHero } from "../components/CockpitHero";
+import { PageContextStrip } from "../components/PageContextStrip";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import {
   buildRankingCategoryCards,
   buildRankingComparisonCards,
-  buildRankingFutureCapabilityCards,
-  buildRankingFutureLeaderboardCards,
   formatRankingRequestFailure,
   getRankingPrimaryAction,
   getRankingStaticLabels,
@@ -26,6 +25,7 @@ import {
   buildGalaxyUrl,
   buildMarketUrl,
 } from "../utils/routeUrls";
+import { formatCompactGuid } from "../utils/domainPresentation";
 
 const rankingLabels = getRankingStaticLabels();
 const rankingHandoffCards = [
@@ -58,6 +58,13 @@ const rankingHandoffCards = [
     ctaLabel: "Abrir Alianzas",
   },
 ] as const;
+
+function getRankingReadinessStatus(uiState: RankingUiState | null) {
+  if (!uiState?.summary) return "Esperando lectura";
+  if ((uiState.summary.categories.length ?? 0) > 0 && uiState.comparisons.length > 0) return "Indice preparado";
+  if ((uiState.summary.categories.length ?? 0) > 0) return "Categorias visibles";
+  return "Lectura limitada";
+}
 
 export function RankingPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -94,14 +101,7 @@ export function RankingPage() {
     () => buildRankingComparisonCards(uiState?.comparisons ?? []),
     [uiState?.comparisons],
   );
-  const futureLeaderboardCards = useMemo(
-    () => buildRankingFutureLeaderboardCards(uiState?.futureActions ?? []),
-    [uiState?.futureActions],
-  );
-  const futureCapabilityCards = useMemo(
-    () => buildRankingFutureCapabilityCards(uiState?.futureActions ?? []),
-    [uiState?.futureActions],
-  );
+  const rankingReadinessStatus = getRankingReadinessStatus(uiState);
 
   useEffect(() => {
     document.title = "Ranking";
@@ -183,6 +183,52 @@ export function RankingPage() {
           </>
         )}
       />
+
+      {queryCivilizationId ? (
+        <PageContextStrip
+          eyebrow="Indice interno"
+          title={uiState?.identity?.civilizationName ?? "Lectura de Ranking"}
+          purpose="Indice de poder por categorias, comparativas demo y dependencias de ladder sin clasificacion publica ni recompensas."
+          statusLabel={rankingReadinessStatus}
+          statusTone={uiState?.summary ? "good" : "warn"}
+          contextItems={[
+            { label: "Civilizacion", value: formatCompactGuid(activeCivilizationId) },
+            {
+              label: "Poder",
+              value: uiState?.summary?.totalPowerIndexLabel ?? "Sin lectura",
+              detail: uiState?.publication?.stateLabel ?? rankingLabels.unpublishedRanking,
+            },
+            {
+              label: "Categoria fuerte",
+              value: dominantCategory,
+              detail: weakestCategory ? `Area critica: ${weakestCategory}` : undefined,
+            },
+            {
+              label: "Comparativa",
+              value: uiState ? `${uiState.comparisons.length} filas demo` : "Sin lectura",
+              detail: rankingLabels.demoScenarioReference,
+            },
+          ]}
+          resourceItems={[
+            { label: "Indice", value: "Solo lectura", tone: "good" },
+            { label: "Ladder", value: "No publicada", tone: "warn" },
+            { label: "Recompensas", value: "No disponibles", tone: "neutral" },
+          ]}
+          primaryAction={
+            <div className="selection-chip-row">
+              <Link className="selection-chip selection-chip-active" to={buildGalaxyUrl(activeCivilizationId, undefined, uiState?.identity?.homePlanetId ?? null)}>
+                Abrir Galaxia
+              </Link>
+              <Link className="selection-chip" to={buildMarketUrl(activeCivilizationId, uiState?.identity?.homePlanetId ?? null)}>
+                Abrir Mercado
+              </Link>
+              <Link className="selection-chip" to={buildAllianceUrl(activeCivilizationId)}>
+                Abrir Alianzas
+              </Link>
+            </div>
+          }
+        />
+      ) : null}
 
       <UiCard className="panel alliance-summary-panel">
         <div className="figma-section-header">
@@ -409,66 +455,53 @@ export function RankingPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Futuro visible</p>
-                <h3>Leaderboards y recompensas deshabilitadas</h3>
-                <p>Las referencias futuras permanecen deshabilitadas y se muestran como hoja de ruta secundaria, nunca como acciones ejecutables.</p>
-              </div>
-              <UiBadge tone="warn">{rankingLabels.futureSeason}</UiBadge>
-            </div>
-            <div className="market-future-actions-grid">
-              {futureLeaderboardCards.map((action) => (
-                <section key={action.key} className="subpanel figma-subpanel market-future-action-card">
-                  <div className="figma-section-header">
-                    <div>
-                      <p className="eyebrow">Referencia futura</p>
-                      <h4>{action.title}</h4>
-                    </div>
-                    <UiBadge tone="warn">{action.stateLabel}</UiBadge>
-                  </div>
-                  <ul className="stack-list compact-list">
-                    <li>{action.reasonLabel}</li>
-                    <li>No disponible en esta version.</li>
-                    <li>Solo lectura en esta cabina.</li>
-                    <li>No publica perfiles, temporadas ni recompensas reales.</li>
-                  </ul>
-                  <button type="button" className="planet-action-button-blocked" disabled>
-                    No disponible en esta version
-                  </button>
-                </section>
-              ))}
-            </div>
-          </UiCard>
-
-          <UiCard className="panel">
-            <div className="figma-section-header">
-              <div>
-                <p className="eyebrow">Funciones futuras</p>
-                <h3>Funciones futuras de clasificacion</h3>
-                <p>Estas capacidades permanecen como referencias secundarias y no exponen navegacion, mutacion ni confirmacion desde Ranking.</p>
+                <p className="eyebrow">Dependencias de ladder</p>
+                <h3>Clasificacion publica fuera de alcance</h3>
+                <p>Ranking muestra un indice interno. Publicacion global, temporadas, perfiles y recompensas siguen como dependencias futuras.</p>
               </div>
               <UiBadge tone="warn">{cockpitStatusLabels.safePlaceholder}</UiBadge>
             </div>
-            <div className="market-future-actions-grid">
-              {futureCapabilityCards.map((action) => (
-                <section key={action.key} className="subpanel figma-subpanel market-future-action-card">
-                  <div className="figma-section-header">
-                    <div>
-                      <p className="eyebrow">Accion futura</p>
-                      <h4>{action.title}</h4>
-                    </div>
-                    <UiBadge tone="warn">{action.stateLabel}</UiBadge>
+            <div className="readiness-grid">
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Ladder global</p>
+                    <h4>Clasificacion no publicada</h4>
                   </div>
-                  <div className="market-future-action-state" aria-hidden="true">
-                    No disponible en esta version
+                  <UiBadge tone="warn">{rankingLabels.unpublishedRanking}</UiBadge>
+                </div>
+                <p className="figma-panel-note">No hay tabla publica, historial persistido ni comparacion real entre jugadores.</p>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Temporadas</p>
+                    <h4>Calendario competitivo pendiente</h4>
                   </div>
-                  <ul className="stack-list compact-list">
-                    <li>No disponible en esta version.</li>
-                    <li>Solo lectura en esta cabina.</li>
-                    <li>La funcion queda visible como referencia futura, pero no se puede ejecutar.</li>
-                    <li>{action.reasonLabel}</li>
-                  </ul>
-                </section>
-              ))}
+                  <UiBadge tone="warn">{rankingLabels.futureSeason}</UiBadge>
+                </div>
+                <p className="figma-panel-note">La lectura actual no abre ligas, emparejamiento ni cortes de temporada.</p>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Recompensas y perfiles</p>
+                    <h4>Sin premios ni perfil publico</h4>
+                  </div>
+                  <UiBadge tone="warn">{rankingLabels.rewardsUnavailable}</UiBadge>
+                </div>
+                <p className="figma-panel-note">No se entregan recompensas, insignias, paginas publicas ni ventajas por esta lectura.</p>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Dependencias finales</p>
+                    <h4>Modelo competitivo no final</h4>
+                  </div>
+                  <UiBadge tone="warn">No final</UiBadge>
+                </div>
+                <p className="figma-panel-note">Persistencia final, autorizacion de produccion, activos finales, combate, mercado y alianzas siguen fuera de esta cabina.</p>
+              </section>
             </div>
           </UiCard>
         </>
