@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchGroundArmyUiState } from "../api/groundArmyApi";
 import { CockpitHero } from "../components/CockpitHero";
+import { PageContextStrip } from "../components/PageContextStrip";
 import { PlanetDataRow } from "../components/PlanetModuleLayout";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -9,6 +10,7 @@ import { formatGroundArmyRequestFailure } from "../utils/groundArmyPresentation"
 import { groupGroundOptionsByCategory, mapGroundArmyUiStateToViewModel, selectRecommendedGroundArmyAction } from "../utils/groundArmyViewModel";
 import { cockpitNavigationLabels, cockpitStatusLabels } from "../utils/cockpitStatus";
 import { buildConstructionUrl, buildDefensesUrl, buildFleetsUrl, buildGalaxyUrl, buildPlanetUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
+import { formatCompactGuid } from "../utils/domainPresentation";
 
 function getGroundPosture(viewModel: ReturnType<typeof mapGroundArmyUiStateToViewModel>["groundArmy"]) {
   if (!viewModel) return "Lectura terrestre preparada";
@@ -58,7 +60,6 @@ export function GroundArmyPage() {
   const resourcePressureSummary = getResourcePressureSummary(groundArmy);
   const optionGroups = groupGroundOptionsByCategory(groundArmy?.catalog ?? []);
   const recommendedOption = selectRecommendedGroundArmyAction(groundArmy?.catalog ?? []);
-  const canUseDirectGroundAction = false;
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -129,6 +130,52 @@ export function GroundArmyPage() {
           </>
         }
       />
+
+      {queryCivilizationId ? (
+        <PageContextStrip
+          eyebrow="Cabina terrestre"
+          title={groundArmy?.planetName ?? "Preparacion terrestre"}
+          purpose="Guarnicion, poblacion, estructuras y opciones visibles sin reclutamiento directo, combate ni invasion."
+          statusLabel={posture}
+          statusTone={groundArmy?.isOwnedByRequestingCivilization ? "good" : "warn"}
+          contextItems={[
+            { label: "Civilizacion", value: formatCompactGuid(activeCivilizationId) },
+            {
+              label: "Planeta",
+              value: groundArmy?.planetName ?? formatCompactGuid(selectedPlanetId) ?? "Sin planeta enfocado",
+              detail: groundArmy?.solarSystemName ?? undefined,
+            },
+            {
+              label: "Control",
+              value: groundArmy?.controlStatusLabel ?? "Sin lectura",
+              detail: recommendedNextStep,
+            },
+            {
+              label: "Guarnicion",
+              value: groundArmy ? `${groundArmy.readinessSummary.totalGarrisonQuantity} unidades` : "Sin lectura",
+              detail: groundArmy ? `${groundArmy.readinessSummary.garrisonUnitTypes} tipos` : "Carga pendiente",
+            },
+          ]}
+          resourceItems={[
+            { label: "Preparacion", value: cockpitStatusLabels.preparation, tone: "good" },
+            { label: "Reclutamiento", value: "No disponible", tone: "warn" },
+            { label: "Combate", value: "Fuera de alcance", tone: "neutral" },
+          ]}
+          primaryAction={
+            <div className="selection-chip-row">
+              <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>
+                Abrir Planeta
+              </Link>
+              <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
+                Abrir Construccion
+              </Link>
+              <Link className="selection-chip" to={buildDefensesUrl(activeCivilizationId, selectedPlanetId)}>
+                Abrir Defensas
+              </Link>
+            </div>
+          }
+        />
+      ) : null}
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">
@@ -263,7 +310,7 @@ export function GroundArmyPage() {
 
       {groundArmy && recommendedOption ? (
         <UiCard className="panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Accion controlada</p><h3>Preparacion o bloqueo seguro</h3><p>La cabina no debe saltarse Construccion ni confirmar acciones genericas sin una via terrestre dedicada.</p></div><UiBadge tone={recommendedOption.statusKey === "Available" ? "good" : "warn"}>{recommendedOption.statusLabel}</UiBadge></div>
+          <div className="figma-section-header"><div><p className="eyebrow">Preparacion recomendada</p><h3>Lectura o bloqueo seguro</h3><p>La cabina muestra la mejor preparacion visible sin confirmar reclutamiento ni saltarse Construccion.</p></div><UiBadge tone={recommendedOption.statusKey === "Available" ? "good" : "warn"}>{recommendedOption.statusLabel}</UiBadge></div>
           <div className="figma-data-list">
             <PlanetDataRow label="Preparacion" value={recommendedOption.label} />
             <PlanetDataRow label="Requisito" value={recommendedOption.requirementLabel} />
@@ -272,15 +319,14 @@ export function GroundArmyPage() {
           </div>
           <div className="selection-chip-row">
             <Link className="planet-action-button-secondary planet-action-handoff" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>Abrir Construccion</Link>
-            <button type="button" className="planet-action-button-blocked" disabled>
-              {canUseDirectGroundAction ? "Confirmar" : "No disponible en esta version"}
-            </button>
+            <Link className="planet-action-button-secondary planet-action-handoff" to={buildDefensesUrl(activeCivilizationId, selectedPlanetId)}>Abrir Defensas</Link>
           </div>
           <p className="figma-panel-note">
             {recommendedOption.statusKey === "Available"
-              ? "La opcion es visible, pero en esta version la confirmacion directa sigue deshabilitada hasta que exista una via terrestre dedicada y segura."
+              ? "La opcion es visible, pero en esta version la confirmacion directa sigue fuera de alcance hasta que exista una via terrestre dedicada y segura."
               : `La accion permanece bloqueada: ${recommendedOption.reasonLabel}.`}
           </p>
+          <span className="planet-action-handoff-message">Reclutamiento directo no disponible en esta version.</span>
         </UiCard>
       ) : null}
 
