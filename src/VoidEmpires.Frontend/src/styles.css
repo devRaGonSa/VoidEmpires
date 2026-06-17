@@ -1336,6 +1336,10 @@ select {
   gap: var(--ve-space-3);
 }
 
+.construction-devtools-secondary {
+  order: 20;
+}
+
 .figma-stat-grid {
   display: grid;
   gap: var(--ve-space-3);

@@ -3,7 +3,7 @@
 ---
 id: TASK-36I
 title: Construction page decluttering
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: [gameplay]

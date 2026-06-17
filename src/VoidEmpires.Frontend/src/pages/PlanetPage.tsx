@@ -1094,83 +1094,85 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             </UiCard>
           </div>
 
-          <DevelopmentToolsPanel
-            title="Materializaciones Development"
-            description="Esta cabina no simula crecimiento en el navegador. Las acciones QA mutan la base de datos Development y despues releen el planeta."
-            lastResult={developmentToolsLastResult}
-            diagnosticsLink={<a className="selection-chip" href="#planet-dev-diagnostics">Ver diagnostico tecnico</a>}
-            actions={
-              <>
-                <section className="development-tools-action-group">
-                  <UiBadge tone="warn">Development QA</UiBadge>
-                  <p className="figma-panel-note">
-                    Materializa produccion backend por tramo y refresca reservas desde la lectura autorizada.
-                  </p>
-                  <div className="selection-chip-row">
-                    {[
-                      { label: "Aplicar 15 min", seconds: 900 },
-                      { label: "Aplicar 30 min", seconds: 1800 },
-                      { label: "Aplicar 1 h", seconds: 3600 },
-                    ].map((option) => (
-                      <button
-                        key={option.seconds}
-                        type="button"
-                        className="selection-chip"
-                        disabled={isDevelopmentActionBusy || !planet.isOwnedByRequestingCivilization || !uiState?.civilizationId}
-                        onClick={() => void handleEconomyRefresh(option.seconds, option.label)}
-                      >
-                        {isRefreshingEconomy ? "Aplicando..." : option.label}
-                      </button>
-                    ))}
-                  </div>
-                </section>
+          <div className={isConstructionRoute ? "construction-devtools-secondary" : undefined}>
+            <DevelopmentToolsPanel
+              title="Materializaciones Development"
+              description="Esta cabina no simula crecimiento en el navegador. Las acciones QA mutan la base de datos Development y despues releen el planeta."
+              lastResult={developmentToolsLastResult}
+              diagnosticsLink={<a className="selection-chip" href="#planet-dev-diagnostics">Ver diagnostico tecnico</a>}
+              actions={
+                <>
+                  <section className="development-tools-action-group">
+                    <UiBadge tone="warn">Development QA</UiBadge>
+                    <p className="figma-panel-note">
+                      Materializa produccion backend por tramo y refresca reservas desde la lectura autorizada.
+                    </p>
+                    <div className="selection-chip-row">
+                      {[
+                        { label: "Aplicar 15 min", seconds: 900 },
+                        { label: "Aplicar 30 min", seconds: 1800 },
+                        { label: "Aplicar 1 h", seconds: 3600 },
+                      ].map((option) => (
+                        <button
+                          key={option.seconds}
+                          type="button"
+                          className="selection-chip"
+                          disabled={isDevelopmentActionBusy || !planet.isOwnedByRequestingCivilization || !uiState?.civilizationId}
+                          onClick={() => void handleEconomyRefresh(option.seconds, option.label)}
+                        >
+                          {isRefreshingEconomy ? "Aplicando..." : option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
 
-                <section className="development-tools-action-group">
-                  <p className="figma-panel-note">
-                    Materializa solo ordenes vencidas en backend para Construccion, Investigacion y Astillero, y despues relee el planeta. Las ordenes no vencidas se mantienen abiertas.
-                  </p>
-                  <button
-                    type="button"
-                    className="figma-button secondary"
-                    disabled={isDevelopmentActionBusy || !planet.isOwnedByRequestingCivilization || !uiState?.civilizationId}
-                    onClick={() => void handleQueueMaterializationRefresh()}
-                  >
-                    {isMaterializingQueues ? "Actualizando..." : "Actualizar colas vencidas"}
-                  </button>
-                </section>
+                  <section className="development-tools-action-group">
+                    <p className="figma-panel-note">
+                      Materializa solo ordenes vencidas en backend para Construccion, Investigacion y Astillero, y despues relee el planeta. Las ordenes no vencidas se mantienen abiertas.
+                    </p>
+                    <button
+                      type="button"
+                      className="figma-button secondary"
+                      disabled={isDevelopmentActionBusy || !planet.isOwnedByRequestingCivilization || !uiState?.civilizationId}
+                      onClick={() => void handleQueueMaterializationRefresh()}
+                    >
+                      {isMaterializingQueues ? "Actualizando..." : "Actualizar colas vencidas"}
+                    </button>
+                  </section>
 
-                {economyRefreshAudit ? (
-                  <div className="figma-data-list">
-                    <PlanetDataRow label="Ultima materializacion" value={`${economyRefreshAudit.elapsedLabel} | ${economyRefreshAudit.refreshedAt}`} />
-                    <PlanetDataRow
-                      label="Cambio visible"
-                      value={economyRefreshAudit.resourceDelta.length > 0
-                        ? economyRefreshAudit.resourceDelta.join(" | ")
-                        : "Sin cambios visibles"}
-                    />
-                  </div>
-                ) : null}
+                  {economyRefreshAudit ? (
+                    <div className="figma-data-list">
+                      <PlanetDataRow label="Ultima materializacion" value={`${economyRefreshAudit.elapsedLabel} | ${economyRefreshAudit.refreshedAt}`} />
+                      <PlanetDataRow
+                        label="Cambio visible"
+                        value={economyRefreshAudit.resourceDelta.length > 0
+                          ? economyRefreshAudit.resourceDelta.join(" | ")
+                          : "Sin cambios visibles"}
+                      />
+                    </div>
+                  ) : null}
 
-                {queueMaterializationAudit ? (
-                  <div className="figma-data-list">
-                    <PlanetDataRow label="Lectura confirmada" value={queueMaterializationAudit.refreshedAt} />
-                    <PlanetDataRow
-                      label="Construccion"
-                      value={formatQueueMaterializationSummary("Construccion", queueMaterializationAudit.response.construction)}
-                    />
-                    <PlanetDataRow
-                      label="Investigacion"
-                      value={formatQueueMaterializationSummary("Investigacion", queueMaterializationAudit.response.research)}
-                    />
-                    <PlanetDataRow
-                      label="Astillero"
-                      value={formatQueueMaterializationSummary("Astillero", queueMaterializationAudit.response.shipyard)}
-                    />
-                  </div>
-                ) : null}
-              </>
-            }
-          />
+                  {queueMaterializationAudit ? (
+                    <div className="figma-data-list">
+                      <PlanetDataRow label="Lectura confirmada" value={queueMaterializationAudit.refreshedAt} />
+                      <PlanetDataRow
+                        label="Construccion"
+                        value={formatQueueMaterializationSummary("Construccion", queueMaterializationAudit.response.construction)}
+                      />
+                      <PlanetDataRow
+                        label="Investigacion"
+                        value={formatQueueMaterializationSummary("Investigacion", queueMaterializationAudit.response.research)}
+                      />
+                      <PlanetDataRow
+                        label="Astillero"
+                        value={formatQueueMaterializationSummary("Astillero", queueMaterializationAudit.response.shipyard)}
+                      />
+                    </div>
+                  ) : null}
+                </>
+              }
+            />
+          </div>
 
           <div className="figma-two-column planet-overview-grid">
             {!isConstructionRoute ? (
