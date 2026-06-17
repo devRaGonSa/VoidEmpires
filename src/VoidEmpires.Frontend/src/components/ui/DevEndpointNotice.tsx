@@ -21,12 +21,12 @@ export function DevEndpointNotice({
       }
     >
       <div className="dev-endpoint-notice-head">
-        <h3>Superficie de endpoints de desarrollo</h3>
-        <UiBadge tone="warn">Prototipo en solo lectura</UiBadge>
+        <h3>Endpoints Development</h3>
+        <UiBadge tone="warn">Acciones confirmadas</UiBadge>
       </div>
       <p>
-        Las rutas actuales del frontend siguen siendo conservadoras y no
-        ejecutan mutaciones de juego ni flujos de autenticacion de produccion.
+        Las mutaciones disponibles requieren confirmacion explicita; el detalle
+        tecnico queda como soporte secundario.
       </p>
       <dl className="dev-endpoint-meta">
         <div>

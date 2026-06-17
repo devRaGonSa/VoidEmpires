@@ -65,20 +65,20 @@ export function AppShell({
               }
             >
               <div className="shell-intro-copy">
-                <p className="eyebrow">Prototipo frontend de VoidEmpires</p>
+                <p className="eyebrow">VoidEmpires local</p>
                 <h1>
                   {isFleetRoute
-                    ? "Cabina de mando para desarrollo"
+                    ? "Readiness orbital"
                     : isStrategicMapRoute
                       ? "Cabina estrategica de lectura"
-                      : "Superficie de mando solo para desarrollo"}
+                      : "Bucle jugable Development"}
                 </h1>
                 <p className="lede">
                   {isFleetRoute
-                    ? "Ruta operativa compacta: el contexto tecnico sigue visible, pero la jugabilidad sube en la primera vista."
+                    ? "Flotas muestra readiness, carga y ordenes confirmadas sin ocultar el alcance local."
                     : isStrategicMapRoute
                       ? "La galaxia prioriza mapa, seleccion y contexto tactico. Los detalles tecnicos siguen disponibles, pero pasan a una segunda capa."
-                      : "Cabina alineada con Figma para inspeccionar los contratos de disponibilidad actuales del backend sin habilitar mutaciones de juego ni autenticacion de produccion."}
+                      : "Cabinas con lecturas backend y mutaciones Development confirmadas cuando la pagina lo permite; sin autenticacion de produccion."}
                 </p>
               </div>
             </UiCard>

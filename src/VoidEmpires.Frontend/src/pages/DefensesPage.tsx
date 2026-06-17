@@ -217,11 +217,11 @@ export function DefensesPage() {
       <CockpitHero
         versionLabel="Defensas v1"
         title="Defensas"
-        description="La cabina prioriza proteccion planetaria, estructuras locales y el siguiente paso seguro antes que el detalle tecnico."
-        developmentNote="La ruta sigue siendo de desarrollo para QA local: conserva la lectura visible, pero deja el combate y la ejecucion fuera de esta cabina."
+        description="Lectura / readiness de proteccion planetaria y estructuras locales."
+        developmentNote="Sin combate ni intercepcion: esta cabina mantiene la preparacion visible."
         badges={
           <>
-            <UiBadge tone="good">Proteccion local</UiBadge>
+            <UiBadge>Lectura / readiness</UiBadge>
             <UiBadge>Preparacion visible</UiBadge>
             <UiBadge tone="warn">Sin combate ni intercepcion</UiBadge>
           </>

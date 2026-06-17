@@ -903,12 +903,12 @@ export function FleetsPage() {
       <CockpitHero
         versionLabel="Flotas v1"
         title="Cabina de mando orbital"
-        description="Revisa la flota, elige una escuadra y confirma cada orden importante antes de moverla."
-        developmentNote="La ruta sigue siendo de desarrollo para QA local: mantiene las ordenes controladas y deja el detalle tecnico fuera del foco principal."
+        description="Lectura / readiness de escuadras, carga y ordenes disponibles."
+        developmentNote="Las ordenes disponibles requieren confirmacion; el diagnostico queda en segundo plano."
         badges={
           <>
             <UiBadge>Resumen tactico</UiBadge>
-            <UiBadge>Rail de escuadras</UiBadge>
+            <UiBadge>Lectura / readiness</UiBadge>
             <UiBadge>Detalle enfocado</UiBadge>
             <UiBadge tone="warn">Ordenes protegidas</UiBadge>
           </>

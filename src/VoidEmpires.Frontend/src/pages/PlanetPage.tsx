@@ -697,18 +697,18 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         title={isConstructionRoute ? "Mando de construccion" : "Gestion de colonia"}
         description={
           isConstructionRoute
-            ? "Construccion prioriza reservas, catalogo, cola y confirmaciones seguras del planeta activo."
-            : "Planeta prioriza identidad colonial, recursos, edificios y cola de construccion antes que el detalle tecnico."
+            ? "Catalogo, reservas y cola del planeta activo con confirmacion explicita."
+            : "Identidad colonial, recursos y cola de construccion con acciones Development controladas."
         }
         developmentNote={
           isConstructionRoute
-            ? "La cabina sigue siendo una ruta de desarrollo para QA local, pero mantiene el flujo de construccion en primer plano."
-            : "La cabina sigue siendo una ruta de desarrollo para QA local, pero mantiene la gestion de colonia por encima del detalle tecnico."
+            ? "Mutaciones Development confirmadas: crear ordenes de construccion cuando el backend las acepta."
+            : "Mutaciones Development confirmadas: materializar recursos y colas vencidas desde controles explicitos."
         }
         badges={
           <>
             <UiBadge>{isConstructionRoute ? "Sin 3D" : "Colonia en 2D"}</UiBadge>
-            <UiBadge>Acciones seguras y confirmadas</UiBadge>
+            <UiBadge tone="warn">Mutaciones Development confirmadas</UiBadge>
             <UiBadge tone="warn">Galaxia sigue en observacion</UiBadge>
           </>
         }

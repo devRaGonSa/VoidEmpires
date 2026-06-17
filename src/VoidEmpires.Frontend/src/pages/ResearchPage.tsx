@@ -421,11 +421,11 @@ export function ResearchPage() {
       <CockpitHero
         versionLabel="Investigacion v1"
         title="Investigacion"
-        description="La cabina prioriza contexto, catalogo, cola y confirmacion antes que el detalle tecnico."
-        developmentNote="La ruta sigue pensada para QA local: conserva limites seguros y mantiene el diagnostico como una capa secundaria."
+        description="Catalogo, cola y coste visible antes de confirmar una investigacion."
+        developmentNote="Mutaciones Development confirmadas: crear ordenes de investigacion cuando el backend las acepta."
         badges={
           <>
-            <UiBadge>{cockpitStatusLabels.readOnly}</UiBadge>
+            <UiBadge tone="warn">Mutaciones Development confirmadas</UiBadge>
             <UiBadge>Catalogo y cola</UiBadge>
             <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
           </>

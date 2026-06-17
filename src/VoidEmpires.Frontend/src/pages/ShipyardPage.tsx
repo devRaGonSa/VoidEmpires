@@ -594,11 +594,11 @@ export function ShipyardPage() {
       <CockpitHero
         versionLabel="Astillero v1"
         title="Astillero"
-        description="La cabina prioriza produccion orbital, capacidad local, cola y stock antes que el detalle tecnico."
-        developmentNote="La ruta sigue siendo de desarrollo para QA local: la produccion visible permanece segura y el mando de flotas sigue fuera de esta cabina."
+        description="Produccion orbital, cola y stock con confirmacion antes de gastar recursos."
+        developmentNote="Mutaciones Development confirmadas: crear ordenes de astillero; el mando de flotas queda fuera."
         badges={
           <>
-            <UiBadge tone="good">Produccion local</UiBadge>
+            <UiBadge tone="warn">Mutaciones Development confirmadas</UiBadge>
             <UiBadge>Cola y stock</UiBadge>
             <UiBadge tone="warn">Sin movimiento de flota</UiBadge>
           </>

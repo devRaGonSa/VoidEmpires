@@ -3,7 +3,7 @@
 ---
 id: TASK-36D
 title: Page hero copy modernization
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: [gameplay]
