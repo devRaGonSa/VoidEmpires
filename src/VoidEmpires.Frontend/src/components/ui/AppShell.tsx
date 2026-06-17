@@ -2,25 +2,23 @@ import type { ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { DevEndpointNotice } from "./DevEndpointNotice";
 import { SidebarNav, type SidebarNavItem } from "./SidebarNav";
-import { TopResourceBar, type TopResourceItem } from "./TopResourceBar";
+import { TopStatusBar, type TopBarStatusItem } from "./TopResourceBar";
 import { UiCard } from "./UiCard";
 
 interface AppShellProps {
   apiBaseUrl: string;
   backendProfile: string;
   children: ReactNode;
-  resources: TopResourceItem[];
   sidebarItems: SidebarNavItem[];
-  userLabel: string;
+  statusItems: TopBarStatusItem[];
 }
 
 export function AppShell({
   apiBaseUrl,
   backendProfile,
   children,
-  resources,
   sidebarItems,
-  userLabel,
+  statusItems,
 }: AppShellProps) {
   const location = useLocation();
   const isFleetRoute = location.pathname === "/fleets";
@@ -35,10 +33,10 @@ export function AppShell({
           <span className="app-topbar-brand-mark">VE</span>
           <div>
             <strong>VoidEmpires</strong>
-            <p>Prototipo de cabina alineado con Figma</p>
+            <p>Prototipo jugable local</p>
           </div>
         </div>
-        <TopResourceBar resources={resources} userLabel={userLabel} />
+        <TopStatusBar items={statusItems} />
       </header>
 
       <div className="app-shell-frame">

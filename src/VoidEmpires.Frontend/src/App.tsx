@@ -87,16 +87,27 @@ const ModuleCabinPage = lazy(async () => {
   return { default: module.ModuleCabinPage };
 });
 
-const resources = [
-  { label: "Metal", value: "128.4k", progress: 72, tone: "metal" },
-  { label: "Cristal", value: "84.1k", progress: 58, tone: "crystal" },
-  { label: "Deuterio", value: "42.8k", progress: 43, tone: "deuterium" },
-  { label: "Poblacion", value: "12.4M", progress: 81, tone: "neutral" },
-  { label: "Energia", value: "+480", progress: 66, tone: "power" },
-] as const;
-
 export default function App() {
   const location = useLocation();
+  const shellStatusItems = useMemo(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const civilizationId = searchParams.get("civilizationId") ?? "";
+    const planetId = civilizationId ? searchParams.get("planetId") : null;
+
+    return [
+      { label: "Entorno", value: "Modo Development" },
+      {
+        label: "Contexto",
+        value: civilizationId
+          ? planetId
+            ? "Civilizacion y planeta en URL"
+            : "Civilizacion en URL"
+          : "Sin contexto seleccionado",
+      },
+      { label: "Sesion", value: "Navegacion local sin login de produccion" },
+    ];
+  }, [location.search]);
+
   const sidebarItems = useMemo<SidebarNavItem[]>(() => {
     const searchParams = new URLSearchParams(location.search);
     const civilizationId = searchParams.get("civilizationId") ?? "";
@@ -125,9 +136,8 @@ export default function App() {
     <AppShell
       apiBaseUrl={appConfig.apiBaseUrl}
       backendProfile={appConfig.backendProfile}
-      resources={[...resources]}
       sidebarItems={[...sidebarItems]}
-      userLabel="RaulG"
+      statusItems={shellStatusItems}
     >
       <Suspense fallback={<RouteLoadingFallback />}>
         <Routes>

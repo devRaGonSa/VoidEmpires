@@ -1,36 +1,28 @@
 import { UiBadge } from "./UiBadge";
-import { UiProgressBar } from "./UiProgressBar";
 
-export interface TopResourceItem {
+export interface TopBarStatusItem {
   label: string;
   value: string;
-  progress: number;
-  tone?: "metal" | "crystal" | "deuterium" | "power" | "neutral";
 }
 
-interface TopResourceBarProps {
-  resources: TopResourceItem[];
-  userLabel: string;
+interface TopStatusBarProps {
+  items: TopBarStatusItem[];
 }
 
-export function TopResourceBar({
-  resources,
-  userLabel,
-}: TopResourceBarProps) {
+export function TopStatusBar({ items }: TopStatusBarProps) {
   return (
-    <div className="top-resource-bar">
-      <div className="top-resource-pill-row" aria-label="Empire resources">
-        {resources.map((resource) => (
-          <section key={resource.label} className="top-resource-pill">
-            <div className="top-resource-pill-head">
-              <span>{resource.label}</span>
-              <strong>{resource.value}</strong>
+    <div className="top-status-bar" aria-label="Estado global del prototipo">
+      <div className="top-status-pill-row">
+        {items.map((item) => (
+          <section key={item.label} className="top-status-pill">
+            <div className="top-status-pill-head">
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
             </div>
-            <UiProgressBar value={resource.progress} tone={resource.tone} />
           </section>
         ))}
       </div>
-      <UiBadge tone="resource">{userLabel}</UiBadge>
+      <UiBadge tone="resource">Sin recursos globales simulados</UiBadge>
     </div>
   );
 }

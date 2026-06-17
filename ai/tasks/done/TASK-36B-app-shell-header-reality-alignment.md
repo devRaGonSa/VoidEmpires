@@ -3,7 +3,7 @@
 ---
 id: TASK-36B
 title: App shell header reality alignment
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
