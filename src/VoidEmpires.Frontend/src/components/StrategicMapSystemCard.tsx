@@ -70,8 +70,8 @@ export function StrategicMapSystemCard({
       <ul className="stack-list compact-list">
         {planets.map((planet) => (
           <li key={planet.planetId}>
-            <strong>{planet.planetName ?? "Planeta desconocido"}</strong> ·{" "}
-            {formatVisibilityLevel(planet.visibilityLevel)} ·{" "}
+            <strong>{planet.planetName ?? "Planeta desconocido"}</strong> |{" "}
+            {formatVisibilityLevel(planet.visibilityLevel)} |{" "}
             {formatVisibilityReason(planet.visibilityReason)}
           </li>
         ))}

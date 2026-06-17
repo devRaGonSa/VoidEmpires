@@ -11,6 +11,7 @@ import type {
 } from "../api/voidEmpiresApi";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
+import { PageContextStrip } from "../components/PageContextStrip";
 import { StrategicMap2DView } from "../components/StrategicMap2DView";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -592,6 +593,51 @@ export function StrategicMapPage() {
         }
       />
 
+      {cockpitResult ? (
+        <PageContextStrip
+          eyebrow="Mapa de navegacion"
+          title={selectedSystem?.systemName ?? "Teatro estrategico"}
+          purpose="Mapa 2D de inspeccion, foco de sistema y handoffs a cabinas propietarias sin ejecutar expansion, movimiento ni combate."
+          statusLabel={mapReadModel?.unknownSystems ? "Cobertura parcial" : "Lectura estable"}
+          statusTone={mapReadModel?.unknownSystems ? "warn" : "good"}
+          contextItems={[
+            { label: "Civilizacion", value: formatCompactGuid(cockpitResult.civilizationId) },
+            {
+              label: "Sistemas",
+              value: String(summary?.systems ?? cockpitResult.systems.length),
+              detail: `${mapReadModel?.ownedSystems ?? 0} propios`,
+            },
+            {
+              label: "Foco",
+              value: selectedPlanet?.planetName ?? selectedSystem?.systemName ?? "Sin seleccion",
+              detail: selectedPlanet ? "Planeta seleccionado" : "Sistema seleccionado",
+            },
+            {
+              label: "Marcadores orbitales",
+              value: `${mapReadModel?.fleetMarkers ?? 0} flotas`,
+              detail: `${mapReadModel?.transferMarkers ?? 0} rutas visibles`,
+            },
+          ]}
+          resourceItems={[
+            { label: "Mapa", value: "Solo lectura", tone: "good" },
+            { label: "Expansion", value: "Diferida", tone: "warn" },
+            { label: "Combate", value: "Fuera de alcance", tone: "neutral" },
+          ]}
+          primaryAction={
+            selectedPlanet ? (
+              <div className="selection-chip-row">
+                <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(cockpitResult.civilizationId, selectedPlanet.planetId)}>
+                  Abrir Planeta
+                </Link>
+                <Link className="selection-chip" to={buildFleetsUrl(cockpitResult.civilizationId, selectedPlanet.planetId)}>
+                  Abrir Flotas
+                </Link>
+              </div>
+            ) : null
+          }
+        />
+      ) : null}
+
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">
           <div className="figma-section-header">
@@ -953,7 +999,7 @@ export function StrategicMapPage() {
                                 <strong>{routeLabel}</strong>
                                 <br />
                                 <span className="figma-panel-note">
-                                  {detailParts.join(" · ")}. Revisa Flotas para el
+                                  {detailParts.join(" | ")}. Revisa Flotas para el
                                   detalle completo.
                                 </span>
                               </>
@@ -983,6 +1029,35 @@ export function StrategicMapPage() {
                 </div>
               )}
             </aside>
+          </div>
+        </UiCard>
+      ) : null}
+
+      {cockpitResult ? (
+        <UiCard className="panel">
+          <div className="figma-section-header">
+            <div>
+              <p className="eyebrow">Limites de expansion</p>
+              <h3>Galaxia navega, no conquista</h3>
+              <p>La lectura puede mostrar nodos desconocidos, rutas y metadatos de preparacion, pero no abre exploracion ejecutable ni control territorial.</p>
+            </div>
+            <UiBadge tone="warn">Futuro diferido</UiBadge>
+          </div>
+          <div className="readiness-grid">
+            <section className="subpanel figma-subpanel">
+              <div className="figma-data-list">
+                <DataRow label="Expansion" value="Solo preview de elegibilidad" />
+                <DataRow label="Movimiento" value="Handoff a Flotas" />
+                <DataRow label="Produccion" value="Handoff a cabinas planetarias" />
+              </div>
+            </section>
+            <section className="subpanel figma-subpanel">
+              <ul className="stack-list compact-list">
+                <li>No crea misiones de exploracion desde el mapa.</li>
+                <li>No revela sistemas por sensores, alianzas o espionaje.</li>
+                <li>No ejecuta combate, intercepcion, colonizacion ni cambios de ownership.</li>
+              </ul>
+            </section>
           </div>
         </UiCard>
       ) : null}
