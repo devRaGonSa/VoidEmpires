@@ -1946,6 +1946,78 @@ select {
   max-height: 260px;
 }
 
+.placeholder-asset {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: var(--ve-space-3);
+  align-items: center;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 38%, transparent);
+  border-radius: var(--ve-radius-md);
+  background: color-mix(in srgb, var(--ve-color-bg) 34%, transparent);
+}
+
+.placeholder-asset-slot {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  border: 1px dashed color-mix(in srgb, var(--ve-color-border) 52%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--ve-color-panel-2) 78%, transparent), color-mix(in srgb, var(--ve-color-panel) 92%, transparent));
+  color: color-mix(in srgb, var(--ve-color-text) 84%, var(--ve-color-muted));
+  font-weight: 800;
+}
+
+.placeholder-asset-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.placeholder-asset-copy p,
+.placeholder-asset-copy strong {
+  margin: 0;
+}
+
+.placeholder-asset-copy strong {
+  overflow-wrap: anywhere;
+}
+
+.placeholder-asset-copy > p {
+  color: color-mix(in srgb, var(--ve-color-text) 74%, var(--ve-color-muted));
+  font-size: 0.88rem;
+}
+
+.placeholder-asset-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ve-space-2);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.placeholder-asset-head .eyebrow {
+  margin: 0;
+}
+
+.placeholder-asset-building .placeholder-asset-slot,
+.placeholder-asset-defense .placeholder-asset-slot {
+  border-color: color-mix(in srgb, var(--ve-color-warning) 40%, transparent);
+}
+
+.placeholder-asset-technology .placeholder-asset-slot,
+.placeholder-asset-civilization .placeholder-asset-slot {
+  border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 38%, transparent);
+}
+
+.placeholder-asset-ship .placeholder-asset-slot,
+.placeholder-asset-resource .placeholder-asset-slot {
+  border-color: color-mix(in srgb, var(--ve-color-success) 34%, transparent);
+}
+
 .figma-fleet-grid {
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
