@@ -391,6 +391,7 @@ Current validated baseline after Block 36A-36O:
 - Block 37BV repository cleanliness note: tracked-file scans found no committed build artifacts, screenshots, captures, archives, temp files, or tracked frontend output; machine-local dev-doc links were normalized, an old completed-task private-style connection string example was redacted to placeholders, and full validation passed with `720` tests plus frontend build and guard scripts.
 - Block 37BW risk-register note: `docs/dev/final-risk-register.md` now tracks remaining product risks for production auth, final DB/model, catalog/assets, visual acceptance, gameplay overclaims, movement, market, alliance, combat, seed reuse, and repository hygiene without adding gameplay or production behavior.
 - Block 37BX acceptance-criteria note: `docs/dev/final-acceptance-criteria.md` now defines the accepted near-product Development shell state, required validation, explicit non-acceptance list, and future handoff rule before final DB/assets and product systems.
+- Block 37BY orchestrator-summary note: `docs/dev/final-orchestrator-summary.md` now provides future chats with the current Development-only shell state, accepted boundaries, exclusions, core commands, warnings, and likely next phases.
 - Block 37BJ documentation update: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1` succeeded; no browser, screenshot, frontend build, backend build, or backend test pass was performed for this docs-only update.
 
 Previous validated baseline after Block 33A-33O:

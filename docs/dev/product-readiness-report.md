@@ -112,6 +112,8 @@ The remaining product risks are tracked in `docs/dev/final-risk-register.md`.
 
 The accepted near-product shell criteria are tracked in `docs/dev/final-acceptance-criteria.md`.
 
+The future-chat handoff summary is tracked in `docs/dev/final-orchestrator-summary.md`.
+
 ## Validation Needs
 
 Before using the shell for a local demo:
