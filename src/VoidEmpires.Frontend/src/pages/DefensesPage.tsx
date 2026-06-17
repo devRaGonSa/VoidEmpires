@@ -473,7 +473,16 @@ export function DefensesPage() {
                 </div>
               </>
             ) : (
-              <p className="figma-panel-note">Todavia no hay estructuras defensivas visibles en esta colonia. La cabina enfoca la preparacion y los bloqueos reales del siguiente paso.</p>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Inventario pendiente</p>
+                    <h4>Sin estructuras defensivas visibles</h4>
+                  </div>
+                  <UiBadge tone="warn">Sin despliegue</UiBadge>
+                </div>
+                <p className="figma-panel-note">Todavia no hay estructuras defensivas visibles en esta colonia. La cabina conserva el contexto y muestra preparaciones o bloqueos reales cuando el backend los expone.</p>
+              </section>
             )}
             <div className="figma-section-header module-boundary-spacer">
               <div>
@@ -513,7 +522,16 @@ export function DefensesPage() {
                 ))}
               </div>
             ) : (
-              <p className="figma-panel-note">No hay una preparacion defensiva habilitada en este momento. Revisa la cola, los recursos o el ownership del planeta.</p>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Catalogo readiness</p>
+                    <h4>Sin preparaciones disponibles</h4>
+                  </div>
+                  <UiBadge tone="neutral">Handoff pendiente</UiBadge>
+                </div>
+                <p className="figma-panel-note">No hay una preparacion defensiva habilitada en este momento. Revisa la cola, los recursos o el control del planeta desde Construccion.</p>
+              </section>
             )}
             <div className="figma-section-header module-boundary-spacer">
               <div>
@@ -550,7 +568,18 @@ export function DefensesPage() {
                   </article>
                 ))}
               </div>
-            ) : null}
+            ) : (
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Bloqueos</p>
+                    <h4>Sin bloqueos defensivos visibles</h4>
+                  </div>
+                  <UiBadge tone="neutral">Sin bloqueos</UiBadge>
+                </div>
+                <p className="figma-panel-note">El backend no devolvio preparaciones bloqueadas para esta lectura. No se fabrica una lista defensiva adicional.</p>
+              </section>
+            )}
             {optionGroups.length === 0 ? (
               <p className="figma-panel-note">El backend no expone una lista defensiva mas amplia todavia. La cabina conserva el contexto y explica el limite con honestidad.</p>
             ) : null}
@@ -585,7 +614,7 @@ export function DefensesPage() {
                   </div>
                   <UiBadge tone="warn">{blockedOptions.length}</UiBadge>
                 </div>
-                <p>Las opciones bloqueadas permanecen visibles con motivo explicito y sin affordances engañosas de confirmacion.</p>
+                <p>Las opciones bloqueadas permanecen visibles con motivo explicito y sin senales enganosas de confirmacion.</p>
               </section>
             </div>
           </UiCard>

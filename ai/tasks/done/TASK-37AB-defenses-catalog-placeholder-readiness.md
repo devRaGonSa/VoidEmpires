@@ -3,7 +3,7 @@
 ---
 id: TASK-37AB
 title: Defenses catalog placeholder readiness
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: [gameplay]
