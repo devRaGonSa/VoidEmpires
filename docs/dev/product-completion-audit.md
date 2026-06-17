@@ -22,6 +22,52 @@ It is documentation-only. It does not claim browser visual QA, screenshots, prod
 | `/alliance` | Diplomacy read surface with identity, contacts, and future pact/action placeholders. | No alliance creation, invitations, pact execution, roles, treasury, or messaging. | Read-only diplomacy baseline. |
 | `/ranking` | Power-index read surface with category scores and demo comparisons. | No public leaderboard, matchmaking, rewards, or profiles. | Read-only ranking baseline. |
 
+## Final Frontend Information Architecture Map
+
+This is the accepted route hierarchy for the current product shell. It describes navigation ownership and readiness boundaries only; it does not add new gameplay behavior.
+
+| Group | Routes | Primary job | Boundary |
+|---|---|---|---|
+| Entry and context | `/onboarding`, `/planet`, `/galaxy`, `/` | Start a Development playable session, anchor the selected colony, and inspect the strategic map. | `/onboarding` is Development-only; `/` remains a compatibility alias for `/galaxy`; `/planet` is the hub, not the full catalog for every module. |
+| Colony execution | `/construction`, `/research`, `/shipyard` | Focused controlled mutation surfaces for one selected planet or civilization context. | Each mutation requires an explicit review plus confirmation and then a backend refresh before visible state is trusted. |
+| Military readiness | `/fleets`, `/defenses`, `/ground-army` | Inspect force, defense, and ground readiness around the selected context. | Fleets keeps its Development transfer checklist boundary; Defenses and Ground Army remain readiness surfaces without combat or invasion execution. |
+| Strategic advisory | `/market`, `/espionage`, `/alliance`, `/ranking` | Show economic, intelligence, diplomacy, and power-index context. | These routes are read-only in this shell and must not imply transactions, missions, alliance gameplay, rewards, or public profile support. |
+
+## Route Hierarchy And Handoffs
+
+| Route | Navigation parent | Required context | Preferred handoffs |
+|---|---|---|---|
+| `/onboarding` | Entry | None; creates Development ids when submitted. | Redirect to `/planet` with returned `civilizationId` and `planetId`. |
+| `/galaxy` and `/` | Strategic map | `civilizationId`; optional `systemId` and `planetId`. | Planet, Fleets, Market, Espionage, Alliance, Ranking while preserving known ids. |
+| `/planet` | Colony hub | `civilizationId` and `planetId`; may recover from local playable memory. | Construction, Research, Shipyard, Defenses, Ground Army, Fleets, Galaxy. |
+| `/construction` | Colony execution | `civilizationId` and `planetId`. | Planet, Research, Ground Army, Shipyard, Defenses. |
+| `/research` | Colony execution | `civilizationId` and selected source `planetId`. | Planet, Construction, Shipyard, Fleets, Galaxy. |
+| `/shipyard` | Colony execution | `civilizationId` and `planetId`. | Planet, Construction, Research, Fleets, Defenses, Galaxy. |
+| `/fleets` | Military readiness | `civilizationId`; optional `planetId` for local resource context. | Planet, Shipyard, Galaxy. |
+| `/defenses` | Military readiness | `civilizationId` and `planetId`. | Planet, Construction, Shipyard, Fleets, Galaxy. |
+| `/ground-army` | Military readiness | `civilizationId` and `planetId`. | Planet, Construction, Defenses, Fleets, Galaxy. |
+| `/market` | Strategic advisory | `civilizationId`; optional `planetId`. | Planet, Construction, Shipyard, Fleets, Galaxy. |
+| `/espionage` | Strategic advisory | `civilizationId`; optional `systemId` and `planetId`. | Galaxy, Planet, Fleets, Research. |
+| `/alliance` | Strategic advisory | `civilizationId`. | Galaxy, Market, Espionage, Ranking. |
+| `/ranking` | Strategic advisory | Optional `civilizationId`. | Galaxy, Market, Espionage, Alliance. |
+
+## Navigation Rules
+
+- Sidebar order follows `App.tsx`: Nuevo inicio, Galaxia, Planeta, Construccion, Investigacion, Ejercito Tierra, Astillero, Defensas, Flotas, Espionaje, Alianza, Mercado, Ranking.
+- Sidebar state labels mean route posture, not production entitlement: `playable` for accepted Development-backed gameplay paths, `map` for Galaxy, `readiness` for inspectable operational state, and `readOnly` for advisory surfaces.
+- Route links must use the shared URL helpers so `civilizationId`, `planetId`, and `systemId` survive cross-cockpit handoffs when those ids are known.
+- Local playable-session memory may rebuild missing Development URLs, but it must not become login, authorization, ownership proof, or an active civilization resolver.
+- Raw ids, endpoint names, payloads, and backend limitation details stay in diagnostics or docs below the main workflow.
+- Cockpit routes stay lazy-loaded from `App.tsx`; shared shell code may keep navigation metadata and URL builders synchronous, but cockpit page modules should remain behind route-level imports.
+- Page load, sidebar navigation, diagnostics expansion, and card selection must not mutate resources, queues, stock, rankings, readiness, or ownership.
+
+## Readiness Boundary Summary
+
+- Accepted controlled mutations: Development playable start, Planet Development resource accrual/materialization tools, Construction enqueue, Research enqueue, Shipyard orbital production enqueue, and the Fleet Development transfer paths documented in the Fleet checklist.
+- Accepted read-only or advisory surfaces: Galaxy, Defenses, Ground Army, Market, Espionage, Alliance, Ranking, and Fleet reads outside its explicit controlled transfer actions.
+- Deferred dependencies before product-final behavior: final database/model consolidation, final generated image assets, production authentication and active civilization resolution, combat and invasion resolution, fleet movement productization, market transactions, and alliance mutations.
+- Browser visual QA remains deferred to `docs/dev/deferred-visual-qa-master-checklist.md`; this IA map is a documentation boundary, not screenshot acceptance.
+
 ## Shared Product Contracts
 
 - Routes stay lazy-loaded through `App.tsx`; cockpit pages must not return to eager imports.
