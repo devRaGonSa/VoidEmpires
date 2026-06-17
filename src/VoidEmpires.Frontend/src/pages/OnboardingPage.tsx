@@ -26,6 +26,24 @@ interface CreatedPlayableStart {
   storedLocally: boolean;
 }
 
+const accountAuthReadinessRows = [
+  {
+    label: "Cuenta",
+    value: "Registro y confirmacion existen en backend",
+    detail: "Esta pantalla no crea credenciales ni usa el endpoint de registro.",
+  },
+  {
+    label: "Sesion",
+    value: "Memoria local de navegacion",
+    detail: "Guarda ids devueltos por Development para reabrir cabinas; no es cookie, token ni rol.",
+  },
+  {
+    label: "Propiedad",
+    value: "Revalidada por cada lectura backend",
+    detail: "Las cabinas usan civilizationId y planetId explicitos y vuelven a consultar el estado autoritativo.",
+  },
+] as const;
+
 function toSpanishOnboardingError(message: string) {
   switch (message.trim()) {
     case "Display name is required.":
@@ -142,6 +160,28 @@ export function OnboardingPage() {
           </>
         }
       />
+
+      <UiCard className="panel">
+        <div className="figma-section-header">
+          <div>
+            <p className="eyebrow">Cuenta y acceso</p>
+            <h3>Frontera actual de autenticacion</h3>
+          </div>
+          <UiBadge tone="warn">Preparada, no productizada</UiBadge>
+        </div>
+        <p className="figma-panel-note">
+          VoidEmpires ya tiene una base tecnica de cuenta con registro y confirmacion por email, pero este inicio jugable no resuelve una sesion autenticada ni permisos de produccion.
+        </p>
+        <div className="figma-data-list">
+          {accountAuthReadinessRows.map((item) => (
+            <div className="figma-data-row" key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <small>{item.detail}</small>
+            </div>
+          ))}
+        </div>
+      </UiCard>
 
       <UiCard className="panel strategic-loader-panel">
         <div className="figma-section-header">
