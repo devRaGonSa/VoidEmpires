@@ -29,26 +29,26 @@ export function PlayableSessionBanner({ session, onClear }: PlayableSessionBanne
     <UiCard className="panel">
       <div className="figma-section-header">
         <div>
-          <p className="eyebrow">Sesion jugable local</p>
+          <p className="eyebrow">Memoria local de navegacion</p>
           <h3>{planetLabel}</h3>
           <p>
-            {civilizationLabel} bajo {playerLabel}. Contexto Development-safe guardado solo para navegar.
+            {civilizationLabel} bajo {playerLabel}. Guarda solo ids Development para reconstruir enlaces de cabina.
           </p>
         </div>
-        <UiBadge tone="good">Memoria local</UiBadge>
+        <UiBadge tone="warn">No autentica</UiBadge>
       </div>
       <p className="figma-panel-note">
-        Esta tarjeta no autentica, no concede permisos y no sustituye el estado del backend.
+        Esta memoria no es login, cookie, token, rol ni permiso. Cada cabina vuelve a leer el backend con los ids visibles antes de mostrar estado jugable.
       </p>
       <div className="selection-chip-row">
         <Link className="selection-chip selection-chip-active" to={planetUrl}>
           Ir al planeta
         </Link>
         <Link className="selection-chip" to="/onboarding">
-          Cambiar/iniciar otra sesion
+          Crear otro inicio
         </Link>
         <button type="button" className="selection-chip" onClick={handleClearLocalSession}>
-          Limpiar sesion local
+          Limpiar memoria local
         </button>
       </div>
     </UiCard>
