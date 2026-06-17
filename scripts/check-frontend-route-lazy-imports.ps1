@@ -145,4 +145,49 @@ if ($routeUrlHelperViolations.Count -gt 0) {
     throw "Frontend route URL helper guard failed:`n$($routeUrlHelperViolations -join [Environment]::NewLine)"
 }
 
+$distAssetsPath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\dist\assets"))
+if (Test-Path -LiteralPath $distAssetsPath) {
+    $entryChunks = @(Get-ChildItem -LiteralPath $distAssetsPath -File -Filter "index-*.js")
+    $bundleViolations = New-Object System.Collections.Generic.List[string]
+
+    if ($entryChunks.Count -ne 1) {
+        $bundleViolations.Add("Expected exactly one built Vite entry chunk matching dist/assets/index-*.js after npm run build; found $($entryChunks.Count).")
+    }
+    else {
+        $entryChunk = $entryChunks[0]
+        $entryBytes = [System.IO.File]::ReadAllBytes($entryChunk.FullName)
+        $entrySizeKilobytes = [Math]::Round($entryChunk.Length / 1KB, 2)
+
+        $gzipStream = New-Object System.IO.MemoryStream
+        try {
+            $compressor = New-Object System.IO.Compression.GZipStream -ArgumentList $gzipStream, ([System.IO.Compression.CompressionLevel]::Optimal), $true
+            try {
+                $compressor.Write($entryBytes, 0, $entryBytes.Length)
+            }
+            finally {
+                $compressor.Dispose()
+            }
+
+            $entryGzipKilobytes = [Math]::Round($gzipStream.Length / 1KB, 2)
+        }
+        finally {
+            $gzipStream.Dispose()
+        }
+
+        $maxEntrySizeKilobytes = 210
+        $maxEntryGzipKilobytes = 70
+        if ($entrySizeKilobytes -gt $maxEntrySizeKilobytes) {
+            $bundleViolations.Add("Built entry chunk '$($entryChunk.Name)' is $entrySizeKilobytes kB, above the $maxEntrySizeKilobytes kB guard budget.")
+        }
+
+        if ($entryGzipKilobytes -gt $maxEntryGzipKilobytes) {
+            $bundleViolations.Add("Built entry chunk '$($entryChunk.Name)' is $entryGzipKilobytes kB gzip, above the $maxEntryGzipKilobytes kB gzip guard budget.")
+        }
+    }
+
+    if ($bundleViolations.Count -gt 0) {
+        throw "Frontend entry bundle guard failed:`n$($bundleViolations -join [Environment]::NewLine)"
+    }
+}
+
 Write-Host "Frontend route lazy-import guard passed."

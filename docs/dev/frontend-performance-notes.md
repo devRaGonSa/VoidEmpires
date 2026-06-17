@@ -96,6 +96,23 @@ Rationale:
 - no remaining build symptom justifies adding manual chunk rules
 - preserving Vite defaults keeps chunk behavior simpler and avoids brittle grouping rules that would need upkeep as cockpit routes evolve
 
+## Entry Bundle Guard
+
+Observed on `2026-06-17` after the Block 37 shared UI component and density passes:
+
+- transformed modules: `105`
+- shared entry chunk: `dist/assets/index-*.js` at about `181.34 kB` minified and `59.13 kB` gzip
+- CSS asset: `dist/assets/index-*.css` at about `58.88 kB` minified and `8.91 kB` gzip
+- current build shape: one shared entry chunk plus cockpit-specific async chunks for the accepted route suite
+
+The lazy-import guard also checks the built entry chunk when `src/VoidEmpires.Frontend/dist/assets` exists after `npm run build`:
+
+- fail if more than one `dist/assets/index-*.js` entry chunk is emitted
+- fail if the entry chunk exceeds `210 kB` minified
+- fail if the entry chunk exceeds `70 kB` gzip
+
+These budgets are intentionally above the current baseline to allow small shell-level components while still catching a significant regression. New cockpit-only components should stay imported from lazy page trees rather than from `App.tsx` or shared shell files.
+
 ## Validation Command
 
 Run from repository root:
