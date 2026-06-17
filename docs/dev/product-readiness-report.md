@@ -92,6 +92,7 @@ No integration tests are configured for this documentation-only prep update.
 
 - Final generated or curated assets are still pending.
 - The placeholder-to-final replacement plan is documented in `docs/dev/product-placeholder-asset-contract.md`.
+- The post-DB/post-asset correction loop is prepared in `docs/dev/deferred-visual-qa-master-checklist.md`.
 - Current UI should not be treated as final art direction or screenshot acceptance.
 - Future asset work must preserve readable cockpit information density and avoid hiding backend-owned state behind decorative media.
 

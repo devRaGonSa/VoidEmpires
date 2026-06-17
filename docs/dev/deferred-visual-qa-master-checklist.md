@@ -175,3 +175,34 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scrip
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1
 ```
+
+## Post-DB And Asset Correction Phase Prep
+
+After final database/model consolidation and final asset replacement land, the correction phase should use this checklist as the acceptance baseline instead of treating screenshots as an open-ended redesign pass.
+
+Recommended entry criteria:
+
+1. Final DB/model changes have passed their build, test, seed-drift, and migration validation gates.
+2. Final asset or manifest changes have passed frontend build, lazy-route guard, copy guard, and asset-key validation.
+3. The browser pass starts from a known seed/profile or production-equivalent setup path documented for that phase.
+4. Any route that depends on production auth, combat, movement productization, market transactions, or alliance mutations has an explicit accepted task before it is tested as executable.
+5. Screenshots are captured with the naming convention above and are reviewed route by route.
+
+Recommended correction loop:
+
+1. Capture the full desktop route set first, then mobile or constrained-width variants for the same states.
+2. Classify each finding as backend-state mismatch, frontend copy issue, layout/overflow issue, asset mapping issue, route/context loss, accessibility issue, or unsupported-gameplay overclaim.
+3. Fix only one narrow class of issue per follow-up task when changes would cross route or module boundaries.
+4. Re-run the validation commands above after each correction batch.
+5. Re-capture only the affected screenshots plus any neighboring route that shares the changed component.
+6. Keep diagnostics secondary; do not accept a correction that hides backend-owned state, errors, or limitations behind imagery.
+
+Correction acceptance rules:
+
+- A corrected route must still preserve `civilizationId` and `planetId` handoffs when those ids are part of the accepted flow.
+- Resource, queue, stock, ranking, and readiness displays must still come from backend reads.
+- Final images may improve recognition, but must not imply ownership, availability, combat power, market price, or alliance membership that the backend does not return.
+- Production-auth wording is accepted only after active civilization resolution and ownership enforcement are implemented.
+- Combat, fleet movement productization, market transactions, and alliance mutations remain non-accepted unless their separate executable workflows exist.
+
+No browser, screenshot, DB migration, final asset generation, or correction pass was performed for this prep update.
