@@ -20,6 +20,7 @@ import { UiCard } from "../components/ui/UiCard";
 import { UiProgressBar } from "../components/ui/UiProgressBar";
 import {
   formatCompactGuid,
+  formatOrbitalGroupStatus,
   formatPlanetPrimaryLabel,
   formatPlanetSecondaryLabel,
   formatResourceType,
@@ -862,6 +863,14 @@ export function FleetsPage() {
   const inspectedReadinessItems = inspectedGroup
     ? buildFleetCommandReadiness(inspectedGroup, uiState?.actionHints ?? [])
     : [];
+  const previewGroup = selectedGroup ?? inspectedGroup;
+  const previewReadinessItems = previewGroup
+    ? buildFleetCommandReadiness(previewGroup, uiState?.actionHints ?? [])
+    : [];
+  const previewDestinationPlanetId = previewGroup?.activeTransfer?.destinationPlanetId ?? effectiveDestinationPlanetId;
+  const previewResourceContext = uiState?.resourceContexts?.find(
+    (context) => context.planetId === previewGroup?.currentPlanetId,
+  ) ?? null;
   const orderSteps = [
     {
       number: "1",
@@ -1193,6 +1202,80 @@ export function FleetsPage() {
                 onCancelAcknowledgementChange={setHasCancelTransferAcknowledgement}
                 onCancelTransfer={handleCancelTransfer}
               />
+            ) : null}
+
+            {previewGroup ? (
+              <UiCard className="panel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Vista previa no mutante</p>
+                    <h3>Plan de mando futuro</h3>
+                    <p>Resumen de una posible orden usando solo el estado ya leido; no calcula ruta, no reserva escuadras y no crea misiones.</p>
+                  </div>
+                  <div className="figma-badge-row">
+                    <UiBadge tone="good">Solo lectura</UiBadge>
+                    <UiBadge tone="warn">No ejecuta</UiBadge>
+                  </div>
+                </div>
+                <div className="readiness-grid">
+                  <section className="subpanel figma-subpanel">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">Borrador de ruta</p>
+                        <h4>{formatSquadIdentity(previewGroup)}</h4>
+                      </div>
+                      <UiBadge tone={previewGroup.hasActiveTransfer ? "warn" : "neutral"}>
+                        {previewGroup.hasActiveTransfer ? "Ruta activa" : "Simulacion local"}
+                      </UiBadge>
+                    </div>
+                    <div className="figma-data-list">
+                      <FleetDataRow label="Origen actual" value={formatFleetDestinationOptionLabel(previewGroup.currentPlanetId)} />
+                      <FleetDataRow
+                        label="Destino de referencia"
+                        value={previewDestinationPlanetId ? formatFleetDestinationOptionLabel(previewDestinationPlanetId) : "Sin destino seleccionado"}
+                      />
+                      <FleetDataRow label="Reservas visibles" value={formatFleetResourceDigest(previewResourceContext)} />
+                      <FleetDataRow label="Estado del grupo" value={formatOrbitalGroupStatus(previewGroup.status)} />
+                    </div>
+                  </section>
+                  <section className="subpanel figma-subpanel">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">Readiness</p>
+                        <h4>Senales de comando</h4>
+                      </div>
+                      <UiBadge>Metadata actual</UiBadge>
+                    </div>
+                    <div className="figma-data-list">
+                      {previewReadinessItems.slice(0, 4).map((item) => (
+                        <FleetDataRow key={`preview-${item.key}`} label={item.label} value={item.summary} />
+                      ))}
+                    </div>
+                  </section>
+                </div>
+                <div className="readiness-grid">
+                  <section className="subpanel figma-subpanel">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">Movimiento futuro</p>
+                        <h4>Orden completa</h4>
+                      </div>
+                      <UiBadge tone="warn">Requiere contrato final</UiBadge>
+                    </div>
+                    <p className="figma-panel-note">La vista previa no sustituye la estimacion real ni la confirmacion protegida del flujo de traslado.</p>
+                  </section>
+                  <section className="subpanel figma-subpanel">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">Mision futura</p>
+                        <h4>Patrulla, exploracion o ataque</h4>
+                      </div>
+                      <UiBadge tone="neutral">No disponible</UiBadge>
+                    </div>
+                    <p className="figma-panel-note">Las misiones, persecuciones, combate e intercepcion ejecutable siguen fuera del alcance de esta cabina.</p>
+                  </section>
+                </div>
+              </UiCard>
             ) : null}
 
             <UiCard className="panel">
