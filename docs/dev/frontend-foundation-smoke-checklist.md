@@ -60,6 +60,46 @@ Hardening gaps to track before visual acceptance:
 - Diagnostics should remain collapsed or secondary but still expose enough information to debug the latest enqueue, resource materialization, or due-queue materialization attempt.
 - The queue materialization action should keep the `Development QA` badge and must not be restyled or renamed as ordinary gameplay progression.
 
+## UI Information Architecture Decluttering Audit
+
+TASK-36A scope note: this is a documentation-only audit. It does not claim browser visual QA and does not change gameplay behavior.
+
+Current duplicated or over-prominent information to remove, consolidate, or move:
+
+- Global shell context is repeated on every cockpit through the top resource bar, the shell intro card, the development endpoint notice, each page `CockpitHero`, route entry forms, `PlayableSessionBanner`, and page-local context panels.
+- The top resource bar still uses mock empire values and a hard-coded user label, while Planet, Construction, Research, Shipyard, Defenses, and Fleets also render backend-derived planet/civilization/resource context. Treat the shell values as obsolete for the playable loop until they can be fed by the selected backend context.
+- `DevEndpointNotice` currently occupies first-viewport space on most pages and says the frontend is read-only / does not execute mutations, which conflicts with the accepted guarded Construction, Research, Shipyard, Fleet transfer, and scoped Development QA materialization flows.
+- Sidebar status is too coarse: implemented mutation-capable routes, read-only advisory routes, and future/disabled work are mixed under labels such as `Solo lectura`, `Disponible`, or no status at all.
+- Planet and Construction duplicate the same session, planet identity, resources, queue, module handoff, diagnostics, and technical metadata because `/construction` is a `PlanetPage` variant.
+- Research and Shipyard each render the shared `DevDiagnosticsPanel` and then a second custom `technical-disclosure`, duplicating diagnostics, backend order ids, limitations, and queue support data.
+- Defenses and Fleets show useful read-state, but both repeat planet/civilization/resource context already shown by the shell or page hero; their backend limitation copy should be secondary to readiness and command context.
+- Onboarding is correctly Development-only, but its first viewport repeats backend/development framing that should become a compact helper context once the page is treated as the playable entry point.
+
+Obsolete or misleading primary copy to remove from first-viewport gameplay surfaces:
+
+- `Prototipo en solo lectura` and `no ejecutan mutaciones de juego` in the global endpoint notice.
+- Broad `solo lectura` language on pages or route statuses that now have guarded real Development mutations.
+- Old backend/prototype language that explains endpoint mechanics before the user sees the page's primary gameplay action or read-state.
+- Mock resource/header copy such as the static `Metal 128.4k` style values and fixed user label when a route has an active backend civilization or planet context.
+- Raw endpoint, payload, JSON, GUID, profile, and diagnostic wording anywhere above page-specific identity, resources, queue/progress, and action readiness.
+
+Target page hierarchy for the decluttering block:
+
+1. Global shell: keep brand and navigation, but stop presenting fake empire resources as authoritative selected-context data.
+2. Compact session/header context: one shared strip for local session, selected civilization, selected planet, and backend profile when needed.
+3. Page-specific primary action or primary read-state: Planet management, Construction order review, Research enqueue, Shipyard production, Defenses readiness, Fleet command, or Onboarding start.
+4. Queue, progress, resource, stock, or readiness panels sourced from backend state.
+5. Secondary Development tools: seeded helper links, scoped materialization, endpoint metadata, and safe limitation notes.
+6. Collapsed diagnostics: raw ids, payloads, API notes, support traces, and technical warnings remain available but default below the main workflow.
+
+Follow-up task boundaries:
+
+- Header/shell cleanup should happen before page-level copy edits so pages can rely on a smaller shared context surface.
+- Sidebar cleanup should clearly distinguish `Mutacion protegida`, `Solo lectura`, `Readiness`, `Development QA`, and future disabled work without implying unsupported production auth.
+- Planet and Construction should be separated visually even while they share implementation, with Construction focused on order selection, confirmation, queue, and handoffs.
+- Research and Shipyard should each keep one diagnostics disclosure, not both the shared panel and a duplicate custom disclosure.
+- Defenses and Planet hub cleanup should preserve read-only/readiness boundaries while moving backend limitation detail below the main readiness panels.
+
 ## Orbital Preparation Runtime Order
 
 Use this exact manual sequence for the current orbital production or military preparation pass. This remains a user-driven visual QA checklist, not proof that the browser checks have already been performed.

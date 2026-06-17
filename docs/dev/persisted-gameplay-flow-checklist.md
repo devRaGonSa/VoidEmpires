@@ -50,6 +50,43 @@ Current accepted block boundary for `Shipyard`, `Defenses`, `Fleets`, and `Plane
   - The cockpit read endpoints do not automatically apply elapsed production during page load, so visible balances remain whatever persistence last stored.
   - Construction, Research, and Shipyard each spend the full visible cost immediately when enqueue succeeds.
 
+## Persisted Gameplay UI Decluttering Scope
+
+TASK-36A defines the UI cleanup target for the persisted playable loop. This section is documentation-only; it does not change routes, endpoints, queue rules, resource spending, or Development-only safety constraints.
+
+Primary information that should remain in the main gameplay path:
+
+- One selected civilization and selected planet context, preferably shared by the shell/header context strip instead of repeated in every page section.
+- Backend-confirmed resources, stock, queue rows, progress, readiness, and mutation results for the active page.
+- The page's single primary action or read-state: Construction order enqueue, Research enqueue, Shipyard production enqueue, Fleet command/transfer flow, Defenses readiness, Planet overview, or Onboarding start.
+- Immediate-spend and backend-refresh rules after successful Construction, Research, or Shipyard enqueue.
+- Explicit Development QA labels only for scoped helper actions that really mutate persisted Development data.
+
+Information that should move out of the primary viewport:
+
+- Global development endpoint details, backend profile strings, raw route ids, raw API payloads, and JSON previews.
+- Repeated local-session explanations after the selected context is already visible.
+- Repeated resource summaries when the same planet stockpile is already shown in the active workflow.
+- Diagnostics for ownership, stockpile presence, production profile presence, open order counts, technical limitations, and support traces.
+- Global "read-only" or "no mutation" disclaimers that conflict with the accepted guarded mutation paths.
+
+Target persisted-loop page order:
+
+1. Compact context: civilization, planet, route focus, and local-session recovery if available.
+2. Authoritative backend state: resources, queue/progress, stock/readiness, and current blockers.
+3. Controlled action: review, confirmation, acknowledgement, submit, backend result, and refreshed state.
+4. Handoffs: links to neighboring cockpits that preserve `civilizationId` and `planetId`.
+5. Development tools: scoped materialization or setup helpers, clearly separated from normal gameplay.
+6. Collapsed diagnostics: ids, endpoint metadata, payloads, and technical notes.
+
+Accepted decluttering constraints:
+
+- Do not hide diagnostics entirely; collapse or demote them so QA can still inspect persisted state.
+- Do not make scoped Development QA materialization look like ordinary gameplay progression.
+- Do not imply production authentication or an active logged-in civilization resolver exists.
+- Do not fabricate shell-level resources from static mock data when backend-selected context is available.
+- Do not change the accepted backend-authoritative rule: visible state after a mutation must come from a backend refresh, not optimistic local rows.
+
 ## Queue completion materialization contract v1
 
 Persisted order models audited for this block:

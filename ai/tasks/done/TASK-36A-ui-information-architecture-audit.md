@@ -3,7 +3,7 @@
 ---
 id: TASK-36A
 title: UI information architecture audit
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: [gameplay]
