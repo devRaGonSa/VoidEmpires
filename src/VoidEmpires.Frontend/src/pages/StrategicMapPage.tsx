@@ -12,6 +12,7 @@ import type {
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { PageContextStrip } from "../components/PageContextStrip";
+import { PageStatePanel } from "../components/PageStatePanel";
 import { StrategicMap2DView } from "../components/StrategicMap2DView";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -735,56 +736,40 @@ export function StrategicMapPage() {
       )}
 
       {hasMissingContext && !hasInvalidContext && (
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Contexto requerido</p>
-              <h3>Galaxia necesita una civilizacion activa</h3>
-            </div>
-            <UiBadge>Uso local</UiBadge>
-          </div>
-          <p className="figma-panel-note">
-            Carga un contexto de civilizacion para abrir Galaxia.
-          </p>
-          <p className="figma-panel-note">
-            Puedes introducir el `civilizationId` manualmente o llegar desde
-            Planeta, Construccion, Investigacion, Astillero o Flotas para conservar
-            el contexto actual.
-          </p>
-        </UiCard>
+        <PageStatePanel
+          kind="empty"
+          eyebrow="Contexto requerido"
+          title="Galaxia necesita una civilizacion activa"
+          description="Carga un contexto de civilizacion para abrir Galaxia."
+          detail="Puedes introducir el civilizationId manualmente o llegar desde Planeta, Construccion, Investigacion, Astillero o Flotas para conservar el contexto actual."
+          badgeLabel="Uso local"
+          badgeTone="neutral"
+        />
       )}
 
       {isLoading && (
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Cargando</p>
-              <h3>Sincronizando mapa de Galaxia</h3>
-              <p>Consultando sistemas visibles, planetas conocidos y marcadores tacticos.</p>
-            </div>
-            <UiBadge>Cargando...</UiBadge>
-          </div>
-        </UiCard>
+        <PageStatePanel
+          kind="loading"
+          title="Sincronizando mapa de Galaxia"
+          description="Consultando sistemas visibles, planetas conocidos y marcadores tacticos."
+        />
       )}
 
       {hasApiError && (
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Fallo de carga</p>
-              <h3>No se pudo cargar el mapa de Galaxia.</h3>
-              <p>La cabina sigue accesible, pero el backend no devolvio un mapa util para este contexto.</p>
-            </div>
-            <UiBadge tone="warn">Sin mapa</UiBadge>
-          </div>
-          <p className="error-text">{error}</p>
-          {errorTechnicalDetail ? (
+        <PageStatePanel
+          kind="error"
+          eyebrow="Fallo de carga"
+          title="No se pudo cargar el mapa de Galaxia."
+          description={error ?? "La cabina sigue accesible, pero el backend no devolvio un mapa util para este contexto."}
+          detail="La cabina sigue accesible, pero el backend no devolvio un mapa util para este contexto."
+          badgeLabel="Sin mapa"
+          action={errorTechnicalDetail ? (
             <details className="json-details">
               <summary>Detalle tecnico</summary>
               <pre className="json-preview">{errorTechnicalDetail}</pre>
             </details>
           ) : null}
-        </UiCard>
+        />
       )}
 
       {hasEmptyStrategicReadModel && (
