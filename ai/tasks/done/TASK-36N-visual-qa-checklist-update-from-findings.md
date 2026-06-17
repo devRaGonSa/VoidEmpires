@@ -3,7 +3,7 @@
 ---
 id: TASK-36N
 title: Visual QA checklist update from findings
-status: pending
+status: done
 type: docs
 team: frontend
 supporting_teams: [gameplay]

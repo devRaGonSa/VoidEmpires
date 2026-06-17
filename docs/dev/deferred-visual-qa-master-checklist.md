@@ -20,6 +20,21 @@ Use it with:
 - Scope: `/onboarding`, `/planet`, `/construction`, `/research`, `/shipyard`, `/defenses`, and `/fleets`.
 - Non-scope: production auth, real combat, fleet movement from Shipyard or Planet, exploration missions, WebGL/3D acceptance, and hidden auto-completion.
 
+## Screenshot-Derived Decluttering Checks
+
+These checks come from the user's observed overloaded Planet and Construction screens. This implementation block cleans up the documented issues, but full browser QA remains user-driven until a later manual pass captures and reviews screenshots.
+
+- Global header: confirm it does not show disconnected mock resource bars or static empire values as if they were the selected backend context.
+- Sidebar: confirm playable mutation-capable routes, read-only routes, readiness routes, Development QA helpers, and future/disabled work are grouped or labeled distinctly.
+- Mutating pages: confirm Construction, Research, Shipyard, guarded Fleet transfer actions, and Development materialization controls do not use obsolete primary `solo lectura` copy.
+- Planet hub: confirm primary actions and handoffs are visible before diagnostics, raw ids, endpoint metadata, or deep technical notes.
+- Construction catalog: confirm available and blocked construction options appear without excessive first-viewport scrolling, duplicate planet-summary noise, or debug-first panels.
+- Development tools: confirm QA-only resource/materialization actions are collapsed, secondary, or visually separated from normal gameplay actions.
+- Development actions: confirm any action that mutates Development data opens an explicit review or confirmation modal/flow before the backend request.
+- Diagnostics: confirm diagnostics remain collapsed by default or clearly secondary, and never dominate the primary workflow.
+- Resource labels: confirm visible resource terms stay coherent as `Creditos`, `Metal`, `Cristal`, `Gas`, with `Energia`, `Deuterio`, and `Poblacion` treated as distinct context terms when shown.
+- Readiness pages: confirm Defensas, Flotas, Mercado, Alianzas, Ranking, Espionaje, and Ground Army keep honest read-only/readiness scope without primary-looking unavailable actions.
+
 ## Ordered Browser Plan
 
 1. Start the backend:
