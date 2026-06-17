@@ -3,7 +3,7 @@
 ---
 id: TASK-36P
 title: Final UI decluttering closure
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend, gameplay]
