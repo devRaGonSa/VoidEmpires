@@ -1,4 +1,5 @@
 import { type KeyboardEvent, type ReactNode, useId } from "react";
+import { ActionStateBadge, type ActionState } from "./ActionStateBadge";
 
 interface GameModalAction {
   label: string;
@@ -34,6 +35,7 @@ export function GameModal({
   const titleId = useId();
   const descriptionId = useId();
   const closeAllowed = canClose && !isBusy;
+  const primaryActionState: ActionState = isBusy ? "loading" : primaryAction.disabled ? "blocked" : "pending";
 
   if (!isOpen) {
     return null;
@@ -78,6 +80,10 @@ export function GameModal({
                 {description}
               </p>
             ) : null}
+            <ActionStateBadge
+              state={primaryActionState}
+              label={isBusy ? "Procesando" : primaryAction.disabled ? "Bloqueado" : "Pendiente de confirmacion"}
+            />
           </div>
           <button
             aria-label={closeLabel}

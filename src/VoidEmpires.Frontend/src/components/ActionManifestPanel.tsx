@@ -1,6 +1,7 @@
 import type { ActionManifestAction } from "../api/actionManifestTypes";
 import type { FleetMutationConfirmationModel } from "../utils/fleetCommandPresentation";
 import { getUserFacingActionLabel } from "../utils/fleetCommandPresentation";
+import { ActionStateBadge } from "./ActionStateBadge";
 import { StatusBadge } from "./StatusBadge";
 
 interface ActionManifestPanelProps {
@@ -91,9 +92,7 @@ export function ActionManifestPanel({
                     {action.actionKey}
                   </p>
                 </div>
-                <StatusBadge tone={action.isReadOnly ? "good" : "warn"}>
-                  {action.isReadOnly ? "Metadatos de solo lectura" : "Metadatos de mutacion de prototipo"}
-                </StatusBadge>
+                <ActionStateBadge state={action.isReadOnly ? "readOnly" : "developmentOnly"} />
               </div>
 
               <dl className="meta-list">
