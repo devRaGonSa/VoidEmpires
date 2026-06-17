@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchAllianceUiState } from "../api/allianceApi";
 import { CockpitHero } from "../components/CockpitHero";
+import { PageContextStrip } from "../components/PageContextStrip";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
@@ -10,7 +11,6 @@ import {
   getAllianceCatalogPlaceholder,
   getAllianceContactCardTitle,
   getAllianceContactReadinessLabel,
-  getAllianceFutureActionPlaceholders,
   getAllianceNextCockpitHint,
   getAllianceReadOnlyStatement,
   getAllianceStaticLabels,
@@ -27,10 +27,11 @@ import {
   buildEspionageUrl,
   buildGalaxyUrl,
   buildMarketUrl,
+  buildRankingUrl,
 } from "../utils/routeUrls";
+import { formatCompactGuid } from "../utils/domainPresentation";
 
 const allianceLabels = getAllianceStaticLabels();
-const allianceFutureActionPlaceholders = getAllianceFutureActionPlaceholders();
 
 interface AllianceCatalogCard {
   key: string;
@@ -85,12 +86,18 @@ const allianceHandoffCards: readonly AllianceHandoffCard[] = [
   {
     key: "ranking",
     label: "Ranking",
-    title: "Referencia futura",
-    description: "La cabina de Ranking todavia no forma parte de la suite implementada, asi que Alianzas no debe insinuar una ruta navegable.",
+    title: "Referencia de poder",
+    description: "Permite comparar poder relativo y contexto diplomatico sin convertir Alianzas en una superficie de pactos ejecutables.",
     ctaLabel: "Abrir Ranking",
-    unavailableMessage: "Ruta no disponible en esta version.",
   },
 ] as const;
+
+function getAllianceReadinessStatus(uiState: AllianceUiState | null) {
+  if (!uiState) return "Esperando lectura";
+  if (uiState.status?.hasActiveAlliance) return "Metadata de alianza";
+  if (uiState.contacts.length > 0) return "Contactos preparados";
+  return "Sin alianza activa";
+}
 
 export function AlliancePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -116,6 +123,7 @@ export function AlliancePage() {
   const readOnlyStatement = getAllianceReadOnlyStatement();
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const activeHomePlanetId = uiState?.identity?.homePlanetId ?? null;
+  const allianceReadinessStatus = getAllianceReadinessStatus(uiState);
   const catalogSections = useMemo<AllianceCatalogSection[]>(() => {
     const confirmedCards = groupedContacts.confirmed.map((contact, index) => ({
       key: `known-${contact.contactedCivilizationId}`,
@@ -376,6 +384,52 @@ export function AlliancePage() {
           </>
         )}
       />
+
+      {queryCivilizationId ? (
+        <PageContextStrip
+          eyebrow="Cabina diplomatica"
+          title={uiState?.identity?.civilizationName ?? "Lectura de alianzas"}
+          purpose="Identidad, contactos y pactos futuros como metadata de solo lectura, sin invitaciones, permisos compartidos ni gestion de miembros."
+          statusLabel={allianceReadinessStatus}
+          statusTone={uiState ? "good" : "warn"}
+          contextItems={[
+            { label: "Civilizacion", value: formatCompactGuid(activeCivilizationId) },
+            {
+              label: "Estado",
+              value: uiState?.status?.stateLabel ?? allianceLabels.noActiveAlliance,
+              detail: uiState?.status?.supportText ?? "Carga pendiente",
+            },
+            {
+              label: "Contactos",
+              value: String(contactKnownCount),
+              detail: contactKnownCount > 0 ? allianceLabels.knownContact : "Sin contactos conocidos",
+            },
+            {
+              label: "Mundo base",
+              value: uiState?.identity?.homePlanetLabel ?? formatCompactGuid(activeHomePlanetId) ?? "Sin mundo base",
+              detail: activeHomePlanetId ? "Contexto conservado" : undefined,
+            },
+          ]}
+          resourceItems={[
+            { label: "Diplomacia", value: "Solo lectura", tone: "good" },
+            { label: "Mutaciones", value: "Bloqueadas", tone: "warn" },
+            { label: "Visibilidad", value: "No compartida", tone: "neutral" },
+          ]}
+          primaryAction={
+            <div className="selection-chip-row">
+              <Link className="selection-chip selection-chip-active" to={buildGalaxyUrl(activeCivilizationId, undefined, activeHomePlanetId)}>
+                Abrir Galaxia
+              </Link>
+              <Link className="selection-chip" to={buildMarketUrl(activeCivilizationId, activeHomePlanetId)}>
+                Abrir Mercado
+              </Link>
+              <Link className="selection-chip" to={buildEspionageUrl(activeCivilizationId, undefined, activeHomePlanetId)}>
+                Abrir Espionaje
+              </Link>
+            </div>
+          }
+        />
+      ) : null}
 
       <UiCard className="panel alliance-summary-panel">
         <div className="figma-section-header">
@@ -652,32 +706,43 @@ export function AlliancePage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Hoja de ruta</p>
-                <h3>Acciones diplomaticas futuras</h3>
-                <p>Estas referencias mantienen visible la direccion futura sin abrir ninguna accion ejecutable desde Alianzas.</p>
+                <p className="eyebrow">Preparacion diplomatica</p>
+                <h3>Fundacion sin autoridad compartida</h3>
+                <p>La direccion futura queda documentada como contexto secundario. Alianzas no confirma pactos, invitaciones, permisos ni miembros.</p>
               </div>
               <UiBadge tone="warn">No disponible</UiBadge>
             </div>
-            <div className="market-future-actions-grid">
-              {allianceFutureActionPlaceholders.map((action) => (
-                <section key={action.key} className="subpanel figma-subpanel market-future-action-card">
-                  <div className="figma-section-header">
-                    <div>
-                      <p className="eyebrow">Accion futura</p>
-                      <h4>{action.label}</h4>
-                    </div>
-                    <UiBadge tone="warn">No disponible</UiBadge>
+            <div className="readiness-grid">
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Relaciones</p>
+                    <h4>Invitaciones y solicitudes diferidas</h4>
                   </div>
-                  <ul className="stack-list compact-list">
-                    <li>No disponible en esta version.</li>
-                    <li>Solo lectura en esta cabina.</li>
-                    <li>Esta accion queda visible como referencia futura, pero no se puede ejecutar.</li>
-                  </ul>
-                  <button type="button" className="planet-action-button-blocked" disabled>
-                    No disponible en esta version
-                  </button>
-                </section>
-              ))}
+                  <UiBadge tone="warn">No disponible</UiBadge>
+                </div>
+                <p className="figma-panel-note">La cabina no abre altas, bajas, invitaciones, solicitudes ni gestion de miembros.</p>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Pactos</p>
+                    <h4>Tratados como metadata futura</h4>
+                  </div>
+                  <UiBadge tone="warn">Fase futura</UiBadge>
+                </div>
+                <p className="figma-panel-note">Comercio, defensa y no agresion permanecen como lectura preparada, no como acuerdos activos.</p>
+              </section>
+              <section className="subpanel figma-subpanel">
+                <div className="figma-section-header">
+                  <div>
+                    <p className="eyebrow">Dependencias finales</p>
+                    <h4>Autoridad diplomatica pendiente</h4>
+                  </div>
+                  <UiBadge tone="warn">No final</UiBadge>
+                </div>
+                <p className="figma-panel-note">Persistencia final, autorizacion de produccion, activos finales, mercado, movimiento y combate siguen fuera de esta cabina.</p>
+              </section>
             </div>
           </UiCard>
         </>
@@ -758,7 +823,7 @@ export function AlliancePage() {
                 ? buildMarketUrl(activeCivilizationId, activeHomePlanetId)
                 : card.key === "espionage"
                   ? buildEspionageUrl(activeCivilizationId, undefined, activeHomePlanetId)
-                  : null;
+                  : buildRankingUrl(activeCivilizationId);
 
             return (
               <section key={card.key} className="subpanel figma-subpanel">
