@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchDefensesUiState } from "../api/defenseApi";
 import { CockpitHero } from "../components/CockpitHero";
+import { PageContextStrip } from "../components/PageContextStrip";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -233,6 +234,43 @@ export function DefensesPage() {
         onClear={() => setLocalSessionCleared(true)}
       />
 
+      {defenses ? (
+        <PageContextStrip
+          eyebrow="Cabina defensiva"
+          title={defenses.planetName}
+          purpose="Readiness defensiva, estructuras locales y handoff seguro hacia Construccion."
+          statusLabel={protectionPosture}
+          statusTone={defenses.isOwnedByRequestingCivilization ? "good" : "warn"}
+          contextItems={[
+            { label: "Sistema", value: defenses.solarSystemName },
+            { label: "Control", value: defenses.isOwnedByRequestingCivilization ? "Colonia propia" : defenses.ownerCivilizationName ?? "Sin control local" },
+            { label: "Siguiente paso", value: recommendedNextStep },
+            {
+              label: "Cola defensiva",
+              value: defenses.queue.length > 0 ? `${defenses.queue.length} ordenes visibles` : "Sin cola",
+              detail: `${defenses.protectionSummary.dueQueueItemCount} vencidas`,
+            },
+          ]}
+          resourceItems={defenses.stockpile.slice(0, 4).map((resource) => ({
+            label: formatResourceType(resource.resourceType),
+            value: String(resource.quantity),
+          }))}
+          primaryAction={
+            <div className="selection-chip-row">
+              <Link className="selection-chip selection-chip-active" to={buildConstructionUrl(activeCivilizationId, defenses.planetId)}>
+                Construccion
+              </Link>
+              <Link className="selection-chip" to={buildPlanetUrl(activeCivilizationId, defenses.planetId)}>
+                Planeta
+              </Link>
+              <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, null, defenses.planetId)}>
+                Galaxia
+              </Link>
+            </div>
+          }
+        />
+      ) : null}
+
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">
           <div className="figma-section-header">
@@ -277,26 +315,6 @@ export function DefensesPage() {
           {!queryCivilizationId && !isLoading ? (
             <p className="figma-panel-note">Introduce un `civilizationId` valido para abrir la cabina de defensas.</p>
           ) : null}
-        </UiCard>
-
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Contexto activo</p>
-              <h3>Planeta y ownership</h3>
-            </div>
-            <UiBadge>{defenses ? defenses.planetName : "Sin planeta"}</UiBadge>
-          </div>
-          {defenses ? (
-            <div className="figma-data-list">
-              <div className="figma-data-row"><span>Planeta</span><strong>{defenses.planetName}</strong></div>
-              <div className="figma-data-row"><span>Sistema</span><strong>{defenses.solarSystemName}</strong></div>
-              <div className="figma-data-row"><span>Control</span><strong>{defenses.isOwnedByRequestingCivilization ? "Colonia propia" : "Sin control local"}</strong></div>
-              <div className="figma-data-row"><span>Cabina</span><strong>Defensas</strong></div>
-            </div>
-          ) : (
-            <p className="figma-panel-note">La cabina mostrara el planeta seleccionado cuando el contexto incluya `civilizationId` y, si aplica, `planetId`.</p>
-          )}
         </UiCard>
 
         <UiCard className="panel">

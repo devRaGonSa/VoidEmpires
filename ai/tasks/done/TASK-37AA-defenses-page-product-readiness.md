@@ -3,7 +3,7 @@
 ---
 id: TASK-37AA
 title: Defenses page product readiness
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: [gameplay]
