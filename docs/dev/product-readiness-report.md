@@ -108,6 +108,8 @@ No integration tests are configured for this documentation-only prep update.
 8. Alliance creation, invitations, pacts, roles, treasury, messaging, and shared visibility behavior.
 9. Final image/asset integration.
 
+The remaining product risks are tracked in `docs/dev/final-risk-register.md`.
+
 ## Validation Needs
 
 Before using the shell for a local demo:
