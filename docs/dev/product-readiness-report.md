@@ -48,6 +48,46 @@ These flows are usable for local QA and demo, but they are not production featur
 - Decide final queue, resource, stock, fleet, research, market, alliance, and ranking ownership boundaries.
 - Keep CI/test paths independent of the real PostgreSQL database unless a future integration-test task explicitly configures that boundary.
 
+## Final DB Phase Prep Plan
+
+The final DB/model phase should start only after the current Development-only shell boundaries are preserved and the module catalog notes remain the source of seed-shape input:
+
+- `docs/dev/catalog-metadata-readiness.md`
+- `docs/dev/building-catalog-final-db-readiness.md`
+- `docs/dev/research-catalog-final-db-readiness.md`
+- `docs/dev/resource-economy-final-db-readiness.md`
+- `docs/dev/ship-catalog-final-db-readiness.md`
+- `docs/dev/defense-catalog-final-db-readiness.md`
+
+Recommended entry criteria:
+
+1. Confirm which catalog metadata becomes durable relational seed data versus versioned content rows.
+2. Confirm final ownership for resource stockpiles, production profiles, population profiles, construction queues, research queues, orbital production queues, orbital stock, fleet groups, transfers, market state, alliance state, ranking snapshots, and player-to-civilization resolution.
+3. Confirm which current Development seed profiles stay QA-only and which deterministic rows become production initialization.
+4. Confirm the migration boundary for catalog metadata separately from player-owned gameplay state.
+5. Confirm that final generated assets remain nullable references until the asset phase lands.
+
+Recommended implementation sequence for the later final DB task:
+
+1. Add seed metadata contracts or tables for catalog rows without changing owned gameplay state rows.
+2. Add seed validation that every catalog row maps to a known domain key and every cost-bearing resource maps to a persisted or explicitly non-spendable resource key.
+3. Add migrations in a dedicated task and run them only against disposable/local validation databases, not automatically against a real shared database.
+4. Add tests that keep ordinary CI independent of real PostgreSQL, with integration tests enabled only when repository-specific integration configuration exists.
+5. Update read models to consume durable metadata only after validation proves frontend fallbacks and backend catalogs stay aligned.
+6. Keep production auth, combat, fleet movement productization, market transactions, alliance mutations, and final asset acceptance outside the DB metadata change unless separate tasks explicitly accept those behaviors.
+
+Required validation gates for that phase:
+
+- `dotnet build --no-restore`
+- `dotnet test --no-build`
+- catalog seed drift tests for building, research, resource, ship/orbital, and defense metadata
+- migration generation/replay against a disposable local database when integration tests are configured
+- `npm run build --prefix src/VoidEmpires.Frontend`
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1`
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1`
+
+No integration tests are configured for this documentation-only prep update.
+
 ## Final Image And Asset Needs
 
 - Final generated or curated assets are still pending.
