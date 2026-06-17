@@ -3,7 +3,7 @@
 ---
 id: TASK-36O
 title: Current state and final validation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend, gameplay]
