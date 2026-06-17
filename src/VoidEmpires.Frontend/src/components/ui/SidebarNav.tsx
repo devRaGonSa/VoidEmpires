@@ -3,11 +3,28 @@ import { NavLink, useLocation } from "react-router-dom";
 export interface SidebarNavItem {
   label: string;
   to?: string;
-  state?: "implemented" | "readOnly" | "future";
+  state?: "playable" | "map" | "readiness" | "readOnly" | "future";
 }
 
 interface SidebarNavProps {
   items: SidebarNavItem[];
+}
+
+function getSidebarStateNote(state: SidebarNavItem["state"]) {
+  switch (state) {
+    case "playable":
+      return "Bucle jugable";
+    case "map":
+      return "Mapa";
+    case "readiness":
+      return "Preparacion";
+    case "readOnly":
+      return "Solo lectura";
+    case "future":
+      return "Futuro";
+    default:
+      return null;
+  }
 }
 
 export function SidebarNav({ items }: SidebarNavProps) {
@@ -15,8 +32,11 @@ export function SidebarNav({ items }: SidebarNavProps) {
 
   return (
     <nav className="sidebar-nav" aria-label="Primary">
-      {items.map((item) =>
-        item.to ? (
+      {items.map((item) => {
+        const stateNote = getSidebarStateNote(item.state);
+        const stateClass = `sidebar-nav-item-${item.state ?? "readiness"}`;
+
+        return item.to ? (
           <NavLink
             key={item.label}
             to={item.to}
@@ -26,14 +46,12 @@ export function SidebarNav({ items }: SidebarNavProps) {
                 item.to === "/galaxy" && location.pathname === "/";
 
               return isActive || shouldHighlightGalaxyAlias
-                ? "sidebar-nav-item sidebar-nav-item-implemented sidebar-nav-item-active"
-                : "sidebar-nav-item sidebar-nav-item-implemented";
+                ? `sidebar-nav-item ${stateClass} sidebar-nav-item-active`
+                : `sidebar-nav-item ${stateClass}`;
             }}
           >
             <span className="sidebar-nav-item-label">{item.label}</span>
-            {item.state === "readOnly" ? (
-              <small className="sidebar-nav-item-note">Solo lectura</small>
-            ) : null}
+            {stateNote ? <small className="sidebar-nav-item-note">{stateNote}</small> : null}
           </NavLink>
         ) : (
           <span
@@ -42,10 +60,10 @@ export function SidebarNav({ items }: SidebarNavProps) {
             aria-disabled="true"
           >
             <span className="sidebar-nav-item-label">{item.label}</span>
-            <small className="sidebar-nav-item-note">Futuro</small>
+            {stateNote ? <small className="sidebar-nav-item-note">{stateNote}</small> : null}
           </span>
-        ),
-      )}
+        );
+      })}
     </nav>
   );
 }

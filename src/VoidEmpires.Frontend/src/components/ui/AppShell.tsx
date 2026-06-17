@@ -44,7 +44,7 @@ export function AppShell({
           <div className="app-sidebar-head">
             <p className="eyebrow">Superficie imperial</p>
             <h2>Mapa de mando</h2>
-            <p>Solo estan habilitadas las rutas de lectura ya implementadas.</p>
+            <p>Bucle jugable local, preparacion y lecturas de soporte.</p>
           </div>
           <SidebarNav items={sidebarItems} />
         </aside>

@@ -3,7 +3,7 @@
 ---
 id: TASK-36C
 title: Sidebar status and navigation declutter
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

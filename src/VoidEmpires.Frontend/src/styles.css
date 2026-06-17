@@ -246,9 +246,24 @@ select {
   text-transform: uppercase;
 }
 
-.sidebar-nav-item-implemented {
+.sidebar-nav-item-playable,
+.sidebar-nav-item-map,
+.sidebar-nav-item-readiness,
+.sidebar-nav-item-readOnly {
   border-color: color-mix(in srgb, var(--ve-color-border) 28%, transparent);
   background: color-mix(in srgb, var(--ve-color-panel) 22%, transparent);
+}
+
+.sidebar-nav-item-playable {
+  border-color: color-mix(in srgb, var(--ve-color-success) 26%, transparent);
+}
+
+.sidebar-nav-item-readiness {
+  border-color: color-mix(in srgb, var(--ve-color-warning) 24%, transparent);
+}
+
+.sidebar-nav-item-readOnly {
+  color: color-mix(in srgb, var(--ve-color-text) 76%, var(--ve-color-muted));
 }
 
 .sidebar-nav-item-active {

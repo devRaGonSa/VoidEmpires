@@ -4,7 +4,7 @@ import { appConfig } from "./config";
 import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
 import { AppShell } from "./components/ui/AppShell";
 import type { SidebarNavItem } from "./components/ui/SidebarNav";
-import { specializedPlanetModuleRoutes } from "./utils/planetModuleRoutes";
+import { specializedPlanetModuleRoutes, type PlanetModuleRouteInfo } from "./utils/planetModuleRoutes";
 import {
   buildAllianceUrl,
   buildConstructionUrl,
@@ -87,6 +87,19 @@ const ModuleCabinPage = lazy(async () => {
   return { default: module.ModuleCabinPage };
 });
 
+function getPlanetModuleNavState(module: PlanetModuleRouteInfo["module"]): SidebarNavItem["state"] {
+  switch (module) {
+    case "Research":
+    case "Shipyard":
+      return "playable";
+    case "Defenses":
+    case "GroundArmy":
+      return "readiness";
+    default:
+      return "readiness";
+  }
+}
+
 export default function App() {
   const location = useLocation();
   const shellStatusItems = useMemo(() => {
@@ -115,19 +128,19 @@ export default function App() {
     const systemId = civilizationId ? searchParams.get("systemId") : null;
 
     return [
-      { label: "Nuevo inicio", to: "/onboarding", state: "implemented" },
-      { label: "Galaxia", to: buildGalaxyUrl(civilizationId, systemId, planetId), state: "implemented" },
-      { label: "Planeta", to: buildPlanetUrl(civilizationId, planetId), state: "implemented" },
-      { label: "Construccion", to: buildConstructionUrl(civilizationId, planetId), state: "implemented" },
+      { label: "Nuevo inicio", to: "/onboarding", state: "playable" },
+      { label: "Galaxia", to: buildGalaxyUrl(civilizationId, systemId, planetId), state: "map" },
+      { label: "Planeta", to: buildPlanetUrl(civilizationId, planetId), state: "playable" },
+      { label: "Construccion", to: buildConstructionUrl(civilizationId, planetId), state: "playable" },
       ...specializedPlanetModuleRoutes.map((route) => ({
         label: route.label,
         to: buildSpecializedModuleUrl(route.module, civilizationId, planetId),
-        state: "implemented" as const,
+        state: getPlanetModuleNavState(route.module),
       })),
-      { label: "Flotas", to: buildFleetsUrl(civilizationId, planetId), state: "implemented" },
-      { label: "Espionaje", to: buildEspionageUrl(civilizationId, systemId, planetId), state: "implemented" },
+      { label: "Flotas", to: buildFleetsUrl(civilizationId, planetId), state: "readiness" },
+      { label: "Espionaje", to: buildEspionageUrl(civilizationId, systemId, planetId), state: "readiness" },
       { label: "Alianza", to: buildAllianceUrl(civilizationId), state: "readOnly" },
-      { label: "Mercado", to: buildMarketUrl(civilizationId, planetId), state: "implemented" },
+      { label: "Mercado", to: buildMarketUrl(civilizationId, planetId), state: "readiness" },
       { label: "Ranking", to: buildRankingUrl(civilizationId), state: "readOnly" },
     ];
   }, [location.search]);
