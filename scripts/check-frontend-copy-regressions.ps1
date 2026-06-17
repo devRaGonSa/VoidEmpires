@@ -278,6 +278,16 @@ if (-not (Test-Path -LiteralPath $playableSessionPath)) {
   throw "Playable session helper was not found at '$playableSessionPath'."
 }
 
+$playableSessionViolations = New-Object System.Collections.Generic.List[string]
+$browserStorageMatches = Select-String -Path (
+  $frontendFiles |
+    Where-Object { $_.FullName -ne $playableSessionPath } |
+    Select-Object -ExpandProperty FullName
+) -Pattern @("localStorage", "sessionStorage") -SimpleMatch -CaseSensitive:$true
+foreach ($match in @($browserStorageMatches)) {
+  $playableSessionViolations.Add(("{0}:{1}: browser storage access must stay centralized in playableSession.ts: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
+}
+
 $playableSessionContent = Get-Content -LiteralPath $playableSessionPath -Raw
 $requiredPlayableSessionFragments = @(
   "civilizationId: string;",
@@ -300,7 +310,6 @@ $forbiddenPlayableSessionFragments = @(
   "auth"
 )
 
-$playableSessionViolations = New-Object System.Collections.Generic.List[string]
 foreach ($fragment in $requiredPlayableSessionFragments) {
   if ($playableSessionContent -notlike "*$fragment*") {
     $playableSessionViolations.Add("playableSession.ts is missing allowed navigation field fragment: $fragment")

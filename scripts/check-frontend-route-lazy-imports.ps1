@@ -80,12 +80,48 @@ $routeGuardPages = @(
         RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildResearchUrl", "buildGalaxyUrl", "buildFleetsUrl")
     },
     @{
+        Path = "src/VoidEmpires.Frontend/src/pages/ResearchPage.tsx"
+        RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildGalaxyUrl", "buildFleetsUrl")
+    },
+    @{
         Path = "src/VoidEmpires.Frontend/src/pages/DefensesPage.tsx"
         RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildShipyardUrl", "buildGalaxyUrl", "buildFleetsUrl")
     },
     @{
+        Path = "src/VoidEmpires.Frontend/src/pages/GroundArmyPage.tsx"
+        RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildDefensesUrl", "buildGalaxyUrl", "buildFleetsUrl")
+    },
+    @{
         Path = "src/VoidEmpires.Frontend/src/pages/FleetsPage.tsx"
         RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildShipyardUrl", "buildGalaxyUrl")
+    },
+    @{
+        Path = "src/VoidEmpires.Frontend/src/pages/MarketPage.tsx"
+        RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildShipyardUrl", "buildGalaxyUrl", "buildFleetsUrl")
+    },
+    @{
+        Path = "src/VoidEmpires.Frontend/src/pages/EspionagePage.tsx"
+        RequiredHelpers = @("buildPlanetUrl", "buildResearchUrl", "buildGalaxyUrl", "buildFleetsUrl")
+    },
+    @{
+        Path = "src/VoidEmpires.Frontend/src/pages/AlliancePage.tsx"
+        RequiredHelpers = @("buildMarketUrl", "buildEspionageUrl", "buildGalaxyUrl", "buildRankingUrl")
+    },
+    @{
+        Path = "src/VoidEmpires.Frontend/src/pages/RankingPage.tsx"
+        RequiredHelpers = @("buildMarketUrl", "buildEspionageUrl", "buildGalaxyUrl", "buildAllianceUrl")
+    },
+    @{
+        Path = "src/VoidEmpires.Frontend/src/pages/StrategicMapPage.tsx"
+        RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildGalaxyUrl", "buildFleetsUrl")
+    },
+    @{
+        Path = "src/VoidEmpires.Frontend/src/pages/OnboardingPage.tsx"
+        RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildResearchUrl", "buildShipyardUrl", "buildGalaxyUrl")
+    },
+    @{
+        Path = "src/VoidEmpires.Frontend/src/pages/ModuleCabinPage.tsx"
+        RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildFleetsUrl")
     }
 )
 
@@ -111,6 +147,23 @@ foreach ($page in $routeGuardPages) {
     }
 }
 
+$frontendRouteSurfaceRoots = @(
+    "src/VoidEmpires.Frontend/src/pages",
+    "src/VoidEmpires.Frontend/src/components"
+)
+$frontendRouteSurfaceFiles = foreach ($surfaceRoot in $frontendRouteSurfaceRoots) {
+    $surfacePath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$surfaceRoot"))
+    if (Test-Path -LiteralPath $surfacePath) {
+        Get-ChildItem -LiteralPath $surfacePath -Recurse -Include *.ts, *.tsx -File
+    }
+}
+
+$globalHardCodedRoutePattern = '(?m)(to|href)=\{?["'']/(planet|construction|research|shipyard|defenses|ground-army|fleets|galaxy|market|espionage|alliance|ranking)\b'
+$globalHardCodedRouteMatches = Select-String -Path ($frontendRouteSurfaceFiles | Select-Object -ExpandProperty FullName) -Pattern $globalHardCodedRoutePattern
+foreach ($match in @($globalHardCodedRouteMatches)) {
+    $routeGuardViolations.Add("$($match.Path):$($match.LineNumber) contains a hard-coded cockpit route link. Use route URL helpers to preserve query params.")
+}
+
 if ($routeGuardViolations.Count -gt 0) {
     throw "Frontend cockpit route helper guard failed:`n$($routeGuardViolations -join [Environment]::NewLine)"
 }
@@ -125,9 +178,15 @@ $requiredRouteHelperFragments = @(
     @{ Name = "buildPlanetUrl"; Pattern = 'return buildUrl\("/planet", \{ civilizationId, planetId \}\);' },
     @{ Name = "buildConstructionUrl"; Pattern = 'return buildUrl\("/construction", \{ civilizationId, planetId \}\);' },
     @{ Name = "buildResearchUrl"; Pattern = 'return buildUrl\("/research", \{ civilizationId, planetId \}\);' },
+    @{ Name = "buildGroundArmyUrl"; Pattern = 'return buildUrl\("/ground-army", \{ civilizationId, planetId \}\);' },
     @{ Name = "buildShipyardUrl"; Pattern = 'return buildUrl\("/shipyard", \{ civilizationId, planetId \}\);' },
+    @{ Name = "buildMarketUrl"; Pattern = 'return buildUrl\("/market", \{ civilizationId, planetId \}\);' },
+    @{ Name = "buildAllianceUrl"; Pattern = 'return buildUrl\("/alliance", \{ civilizationId \}\);' },
     @{ Name = "buildDefensesUrl"; Pattern = 'return buildUrl\("/defenses", \{ civilizationId, planetId \}\);' },
-    @{ Name = "buildFleetsUrl"; Pattern = 'return buildUrl\("/fleets", \{ civilizationId, planetId \}\);' }
+    @{ Name = "buildGalaxyUrl"; Pattern = 'return buildUrl\("/galaxy", \{ civilizationId, systemId, planetId \}\);' },
+    @{ Name = "buildFleetsUrl"; Pattern = 'return buildUrl\("/fleets", \{ civilizationId, planetId \}\);' },
+    @{ Name = "buildEspionageUrl"; Pattern = 'return buildUrl\("/espionage", \{ civilizationId, systemId, planetId \}\);' },
+    @{ Name = "buildRankingUrl"; Pattern = 'return buildUrl\("/ranking", \{ civilizationId \}\);' }
 )
 
 $routeUrlHelperViolations = New-Object System.Collections.Generic.List[string]
