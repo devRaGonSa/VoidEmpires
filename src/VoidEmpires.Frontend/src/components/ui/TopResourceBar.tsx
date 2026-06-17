@@ -11,7 +11,7 @@ interface TopStatusBarProps {
 
 export function TopStatusBar({ items }: TopStatusBarProps) {
   return (
-    <div className="top-status-bar" aria-label="Estado global del prototipo">
+    <div className="top-status-bar" aria-label="Estado global de la suite">
       <div className="top-status-pill-row">
         {items.map((item) => (
           <section key={item.label} className="top-status-pill">

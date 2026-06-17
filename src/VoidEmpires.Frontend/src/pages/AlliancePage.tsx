@@ -579,7 +579,7 @@ export function AlliancePage() {
             </div>
             <UiBadge>Cargando...</UiBadge>
           </div>
-          <p>Consultando identidad, estado de alianza, contactos conocidos y placeholders diplomáticos.</p>
+          <p>Consultando identidad, estado de alianza, contactos conocidos y referencias diplomaticas futuras.</p>
         </UiCard>
       ) : null}
 
@@ -621,7 +621,7 @@ export function AlliancePage() {
               <div>
                 <p className="eyebrow">Estado de alianza</p>
                 <h3>{uiState.status.headline}</h3>
-                <p>Si existe una alianza activa, la cabina solo muestra metadata. Si no existe, prepara el terreno para placeholders futuros sin insinuar acciones ejecutables.</p>
+                <p>Si existe una alianza activa, la cabina solo muestra metadata. Si no existe, deja referencias futuras sin insinuar acciones ejecutables.</p>
               </div>
               <UiBadge tone={uiState.status.hasActiveAlliance ? "good" : "warn"}>{uiState.status.supportText}</UiBadge>
             </div>
@@ -649,7 +649,7 @@ export function AlliancePage() {
                   </div>
                 ) : (
                   <p className="figma-panel-note">
-                    {allianceLabels.noActiveAlliance}. La cabina mantiene el estado honesto y deriva cualquier futura accion a placeholders desactivados.
+                    {allianceLabels.noActiveAlliance}. La cabina mantiene el estado honesto y deriva cualquier futura accion a referencias desactivadas.
                   </p>
                 )}
               </section>

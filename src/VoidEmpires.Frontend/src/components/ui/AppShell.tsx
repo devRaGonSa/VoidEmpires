@@ -36,7 +36,7 @@ export function AppShell({
           <span className="app-topbar-brand-mark">VE</span>
           <div>
             <strong>VoidEmpires</strong>
-            <p>Prototipo jugable local</p>
+            <p>Suite jugable local</p>
           </div>
         </div>
         <TopStatusBar items={statusItems} />

@@ -235,7 +235,7 @@ export function GroundArmyPage() {
               <PlanetDataRow label="Nota de seguridad" value="Esta cabina no resuelve combate ni invasiones." />
             </div></section>
           </div>
-        ) : <p className="figma-panel-note">Todavia no hay datos terrestres visibles. La cabina mantiene un estado honesto en lugar de volver a un placeholder vacio.</p>}
+        ) : <p className="figma-panel-note">Todavia no hay datos terrestres visibles. La cabina mantiene un estado honesto en lugar de volver a un estado vacio artificial.</p>}
         <details className="technical-disclosure">
           <summary>
             <div>

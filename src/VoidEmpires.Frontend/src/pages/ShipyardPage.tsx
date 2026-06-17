@@ -1001,7 +1001,7 @@ export function ShipyardPage() {
                 <ul className="stack-list compact-list">
                   <li>Una orden vencida significa que el backend la detecta; esta cabina espera una lectura posterior para mostrar stock o historial actualizado.</li>
                   <li>Las fechas muestran la ventana visible de produccion para que un futuro refresh refleje cambios reales.</li>
-                  <li>La cola vacia sigue siendo un estado util y no se rellena con placeholders.</li>
+                  <li>La cola vacia sigue siendo un estado util y no se rellena con opciones artificiales.</li>
                 </ul>
               </section>
             </div>

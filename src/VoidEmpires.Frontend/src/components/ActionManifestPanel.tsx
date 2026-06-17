@@ -72,7 +72,7 @@ export function ActionManifestPanel({
         </div>
         {tone === "warn" ? (
           <p className="figma-panel-note">
-            Los contratos de mutacion siguen visibles para la alineacion del prototipo. Este panel nunca los ejecuta.
+            Los contratos de mutacion siguen visibles para alinear herramientas Development. Este panel nunca los ejecuta.
           </p>
         ) : null}
 
@@ -147,7 +147,7 @@ export function ActionManifestPanel({
                     <dd>{confirmation.readinessLabel}</dd>
                   </div>
                   <div>
-                    <dt>Nivel de prototipo</dt>
+                    <dt>Nivel de preparacion</dt>
                     <dd>{confirmation.prototypeLevel}</dd>
                   </div>
                   <div>
@@ -183,7 +183,7 @@ export function ActionManifestPanel({
       </div>
 
       {renderActionGroup("Acciones de solo lectura", readOnlyActions, "good")}
-      {renderActionGroup("Acciones de mutacion de prototipo", mutatingActions, "warn")}
+      {renderActionGroup("Acciones de mutacion Development", mutatingActions, "warn")}
     </article>
   );
 }

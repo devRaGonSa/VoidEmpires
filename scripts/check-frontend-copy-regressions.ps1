@@ -93,12 +93,21 @@ if ($filteredMatches) {
 $copyHygieneFailures = New-Object System.Collections.Generic.List[string]
 
 $mojibakePatterns = @(
+  (-join @([char]0x00C3, [char]0x00A1)),
+  (-join @([char]0x00C3, [char]0x00A9)),
+  (-join @([char]0x00C3, [char]0x00AD)),
+  (-join @([char]0x00C3, [char]0x00B3)),
+  (-join @([char]0x00C3, [char]0x00BA)),
+  (-join @([char]0x00C3, [char]0x00B1)),
+  (-join @([char]0x00C2, [char]0x00BF)),
+  (-join @([char]0x00C2, [char]0x00A1)),
+  (-join @([char]0x00E2, [char]0x20AC)),
   (-join @([char]0x00C3, [char]0x0192, [char]0x00C6, [char]0x2019)),
   (-join @([char]0x00C3, [char]0x0192, [char]0x00E2, [char]0x20AC, [char]0x0161)),
   (-join @([char]0x00C3, [char]0x2020, [char]0x00E2, [char]0x20AC, [char]0x2122))
 )
 $mojibakeFiles = $frontendFiles + $docsFiles + $scriptFiles
-$mojibakeMatches = Select-String -Path ($mojibakeFiles | Select-Object -ExpandProperty FullName) -Pattern $mojibakePatterns -SimpleMatch -CaseSensitive:$true
+$mojibakeMatches = Select-String -Path ($mojibakeFiles | Select-Object -ExpandProperty FullName) -Pattern $mojibakePatterns -SimpleMatch -CaseSensitive:$true -Encoding UTF8
 foreach ($match in @($mojibakeMatches)) {
   $copyHygieneFailures.Add(("{0}:{1}: corrupted encoding sequence detected: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
 }
@@ -127,6 +136,74 @@ $primaryUiFiles = $frontendFiles |
 $englishFallbackMatches = Select-String -Path ($primaryUiFiles | Select-Object -ExpandProperty FullName) -Pattern $englishFallbackPatterns -CaseSensitive:$true
 foreach ($match in @($englishFallbackMatches)) {
   $copyHygieneFailures.Add(("{0}:{1}: English fallback copy in primary UI should be Spanish-first: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
+}
+
+$obsoleteVisibleCopyPatterns = @(
+  "Prototipo jugable local",
+  "Estado global del prototipo",
+  "alineacion del prototipo",
+  "Nivel de prototipo",
+  "Acciones de mutacion de prototipo",
+  "mutacion de prototipo"
+)
+$obsoleteVisibleMatches = Select-String -Path ($primaryUiFiles | Select-Object -ExpandProperty FullName) -Pattern $obsoleteVisibleCopyPatterns -SimpleMatch -CaseSensitive:$false
+foreach ($match in @($obsoleteVisibleMatches)) {
+  $copyHygieneFailures.Add(("{0}:{1}: obsolete prototype-era wording in primary UI should use current Development cockpit language: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
+}
+
+$placeholderCopyPatterns = @(
+  "placeholder vacio",
+  "placeholder vacío",
+  "placeholders futuros",
+  "placeholders diplomaticos",
+  "placeholders diplomáticos",
+  "rellena con placeholders",
+  "relleno temporal",
+  "lorem ipsum",
+  "coming soon",
+  "under construction",
+  "sample data",
+  "mock data",
+  "dummy data",
+  "datos de ejemplo",
+  "datos mock"
+)
+$placeholderCopyMatches = Select-String -Path ($primaryUiFiles | Select-Object -ExpandProperty FullName) -Pattern $placeholderCopyPatterns -SimpleMatch -CaseSensitive:$false
+foreach ($match in @($placeholderCopyMatches)) {
+  $copyHygieneFailures.Add(("{0}:{1}: placeholder or mock-copy wording must be replaced with explicit current/future/deferred scope: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
+}
+
+$fakeResourceCopyPatterns = @(
+  "fake resources",
+  "fake stock",
+  "mock resources",
+  "dummy resources",
+  "recursos falsos",
+  "recurso falso",
+  "reservas falsas",
+  "reservas inventadas",
+  "stock falso",
+  "stock inventado",
+  "cola falsa",
+  "cola inventada"
+)
+$fakeResourceCopyMatches = Select-String -Path ($primaryUiFiles | Select-Object -ExpandProperty FullName) -Pattern $fakeResourceCopyPatterns -SimpleMatch -CaseSensitive:$false
+foreach ($match in @($fakeResourceCopyMatches)) {
+  $copyHygieneFailures.Add(("{0}:{1}: fake resource or queue copy is forbidden in primary UI: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
+}
+
+$productionAuthOverclaimPatterns = @(
+  "login de produccion habilitado",
+  "autenticacion de produccion habilitada",
+  "auth de produccion habilitada",
+  "sesion autenticada activa",
+  "permisos de produccion activos",
+  "production auth ready",
+  "production login ready"
+)
+$productionAuthOverclaimMatches = Select-String -Path ($primaryUiFiles | Select-Object -ExpandProperty FullName) -Pattern $productionAuthOverclaimPatterns -SimpleMatch -CaseSensitive:$false
+foreach ($match in @($productionAuthOverclaimMatches)) {
+  $copyHygieneFailures.Add(("{0}:{1}: production-auth overclaim detected in Development UI copy: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
 }
 
 if ($copyHygieneFailures.Count -gt 0) {
