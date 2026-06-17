@@ -1752,6 +1752,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
       {pendingDevelopmentAction && planet ? (
         <GameModal
+          actionScope="development"
           canClose={!isDevelopmentActionBusy}
           closeLabel="Cerrar"
           description="Esta accion es solo Development: muta la base de datos de Development y solo materializa estado backend-authoritative."
@@ -1769,7 +1770,6 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           }}
           title={`Confirmar ${pendingDevelopmentActionLabel}`}
         >
-          <UiBadge tone="warn">Development-only</UiBadge>
           <ul className="stack-list compact-list">
             <li>Esta accion muta la base de datos de Development.</li>
             <li>Solo materializa estado backend-authoritative y despues refresca la lectura del planeta.</li>
@@ -1781,6 +1781,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
       {isConstructionRoute && preparedAction && preparedAction.availabilityStatus === "Available" && planet ? (
         <GameModal
+          actionScope="gameplay"
           canClose={!isSubmittingConstruction}
           closeLabel="Cerrar"
           description="Esta orden enviara una unica accion segura a la cola de construccion del planeta actual."
@@ -1798,7 +1799,6 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           }}
           title="Confirmar orden de construccion"
         >
-          <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
           <div className="figma-data-list">
             <PlanetDataRow
               label="Planeta"

@@ -1221,6 +1221,7 @@ export function ShipyardPage() {
 
       {reviewSelection && shipyard ? (
         <GameModal
+          actionScope="gameplay"
           canClose={!isSubmittingEnqueue}
           closeLabel="Cerrar"
           description="La cabina revisa el impacto visible antes de habilitar cualquier accion real, incluido el gasto inmediato de recursos cuando el envio se acepta."

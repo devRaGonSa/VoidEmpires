@@ -1,11 +1,14 @@
 import { type KeyboardEvent, type ReactNode, useId } from "react";
 import { ActionStateBadge, type ActionState } from "./ActionStateBadge";
+import { UiBadge } from "./ui/UiBadge";
 
 interface GameModalAction {
   label: string;
   onClick: () => void;
   disabled?: boolean;
 }
+
+type GameModalScope = "gameplay" | "development";
 
 interface GameModalProps {
   isOpen: boolean;
@@ -14,6 +17,7 @@ interface GameModalProps {
   children?: ReactNode;
   primaryAction: GameModalAction;
   secondaryAction?: GameModalAction;
+  actionScope?: GameModalScope;
   isBusy?: boolean;
   canClose?: boolean;
   closeLabel?: string;
@@ -27,6 +31,7 @@ export function GameModal({
   children,
   primaryAction,
   secondaryAction,
+  actionScope,
   isBusy = false,
   canClose = true,
   closeLabel = "Cerrar",
@@ -36,6 +41,12 @@ export function GameModal({
   const descriptionId = useId();
   const closeAllowed = canClose && !isBusy;
   const primaryActionState: ActionState = isBusy ? "loading" : primaryAction.disabled ? "blocked" : "pending";
+  const scopeBadge =
+    actionScope === "development" ? (
+      <ActionStateBadge state="developmentOnly" />
+    ) : actionScope === "gameplay" ? (
+      <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
+    ) : null;
 
   if (!isOpen) {
     return null;
@@ -80,10 +91,13 @@ export function GameModal({
                 {description}
               </p>
             ) : null}
-            <ActionStateBadge
-              state={primaryActionState}
-              label={isBusy ? "Procesando" : primaryAction.disabled ? "Bloqueado" : "Pendiente de confirmacion"}
-            />
+            <div className="figma-badge-row">
+              {scopeBadge}
+              <ActionStateBadge
+                state={primaryActionState}
+                label={isBusy ? "Procesando" : primaryAction.disabled ? "Bloqueado" : "Pendiente de confirmacion"}
+              />
+            </div>
           </div>
           <button
             aria-label={closeLabel}

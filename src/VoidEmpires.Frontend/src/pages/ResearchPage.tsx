@@ -832,6 +832,7 @@ export function ResearchPage() {
 
       {preparedResearch && preparedResearch.availability.canEnqueue ? (
         <GameModal
+          actionScope="gameplay"
           canClose={!isSubmittingEnqueue}
           closeLabel="Cerrar"
           description="Esta accion creara una orden real de investigacion en la base de datos de Development."
@@ -849,7 +850,6 @@ export function ResearchPage() {
           }}
           title="Confirmar inicio de investigacion"
         >
-          <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
           <div className="figma-data-list">
             <div className="figma-data-row"><span>Planeta</span><strong>{uiState?.selectedPlanetName ?? "Sin planeta"}</strong></div>
             <div className="figma-data-row"><span>Tecnologia</span><strong>{preparedResearch.label}</strong></div>
