@@ -212,8 +212,10 @@ select {
 }
 
 .top-status-pill-head strong {
+  min-width: 0;
   font-size: 0.85rem;
   text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .app-shell-frame {
@@ -2786,14 +2788,18 @@ select {
 
 @media (max-width: 820px) {
   .app-shell {
-    width: min(100% - 24px, var(--ve-layout-desktop-width));
-    padding-top: var(--ve-space-6);
+    width: min(100% - 16px, var(--ve-layout-desktop-width));
+    padding-top: var(--ve-space-4);
   }
 
   .app-topbar,
   .app-shell-frame,
   .shell-intro-grid {
     grid-template-columns: 1fr;
+  }
+
+  .app-topbar {
+    padding-inline: var(--ve-space-3);
   }
 
   .top-status-bar {
@@ -2807,6 +2813,13 @@ select {
 
   .app-sidebar {
     position: static;
+  }
+
+  .app-sidebar,
+  .ui-card,
+  .environment-panel,
+  .panel {
+    padding: 18px;
   }
 
   .figma-map-layout {
@@ -2832,10 +2845,36 @@ select {
     grid-template-columns: 1fr;
   }
 
+  .query-form button,
+  .fleet-dev-loader-panel .query-form button,
+  .strategic-loader-panel .query-form button {
+    width: 100%;
+    min-width: 0;
+    justify-self: stretch;
+  }
+
+  .selection-chip-row {
+    align-items: stretch;
+  }
+
+  .selection-chip-row > * {
+    width: 100%;
+    justify-content: center;
+  }
+
   .figma-preview-actions,
   .figma-section-header,
   .fleet-summary-card-head,
   .fleet-summary-card-meta,
+  .market-resource-head,
+  .alliance-catalog-card-head,
+  .system-card-header,
+  .dev-endpoint-notice-head,
+  .development-tools-section-head,
+  .page-context-strip-main,
+  .page-context-strip-details,
+  .section-heading,
+  .manifest-header,
   .espionage-target-card-head,
   .figma-legend-item,
   .figma-command-item,
@@ -2848,5 +2887,76 @@ select {
 
   .fleet-summary-card-status {
     align-items: start;
+  }
+}
+
+@media (max-width: 560px) {
+  .app-shell {
+    width: min(100% - 12px, var(--ve-layout-desktop-width));
+    padding-top: var(--ve-space-3);
+  }
+
+  .app-topbar,
+  .app-sidebar,
+  .ui-card,
+  .environment-panel,
+  .panel {
+    border-radius: var(--ve-radius-lg);
+  }
+
+  .app-topbar,
+  .app-sidebar,
+  .ui-card,
+  .environment-panel,
+  .panel,
+  .shell-intro-card-compact {
+    padding: 16px;
+  }
+
+  .top-status-pill-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .top-status-pill-head strong {
+    text-align: left;
+  }
+
+  .figma-stat-grid,
+  .stat-grid,
+  .readiness-grid,
+  .development-tools-grid,
+  .market-resource-grid,
+  .market-future-actions-grid,
+  .alliance-summary-grid,
+  .ranking-category-grid,
+  .alliance-catalog-card-grid,
+  .selection-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .figma-data-row {
+    gap: 6px;
+  }
+
+  .game-modal-backdrop {
+    padding: var(--ve-space-3);
+  }
+
+  .game-modal {
+    max-height: calc(100vh - 24px);
+    overflow: auto;
+    padding: 18px;
+  }
+
+  .game-modal-header,
+  .game-modal-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .game-modal-actions button,
+  .planet-action-handoff-message {
+    width: 100%;
   }
 }
