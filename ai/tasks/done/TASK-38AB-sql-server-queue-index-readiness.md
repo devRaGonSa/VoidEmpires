@@ -3,7 +3,7 @@
 ---
 id: TASK-38AB
 title: SQL Server queue index readiness
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: [platform]
@@ -16,6 +16,8 @@ Ensure queue-heavy and ownership lookup queries have the indexes needed for SQL 
 
 ## Context
 This task belongs to the final SQL Server database and catalog consolidation block. The final product database target is SQL Server on user-managed infrastructure, but this block must keep secrets out of the repository, avoid applying migrations automatically to the real server, preserve the current Development and test flow, and keep gameplay expansion out of scope.
+
+This task was narrowed to the three queue-heavy due-order configuration paths to stay within the repository change budget. Remaining ownership, session, and civilization lookup index work moved to `TASK-38ABA`.
 
 ## Implementation steps
 1. Read every file listed in "Files to read first" before editing.

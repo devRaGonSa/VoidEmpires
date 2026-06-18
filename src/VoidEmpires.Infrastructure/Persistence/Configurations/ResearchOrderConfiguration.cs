@@ -22,5 +22,6 @@ public sealed class ResearchOrderConfiguration : IEntityTypeConfiguration<Resear
         builder.HasIndex(x => x.CivilizationId);
         builder.HasIndex(x => new { x.CivilizationId, x.Sequence }).IsUnique();
         builder.HasIndex(x => new { x.CivilizationId, x.Status });
+        builder.HasIndex(x => new { x.Status, x.EndsAtUtc, x.Sequence });
     }
 }

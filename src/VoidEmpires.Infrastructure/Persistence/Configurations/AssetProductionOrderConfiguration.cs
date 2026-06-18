@@ -23,5 +23,6 @@ public sealed class AssetProductionOrderConfiguration : IEntityTypeConfiguration
         builder.HasIndex(x => x.PlanetId);
         builder.HasIndex(x => new { x.PlanetId, x.Sequence }).IsUnique();
         builder.HasIndex(x => new { x.PlanetId, x.Status });
+        builder.HasIndex(x => new { x.Target, x.Status, x.EndsAtUtc, x.Sequence });
     }
 }
