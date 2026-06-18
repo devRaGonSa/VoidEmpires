@@ -19,6 +19,11 @@ public sealed class CivilizationConfiguration : IEntityTypeConfiguration<Civiliz
             .HasMaxLength(128)
             .IsRequired();
 
+        builder.Property(civilization => civilization.NormalizedName)
+            .HasColumnName("normalized_name")
+            .HasMaxLength(128)
+            .IsRequired();
+
         builder.Property(civilization => civilization.Archetype)
             .HasColumnName("archetype")
             .IsRequired();
@@ -30,8 +35,11 @@ public sealed class CivilizationConfiguration : IEntityTypeConfiguration<Civiliz
         builder.Property(civilization => civilization.HomePlanetId)
             .HasColumnName("home_planet_id");
 
-        builder.HasIndex(civilization => new { civilization.PlayerProfileId, civilization.Name })
+        builder.HasIndex(civilization => civilization.NormalizedName)
+            .HasDatabaseName("ix_civilizations_normalized_name");
+
+        builder.HasIndex(civilization => new { civilization.PlayerProfileId, civilization.NormalizedName })
             .IsUnique()
-            .HasDatabaseName("ux_civilizations_profile_name");
+            .HasDatabaseName("ux_civilizations_profile_normalized_name");
     }
 }

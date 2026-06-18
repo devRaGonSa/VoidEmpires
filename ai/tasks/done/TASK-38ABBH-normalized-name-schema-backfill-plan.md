@@ -3,7 +3,7 @@
 ---
 id: TASK-38ABBH
 title: Normalized name schema and backfill plan
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: [platform]

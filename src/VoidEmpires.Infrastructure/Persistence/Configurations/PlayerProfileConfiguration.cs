@@ -25,9 +25,18 @@ public sealed class PlayerProfileConfiguration : IEntityTypeConfiguration<Player
             .HasMaxLength(128)
             .IsRequired();
 
+        builder.Property(profile => profile.NormalizedDisplayName)
+            .HasColumnName("normalized_display_name")
+            .HasMaxLength(128)
+            .IsRequired();
+
         builder.HasIndex(profile => profile.UserId)
             .IsUnique()
             .HasDatabaseName("ux_player_profiles_user_id");
+
+        builder.HasIndex(profile => profile.NormalizedDisplayName)
+            .IsUnique()
+            .HasDatabaseName("ux_player_profiles_normalized_display_name");
 
         builder.HasMany(profile => profile.Civilizations)
             .WithOne()

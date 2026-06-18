@@ -196,6 +196,8 @@ namespace VoidEmpires.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PlanetId", "Status");
 
+                    b.HasIndex("Target", "Status", "EndsAtUtc", "Sequence");
+
                     b.ToTable("AssetProductionOrder");
                 });
 
@@ -332,6 +334,8 @@ namespace VoidEmpires.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PlanetId", "Status");
 
+                    b.HasIndex("Status", "EndsAtUtc", "Sequence");
+
                     b.ToTable("PlanetConstructionOrders");
                 });
 
@@ -360,12 +364,12 @@ namespace VoidEmpires.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CivilizationId")
-                        .HasDatabaseName("ix_planet_ownerships_civilization_id");
-
                     b.HasIndex("PlanetId")
                         .IsUnique()
                         .HasDatabaseName("ux_planet_ownerships_planet_id");
+
+                    b.HasIndex("CivilizationId", "Status")
+                        .HasDatabaseName("ix_planet_ownerships_civilization_status");
 
                     b.ToTable("planet_ownerships", (string)null);
                 });
@@ -901,6 +905,12 @@ namespace VoidEmpires.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(128)")
                         .HasColumnName("name");
 
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("normalized_name");
+
                     b.Property<Guid>("PlayerProfileId")
                         .HasColumnType("uuid")
                         .HasColumnName("player_profile_id");
@@ -911,9 +921,12 @@ namespace VoidEmpires.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PlayerProfileId", "Name")
+                    b.HasIndex("NormalizedName")
+                        .HasDatabaseName("ix_civilizations_normalized_name");
+
+                    b.HasIndex("PlayerProfileId", "NormalizedName")
                         .IsUnique()
-                        .HasDatabaseName("ux_civilizations_profile_name");
+                        .HasDatabaseName("ux_civilizations_profile_normalized_name");
 
                     b.ToTable("civilizations", (string)null);
                 });
@@ -931,6 +944,12 @@ namespace VoidEmpires.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(128)")
                         .HasColumnName("display_name");
 
+                    b.Property<string>("NormalizedDisplayName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("normalized_display_name");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -938,6 +957,10 @@ namespace VoidEmpires.Infrastructure.Persistence.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("NormalizedDisplayName")
+                        .IsUnique()
+                        .HasDatabaseName("ux_player_profiles_normalized_display_name");
 
                     b.HasIndex("UserId")
                         .IsUnique()
@@ -1010,6 +1033,8 @@ namespace VoidEmpires.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.HasIndex("CivilizationId", "Status");
+
+                    b.HasIndex("Status", "EndsAtUtc", "Sequence");
 
                     b.ToTable("ResearchOrders");
                 });

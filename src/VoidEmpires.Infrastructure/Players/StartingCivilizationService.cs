@@ -37,6 +37,8 @@ public sealed class StartingCivilizationService(VoidEmpiresDbContext dbContext) 
         var userId = string.IsNullOrWhiteSpace(request.UserId)
             ? $"dev-start-{Guid.NewGuid():N}"
             : request.UserId.Trim();
+        var normalizedDisplayName = PlayerProfile.NormalizeLookupKey(displayName);
+        var normalizedCivilizationName = PlayerProfile.NormalizeLookupKey(civilizationName);
 
         if (await dbContext.PlayerProfiles.AnyAsync(
                 profile => profile.UserId == userId,
@@ -46,14 +48,14 @@ public sealed class StartingCivilizationService(VoidEmpiresDbContext dbContext) 
         }
 
         if (await dbContext.PlayerProfiles.AnyAsync(
-                profile => profile.DisplayName.ToLower() == displayName.ToLower(),
+                profile => profile.NormalizedDisplayName == normalizedDisplayName,
                 cancellationToken))
         {
             return CreateStartingCivilizationResult.Failure("Display name is already in use.");
         }
 
         if (await dbContext.Civilizations.AnyAsync(
-                civilization => civilization.Name.ToLower() == civilizationName.ToLower(),
+                civilization => civilization.NormalizedName == normalizedCivilizationName,
                 cancellationToken))
         {
             return CreateStartingCivilizationResult.Failure("Civilization name is already in use.");

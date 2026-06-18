@@ -65,6 +65,21 @@ public class StartingCivilizationServiceTests
     }
 
     [Fact]
+    public async Task CreateAsyncRejectsDuplicateNamesAcrossWhitespaceAndCase()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new StartingCivilizationService(dbContext);
+
+        var first = await service.CreateAsync(new CreateStartingCivilizationRequest("Player One", "Solar Dominion"));
+        var duplicateDisplay = await service.CreateAsync(new CreateStartingCivilizationRequest("  player one  ", "Second Dominion"));
+        var duplicateCivilization = await service.CreateAsync(new CreateStartingCivilizationRequest("Player Two", "  solar dominion  "));
+
+        Assert.True(first.Succeeded);
+        Assert.Equal(["Display name is already in use."], duplicateDisplay.Errors);
+        Assert.Equal(["Civilization name is already in use."], duplicateCivilization.Errors);
+    }
+
+    [Fact]
     public async Task CreateAsyncRejectsInvalidRequest()
     {
         await using var dbContext = CreateDbContext();
