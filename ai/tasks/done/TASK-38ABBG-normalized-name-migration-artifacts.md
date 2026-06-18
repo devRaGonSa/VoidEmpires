@@ -1,9 +1,9 @@
-# TASK-38ABBE
+# TASK-38ABBG
 
 ---
-id: TASK-38ABBE
-title: Normalized name migration rollout
-status: pending
+id: TASK-38ABBG
+title: Normalized name migration artifacts
+status: done
 type: backend
 team: backend
 supporting_teams: [platform]
@@ -12,31 +12,31 @@ priority: medium
 ---
 
 ## Goal
-Roll out the relational migration or persisted column change required to back normalized display-name and civilization-name lookups.
+Add the relational migration and snapshot artifacts required to persist normalized-name lookup fields.
 
 ## Context
-This task depends on the normalized-name model preparation task. It covers the relational shape needed so provider-agnostic case-insensitive uniqueness checks can use indexed persisted values instead of non-sargable lowercase comparisons.
+This follow-up covers the migration-layer work that would otherwise push normalized-name rollout beyond the small-task budget. It should only update the required persistence artifacts and keep real-database application manual and opt-in.
+
+This task is narrowed. A safe migration artifact change also needs an explicit backfill strategy for existing persisted rows before normalized-name query activation can be turned on.
 
 ## Implementation steps
 1. Read the files listed below before editing.
-2. Review the prepared normalized-name model shape and required persistence artifacts.
-3. Add the smallest safe migration or relational rollout needed for the prepared model.
-4. Keep Development flow safe and do not apply migrations automatically to the user's real database.
-5. Run the repository validations before moving the task to done.
+2. Review the prepared normalized-name model and current migration snapshot pattern.
+3. Add the smallest required migration and snapshot updates.
+4. Do not apply migrations automatically to the user's real database.
+5. Run the repository build and test commands before moving the task to done.
 
 ## Files to read first
 - AGENTS.md
 - src/VoidEmpires.Infrastructure/Persistence/Configurations/
 - src/VoidEmpires.Infrastructure/Persistence/Migrations/
-- src/VoidEmpires.Infrastructure/Players/StartingCivilizationService.cs
-- tests/VoidEmpires.Tests/StartingCivilizationServiceTests.cs
+- src/VoidEmpires.Domain/Players/
 
 ## Expected files to modify
 - src/VoidEmpires.Infrastructure/
-- tests/VoidEmpires.Tests/
 
 ## Acceptance criteria
-- The normalized-name relational rollout is implemented or narrowed with explicit blockers.
+- The required migration artifacts are added or the remaining blocker is made explicit.
 - Validation commands pass.
 - No automatic real-database migration execution is introduced.
 

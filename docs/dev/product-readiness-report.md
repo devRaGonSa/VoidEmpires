@@ -50,6 +50,8 @@ These flows are usable for local QA and demo, but they are not production featur
 
 ## Final DB Phase Prep Plan
 
+This section is summarized separately in `docs/dev/final-db-phase-prep.md`, and the SQL Server-specific testing position for that phase is recorded in `docs/dev/sql-server-test-strategy.md`.
+
 The final DB/model phase should start only after the current Development-only shell boundaries are preserved and the module catalog notes remain the source of seed-shape input:
 
 - `docs/dev/catalog-metadata-readiness.md`

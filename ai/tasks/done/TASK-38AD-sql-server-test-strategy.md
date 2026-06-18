@@ -3,7 +3,7 @@
 ---
 id: TASK-38AD
 title: SQL Server test strategy
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams: [backend]
