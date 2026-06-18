@@ -6,6 +6,7 @@ import { CockpitHero } from "../components/CockpitHero";
 import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { GameModal } from "../components/GameModal";
 import { PageContextStrip } from "../components/PageContextStrip";
+import { PlaceholderAsset } from "../components/PlaceholderAsset";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -922,6 +923,13 @@ export function ShipyardPage() {
                                 <UiBadge tone={badgeTone}>{asset.statusLabel}</UiBadge>
                               </div>
                             </div>
+                            <PlaceholderAsset
+                              kind="ship"
+                              label={asset.label}
+                              typeLabel={asset.roleLabel}
+                              detail={asset.description}
+                              imageKey={asset.imageKey}
+                            />
                             <div className="figma-data-list">
                               <div className="figma-data-row"><span>Coste</span><strong>{asset.estimatedCostLabel}</strong></div>
                               <div className="figma-data-row"><span>Duracion</span><strong>{asset.estimatedDurationLabel}</strong></div>
@@ -1244,6 +1252,15 @@ export function ShipyardPage() {
             {reviewSelection.bucket === "available" ? "Lista para futura cola" : "No enviable"}
           </UiBadge>
           <div className="readiness-grid">
+            <section className="subpanel figma-subpanel">
+              <PlaceholderAsset
+                kind="ship"
+                label={reviewSelection.asset.label}
+                typeLabel={reviewSelection.asset.roleLabel}
+                detail={reviewSelection.asset.description}
+                imageKey={reviewSelection.asset.imageKey}
+              />
+            </section>
             <section className="subpanel figma-subpanel">
               <div className="figma-data-list">
                 <div className="figma-data-row"><span>Planeta</span><strong>{shipyard.planetName}</strong></div>

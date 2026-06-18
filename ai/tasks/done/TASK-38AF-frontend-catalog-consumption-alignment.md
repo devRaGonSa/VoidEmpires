@@ -3,7 +3,7 @@
 ---
 id: TASK-38AF
 title: Frontend catalog consumption alignment
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: [backend, gameplay]

@@ -9,10 +9,12 @@ import type {
   ShipyardUiStateDto,
 } from "../api/shipyardTypes";
 import {
+  getAssetDescription,
   formatAssetProductionCost,
   formatAssetProductionDuration,
   formatAssetQuantity,
   getAssetCategoryLabel,
+  getAssetImageKey,
   getAssetProductionStatusLabel,
   getAssetRoleLabel,
   getAssetTypeLabel,
@@ -50,6 +52,8 @@ export interface ShipyardEnqueueCommand {
 export interface ShipyardAssetOption {
   assetType: string;
   label: string;
+  description: string;
+  imageKey: string | null;
   categoryKey: string;
   categoryLabel: string;
   roleLabel: string;
@@ -168,6 +172,8 @@ function mapAssetOption(item: ShipyardAssetOptionDto): ShipyardAssetOption {
   return {
     assetType,
     label: getAssetTypeLabel(assetType),
+    description: getAssetDescription(assetType),
+    imageKey: getAssetImageKey(assetType),
     categoryKey: getAssetCategoryLabel(assetType),
     categoryLabel: getAssetCategoryLabel(assetType),
     roleLabel: getAssetRoleLabel(assetType),

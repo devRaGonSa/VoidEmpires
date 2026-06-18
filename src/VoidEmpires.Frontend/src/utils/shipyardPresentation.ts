@@ -11,6 +11,8 @@ interface ShipyardLabelCatalogEntry {
 export interface ShipyardAssetPresentationEntry {
   key: string;
   label: string;
+  description: string;
+  imageKey: string;
   categoryKey: string;
   categoryLabel: string;
   roleKey: string;
@@ -25,6 +27,8 @@ const shipyardAssetCatalog: readonly ShipyardAssetPresentationEntry[] = [
   {
     key: "ScoutCraft",
     label: "Nave exploradora",
+    description: "Reconocimiento ligero para lectura de rutas y presencia orbital temprana.",
+    imageKey: "ship.scout-craft",
     categoryKey: "Exploracion",
     categoryLabel: "Exploracion",
     roleKey: "Reconocimiento",
@@ -33,6 +37,8 @@ const shipyardAssetCatalog: readonly ShipyardAssetPresentationEntry[] = [
   {
     key: "CargoCraft",
     label: "Nave de carga",
+    description: "Transporte de suministros y soporte logico sin convertir stock en flota activa.",
+    imageKey: "ship.cargo-craft",
     categoryKey: "Logistica",
     categoryLabel: "Logistica",
     roleKey: "Transporte",
@@ -41,6 +47,8 @@ const shipyardAssetCatalog: readonly ShipyardAssetPresentationEntry[] = [
   {
     key: "EscortCraft",
     label: "Nave de escolta",
+    description: "Cobertura orbital de escolta; esta build solo expone produccion y readiness.",
+    imageKey: "ship.escort-craft",
     categoryKey: "Escolta",
     categoryLabel: "Escolta",
     roleKey: "Cobertura",
@@ -49,6 +57,8 @@ const shipyardAssetCatalog: readonly ShipyardAssetPresentationEntry[] = [
   {
     key: "ColonyCraft",
     label: "Nave colonial",
+    description: "Expansion colonial preparada como catalogo; la ejecucion final sigue fuera de alcance.",
+    imageKey: "ship.colony-craft",
     categoryKey: "Colonial",
     categoryLabel: "Colonial",
     roleKey: "Expansion",
@@ -129,6 +139,14 @@ export function getAssetCategoryLabel(value: ShipyardValue) {
 
 export function getAssetRoleLabel(value: ShipyardValue) {
   return findAssetEntry(value)?.roleLabel ?? uncategorizedAssetFallback;
+}
+
+export function getAssetDescription(value: ShipyardValue) {
+  return findAssetEntry(value)?.description ?? uncategorizedAssetFallback;
+}
+
+export function getAssetImageKey(value: ShipyardValue) {
+  return findAssetEntry(value)?.imageKey ?? null;
 }
 
 export function getAssetProductionStatusLabel(value: ShipyardValue) {

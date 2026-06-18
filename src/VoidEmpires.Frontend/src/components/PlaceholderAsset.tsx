@@ -13,7 +13,7 @@ interface PlaceholderAssetProps {
   label: string;
   typeLabel: string;
   detail?: string;
-  assetKey?: string | number | null;
+  imageKey?: string | number | null;
   className?: string;
 }
 
@@ -35,7 +35,7 @@ export function PlaceholderAsset({
   label,
   typeLabel,
   detail,
-  assetKey,
+  imageKey,
   className,
 }: PlaceholderAssetProps) {
   const classNames = [
@@ -45,7 +45,7 @@ export function PlaceholderAsset({
   ].filter(Boolean).join(" ");
 
   return (
-    <div className={classNames} data-placeholder-asset-key={assetKey ?? undefined}>
+    <div className={classNames} data-placeholder-image-key={imageKey ?? undefined}>
       <div className="placeholder-asset-slot" aria-hidden="true">
         <span>{getInitials(label)}</span>
       </div>
