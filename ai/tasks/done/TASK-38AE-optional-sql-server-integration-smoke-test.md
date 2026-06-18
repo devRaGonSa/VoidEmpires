@@ -3,7 +3,7 @@
 ---
 id: TASK-38AE
 title: Optional SQL Server integration smoke test
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: [platform]

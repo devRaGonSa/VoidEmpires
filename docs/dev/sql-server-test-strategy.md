@@ -59,7 +59,7 @@ This layer must stay:
 Optional SQL Server smoke coverage should run only when all required inputs are present, for example:
 
 - an explicit environment flag such as `VOIDEMPIRES_SQLSERVER_SMOKE_ENABLED=true`
-- a placeholder-safe SQL Server connection string provided outside version control
+- a placeholder-safe SQL Server connection string provided outside version control, for example through `VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING`
 - a disposable/local target database chosen for the smoke run
 
 If any required input is missing, the SQL Server smoke layer should:
@@ -78,6 +78,18 @@ Use a clear skip rule for any future SQL Server-specific test fixture:
 4. If both are present, run only the SQL Server-specific smoke subset.
 
 The repository should prefer skip-or-run behavior over implicit fallback to a real server.
+
+## Current Smoke Test Hook
+
+The repository now includes one opt-in SQL Server smoke test in `tests/VoidEmpires.Tests/SqlServerSmokeTests.cs`.
+
+Its behavior is intentionally narrow:
+
+- it runs only when `VOIDEMPIRES_SQLSERVER_SMOKE_ENABLED=true`
+- it requires `VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING` to be supplied externally
+- it performs only a read-only `SELECT 1`
+- it skips cleanly when either input is absent
+- it does not apply migrations, create databases, or mutate shared data
 
 ## Migration Safety
 
@@ -106,4 +118,4 @@ Use this split for future SQL Server readiness work:
 
 ## Current Honest Status
 
-No SQL Server smoke tests are configured in the repository today.
+The repository now has a single opt-in SQL Server connection smoke test. Normal `dotnet test --no-build` runs remain provider-independent because the test skips unless the explicit SQL Server gate and external connection string are both supplied.
