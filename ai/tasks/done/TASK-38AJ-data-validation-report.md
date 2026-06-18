@@ -3,7 +3,7 @@
 ---
 id: TASK-38AJ
 title: Data validation report
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams: [backend, gameplay]
