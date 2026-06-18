@@ -3,7 +3,7 @@
 ---
 id: TASK-38A
 title: Final SQL Server database audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [backend]

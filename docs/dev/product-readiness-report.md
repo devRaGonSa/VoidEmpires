@@ -52,6 +52,14 @@ These flows are usable for local QA and demo, but they are not production featur
 
 This section is summarized separately in `docs/dev/final-db-phase-prep.md`, and the SQL Server-specific testing position for that phase is recorded in `docs/dev/sql-server-test-strategy.md`.
 
+The current persistence-stack audit for that phase is now captured in `docs/dev/final-db-phase-prep.md`, including:
+
+- current EF/Npgsql package and registration facts
+- current DbContext and migration layout
+- current Development seed and static catalog sources
+- current PostgreSQL-specific assumptions in mappings and migrations
+- current SQL Server cutover constraints and risks
+
 The final DB/model phase should start only after the current Development-only shell boundaries are preserved and the module catalog notes remain the source of seed-shape input:
 
 - `docs/dev/catalog-metadata-readiness.md`

@@ -42,6 +42,66 @@ Use these documents together before expanding SQL Server-specific work:
 - SQL Server-specific smoke coverage is optional and should be explicitly gated.
 - No SQL Server integration or smoke tests are configured today.
 
+## Current Persistence Audit
+
+Status date: 2026-06-18
+
+Current persistence facts before any SQL Server cutover work:
+
+- EF Core provider package in source today: `Npgsql.EntityFrameworkCore.PostgreSQL` in `src/VoidEmpires.Infrastructure/VoidEmpires.Infrastructure.csproj`.
+- Runtime registration today: `AddVoidEmpiresPersistence` in `src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs` calls `UseNpgsql(connectionString)` directly.
+- Design-time registration today: `src/VoidEmpires.Infrastructure/Persistence/VoidEmpiresDbContextFactory.cs` also calls `UseNpgsql(...)`.
+- Web startup reads `ConnectionStrings:DefaultConnection` and only wires persistence, Identity, and queue workers when that value is non-empty.
+- Repository appsettings keep `ConnectionStrings:DefaultConnection` empty by default in both `appsettings.json` and `appsettings.Development.json`; real connection strings are expected outside source control.
+- Design-time fallback sources are external environment variables first:
+  - `ConnectionStrings__DefaultConnection`
+  - `VOIDEMPIRES_CONNECTION_STRING`
+  - fallback local design value: `Host=localhost;Database=voidempires_design`
+
+Current EF model and migration facts:
+
+- The single EF context is `VoidEmpiresDbContext`, which inherits from `IdentityDbContext<VoidEmpiresUser>`.
+- Current DbSets cover identity-linked player state, galaxy/system/planet state, ownership, economy, buildings, research, diplomacy, exploration, orbital transfers, and related read/write gameplay rows.
+- Migrations live under `src/VoidEmpires.Infrastructure/Persistence/Migrations`.
+- The current migration history is additive and code-first; the latest checked-in migration is `20260618152037_AddNormalizedPlayerLookupColumns.cs`.
+- The repository does not apply migrations automatically at app startup.
+
+Current catalog and seed sources:
+
+- Development seed setup is owned by `DevelopmentSeedService` and `DevelopmentSeedProfiles`; it creates deterministic Development-only rows and does not represent final production initialization.
+- Static gameplay catalog metadata is still code-owned, not relationally seeded:
+  - `BuildingCatalog`
+  - `ResearchCatalog`
+  - `OrbitalAssetCatalog`
+  - `PlanetaryAssetCatalog`
+- Current frontend/read-model notes already document that final relational seed work still needs Spanish labels, short descriptions, category metadata, module ownership, image keys, and revision metadata.
+
+Current PostgreSQL-specific assumptions that matter for SQL Server planning:
+
+- Provider selection is hard-coded to Npgsql in both runtime and design-time paths.
+- Existing checked-in migrations contain PostgreSQL-native store types such as `uuid`, `timestamp with time zone`, and `character varying(...)`.
+- Identity migrations and snapshot output also assume Npgsql annotations and PostgreSQL identity conventions.
+- Some current model configuration is provider-sensitive:
+  - decimal resource/production values use `HasPrecision(18, 4)`
+  - filtered indexes use PostgreSQL-style quoted filter SQL, for example `\"PlanetId\" IS NULL` in `ExplorationKnowledgeConfiguration`
+  - recent migration backfill SQL includes explicit PostgreSQL branches and separate SQL Server branches for normalized-name rollout
+- Test coverage for provider wiring is still Npgsql-specific today; `PersistenceRegistrationTests` explicitly assert the Npgsql options extension.
+
+Current SQL Server target constraints and cutover risks:
+
+1. Provider selection must become configurable without changing the meaning of ordinary local/test runs.
+2. Existing migration history is PostgreSQL-shaped; a SQL Server target may require a separate baseline or carefully regenerated migration set rather than direct reuse.
+3. Provider-specific filtered-index SQL and migration SQL branches must be audited case by case before claiming SQL Server replay safety.
+4. Static code catalogs and Development seed profiles still sit outside final relational seed ownership, so provider cutover alone is not enough for final DB readiness.
+5. Ordinary CI and local tests currently depend on InMemory plus Npgsql configuration assumptions; SQL Server validation must remain explicitly gated.
+6. No repository path should auto-apply migrations to a user-managed SQL Server during startup, tests, or helper scripts.
+
+Current honest conclusion:
+
+- The repository is still PostgreSQL-first in package references, runtime wiring, design-time tooling, and existing migration artifacts.
+- SQL Server remains a documented future target, but not a configured runtime provider in the current checked-in implementation.
+- Final SQL Server cutover work should start only after provider selection, migration-baseline strategy, and catalog/seed ownership are separated into explicit follow-up tasks.
+
 ## Current Honest Status
 
 This is a documentation-only prep note. It does not add migrations, SQL Server scripts, or automatic provider-specific validation.
