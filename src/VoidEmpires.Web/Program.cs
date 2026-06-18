@@ -3,6 +3,7 @@ using Microsoft.Net.Http.Headers;
 using VoidEmpires.Application.Identity;
 using VoidEmpires.Infrastructure;
 using VoidEmpires.Infrastructure.Email;
+using VoidEmpires.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 const string LocalFrontendDevelopmentCorsPolicy = "LocalFrontendDevelopment";
@@ -114,6 +115,7 @@ if (developmentEndpointsEnabled)
 app.MapGet("/health", () =>
 {
     var persistenceConfigured = IsPersistenceConfigured(app.Configuration);
+    var persistenceProvider = ResolvePersistenceProvider(app.Services, app.Configuration);
 
     return Results.Ok(new
     {
@@ -122,7 +124,7 @@ app.MapGet("/health", () =>
         persistence = new
         {
             configured = persistenceConfigured,
-            provider = "PostgreSQL"
+            provider = persistenceProvider
         },
         auth = new
         {
@@ -136,6 +138,21 @@ app.Run();
 
 static bool IsPersistenceConfigured(IConfiguration configuration) =>
     !string.IsNullOrWhiteSpace(configuration.GetConnectionString("DefaultConnection"));
+
+static string ResolvePersistenceProvider(IServiceProvider services, IConfiguration configuration)
+{
+    if (!IsPersistenceConfigured(configuration))
+    {
+        return "Not configured";
+    }
+
+    using var scope = services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetService<VoidEmpiresDbContext>();
+
+    return string.IsNullOrWhiteSpace(dbContext?.Database.ProviderName)
+        ? "Configured provider unavailable"
+        : dbContext.Database.ProviderName;
+}
 
 static bool AreDevelopmentEndpointsEnabled(IHostEnvironment environment, IConfiguration configuration) =>
     environment.IsDevelopment() || configuration.GetValue<bool>("VoidEmpires:DevEndpoints:Enabled");

@@ -132,7 +132,7 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
     public async Task ApplySeedReturnsConflictForPersistedStateFailure()
     {
         using var client = CreateConfiguredClient(new ThrowingDevelopmentSeedService(
-            new DbUpdateException("Persisted state conflict.", new InvalidOperationException("duplicate key value violates unique constraint"))));
+            new DbUpdateException("Persisted state conflict.", new InvalidOperationException("Persisted seed state already contains conflicting records."))));
 
         using var response = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "cockpit-validation" });
         var payload = await response.Content.ReadFromJsonAsync<ApplyDevelopmentSeedResponse>();
@@ -141,7 +141,7 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
         Assert.NotNull(payload);
         Assert.False(payload.Succeeded);
         Assert.Contains("Development seed apply failed due to persisted state conflict.", payload.Errors);
-        Assert.Contains(payload.Errors, x => x.Contains("duplicate key value violates unique constraint", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(payload.Errors, x => x.Contains("Persisted seed state already contains conflicting records.", StringComparison.Ordinal));
         Assert.Contains(payload.KnownProfiles, x => x.Name == "cockpit-validation" && x.IsImplemented);
     }
 

@@ -28,7 +28,7 @@ public class HealthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal("ok", payload.Status);
         Assert.Equal("VoidEmpires.Web", payload.Service);
         Assert.False(payload.Persistence.Configured);
-        Assert.Equal("PostgreSQL", payload.Persistence.Provider);
+        Assert.Equal("Not configured", payload.Persistence.Provider);
         Assert.False(payload.Auth.Configured);
         Assert.Equal("ASP.NET Core Identity", payload.Auth.Provider);
     }
@@ -55,11 +55,26 @@ public class HealthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(payload);
         Assert.True(payload.Persistence.Configured);
-        Assert.Equal("PostgreSQL", payload.Persistence.Provider);
+        Assert.Equal("Npgsql.EntityFrameworkCore.PostgreSQL", payload.Persistence.Provider);
         Assert.True(payload.Auth.Configured);
         Assert.Equal("ASP.NET Core Identity", payload.Auth.Provider);
         Assert.DoesNotContain("localhost", content);
         Assert.DoesNotContain("voidempires_test", content);
+    }
+
+    [Fact]
+    public async Task HealthEndpointReportsInMemoryProviderWhenTestHostOverridesPersistence()
+    {
+        using var client = _factory.WithInMemoryPersistence().CreateClient();
+
+        using var response = await client.GetAsync("/health");
+        var payload = await response.Content.ReadFromJsonAsync<HealthResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.True(payload.Persistence.Configured);
+        Assert.Equal("Microsoft.EntityFrameworkCore.InMemory", payload.Persistence.Provider);
+        Assert.True(payload.Auth.Configured);
     }
 
     private sealed record HealthResponse(string Status, string Service, PersistenceHealth Persistence, AuthHealth Auth);

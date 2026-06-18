@@ -3,7 +3,7 @@
 ---
 id: TASK-38AA
 title: SQL Server development endpoint review
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: [platform]
