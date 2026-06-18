@@ -1,8 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Configuration;
 using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Economy;
@@ -138,6 +141,47 @@ public class DevPlayableSessionDiagnosticsEndpointTests(WebApplicationFactory<Pr
         Assert.False(payload!.Succeeded);
         Assert.Null(payload.Diagnostics);
         Assert.Contains("Planet was not found for the requested civilization.", payload.Errors);
+    }
+
+    [Fact]
+    public async Task DiagnosticsReturnsServiceUnavailableForPersistenceReadFailure()
+    {
+        var brokenFactory = factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+            {
+                configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=voidempires_diagnostics_unavailable"
+                });
+            });
+
+            builder.ConfigureTestServices(services =>
+            {
+                services.RemoveAll<DbContextOptions<VoidEmpiresDbContext>>();
+                services.RemoveAll<VoidEmpiresDbContext>();
+                services.AddScoped(_ =>
+                {
+                    var options = new DbContextOptionsBuilder<VoidEmpiresDbContext>()
+                        .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
+                        .Options;
+                    var dbContext = new VoidEmpiresDbContext(options);
+                    dbContext.Dispose();
+                    return dbContext;
+                });
+            });
+        });
+
+        using var client = brokenFactory.CreateClient();
+        using var response = await client.GetAsync($"/api/dev/playable-session/diagnostics?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var payload = await response.Content.ReadFromJsonAsync<DiagnosticsEnvelope>();
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload!.Succeeded);
+        Assert.Null(payload.Diagnostics);
+        Assert.Contains("Diagnostics are temporarily unavailable because the configured database could not be reached.", payload.Errors);
+        Assert.Contains("This read-only diagnostics request did not apply any data changes.", payload.Errors);
     }
 
     private static async Task<DiagnosticsMutationSnapshot> CaptureSnapshotAsync(IServiceProvider services, Guid civilizationId, Guid planetId)

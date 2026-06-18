@@ -3,7 +3,7 @@
 ---
 id: TASK-38AC
 title: SQL Server diagnostics readiness
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: [platform]

@@ -3,7 +3,7 @@
 ---
 id: TASK-38ABB
 title: Case-insensitive name lookup readiness
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: [platform]
@@ -16,6 +16,8 @@ Refine display-name and civilization-name uniqueness checks so they remain provi
 
 ## Context
 `TASK-38ABA` covered ownership/session/planet lookup indexing. The remaining lookup gap is the case-insensitive `ToLower()` query shape in `StartingCivilizationService`, which is not solved honestly by adding plain indexes alone.
+
+This task is narrowed. A provider-agnostic, index-friendly solution needs schema-backed normalized values or equivalent migration work, which is larger than a safe query-only adjustment for this budget.
 
 ## Implementation steps
 1. Read the files listed below before editing.

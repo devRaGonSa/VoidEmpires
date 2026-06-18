@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using VoidEmpires.Application.Development;
@@ -274,86 +275,101 @@ internal static class DevEndpointMappings
 
             var requestedCivilizationId = civilizationId!.Value;
             var requestedPlanetId = planetId!.Value;
-            var dbContext = services.GetRequiredService<VoidEmpiresDbContext>();
-            var hasOwnership = await dbContext.Set<PlanetOwnership>()
-                .AsNoTracking()
-                .AnyAsync(x =>
-                    x.CivilizationId == requestedCivilizationId &&
-                    x.PlanetId == requestedPlanetId &&
-                    x.Status == PlanetControlStatus.Active,
-                    cancellationToken);
-
-            if (!hasOwnership)
+            try
             {
-                return Results.NotFound(new PlayableSessionDiagnosticsApiResponse(
-                    false,
-                    null,
-                    ["Planet was not found for the requested civilization."]));
-            }
+                var dbContext = services.GetRequiredService<VoidEmpiresDbContext>();
+                var hasOwnership = await dbContext.Set<PlanetOwnership>()
+                    .AsNoTracking()
+                    .AnyAsync(x =>
+                        x.CivilizationId == requestedCivilizationId &&
+                        x.PlanetId == requestedPlanetId &&
+                        x.Status == PlanetControlStatus.Active,
+                        cancellationToken);
 
-            var planet = await dbContext.Set<Planet>()
-                .AsNoTracking()
-                .Where(x => x.Id == requestedPlanetId)
-                .Select(x => new { x.Id, x.Name })
-                .SingleOrDefaultAsync(cancellationToken);
+                if (!hasOwnership)
+                {
+                    return Results.NotFound(new PlayableSessionDiagnosticsApiResponse(
+                        false,
+                        null,
+                        ["Planet was not found for the requested civilization."]));
+                }
 
-            var stockpile = await dbContext.Set<PlanetResourceStockpile>()
-                .AsNoTracking()
-                .SingleOrDefaultAsync(x => x.PlanetId == requestedPlanetId, cancellationToken);
+                var planet = await dbContext.Set<Planet>()
+                    .AsNoTracking()
+                    .Where(x => x.Id == requestedPlanetId)
+                    .Select(x => new { x.Id, x.Name })
+                    .SingleOrDefaultAsync(cancellationToken);
 
-            var constructionOrders = await dbContext.Set<PlanetConstructionOrder>()
-                .AsNoTracking()
-                .Where(x => x.PlanetId == requestedPlanetId && (x.Status == ConstructionQueueItemStatus.Pending || x.Status == ConstructionQueueItemStatus.Active))
-                .OrderBy(x => x.Sequence)
-                .ToArrayAsync(cancellationToken);
+                var stockpile = await dbContext.Set<PlanetResourceStockpile>()
+                    .AsNoTracking()
+                    .SingleOrDefaultAsync(x => x.PlanetId == requestedPlanetId, cancellationToken);
 
-            var researchOrders = await dbContext.Set<ResearchOrder>()
-                .AsNoTracking()
-                .Where(x => x.CivilizationId == requestedCivilizationId && (x.Status == ResearchQueueItemStatus.Pending || x.Status == ResearchQueueItemStatus.Active))
-                .OrderBy(x => x.Sequence)
-                .ToArrayAsync(cancellationToken);
+                var constructionOrders = await dbContext.Set<PlanetConstructionOrder>()
+                    .AsNoTracking()
+                    .Where(x => x.PlanetId == requestedPlanetId && (x.Status == ConstructionQueueItemStatus.Pending || x.Status == ConstructionQueueItemStatus.Active))
+                    .OrderBy(x => x.Sequence)
+                    .ToArrayAsync(cancellationToken);
 
-            var shipyardOrders = await dbContext.Set<AssetProductionOrder>()
-                .AsNoTracking()
-                .Where(x => x.PlanetId == requestedPlanetId && x.Target == AssetProductionTarget.Orbital && (x.Status == AssetProductionOrderStatus.Pending || x.Status == AssetProductionOrderStatus.Active))
-                .OrderBy(x => x.Sequence)
-                .ToArrayAsync(cancellationToken);
+                var researchOrders = await dbContext.Set<ResearchOrder>()
+                    .AsNoTracking()
+                    .Where(x => x.CivilizationId == requestedCivilizationId && (x.Status == ResearchQueueItemStatus.Pending || x.Status == ResearchQueueItemStatus.Active))
+                    .OrderBy(x => x.Sequence)
+                    .ToArrayAsync(cancellationToken);
 
-            var orbitalStock = await dbContext.Set<OrbitalAssetStock>()
-                .AsNoTracking()
-                .Where(x => x.PlanetId == requestedPlanetId)
-                .OrderBy(x => x.AssetType)
-                .Select(x => new PlayableSessionStockDiagnostic(x.AssetType.ToString(), x.Quantity))
-                .ToArrayAsync(cancellationToken);
+                var shipyardOrders = await dbContext.Set<AssetProductionOrder>()
+                    .AsNoTracking()
+                    .Where(x => x.PlanetId == requestedPlanetId && x.Target == AssetProductionTarget.Orbital && (x.Status == AssetProductionOrderStatus.Pending || x.Status == AssetProductionOrderStatus.Active))
+                    .OrderBy(x => x.Sequence)
+                    .ToArrayAsync(cancellationToken);
 
-            var diagnostics = new PlayableSessionDiagnosticsPayload(
-                requestedCivilizationId,
-                requestedPlanetId,
-                planet?.Name,
-                stockpile is null
-                    ? []
-                    : [
-                        new PlayableSessionResourceDiagnostic(ResourceType.Credits.ToString(), stockpile.Credits),
-                        new PlayableSessionResourceDiagnostic(ResourceType.Metal.ToString(), stockpile.Metal),
-                        new PlayableSessionResourceDiagnostic(ResourceType.Crystal.ToString(), stockpile.Crystal),
-                        new PlayableSessionResourceDiagnostic(ResourceType.Gas.ToString(), stockpile.Gas)
+                var orbitalStock = await dbContext.Set<OrbitalAssetStock>()
+                    .AsNoTracking()
+                    .Where(x => x.PlanetId == requestedPlanetId)
+                    .OrderBy(x => x.AssetType)
+                    .Select(x => new PlayableSessionStockDiagnostic(x.AssetType.ToString(), x.Quantity))
+                    .ToArrayAsync(cancellationToken);
+
+                var diagnostics = new PlayableSessionDiagnosticsPayload(
+                    requestedCivilizationId,
+                    requestedPlanetId,
+                    planet?.Name,
+                    stockpile is null
+                        ? []
+                        : [
+                            new PlayableSessionResourceDiagnostic(ResourceType.Credits.ToString(), stockpile.Credits),
+                            new PlayableSessionResourceDiagnostic(ResourceType.Metal.ToString(), stockpile.Metal),
+                            new PlayableSessionResourceDiagnostic(ResourceType.Crystal.ToString(), stockpile.Crystal),
+                            new PlayableSessionResourceDiagnostic(ResourceType.Gas.ToString(), stockpile.Gas)
+                        ],
+                    BuildConstructionQueueDiagnostic(constructionOrders),
+                    BuildResearchQueueDiagnostic(researchOrders),
+                    BuildShipyardQueueDiagnostic(shipyardOrders),
+                    orbitalStock,
+                    [
+                        "Defense diagnostics are read-only and do not imply a defense enqueue or combat endpoint.",
+                        "Fleet diagnostics should be paired with /api/dev/fleets/ui-state for detailed group state."
                     ],
-                BuildConstructionQueueDiagnostic(constructionOrders),
-                BuildResearchQueueDiagnostic(researchOrders),
-                BuildShipyardQueueDiagnostic(shipyardOrders),
-                orbitalStock,
-                [
-                    "Defense diagnostics are read-only and do not imply a defense enqueue or combat endpoint.",
-                    "Fleet diagnostics should be paired with /api/dev/fleets/ui-state for detailed group state."
-                ],
-                stockpile is null ? ["Planet resource stockpile was not found."] : [],
-                [
-                    "Development-only diagnostics.",
-                    "Read-only; does not apply seeds, accrue resources, enqueue orders, materialize queues, or move fleets.",
-                    "Raw ids are included for QA support and are not production authentication or admin authority."
-                ]);
+                    stockpile is null ? ["Planet resource stockpile was not found."] : [],
+                    [
+                        "Development-only diagnostics.",
+                        "Read-only; does not apply seeds, accrue resources, enqueue orders, materialize queues, or move fleets.",
+                        "Raw ids are included for QA support and are not production authentication or admin authority."
+                    ]);
 
-            return Results.Ok(new PlayableSessionDiagnosticsApiResponse(true, diagnostics, []));
+                return Results.Ok(new PlayableSessionDiagnosticsApiResponse(true, diagnostics, []));
+            }
+            catch (Exception ex) when (IsPersistenceReadFailure(ex))
+            {
+                return Results.Json(
+                    new PlayableSessionDiagnosticsApiResponse(
+                        false,
+                        null,
+                        [
+                            "Diagnostics are temporarily unavailable because the configured database could not be reached.",
+                            "This read-only diagnostics request did not apply any data changes."
+                        ]),
+                    statusCode: StatusCodes.Status503ServiceUnavailable);
+            }
         });
 
         app.MapPost("/api/dev/buildings/construction-orders/enqueue", async (
@@ -1077,6 +1093,9 @@ internal static class DevEndpointMappings
 
         return errors;
     }
+
+    private static bool IsPersistenceReadFailure(Exception exception) =>
+        exception is DbException or DbUpdateException or ObjectDisposedException or InvalidOperationException;
 
     private static PlayableSessionQueueDiagnostic BuildConstructionQueueDiagnostic(IReadOnlyList<PlanetConstructionOrder> orders)
     {
