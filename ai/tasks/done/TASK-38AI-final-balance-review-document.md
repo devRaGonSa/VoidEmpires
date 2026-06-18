@@ -3,7 +3,7 @@
 ---
 id: TASK-38AI
 title: Final balance review document
-status: pending
+status: done
 type: docs
 team: gameplay
 supporting_teams: [backend]
