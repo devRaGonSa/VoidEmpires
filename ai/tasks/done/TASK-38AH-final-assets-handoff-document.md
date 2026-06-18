@@ -3,7 +3,7 @@
 ---
 id: TASK-38AH
 title: Final assets handoff document
-status: pending
+status: done
 type: docs
 team: frontend
 supporting_teams: [gameplay]
