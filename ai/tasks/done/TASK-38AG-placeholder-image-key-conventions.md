@@ -3,7 +3,7 @@
 ---
 id: TASK-38AG
 title: Placeholder image key conventions
-status: pending
+status: done
 type: docs
 team: frontend
 supporting_teams: [gameplay, platform]
