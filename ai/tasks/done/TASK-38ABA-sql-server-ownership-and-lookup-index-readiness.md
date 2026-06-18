@@ -3,7 +3,7 @@
 ---
 id: TASK-38ABA
 title: SQL Server ownership and lookup index readiness
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: [platform]
@@ -16,6 +16,8 @@ Audit and add any remaining ownership, session, planet, and civilization lookup 
 
 ## Context
 `TASK-38AB` was narrowed to the three queue-heavy due-order tables to stay within the repository change budget. This follow-up covers the remaining lookup paths that are adjacent to the same SQL Server readiness work.
+
+This task was narrowed to ownership, session, and planet lookup indexing. The remaining case-insensitive display-name and civilization-name lookup work moved to `TASK-38ABB`.
 
 ## Implementation steps
 1. Read the files listed below before editing.

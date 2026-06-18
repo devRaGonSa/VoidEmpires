@@ -22,7 +22,7 @@ public sealed class PlanetOwnershipConfiguration : IEntityTypeConfiguration<Plan
             .IsUnique()
             .HasDatabaseName("ux_planet_ownerships_planet_id");
 
-        builder.HasIndex(ownership => ownership.CivilizationId)
-            .HasDatabaseName("ix_planet_ownerships_civilization_id");
+        builder.HasIndex(ownership => new { ownership.CivilizationId, ownership.Status })
+            .HasDatabaseName("ix_planet_ownerships_civilization_status");
     }
 }
