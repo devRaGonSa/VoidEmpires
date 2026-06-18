@@ -40,6 +40,8 @@ public class PlayerCivilizationDomainTests
 
         Assert.Single(profile.Civilizations);
         Assert.Equal(profile.Id, civilization.PlayerProfileId);
+        Assert.Equal("PLAYER ONE", profile.NormalizedDisplayName);
+        Assert.Equal("SOLAR DOMINION", civilization.NormalizedName);
     }
 
     [Fact]
@@ -61,5 +63,13 @@ public class PlayerCivilizationDomainTests
 
         Assert.Equal(planetId, civilization.HomePlanetId);
         Assert.Equal(CivilizationStatus.Active, civilization.Status);
+    }
+
+    [Fact]
+    public void NormalizeLookupKeyTrimsAndUppercasesValues()
+    {
+        var normalized = PlayerProfile.NormalizeLookupKey("  Solar Dominion  ");
+
+        Assert.Equal("SOLAR DOMINION", normalized);
     }
 }

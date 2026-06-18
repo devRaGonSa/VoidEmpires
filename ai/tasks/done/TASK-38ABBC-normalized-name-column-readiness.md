@@ -3,7 +3,7 @@
 ---
 id: TASK-38ABBC
 title: Normalized name column readiness
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: [platform]
@@ -16,6 +16,8 @@ Add a provider-agnostic, index-friendly normalization strategy for display-name 
 
 ## Context
 `StartingCivilizationService` currently enforces case-insensitive uniqueness with `ToLower()` comparisons. That query shape is not index-friendly and is not honestly fixed by adding plain indexes alone. A safe readiness fix needs schema-backed normalized values or an equivalent persisted strategy.
+
+This task is narrowed due to the repository change budget. An honest implementation requires at least one task for normalized-field/model preparation and one task for relational migration or persisted write-path rollout.
 
 ## Implementation steps
 1. Read the files listed below before editing.

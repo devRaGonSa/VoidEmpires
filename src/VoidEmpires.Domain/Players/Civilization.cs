@@ -12,6 +12,7 @@ public sealed class Civilization
         Id = Guid.NewGuid();
         PlayerProfileId = playerProfileId;
         Name = name.Trim();
+        NormalizedName = PlayerProfile.NormalizeLookupKey(Name);
         Archetype = archetype;
         HomePlanetId = homePlanetId;
         Status = CivilizationStatus.Active;
@@ -20,6 +21,7 @@ public sealed class Civilization
     public Guid Id { get; private set; }
     public Guid PlayerProfileId { get; private set; }
     public string Name { get; private set; } = string.Empty;
+    public string NormalizedName { get; private set; } = string.Empty;
     public CivilizationArchetype Archetype { get; private set; }
     public CivilizationStatus Status { get; private set; }
     public Guid? HomePlanetId { get; private set; }
