@@ -3,7 +3,7 @@
 ---
 id: TASK-38AK
 title: SQL Server runbook
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams: [backend]
