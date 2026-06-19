@@ -3,7 +3,7 @@
 ---
 id: TASK-38X
 title: Catalog loader validation
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: [gameplay]
