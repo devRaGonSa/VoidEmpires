@@ -3,7 +3,7 @@
 ---
 id: TASK-38AP
 title: SQL Server migration dry-run docs
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams: [backend]
