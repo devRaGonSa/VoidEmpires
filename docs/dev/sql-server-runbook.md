@@ -177,12 +177,35 @@ Current repository position:
 
 - static gameplay catalogs are still code-owned, not final relational seed rows
 - Development seed profiles are QA scaffolding, not final production initialization
+- the backend now includes a dry-run-first final catalog seed service, but non-dry-run apply is still intentionally deferred
 
 Operational guidance:
 
 - Do not treat `POST /api/dev/seeds/apply` as the final production catalog seed path.
 - Use Development seeds only for local QA after the app is intentionally configured to talk to a disposable database.
 - Keep final catalog seeding separate from player-owned gameplay state seeding.
+- Use `scripts/sqlserver-final-catalog-seed.ps1` only as an operator-invoked guardrail around the current backend seed service.
+
+Final catalog helper examples:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-final-catalog-seed.ps1 `
+  -ConnectionString "Server=<HOST>,1433;Database=VoidEmpires;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+```
+
+```powershell
+$env:VOIDEMPIRES_CONNECTION_STRING="Server=<HOST>,1433;Database=VoidEmpires;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-final-catalog-seed.ps1
+```
+
+Current expected behavior of the helper:
+
+- it requires explicit connection context from a parameter or environment variable before it runs
+- it does not echo the connection string or password
+- it defaults to a dry-run path that validates the versioned catalog JSON sources through the backend seed service
+- if `-Apply -ConfirmMutation` is requested, the helper still stops safely because the backend service currently defers non-dry-run execution until final relational catalog tables and manual apply wiring exist
+- it does not call Development seed endpoints
+- it does not run migrations or perform automatic SQL Server updates
 
 If you intentionally run Development seeds against a disposable SQL Server validation database:
 
@@ -231,7 +254,7 @@ If a manual SQL apply fails:
 - existing migration history is PostgreSQL-shaped
 - filtered-index SQL and provider-specific migration SQL still need SQL Server audit
 - no checked-in SQL Server migration script helper exists yet
-- no final relational catalog seed path exists yet
+- final catalog operator scripting now exists only as a guarded dry-run and deferred-apply helper; no final relational catalog seed apply path exists yet
 
 ## 11. Recommended Future Task Order
 

@@ -3,7 +3,7 @@
 ---
 id: TASK-38Z
 title: Final DB seed script
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [backend]

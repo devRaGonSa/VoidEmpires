@@ -56,6 +56,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IConstructionQaStatePreparationService, ConstructionQaStatePreparationService>();
         services.AddScoped<IResearchQaStatePreparationService, ResearchQaStatePreparationService>();
         services.AddScoped<IOrbitalProductionQaStatePreparationService, OrbitalProductionQaStatePreparationService>();
+        services.AddScoped<CatalogSeedSourceLoader>();
         services.AddScoped<IFinalCatalogSeedService, FinalCatalogSeedService>();
         services.AddScoped<IStartingCivilizationService, StartingCivilizationService>();
         services.AddScoped<IPlanetColonizationService, PlanetColonizationService>();
