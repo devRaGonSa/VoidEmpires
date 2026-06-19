@@ -105,19 +105,28 @@ This confirms the ordinary repository regression baseline before any manual SQL 
 
 ## 4. Run The SQL Server Connection Smoke Check
 
-The repository currently has no dedicated SQL Server PowerShell helper script. Use the opt-in smoke test directly:
+The repository now includes a dedicated read-only helper:
 
 ```powershell
-dotnet test --no-build --filter FullyQualifiedName~SqlServerSmokeTests
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-connection-smoke.ps1
+```
+
+Optional parameter form:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-connection-smoke.ps1 `
+  -ConnectionString "Server=<HOST>,1433;Database=VoidEmpires;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
 ```
 
 Expected current behavior:
 
-- if the SQL Server gate and connection string are not set, the test reports that smoke coverage was skipped
-- if both are set, the test opens a SQL connection and runs read-only `SELECT 1`
+- if no connection string is provided, the helper stops with external-configuration guidance
+- if a connection string is provided, the helper runs the opt-in `SqlServerSmokeTests` path
+- the underlying smoke path opens a SQL connection and runs read-only `SELECT 1`
 - it does not create a database
 - it does not apply migrations
 - it does not write gameplay data
+- it does not echo the provided password
 
 ## 5. Generate Migration Scripts Manually
 

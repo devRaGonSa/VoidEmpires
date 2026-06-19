@@ -29,7 +29,8 @@ function Get-ExistingDevQaScriptPaths {
 
     $optionalScriptNames = @(
         "dev-qa-create-orbital-group-from-stock.ps1",
-        "sqlserver-script-migration.ps1"
+        "sqlserver-script-migration.ps1",
+        "sqlserver-connection-smoke.ps1"
     )
 
     $paths = New-Object System.Collections.Generic.List[string]

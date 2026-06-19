@@ -3,7 +3,7 @@
 ---
 id: TASK-38N
 title: SQL Server connection smoke script
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [backend]
