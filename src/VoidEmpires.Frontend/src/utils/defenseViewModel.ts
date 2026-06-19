@@ -1,5 +1,6 @@
 import type {
   DefenseActionSummaryDto,
+  DefenseCatalogItemDto,
   DefenseDiagnosticsDto,
   DefenseOptionDto,
   DefensePlanetContextDto,
@@ -163,24 +164,33 @@ function getReasonLabel(rawReason: string, fallbackLabel?: string | null) {
   return reasonLabels[rawReason] ?? "Preparacion defensiva no catalogada";
 }
 
-function mapStructure(item: DefenseStructureDto): DefenseStructure {
+function buildCatalogMetadataMap(catalog: readonly DefenseCatalogItemDto[]) {
+  return catalog.reduce<Map<string, DefenseCatalogItemDto>>((accumulator, item) => {
+    accumulator.set(`${item.buildingType ?? ""}`, item);
+    return accumulator;
+  }, new Map());
+}
+
+function mapStructure(item: DefenseStructureDto, metadataByBuildingType: ReadonlyMap<string, DefenseCatalogItemDto>): DefenseStructure {
   const buildingType = `${item.buildingType ?? ""}`;
   const categoryKey = `${item.category ?? ""}`;
+  const metadata = metadataByBuildingType.get(buildingType);
 
   return {
     buildingType,
-    label: item.display?.buildingTypeLabel ?? getDefenseStructureLabel(buildingType),
-    categoryKey,
-    categoryLabel: item.display?.categoryLabel ?? getDefenseCategoryLabel(categoryKey),
+    label: metadata?.displayName ?? item.display?.buildingTypeLabel ?? getDefenseStructureLabel(buildingType),
+    categoryKey: metadata?.categoryKey ?? categoryKey,
+    categoryLabel: metadata?.categoryLabel ?? item.display?.categoryLabel ?? getDefenseCategoryLabel(categoryKey),
     level: item.level,
     footprint: item.footprint,
   };
 }
 
-function mapOption(item: DefenseOptionDto, stockpile: DefenseCost[]): DefenseOption {
+function mapOption(item: DefenseOptionDto, stockpile: DefenseCost[], metadataByBuildingType: ReadonlyMap<string, DefenseCatalogItemDto>): DefenseOption {
   const actionKey = `${item.action ?? ""}`;
   const buildingType = `${item.buildingType ?? ""}`;
   const categoryKey = `${item.category ?? ""}`;
+  const metadata = metadataByBuildingType.get(buildingType);
 
   const cost = mapCost(item.cost);
 
@@ -188,9 +198,9 @@ function mapOption(item: DefenseOptionDto, stockpile: DefenseCost[]): DefenseOpt
     actionKey,
     actionLabel: item.display?.actionLabel ?? getDefenseActionLabel(actionKey),
     buildingType,
-    structureLabel: item.display?.buildingTypeLabel ?? getDefenseStructureLabel(buildingType),
-    categoryKey,
-    categoryLabel: item.display?.categoryLabel ?? getDefenseCategoryLabel(categoryKey),
+    structureLabel: metadata?.displayName ?? item.display?.buildingTypeLabel ?? getDefenseStructureLabel(buildingType),
+    categoryKey: metadata?.categoryKey ?? categoryKey,
+    categoryLabel: metadata?.categoryLabel ?? item.display?.categoryLabel ?? getDefenseCategoryLabel(categoryKey),
     currentLevel: item.currentLevel,
     targetLevel: item.targetLevel,
     statusKey: item.availabilityStatus,
@@ -217,17 +227,18 @@ function mapOption(item: DefenseOptionDto, stockpile: DefenseCost[]): DefenseOpt
   };
 }
 
-function mapQueueItem(item: DefenseQueueItemDto): DefenseQueueItem {
+function mapQueueItem(item: DefenseQueueItemDto, metadataByBuildingType: ReadonlyMap<string, DefenseCatalogItemDto>): DefenseQueueItem {
   const actionKey = `${item.action ?? ""}`;
   const buildingType = `${item.buildingType ?? ""}`;
   const statusKey = `${item.status ?? ""}`;
+  const metadata = metadataByBuildingType.get(buildingType);
 
   return {
     orderId: item.orderId,
     actionKey,
     actionLabel: item.display?.actionLabel ?? getDefenseActionLabel(actionKey),
     buildingType,
-    structureLabel: item.display?.buildingTypeLabel ?? getDefenseStructureLabel(buildingType),
+    structureLabel: metadata?.displayName ?? item.display?.buildingTypeLabel ?? getDefenseStructureLabel(buildingType),
     statusKey,
     statusLabel: item.display?.statusLabel ?? getDefenseStatusLabel(statusKey),
     targetLevel: item.targetLevel,
@@ -290,6 +301,7 @@ function mapDiagnostics(diagnostics: DefenseDiagnosticsDto): DefenseDiagnostics 
 
 function mapDefenseContext(defenses: DefensePlanetContextDto): DefensePlanetContext {
   const stockpile = mapCost(defenses.resourceStockpile);
+  const metadataByBuildingType = buildCatalogMetadataMap(defenses.catalog);
   const diagnostics = mapDiagnostics(defenses.diagnostics);
 
   return {
@@ -302,9 +314,9 @@ function mapDefenseContext(defenses: DefensePlanetContextDto): DefensePlanetCont
     ownerCivilizationName: defenses.ownerCivilizationName,
     controlStatus: defenses.controlStatus ? `${defenses.controlStatus}` : null,
     stockpile,
-    structures: defenses.defenseStructures.map(mapStructure),
-    options: defenses.defenseOptions.map((option) => mapOption(option, stockpile)),
-    queue: defenses.defenseQueue.map(mapQueueItem),
+    structures: defenses.defenseStructures.map((item) => mapStructure(item, metadataByBuildingType)),
+    options: defenses.defenseOptions.map((option) => mapOption(option, stockpile, metadataByBuildingType)),
+    queue: defenses.defenseQueue.map((item) => mapQueueItem(item, metadataByBuildingType)),
     protectionSummary: defenses.protectionSummary,
     actionAvailability: {
       queue: mapActionAvailability("queue.read", defenses.defenseQueue.length > 0, defenses.actionSummary, "queue"),

@@ -3,7 +3,7 @@
 ---
 id: TASK-38S
 title: Defense catalog finalization
-status: pending
+status: done
 type: backend
 team: gameplay
 supporting_teams: [backend, frontend]

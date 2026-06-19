@@ -26,6 +26,26 @@ export interface DefenseStructureDto {
   display?: DefenseStructureDisplayDto | null;
 }
 
+export interface DefenseCatalogItemDto {
+  buildingType: DefenseApiValue;
+  displayName: string;
+  description: string;
+  categoryKey: string;
+  categoryLabel: string;
+  roleKey: string;
+  roleLabel: string;
+  moduleKey: string;
+  moduleLabel: string;
+  imageKey: string;
+  iconKey: string;
+  sortOrder: number;
+  futureProductionRequirementKey: string;
+  futureProductionRequirementLabel: string;
+  futureCombatDependencyKey: string;
+  futureCombatDependencyLabel: string;
+  tags: readonly string[];
+}
+
 export interface DefenseOptionDisplayDto {
   actionLabel: string;
   buildingTypeLabel: string;
@@ -115,6 +135,7 @@ export interface DefensePlanetContextDto {
   ownerCivilizationName: string | null;
   controlStatus: DefenseApiValue;
   resourceStockpile: readonly DefenseResourceStockpileItemDto[];
+  catalog: readonly DefenseCatalogItemDto[];
   defenseStructures: readonly DefenseStructureDto[];
   defenseOptions: readonly DefenseOptionDto[];
   defenseQueue: readonly DefenseQueueItemDto[];

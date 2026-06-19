@@ -32,6 +32,7 @@ public sealed class DevDefenseUiStateService(IDevPlanetUiStateService planetUiSt
         var defenseQueue = planetUiState.Planet.ConstructionQueue
             .Where(x => x.Category == BuildingCategory.Defense || x.BuildingType == BuildingType.DefenseGrid)
             .ToArray();
+        var catalog = CreateDefenseCatalog();
 
         var protectionSummary = new DevDefenseProtectionSummaryDto(
             StructureCount: defenseStructures.Length,
@@ -74,6 +75,7 @@ public sealed class DevDefenseUiStateService(IDevPlanetUiStateService planetUiSt
             planetUiState.Planet.OwnerCivilizationName,
             planetUiState.Planet.ControlStatus,
             planetUiState.Planet.Stockpile,
+            catalog,
             defenseStructures,
             defenseOptions,
             defenseQueue,
@@ -94,5 +96,32 @@ public sealed class DevDefenseUiStateService(IDevPlanetUiStateService planetUiSt
             planetUiState.KnownPlanets,
             cockpit,
             []);
+    }
+
+    private static IReadOnlyList<DevDefenseCatalogItemDto> CreateDefenseCatalog()
+    {
+        var definition = BuildingCatalog.Get(BuildingType.DefenseGrid);
+
+        return
+        [
+            new DevDefenseCatalogItemDto(
+                BuildingType.DefenseGrid,
+                definition.DisplayName,
+                definition.Description,
+                "Defense",
+                "Proteccion planetaria",
+                definition.RoleKey,
+                definition.RoleLabel,
+                definition.ModuleKey,
+                definition.ModuleLabel,
+                definition.ImageKey,
+                definition.IconKey,
+                definition.SortOrder,
+                "ConstructionBackedDefenseReadiness",
+                "Depende de la cola de Construccion y de capacidad planetaria visible.",
+                "CombatSystemDeferred",
+                "La mitigacion, intercepcion y dano real siguen diferidos hasta el sistema de combate.",
+                ["Defense", "Readiness", "NonCombat", "ConstructionBacked"])
+        ];
     }
 }

@@ -99,6 +99,7 @@ public sealed record DevDefenseCockpitDto(
     string? OwnerCivilizationName,
     PlanetControlStatus? ControlStatus,
     IReadOnlyList<DevPlanetResourceBalanceDto> ResourceStockpile,
+    IReadOnlyList<DevDefenseCatalogItemDto> Catalog,
     IReadOnlyList<DevPlanetBuildingDto> DefenseStructures,
     IReadOnlyList<DevPlanetConstructionActionDto> DefenseOptions,
     IReadOnlyList<DevPlanetConstructionQueueItemDto> DefenseQueue,
@@ -248,6 +249,25 @@ public sealed record DevDefenseProtectionSummaryDto(
     int BlockedOptionCount,
     int QueueItemCount,
     int DueQueueItemCount);
+
+public sealed record DevDefenseCatalogItemDto(
+    BuildingType BuildingType,
+    string DisplayName,
+    string Description,
+    string CategoryKey,
+    string CategoryLabel,
+    string RoleKey,
+    string RoleLabel,
+    string ModuleKey,
+    string ModuleLabel,
+    string ImageKey,
+    string IconKey,
+    int SortOrder,
+    string FutureProductionRequirementKey,
+    string FutureProductionRequirementLabel,
+    string FutureCombatDependencyKey,
+    string FutureCombatDependencyLabel,
+    IReadOnlyList<string> Tags);
 
 public sealed record DevGroundArmyPopulationSummaryDto(
     long TotalPopulation,
