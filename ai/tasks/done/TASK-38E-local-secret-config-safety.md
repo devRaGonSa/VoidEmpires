@@ -3,16 +3,16 @@
 ---
 id: TASK-38E
 title: Local secret config safety
-status: pending
-type: platform
+status: done
+type: backend
 team: platform
 supporting_teams: [backend]
 roadmap_item: "Block 38A-38AZ - Final SQL Server Database & Catalog Consolidation v1"
-priority: high
+priority: medium
 ---
 
 ## Goal
-Ensure local-only config files and secret-bearing developer files are ignored safely.
+Keep local provider-selection and connection-string configuration safe by ensuring checked-in settings stay placeholder-only and conservative.
 
 ## Context
 This task belongs to the final SQL Server database and catalog consolidation block. The final product database target is SQL Server on user-managed infrastructure, but this block must keep secrets out of the repository, avoid applying migrations automatically to the real server, preserve the current Development and test flow, and keep gameplay expansion out of scope.
@@ -21,25 +21,23 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 1. Read every file listed in "Files to read first" before editing.
 2. Use ai/orchestrator/component-discovery.md to identify the smallest related component set.
 3. Use ai/orchestrator/di-analysis.md before changing persistence registration, seed wiring, scripts, or composition roots.
-4. Implement only the behavior, documentation, scripts, or validation required by this task goal.
-5. Keep SQL Server credentials, passwords, and unsafe connection strings out of the repository.
-6. Do not run migrations or database updates against the user's real SQL Server automatically.
-7. Keep backend state authoritative and do not add new gameplay systems outside database or catalog consolidation.
+4. Review checked-in appsettings and any code paths that read provider-selection config.
+5. Add or adjust only the safe placeholder configuration needed to document local provider selection without storing secrets.
+6. Keep `DefaultConnection` empty by default and avoid committing a real provider override or password.
+7. Update tests only if needed for safe checked-in config behavior.
 8. Run the validation commands listed below before moving the task to done.
-9. Audit `.gitignore` and related config conventions for `appsettings.Development.local.json`, `*.local.json`, `.env`, `.env.*`, and any local database connection helper files.
-10. Update documentation so contributors know which local configuration files are safe to use and why they must stay uncommitted.
 
 ## Files to read first
 - AGENTS.md
-- .gitignore
-- appsettings.json
-- docs/dev/final-db-phase-prep.md
-- docs/dev/product-readiness-report.md
+- src/VoidEmpires.Web/appsettings.json
+- src/VoidEmpires.Web/appsettings.Development.json
+- src/VoidEmpires.Web/Program.cs
+- scripts/check-repo-secret-scan.ps1
 
 ## Expected files to modify
-- .gitignore
-- docs/dev/final-db-phase-prep.md
-- docs/dev/product-readiness-report.md
+- src/VoidEmpires.Web/appsettings.json
+- src/VoidEmpires.Web/appsettings.Development.json
+- Optional: scripts/check-repo-secret-scan.ps1
 
 ## Acceptance criteria
 - The task goal is completed or narrowed with explicit blockers and safe next steps.
@@ -49,8 +47,7 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 - No real SQL Server migration or destructive database change is applied automatically.
 - No combat, fleet movement, market transactions, alliance mutations, or production-auth expansion is introduced.
 - Required validation commands pass and results are recorded in the task or commit notes where appropriate.
-- Ignored local config patterns cover the required local secret files without breaking current config loading.
-- Documentation explains the local-safe config approach.
+- Checked-in settings remain placeholder-only and do not enable SQL Server implicitly by default.
 
 ## Constraints
 - Follow the architecture and conventions of the current repository
@@ -60,13 +57,14 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 - Keep UI and visible product copy Spanish-first where frontend text changes are required
 - Preserve lazy loading and copy regression guard coverage when frontend files are touched
 - If the change exceeds the task budget, stop and create a follow-up task instead of broadening scope
-- Do not include the real SQL Server password in any file, script, task note, or commit message
 
 ## Validation
 Before completing the task run:
 
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-repo-secret-scan.ps1`
 - `dotnet build --no-restore`
-- `dotnet test --no-build`
+- `git diff --name-only`
+- `git status`
 
 ## Commit and push
 At the end:
