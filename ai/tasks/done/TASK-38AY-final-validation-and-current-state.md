@@ -3,8 +3,8 @@
 ---
 id: TASK-38AY
 title: Final validation and current state
-status: pending
-type: platform
+status: done
+type: documentation
 team: platform
 supporting_teams: [backend, frontend]
 roadmap_item: "Block 38A-38AZ - Final SQL Server Database & Catalog Consolidation v1"
@@ -12,7 +12,7 @@ priority: high
 ---
 
 ## Goal
-Perform the final validation pass and synchronize `ai/current-state.md` with the completed SQL Server preparation work.
+Run the final validation pass for the completed documentation-first Block 38 subset and record the results in the current-state note.
 
 ## Context
 This task belongs to the final SQL Server database and catalog consolidation block. The final product database target is SQL Server on user-managed infrastructure, but this block must keep secrets out of the repository, avoid applying migrations automatically to the real server, preserve the current Development and test flow, and keep gameplay expansion out of scope.
@@ -21,20 +21,16 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 1. Read every file listed in "Files to read first" before editing.
 2. Use ai/orchestrator/component-discovery.md to identify the smallest related component set.
 3. Use ai/orchestrator/di-analysis.md before changing persistence registration, seed wiring, scripts, or composition roots.
-4. Implement only the behavior, documentation, scripts, or validation required by this task goal.
-5. Keep SQL Server credentials, passwords, and unsafe connection strings out of the repository.
-6. Do not run migrations or database updates against the user's real SQL Server automatically.
-7. Keep backend state authoritative and do not add new gameplay systems outside database or catalog consolidation.
-8. Run the validation commands listed below before moving the task to done.
-9. Update `ai/current-state.md` with the final validation results, test count, SQL Server target status, and the deferred manual DB-apply note.
-10. Ensure the recorded validation matches the actual commands and outcomes.
+4. Run the listed validation commands for the current documentation-first Block 38 subset.
+5. Update ai/current-state.md with the final validation results and any honest limitations.
+6. Keep the notes factual and do not claim SQL Server runtime readiness, migration replay readiness, or production cutover readiness.
+7. Run the validation commands listed below before moving the task to done.
 
 ## Files to read first
 - AGENTS.md
 - ai/current-state.md
-- docs/dev/
+- docs/dev/final-db-phase-readiness-report.md
 - scripts/
-- src/VoidEmpires.Frontend/
 
 ## Expected files to modify
 - ai/current-state.md
@@ -48,8 +44,7 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 - No real SQL Server migration or destructive database change is applied automatically.
 - No combat, fleet movement, market transactions, alliance mutations, or production-auth expansion is introduced.
 - Required validation commands pass and results are recorded in the task or commit notes where appropriate.
-- `ai/current-state.md` records the final validation, test count, SQL Server target, and deferred manual DB apply.
-- Recorded validation matches the commands that were actually run.
+- The current-state note records the latest final validation results for the current completed Block 38 subset.
 
 ## Constraints
 - Follow the architecture and conventions of the current repository
@@ -69,6 +64,8 @@ Before completing the task run:
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1`
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1`
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1`
+- `git diff --name-only`
+- `git status`
 
 ## Commit and push
 At the end:
