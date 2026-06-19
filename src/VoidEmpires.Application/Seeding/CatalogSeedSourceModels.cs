@@ -22,3 +22,26 @@ public sealed record CatalogSeedSourceEntry(
     IReadOnlyList<string> Tags,
     CatalogSeedCostDto? Cost = null,
     decimal? DurationMinutes = null);
+
+public sealed record FinalCatalogSeedRequest(
+    bool DryRun = true,
+    string? SourceDirectory = null);
+
+public sealed record FinalCatalogSeedCatalogSummary(
+    string CatalogFile,
+    int RowCount);
+
+public sealed record FinalCatalogSeedResult(
+    bool Succeeded,
+    bool DryRun,
+    bool ApplyDeferred,
+    IReadOnlyList<FinalCatalogSeedCatalogSummary> Catalogs,
+    IReadOnlyList<string> Notes,
+    IReadOnlyList<string> Errors);
+
+public interface IFinalCatalogSeedService
+{
+    Task<FinalCatalogSeedResult> RunAsync(
+        FinalCatalogSeedRequest request,
+        CancellationToken cancellationToken = default);
+}

@@ -3,7 +3,7 @@
 ---
 id: TASK-38Y
 title: Final DB seed service
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: [platform, gameplay]

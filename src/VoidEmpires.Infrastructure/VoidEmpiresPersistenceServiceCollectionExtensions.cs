@@ -15,6 +15,7 @@ using VoidEmpires.Application.Players;
 using VoidEmpires.Application.Planets;
 using VoidEmpires.Application.Rankings;
 using VoidEmpires.Application.Research;
+using VoidEmpires.Application.Seeding;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Application.Visuals;
 using VoidEmpires.Infrastructure.Assets;
@@ -31,6 +32,7 @@ using VoidEmpires.Infrastructure.Planets;
 using VoidEmpires.Infrastructure.Rankings;
 using VoidEmpires.Infrastructure.Research;
 using VoidEmpires.Infrastructure.StrategicMap;
+using VoidEmpires.Infrastructure.SeedData.CatalogSources;
 using VoidEmpires.Infrastructure.Visuals;
 
 namespace VoidEmpires.Infrastructure;
@@ -54,6 +56,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<IConstructionQaStatePreparationService, ConstructionQaStatePreparationService>();
         services.AddScoped<IResearchQaStatePreparationService, ResearchQaStatePreparationService>();
         services.AddScoped<IOrbitalProductionQaStatePreparationService, OrbitalProductionQaStatePreparationService>();
+        services.AddScoped<IFinalCatalogSeedService, FinalCatalogSeedService>();
         services.AddScoped<IStartingCivilizationService, StartingCivilizationService>();
         services.AddScoped<IPlanetColonizationService, PlanetColonizationService>();
         services.AddScoped<IPlanetEconomyTickService, PlanetEconomyTickService>();

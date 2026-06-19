@@ -85,6 +85,7 @@ Current catalog and seed sources:
   - `OrbitalAssetCatalog`
   - `PlanetaryAssetCatalog`
 - Current frontend/read-model notes already document that final relational seed work still needs Spanish labels, short descriptions, category metadata, module ownership, image keys, and revision metadata.
+- A dry-run-first `FinalCatalogSeedService` now exists to load and validate repository-owned catalog source files, but it still refuses non-dry-run execution because the final relational catalog tables and explicit manual apply path are not implemented yet.
 
 ## Starting Civilization Expectations
 
