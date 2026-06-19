@@ -42,6 +42,15 @@ Use these documents together before expanding SQL Server-specific work:
 - SQL Server-specific smoke coverage is optional and should be explicitly gated.
 - The repository currently has one opt-in SQL Server connection smoke test, but no broader SQL Server integration-test suite.
 
+Latest Block 38 cross-stack validation gate:
+
+- `dotnet build --no-restore` succeeded with `0` errors; one rerun reported transient `MSB3026` copy-retry warnings while `testhost` held test output DLLs, but the build still completed successfully
+- `dotnet test --no-build` succeeded with `725` passing tests, `0` failed, and `0` skipped
+- `npm run build --prefix src/VoidEmpires.Frontend` succeeded with `106` transformed modules and the shared entry chunk at `181.33 kB` minified / `59.14 kB` gzip
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` succeeded, including the frontend lazy-import guard, copy-regression guard, and the new repository secret scan
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` succeeded
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1` succeeded
+
 ## Current Persistence Audit
 
 Status date: 2026-06-18

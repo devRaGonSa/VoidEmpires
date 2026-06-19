@@ -3,7 +3,7 @@
 ---
 id: TASK-38AU
 title: Final SQL Server validation gate
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [backend, frontend]
