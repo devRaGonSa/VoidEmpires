@@ -2,7 +2,7 @@
 
 Status date: 2026-06-18
 
-This runbook describes the practical, user-managed SQL Server workflow for the future final database target.
+This runbook describes the practical, user-managed SQL Server workflow for the final database target while the checked-in repository still remains PostgreSQL-first today.
 
 It does not make SQL Server the default runtime provider, does not apply migrations automatically, and does not store passwords in the repository.
 

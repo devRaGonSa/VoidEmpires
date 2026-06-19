@@ -46,7 +46,7 @@ These flows are usable for local QA and demo, but they are not production featur
 - Consolidate final persisted gameplay models before treating the shell as durable product behavior.
 - Replace Development seed assumptions with production-owned initialization and migration strategy.
 - Decide final queue, resource, stock, fleet, research, market, alliance, and ranking ownership boundaries.
-- Keep CI/test paths independent of the real PostgreSQL database unless a future integration-test task explicitly configures that boundary.
+- Keep ordinary CI/test paths independent of any real operator-managed database; the checked-in provider is still PostgreSQL/Npgsql today, and future SQL Server validation must remain explicitly gated.
 
 ## Final DB Phase Prep Plan
 

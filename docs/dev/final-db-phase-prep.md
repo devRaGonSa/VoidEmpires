@@ -40,7 +40,7 @@ Use these documents together before expanding SQL Server-specific work:
   - `dotnet build --no-restore`
   - `dotnet test --no-build`
 - SQL Server-specific smoke coverage is optional and should be explicitly gated.
-- No SQL Server integration or smoke tests are configured today.
+- The repository currently has one opt-in SQL Server connection smoke test, but no broader SQL Server integration-test suite.
 
 ## Current Persistence Audit
 
@@ -77,7 +77,7 @@ Current catalog and seed sources:
   - `PlanetaryAssetCatalog`
 - Current frontend/read-model notes already document that final relational seed work still needs Spanish labels, short descriptions, category metadata, module ownership, image keys, and revision metadata.
 
-Current PostgreSQL-specific assumptions that matter for SQL Server planning:
+Current PostgreSQL-specific assumptions that remain relevant while preparing for the final SQL Server target:
 
 - Provider selection is hard-coded to Npgsql in both runtime and design-time paths.
 - Existing checked-in migrations contain PostgreSQL-native store types such as `uuid`, `timestamp with time zone`, and `character varying(...)`.

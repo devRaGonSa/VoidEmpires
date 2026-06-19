@@ -3,7 +3,7 @@
 ---
 id: TASK-38AR
 title: Docs sync for final DB phase
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams: [backend]
