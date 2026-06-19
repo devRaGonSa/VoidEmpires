@@ -86,6 +86,99 @@ Current catalog and seed sources:
   - `PlanetaryAssetCatalog`
 - Current frontend/read-model notes already document that final relational seed work still needs Spanish labels, short descriptions, category metadata, module ownership, image keys, and revision metadata.
 
+## Starting Civilization Expectations
+
+Status date: 2026-06-19
+
+The final database/model phase needs one explicit starting-civilization contract. Today, the repository only has a safe Development bootstrap and richer QA overlays. That current bootstrap must remain distinct from any future production starting baseline.
+
+### Current Development-safe bootstrap
+
+The current deterministic Development bootstrap is owned by `DevelopmentSeedService.SeedMinimalValidationProfileAsync` and is intentionally additive, idempotent, and QA-oriented.
+
+Current baseline facts:
+
+- civilization:
+  - key id: `00000000-0000-0000-0000-000000000001`
+  - label: `Void Seed Civilization`
+  - player display label: `Validation Commander`
+- home planet:
+  - key id: `40000000-0000-0000-0000-000000000001`
+  - label: `Aurelia`
+  - system: `Helios Gate`
+  - planet type: `Terran`
+  - size: `118`
+- minimum local stockpile on `Aurelia`:
+  - `Credits`: `125`
+  - `Metal`: `160`
+  - `Crystal`: `100`
+  - `Gas`: `50`
+- baseline production profile on `Aurelia`:
+  - `CreditsPerHour`: `18`
+  - `MetalPerHour`: `14`
+  - `CrystalPerHour`: `6`
+  - `GasPerHour`: `3`
+- baseline owned buildings on `Aurelia`:
+  - `CommandCenter` level `4`
+  - `HabitationDistrict` level `3`
+  - `Shipyard` level `1`
+- baseline capacity and population context on `Aurelia`:
+  - building capacity total: `120`
+  - population profile: total `2000`, recruitable `500`, operators `100`
+- baseline research:
+  - no mandatory starting research project is seeded in `minimal-validation`
+- baseline local orbital readiness:
+  - one local `EscortCraft x4` stock row exists for read-state only
+  - stationed scout groups and one planned transfer exist for cockpit QA and do not define final production initialization
+
+This Development bootstrap exists to keep Planet, Construction, Research, Shipyard, Fleets, Market, and cross-cockpit QA non-empty and deterministic. It is not the final live-product starting pack.
+
+### Current richer QA overlays
+
+The richer profiles build on the Development baseline rather than defining a separate authoritative start:
+
+- `cockpit-validation` tops up `Aurelia` to at least `220` credits, `320` metal, `220` crystal, and `120` gas
+- `planet-full-validation` tops up `Aurelia` to at least `240` credits, `220` metal, `140` crystal, and `90` gas
+- `research-validation`, `shipyard-validation`, and `fleet-validation` each adjust resources or visible history to serve one cockpit's QA path
+- completed construction, research, orbital production, ground-army, and diplomatic-contact rows in those richer profiles are demonstration history only
+
+These overlays must not be copied into final production starting data unchanged.
+
+### Intended final-production baseline expectations
+
+The final DB phase should define one production-oriented baseline contract with these fields owned centrally:
+
+1. starting civilization identity shape
+   - display naming rule
+   - archetype or starter-profile key
+   - guaranteed home-planet assignment rule
+2. home planet shape
+   - canonical starting planet type or allowed type set
+   - size range policy
+   - guaranteed ownership and solar-system placement rule
+3. starting resources
+   - canonical starting amounts for `Credits`, `Metal`, `Crystal`, and `Gas`
+   - explicit note that `Energy`, `Population`, and `Deuterium` are not starting stockpile currencies in the current model
+4. starting buildings
+   - exact required starting building rows and levels
+   - exact starting building-capacity rule
+5. starting research
+   - exact starting research rows and levels, or explicit `none`
+6. starting population and operator context
+   - required initial population profile values if the production path depends on them
+7. explicit exclusions
+   - no seeded combat outcomes
+   - no seeded fleet movement in progress
+   - no seeded market transactions
+   - no seeded alliance membership, pact, or production-auth mutation
+
+### Current safe conclusion
+
+- The repository already has a trustworthy Development bootstrap for deterministic QA.
+- The repository does not yet have a final production starting-data contract.
+- The final seed architecture tasks should reuse the current ids, labels, and QA story only where they are intentionally accepted, not by default.
+- Until those later tasks land, the current Development bootstrap remains the only implemented starting-data authority in source control.
+
 Current PostgreSQL-specific assumptions that remain relevant while preparing for the final SQL Server target:
 
 - Provider selection is hard-coded to Npgsql in both runtime and design-time paths.

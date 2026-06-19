@@ -3,7 +3,7 @@
 ---
 id: TASK-38U
 title: Civilization starting data finalization
-status: pending
+status: done
 type: backend
 team: gameplay
 supporting_teams: [backend]
