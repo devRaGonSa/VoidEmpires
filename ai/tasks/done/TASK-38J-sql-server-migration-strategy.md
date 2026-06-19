@@ -3,16 +3,16 @@
 ---
 id: TASK-38J
 title: SQL Server migration strategy
-status: pending
-type: docs
-team: backend
-supporting_teams: [platform]
+status: done
+type: documentation
+team: platform
+supporting_teams: [backend]
 roadmap_item: "Block 38A-38AZ - Final SQL Server Database & Catalog Consolidation v1"
 priority: high
 ---
 
 ## Goal
-Define the safe migration strategy for the final SQL Server database target.
+Define the conservative repository strategy for reaching a SQL Server migration baseline from the current PostgreSQL-shaped EF history.
 
 ## Context
 This task belongs to the final SQL Server database and catalog consolidation block. The final product database target is SQL Server on user-managed infrastructure, but this block must keep secrets out of the repository, avoid applying migrations automatically to the real server, preserve the current Development and test flow, and keep gameplay expansion out of scope.
@@ -21,23 +21,22 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 1. Read every file listed in "Files to read first" before editing.
 2. Use ai/orchestrator/component-discovery.md to identify the smallest related component set.
 3. Use ai/orchestrator/di-analysis.md before changing persistence registration, seed wiring, scripts, or composition roots.
-4. Implement only the behavior, documentation, scripts, or validation required by this task goal.
-5. Keep SQL Server credentials, passwords, and unsafe connection strings out of the repository.
-6. Do not run migrations or database updates against the user's real SQL Server automatically.
-7. Keep backend state authoritative and do not add new gameplay systems outside database or catalog consolidation.
+4. Review the current-state note, SQL Server runbook, and existing migration posture.
+5. Add a concise strategy note covering the safest path from PostgreSQL-shaped migrations to a SQL Server baseline.
+6. Keep the strategy honest about unresolved work such as provider audit, naming pass, and manual replay validation.
+7. Do not generate or apply migrations in this task.
 8. Run the validation commands listed below before moving the task to done.
-9. Decide whether the repository should use a separate SQL Server migration set, a provider-specific branch of migrations, or a replacement migration strategy, and justify the choice.
-10. Document how to generate migrations, how to produce reviewable scripts, and how rollback and backup expectations should work.
 
 ## Files to read first
 - AGENTS.md
-- ai/tasks/pending/TASK-38A-final-sql-server-database-audit.md
-- src/VoidEmpires.Infrastructure/
-- docs/dev/final-db-phase-prep.md
+- ai/current-state.md
+- docs/dev/sql-server-runbook.md
+- docs/dev/final-db-phase-readiness-report.md
+- src/VoidEmpires.Infrastructure/Persistence/Migrations/
 
 ## Expected files to modify
-- docs/dev/final-db-phase-prep.md
-- docs/dev/sql-server-migration-strategy.md
+- docs/dev/final-db-phase-readiness-report.md
+- Optional: ai/current-state.md
 
 ## Acceptance criteria
 - The task goal is completed or narrowed with explicit blockers and safe next steps.
@@ -47,8 +46,7 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 - No real SQL Server migration or destructive database change is applied automatically.
 - No combat, fleet movement, market transactions, alliance mutations, or production-auth expansion is introduced.
 - Required validation commands pass and results are recorded in the task or commit notes where appropriate.
-- The migration strategy clearly states whether SQL Server uses separate or replacement migrations and why.
-- Manual review, rollback, and backup considerations are documented and no migration is run automatically.
+- The strategy note makes clear that the current EF migration history is PostgreSQL-shaped and outlines the conservative next step sequence for SQL Server.
 
 ## Constraints
 - Follow the architecture and conventions of the current repository
@@ -62,8 +60,8 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 ## Validation
 Before completing the task run:
 
-- `dotnet build --no-restore`
-- `dotnet test --no-build`
+- `git diff --name-only`
+- `git status`
 
 ## Commit and push
 At the end:

@@ -38,8 +38,7 @@ Before any real SQL Server cutover attempt, an operator must still:
 
 The following work remains incomplete inside the repository:
 
-- configurable provider selection instead of hard-coded Npgsql runtime and design-time wiring
-- a defined SQL Server migration-baseline strategy
+- SQL Server migration-baseline implementation work beyond the now-defined conservative strategy
 - a validated SQL Server script-generation helper
 - final relational catalog ownership for currently code-owned gameplay catalogs
 - final seed architecture for production initialization instead of Development-only QA profiles
@@ -73,6 +72,16 @@ Migration position:
 - current migrations are not validated for direct SQL Server replay
 - SQL Server migration work must remain manual and explicitly reviewed
 
+Conservative SQL Server baseline strategy:
+
+1. Keep the checked-in PostgreSQL-first path and existing migration history intact until the remaining mapping and naming audit is complete.
+2. Finish the provider-sensitive model review first, including index filters, default SQL, naming normalization, and any migration-generated provider SQL that still assumes PostgreSQL semantics.
+3. Treat the current migration chain as historical context only for SQL Server planning; do not assume it is safe to replay directly against SQL Server.
+4. Create the first SQL Server baseline only after the model audit is stable, on an isolated task/branch, using explicit SQL Server provider selection and a disposable validation database.
+5. Review the generated SQL Server baseline and follow-up script output manually before any operator apply path is documented.
+6. Validate that baseline on disposable SQL Server targets, then document the manual script-generation and manual apply flow as a later repository step.
+7. Keep migration apply, backup, restore, and production seeding outside app startup and outside default automated validation throughout that sequence.
+
 Seed position:
 
 - Development seed profiles are QA scaffolding only
@@ -92,9 +101,10 @@ Seed position:
 
 1. PostgreSQL remains the checked-in default, so operators must still select SQL Server explicitly in external configuration.
 2. Existing migration history is PostgreSQL-specific and not yet re-baselined for SQL Server.
-3. Catalog and seed ownership remain incomplete for final production initialization.
-4. The current SQL Server smoke test proves connection-only behavior, not schema replay readiness.
-5. Any real SQL Server rollout still depends on careful operator-managed credentials, backups, restore drills, and manual script review.
+3. The repository now has a conservative migration strategy, but the provider-sensitive model audit and SQL Server baseline generation tasks are still unfinished.
+4. Catalog and seed ownership remain incomplete for final production initialization.
+5. The current SQL Server smoke test proves connection-only behavior, not schema replay readiness.
+6. Any real SQL Server rollout still depends on careful operator-managed credentials, backups, restore drills, and manual script review.
 
 ## Current Honest Decision
 

@@ -18,10 +18,10 @@ The AI Platform template has been adapted into a VoidEmpires-specific project wo
 
 Current final-database preparation reality:
 
-- checked-in runtime persistence still uses `Npgsql.EntityFrameworkCore.PostgreSQL`
-- `src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs` still calls `UseNpgsql(connectionString)` directly
-- `src/VoidEmpires.Infrastructure/Persistence/VoidEmpiresDbContextFactory.cs` still uses `UseNpgsql(...)` for design-time creation
-- `src/VoidEmpires.Web/Program.cs` still reads `ConnectionStrings:DefaultConnection` and only wires persistence-backed services when it is non-empty
+- checked-in runtime persistence remains PostgreSQL-first by default, but explicit SQL Server provider selection is now supported in runtime and design-time wiring
+- `src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs` now accepts a provider selector and chooses `UseSqlServer(...)` only when configuration explicitly requests `sqlserver`
+- `src/VoidEmpires.Infrastructure/Persistence/VoidEmpiresDbContextFactory.cs` now reads provider selection from environment variables and defaults to `UseNpgsql(...)` when no SQL Server override is present
+- `src/VoidEmpires.Web/Program.cs` reads `ConnectionStrings:DefaultConnection`, only wires persistence-backed services when it is non-empty, and passes through `VoidEmpires:Persistence:Provider`
 - repository appsettings remain placeholder-safe, keep `DefaultConnection` empty by default, and do not store real SQL Server credentials
 - SQL Server remains a documented future target on user-managed infrastructure, not the active checked-in provider
 - no checked-in repository path auto-applies migrations during startup, tests, or helper-script execution
@@ -31,18 +31,18 @@ Current final-database preparation reality:
 
 Current final-database readiness status:
 
-- provider support: PostgreSQL-first today; SQL Server cutover is still pending provider-selection work
-- migration status: existing EF migration history is PostgreSQL-shaped; SQL Server migration strategy and script-helper tasks are still pending
+- provider support: PostgreSQL-first today, with explicit SQL Server selection now available as an external opt-in
+- migration status: existing EF migration history is PostgreSQL-shaped; a conservative SQL Server baseline strategy is now defined, while the baseline-generation and script-helper tasks are still pending
 - catalog status: gameplay catalogs remain code-owned, not final relational seed data
 - seed status: Development seed profiles remain QA scaffolding, not final production initialization
 - current persisted entity inventory: likely final SQL-owned gameplay state currently includes galaxy topology (`Galaxy`, `SolarSystem`, `Star`, `Planet`), player/civilization ownership (`PlayerProfile`, `Civilization`, `PlanetOwnership`), alliance/diplomacy state (`Alliance`, `AlliancePact`, `AllianceMembership`, `DiplomaticContact`), economy/build/research state (`PlanetResourceStockpile`, `PlanetProductionProfile`, `PlanetBuilding`, `PlanetBuildingCapacity`, `PlanetConstructionOrder`, `ResearchProject`, `ResearchOrder`, `PlanetPopulationProfile`), and exploration/fleet progression state (`OrbitalTransfer`, `ExplorationMission`, `ExplorationKnowledge`) plus local stock entities configured in persistence; identity tables remain ASP.NET Core Identity/ops state; final relational ownership for gameplay catalogs and production seed data is still deferred
 - current schema naming convention baseline: the more recent explicitly configured tables follow lowercase snake_case names (`planets`, `planet_resource_stockpiles`, `exploration_knowledge`), columns also trend to lowercase snake_case (`planet_id`, `normalized_display_name`, `discovered_at_utc`), and named indexes generally use explicit `ux_` or `ix_` prefixes; however, not every persistence configuration has been normalized to that explicit style yet, so later SQL Server migration-baseline work still needs a full pass over remaining unnamed or convention-driven mappings
-- deferred items: configurable provider selection, SQL Server migration baseline, SQL Server script helper, final relational catalog ownership, and explicitly gated SQL Server validation
+- deferred items: SQL Server migration baseline implementation, SQL Server script helper, final relational catalog ownership, final production seed architecture, and broader explicitly gated SQL Server validation
 - safety posture: SQL Server guidance stays documentation-only and manual by default, with external secrets, explicit backups, manual review, and no automatic apply against the user's real server
 - latest Block 38 cross-stack validation gate: `dotnet build --no-restore` succeeded with `0` errors and one rerun showing transient `MSB3026` copy-retry warnings while `testhost` held test output DLLs; `dotnet test --no-build` succeeded with `725` passing tests, `0` failed, and `0` skipped; `npm run build --prefix src/VoidEmpires.Frontend` succeeded with `106` transformed modules and a `181.33 kB` minified / `59.14 kB` gzip shared entry chunk; `check-dev-qa-scripts.ps1`, `check-frontend-route-lazy-imports.ps1`, `check-frontend-copy-regressions.ps1`, and the new repository secret scan all passed
 - latest Block 38 no-apply closure note: the repository still contains no committed real SQL Server password, no completed Block 38 task applied a real SQL Server change automatically, and manual SQL mutation remains an explicit operator responsibility outside default repo validation
-- current completed Block 38 documentation-first subset: `TASK-38A`, `TASK-38AA`, `TASK-38AB`, `TASK-38AC`, `TASK-38AD`, `TASK-38AE`, `TASK-38AF`, `TASK-38AG`, `TASK-38AH`, `TASK-38AI`, `TASK-38AJ`, `TASK-38AK`, `TASK-38AL`, `TASK-38AM`, `TASK-38AN`, `TASK-38AO`, `TASK-38AP`, `TASK-38AQ`, `TASK-38AR`, `TASK-38AS`, `TASK-38AT`, `TASK-38AU`, `TASK-38AV`, `TASK-38AW`, and `TASK-38AY` are closed as audit, documentation, validation, or guardrail work only; they did not complete SQL Server runtime cutover, migration replay readiness, or final relational catalog ownership
-- next pending Block 38 implementation categories after the documentation-first subset: provider and connection work (`TASK-38B` through `TASK-38G`), schema and migration work (`TASK-38H` through `TASK-38N`), catalog ownership and seed architecture work (`TASK-38O` through `TASK-38Z`)
+- current completed Block 38 work now includes the documentation-first subset plus provider-selection and mapping-audit tasks through `TASK-38I`; the repository still has not completed SQL Server runtime cutover, SQL Server migration replay readiness, or final relational catalog ownership
+- next pending Block 38 implementation categories are the remaining schema and migration tasks (`TASK-38J` through `TASK-38N`) and the catalog ownership plus seed architecture tasks (`TASK-38O` through `TASK-38Z`)
 - latest Block 38 final validation refresh: `dotnet build --no-restore` succeeded with `16` transient `MSB3026` copy-retry warnings and `0` errors while `testhost` held test output DLLs; `dotnet test --no-build` succeeded with `725` passing tests, `0` failed, and `0` skipped; `npm run build --prefix src/VoidEmpires.Frontend` succeeded with `106` transformed modules, `58.88 kB` CSS, and a `181.33 kB` minified / `59.14 kB` gzip shared entry chunk; `check-dev-qa-scripts.ps1`, `check-frontend-route-lazy-imports.ps1`, and `check-frontend-copy-regressions.ps1` all succeeded; this remained a documentation-first non-cutover validation pass only
 
 ## Application Status
