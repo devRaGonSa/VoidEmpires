@@ -3,7 +3,7 @@
 ---
 id: TASK-38AO
 title: Final DB backup restore plan
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams: [backend]
