@@ -132,7 +132,7 @@ Safe current runbook posture:
 
 1. First follow `docs/dev/sql-server-migration-strategy.md` and complete its documented prerequisites for the first SQL Server baseline.
 2. Use the deferred environment-variable setup and `dotnet ef migrations add SqlServerInitialBaseline ...` command from that strategy document instead of improvising a mixed-provider migration.
-3. After that baseline exists, generate SQL scripts explicitly and review them before apply.
+3. After that baseline exists, prefer `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-script-migration.ps1` to generate the local idempotent SQL script without applying it.
 4. Keep generated scripts outside automatic startup and outside default tests.
 
 Planned later script command shape:
@@ -144,6 +144,7 @@ dotnet ef migrations script 0 SqlServerInitialBaseline --output .\artifacts\sql\
 Current honest note:
 
 - Do not run the command above yet without first following the deferred-generation prerequisites in `docs/dev/sql-server-migration-strategy.md`.
+- The helper script is intentionally guarded and will stop if `SqlServerInitialBaseline` does not exist yet.
 
 ## 6. Review And Apply Scripts Manually
 

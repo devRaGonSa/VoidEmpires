@@ -3,7 +3,7 @@
 ---
 id: TASK-38M
 title: SQL Server migration script helper
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [backend]
