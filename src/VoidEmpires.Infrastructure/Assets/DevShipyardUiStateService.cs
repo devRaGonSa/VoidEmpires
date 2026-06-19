@@ -151,6 +151,7 @@ public sealed class DevShipyardUiStateService(VoidEmpiresDbContext dbContext) : 
                 openQueueCount,
                 orbitalStock))
             .OrderByDescending(x => x.AvailabilityStatus == "Available")
+            .ThenBy(x => x.Metadata?.SortOrder ?? int.MaxValue)
             .ThenBy(x => x.AssetType)
             .ToArray();
 
@@ -260,8 +261,32 @@ public sealed class DevShipyardUiStateService(VoidEmpiresDbContext dbContext) : 
                     AssetProductionTarget.Orbital,
                     assetType,
                     1)
-                : null);
+                : null,
+            CreateAssetMetadata(definition));
     }
+
+    private static DevShipyardAssetMetadataDto CreateAssetMetadata(OrbitalAssetDefinition definition) =>
+        new(
+            definition.DisplayName,
+            definition.Description,
+            definition.CategoryKey,
+            definition.CategoryLabel,
+            definition.RoleKey,
+            definition.RoleLabel,
+            definition.ModuleKey,
+            definition.ModuleLabel,
+            definition.ImageKey,
+            definition.IconKey,
+            definition.SortOrder,
+            definition.DurationPolicyKey,
+            definition.DurationPolicyLabel,
+            definition.FleetHandoffPolicyKey,
+            definition.FleetHandoffPolicyLabel,
+            definition.PrerequisiteSummary,
+            definition.StorageCapacity,
+            definition.OperatingRange,
+            definition.RequirementKeys,
+            definition.Tags);
 
     private static (string Status, string Reason) ResolveAvailability(
         bool isOwnedByRequestingCivilization,

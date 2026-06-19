@@ -85,6 +85,14 @@ public class DevShipyardUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.Contains(payload.UiState.Shipyard.Catalog, item => item.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.CargoCraft && item.AvailabilityReason == "InsufficientResources");
         Assert.Contains(payload.UiState.Shipyard.Catalog, item => item.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.EscortCraft && item.AvailabilityReason == "MissingRequiredBuilding");
         var scoutCraft = Assert.Single(payload.UiState.Shipyard.Catalog.Where(item => item.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.ScoutCraft));
+        Assert.NotNull(scoutCraft.Metadata);
+        Assert.Equal("Nave exploradora", scoutCraft.Metadata.DisplayName);
+        Assert.Equal("Exploracion", scoutCraft.Metadata.CategoryKey);
+        Assert.Equal("Reconocimiento", scoutCraft.Metadata.RoleKey);
+        Assert.Equal("ship.scout-craft", scoutCraft.Metadata.ImageKey);
+        Assert.Equal("StockToFleetDevelopmentFlow", scoutCraft.Metadata.FleetHandoffPolicyKey);
+        Assert.Equal(0, scoutCraft.Metadata.StorageCapacity);
+        Assert.Equal(3, scoutCraft.Metadata.OperatingRange);
         Assert.NotNull(scoutCraft.EnqueueCommand);
         Assert.Equal("/api/dev/assets/production/enqueue", scoutCraft.EnqueueCommand.Route);
         Assert.Equal(SeedCivilizationId, scoutCraft.EnqueueCommand.CivilizationId);

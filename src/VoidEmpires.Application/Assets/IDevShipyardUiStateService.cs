@@ -67,7 +67,30 @@ public sealed record DevShipyardCatalogItemDto(
     int CurrentStock,
     string AvailabilityStatus,
     string AvailabilityReason,
-    DevShipyardEnqueueCommandDto? EnqueueCommand);
+    DevShipyardEnqueueCommandDto? EnqueueCommand,
+    DevShipyardAssetMetadataDto? Metadata = null);
+
+public sealed record DevShipyardAssetMetadataDto(
+    string DisplayName,
+    string Description,
+    string CategoryKey,
+    string CategoryLabel,
+    string RoleKey,
+    string RoleLabel,
+    string ModuleKey,
+    string ModuleLabel,
+    string ImageKey,
+    string IconKey,
+    int SortOrder,
+    string DurationPolicyKey,
+    string DurationPolicyLabel,
+    string FleetHandoffPolicyKey,
+    string FleetHandoffPolicyLabel,
+    string PrerequisiteSummary,
+    int StorageCapacity,
+    int OperatingRange,
+    IReadOnlyList<string> RequirementKeys,
+    IReadOnlyList<string> Tags);
 
 public sealed record DevShipyardEnqueueCommandDto(
     string ActionKey,

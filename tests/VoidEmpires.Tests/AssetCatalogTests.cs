@@ -32,6 +32,15 @@ public class AssetCatalogTests
             Assert.True(definition.Requirement.RequiredBuildingLevel > 0);
             Assert.True(definition.StorageCapacity >= 0);
             Assert.True(definition.OperatingRange > 0);
+            Assert.False(string.IsNullOrWhiteSpace(definition.DisplayName));
+            Assert.False(string.IsNullOrWhiteSpace(definition.CategoryKey));
+            Assert.False(string.IsNullOrWhiteSpace(definition.RoleKey));
+            Assert.False(string.IsNullOrWhiteSpace(definition.Description));
+            Assert.False(string.IsNullOrWhiteSpace(definition.ImageKey));
+            Assert.False(string.IsNullOrWhiteSpace(definition.IconKey));
+            Assert.True(definition.SortOrder > 0);
+            Assert.NotEmpty(definition.RequirementKeys);
+            Assert.NotEmpty(definition.Tags);
         }
     }
 
@@ -43,6 +52,9 @@ public class AssetCatalogTests
         Assert.Equal(0, definition.Requirement.PopulationCapacity);
         Assert.True(definition.Requirement.OperatorCapacity > 0);
         Assert.Equal(BuildingType.Shipyard, definition.Requirement.RequiredBuildingType);
+        Assert.Equal("Nave exploradora", definition.DisplayName);
+        Assert.Equal("ship.scout-craft", definition.ImageKey);
+        Assert.Equal("StockToFleetDevelopmentFlow", definition.FleetHandoffPolicyKey);
     }
 
     [Fact]

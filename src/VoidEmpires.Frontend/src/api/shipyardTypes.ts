@@ -23,6 +23,30 @@ export interface ShipyardAssetOptionDto {
   availabilityStatus: string;
   availabilityReason: string;
   enqueueCommand?: ShipyardEnqueueCommandDto | null;
+  metadata?: ShipyardAssetMetadataDto | null;
+}
+
+export interface ShipyardAssetMetadataDto {
+  displayName: string;
+  description: string;
+  categoryKey: string;
+  categoryLabel: string;
+  roleKey: string;
+  roleLabel: string;
+  moduleKey: string;
+  moduleLabel: string;
+  imageKey: string;
+  iconKey: string;
+  sortOrder: number;
+  durationPolicyKey: string;
+  durationPolicyLabel: string;
+  fleetHandoffPolicyKey: string;
+  fleetHandoffPolicyLabel: string;
+  prerequisiteSummary: string;
+  storageCapacity: number;
+  operatingRange: number;
+  requirementKeys: readonly string[];
+  tags: readonly string[];
 }
 
 export interface ShipyardEnqueueCommandDto {

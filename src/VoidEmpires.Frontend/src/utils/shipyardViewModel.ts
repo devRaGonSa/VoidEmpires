@@ -1,5 +1,6 @@
 import type {
   ShipyardActionAvailabilityDto,
+  ShipyardAssetMetadataDto,
   ShipyardAssetOptionDto,
   ShipyardAssetStockItemDto,
   ShipyardDiagnosticsDto,
@@ -168,15 +169,17 @@ function mapCost(entries: readonly ShipyardResourceStockpileItemDto[]): Shipyard
 
 function mapAssetOption(item: ShipyardAssetOptionDto): ShipyardAssetOption {
   const assetType = normalizeAssetType(item.assetType);
+  const metadata = item.metadata;
+  const categoryKey = metadata?.categoryKey ?? getAssetCategoryLabel(assetType);
 
   return {
     assetType,
-    label: getAssetTypeLabel(assetType),
-    description: getAssetDescription(assetType),
-    imageKey: getAssetImageKey(assetType),
-    categoryKey: getAssetCategoryLabel(assetType),
-    categoryLabel: getAssetCategoryLabel(assetType),
-    roleLabel: getAssetRoleLabel(assetType),
+    label: metadata?.displayName ?? getAssetTypeLabel(assetType),
+    description: metadata?.description ?? getAssetDescription(assetType),
+    imageKey: metadata?.imageKey ?? getAssetImageKey(assetType),
+    categoryKey,
+    categoryLabel: metadata?.categoryLabel ?? getAssetCategoryLabel(assetType),
+    roleLabel: metadata?.roleLabel ?? getAssetRoleLabel(assetType),
     quantityLabel: formatAssetQuantity(item.currentStock, assetType),
     statusKey: item.availabilityStatus,
     statusLabel: item.availabilityStatus === "Available" ? "Disponible" : "Bloqueada",
@@ -204,14 +207,26 @@ function mapAssetOption(item: ShipyardAssetOptionDto): ShipyardAssetOption {
   };
 }
 
-function mapQueueItem(item: ShipyardQueueItemDto): ShipyardQueueItem {
+function buildCatalogMetadataMap(catalog: readonly ShipyardAssetOptionDto[]) {
+  return catalog.reduce<Map<string, ShipyardAssetMetadataDto>>((accumulator, item) => {
+    const assetType = normalizeAssetType(item.assetType);
+    if (item.metadata) {
+      accumulator.set(assetType, item.metadata);
+    }
+
+    return accumulator;
+  }, new Map());
+}
+
+function mapQueueItem(item: ShipyardQueueItemDto, metadataByAssetType: ReadonlyMap<string, ShipyardAssetMetadataDto>): ShipyardQueueItem {
   const assetType = normalizeAssetType(item.assetType);
   const statusKey = `${item.status ?? ""}`;
+  const metadata = metadataByAssetType.get(assetType);
 
   return {
     orderId: item.orderId,
     assetType,
-    label: getAssetTypeLabel(assetType),
+    label: metadata?.displayName ?? getAssetTypeLabel(assetType),
     quantity: item.quantity,
     quantityLabel: formatAssetQuantity(item.quantity, assetType),
     sequence: item.sequence,
@@ -223,15 +238,16 @@ function mapQueueItem(item: ShipyardQueueItemDto): ShipyardQueueItem {
   };
 }
 
-function mapStockItem(item: ShipyardAssetStockItemDto): ShipyardAssetStockItem {
+function mapStockItem(item: ShipyardAssetStockItemDto, metadataByAssetType: ReadonlyMap<string, ShipyardAssetMetadataDto>): ShipyardAssetStockItem {
   const assetType = normalizeAssetType(item.assetType);
+  const metadata = metadataByAssetType.get(assetType);
 
   return {
     assetType,
-    label: getAssetTypeLabel(assetType),
+    label: metadata?.displayName ?? getAssetTypeLabel(assetType),
     quantity: item.quantity,
     quantityLabel: formatAssetQuantity(item.quantity, assetType),
-    categoryLabel: getAssetCategoryLabel(assetType),
+    categoryLabel: metadata?.categoryLabel ?? getAssetCategoryLabel(assetType),
   };
 }
 
@@ -258,9 +274,10 @@ function mapDiagnostics(diagnostics: ShipyardDiagnosticsDto): ShipyardDiagnostic
 }
 
 function mapShipyardContext(shipyard: ShipyardPlanetContextDto): ShipyardPlanetContext {
+  const metadataByAssetType = buildCatalogMetadataMap(shipyard.catalog);
   const catalog = shipyard.catalog.map(mapAssetOption);
-  const queue = shipyard.queue.map(mapQueueItem);
-  const stock = shipyard.orbitalStock.map(mapStockItem);
+  const queue = shipyard.queue.map((item) => mapQueueItem(item, metadataByAssetType));
+  const stock = shipyard.orbitalStock.map((item) => mapStockItem(item, metadataByAssetType));
   const diagnostics = mapDiagnostics(shipyard.diagnostics);
 
   return {
