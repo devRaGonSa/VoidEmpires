@@ -3,7 +3,7 @@
 ---
 id: TASK-38L
 title: SQL Server create database script
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [backend]

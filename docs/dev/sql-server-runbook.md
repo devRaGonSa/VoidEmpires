@@ -45,15 +45,17 @@ Replace only `<USER>` and `<PASSWORD>` in local environment variables or secret 
 
 In SQL Server Management Studio:
 
-1. Connect to the target SQL Server instance with your own operator credentials.
-2. Create a new database named `VoidEmpires` or your chosen final name.
-3. Keep collation, file placement, growth policy, and backup policy aligned with your own infrastructure standards.
-4. Create or assign the application login/user outside the repository workflow.
-5. Grant only the minimum rights needed for schema apply and application access.
+1. Open `scripts/sqlserver/create-database.sql` in SSMS.
+2. Connect to the target SQL Server instance with your own operator credentials.
+3. Confirm the active database context is `master`, then review the script comments and any infrastructure-specific sizing or file-placement adjustments you need.
+4. Execute the script manually; it uses `DB_ID(...)` guards and defaults to creating `VoidEmpires` only when it does not already exist.
+5. Create or assign the application login/user outside the repository workflow.
+6. Grant only the minimum rights needed for schema apply and application access.
 
 Manual note:
 
 - This repository does not create the SQL Server database for you.
+- The checked-in helper is an SSMS-oriented manual script, not an automatic provisioning step.
 - This repository does not create SQL logins or passwords for you.
 
 ## 2. Set Local Environment Variables
