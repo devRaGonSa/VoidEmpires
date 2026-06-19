@@ -3,7 +3,7 @@
 ---
 id: TASK-38P
 title: Building catalog finalization
-status: pending
+status: done
 type: backend
 team: gameplay
 supporting_teams: [backend, frontend]

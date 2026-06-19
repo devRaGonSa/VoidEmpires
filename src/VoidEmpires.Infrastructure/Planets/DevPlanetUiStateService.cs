@@ -233,7 +233,8 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                     BuildingCatalog.Get(x.BuildingType).Category,
                     x.Level,
                     x.Footprint,
-                    CreateBuildingDisplay(x.BuildingType)))
+                    CreateBuildingDisplay(x.BuildingType),
+                    CreateBuildingMetadata(x.BuildingType)))
                 .ToArray(),
             constructionQueue
                 .Select(x => new DevPlanetConstructionQueueItemDto(
@@ -286,6 +287,25 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
         return new DevPlanetBuildingDisplayDto(
             FormatBuildingTypeLabel(buildingType),
             FormatBuildingCategoryLabel(definition.Category));
+    }
+
+    private static DevPlanetBuildingMetadataDto CreateBuildingMetadata(BuildingType buildingType)
+    {
+        var definition = BuildingCatalog.Get(buildingType);
+        return new DevPlanetBuildingMetadataDto(
+            definition.DisplayName,
+            definition.Description,
+            FormatBuildingCategoryLabel(definition.Category),
+            definition.RoleKey,
+            definition.RoleLabel,
+            definition.ModuleKey,
+            definition.ModuleLabel,
+            definition.ImageKey,
+            definition.IconKey,
+            definition.SortOrder,
+            definition.DurationPolicyKey,
+            definition.DurationPolicyLabel,
+            definition.PrerequisiteSummary);
     }
 
     private static DevPlanetConstructionQueueItemDisplayDto CreateQueueItemDisplay(
@@ -423,7 +443,8 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                     action,
                     buildingType,
                     "Blocked",
-                    "El planeta ya tiene una orden de construccion abierta."));
+                    "El planeta ya tiene una orden de construccion abierta."),
+                CreateBuildingMetadata(buildingType));
         }
 
         if (stockpile is null)
@@ -442,7 +463,8 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                     action,
                     buildingType,
                     "MissingResourceStockpile",
-                    "No se encontro la reserva de recursos del planeta."));
+                    "No se encontro la reserva de recursos del planeta."),
+                CreateBuildingMetadata(buildingType));
         }
 
         if (action == ConstructionQueueItemAction.Construct)
@@ -463,7 +485,8 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                         action,
                         buildingType,
                         "MissingCapacityData",
-                        "No se encontro la capacidad de edificios del planeta."));
+                        "No se encontro la capacidad de edificios del planeta."),
+                    CreateBuildingMetadata(buildingType));
             }
 
             if (!buildingCapacity.CanFit(usedCapacity, definition.Footprint, researchCapacityBonus))
@@ -482,7 +505,8 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                         action,
                         buildingType,
                         "CapacityExceeded",
-                        "La capacidad de edificios del planeta se agotaria."));
+                        "La capacidad de edificios del planeta se agotaria."),
+                    CreateBuildingMetadata(buildingType));
             }
         }
 
@@ -506,7 +530,8 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                     action,
                     buildingType,
                     "InsufficientResources",
-                    "No hay recursos suficientes."));
+                    "No hay recursos suficientes."),
+                CreateBuildingMetadata(buildingType));
         }
 
         return new DevPlanetConstructionActionDto(
@@ -523,7 +548,8 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                 action,
                 buildingType,
                 "Available",
-                "Lista para confirmacion explicita de desarrollo."));
+                "Lista para confirmacion explicita de desarrollo."),
+            CreateBuildingMetadata(buildingType));
     }
 
     private static DevPlanetConstructionActionSummaryDisplayDto CreateActionSummaryDisplay(

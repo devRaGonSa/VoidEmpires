@@ -148,7 +148,8 @@ public sealed record DevPlanetBuildingDto(
     BuildingCategory Category,
     int Level,
     int Footprint,
-    DevPlanetBuildingDisplayDto? Display = null);
+    DevPlanetBuildingDisplayDto? Display = null,
+    DevPlanetBuildingMetadataDto? Metadata = null);
 
 public sealed record DevPlanetConstructionQueueItemDto(
     Guid OrderId,
@@ -183,7 +184,8 @@ public sealed record DevPlanetConstructionActionDto(
     string AvailabilityReason,
     TimeSpan EstimatedDuration,
     IReadOnlyList<DevPlanetResourceBalanceDto> Cost,
-    DevPlanetConstructionActionDisplayDto? Display = null);
+    DevPlanetConstructionActionDisplayDto? Display = null,
+    DevPlanetBuildingMetadataDto? Metadata = null);
 
 public sealed record DevPlanetBuildingDisplayDto(
     string BuildingTypeLabel,
@@ -207,6 +209,21 @@ public sealed record DevPlanetConstructionActionDisplayDto(
     string CategoryLabel,
     string AvailabilityLabel,
     string AvailabilityReasonLabel);
+
+public sealed record DevPlanetBuildingMetadataDto(
+    string DisplayName,
+    string Description,
+    string CategoryLabel,
+    string RoleKey,
+    string RoleLabel,
+    string ModuleKey,
+    string ModuleLabel,
+    string ImageKey,
+    string IconKey,
+    int SortOrder,
+    string DurationPolicyKey,
+    string DurationPolicyLabel,
+    string PrerequisiteSummary);
 
 public sealed record DevPlanetOrbitalContextDto(
     int StationedGroups,
