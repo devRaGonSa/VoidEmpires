@@ -18,6 +18,10 @@ It does not make SQL Server the default runtime provider, does not apply migrati
 
 Use this runbook as a manual operations guide, not as proof that SQL Server cutover is already implemented.
 
+Related reference:
+
+- `docs/dev/final-db-security-notes.md`
+
 ## Safety Rules
 
 - Keep SQL Server credentials outside source control.

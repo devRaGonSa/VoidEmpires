@@ -3,7 +3,7 @@
 ---
 id: TASK-38AN
 title: Final DB security notes
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams: [backend]
