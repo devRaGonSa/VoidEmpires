@@ -3,7 +3,7 @@
 ---
 id: TASK-38AT
 title: Repository secret scan lightweight
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [backend]

@@ -82,6 +82,11 @@ if (Test-Path -LiteralPath $frontendCopyRegressionPath) {
     & $frontendCopyRegressionPath
 }
 
+$repoSecretScanPath = Join-Path $PSScriptRoot "check-repo-secret-scan.ps1"
+if (Test-Path -LiteralPath $repoSecretScanPath) {
+    & $repoSecretScanPath
+}
+
 function Assert-ResourceSummaryContains {
     param(
         [Parameter(Mandatory = $true)]
