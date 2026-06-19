@@ -3,7 +3,7 @@
 ---
 id: TASK-38V
 title: Seed data architecture
-status: pending
+status: done
 type: architecture
 team: platform
 supporting_teams: [backend, gameplay]
