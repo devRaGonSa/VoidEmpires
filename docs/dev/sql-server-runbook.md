@@ -2,13 +2,14 @@
 
 Status date: 2026-06-18
 
-This runbook describes the practical, user-managed SQL Server workflow for the final database target while the checked-in repository still remains PostgreSQL-first today.
+This runbook describes the practical, user-managed SQL Server workflow for the final database target while the checked-in repository still remains PostgreSQL-first by default today.
 
 It does not make SQL Server the default runtime provider, does not apply migrations automatically, and does not store passwords in the repository.
 
 ## Current Position
 
-- The checked-in runtime and design-time provider are still PostgreSQL/Npgsql.
+- The checked-in runtime and design-time default provider are still PostgreSQL/Npgsql.
+- SQL Server provider support is now present in the Infrastructure project, but it is selected only when configuration explicitly requests it.
 - SQL Server is a documented future target, not the active checked-in provider.
 - The repository does not currently ship a `docker-compose` file, SQL Server container definition, or NAS-specific deployment bundle.
 - Normal validation remains:
@@ -62,6 +63,7 @@ For design-time tools and optional smoke validation, prefer environment variable
 PowerShell example for the current shell:
 
 ```powershell
+$env:VoidEmpires__Persistence__Provider="sqlserver"
 $env:ConnectionStrings__DefaultConnection="Server=192.168.178.28,1433;Database=VoidEmpires;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
 $env:VOIDEMPIRES_CONNECTION_STRING=$env:ConnectionStrings__DefaultConnection
 $env:VOIDEMPIRES_SQLSERVER_SMOKE_ENABLED="true"
@@ -71,7 +73,10 @@ $env:VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING=$env:ConnectionStrings__Defau
 Current repository behavior:
 
 - Web startup reads `ConnectionStrings:DefaultConnection`.
+- Web startup reads `VoidEmpires:Persistence:Provider` and stays on PostgreSQL unless `sqlserver` is selected explicitly.
 - Design-time `VoidEmpiresDbContextFactory` reads:
+  - `VoidEmpires__Persistence__Provider`
+  - `VOIDEMPIRES_DATABASE_PROVIDER`
   - `ConnectionStrings__DefaultConnection`
   - `VOIDEMPIRES_CONNECTION_STRING`
 - SQL Server smoke validation reads:
@@ -81,6 +86,7 @@ Current repository behavior:
 Deployment note:
 
 - Keep these values in the host environment, secret manager, NAS container settings, VM service configuration, or equivalent operator-managed secret storage.
+- Do not set `VoidEmpires:Persistence:Provider` to `sqlserver` in checked-in appsettings; keep that selection external just like the real connection string.
 - Do not commit a resolved SQL Server connection string into appsettings, Docker metadata, compose files, or checked-in deployment notes.
 - If the SQL Server instance uses a privately managed certificate chain, keep `Encrypt=True;TrustServerCertificate=True;` in the external connection string unless your operator-managed certificate validation path is already in place.
 
@@ -115,7 +121,6 @@ Expected current behavior:
 
 Important current limitation:
 
-- the checked-in EF design-time factory still uses `UseNpgsql(...)`
 - the checked-in migrations are PostgreSQL-shaped
 - direct SQL Server script generation is not yet a validated repository path
 
@@ -123,7 +128,7 @@ Because of that, do not treat current migration generation as ready for SQL Serv
 
 Safe current runbook posture:
 
-1. First complete the future provider-selection and SQL Server migration-baseline tasks.
+1. First complete the future SQL Server migration-baseline tasks that follow the new explicit provider-selection wiring.
 2. After those tasks exist, generate SQL scripts explicitly and review them before apply.
 3. Keep generated scripts outside automatic startup and outside default tests.
 
@@ -209,8 +214,7 @@ If a manual SQL apply fails:
 
 ## 10. Known Current Blockers
 
-- runtime provider selection is still hard-coded to Npgsql
-- design-time provider selection is still hard-coded to Npgsql
+- runtime and design-time provider selection now support an explicit SQL Server choice, but PostgreSQL remains the checked-in default path
 - existing migration history is PostgreSQL-shaped
 - filtered-index SQL and provider-specific migration SQL still need SQL Server audit
 - no checked-in SQL Server migration script helper exists yet

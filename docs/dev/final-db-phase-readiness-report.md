@@ -50,9 +50,10 @@ The following work remains incomplete inside the repository:
 Current checked-in behavior:
 
 - web startup reads `ConnectionStrings:DefaultConnection`
+- web startup reads `VoidEmpires:Persistence:Provider` and stays on PostgreSQL unless `sqlserver` is selected explicitly
 - persistence wiring is enabled only when that connection string is non-empty
-- runtime persistence still calls `UseNpgsql(connectionString)`
-- design-time DbContext creation still calls `UseNpgsql(...)`
+- runtime persistence now supports explicit provider selection while keeping PostgreSQL as the checked-in default path
+- design-time DbContext creation now supports explicit provider selection through environment variables while keeping PostgreSQL as the fallback
 
 Documented SQL Server target shape:
 
@@ -61,6 +62,8 @@ Server=192.168.178.28,1433;Database=VoidEmpires;User Id=<USER>;Password=<PASSWOR
 ```
 
 This template is placeholder-only. Real values must remain external to the repository.
+
+Explicit SQL Server selection must also remain external, for example through `VoidEmpires__Persistence__Provider=sqlserver`.
 
 ## Current Migration And Seed Position
 
@@ -87,7 +90,7 @@ Seed position:
 
 ## Risks Before Go-Live
 
-1. Runtime and design-time provider selection are still hard-coded to Npgsql.
+1. PostgreSQL remains the checked-in default, so operators must still select SQL Server explicitly in external configuration.
 2. Existing migration history is PostgreSQL-specific and not yet re-baselined for SQL Server.
 3. Catalog and seed ownership remain incomplete for final production initialization.
 4. The current SQL Server smoke test proves connection-only behavior, not schema replay readiness.

@@ -3,44 +3,39 @@
 ---
 id: TASK-38D
 title: Secure connection string guidance
-status: pending
-type: docs
+status: done
+type: documentation
 team: platform
 supporting_teams: [backend]
 roadmap_item: "Block 38A-38AZ - Final SQL Server Database & Catalog Consolidation v1"
-priority: high
+priority: medium
 ---
 
 ## Goal
-Document safe SQL Server connection setup using environment variables and user secrets instead of committed credentials.
+Update repository guidance so the new provider-selection path and secure connection-string handling stay clear and conservative.
 
 ## Context
 This task belongs to the final SQL Server database and catalog consolidation block. The final product database target is SQL Server on user-managed infrastructure, but this block must keep secrets out of the repository, avoid applying migrations automatically to the real server, preserve the current Development and test flow, and keep gameplay expansion out of scope.
-Safe SQL Server template to preserve in docs and examples: `Server=192.168.178.28,1433;Database=VoidEmpires;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;`
 
 ## Implementation steps
 1. Read every file listed in "Files to read first" before editing.
 2. Use ai/orchestrator/component-discovery.md to identify the smallest related component set.
 3. Use ai/orchestrator/di-analysis.md before changing persistence registration, seed wiring, scripts, or composition roots.
-4. Implement only the behavior, documentation, scripts, or validation required by this task goal.
-5. Keep SQL Server credentials, passwords, and unsafe connection strings out of the repository.
-6. Do not run migrations or database updates against the user's real SQL Server automatically.
-7. Keep backend state authoritative and do not add new gameplay systems outside database or catalog consolidation.
-8. Run the validation commands listed below before moving the task to done.
-9. Add documentation for `ConnectionStrings__DefaultConnection` and optional provider selection environment variables.
-10. Include the safe SQL Server template connection string and explicit warnings not to commit secrets or real passwords.
+4. Review the current SQL Server runbook, readiness report, and appsettings guidance.
+5. Update documentation so provider selection and secure external connection-string handling are explicit.
+6. Keep placeholder-only examples and avoid committing any resolved password or unsafe local secret.
+7. Run the validation commands listed below before moving the task to done.
 
 ## Files to read first
 - AGENTS.md
-- ai/current-state.md
-- docs/dev/final-db-phase-prep.md
-- docs/dev/product-readiness-report.md
-- appsettings.json
+- docs/dev/sql-server-runbook.md
+- docs/dev/final-db-phase-readiness-report.md
+- src/VoidEmpires.Web/appsettings.json
+- src/VoidEmpires.Web/appsettings.Development.json
 
 ## Expected files to modify
-- docs/dev/final-db-phase-prep.md
-- docs/dev/product-readiness-report.md
-- Optional: docs/dev/sql-server-runbook.md
+- docs/dev/sql-server-runbook.md
+- Optional: docs/dev/final-db-phase-readiness-report.md
 
 ## Acceptance criteria
 - The task goal is completed or narrowed with explicit blockers and safe next steps.
@@ -50,8 +45,7 @@ Safe SQL Server template to preserve in docs and examples: `Server=192.168.178.2
 - No real SQL Server migration or destructive database change is applied automatically.
 - No combat, fleet movement, market transactions, alliance mutations, or production-auth expansion is introduced.
 - Required validation commands pass and results are recorded in the task or commit notes where appropriate.
-- The safe connection string template is documented exactly with placeholders.
-- Environment variable and `.NET user-secrets` guidance is included and contains no real password.
+- Documentation explains how to select SQL Server explicitly without making it the default checked-in provider.
 
 ## Constraints
 - Follow the architecture and conventions of the current repository
@@ -61,13 +55,13 @@ Safe SQL Server template to preserve in docs and examples: `Server=192.168.178.2
 - Keep UI and visible product copy Spanish-first where frontend text changes are required
 - Preserve lazy loading and copy regression guard coverage when frontend files are touched
 - If the change exceeds the task budget, stop and create a follow-up task instead of broadening scope
-- Do not include the real SQL Server password in any file, script, task note, or commit message
 
 ## Validation
 Before completing the task run:
 
-- `dotnet build --no-restore`
-- `dotnet test --no-build`
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-repo-secret-scan.ps1`
+- `git diff --name-only`
+- `git status`
 
 ## Commit and push
 At the end:
