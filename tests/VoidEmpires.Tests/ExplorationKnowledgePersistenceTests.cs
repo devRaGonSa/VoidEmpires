@@ -22,8 +22,8 @@ public class ExplorationKnowledgePersistenceTests
         var indexes = dbContext.Model.FindEntityType(typeof(ExplorationKnowledge))!.GetIndexes();
 
         Assert.Equal((knowledge.Id, knowledge.PlanetId), (persisted.Id, persisted.PlanetId));
-        Assert.Contains(indexes, x => IsIndex(x, "\"PlanetId\" IS NULL", "CivilizationId", "SystemId"));
-        Assert.Contains(indexes, x => IsIndex(x, "\"PlanetId\" IS NOT NULL", "CivilizationId", "SystemId", "PlanetId"));
+        Assert.Contains(indexes, x => IsIndex(x, "planet_id IS NULL", "CivilizationId", "SystemId"));
+        Assert.Contains(indexes, x => IsIndex(x, "planet_id IS NOT NULL", "CivilizationId", "SystemId", "PlanetId"));
     }
 
     private static bool IsIndex(Microsoft.EntityFrameworkCore.Metadata.IIndex index, string filter, params string[] names) =>
