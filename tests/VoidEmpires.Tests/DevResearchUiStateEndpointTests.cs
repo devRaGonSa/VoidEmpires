@@ -266,6 +266,15 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.Equal(Guid.Parse(SeedOwnedPlanetId), payload.UiState.SelectedPlanetId);
         Assert.Equal("Aurelia", payload.UiState.SelectedPlanetName);
         Assert.Equal(8, payload.UiState.Catalog.Length);
+        Assert.Contains(payload.UiState.Catalog, x =>
+            x.ResearchType == ResearchType.PlanetaryEngineering &&
+            x.DisplayName == "Ingenieria planetaria" &&
+            x.CategoryLabel == "Colonizacion" &&
+            x.RoleLabel == "Crecimiento colonial" &&
+            x.ImageKey == "research.planetary-engineering" &&
+            x.IconKey == "icon.research-planetary-engineering" &&
+            x.SortOrder == 10 &&
+            x.RequirementKeys.SequenceEqual(["SourcePlanet", "ResearchQueueSlot", "ResourceStockpile"]));
         Assert.Single(payload.UiState.Queue);
         Assert.Single(payload.UiState.Projects);
         Assert.Contains(payload.UiState.TechnologyHints, x => x.ResearchType == ResearchType.PlanetaryEngineering && x.StatusKey == "InResearch" && !x.CanEnqueue);
