@@ -10,6 +10,7 @@ It does not make SQL Server the default runtime provider, does not apply migrati
 
 - The checked-in runtime and design-time provider are still PostgreSQL/Npgsql.
 - SQL Server is a documented future target, not the active checked-in provider.
+- The repository does not currently ship a `docker-compose` file, SQL Server container definition, or NAS-specific deployment bundle.
 - Normal validation remains:
   - `dotnet build --no-restore`
   - `dotnet test --no-build`
@@ -72,6 +73,12 @@ Current repository behavior:
 - SQL Server smoke validation reads:
   - `VOIDEMPIRES_SQLSERVER_SMOKE_ENABLED`
   - `VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING`
+
+Deployment note:
+
+- Keep these values in the host environment, secret manager, NAS container settings, VM service configuration, or equivalent operator-managed secret storage.
+- Do not commit a resolved SQL Server connection string into appsettings, Docker metadata, compose files, or checked-in deployment notes.
+- If the SQL Server instance uses a privately managed certificate chain, keep `Encrypt=True;TrustServerCertificate=True;` in the external connection string unless your operator-managed certificate validation path is already in place.
 
 ## 3. Run Default Repository Validation First
 
@@ -183,6 +190,7 @@ Preferred operational posture:
 - full backup before manual apply
 - optional differential or log backup based on your own RPO/RTO requirements
 - test restore on a disposable server when the schema batch is high risk
+- if the app runs from a NAS-hosted container or VM, keep backups on storage that is independent from the application runtime volume
 
 ## 9. Restore / Rollback Guidance
 

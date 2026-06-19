@@ -3,7 +3,7 @@
 ---
 id: TASK-38AM
 title: Docker and deployment DB notes
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams: [backend]

@@ -60,6 +60,13 @@ The current persistence-stack audit for that phase is now captured in `docs/dev/
 - current PostgreSQL-specific assumptions in mappings and migrations
 - current SQL Server cutover constraints and risks
 
+Deployment posture for that phase:
+
+- the final database target is an external user-managed SQL Server, not a bundled repository database container
+- no checked-in `docker-compose` or similar repository deployment template currently provisions SQL Server
+- deployment-specific connection strings should be injected through environment variables or platform secret storage, never through committed passwords
+- when operators use self-hosted infrastructure such as a NAS or VM-hosted app container, SQL Server certificate settings must still be explicit in the external connection string, for example `Encrypt=True;TrustServerCertificate=True;`
+
 The final DB/model phase should start only after the current Development-only shell boundaries are preserved and the module catalog notes remain the source of seed-shape input:
 
 - `docs/dev/catalog-metadata-readiness.md`
