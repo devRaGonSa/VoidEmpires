@@ -20,6 +20,12 @@
     <ProjectReference Include="..\VoidEmpires.Domain\VoidEmpires.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="SeedData\CatalogSources\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

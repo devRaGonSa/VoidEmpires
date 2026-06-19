@@ -1,0 +1,3 @@
+[
+  { "key": "DefenseGrid", "displayName": "Malla defensiva", "description": "Fortificacion base para readiness defensivo sin modelar combate activo.", "categoryKey": "Defense", "categoryLabel": "Proteccion planetaria", "roleKey": "planetary-fortification", "roleLabel": "Fortificacion planetaria", "moduleKey": "Defenses", "moduleLabel": "Defensas", "imageKey": "building.defense-grid", "iconKey": "icon.defense-grid", "sortOrder": 80, "tags": ["Defense", "Readiness", "NonCombat", "ConstructionBacked"] }
+]

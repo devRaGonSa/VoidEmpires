@@ -3,7 +3,7 @@
 ---
 id: TASK-38W
 title: Catalog seed source files
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: [gameplay]
