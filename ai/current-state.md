@@ -26,6 +26,8 @@ Current final-database preparation reality:
 - SQL Server remains a documented future target on user-managed infrastructure, not the active checked-in provider
 - no checked-in repository path auto-applies migrations during startup, tests, or helper-script execution
 - no real SQL Server migration, update, backup, restore, or seed apply has been performed by the completed Block 38 documentation tasks
+- repository secret and copy guards now also check for unsafe connection-string password examples and obvious committed secret patterns while allowing documented placeholders only
+- current helper scripts remain manual, validation-only, or explicitly operator-invoked by default rather than hidden SQL Server mutation automation
 
 Current final-database readiness status:
 
@@ -36,6 +38,7 @@ Current final-database readiness status:
 - deferred items: configurable provider selection, SQL Server migration baseline, SQL Server script helper, final relational catalog ownership, and explicitly gated SQL Server validation
 - safety posture: SQL Server guidance stays documentation-only and manual by default, with external secrets, explicit backups, manual review, and no automatic apply against the user's real server
 - latest Block 38 cross-stack validation gate: `dotnet build --no-restore` succeeded with `0` errors and one rerun showing transient `MSB3026` copy-retry warnings while `testhost` held test output DLLs; `dotnet test --no-build` succeeded with `725` passing tests, `0` failed, and `0` skipped; `npm run build --prefix src/VoidEmpires.Frontend` succeeded with `106` transformed modules and a `181.33 kB` minified / `59.14 kB` gzip shared entry chunk; `check-dev-qa-scripts.ps1`, `check-frontend-route-lazy-imports.ps1`, `check-frontend-copy-regressions.ps1`, and the new repository secret scan all passed
+- latest Block 38 no-apply closure note: the repository still contains no committed real SQL Server password, no completed Block 38 task applied a real SQL Server change automatically, and manual SQL mutation remains an explicit operator responsibility outside default repo validation
 
 ## Application Status
 

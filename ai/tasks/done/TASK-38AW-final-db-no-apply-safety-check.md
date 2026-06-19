@@ -3,7 +3,7 @@
 ---
 id: TASK-38AW
 title: Final DB no-apply safety check
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [backend]

@@ -11,6 +11,7 @@ The final intended production database target is an external, user-managed SQL S
 - safe SQL Server documentation exists for connection setup, security posture, backup and restore planning, and migration dry-run expectations
 - checked-in appsettings remain placeholder-safe and do not contain a real SQL Server password
 - the repository does not auto-apply migrations during startup, tests, or helper-script execution
+- completed Block 38 work did not run a real SQL Server migration, update, backup, restore, or seed apply automatically against a user-managed server
 - the repository includes one opt-in SQL Server connection smoke test gate, while ordinary validation remains provider-independent
 - the latest Block 38 cross-stack validation gate passed:
   - `dotnet build --no-restore`
@@ -19,7 +20,7 @@ The final intended production database target is an external, user-managed SQL S
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1`
-- repository-local copy and secret guards now check for unsafe connection-string examples and obvious committed secret patterns without external tooling
+- repository-local copy and secret guards now check for unsafe connection-string examples and obvious committed secret patterns without external tooling, including `scripts/check-repo-secret-scan.ps1`
 
 ## Manual Operator Steps Still Required
 
@@ -80,7 +81,9 @@ Seed position:
 - no real SQL Server migration was applied automatically
 - no helper script in the repository applies SQL Server changes automatically to a real server
 - no real SQL Server password is committed in checked-in docs, scripts, or config
+- the current repository secret scan is green and only allows documented placeholder values for passwords or other obvious secrets
 - SQL Server guidance remains manual by default for connection setup, backups, restore, script review, and apply
+- existing PowerShell helpers remain validation, guidance, or explicitly invoked Development utilities rather than hidden SQL Server mutation automation
 
 ## Risks Before Go-Live
 
