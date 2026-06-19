@@ -122,25 +122,26 @@ Expected current behavior:
 Important current limitation:
 
 - the checked-in migrations are PostgreSQL-shaped
-- direct SQL Server script generation is not yet a validated repository path
+- direct SQL Server script generation is not yet a validated default repository path
 
 Because of that, do not treat current migration generation as ready for SQL Server replay on the real target.
 
 Safe current runbook posture:
 
-1. First complete the future SQL Server migration-baseline tasks that follow the new explicit provider-selection wiring.
-2. After those tasks exist, generate SQL scripts explicitly and review them before apply.
-3. Keep generated scripts outside automatic startup and outside default tests.
+1. First follow `docs/dev/sql-server-migration-strategy.md` and complete its documented prerequisites for the first SQL Server baseline.
+2. Use the deferred environment-variable setup and `dotnet ef migrations add SqlServerInitialBaseline ...` command from that strategy document instead of improvising a mixed-provider migration.
+3. After that baseline exists, generate SQL scripts explicitly and review them before apply.
+4. Keep generated scripts outside automatic startup and outside default tests.
 
-Planned command shape for that later phase:
+Planned later script command shape:
 
 ```powershell
-dotnet ef migrations script --idempotent --output .\artifacts\sql\voidempires-sqlserver.sql
+dotnet ef migrations script 0 SqlServerInitialBaseline --output .\artifacts\sql\voidempires-sqlserver-initial-baseline.sql
 ```
 
 Current honest note:
 
-- Do not run the command above yet against the current checked-in provider setup and assume it is SQL Server-safe.
+- Do not run the command above yet without first following the deferred-generation prerequisites in `docs/dev/sql-server-migration-strategy.md`.
 
 ## 6. Review And Apply Scripts Manually
 

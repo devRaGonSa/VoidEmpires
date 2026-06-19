@@ -3,7 +3,7 @@
 ---
 id: TASK-38K
 title: SQL Server initial migration prep
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: [platform]

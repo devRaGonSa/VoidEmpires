@@ -8,10 +8,10 @@ It is intentionally conservative. The repository does not currently support an e
 
 ## Current Reality
 
-- the checked-in runtime provider is still PostgreSQL/Npgsql
-- the checked-in design-time factory still uses `UseNpgsql(...)`
+- the checked-in runtime provider remains PostgreSQL-first by default
+- the checked-in design-time factory now supports explicit SQL Server provider selection through environment variables
 - the checked-in migration history is PostgreSQL-shaped
-- no `docs/dev/sql-server-migration-strategy.md` file exists yet
+- `docs/dev/sql-server-migration-strategy.md` now records the deferred baseline-generation prerequisites and commands
 - no `scripts/sqlserver-script-migration.ps1` helper exists yet
 
 Because of those constraints, the current dry-run process is a manual readiness checklist, not a completed repository automation path.
@@ -50,7 +50,7 @@ If any of those conditions are false, stop.
 
 Current limitation:
 
-- the repository does not yet contain the documented migration strategy file or the planned PowerShell helper for SQL Server script generation
+- the repository still does not contain the planned PowerShell helper for SQL Server script generation
 
 Practical implication:
 
@@ -59,8 +59,8 @@ Practical implication:
 
 Current safe posture:
 
-1. wait for the provider-selection and migration-strategy tasks to define the supported SQL Server path
-2. generate or assemble the candidate SQL script only after that strategy exists
+1. follow `docs/dev/sql-server-migration-strategy.md` for the deferred baseline-generation prerequisites and exact `dotnet ef` command shape
+2. generate or assemble the candidate SQL script only after that baseline task is intentionally resumed
 3. keep the generated script local to the operator workflow
 4. review the script before it touches any database
 
@@ -151,6 +151,6 @@ That means:
 
 ## Current Honest Conclusion
 
-Today, the dry-run documentation is a guarded manual procedure because the provider-selection, migration-strategy, and script-helper tasks are still pending.
+Today, the dry-run documentation is still a guarded manual procedure because the SQL Server baseline generation and script-helper tasks are not yet completed.
 
 No real SQL Server migration generation, apply, or rollback was performed for this documentation task.
