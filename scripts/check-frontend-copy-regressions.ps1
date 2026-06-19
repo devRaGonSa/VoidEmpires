@@ -11,6 +11,7 @@ $scriptsRoot = Join-Path $PSScriptRoot "..\scripts"
 $resolvedScriptsRoot = [System.IO.Path]::GetFullPath($scriptsRoot)
 $seedUiStateRoot = Join-Path $PSScriptRoot "..\src\VoidEmpires.Infrastructure"
 $resolvedSeedUiStateRoot = [System.IO.Path]::GetFullPath($seedUiStateRoot)
+$repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
 
 if (-not (Test-Path -LiteralPath $resolvedFrontendSrc)) {
   throw "Frontend source root was not found at '$resolvedFrontendSrc'."
@@ -30,6 +31,8 @@ $docsFiles = Get-ChildItem -Path $resolvedDocsRoot -Recurse -Include *.md -File
 $scriptFiles = Get-ChildItem -Path $resolvedScriptsRoot -Recurse -Include *.ps1 -File |
   Where-Object { $_.FullName -ne $PSCommandPath }
 $seedPayloadFiles = Get-ChildItem -Path $resolvedSeedUiStateRoot -Recurse -Include *UiStateService.cs, *UiState*Service.cs -File |
+  Where-Object { $_.FullName -notmatch "\\bin\\" -and $_.FullName -notmatch "\\obj\\" }
+$appsettingsFiles = Get-ChildItem -Path $repoRoot -Recurse -Include appsettings*.json -File |
   Where-Object { $_.FullName -notmatch "\\bin\\" -and $_.FullName -notmatch "\\obj\\" }
 
 $allFiles = @()
@@ -91,6 +94,27 @@ if ($filteredMatches) {
 }
 
 $copyHygieneFailures = New-Object System.Collections.Generic.List[string]
+
+$connectionStringFiles = $docsFiles + $scriptFiles + $appsettingsFiles
+$passwordAssignmentPattern = '(?i)Password\s*=\s*("?)([^;"\s`]+)\1'
+$allowedPasswordPlaceholders = @(
+  '<PASSWORD>',
+  '<local-password>',
+  'YOUR_LOCAL_PASSWORD',
+  'LOCAL_PASSWORD',
+  '<PASSWORD_PLACEHOLDER>'
+)
+$passwordAssignmentMatches = Select-String -Path ($connectionStringFiles | Select-Object -ExpandProperty FullName) -Pattern $passwordAssignmentPattern -Encoding UTF8
+foreach ($match in @($passwordAssignmentMatches)) {
+  foreach ($capture in [regex]::Matches($match.Line, $passwordAssignmentPattern)) {
+    $passwordValue = $capture.Groups[2].Value
+    if ($allowedPasswordPlaceholders -contains $passwordValue) {
+      continue
+    }
+
+    $copyHygieneFailures.Add(("{0}:{1}: unsafe connection-string password example detected; use a safe placeholder such as Password=<PASSWORD>: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
+  }
+}
 
 $mojibakePatterns = @(
   (-join @([char]0x00C3, [char]0x00A1)),

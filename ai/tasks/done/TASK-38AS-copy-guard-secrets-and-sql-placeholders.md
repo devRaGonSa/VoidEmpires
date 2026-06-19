@@ -3,7 +3,7 @@
 ---
 id: TASK-38AS
 title: Copy guard for secrets and SQL placeholders
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend, backend]
