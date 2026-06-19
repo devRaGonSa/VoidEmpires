@@ -3,7 +3,7 @@
 ---
 id: TASK-38AL
 title: Appsettings template cleanup
-status: pending
+status: done
 type: backend
 team: platform
 supporting_teams: [backend]

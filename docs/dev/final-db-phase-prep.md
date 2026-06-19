@@ -53,6 +53,7 @@ Current persistence facts before any SQL Server cutover work:
 - Design-time registration today: `src/VoidEmpires.Infrastructure/Persistence/VoidEmpiresDbContextFactory.cs` also calls `UseNpgsql(...)`.
 - Web startup reads `ConnectionStrings:DefaultConnection` and only wires persistence, Identity, and queue workers when that value is non-empty.
 - Repository appsettings keep `ConnectionStrings:DefaultConnection` empty by default in both `appsettings.json` and `appsettings.Development.json`; real connection strings are expected outside source control.
+- Repository appsettings may include a non-operative `ConnectionStrings:SqlServerTargetTemplate` reference string for documentation only; startup does not read it and it must never be replaced with a real password in source control.
 - Design-time fallback sources are external environment variables first:
   - `ConnectionStrings__DefaultConnection`
   - `VOIDEMPIRES_CONNECTION_STRING`
