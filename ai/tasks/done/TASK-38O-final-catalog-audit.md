@@ -3,7 +3,7 @@
 ---
 id: TASK-38O
 title: Final catalog audit
-status: pending
+status: done
 type: docs
 team: gameplay
 supporting_teams: [backend, frontend]
