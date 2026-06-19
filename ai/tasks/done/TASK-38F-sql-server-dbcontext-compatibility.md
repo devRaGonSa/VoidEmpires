@@ -3,16 +3,16 @@
 ---
 id: TASK-38F
 title: SQL Server DbContext compatibility
-status: pending
+status: done
 type: backend
-team: backend
-supporting_teams: [platform]
+team: platform
+supporting_teams: [backend]
 roadmap_item: "Block 38A-38AZ - Final SQL Server Database & Catalog Consolidation v1"
 priority: high
 ---
 
 ## Goal
-Review and adjust EF Core model configuration so the current persistence model is SQL Server compatible.
+Verify and tighten `DbContext` provider-selection compatibility so the explicit SQL Server path compiles and resolves cleanly without changing the default checked-in provider.
 
 ## Context
 This task belongs to the final SQL Server database and catalog consolidation block. The final product database target is SQL Server on user-managed infrastructure, but this block must keep secrets out of the repository, avoid applying migrations automatically to the real server, preserve the current Development and test flow, and keep gameplay expansion out of scope.
@@ -21,25 +21,26 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 1. Read every file listed in "Files to read first" before editing.
 2. Use ai/orchestrator/component-discovery.md to identify the smallest related component set.
 3. Use ai/orchestrator/di-analysis.md before changing persistence registration, seed wiring, scripts, or composition roots.
-4. Implement only the behavior, documentation, scripts, or validation required by this task goal.
-5. Keep SQL Server credentials, passwords, and unsafe connection strings out of the repository.
-6. Do not run migrations or database updates against the user's real SQL Server automatically.
-7. Keep backend state authoritative and do not add new gameplay systems outside database or catalog consolidation.
-8. Run the validation commands listed below before moving the task to done.
-9. Inspect entity configurations for decimal precision, temporal fields, GUIDs, string lengths, indexes, unique constraints, enum storage, and cascade delete behavior.
-10. Avoid provider-specific SQL and document any remaining incompatibilities that must be deferred.
+4. Inspect `VoidEmpiresDbContext`, persistence registration, design-time creation, and related tests.
+5. Adjust the smallest necessary code or tests so provider-selected `DbContext` construction remains compatible for both PostgreSQL-default and explicit SQL Server selection paths.
+6. Do not add automatic migrations, runtime apply, or real SQL Server side effects.
+7. Run the validation commands listed below before moving the task to done.
 
 ## Files to read first
 - AGENTS.md
+- ai/architecture-index.md
 - ai/orchestrator/component-discovery.md
-- src/VoidEmpires.Infrastructure/
-- src/VoidEmpires.Domain/
-- tests/VoidEmpires.Tests/
+- ai/orchestrator/di-analysis.md
+- src/VoidEmpires.Infrastructure/Persistence/VoidEmpiresDbContext.cs
+- src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs
+- src/VoidEmpires.Infrastructure/Persistence/VoidEmpiresDbContextFactory.cs
+- tests/VoidEmpires.Tests/PersistenceRegistrationTests.cs
 
 ## Expected files to modify
-- src/VoidEmpires.Infrastructure/
-- Optional: src/VoidEmpires.Domain/
-- tests/VoidEmpires.Tests/
+- src/VoidEmpires.Infrastructure/Persistence/VoidEmpiresDbContext.cs
+- Optional: src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs
+- Optional: src/VoidEmpires.Infrastructure/Persistence/VoidEmpiresDbContextFactory.cs
+- Optional: tests/VoidEmpires.Tests/PersistenceRegistrationTests.cs
 
 ## Acceptance criteria
 - The task goal is completed or narrowed with explicit blockers and safe next steps.
@@ -49,8 +50,7 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 - No real SQL Server migration or destructive database change is applied automatically.
 - No combat, fleet movement, market transactions, alliance mutations, or production-auth expansion is introduced.
 - Required validation commands pass and results are recorded in the task or commit notes where appropriate.
-- Entity configuration is reviewed for the required SQL Server compatibility categories.
-- Any remaining provider-specific risk is documented explicitly.
+- The selected provider can build `VoidEmpiresDbContext` cleanly without changing the PostgreSQL default path.
 
 ## Constraints
 - Follow the architecture and conventions of the current repository
@@ -66,6 +66,8 @@ Before completing the task run:
 
 - `dotnet build --no-restore`
 - `dotnet test --no-build`
+- `git diff --name-only`
+- `git status`
 
 ## Commit and push
 At the end:

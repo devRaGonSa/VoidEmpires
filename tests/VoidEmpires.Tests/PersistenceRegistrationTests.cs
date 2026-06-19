@@ -55,6 +55,64 @@ public class PersistenceRegistrationTests
     }
 
     [Fact]
+    public void DesignTimeFactoryDefaultsToNpgsqlWhenProviderIsNotSpecified()
+    {
+        var originalProvider = Environment.GetEnvironmentVariable("VoidEmpires__Persistence__Provider");
+        var originalProviderAlias = Environment.GetEnvironmentVariable("VOIDEMPIRES_DATABASE_PROVIDER");
+        var originalConnection = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+        var originalConnectionAlias = Environment.GetEnvironmentVariable("VOIDEMPIRES_CONNECTION_STRING");
+
+        try
+        {
+            Environment.SetEnvironmentVariable("VoidEmpires__Persistence__Provider", null);
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_DATABASE_PROVIDER", null);
+            Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", "Host=localhost;Database=voidempires_test");
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_CONNECTION_STRING", null);
+
+            var context = new VoidEmpiresDbContextFactory().CreateDbContext([]);
+
+            Assert.Equal("Npgsql.EntityFrameworkCore.PostgreSQL", context.Database.ProviderName);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("VoidEmpires__Persistence__Provider", originalProvider);
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_DATABASE_PROVIDER", originalProviderAlias);
+            Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", originalConnection);
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_CONNECTION_STRING", originalConnectionAlias);
+        }
+    }
+
+    [Fact]
+    public void DesignTimeFactorySupportsExplicitSqlServerProviderSelection()
+    {
+        var originalProvider = Environment.GetEnvironmentVariable("VoidEmpires__Persistence__Provider");
+        var originalProviderAlias = Environment.GetEnvironmentVariable("VOIDEMPIRES_DATABASE_PROVIDER");
+        var originalConnection = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+        var originalConnectionAlias = Environment.GetEnvironmentVariable("VOIDEMPIRES_CONNECTION_STRING");
+
+        try
+        {
+            Environment.SetEnvironmentVariable("VoidEmpires__Persistence__Provider", "sqlserver");
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_DATABASE_PROVIDER", null);
+            Environment.SetEnvironmentVariable(
+                "ConnectionStrings__DefaultConnection",
+                "Server=localhost;Database=VoidEmpires;User Id=test;Password=<PASSWORD>;TrustServerCertificate=True;");
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_CONNECTION_STRING", null);
+
+            var context = new VoidEmpiresDbContextFactory().CreateDbContext([]);
+
+            Assert.Equal("Microsoft.EntityFrameworkCore.SqlServer", context.Database.ProviderName);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("VoidEmpires__Persistence__Provider", originalProvider);
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_DATABASE_PROVIDER", originalProviderAlias);
+            Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", originalConnection);
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_CONNECTION_STRING", originalConnectionAlias);
+        }
+    }
+
+    [Fact]
     public void IdentityRegistrationUsesVoidEmpiresDbContextWithConservativeDefaults()
     {
         var services = new ServiceCollection();
