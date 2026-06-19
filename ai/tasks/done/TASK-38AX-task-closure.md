@@ -3,16 +3,16 @@
 ---
 id: TASK-38AX
 title: Task closure
-status: pending
-type: platform
+status: done
+type: documentation
 team: platform
-supporting_teams: [backend, frontend, gameplay]
+supporting_teams: [backend]
 roadmap_item: "Block 38A-38AZ - Final SQL Server Database & Catalog Consolidation v1"
-priority: high
+priority: medium
 ---
 
 ## Goal
-Move completed Block 38 tasks to done in a controlled final closure flow.
+Close the current subset of completed Block 38 tasks cleanly and record the exact remaining pending work.
 
 ## Context
 This task belongs to the final SQL Server database and catalog consolidation block. The final product database target is SQL Server on user-managed infrastructure, but this block must keep secrets out of the repository, avoid applying migrations automatically to the real server, preserve the current Development and test flow, and keep gameplay expansion out of scope.
@@ -21,25 +21,20 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 1. Read every file listed in "Files to read first" before editing.
 2. Use ai/orchestrator/component-discovery.md to identify the smallest related component set.
 3. Use ai/orchestrator/di-analysis.md before changing persistence registration, seed wiring, scripts, or composition roots.
-4. Implement only the behavior, documentation, scripts, or validation required by this task goal.
-5. Keep SQL Server credentials, passwords, and unsafe connection strings out of the repository.
-6. Do not run migrations or database updates against the user's real SQL Server automatically.
-7. Keep backend state authoritative and do not add new gameplay systems outside database or catalog consolidation.
-8. Run the validation commands listed below before moving the task to done.
-9. Progress the pending folder toward only `.gitkeep`, keeping any still-open closure task in place until the very end.
-10. Verify task file locations and statuses stay aligned with actual completion state.
+4. Review completed Block 38 tasks and current pending Block 38 tasks.
+5. Update the current-state and closure documentation with the exact completed subset and remaining pending scope.
+6. Keep the closure note factual and avoid claiming SQL Server cutover completion.
+7. Run the validation commands listed below before moving the task to done.
 
 ## Files to read first
 - AGENTS.md
-- ai/tasks/pending/
-- ai/tasks/in-progress/
-- ai/tasks/done/
 - ai/current-state.md
+- ai/tasks/done/
+- ai/tasks/pending/
 
 ## Expected files to modify
-- ai/tasks/pending/
-- ai/tasks/in-progress/
-- ai/tasks/done/
+- ai/current-state.md
+- Optional: docs/dev/final-db-phase-readiness-report.md
 
 ## Acceptance criteria
 - The task goal is completed or narrowed with explicit blockers and safe next steps.
@@ -49,8 +44,7 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 - No real SQL Server migration or destructive database change is applied automatically.
 - No combat, fleet movement, market transactions, alliance mutations, or production-auth expansion is introduced.
 - Required validation commands pass and results are recorded in the task or commit notes where appropriate.
-- Completed Block 38 task files are moved to `ai/tasks/done` appropriately.
-- The pending folder trends toward only `.gitkeep` as closure approaches.
+- Current-state notes list the completed Block 38 subset and the exact remaining pending tasks after closure.
 
 ## Constraints
 - Follow the architecture and conventions of the current repository
@@ -64,7 +58,8 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 ## Validation
 Before completing the task run:
 
-- `dir ai\tasks\pending`
+- `git diff --name-only`
+- `git status`
 - `dotnet build --no-restore`
 - `dotnet test --no-build`
 
