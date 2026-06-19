@@ -39,7 +39,8 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
 {
     public static IServiceCollection AddVoidEmpiresPersistence(
         this IServiceCollection services,
-        string? connectionString)
+        string? connectionString,
+        string? provider = null)
     {
         ArgumentNullException.ThrowIfNull(services);
 
@@ -48,7 +49,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
             return services;
         }
 
-        services.AddDbContext<VoidEmpiresDbContext>(options => options.UseNpgsql(connectionString));
+        services.AddDbContext<VoidEmpiresDbContext>(options => ConfigureProvider(options, connectionString, provider));
         services.AddScoped<IDevelopmentSeedService, DevelopmentSeedService>();
         services.AddScoped<IConstructionQaStatePreparationService, ConstructionQaStatePreparationService>();
         services.AddScoped<IResearchQaStatePreparationService, ResearchQaStatePreparationService>();
@@ -106,6 +107,23 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
 
         return services;
     }
+
+    private static DbContextOptionsBuilder ConfigureProvider(
+        DbContextOptionsBuilder options,
+        string connectionString,
+        string? provider)
+    {
+        return ResolveProvider(provider) switch
+        {
+            "sqlserver" => options.UseSqlServer(connectionString),
+            _ => options.UseNpgsql(connectionString)
+        };
+    }
+
+    private static string ResolveProvider(string? provider) =>
+        string.IsNullOrWhiteSpace(provider)
+            ? "npgsql"
+            : provider.Trim().ToLowerInvariant();
 
     public static IServiceCollection AddVoidEmpiresConstructionQueueWorker(
         this IServiceCollection services,

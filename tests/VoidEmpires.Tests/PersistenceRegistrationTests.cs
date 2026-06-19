@@ -38,6 +38,23 @@ public class PersistenceRegistrationTests
     }
 
     [Fact]
+    public void ExplicitSqlServerProviderRegistersSqlServerDbContext()
+    {
+        var services = new ServiceCollection();
+
+        services.AddVoidEmpiresPersistence(
+            "Server=localhost;Database=VoidEmpires;User Id=test;Password=<PASSWORD>;TrustServerCertificate=True;",
+            "sqlserver");
+
+        using var provider = services.BuildServiceProvider();
+        var options = provider.GetRequiredService<DbContextOptions<VoidEmpiresDbContext>>();
+
+        Assert.Contains(
+            options.Extensions,
+            extension => extension.GetType().FullName == "Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal.SqlServerOptionsExtension");
+    }
+
+    [Fact]
     public void IdentityRegistrationUsesVoidEmpiresDbContextWithConservativeDefaults()
     {
         var services = new ServiceCollection();

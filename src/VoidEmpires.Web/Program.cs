@@ -27,7 +27,8 @@ builder.Services.AddCors(options =>
 });
 
 var defaultConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddVoidEmpiresPersistence(defaultConnectionString);
+var persistenceProvider = builder.Configuration["VoidEmpires:Persistence:Provider"];
+builder.Services.AddVoidEmpiresPersistence(defaultConnectionString, persistenceProvider);
 if (!string.IsNullOrWhiteSpace(defaultConnectionString))
 {
     builder.Services.AddVoidEmpiresIdentity();
