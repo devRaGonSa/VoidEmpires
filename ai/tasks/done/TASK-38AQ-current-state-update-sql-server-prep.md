@@ -3,7 +3,7 @@
 ---
 id: TASK-38AQ
 title: Current state update for SQL Server prep
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams: [backend, gameplay]

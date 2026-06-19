@@ -4,6 +4,8 @@
 
 The repository is consolidated through the Block 37 near-product documentation and readiness checkpoint for the current Development-only product shell.
 
+Block 38 SQL Server preparation is now in progress as a documentation-first safety pass for the future final database target. Current completed Block 38 work records safe appsettings templates, external deployment posture, SQL Server security guidance, backup and restore planning, and a guarded migration dry-run note without changing the checked-in runtime provider or applying any real database migration.
+
 ## Repository Reality
 
 The AI Platform template has been adapted into a VoidEmpires-specific project workspace with:
@@ -13,6 +15,26 @@ The AI Platform template has been adapted into a VoidEmpires-specific project wo
 - task lifecycle folders under `ai/tasks/`
 - helper scripts under `scripts/`
 - the `.NET` solution and projects under `src/` and `tests/`
+
+Current final-database preparation reality:
+
+- checked-in runtime persistence still uses `Npgsql.EntityFrameworkCore.PostgreSQL`
+- `src/VoidEmpires.Infrastructure/VoidEmpiresPersistenceServiceCollectionExtensions.cs` still calls `UseNpgsql(connectionString)` directly
+- `src/VoidEmpires.Infrastructure/Persistence/VoidEmpiresDbContextFactory.cs` still uses `UseNpgsql(...)` for design-time creation
+- `src/VoidEmpires.Web/Program.cs` still reads `ConnectionStrings:DefaultConnection` and only wires persistence-backed services when it is non-empty
+- repository appsettings remain placeholder-safe, keep `DefaultConnection` empty by default, and do not store real SQL Server credentials
+- SQL Server remains a documented future target on user-managed infrastructure, not the active checked-in provider
+- no checked-in repository path auto-applies migrations during startup, tests, or helper-script execution
+- no real SQL Server migration, update, backup, restore, or seed apply has been performed by the completed Block 38 documentation tasks
+
+Current final-database readiness status:
+
+- provider support: PostgreSQL-first today; SQL Server cutover is still pending provider-selection work
+- migration status: existing EF migration history is PostgreSQL-shaped; SQL Server migration strategy and script-helper tasks are still pending
+- catalog status: gameplay catalogs remain code-owned, not final relational seed data
+- seed status: Development seed profiles remain QA scaffolding, not final production initialization
+- deferred items: configurable provider selection, SQL Server migration baseline, SQL Server script helper, final relational catalog ownership, and explicitly gated SQL Server validation
+- safety posture: SQL Server guidance stays documentation-only and manual by default, with external secrets, explicit backups, manual review, and no automatic apply against the user's real server
 
 ## Application Status
 
