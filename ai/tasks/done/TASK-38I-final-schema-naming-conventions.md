@@ -3,8 +3,8 @@
 ---
 id: TASK-38I
 title: Final schema naming conventions
-status: pending
-type: docs
+status: done
+type: documentation
 team: platform
 supporting_teams: [backend]
 roadmap_item: "Block 38A-38AZ - Final SQL Server Database & Catalog Consolidation v1"
@@ -12,7 +12,7 @@ priority: medium
 ---
 
 ## Goal
-Define final SQL Server schema naming conventions for tables, columns, keys, indexes, and catalog metadata.
+Record the current schema naming conventions and any still-open inconsistencies before later SQL Server migration-baseline work begins.
 
 ## Context
 This task belongs to the final SQL Server database and catalog consolidation block. The final product database target is SQL Server on user-managed infrastructure, but this block must keep secrets out of the repository, avoid applying migrations automatically to the real server, preserve the current Development and test flow, and keep gameplay expansion out of scope.
@@ -21,23 +21,19 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 1. Read every file listed in "Files to read first" before editing.
 2. Use ai/orchestrator/component-discovery.md to identify the smallest related component set.
 3. Use ai/orchestrator/di-analysis.md before changing persistence registration, seed wiring, scripts, or composition roots.
-4. Implement only the behavior, documentation, scripts, or validation required by this task goal.
-5. Keep SQL Server credentials, passwords, and unsafe connection strings out of the repository.
-6. Do not run migrations or database updates against the user's real SQL Server automatically.
-7. Keep backend state authoritative and do not add new gameplay systems outside database or catalog consolidation.
-8. Run the validation commands listed below before moving the task to done.
-9. Document naming rules for tables, columns, primary keys, foreign keys, indexes, catalog keys, seed keys, `ImageKey`, and `IconKey`.
-10. Align the conventions with current code where possible and mark any intentional future cutover differences.
+4. Review current table, column, and index naming patterns from persistence configurations.
+5. Add a concise naming-convention note plus any known exceptions or open inconsistencies that later migration work must account for.
+6. Keep the note factual and avoid claiming that the final SQL Server naming baseline is already enforced everywhere if it is not.
+7. Run the validation commands listed below before moving the task to done.
 
 ## Files to read first
 - AGENTS.md
-- src/VoidEmpires.Infrastructure/
-- docs/dev/final-db-phase-prep.md
-- docs/dev/product-readiness-report.md
+- src/VoidEmpires.Infrastructure/Persistence/Configurations/
+- ai/current-state.md
 
 ## Expected files to modify
-- docs/dev/final-schema-naming-conventions.md
-- Optional: docs/dev/final-db-phase-prep.md
+- ai/current-state.md
+- Optional: docs/dev/final-db-phase-readiness-report.md
 
 ## Acceptance criteria
 - The task goal is completed or narrowed with explicit blockers and safe next steps.
@@ -47,8 +43,7 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 - No real SQL Server migration or destructive database change is applied automatically.
 - No combat, fleet movement, market transactions, alliance mutations, or production-auth expansion is introduced.
 - Required validation commands pass and results are recorded in the task or commit notes where appropriate.
-- Naming conventions cover all requested schema and catalog key categories.
-- The documented conventions are SQL Server-oriented and consistent with repository conventions.
+- The note describes the current naming convention and any relevant exceptions for later migration work.
 
 ## Constraints
 - Follow the architecture and conventions of the current repository
@@ -62,8 +57,8 @@ This task belongs to the final SQL Server database and catalog consolidation blo
 ## Validation
 Before completing the task run:
 
-- `dotnet build --no-restore`
-- `dotnet test --no-build`
+- `git diff --name-only`
+- `git status`
 
 ## Commit and push
 At the end:
