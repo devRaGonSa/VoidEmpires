@@ -18,6 +18,7 @@ export const resourceTerminologyV1 = {
 export const resourceTerminologyNotesV1 = [
   "Creditos is the spendable economy balance.",
   "Energia is a power or infrastructure signal, not a synonym for Creditos.",
+  "Deuterio remains a visible future term only and is not part of the persisted stockpile.",
   "Poblacion is colony capacity context, not a stockpile currency.",
 ] as const;
 

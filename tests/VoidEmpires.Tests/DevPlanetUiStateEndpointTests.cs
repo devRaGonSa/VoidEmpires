@@ -70,6 +70,12 @@ public class DevPlanetUiStateEndpointTests(WebApplicationFactory<Program> factor
         Assert.Equal(Guid.Parse(SeedOwnedPlanetId), payload.UiState.SelectedPlanetId);
         Assert.Equal("Aurelia", payload.UiState.Planet.PlanetName);
         Assert.True(payload.UiState.Planet.IsOwnedByRequestingCivilization);
+        Assert.Equal(7, payload.UiState.Planet.ResourceCatalog.Count);
+        Assert.Equal("Credits", payload.UiState.Planet.ResourceCatalog[0].Key);
+        Assert.Equal("Creditos", payload.UiState.Planet.ResourceCatalog[0].DisplayName);
+        Assert.Equal("Energy", payload.UiState.Planet.ResourceCatalog[4].Key);
+        Assert.False(payload.UiState.Planet.ResourceCatalog[4].IsPersisted);
+        Assert.False(payload.UiState.Planet.ResourceCatalog[4].IsSpendable);
         Assert.NotEmpty(payload.UiState.Planet.Stockpile);
         Assert.NotNull(payload.UiState.Planet.ProductionSummary);
         Assert.Contains(payload.UiState.Planet.Buildings, x => x.BuildingType.ToString() == "CommandCenter");

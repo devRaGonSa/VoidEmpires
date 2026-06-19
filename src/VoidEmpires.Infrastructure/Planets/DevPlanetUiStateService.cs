@@ -210,6 +210,7 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
             selectedPlanet.Ownership?.CivilizationId,
             ownerCivilizationName,
             selectedPlanet.Ownership?.Status,
+            CreateResourceCatalog(),
             stockpile is null ? [] : CreateStockpile(stockpile),
             productionProfile is null
                 ? null
@@ -280,6 +281,23 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
             new(ResourceType.Crystal, stockpile.Crystal),
             new(ResourceType.Gas, stockpile.Gas)
         ];
+
+    private static IReadOnlyList<DevPlanetResourceCatalogItemDto> CreateResourceCatalog() =>
+        ResourceCatalog.All
+            .OrderBy(x => x.SortOrder)
+            .Select(x => new DevPlanetResourceCatalogItemDto(
+                x.Key,
+                x.DisplayName,
+                x.Description,
+                x.IsPersisted,
+                x.IsSpendable,
+                x.ClassKey,
+                x.ClassLabel,
+                x.ImageKey,
+                x.IconKey,
+                x.SortOrder,
+                x.Tags))
+            .ToArray();
 
     private static DevPlanetBuildingDisplayDto CreateBuildingDisplay(BuildingType buildingType)
     {

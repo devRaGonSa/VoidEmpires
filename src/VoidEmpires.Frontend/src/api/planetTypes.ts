@@ -144,6 +144,7 @@ export interface PlanetCockpitDto {
   ownerCivilizationId: string | null;
   ownerCivilizationName: string | null;
   controlStatus: PlanetApiValue | null;
+  resourceCatalog: PlanetResourceCatalogItemDto[];
   stockpile: PlanetResourceBalanceDto[];
   productionSummary: PlanetProductionSummaryDto | null;
   buildingCapacity: PlanetBuildingCapacityDto | null;
@@ -158,6 +159,20 @@ export interface PlanetCockpitDto {
 export interface PlanetResourceBalanceDto {
   resourceType: PlanetApiValue;
   quantity: number;
+}
+
+export interface PlanetResourceCatalogItemDto {
+  key: string;
+  displayName: string;
+  description: string;
+  isPersisted: boolean;
+  isSpendable: boolean;
+  classKey: string;
+  classLabel: string;
+  imageKey: string;
+  iconKey: string;
+  sortOrder: number;
+  tags: string[];
 }
 
 export interface PlanetProductionSummaryDto {

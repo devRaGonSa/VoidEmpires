@@ -79,6 +79,7 @@ public sealed record DevPlanetCockpitDto(
     Guid? OwnerCivilizationId,
     string? OwnerCivilizationName,
     PlanetControlStatus? ControlStatus,
+    IReadOnlyList<DevPlanetResourceCatalogItemDto> ResourceCatalog,
     IReadOnlyList<DevPlanetResourceBalanceDto> Stockpile,
     DevPlanetProductionSummaryDto? ProductionSummary,
     DevPlanetBuildingCapacityDto? BuildingCapacity,
@@ -129,6 +130,19 @@ public sealed record DevGroundArmyCockpitDto(
 public sealed record DevPlanetResourceBalanceDto(
     ResourceType ResourceType,
     decimal Quantity);
+
+public sealed record DevPlanetResourceCatalogItemDto(
+    string Key,
+    string DisplayName,
+    string Description,
+    bool IsPersisted,
+    bool IsSpendable,
+    string ClassKey,
+    string ClassLabel,
+    string ImageKey,
+    string IconKey,
+    int SortOrder,
+    IReadOnlyList<string> Tags);
 
 public sealed record DevPlanetProductionSummaryDto(
     decimal CreditsPerHour,
