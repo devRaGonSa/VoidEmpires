@@ -3,7 +3,7 @@
 ---
 id: TASK-40O
 title: Run final validation gate for SQL Server baseline block
-status: pending
+status: done
 type: platform
 team: qa
 supporting_teams:

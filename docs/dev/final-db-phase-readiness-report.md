@@ -13,7 +13,7 @@ The final intended production database target is an external, user-managed SQL S
 - the repository does not auto-apply migrations during startup, tests, or helper-script execution
 - completed Block 38 work did not run a real SQL Server migration, update, backup, restore, or seed apply automatically against a user-managed server
 - the repository includes one opt-in SQL Server connection smoke test gate, while ordinary validation remains provider-independent
-- the latest Block 39P final closure validation gate passed without requiring a real SQL Server:
+- the latest Block 40O final validation gate passed without requiring a real SQL Server:
   - `dotnet build --no-restore`
   - `dotnet test --no-build`
   - `npm run build --prefix src/VoidEmpires.Frontend`
@@ -21,7 +21,7 @@ The final intended production database target is an external, user-managed SQL S
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-repo-secret-scan.ps1`
-- latest recorded results: `dotnet build --no-restore` succeeded with `0` warnings and `0` errors; `dotnet test --no-build` succeeded with `741` passing tests, `0` failed, and `0` skipped; frontend build succeeded with `106` transformed modules and a `181.33 kB` minified / `59.13 kB` gzip shared entry chunk; the QA, route lazy-import, frontend copy, and repository secret guards all passed; `ai/tasks/pending` contained only `.gitkeep`
+- latest recorded results: `dotnet build --no-restore` succeeded with `0` warnings and `0` errors; `dotnet test --no-build` succeeded with `744` passing tests, `0` failed, and `0` skipped; frontend build succeeded with `106` transformed modules and a `181.33 kB` minified / `59.13 kB` gzip shared entry chunk; the QA, route lazy-import, frontend copy, generated SQL safety, and repository secret guards all passed; `git status --short` before recording results showed only the in-progress task move
 - repository-local copy and secret guards now check for unsafe connection-string examples and obvious committed secret patterns without external tooling, including `scripts/check-repo-secret-scan.ps1`
 
 ## Manual Operator Steps Still Required
@@ -40,8 +40,7 @@ Before any real SQL Server cutover attempt, an operator must still:
 
 The following work remains incomplete inside the repository:
 
-- SQL Server migration-baseline implementation work beyond the now-defined conservative strategy
-- a validated SQL Server script-generation helper
+- manual SSMS apply and post-apply verification of the accepted SQL Server baseline
 - final relational catalog ownership for currently code-owned gameplay catalogs
 - final seed architecture for production initialization instead of Development-only QA profiles
 - any broader SQL Server validation beyond the current opt-in connection smoke check
@@ -59,7 +58,7 @@ Current checked-in behavior:
 Documented SQL Server target shape:
 
 ```text
-Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;
+Server=<HOST>,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;
 ```
 
 This template is placeholder-only. Real values must remain external to the repository.
@@ -70,7 +69,7 @@ Local app run command shape after manual schema preparation:
 
 ```powershell
 $env:VoidEmpires__Persistence__Provider="SqlServer"
-$env:ConnectionStrings__DefaultConnection="Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+$env:ConnectionStrings__DefaultConnection="Server=<HOST>,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
 $env:VOIDEMPIRES_CONNECTION_STRING=$env:ConnectionStrings__DefaultConnection
 dotnet run --project .\src\VoidEmpires.Web\VoidEmpires.Web.csproj
 ```
@@ -83,17 +82,17 @@ Migration position:
 
 - the checked-in EF migration history is PostgreSQL-shaped today
 - current migrations are not validated for direct SQL Server replay
-- SQL Server migration work must remain manual and explicitly reviewed
+- `SqlServerInitialBaseline` now exists in the isolated SQL Server migration folder and is not part of the root PostgreSQL-shaped chain
+- the idempotent SQL Server baseline script exists as a committed review artifact and has passed static safety and secret scans
+- SQL Server schema apply remains manual and explicitly reviewed; no generated SQL was executed by the repository workflow
 
-Conservative SQL Server baseline strategy:
+Accepted SQL Server baseline strategy:
 
-1. Keep the checked-in PostgreSQL-first path and existing migration history intact until the remaining mapping and naming audit is complete.
-2. Finish the provider-sensitive model review first, including index filters, default SQL, naming normalization, and any migration-generated provider SQL that still assumes PostgreSQL semantics.
-3. Treat the current migration chain as historical context only for SQL Server planning; do not assume it is safe to replay directly against SQL Server.
-4. Create the first SQL Server baseline only after the model audit is stable, on an isolated task/branch, using explicit SQL Server provider selection and a disposable validation database.
-5. Review the generated SQL Server baseline and follow-up script output manually before any operator apply path is documented.
-6. Validate that baseline on disposable SQL Server targets, then document the manual script-generation and manual apply flow as a later repository step.
-7. Keep migration apply, backup, restore, and production seeding outside app startup and outside default automated validation throughout that sequence.
+1. Keep the checked-in PostgreSQL-first path and existing root migration history intact.
+2. Keep SQL Server migrations isolated under `src/VoidEmpires.Infrastructure/Persistence/Migrations/SqlServer`.
+3. Treat the root migration chain as historical PostgreSQL context only; do not replay it directly against SQL Server.
+4. Use the reviewed idempotent SQL script only through manual SSMS/operator review.
+5. Keep migration apply, backup, restore, and production seeding outside app startup and outside default automated validation.
 
 Seed position:
 
@@ -108,21 +107,21 @@ Seed position:
 - no helper script in the repository applies SQL Server changes automatically to a real server
 - no real SQL Server password is committed in checked-in docs, scripts, or config
 - the current repository secret scan is green and only allows documented placeholder values for passwords or other obvious secrets
-- the latest final validation gate did not connect to SQL Server, generate or apply SQL Server migrations, apply seeds, back up, restore, or commit generated SQL output
+- the latest final validation gate did not connect to SQL Server, execute generated SQL, run `dotnet ef database update`, apply seeds, back up, or restore
 - SQL Server guidance remains manual by default for connection setup, backups, restore, script review, and apply
 - existing PowerShell helpers remain validation, guidance, or explicitly invoked Development utilities rather than hidden SQL Server mutation automation
 
 ## Risks Before Go-Live
 
 1. PostgreSQL remains the checked-in default, so operators must still select SQL Server explicitly in external configuration.
-2. Existing migration history is PostgreSQL-specific and not yet re-baselined for SQL Server.
-3. The repository now has a conservative migration strategy, but the provider-sensitive model audit and SQL Server baseline generation tasks are still unfinished.
+2. Existing root migration history remains PostgreSQL-specific; SQL Server uses the isolated baseline path.
+3. The accepted SQL Server baseline still needs manual SSMS apply and post-apply verification before any runtime validation can rely on the target schema.
 4. Catalog and seed ownership remain incomplete for final production initialization.
 5. The current SQL Server smoke test proves connection-only behavior, not schema replay readiness.
 6. Any real SQL Server rollout still depends on careful operator-managed credentials, backups, restore drills, and manual script review.
 
 ## Current Honest Decision
 
-Decision: documentation and validation prep for the controlled Block 39 SQL Server creation path is closed for now.
+Decision: the SQL Server initial baseline migration block has passed final repository validation and is ready for manual operator review/apply steps.
 
-Decision not granted: repository-level SQL Server runtime readiness, SQL Server migration replay readiness, final relational seed readiness, or production cutover readiness.
+Decision not granted: automatic schema apply, repository-level SQL Server runtime cutover, final relational seed readiness, or production cutover readiness.
