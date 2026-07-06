@@ -3,7 +3,7 @@
 ---
 id: TASK-39K
 title: Document final catalog seed dry-run for SQL Server context
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

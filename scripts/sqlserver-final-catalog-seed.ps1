@@ -197,11 +197,13 @@ if (-not (Test-Path -LiteralPath $infrastructureAssemblyPath)) {
 if ($effectiveDryRun) {
     Write-Host "Running final catalog seed dry-run validation."
     Write-Host "The backend catalog loader will validate the checked-in catalog sources without mutating a database."
+    Write-Host "No user gameplay data will be deleted, truncated, reset, or seeded in dry-run mode."
 }
 else {
     Write-Host "Attempting final catalog apply with explicit operator confirmation."
     Write-Host "The connection string will not be echoed."
     Write-Host "Current backend behavior is expected to stop before mutation until the final relational apply path exists."
+    Write-Host "This helper must not delete, truncate, or reset user gameplay data."
 }
 
 Invoke-BackendSeedRunner -RepositoryRoot $repoRoot -CatalogSourceDirectory $resolvedSourceDirectory -DryRun:$effectiveDryRun

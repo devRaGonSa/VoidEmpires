@@ -98,6 +98,7 @@ Seed position:
 - Development seed profiles are QA scaffolding only
 - static gameplay catalogs remain code-owned, not final relational seed data
 - production-owned final seed data is still pending later tasks
+- `scripts/sqlserver-final-catalog-seed.ps1` remains dry-run-first for SQL Server context; apply requires explicit confirmation and currently remains safely deferred rather than deleting or mutating user gameplay data
 
 ## Current Safety Posture
 

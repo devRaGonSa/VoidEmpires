@@ -266,6 +266,8 @@ Operational guidance:
 - Use Development seeds only for local QA after the app is intentionally configured to talk to a disposable database.
 - Keep final catalog seeding separate from player-owned gameplay state seeding.
 - Use `scripts/sqlserver-final-catalog-seed.ps1` only as an operator-invoked guardrail around the current backend seed service.
+- El helper de catalogos finales ejecuta dry-run por defecto y valida los JSON versionados sin borrar, truncar, resetear ni sembrar datos de gameplay del usuario.
+- `-Apply -ConfirmMutation` requiere confirmacion explicita y actualmente debe detenerse de forma segura mientras el backend mantenga diferido el apply relacional final.
 
 Final catalog helper examples:
 
@@ -285,6 +287,7 @@ Current expected behavior of the helper:
 - it does not echo the connection string or password
 - it defaults to a dry-run path that validates the versioned catalog JSON sources through the backend seed service
 - if `-Apply -ConfirmMutation` is requested, the helper still stops safely because the backend service currently defers non-dry-run execution until final relational catalog tables and manual apply wiring exist
+- it must not delete, truncate, or reset user gameplay data
 - it does not call Development seed endpoints
 - it does not run migrations or perform automatic SQL Server updates
 
