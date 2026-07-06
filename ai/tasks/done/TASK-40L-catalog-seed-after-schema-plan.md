@@ -3,7 +3,7 @@
 ---
 id: TASK-40L
 title: Plan catalog seed after SQL Server schema apply
-status: pending
+status: done
 type: platform
 team: database
 supporting_teams:

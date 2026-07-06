@@ -335,6 +335,23 @@ Current repository position:
 - Development seed profiles are QA scaffolding, not final production initialization
 - the backend now includes a dry-run-first final catalog seed service, but non-dry-run apply is still intentionally deferred
 
+Post-schema catalog sequence after manual baseline apply:
+
+1. Complete the manual schema apply and post-apply verification in sections 6 and 7.
+2. Set the SQL Server connection string only in a local shell, user secret, or operator-managed secret store.
+3. Run the final catalog helper without `-Apply` first.
+4. Review the dry-run output for each catalog source file and row count.
+5. Stop if any catalog source is missing, has invalid shape, or reports unexpected row counts.
+6. Do not run a real apply yet; current backend behavior still defers final relational catalog writes.
+
+Dry-run command shape after the operator has set an external connection string:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-final-catalog-seed.ps1
+```
+
+Expected dry-run output includes `Validated ... rows` lines for the versioned catalog files and `Apply remains deferred by backend design.` The helper does not echo the connection string.
+
 Operational guidance:
 
 - Do not treat `POST /api/dev/seeds/apply` as the final production catalog seed path.
@@ -344,7 +361,7 @@ Operational guidance:
 - El helper de catalogos finales ejecuta dry-run por defecto y valida los JSON versionados sin borrar, truncar, resetear ni sembrar datos de gameplay del usuario.
 - `-Apply -ConfirmMutation` requiere confirmacion explicita y actualmente debe detenerse de forma segura mientras el backend mantenga diferido el apply relacional final.
 
-Final catalog helper examples:
+Final catalog helper examples with placeholder-only templates:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-final-catalog-seed.ps1 `
@@ -365,6 +382,12 @@ Current expected behavior of the helper:
 - it must not delete, truncate, or reset user gameplay data
 - it does not call Development seed endpoints
 - it does not run migrations or perform automatic SQL Server updates
+
+Future apply gate:
+
+- A future apply mode must first add final relational catalog tables, deterministic upsert logic, reviewable output, and explicit operator confirmation.
+- The current `-Apply -ConfirmMutation` shape documents the intended gate but is not a working production seed apply path.
+- Do not use Development seed success as proof that final catalog rows were applied.
 
 If you intentionally run Development seeds against a disposable SQL Server validation database:
 

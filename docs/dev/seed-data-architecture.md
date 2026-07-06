@@ -185,6 +185,18 @@ This architecture is SQL Server-friendly because:
 4. SQL generation or relational upsert logic can be reviewed separately from editorial content
 5. content changes do not require automatic migration replay
 
+## Current SQL Server Operator Sequence
+
+After the SQL Server baseline schema exists, catalog work remains dry-run-first:
+
+1. Set the SQL Server connection context outside the repository.
+2. Run `scripts/sqlserver-final-catalog-seed.ps1` without `-Apply`.
+3. Review the reported catalog file names and row counts.
+4. Treat missing files, shape errors, or unexpected row counts as blockers.
+5. Do not apply final relational catalog rows yet; the backend still reports `ApplyDeferred` for non-dry-run requests.
+
+The future apply path must add final catalog tables, deterministic upsert behavior, reviewable output, and explicit operator confirmation before it can write to SQL Server. Development seed profiles remain separate and must not be used as the final production catalog seed path.
+
 ## Recommended Next Sequence
 
 1. Add the JSON-or-source-file layout and naming convention.
@@ -198,4 +210,5 @@ This architecture is SQL Server-friendly because:
 - Current authoritative gameplay catalogs are still partly code-owned.
 - Current Development seed profiles are still QA scaffolding only.
 - The chosen final architecture is now defined, but not yet implemented.
+- The current SQL Server catalog helper validates versioned JSON sources in dry-run mode, but final relational apply remains deferred.
 - The remaining Block 38 seed tasks should implement this hybrid model, not replace it with SQL-first or UI-owned content.
