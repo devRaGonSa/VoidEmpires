@@ -550,11 +550,11 @@ export function ResearchPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Catalogo vacio</p>
-              <h3>No hay tecnologias disponibles en esta version.</h3>
+              <h3>Tecnologia pendiente de seleccion.</h3>
             </div>
             <UiBadge tone="warn">Sin catalogo</UiBadge>
           </div>
-          <p className="figma-panel-note">La cabina esta preparada, pero el backend no devolvio tecnologias de investigacion para este contexto; no se muestran opciones falsas.</p>
+          <p className="figma-panel-note">La cabina esta preparada, pero este contexto aun no tiene tecnologias de investigacion visibles; no se muestran opciones falsas.</p>
         </UiCard>
       ) : null}
 

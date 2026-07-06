@@ -1104,9 +1104,9 @@ export function FleetsPage() {
               <h3>Movimientos en curso</h3>
               <p>Carga primero una flota para ver rutas activas, cancelaciones disponibles y llegadas vencidas.</p>
             </div>
-            <UiBadge tone="neutral">Sin datos</UiBadge>
+            <UiBadge tone="neutral">Pendiente</UiBadge>
           </div>
-          <p className="figma-panel-note">Todavia no hay datos de flota cargados en esta sesion.</p>
+          <p className="figma-panel-note">No hay escuadras estacionadas ni rutas activas cargadas para esta sesion.</p>
         </UiCard>
       ) : null}
 

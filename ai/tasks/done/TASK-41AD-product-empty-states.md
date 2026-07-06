@@ -3,7 +3,7 @@
 ---
 id: TASK-41AD
 title: Product empty states
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

@@ -481,7 +481,7 @@ export function DefensesPage() {
                   </div>
                   <UiBadge tone="warn">Sin despliegue</UiBadge>
                 </div>
-                <p className="figma-panel-note">Todavia no hay estructuras defensivas visibles en esta colonia. La cabina conserva el contexto y muestra preparaciones o bloqueos reales cuando el backend los expone.</p>
+                <p className="figma-panel-note">Todavia no hay estructuras defensivas visibles en esta colonia. La cabina conserva el contexto y mostrara preparaciones o bloqueos reales cuando existan.</p>
               </section>
             )}
             <div className="figma-section-header module-boundary-spacer">
@@ -509,7 +509,7 @@ export function DefensesPage() {
                       <div className="figma-data-row"><span>Duracion</span><strong>{option.estimatedDurationLabel}</strong></div>
                     </div>
                     <p>{option.reasonLabel}</p>
-                    <p className="figma-panel-note">Reservas de {defenses.planetName}. La readiness visible sale del backend actual, pero el enqueue real sigue perteneciendo a Construccion.</p>
+                    <p className="figma-panel-note">Reservas de {defenses.planetName}. La preparacion visible se confirma desde Construccion antes de enviar cualquier orden.</p>
                     <div className="selection-chip-row">
                       <Link className="planet-action-button-secondary planet-action-handoff" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
                         Abrir Construccion
@@ -577,11 +577,11 @@ export function DefensesPage() {
                   </div>
                   <UiBadge tone="neutral">Sin bloqueos</UiBadge>
                 </div>
-                <p className="figma-panel-note">El backend no devolvio preparaciones bloqueadas para esta lectura. No se fabrica una lista defensiva adicional.</p>
+                <p className="figma-panel-note">No hay preparaciones bloqueadas visibles para esta lectura. No se fabrica una lista defensiva adicional.</p>
               </section>
             )}
             {optionGroups.length === 0 ? (
-              <p className="figma-panel-note">El backend no expone una lista defensiva mas amplia todavia. La cabina conserva el contexto y explica el limite con honestidad.</p>
+              <p className="figma-panel-note">El catalogo defensivo aun no tiene mas opciones para esta colonia. La cabina conserva el contexto y explica el limite con honestidad.</p>
             ) : null}
           </UiCard>
 
@@ -815,11 +815,11 @@ export function DefensesPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Estado vacio</p>
-                <h3>Sin datos defensivos</h3>
+                <h3>Sistema defensivo pendiente</h3>
               </div>
               <UiBadge tone="warn">Preparacion limitada</UiBadge>
             </div>
-            <p className="figma-panel-note">El backend no devolvio un contexto defensivo util para este planeta. La shell mantiene acceso, contexto y explicacion de limites.</p>
+            <p className="figma-panel-note">No hay un contexto defensivo util para este planeta. La cabina mantiene acceso, contexto y explicacion de limites.</p>
           </UiCard>
         ) : null
       )}

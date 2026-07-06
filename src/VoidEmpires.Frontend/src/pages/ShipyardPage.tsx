@@ -847,7 +847,7 @@ export function ShipyardPage() {
                   <UiBadge tone="warn">{cockpitStatusLabels.readOnly}</UiBadge>
             </div>
             {shipyard.catalog.length === 0 ? (
-              <p className="figma-panel-note">El backend no devolvio catalogo orbital util todavia. La cabina mantiene el shell y deja visible la frontera del modulo.</p>
+              <p className="figma-panel-note">El catalogo orbital aun no tiene opciones utiles para este contexto. La cabina mantiene la vista y deja visible la frontera del modulo.</p>
             ) : (
               <>
                 <div className="readiness-grid">
@@ -876,7 +876,7 @@ export function ShipyardPage() {
                     <p className="figma-panel-note">
                       {catalogBuckets.blocked.length > 0
                         ? "Cada carta mantiene visible el motivo del bloqueo para evitar lecturas engañosas."
-                        : "No hay bloqueos catalogados aparte de limitaciones del backend."}
+                        : "No hay bloqueos catalogados aparte de los limites visibles de esta lectura."}
                     </p>
                   </section>
                   <section className="subpanel figma-subpanel">
@@ -1014,7 +1014,7 @@ export function ShipyardPage() {
               </section>
             </div>
             {shipyard.queue.length === 0 ? (
-              <p className="figma-panel-note">No hay ordenes orbitales abiertas ni historial visible en este planeta. Tras materializar desde Planeta, este panel debe seguir mostrando solo estado backend.</p>
+              <p className="figma-panel-note">No hay ordenes orbitales abiertas ni historial visible en este planeta. Tras materializar desde Planeta, este panel debe seguir mostrando solo estado confirmado.</p>
             ) : (
               <div className="readiness-grid">
                 {shipyard.queue.map((item) => (
@@ -1177,11 +1177,11 @@ export function ShipyardPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Estado vacio</p>
-                <h3>Sin datos de astillero</h3>
+                <h3>Astillero pendiente de seleccion</h3>
               </div>
-              <UiBadge tone="warn">Vacio</UiBadge>
+              <UiBadge tone="warn">Pendiente</UiBadge>
             </div>
-            <p className="figma-panel-note">El backend no devolvio un contexto de astillero util para este planeta. La shell sigue visible para mantener el acceso y el contexto de navegacion.</p>
+            <p className="figma-panel-note">No hay un contexto de astillero util para este planeta. La cabina sigue visible para mantener el acceso y el contexto de navegacion.</p>
           </UiCard>
         ) : null
       )}
