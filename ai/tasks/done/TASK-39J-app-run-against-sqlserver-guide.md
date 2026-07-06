@@ -3,7 +3,7 @@
 ---
 id: TASK-39J
 title: Document local app run against SQL Server
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

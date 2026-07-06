@@ -1,6 +1,6 @@
 # Final DB Phase Readiness Report
 
-Status date: 2026-06-19
+Status date: 2026-07-06
 
 This report summarizes the current readiness of the `VoidEmpires` final database phase while the repository still remains PostgreSQL-first in checked-in runtime and design-time behavior.
 
@@ -57,12 +57,23 @@ Current checked-in behavior:
 Documented SQL Server target shape:
 
 ```text
-Server=192.168.178.28,1433;Database=VoidEmpires;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;
+Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;
 ```
 
 This template is placeholder-only. Real values must remain external to the repository.
 
 Explicit SQL Server selection must also remain external, for example through `VoidEmpires__Persistence__Provider=sqlserver`.
+
+Local app run command shape after manual schema preparation:
+
+```powershell
+$env:VoidEmpires__Persistence__Provider="SqlServer"
+$env:ConnectionStrings__DefaultConnection="Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+$env:VOIDEMPIRES_CONNECTION_STRING=$env:ConnectionStrings__DefaultConnection
+dotnet run --project .\src\VoidEmpires.Web\VoidEmpires.Web.csproj
+```
+
+This is a local operator validation path only. The SQL Server schema must exist first, and health diagnostics do not prove migration replay or production readiness.
 
 ## Current Migration And Seed Position
 

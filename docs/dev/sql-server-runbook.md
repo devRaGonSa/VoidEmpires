@@ -208,7 +208,35 @@ Current honest note:
 - Current `TASK-39H` result: idempotent SQL output generation remains blocked because `SqlServerInitialBaseline` is deferred and no SQL Server migration files exist under `src/VoidEmpires.Infrastructure/Persistence/Migrations/SqlServer`.
 - No one-off SQL output was generated or committed for this state.
 
-## 6. Review And Apply Scripts Manually
+## 6. Ejecutar la app local contra SQL Server
+
+Solo hagas esto despues de crear `VoidEmpires_Dev` y aplicar manualmente un esquema compatible y revisado. La app no aplica migraciones al arrancar.
+
+PowerShell local con placeholders:
+
+```powershell
+$env:VoidEmpires__Persistence__Provider="SqlServer"
+$env:ConnectionStrings__DefaultConnection="Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+$env:VOIDEMPIRES_CONNECTION_STRING=$env:ConnectionStrings__DefaultConnection
+dotnet run --project .\src\VoidEmpires.Web\VoidEmpires.Web.csproj
+```
+
+Comprobacion esperada sin sobreprometer readiness:
+
+- `GET /health` debe responder `status = ok`
+- `persistence.configured` debe ser `true`
+- `persistence.provider` debe indicar el proveedor EF Core configurado para SQL Server si la configuracion fue leida correctamente
+- los endpoints que consultan o mutan datos requieren que el esquema exista; un `health` correcto no prueba que las migraciones SQL Server esten listas ni que el producto este preparado para produccion
+
+Limpia las variables para volver al modo de desarrollo por defecto:
+
+```powershell
+Remove-Item Env:VoidEmpires__Persistence__Provider -ErrorAction SilentlyContinue
+Remove-Item Env:ConnectionStrings__DefaultConnection -ErrorAction SilentlyContinue
+Remove-Item Env:VOIDEMPIRES_CONNECTION_STRING -ErrorAction SilentlyContinue
+```
+
+## 7. Review And Apply Scripts Manually
 
 When a SQL Server-specific migration baseline exists in a later task:
 
@@ -224,7 +252,7 @@ Do not:
 - hide apply inside `dotnet test`
 - run apply against a shared production-like server without manual confirmation
 
-## 7. Seed Catalogs And Development Data Carefully
+## 8. Seed Catalogs And Development Data Carefully
 
 Current repository position:
 
@@ -266,7 +294,7 @@ If you intentionally run Development seeds against a disposable SQL Server valid
 2. Confirm you are pointing to a disposable validation database, not a shared real environment.
 3. Call the existing Development seed endpoint only for local/demo validation.
 
-## 8. Back Up The Database
+## 9. Back Up The Database
 
 For a user-managed SQL Server, backup remains a manual infrastructure step.
 
@@ -290,7 +318,7 @@ Preferred operational posture:
 - test restore on a disposable server when the schema batch is high risk
 - if the app runs from a NAS-hosted container or VM, keep backups on storage that is independent from the application runtime volume
 
-## 9. Restore / Rollback Guidance
+## 10. Restore / Rollback Guidance
 
 Current repository does not provide an automated SQL Server rollback script.
 
@@ -301,7 +329,7 @@ If a manual SQL apply fails:
 3. If partial apply makes the database unsafe, restore from the pre-change backup.
 4. Fix the migration/script issue in a dedicated repository task before retrying.
 
-## 10. Known Current Blockers
+## 11. Known Current Blockers
 
 - runtime and design-time provider selection now support an explicit SQL Server choice, but PostgreSQL remains the checked-in default path
 - existing migration history is PostgreSQL-shaped
@@ -309,7 +337,7 @@ If a manual SQL apply fails:
 - no checked-in SQL Server migration script helper exists yet
 - final catalog operator scripting now exists only as a guarded dry-run and deferred-apply helper; no final relational catalog seed apply path exists yet
 
-## 11. Recommended Future Task Order
+## 12. Recommended Future Task Order
 
 1. provider selection and dependency split
 2. SQL Server-compatible migration-baseline strategy
