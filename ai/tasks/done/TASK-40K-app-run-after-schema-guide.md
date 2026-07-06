@@ -3,7 +3,7 @@
 ---
 id: TASK-40K
 title: Document running app after SQL Server schema apply
-status: pending
+status: done
 type: platform
 team: docs
 supporting_teams:

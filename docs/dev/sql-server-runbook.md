@@ -270,27 +270,58 @@ Do not:
 
 ## 7. Ejecutar la app local contra SQL Server
 
-Solo hagas esto despues de crear `VoidEmpires_Dev` y aplicar manualmente un esquema compatible y revisado. La app no aplica migraciones al arrancar.
+Solo hagas esto despues de crear `VoidEmpires_Dev`, aplicar manualmente un esquema compatible y revisado, y completar la verificacion post-apply. La app no aplica migraciones al arrancar.
 
-PowerShell local con placeholders:
+Preconditions:
+
+1. `docs/dev/sql-server-post-apply-verification.sql` has been reviewed and run manually in SSMS.
+2. `dbo.__EFMigrationsHistory` contains `20260706131610_SqlServerInitialBaseline`.
+3. The read-only SQL Server smoke check passes with the same target database.
+4. The connection string is stored only in the local shell, user secrets, or another operator-owned secret store.
+
+PowerShell local con placeholders para la sesion actual:
 
 ```powershell
+$env:ASPNETCORE_ENVIRONMENT="Development"
 $env:VoidEmpires__Persistence__Provider="SqlServer"
 $env:ConnectionStrings__DefaultConnection="Server=<HOST>,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
 $env:VOIDEMPIRES_CONNECTION_STRING=$env:ConnectionStrings__DefaultConnection
 dotnet run --project .\src\VoidEmpires.Web\VoidEmpires.Web.csproj
 ```
 
-Comprobacion esperada sin sobreprometer readiness:
+The `http` launch profile uses `http://localhost:5142`. In another terminal, verify health:
+
+```powershell
+Invoke-RestMethod http://localhost:5142/health | ConvertTo-Json -Depth 5
+```
+
+Expected health shape:
 
 - `GET /health` debe responder `status = ok`
 - `persistence.configured` debe ser `true`
-- `persistence.provider` debe indicar el proveedor EF Core configurado para SQL Server si la configuracion fue leida correctamente
-- los endpoints que consultan o mutan datos requieren que el esquema exista; un `health` correcto no prueba que las migraciones SQL Server esten listas ni que el producto este preparado para produccion
+- `persistence.provider` debe ser `Microsoft.EntityFrameworkCore.SqlServer`
+- `auth.configured` debe ser `true`
+
+Health only proves that configuration was read and the SQL Server EF provider was selected. It does not apply migrations, prove table contents, prove catalog seed state, or make the runtime production-ready.
+
+Expected behavior before catalog seed:
+
+- schema-backed endpoints can connect only if the manual baseline apply already succeeded
+- gameplay tables can be empty
+- catalog/readiness views that depend on seeded or code-owned catalog state can return empty options, blocked options, or validation guidance
+- final relational catalog seed apply is still deferred; use the catalog helper in section 8 only as documented
+
+Expected behavior after an approved disposable validation seed:
+
+- Development seed endpoints can populate local QA data only when Development endpoints are enabled and the target database is disposable
+- dev UI/readiness endpoints should reflect the seeded scenario rather than an empty universe
+- final production catalog readiness still depends on the later final relational catalog seed path; do not infer it from Development seed success
+- do not run Development seeds against a shared or production-like database
 
 Limpia las variables para volver al modo de desarrollo por defecto:
 
 ```powershell
+Remove-Item Env:ASPNETCORE_ENVIRONMENT -ErrorAction SilentlyContinue
 Remove-Item Env:VoidEmpires__Persistence__Provider -ErrorAction SilentlyContinue
 Remove-Item Env:ConnectionStrings__DefaultConnection -ErrorAction SilentlyContinue
 Remove-Item Env:VOIDEMPIRES_CONNECTION_STRING -ErrorAction SilentlyContinue

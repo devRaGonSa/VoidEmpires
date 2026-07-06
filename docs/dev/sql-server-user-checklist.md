@@ -15,7 +15,10 @@ Usa esta lista para validar manualmente `VoidEmpires_Dev`. No pegues usuarios, p
 - [ ] Inspeccionar tablas creadas y consultar `dbo.__EFMigrationsHistory`.
 - [ ] Ejecutar de nuevo el smoke SQL Server opcional contra `VoidEmpires_Dev`.
 - [ ] Ejecutar la app local con `VoidEmpires__Persistence__Provider="SqlServer"` solo despues de que el esquema exista.
+- [ ] Verificar `GET http://localhost:5142/health`: `persistence.configured=true` y `persistence.provider=Microsoft.EntityFrameworkCore.SqlServer`.
+- [ ] Antes de seed, asumir que las tablas de gameplay pueden estar vacias y que algunas vistas de catalogo/readiness pueden no tener opciones.
+- [ ] Despues de un seed aprobado solo para una base disposable, verificar que los endpoints dev reflejan el escenario sembrado.
 - [ ] Ejecutar el dry-run de catalogos finales sin `-Apply` y confirmar que no borra datos de gameplay.
-- [ ] Limpiar variables locales: `VoidEmpires__Persistence__Provider`, `ConnectionStrings__DefaultConnection`, `VOIDEMPIRES_CONNECTION_STRING`, `VOIDEMPIRES_SQLSERVER_SMOKE_ENABLED`, `VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING`.
+- [ ] Limpiar variables locales: `ASPNETCORE_ENVIRONMENT`, `VoidEmpires__Persistence__Provider`, `ConnectionStrings__DefaultConnection`, `VOIDEMPIRES_CONNECTION_STRING`, `VOIDEMPIRES_SQLSERVER_SMOKE_ENABLED`, `VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING`.
 
 Referencia detallada: `docs/dev/sql-server-runbook.md`.
