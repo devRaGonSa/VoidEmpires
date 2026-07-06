@@ -29,6 +29,9 @@ Current final-database preparation reality:
 - repository secret and copy guards now also check for unsafe connection-string password examples and obvious committed secret patterns while allowing documented placeholders only
 - current helper scripts remain manual, validation-only, or explicitly operator-invoked by default rather than hidden SQL Server mutation automation
 - `VoidEmpires_Dev` is now documented as the recommended first controlled SQL Server validation target; existing helpers were audited as non-destructive by default, and the current create-database helper remains a manual SSMS reference rather than automatic provisioning
+- controlled SQL Server creation preparation now includes the SSMS-oriented `VoidEmpires_Dev` create script, Spanish-first operator checklist, local environment/user-secrets guidance, opt-in read-only `SELECT 1` smoke path, guarded migration-script helper, local app-run guidance after schema preparation, dry-run-first final catalog helper, and strengthened repository secret scan
+- the repository does not claim that `VoidEmpires_Dev` already exists, does not commit a resolved SQL Server connection string or real password, and still requires manual operator action for database creation, credential provisioning, schema review/apply, optional smoke validation, and app execution against SQL Server
+- no SQL Server migration has been generated or applied automatically; `SqlServerInitialBaseline` remains deferred after the documented no-go review, and SQL Server smoke/catalog helpers remain opt-in rather than part of ordinary `dotnet test`
 
 Current final-database readiness status:
 
@@ -46,6 +49,7 @@ Current final-database readiness status:
 - next pending Block 38 implementation categories are the per-catalog ownership tasks (`TASK-38P` through `TASK-38U`) and the final seed architecture tasks (`TASK-38V` through `TASK-38Z`)
 - latest Block 38 final validation refresh: `dotnet build --no-restore` succeeded with `16` transient `MSB3026` copy-retry warnings and `0` errors while `testhost` held test output DLLs; `dotnet test --no-build` succeeded with `725` passing tests, `0` failed, and `0` skipped; `npm run build --prefix src/VoidEmpires.Frontend` succeeded with `106` transformed modules, `58.88 kB` CSS, and a `181.33 kB` minified / `59.14 kB` gzip shared entry chunk; `check-dev-qa-scripts.ps1`, `check-frontend-route-lazy-imports.ps1`, and `check-frontend-copy-regressions.ps1` all succeeded; this remained a documentation-first non-cutover validation pass only
 - latest Block 39A runbook audit note: SQL Server docs now describe the manual `VoidEmpires_Dev` path: create in SSMS, configure local secrets outside the repo, run the read-only `SELECT 1` smoke, generate and review migration scripts only after the SQL Server baseline exists, apply manually only with operator approval, and run the app against SQL Server only through external provider selection
+- latest Block 39N controlled database state validation: `dotnet build --no-restore` succeeded with `0` warnings and `0` errors; `dotnet test --no-build` succeeded with `741` passing tests, `0` failed, and `0` skipped; no SQL Server connection, migration generation, migration apply, seed apply, backup, or restore was performed for this current-state update
 
 ## Application Status
 

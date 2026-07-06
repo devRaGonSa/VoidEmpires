@@ -3,7 +3,7 @@
 ---
 id: TASK-39N
 title: Update current state for controlled real database preparation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
