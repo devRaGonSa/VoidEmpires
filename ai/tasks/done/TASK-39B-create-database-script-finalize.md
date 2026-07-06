@@ -3,7 +3,7 @@
 ---
 id: TASK-39B
 title: Finalize manual SQL Server database creation script
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

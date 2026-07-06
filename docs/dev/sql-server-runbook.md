@@ -63,10 +63,10 @@ Replace only `<USER>` and `<PASSWORD>` in local environment variables or secret 
 
 In SQL Server Management Studio:
 
-1. Open `scripts/sqlserver/create-database.sql` in SSMS only as a reviewed helper/reference.
+1. Open `scripts/sqlserver/create-database.sql` in SSMS.
 2. Connect to the target SQL Server instance with your own operator credentials.
 3. Confirm the active database context is `master`, then review the script comments and any infrastructure-specific sizing or file-placement adjustments you need.
-4. For the first controlled validation target, create `VoidEmpires_Dev` manually. The current checked-in helper is non-destructive by default because it uses `DB_ID(...)` guards, but it still names `VoidEmpires`; do not execute it unchanged when the intended target is `VoidEmpires_Dev`.
+4. Execute the script manually only after review; it uses `DB_ID(...)` guards and targets `VoidEmpires_Dev` as the recommended first controlled validation database.
 5. Create or assign the application login/user outside the repository workflow.
 6. Grant only the minimum rights needed for schema apply and application access.
 
@@ -76,6 +76,7 @@ Manual note:
 - The checked-in helper is an SSMS-oriented manual script, not an automatic provisioning step.
 - This repository does not create SQL logins or passwords for you.
 - `VoidEmpires_Dev` is the recommended first validation database name until a later task promotes any different target.
+- The helper does not drop, truncate, reset, migrate, or seed data.
 
 ## 2. Set Local Environment Variables
 
