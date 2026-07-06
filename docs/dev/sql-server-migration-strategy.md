@@ -8,11 +8,39 @@ Current decision:
 
 - no SQL Server migration files are added in this task
 - no SQL Server migration or database update is applied
-- the repository now documents the exact deferred-generation commands and prerequisites for the later baseline task
+- decision for `SqlServerInitialBaseline`: not safe to generate yet; keep deferred
 
 ## Why No Migration Files Were Added Yet
 
 The repository can now select SQL Server explicitly at runtime and design time, but the checked-in EF Core migration chain is still PostgreSQL-shaped.
+
+## Decision For `SqlServerInitialBaseline`
+
+Decision date: 2026-07-06.
+
+No generar `SqlServerInitialBaseline` todavia.
+
+Provider readiness is partial:
+
+- runtime DI can select `UseSqlServer(...)` only when configuration explicitly requests `sqlserver`
+- design-time factory can select `UseSqlServer(...)` from external environment variables
+- tests cover both default PostgreSQL selection and explicit SQL Server provider selection
+
+Baseline generation is still unsafe because:
+
+- `src/VoidEmpires.Infrastructure/Persistence/Migrations/SqlServer` does not exist yet, so there is no isolated SQL Server migration layout or snapshot policy
+- the current `VoidEmpiresDbContextModelSnapshot` still includes Npgsql metadata such as `NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(...)`
+- the existing migration chain contains PostgreSQL-specific column types such as `uuid` and `timestamp with time zone`
+- current snapshot filters still include quoted PostgreSQL-style filter SQL such as `"PlanetId" IS NULL`, while newer runtime configuration uses SQL Server-compatible lowercase filter text in at least some mappings
+- mixed convention-driven table names remain visible in the snapshot, so the final SQL Server naming baseline still needs a full model review before committing generated output
+
+Actionable blockers before generation:
+
+1. decide the SQL Server migration directory and snapshot strategy explicitly
+2. complete a provider-sensitive model review for table names, column names, filters, indexes, identity columns, and DateTime/Guid storage
+3. confirm the intended baseline is generated from SQL Server provider metadata only
+4. run generation only with placeholder external configuration and without connecting to `VoidEmpires_Dev`
+5. review the generated migration before committing it
 
 Current blockers:
 
@@ -76,6 +104,6 @@ El helper genera un script `.sql` idempotente para revision manual. Usa una cade
 
 ## Current Honest Result
 
-This task prepares the initial SQL Server migration path by documenting exact deferred-generation commands and prerequisites only.
+This task records a no-go decision for generating `SqlServerInitialBaseline` today and keeps the exact deferred-generation commands as the later approved path.
 
 No SQL Server migration files were generated or committed in this task.

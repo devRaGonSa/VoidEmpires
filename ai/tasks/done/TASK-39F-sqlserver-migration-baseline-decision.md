@@ -3,7 +3,7 @@
 ---
 id: TASK-39F
 title: Decide SQL Server baseline migration readiness
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

@@ -13,6 +13,7 @@ It is intentionally conservative. The repository does not currently support an e
 - the checked-in migration history is PostgreSQL-shaped
 - `docs/dev/sql-server-migration-strategy.md` now records the deferred baseline-generation prerequisites and commands
 - `scripts/sqlserver-script-migration.ps1` now exists as a guarded generation-only helper
+- current decision for `SqlServerInitialBaseline`: no-go until the SQL Server migration layout, provider-specific model review, and snapshot policy are completed
 
 Because of those constraints, the current dry-run process is a manual readiness checklist, not a completed repository automation path.
 
@@ -51,6 +52,7 @@ If any of those conditions are false, stop.
 Current limitation:
 
 - the helper only runs after `SqlServerInitialBaseline` exists under the expected SQL Server migration directory
+- `SqlServerInitialBaseline` must not be generated yet from the current repository state
 
 Practical implication:
 
