@@ -3,7 +3,7 @@
 ---
 id: TASK-39L
 title: Strengthen secret scan for real SQL Server connection strings
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

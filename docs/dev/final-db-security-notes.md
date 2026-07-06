@@ -22,6 +22,7 @@ It does not enable SQL Server in the checked-in runtime, does not apply migratio
   - migration or schema-apply rights should be separated from ordinary gameplay runtime access where practical
 - Use long, unique passwords generated outside the repository and rotate them through operator-managed secret storage.
 - Replace placeholder values such as `<USER>` and `<PASSWORD>` only in local environment variables, user secrets, or operator-managed secret storage.
+- Repository guards allow placeholder password tokens such as `<PASSWORD>`, `YOUR_PASSWORD`, `${SQL_PASSWORD}`, and `%SQL_PASSWORD%`; real-looking SQL Server passwords are rejected.
 - Do not paste real SQL Server users, passwords, or full resolved connection strings into chat, committed docs, scripts, terminal logs, tickets, or task notes.
 
 ## Connection Security
