@@ -1,4 +1,5 @@
 import { formatResourceAmountList } from "./resourceDisplay";
+import { formatProductActionLabel, productActionLabels } from "./cockpitStatus";
 import type {
   ResearchCost as ResearchCostDto,
   ResearchDefinitionDto,
@@ -453,11 +454,11 @@ export function getResearchPrimaryAction(technology: ResearchTechnology) {
   }
 
   if (visualState === "active") {
-    return technology.availability.canCompleteDue ? "Lista para cierre" : "En investigacion";
+    return technology.availability.canCompleteDue ? productActionLabels.confirm : "En investigacion";
   }
 
   if (visualState === "ready") {
-    return "Revisar investigacion";
+    return productActionLabels.research;
   }
 
   if (technology.availability.reasonKey === "InsufficientResources") {
@@ -468,7 +469,7 @@ export function getResearchPrimaryAction(technology: ResearchTechnology) {
     return "En cola";
   }
 
-  return "Revisar requisitos";
+  return formatProductActionLabel("review", "requisitos");
 }
 
 export function selectRecommendedResearch(technologies: readonly ResearchTechnology[]) {

@@ -1,5 +1,6 @@
 import type { UiBadgeTone } from "./ui/UiBadge";
 import { UiBadge } from "./ui/UiBadge";
+import { productActionLabels } from "../utils/cockpitStatus";
 
 export type ActionState =
   | "available"
@@ -18,8 +19,8 @@ const actionStateLabels: Record<ActionState, string> = {
   loading: "Cargando",
   confirmed: "Confirmado",
   failed: "Fallido",
-  readOnly: "Solo lectura",
-  developmentOnly: "Development-only",
+  readOnly: productActionLabels.review,
+  developmentOnly: "Confirmacion requerida",
 };
 
 const actionStateTones: Record<ActionState, UiBadgeTone> = {

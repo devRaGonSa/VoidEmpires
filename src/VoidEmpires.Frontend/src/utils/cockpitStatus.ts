@@ -25,3 +25,21 @@ export const cockpitNavigationLabels = {
   returnToGalaxy: "Volver a Galaxia",
   returnToPlanet: "Volver a Planeta",
 } as const;
+
+export const productActionLabels = {
+  build: "Construir",
+  research: "Investigar",
+  produce: "Producir",
+  review: "Revisar",
+  open: "Abrir",
+  confirm: "Confirmar",
+  cancel: "Cancelar",
+  back: "Volver",
+} as const;
+
+export function formatProductActionLabel(
+  action: keyof typeof productActionLabels,
+  target?: string,
+) {
+  return target ? `${productActionLabels[action]} ${target}` : productActionLabels[action];
+}

@@ -22,6 +22,7 @@ import {
   formatColonizationStatus,
 } from "./domainPresentation";
 import { formatResourceAmount, formatResourceAmountList } from "./resourceDisplay";
+import { formatProductActionLabel, productActionLabels } from "./cockpitStatus";
 
 type PlanetValue = PlanetApiValue | null | undefined;
 
@@ -351,7 +352,7 @@ export function formatConstructionActionButtonLabel(
   isPrepared: boolean,
 ) {
   if (availabilityStatus === "Available") {
-    return isPrepared ? "Orden preparada" : "Preparar construccion";
+    return isPrepared ? productActionLabels.confirm : productActionLabels.build;
   }
 
   switch (availabilityStatus) {
@@ -366,7 +367,7 @@ export function formatConstructionActionButtonLabel(
     case "Blocked":
       return "Cola no disponible";
     case "Unsupported":
-      return "Fuera de alcance";
+      return formatProductActionLabel("review", "alcance");
     default:
       return "No disponible";
   }

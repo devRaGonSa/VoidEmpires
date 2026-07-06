@@ -3,7 +3,7 @@
 ---
 id: TASK-41AB
 title: Product action label system
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
