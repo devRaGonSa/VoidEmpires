@@ -441,8 +441,8 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         setUiState(null);
         setError(
           requestError instanceof Error
-            ? `No se pudo contactar con el backend de planeta. Detalle: ${requestError.message}`
-            : "No se pudo contactar con el backend de planeta.",
+            ? "No se pudo cargar Planeta. Revisa el contexto e intentalo de nuevo."
+            : "No se pudo cargar Planeta.",
         );
       } finally {
         setIsLoading(false);
@@ -693,11 +693,11 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           : "No habia colas vencidas para materializar; el backend confirmo la lectura y el planeta fue releido sin cambios de cola.",
       );
     } catch (requestError) {
-      setQueueMaterializationError(
-        requestError instanceof Error
-          ? `No se pudo contactar con el backend para materializar colas. Detalle: ${requestError.message}`
-          : "No se pudo contactar con el backend para materializar colas.",
-      );
+        setQueueMaterializationError(
+          requestError instanceof Error
+            ? "No se pudo actualizar la cola vencida. Reintenta desde el panel de operador."
+            : "No se pudo actualizar la cola vencida.",
+        );
     } finally {
       setIsMaterializingQueues(false);
     }

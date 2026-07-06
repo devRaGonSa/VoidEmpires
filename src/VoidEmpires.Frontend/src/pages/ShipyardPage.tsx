@@ -165,7 +165,7 @@ function formatShipyardCommandFailure(failureContext: ShipyardFailureContext, pl
       };
     case "Planet was not found.":
       return {
-        primaryMessage: "El planeta solicitado no existe en esta build.",
+        primaryMessage: "El planeta solicitado no existe en la lectura actual.",
         followUp: contextPlanetName,
         technicalDetail: detail,
       };
@@ -224,7 +224,7 @@ function formatShipyardCommandFailure(failureContext: ShipyardFailureContext, pl
     case "Planet resource stockpile was not found.":
       return {
         primaryMessage: "El planeta no expone reservas locales utilizables para esta accion.",
-        followUp: "Esta accion no esta disponible en esta build.",
+        followUp: "Esta accion no esta disponible para este contexto.",
         technicalDetail: detail,
       };
     case "MissingQuantity":
@@ -249,21 +249,21 @@ function formatShipyardCommandFailure(failureContext: ShipyardFailureContext, pl
       };
     case "Request failed with status 404.":
       return {
-        primaryMessage: "Esta accion no esta disponible en esta build.",
-        followUp: "El endpoint de desarrollo no esta expuesto en este entorno.",
+        primaryMessage: "No se pudo completar la accion de astillero.",
+        followUp: "Esta accion no esta disponible en este entorno.",
         technicalDetail: detail,
       };
     case "Request failed with status 503.":
       return {
-        primaryMessage: "La persistencia de desarrollo no esta disponible ahora mismo.",
-        followUp: "Comprueba la configuracion local antes de reintentar.",
+        primaryMessage: "No se pudo cargar el estado del astillero ahora mismo.",
+        followUp: "Reintenta en unos momentos antes de enviar otra orden.",
         technicalDetail: detail,
       };
     default:
       if (failureContext.bodyParseFailed) {
         return {
-          primaryMessage: "La cabina recibio una respuesta no interpretable del backend.",
-          followUp: "Revisa los diagnosticos secundarios antes de reintentar.",
+          primaryMessage: "No se pudo interpretar la respuesta del astillero.",
+          followUp: "Reintenta la accion y consulta el panel de operador si persiste.",
           technicalDetail: detail ?? `Request failed with status ${failureContext.httpStatus ?? "desconocido"}.`,
         };
       }
@@ -450,7 +450,7 @@ export function ShipyardPage() {
       } catch (requestError) {
         const failure = formatShipyardCommandFailure({ detail: requestError instanceof Error ? requestError.message : null }, shipyard?.planetName ?? null);
         setUiState(null);
-        setError(`No se pudo contactar con el backend del astillero. ${failure.primaryMessage}`);
+        setError(`No se pudo cargar Astillero. ${failure.primaryMessage}`);
         setErrorFollowUp(failure.followUp);
         setTechnicalErrorDetail(failure.technicalDetail);
       } finally {

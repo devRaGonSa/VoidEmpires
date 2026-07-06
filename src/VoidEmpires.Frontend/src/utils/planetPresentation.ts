@@ -432,7 +432,7 @@ export function formatConstructionCommandFailure(
     case "Requested date is required.":
     case "Requested date must be UTC.":
       return {
-        primaryMessage: "La orden llego incompleta a la API. Revisa el contexto activo y vuelve a preparar la accion.",
+        primaryMessage: "La orden llego incompleta. Revisa el contexto activo y vuelve a preparar la accion.",
         technicalDetail,
       };
     default:
@@ -441,28 +441,28 @@ export function formatConstructionCommandFailure(
 
   if (httpStatus === 503) {
     return {
-      primaryMessage: "La API de desarrollo no tiene persistencia disponible. Configura el entorno local antes de enviar la orden.",
+      primaryMessage: "No se pudo preparar la orden de construccion ahora mismo. Reintenta antes de enviarla.",
       technicalDetail,
     };
   }
 
   if (httpStatus === 404) {
     return {
-      primaryMessage: "La ruta de construccion no esta disponible en este entorno. Verifica que las dev endpoints sigan activas.",
+      primaryMessage: "La orden de construccion no esta disponible en este entorno.",
       technicalDetail,
     };
   }
 
   if (httpStatus === 400) {
     return {
-      primaryMessage: "La API rechazo la orden por validacion. Revisa el planeta activo y vuelve a preparar la accion.",
+      primaryMessage: "No se pudo validar la orden. Revisa el planeta activo y vuelve a preparar la accion.",
       technicalDetail,
     };
   }
 
   if (httpStatus === 409) {
     return {
-      primaryMessage: "La orden ya no es valida con el estado actual del backend. Recarga la cabina para revisar recursos, propiedad o cola antes de reintentar.",
+      primaryMessage: "La orden ya no es valida con el estado actual. Recarga la cabina para revisar recursos, propiedad o cola antes de reintentar.",
       technicalDetail,
     };
   }
@@ -477,7 +477,7 @@ export function formatConstructionRequestFailure(
   message: string | null | undefined,
 ): ConstructionCommandFeedback {
   return {
-    primaryMessage: "No se pudo enviar la orden de construccion. Comprueba la conexion con la API local y vuelve a intentarlo.",
+    primaryMessage: "No se pudo enviar la orden de construccion. Revisa la conexion y vuelve a intentarlo.",
     technicalDetail: message?.trim() || null,
   };
 }

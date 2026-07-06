@@ -175,14 +175,14 @@ function formatResearchEnqueueValidationError(
 
   if (hasPattern("not available", "unavailable research")) {
     return {
-      primaryMessage: "La investigacion solicitada no esta disponible para este contexto o para esta build.",
+      primaryMessage: "La investigacion solicitada no esta disponible para este contexto.",
       technicalDetail,
     };
   }
 
   if (response.failureKind === "validation" || response.failureKind === "conflict") {
     return {
-      primaryMessage: "La API rechazo la orden de investigacion por una validacion no prevista en la cabina. Revisa el diagnostico tecnico antes de reintentar.",
+      primaryMessage: "No se pudo completar la orden de investigacion. Revisa el contexto y vuelve a intentarlo.",
       technicalDetail,
     };
   }
@@ -296,7 +296,7 @@ export function ResearchPage() {
       } catch (requestError) {
         const failure = formatResearchRequestFailure(requestError instanceof Error ? requestError.message : null);
         setUiState(null);
-        setError(`No se pudo contactar con el backend de investigacion. ${failure.primaryMessage}`);
+        setError(`No se pudo cargar Investigacion. ${failure.primaryMessage}`);
         setTechnicalErrorDetail(failure.technicalDetail);
       } finally {
         setIsLoading(false);
