@@ -3,7 +3,7 @@
 ---
 id: TASK-40J
 title: Add post-apply verification SQL snippets
-status: pending
+status: done
 type: platform
 team: database
 supporting_teams:

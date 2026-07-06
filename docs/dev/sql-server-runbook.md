@@ -239,6 +239,8 @@ Manual review and apply:
 
 Read-only post-apply inspection:
 
+Use `docs/dev/sql-server-post-apply-verification.sql` as the reviewed post-apply verification checklist. Open it in SSMS against `VoidEmpires_Dev`; it lists tables, verifies `__EFMigrationsHistory`, runs empty-safe row counts, checks important indexes, and reports whether catalog-like tables exist.
+
 ```sql
 SELECT DB_NAME() AS CurrentDatabase;
 SELECT [name] FROM sys.tables WHERE is_ms_shipped = 0 ORDER BY [name];
