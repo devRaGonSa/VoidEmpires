@@ -8,7 +8,7 @@ Current decision:
 
 - no SQL Server migration files are added in this task
 - no SQL Server migration or database update is applied
-- decision for `SqlServerInitialBaseline`: generate only through the isolated SQL Server baseline path documented below, after the design-time path is explicitly prepared
+- decision for `SqlServerInitialBaseline`: generate only through the isolated SQL Server baseline path documented below
 
 ## Why No Migration Files Were Added Yet
 
@@ -43,6 +43,7 @@ Current migration/provider audit:
 - `VoidEmpiresDbContextFactory` is the EF Core design-time factory.
 - The design-time factory defaults to Npgsql when no provider environment variable is set.
 - The design-time factory selects SQL Server only when `VoidEmpires__Persistence__Provider` or `VOIDEMPIRES_DATABASE_PROVIDER` is set to `sqlserver`.
+- When SQL Server is selected without an explicit connection string, the design-time factory uses a passwordless localdb metadata placeholder: `Server=(localdb)\MSSQLLocalDB;Database=VoidEmpires_GenerationOnly;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;`.
 - Runtime registration uses the same provider expectation: `AddVoidEmpiresPersistence` falls back to Npgsql and uses SQL Server only for an explicit `sqlserver` provider value.
 - The Infrastructure project references both `Microsoft.EntityFrameworkCore.SqlServer` and `Npgsql.EntityFrameworkCore.PostgreSQL`.
 - The checked-in root migration chain is PostgreSQL-shaped, not provider-neutral. Most migrations and the current snapshot contain Npgsql annotations or PostgreSQL column types; one recent migration includes provider-conditional SQL for PostgreSQL and SQL Server, but that does not make the full chain replayable as a SQL Server baseline.
@@ -54,13 +55,13 @@ Required safe generation approach:
 2. Select SQL Server explicitly for the one generation command through environment variables, not source changes.
 3. Generate `SqlServerInitialBaseline` with `--output-dir Persistence/Migrations/SqlServer` so SQL Server artifacts are isolated from the existing root PostgreSQL migration chain.
 4. Do not run `dotnet ef database update`.
-5. Do not point the command at the operator-managed SQL Server database; use placeholder-only or disposable local generation configuration.
+5. Do not point the command at the operator-managed SQL Server database; use the passwordless design-time fallback or disposable local generation configuration.
 6. Review the generated migration and SQL Server model snapshot before committing it, especially provider annotations, table and column names, indexes, filters, identity columns, Guid storage, DateTime storage, and provider-specific SQL.
 7. Only after the reviewed baseline exists, use `scripts/sqlserver-script-migration.ps1` to create an idempotent SQL script for manual review.
 
 Actionable blockers before generation:
 
-1. prepare the design-time SQL Server migration path so EF Core writes the SQL Server snapshot under the isolated folder without reusing or overwriting the root PostgreSQL snapshot
+1. prepare the isolated migration command so EF Core writes the SQL Server snapshot under the isolated folder without reusing or overwriting the root PostgreSQL snapshot
 2. complete a provider-sensitive model review for table names, column names, filters, indexes, identity columns, and DateTime/Guid storage
 3. confirm the intended baseline is generated from SQL Server provider metadata only
 4. run generation only with placeholder external configuration and without connecting to `VoidEmpires_Dev`
@@ -86,7 +87,7 @@ Do not generate the first SQL Server migration until all of the following are tr
 
 ## Deferred Offline Generation Commands
 
-Use a placeholder-only SQL Server connection string for design-time generation. Do not commit resolved credentials.
+Use the passwordless SQL Server design-time fallback or a placeholder-only SQL Server connection string for design-time generation. Do not commit resolved credentials.
 
 ## TASK-39G Deferral Result
 
@@ -108,8 +109,8 @@ PowerShell setup:
 
 ```powershell
 $env:VoidEmpires__Persistence__Provider="sqlserver"
-$env:ConnectionStrings__DefaultConnection="Server=localhost;Database=VoidEmpires_GenerationOnly;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
-$env:VOIDEMPIRES_CONNECTION_STRING=$env:ConnectionStrings__DefaultConnection
+Remove-Item Env:ConnectionStrings__DefaultConnection -ErrorAction SilentlyContinue
+Remove-Item Env:VOIDEMPIRES_CONNECTION_STRING -ErrorAction SilentlyContinue
 ```
 
 Deferred baseline generation command:

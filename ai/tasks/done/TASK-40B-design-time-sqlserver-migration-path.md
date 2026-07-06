@@ -3,7 +3,7 @@
 ---
 id: TASK-40B
 title: Support safe design-time SQL Server migration generation
-status: pending
+status: done
 type: platform
 team: database
 supporting_teams:
