@@ -3,7 +3,7 @@
 ---
 id: TASK-40D2
 title: Retry SQL Server initial baseline migration generation
-status: pending
+status: done
 type: platform
 team: database
 supporting_teams:

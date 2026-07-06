@@ -137,6 +137,18 @@ SQL Server design-time migration generation now uses a provider-specific `IMigra
 
 The default PostgreSQL design-time path still uses EF Core's normal root migration assembly and root `VoidEmpiresDbContextModelSnapshot`.
 
+## TASK-40D2 Generation Retry Result
+
+`TASK-40D2` reran the exact offline baseline generation command after SQL Server migration history isolation was added.
+
+Accepted generated files:
+
+- `src/VoidEmpires.Infrastructure/Persistence/Migrations/SqlServer/20260706131610_SqlServerInitialBaseline.cs`
+- `src/VoidEmpires.Infrastructure/Persistence/Migrations/SqlServer/20260706131610_SqlServerInitialBaseline.Designer.cs`
+- `src/VoidEmpires.Infrastructure/Persistence/Migrations/SqlServer/VoidEmpiresDbContextModelSnapshot.cs`
+
+The accepted migration has initial-schema shape: 33 `CreateTable` calls and 67 `CreateIndex` calls in `Up`; `DropTable` operations appear only in `Down`. The generated files use SQL Server metadata and types such as `SqlServerModelBuilderExtensions`, `uniqueidentifier`, `datetime2`, `nvarchar`, and `decimal(18,4)`. The root PostgreSQL migration folder and root `VoidEmpiresDbContextModelSnapshot` remain unchanged.
+
 ## Deferred Script Generation Command
 
 Only after the SQL Server baseline migration exists and has been reviewed:

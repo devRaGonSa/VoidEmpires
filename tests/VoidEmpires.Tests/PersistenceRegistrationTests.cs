@@ -163,8 +163,19 @@ public class PersistenceRegistrationTests
             var migrationsAssembly = context.GetService<IMigrationsAssembly>();
 
             Assert.IsType<SqlServerDesignTimeMigrationsAssembly>(migrationsAssembly);
-            Assert.Empty(migrationsAssembly.Migrations);
-            Assert.Null(migrationsAssembly.ModelSnapshot);
+            Assert.Contains(
+                migrationsAssembly.Migrations,
+                migration => migration.Key.EndsWith("_SqlServerInitialBaseline", StringComparison.Ordinal));
+            Assert.All(
+                migrationsAssembly.Migrations.Values,
+                migration => Assert.StartsWith(
+                    "VoidEmpires.Infrastructure.Persistence.Migrations.SqlServer",
+                    migration.Namespace,
+                    StringComparison.Ordinal));
+            Assert.StartsWith(
+                "VoidEmpires.Infrastructure.Persistence.Migrations.SqlServer",
+                migrationsAssembly.ModelSnapshot?.GetType().Namespace,
+                StringComparison.Ordinal);
         }
         finally
         {
