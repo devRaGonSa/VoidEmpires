@@ -24,6 +24,7 @@ Use this runbook as a manual operations guide, not as proof that SQL Server cuto
 Related reference:
 
 - `docs/dev/final-db-security-notes.md`
+- `docs/dev/sql-server-user-checklist.md`
 
 ## Safety Rules
 

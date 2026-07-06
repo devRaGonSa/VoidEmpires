@@ -3,7 +3,7 @@
 ---
 id: TASK-39M
 title: Create user-facing SQL Server checklist
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
