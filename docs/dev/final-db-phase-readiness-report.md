@@ -13,13 +13,15 @@ The final intended production database target is an external, user-managed SQL S
 - the repository does not auto-apply migrations during startup, tests, or helper-script execution
 - completed Block 38 work did not run a real SQL Server migration, update, backup, restore, or seed apply automatically against a user-managed server
 - the repository includes one opt-in SQL Server connection smoke test gate, while ordinary validation remains provider-independent
-- the latest Block 38 cross-stack validation gate passed:
+- the latest Block 39O final validation gate passed without requiring a real SQL Server:
   - `dotnet build --no-restore`
   - `dotnet test --no-build`
   - `npm run build --prefix src/VoidEmpires.Frontend`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1`
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-repo-secret-scan.ps1`
+- latest recorded results: `dotnet build --no-restore` succeeded with `0` warnings and `0` errors; `dotnet test --no-build` succeeded with `741` passing tests, `0` failed, and `0` skipped; frontend build succeeded with `106` transformed modules and a `181.33 kB` minified / `59.13 kB` gzip shared entry chunk; the QA, route lazy-import, frontend copy, and repository secret guards all passed
 - repository-local copy and secret guards now check for unsafe connection-string examples and obvious committed secret patterns without external tooling, including `scripts/check-repo-secret-scan.ps1`
 
 ## Manual Operator Steps Still Required
@@ -106,6 +108,7 @@ Seed position:
 - no helper script in the repository applies SQL Server changes automatically to a real server
 - no real SQL Server password is committed in checked-in docs, scripts, or config
 - the current repository secret scan is green and only allows documented placeholder values for passwords or other obvious secrets
+- the latest final validation gate did not connect to SQL Server, generate or apply SQL Server migrations, apply seeds, back up, restore, or commit generated SQL output
 - SQL Server guidance remains manual by default for connection setup, backups, restore, script review, and apply
 - existing PowerShell helpers remain validation, guidance, or explicitly invoked Development utilities rather than hidden SQL Server mutation automation
 

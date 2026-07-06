@@ -3,7 +3,7 @@
 ---
 id: TASK-39O
 title: Run final validation gate for SQL Server control block
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
