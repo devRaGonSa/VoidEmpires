@@ -1,4 +1,5 @@
 import { formatResourceType } from "./domainPresentation";
+import { formatProductActionLabel } from "./cockpitStatus";
 
 type GroundArmyValue = string | number | null | undefined;
 
@@ -58,14 +59,14 @@ const groundArmyReadinessCatalog: readonly GroundArmyLabelCatalogEntry[] = [
 ] as const;
 
 const groundArmyActionCatalog: readonly GroundArmyLabelCatalogEntry[] = [
-  { key: "catalog.read", label: "Revisar fuerzas terrestres" },
-  { key: "stock.read", label: "Revisar guarnicion planetaria" },
-  { key: "queue.read", label: "Revisar cola de entrenamiento" },
-  { key: "production.enqueue", label: "Preparar entrenamiento terrestre" },
-  { key: "production.completeDue", label: "Cerrar entrenamiento vencido" },
-  { key: "construction.link", label: "Abrir Construccion" },
-  { key: "defenses.link", label: "Abrir Defensas" },
-  { key: "fleets.link", label: "Abrir Flotas" },
+  { key: "catalog.read", label: formatProductActionLabel("review", "fuerzas terrestres") },
+  { key: "stock.read", label: formatProductActionLabel("review", "guarnicion planetaria") },
+  { key: "queue.read", label: formatProductActionLabel("review", "cola de entrenamiento") },
+  { key: "production.enqueue", label: formatProductActionLabel("produce", "entrenamiento terrestre") },
+  { key: "production.completeDue", label: formatProductActionLabel("confirm", "entrenamiento vencido") },
+  { key: "construction.link", label: formatProductActionLabel("open", "Construccion") },
+  { key: "defenses.link", label: formatProductActionLabel("open", "Defensas") },
+  { key: "fleets.link", label: formatProductActionLabel("open", "Flotas") },
 ] as const;
 
 function normalizeValue(value: GroundArmyValue) {

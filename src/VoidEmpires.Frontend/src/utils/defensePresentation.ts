@@ -1,4 +1,5 @@
 import { formatResourceType } from "./domainPresentation";
+import { formatProductActionLabel } from "./cockpitStatus";
 
 type DefenseValue = string | number | null | undefined;
 
@@ -70,15 +71,15 @@ const defenseStatusCatalog: readonly DefenseLabelCatalogEntry[] = [
 ] as const;
 
 const defenseActionCatalog: readonly DefenseLabelCatalogEntry[] = [
-  { key: "catalog.read", label: "Revisar estructuras defensivas" },
-  { key: "coverage.read", label: "Revisar cobertura protectora" },
-  { key: "queue.read", label: "Revisar cola defensiva" },
-  { key: "construction.enqueue", label: "Preparar fortificacion" },
-  { key: "construction.completeDue", label: "Cerrar obras vencidas" },
-  { key: "construction.link", label: "Abrir Construccion" },
-  { key: "fleets.link", label: "Abrir Flotas" },
-  { key: "Construct", label: "Levantar defensa" },
-  { key: "Upgrade", label: "Reforzar defensa" },
+  { key: "catalog.read", label: formatProductActionLabel("review", "estructuras defensivas") },
+  { key: "coverage.read", label: formatProductActionLabel("review", "cobertura protectora") },
+  { key: "queue.read", label: formatProductActionLabel("review", "cola defensiva") },
+  { key: "construction.enqueue", label: formatProductActionLabel("build", "fortificacion") },
+  { key: "construction.completeDue", label: formatProductActionLabel("confirm", "obras vencidas") },
+  { key: "construction.link", label: formatProductActionLabel("open", "Construccion") },
+  { key: "fleets.link", label: formatProductActionLabel("open", "Flotas") },
+  { key: "Construct", label: formatProductActionLabel("build", "defensa") },
+  { key: "Upgrade", label: formatProductActionLabel("build", "mejora defensiva") },
 ] as const;
 
 function normalizeValue(value: DefenseValue) {

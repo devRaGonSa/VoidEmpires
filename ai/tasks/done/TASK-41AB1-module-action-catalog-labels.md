@@ -3,7 +3,7 @@
 ---
 id: TASK-41AB1
 title: Module action catalog product labels
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

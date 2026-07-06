@@ -1,5 +1,6 @@
 import { formatSpaceAssetType } from "./domainPresentation";
 import { formatResourceAmountList } from "./resourceDisplay";
+import { formatProductActionLabel } from "./cockpitStatus";
 
 type ShipyardValue = string | number | null | undefined;
 
@@ -74,12 +75,12 @@ const assetProductionStatusCatalog: readonly ShipyardLabelCatalogEntry[] = [
 ] as const;
 
 const shipyardActionCatalog: readonly ShipyardLabelCatalogEntry[] = [
-  { key: "catalog.read", label: "Revisar catalogo orbital" },
-  { key: "stock.read", label: "Revisar stock orbital" },
-  { key: "queue.read", label: "Revisar cola de produccion" },
-  { key: "production.enqueue", label: "Preparar produccion orbital" },
-  { key: "production.completeDue", label: "Cerrar produccion vencida" },
-  { key: "fleet.link", label: "Abrir Flotas" },
+  { key: "catalog.read", label: formatProductActionLabel("review", "catalogo orbital") },
+  { key: "stock.read", label: formatProductActionLabel("review", "stock orbital") },
+  { key: "queue.read", label: formatProductActionLabel("review", "cola de produccion") },
+  { key: "production.enqueue", label: formatProductActionLabel("produce", "activo orbital") },
+  { key: "production.completeDue", label: formatProductActionLabel("confirm", "produccion vencida") },
+  { key: "fleet.link", label: formatProductActionLabel("open", "Flotas") },
 ] as const;
 
 function normalizeValue(value: ShipyardValue) {
