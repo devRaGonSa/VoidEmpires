@@ -75,6 +75,26 @@ if ($parseFailures.Count -gt 0) {
     throw "PowerShell parser errors were found:`n$($parseFailures -join [Environment]::NewLine)"
 }
 
+$sqlServerMigrationHelperPath = Join-Path $PSScriptRoot "sqlserver-script-migration.ps1"
+if (Test-Path -LiteralPath $sqlServerMigrationHelperPath) {
+    $sqlServerMigrationHelper = Get-Content -LiteralPath $sqlServerMigrationHelperPath -Raw
+
+    foreach ($requiredFragment in @(
+        "SqlServerInitialBaseline",
+        "--idempotent",
+        "does not run database update",
+        "Manual execution of the generated script can change schema"
+    )) {
+        if ($sqlServerMigrationHelper -notlike "*$requiredFragment*") {
+            throw "Expected sqlserver-script-migration.ps1 to contain '$requiredFragment'."
+        }
+    }
+
+    if ($sqlServerMigrationHelper -match "Password\s*=" -or $sqlServerMigrationHelper -match "User Id\s*=") {
+        throw "sqlserver-script-migration.ps1 must not contain password or user-id connection-string placeholders."
+    }
+}
+
 $frontendRouteGuardPath = Join-Path $PSScriptRoot "check-frontend-route-lazy-imports.ps1"
 if (Test-Path -LiteralPath $frontendRouteGuardPath) {
     & $frontendRouteGuardPath

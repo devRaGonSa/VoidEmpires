@@ -6,8 +6,9 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$baselineMigrationPath = Join-Path $repoRoot "src\VoidEmpires.Infrastructure\Persistence\Migrations\SqlServer\*SqlServerInitialBaseline*.cs"
-$generationOnlyConnectionString = "Server=localhost;Database=VoidEmpires_GenerationOnly;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+$migrationName = "SqlServerInitialBaseline"
+$baselineMigrationDirectory = Join-Path $repoRoot "src\VoidEmpires.Infrastructure\Persistence\Migrations\SqlServer"
+$baselineMigrationPath = Join-Path $baselineMigrationDirectory "*$migrationName*.cs"
 
 if (-not (Get-ChildItem -Path $baselineMigrationPath -ErrorAction SilentlyContinue)) {
     throw @"
@@ -38,16 +39,19 @@ $previousDefaultConnection = $env:ConnectionStrings__DefaultConnection
 $previousLegacyConnection = $env:VOIDEMPIRES_CONNECTION_STRING
 
 $env:VoidEmpires__Persistence__Provider = "sqlserver"
-$env:ConnectionStrings__DefaultConnection = $generationOnlyConnectionString
-$env:VOIDEMPIRES_CONNECTION_STRING = $generationOnlyConnectionString
+Remove-Item Env:ConnectionStrings__DefaultConnection -ErrorAction SilentlyContinue
+Remove-Item Env:VOIDEMPIRES_CONNECTION_STRING -ErrorAction SilentlyContinue
 
 Write-Host "Generating an idempotent SQL Server migration script for manual review."
-Write-Host "This helper uses a placeholder generation-only connection string and does not require a real password."
+Write-Host "Migration: $migrationName"
+Write-Host "Output: $resolvedOutputPath"
+Write-Host "This helper uses the passwordless design-time SQL Server metadata fallback and does not require a real password."
 Write-Host "This helper does not run database update and does not apply migrations."
+Write-Host "Manual execution of the generated script can change schema; review it before opening it in SSMS."
 
 Push-Location $repoRoot
 try {
-    & dotnet ef migrations script 0 SqlServerInitialBaseline `
+    & dotnet ef migrations script 0 $migrationName `
         --idempotent `
         --project "src/VoidEmpires.Infrastructure/VoidEmpires.Infrastructure.csproj" `
         --startup-project "src/VoidEmpires.Web/VoidEmpires.Web.csproj" `
@@ -84,6 +88,7 @@ finally {
 }
 
 Write-Host "SQL Server migration script generated at: $resolvedOutputPath"
+Write-Host "Migration scripted: $migrationName"
 Write-Host "Next step: review the generated SQL manually before opening it in SSMS."
 Write-Host "Warning: the generated script may alter schema if an operator later executes it manually."
 Write-Host "Do not commit one-off generated SQL output unless a future task explicitly asks for a reviewed template."

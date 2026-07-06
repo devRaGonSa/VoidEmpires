@@ -157,7 +157,7 @@ Only after the SQL Server baseline migration exists and has been reviewed:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-script-migration.ps1
 ```
 
-El helper genera un script `.sql` idempotente para revision manual. Usa una cadena placeholder de generacion, no requiere password real, no ejecuta `database update` y no aplica migraciones. El archivo generado puede alterar esquema si un operador lo ejecuta despues en SSMS, asi que revisalo antes de cualquier apply manual y no lo commitees como salida one-off.
+El helper genera un script `.sql` idempotente para revision manual. Selecciona `sqlserver`, limpia las variables de cadena de conexion del proceso, usa el fallback design-time sin password real, no ejecuta `database update` y no aplica migraciones. El archivo generado puede alterar esquema si un operador lo ejecuta despues en SSMS, asi que revisalo antes de cualquier apply manual y no lo commitees como salida one-off.
 
 ## Safety Rules
 

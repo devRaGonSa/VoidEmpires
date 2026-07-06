@@ -3,7 +3,7 @@
 ---
 id: TASK-40F
 title: Harden SQL Server migration script helper after baseline
-status: pending
+status: done
 type: platform
 team: devops
 supporting_teams:
