@@ -3,7 +3,7 @@
 ---
 id: TASK-39P
 title: Close controlled SQL Server creation block
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

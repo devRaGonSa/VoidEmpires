@@ -13,7 +13,7 @@ The final intended production database target is an external, user-managed SQL S
 - the repository does not auto-apply migrations during startup, tests, or helper-script execution
 - completed Block 38 work did not run a real SQL Server migration, update, backup, restore, or seed apply automatically against a user-managed server
 - the repository includes one opt-in SQL Server connection smoke test gate, while ordinary validation remains provider-independent
-- the latest Block 39O final validation gate passed without requiring a real SQL Server:
+- the latest Block 39P final closure validation gate passed without requiring a real SQL Server:
   - `dotnet build --no-restore`
   - `dotnet test --no-build`
   - `npm run build --prefix src/VoidEmpires.Frontend`
@@ -21,7 +21,7 @@ The final intended production database target is an external, user-managed SQL S
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-repo-secret-scan.ps1`
-- latest recorded results: `dotnet build --no-restore` succeeded with `0` warnings and `0` errors; `dotnet test --no-build` succeeded with `741` passing tests, `0` failed, and `0` skipped; frontend build succeeded with `106` transformed modules and a `181.33 kB` minified / `59.13 kB` gzip shared entry chunk; the QA, route lazy-import, frontend copy, and repository secret guards all passed
+- latest recorded results: `dotnet build --no-restore` succeeded with `0` warnings and `0` errors; `dotnet test --no-build` succeeded with `741` passing tests, `0` failed, and `0` skipped; frontend build succeeded with `106` transformed modules and a `181.33 kB` minified / `59.13 kB` gzip shared entry chunk; the QA, route lazy-import, frontend copy, and repository secret guards all passed; `ai/tasks/pending` contained only `.gitkeep`
 - repository-local copy and secret guards now check for unsafe connection-string examples and obvious committed secret patterns without external tooling, including `scripts/check-repo-secret-scan.ps1`
 
 ## Manual Operator Steps Still Required
@@ -123,6 +123,6 @@ Seed position:
 
 ## Current Honest Decision
 
-Decision: documentation and validation prep for the final SQL Server phase is ready.
+Decision: documentation and validation prep for the controlled Block 39 SQL Server creation path is closed for now.
 
 Decision not granted: repository-level SQL Server runtime readiness, SQL Server migration replay readiness, final relational seed readiness, or production cutover readiness.

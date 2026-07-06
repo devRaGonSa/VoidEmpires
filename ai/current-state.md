@@ -4,7 +4,7 @@
 
 The repository is consolidated through the Block 37 near-product documentation and readiness checkpoint for the current Development-only product shell.
 
-Block 39 SQL Server final database readiness is now in progress as a controlled, documentation-first pass around the recommended `VoidEmpires_Dev` validation database. Current SQL Server work keeps PostgreSQL as the checked-in default, keeps real credentials outside the repository, and does not apply real database mutations automatically.
+Block 39 SQL Server final database readiness is now closed as a controlled, documentation-first pass around the recommended `VoidEmpires_Dev` validation database. Current SQL Server work keeps PostgreSQL as the checked-in default, keeps real credentials outside the repository, and does not apply real database mutations automatically.
 
 ## Repository Reality
 
@@ -51,6 +51,7 @@ Current final-database readiness status:
 - latest Block 39A runbook audit note: SQL Server docs now describe the manual `VoidEmpires_Dev` path: create in SSMS, configure local secrets outside the repo, run the read-only `SELECT 1` smoke, generate and review migration scripts only after the SQL Server baseline exists, apply manually only with operator approval, and run the app against SQL Server only through external provider selection
 - latest Block 39N controlled database state validation: `dotnet build --no-restore` succeeded with `0` warnings and `0` errors; `dotnet test --no-build` succeeded with `741` passing tests, `0` failed, and `0` skipped; no SQL Server connection, migration generation, migration apply, seed apply, backup, or restore was performed for this current-state update
 - latest Block 39O final validation gate: `dotnet build --no-restore` succeeded with `0` warnings and `0` errors; `dotnet test --no-build` succeeded with `741` passing tests, `0` failed, and `0` skipped; `npm run build --prefix src/VoidEmpires.Frontend` succeeded with `106` transformed modules and a `181.33 kB` minified / `59.13 kB` gzip shared entry chunk; `check-dev-qa-scripts.ps1`, `check-frontend-route-lazy-imports.ps1`, `check-frontend-copy-regressions.ps1`, and `check-repo-secret-scan.ps1` all succeeded; the gate did not connect to SQL Server, did not generate or apply a SQL Server migration, did not apply seeds, and did not add a real SQL Server password
+- latest Block 39P closure validation: TASK-39A through TASK-39O were verified in `ai/tasks/done`, `ai/tasks/pending` contains only `.gitkeep`, `dotnet build --no-restore` succeeded with `0` warnings and `0` errors, `dotnet test --no-build` succeeded with `741` passing tests, `0` failed, and `0` skipped, `npm run build --prefix src/VoidEmpires.Frontend` succeeded with `106` transformed modules and a `181.33 kB` minified / `59.13 kB` gzip shared entry chunk, and the QA, route lazy-import, frontend copy, and repository secret guards all passed; no real SQL Server password was committed and no SQL Server migration was applied automatically
 
 ## Application Status
 
