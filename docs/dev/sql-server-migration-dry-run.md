@@ -14,6 +14,7 @@ It is intentionally conservative. The repository does not currently support an e
 - `docs/dev/sql-server-migration-strategy.md` now records the deferred baseline-generation prerequisites and commands
 - `scripts/sqlserver-script-migration.ps1` now exists as a guarded generation-only helper
 - current decision for `SqlServerInitialBaseline`: no-go until the SQL Server migration layout, provider-specific model review, and snapshot policy are completed
+- `TASK-39G` closed as a documented deferral; no `SqlServerInitialBaseline` files were generated
 
 Because of those constraints, the current dry-run process is a manual readiness checklist, not a completed repository automation path.
 

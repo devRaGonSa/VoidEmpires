@@ -3,7 +3,7 @@
 ---
 id: TASK-39G
 title: Optionally generate SQL Server baseline migration
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

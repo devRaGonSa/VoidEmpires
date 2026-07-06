@@ -64,6 +64,22 @@ Do not generate the first SQL Server migration until all of the following are tr
 
 Use a placeholder-only SQL Server connection string for design-time generation. Do not commit resolved credentials.
 
+## TASK-39G Deferral Result
+
+`TASK-39G` did not generate migration files because `TASK-39F` recorded a no-go decision. The later manual command remains the approved path only after the listed blockers are resolved.
+
+Exact command to use later, after the SQL Server migration layout and provider-specific model review are complete:
+
+```powershell
+dotnet ef migrations add SqlServerInitialBaseline `
+  --project src/VoidEmpires.Infrastructure/VoidEmpires.Infrastructure.csproj `
+  --startup-project src/VoidEmpires.Web/VoidEmpires.Web.csproj `
+  --context VoidEmpires.Infrastructure.Persistence.VoidEmpiresDbContext `
+  --output-dir Persistence/Migrations/SqlServer
+```
+
+Do not run this command against `VoidEmpires_Dev` and do not follow it with `dotnet ef database update`.
+
 PowerShell setup:
 
 ```powershell
