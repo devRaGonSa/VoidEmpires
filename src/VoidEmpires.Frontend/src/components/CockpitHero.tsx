@@ -8,6 +8,7 @@ interface CockpitHeroProps {
   versionLabel: string;
   badges: ReactNode;
   developmentNote: string;
+  developmentNoteLabel?: string;
 }
 
 export function CockpitHero({
@@ -16,6 +17,7 @@ export function CockpitHero({
   versionLabel,
   badges,
   developmentNote,
+  developmentNoteLabel = "Solo desarrollo",
 }: CockpitHeroProps) {
   return (
     <UiCard className="panel panel-hero figma-hero-card">
@@ -26,7 +28,7 @@ export function CockpitHero({
       </div>
       <div className="figma-badge-row">{badges}</div>
       <div className="cockpit-hero-dev-note">
-        <UiBadge tone="warn">Solo desarrollo</UiBadge>
+        <UiBadge tone="warn">{developmentNoteLabel}</UiBadge>
         <p>{developmentNote}</p>
       </div>
     </UiCard>

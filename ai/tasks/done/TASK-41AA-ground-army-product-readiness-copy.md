@@ -3,7 +3,7 @@
 ---
 id: TASK-41AA
 title: Ground Army product readiness copy
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

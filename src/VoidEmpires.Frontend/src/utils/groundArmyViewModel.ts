@@ -54,7 +54,7 @@ function mapOption(item: GroundArmyOptionDto): GroundArmyOption {
     currentStock: item.currentStock,
     estimatedDurationLabel: formatGroundTrainingDuration(item.estimatedDuration),
     estimatedCostLabel: formatGroundTrainingCost(item.cost),
-    resourceScopeLabel: "Reservas disponibles en esta build",
+    resourceScopeLabel: "Reservas visibles para esta colonia",
     requirementLabel,
     missingLabel: item.availabilityReason === "InsufficientResources"
       ? `Revisa reservas locales: ${resourceEntries.filter((entry) => entry.quantity > 0).map((entry) => `${formatResourceType(entry.resourceType)} ${entry.quantity}`).join(" | ")}`

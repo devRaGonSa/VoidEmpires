@@ -48,8 +48,8 @@ const groundArmyReadinessCatalog: readonly GroundArmyLabelCatalogEntry[] = [
   { key: "CapacityExceeded", label: "Capacidad agotada" },
   { key: "MissingResourceStockpile", label: "Sin reservas" },
   { key: "MissingCapacityData", label: "Sin capacidad confirmada" },
-  { key: "Unsupported", label: "Solo lectura" },
-  { key: "ReadOnly", label: "Solo lectura" },
+  { key: "Unsupported", label: "Pendiente de activacion" },
+  { key: "ReadOnly", label: "Consulta disponible" },
   { key: "Placeholder", label: "Cabina preparada" },
   { key: "Pending", label: "Pendiente" },
   { key: "Active", label: "En preparacion" },
@@ -161,13 +161,13 @@ export function formatGroundArmyRequestFailure(rawError: string | null | undefin
     case "Civilization id is required.":
       return { primaryMessage: "Falta el id de civilizacion. Revisa el contexto antes de cargar la cabina.", technicalDetail };
     case "Planet was not found.":
-      return { primaryMessage: "El planeta no existe en esta build o ya no esta visible. Revisa el contexto.", technicalDetail };
+      return { primaryMessage: "El planeta no existe o ya no esta visible. Revisa el contexto.", technicalDetail };
     case "Planet is not controlled by the requesting civilization.":
       return { primaryMessage: "La colonia seleccionada no pertenece a tu civilizacion. Abre una colonia propia.", technicalDetail };
     case "Request failed with status 404.":
-      return { primaryMessage: "La cabina terrestre no esta disponible fuera del entorno de desarrollo.", technicalDetail };
+      return { primaryMessage: "La cabina terrestre no esta disponible en este entorno.", technicalDetail };
     case "Request failed with status 503.":
-      return { primaryMessage: "La persistencia de desarrollo no esta disponible. Aplica cockpit-validation o revisa la configuracion local.", technicalDetail };
+      return { primaryMessage: "El estado terrestre no esta disponible temporalmente. Revisa el contexto e intentalo de nuevo.", technicalDetail };
     case "MissingRequiredBuilding":
       return { primaryMessage: "Falta infraestructura terrestre. Abre Construccion para revisar barracones, academia o logistica.", technicalDetail };
     case "InsufficientResources":
@@ -175,6 +175,6 @@ export function formatGroundArmyRequestFailure(rawError: string | null | undefin
     case "InsufficientPopulationCapacity":
       return { primaryMessage: "La capacidad de poblacion terrestre es insuficiente para esta preparacion.", technicalDetail };
     default:
-      return { primaryMessage: "La cabina terrestre no pudo completar la solicitud. Revisa el contexto y usa los diagnosticos si el problema persiste.", technicalDetail };
+      return { primaryMessage: "La cabina terrestre no pudo completar la solicitud. Revisa el contexto e intentalo de nuevo.", technicalDetail };
   }
 }
