@@ -3,7 +3,7 @@
 ---
 id: TASK-39H
 title: Verify idempotent SQL migration script output path
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

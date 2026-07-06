@@ -15,6 +15,7 @@ It is intentionally conservative. The repository does not currently support an e
 - `scripts/sqlserver-script-migration.ps1` now exists as a guarded generation-only helper
 - current decision for `SqlServerInitialBaseline`: no-go until the SQL Server migration layout, provider-specific model review, and snapshot policy are completed
 - `TASK-39G` closed as a documented deferral; no `SqlServerInitialBaseline` files were generated
+- `TASK-39H` verified the idempotent SQL output path remains blocked until that baseline exists; no generated SQL output is committed
 
 Because of those constraints, the current dry-run process is a manual readiness checklist, not a completed repository automation path.
 

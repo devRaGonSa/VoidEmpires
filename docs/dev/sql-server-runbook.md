@@ -188,6 +188,8 @@ Current honest note:
 
 - Do not run the command above yet without first following the deferred-generation prerequisites in `docs/dev/sql-server-migration-strategy.md`.
 - The helper script is intentionally guarded and will stop if `SqlServerInitialBaseline` does not exist yet.
+- Current `TASK-39H` result: idempotent SQL output generation remains blocked because `SqlServerInitialBaseline` is deferred and no SQL Server migration files exist under `src/VoidEmpires.Infrastructure/Persistence/Migrations/SqlServer`.
+- No one-off SQL output was generated or committed for this state.
 
 ## 6. Review And Apply Scripts Manually
 
