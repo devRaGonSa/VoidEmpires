@@ -19,7 +19,7 @@ function getSidebarStateNote(state: SidebarNavItem["state"]) {
     case "readiness":
       return "Preparacion";
     case "readOnly":
-      return "Solo lectura";
+      return "Disponible";
     case "future":
       return "Futuro";
     default:

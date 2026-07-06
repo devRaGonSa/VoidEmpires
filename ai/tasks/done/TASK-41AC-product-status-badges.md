@@ -3,7 +3,7 @@
 ---
 id: TASK-41AC
 title: Product status badges
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

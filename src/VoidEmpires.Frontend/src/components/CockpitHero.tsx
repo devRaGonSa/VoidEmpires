@@ -17,7 +17,7 @@ export function CockpitHero({
   versionLabel,
   badges,
   developmentNote,
-  developmentNoteLabel = "Solo desarrollo",
+  developmentNoteLabel = "Preparado",
 }: CockpitHeroProps) {
   return (
     <UiCard className="panel panel-hero figma-hero-card">

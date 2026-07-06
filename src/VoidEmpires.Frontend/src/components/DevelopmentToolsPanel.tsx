@@ -19,8 +19,8 @@ interface DevelopmentToolsPanelProps {
 }
 
 export function DevelopmentToolsPanel({
-  title = "Herramientas Development",
-  description = "Acciones QA y materializaciones manuales quedan separadas del flujo jugable principal.",
+  title = "Herramientas de operador",
+  description = "Acciones manuales y materializaciones controladas quedan separadas del flujo jugable principal.",
   actions,
   lastResult,
   diagnosticsLink,
@@ -32,10 +32,10 @@ export function DevelopmentToolsPanel({
     <details className="technical-disclosure development-tools-panel" open={defaultOpen}>
       <summary>
         <div>
-          <p className="eyebrow">Soporte QA</p>
+          <p className="eyebrow">Soporte operador</p>
           <strong>{title}</strong>
         </div>
-        <UiBadge tone="warn">Development / QA</UiBadge>
+        <UiBadge tone="warn">Pendiente</UiBadge>
       </summary>
 
       <div className="technical-disclosure-body">
@@ -52,9 +52,9 @@ export function DevelopmentToolsPanel({
           {hasSecondaryContent ? (
             <div className="development-tools-grid">
               {actions ? (
-                <section className="development-tools-actions" aria-label="Acciones Development">
+                <section className="development-tools-actions" aria-label="Acciones de operador">
                   <div className="development-tools-section-head">
-                    <h4>Acciones QA</h4>
+                    <h4>Acciones manuales</h4>
                     <UiBadge tone="warn">Mutacion controlada</UiBadge>
                   </div>
                   <div className="development-tools-action-list">{actions}</div>
@@ -62,7 +62,7 @@ export function DevelopmentToolsPanel({
               ) : null}
 
               {lastResult ? (
-                <section className="development-tools-result" aria-label="Ultimo resultado Development">
+                <section className="development-tools-result" aria-label="Ultimo resultado de operador">
                   <div className="development-tools-section-head">
                     <h4>Ultimo resultado</h4>
                     <UiBadge tone={lastResult.tone ?? "neutral"}>{lastResult.label}</UiBadge>
@@ -84,7 +84,7 @@ export function DevelopmentToolsPanel({
             </div>
           ) : (
             <p className="figma-panel-note">
-              Sin acciones QA conectadas en esta vista. El componente queda listo para migraciones futuras.
+              Sin acciones manuales conectadas en esta vista. El componente queda listo para migraciones futuras.
             </p>
           )}
         </UiCard>

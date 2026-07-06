@@ -3,14 +3,14 @@ export const cockpitStatusLabels = {
   blocked: "Bloqueada",
   completed: "Completada",
   contextPreserved: "Contexto conservado",
-  developmentOnly: "Solo desarrollo",
+  developmentOnly: "Preparado",
   diagnostics: "Diagnostico secundario",
-  implementedReadOnly: "Cabina activa",
+  implementedReadOnly: "Disponible",
   inQueue: "En cola",
   preparation: "Preparacion",
-  readOnly: "Solo lectura",
+  readOnly: "Disponible",
   reviewContext: "Revisar contexto",
-  safePlaceholder: "Cierre no disponible",
+  safePlaceholder: "Pendiente",
 } as const;
 
 export const cockpitNavigationLabels = {

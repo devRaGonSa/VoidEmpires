@@ -242,7 +242,7 @@ export function FleetSelectedGroupPanel({
                 </p>
               </div>
               <div className="figma-badge-row">
-                <UiBadge tone="warn">Solo desarrollo</UiBadge>
+                <UiBadge tone="warn">Pendiente</UiBadge>
                 <UiBadge tone={isDueTransferReady && canCompleteDueTransfers ? "good" : "neutral"}>
                   {isDueTransferReady && canCompleteDueTransfers ? "Lista para confirmar" : "Bloqueada"}
                 </UiBadge>
