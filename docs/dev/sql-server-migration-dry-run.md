@@ -1,6 +1,6 @@
 # SQL Server Migration Dry Run
 
-Status date: 2026-06-19
+Status date: 2026-07-06
 
 This document describes the safest dry-run posture for future SQL Server migration work in `VoidEmpires`.
 
@@ -12,7 +12,7 @@ It is intentionally conservative. The repository does not currently support an e
 - the checked-in design-time factory now supports explicit SQL Server provider selection through environment variables
 - the checked-in migration history is PostgreSQL-shaped
 - `docs/dev/sql-server-migration-strategy.md` now records the deferred baseline-generation prerequisites and commands
-- no `scripts/sqlserver-script-migration.ps1` helper exists yet
+- `scripts/sqlserver-script-migration.ps1` now exists as a guarded generation-only helper
 
 Because of those constraints, the current dry-run process is a manual readiness checklist, not a completed repository automation path.
 
@@ -50,7 +50,7 @@ If any of those conditions are false, stop.
 
 Current limitation:
 
-- the repository still does not contain the planned PowerShell helper for SQL Server script generation
+- the helper only runs after `SqlServerInitialBaseline` exists under the expected SQL Server migration directory
 
 Practical implication:
 
@@ -59,15 +59,10 @@ Practical implication:
 
 Current safe posture:
 
-1. follow `docs/dev/sql-server-migration-strategy.md` for the deferred baseline-generation prerequisites and exact `dotnet ef` command shape
-2. generate or assemble the candidate SQL script only after that baseline task is intentionally resumed
+1. follow `docs/dev/sql-server-migration-strategy.md` for the deferred baseline-generation prerequisites
+2. run `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-script-migration.ps1` only after that baseline exists and has been reviewed
 3. keep the generated script local to the operator workflow
 4. review the script before it touches any database
-
-Related future tasks:
-
-- `TASK-38J-sql-server-migration-strategy.md`
-- `TASK-38M-sql-server-script-migrations-helper.md`
 
 ## 4. Review The Script Before Any Apply
 

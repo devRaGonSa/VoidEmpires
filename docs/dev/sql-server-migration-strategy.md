@@ -1,6 +1,6 @@
 # SQL Server Migration Strategy
 
-Status date: 2026-06-19
+Status date: 2026-07-06
 
 This document records the current repository decision for the first SQL Server migration baseline.
 
@@ -61,14 +61,10 @@ If the command tries to reuse the PostgreSQL-shaped snapshot or produces provide
 Only after the SQL Server baseline migration exists and has been reviewed:
 
 ```powershell
-dotnet ef migrations script 0 SqlServerInitialBaseline `
-  --project src/VoidEmpires.Infrastructure/VoidEmpires.Infrastructure.csproj `
-  --startup-project src/VoidEmpires.Web/VoidEmpires.Web.csproj `
-  --context VoidEmpires.Infrastructure.Persistence.VoidEmpiresDbContext `
-  --output .\artifacts\sql\voidempires-sqlserver-initial-baseline.sql
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-script-migration.ps1
 ```
 
-That script must still be reviewed manually before any disposable apply or operator-run SSMS apply.
+El helper genera un script `.sql` idempotente para revision manual. Usa una cadena placeholder de generacion, no requiere password real, no ejecuta `database update` y no aplica migraciones. El archivo generado puede alterar esquema si un operador lo ejecuta despues en SSMS, asi que revisalo antes de cualquier apply manual y no lo commitees como salida one-off.
 
 ## Safety Rules
 
@@ -76,6 +72,7 @@ That script must still be reviewed manually before any disposable apply or opera
 - do not auto-apply migrations during app startup or test runs
 - do not point generation or apply steps at the user-managed target database by convenience
 - do not treat the current PostgreSQL-shaped migration chain as directly replayable on SQL Server
+- keep generated one-off SQL under local operator control unless a future task explicitly asks for a reviewed template
 
 ## Current Honest Result
 

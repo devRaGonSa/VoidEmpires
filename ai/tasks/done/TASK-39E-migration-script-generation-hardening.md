@@ -3,7 +3,7 @@
 ---
 id: TASK-39E
 title: Harden SQL Server migration script generation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
