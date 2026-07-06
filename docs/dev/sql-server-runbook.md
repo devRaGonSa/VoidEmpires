@@ -139,10 +139,11 @@ This confirms the ordinary repository regression baseline before any manual SQL 
 The repository now includes a dedicated read-only helper:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-connection-smoke.ps1
+$sqlServerConnectionString=$env:ConnectionStrings__DefaultConnection
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-connection-smoke.ps1 -ConnectionString $sqlServerConnectionString
 ```
 
-Optional parameter form:
+Optional direct parameter form with placeholders only:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-connection-smoke.ps1 `
@@ -156,8 +157,10 @@ Expected current behavior:
 - the underlying smoke path opens a SQL connection and runs read-only `SELECT 1`
 - it does not create a database
 - it does not apply migrations
+- it does not inspect schema
 - it does not write gameplay data
 - it does not echo the provided password
+- common failures point to host/port reachability, SQL Authentication/login state, missing `VoidEmpires_Dev`, and encryption/certificate setup
 
 ## 5. Generate Migration Scripts Manually
 

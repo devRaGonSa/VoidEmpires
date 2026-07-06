@@ -3,7 +3,7 @@
 ---
 id: TASK-39D
 title: Improve SQL Server connection smoke usability
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
