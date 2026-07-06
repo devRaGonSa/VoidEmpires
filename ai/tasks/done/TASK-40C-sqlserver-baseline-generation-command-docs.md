@@ -3,7 +3,7 @@
 ---
 id: TASK-40C
 title: Document SQL Server baseline generation command
-status: pending
+status: done
 type: platform
 team: docs
 supporting_teams:

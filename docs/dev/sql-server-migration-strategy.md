@@ -85,43 +85,40 @@ Do not generate the first SQL Server migration until all of the following are tr
 4. SQL Server provider selection stays external through environment variables
 5. the no-auto-apply rule remains in effect
 
-## Deferred Offline Generation Commands
+## Exact Offline Baseline Generation Command
 
 Use the passwordless SQL Server design-time fallback or a placeholder-only SQL Server connection string for design-time generation. Do not commit resolved credentials.
 
-## TASK-39G Deferral Result
-
-`TASK-39G` did not generate migration files because `TASK-39F` recorded a no-go decision. The later manual command remains the approved path only after the listed blockers are resolved.
-
-Exact command to use later, after the SQL Server migration layout and provider-specific model review are complete:
-
-```powershell
-dotnet ef migrations add SqlServerInitialBaseline `
-  --project src/VoidEmpires.Infrastructure/VoidEmpires.Infrastructure.csproj `
-  --startup-project src/VoidEmpires.Web/VoidEmpires.Web.csproj `
-  --context VoidEmpires.Infrastructure.Persistence.VoidEmpiresDbContext `
-  --output-dir Persistence/Migrations/SqlServer
-```
-
-Do not run this command against `VoidEmpires_Dev` and do not follow it with `dotnet ef database update`.
-
-PowerShell setup:
+Run the command from the repository root only when the baseline-generation task is active. This command creates migration files for review; it must not be followed by `dotnet ef database update`.
 
 ```powershell
 $env:VoidEmpires__Persistence__Provider="sqlserver"
 Remove-Item Env:ConnectionStrings__DefaultConnection -ErrorAction SilentlyContinue
 Remove-Item Env:VOIDEMPIRES_CONNECTION_STRING -ErrorAction SilentlyContinue
-```
 
-Deferred baseline generation command:
-
-```powershell
 dotnet ef migrations add SqlServerInitialBaseline `
   --project src/VoidEmpires.Infrastructure/VoidEmpires.Infrastructure.csproj `
   --startup-project src/VoidEmpires.Web/VoidEmpires.Web.csproj `
   --context VoidEmpires.Infrastructure.Persistence.VoidEmpiresDbContext `
   --output-dir Persistence/Migrations/SqlServer
 ```
+
+Command facts:
+
+- provider selector: `VoidEmpires__Persistence__Provider=sqlserver`
+- design-time metadata connection: passwordless localdb fallback from `VoidEmpiresDbContextFactory`
+- migration name: `SqlServerInitialBaseline`
+- target folder: `src/VoidEmpires.Infrastructure/Persistence/Migrations/SqlServer`
+- EF output argument: `--output-dir Persistence/Migrations/SqlServer`
+- context: `VoidEmpires.Infrastructure.Persistence.VoidEmpiresDbContext`
+- project: `src/VoidEmpires.Infrastructure/VoidEmpires.Infrastructure.csproj`
+- startup project: `src/VoidEmpires.Web/VoidEmpires.Web.csproj`
+
+Do not run this command against `VoidEmpires_Dev`, do not provide a real username or password, and do not follow it with `dotnet ef database update`.
+
+## TASK-39G Deferral Result
+
+`TASK-39G` did not generate migration files because `TASK-39F` recorded a no-go decision. The later manual command remains the approved path only after the listed blockers are resolved.
 
 If the command tries to reuse the PostgreSQL-shaped snapshot or produces provider-conflicted diffs outside the intended SQL Server migration directory, stop and narrow the migration-layout decision in a follow-up task before committing anything.
 
