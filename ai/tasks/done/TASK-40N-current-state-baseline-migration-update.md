@@ -3,7 +3,7 @@
 ---
 id: TASK-40N
 title: Update current state for SQL Server baseline migration
-status: pending
+status: done
 type: platform
 team: docs
 supporting_teams:
