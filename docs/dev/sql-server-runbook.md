@@ -334,6 +334,7 @@ Current repository position:
 - static gameplay catalogs are still code-owned, not final relational seed rows
 - Development seed profiles are QA scaffolding, not final production initialization
 - the backend now includes a dry-run-first final catalog seed service, but non-dry-run apply is still intentionally deferred
+- post-baseline audit result: the current checked-in catalog sources validate as `15` buildings, `8` research items, `4` orbital assets, `1` defense item, and `7` resources; the SQL Server baseline does not add dedicated final catalog tables, and `DryRun=false` still fails safely with `ApplyDeferred=true`
 
 Post-schema catalog sequence after manual baseline apply:
 
@@ -343,6 +344,8 @@ Post-schema catalog sequence after manual baseline apply:
 4. Review the dry-run output for each catalog source file and row count.
 5. Stop if any catalog source is missing, has invalid shape, or reports unexpected row counts.
 6. Do not run a real apply yet; current backend behavior still defers final relational catalog writes.
+
+Before enabling a real final catalog apply, a later implementation task must add or explicitly choose the relational catalog ownership model, add deterministic upsert behavior, map source keys to persisted rows without colliding with player-owned gameplay state, and add disposable-database validation. Until then, Development seed success is not final catalog readiness.
 
 Dry-run command shape after the operator has set an external connection string:
 

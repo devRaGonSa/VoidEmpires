@@ -100,6 +100,7 @@ Seed position:
 - static gameplay catalogs remain code-owned, not final relational seed data
 - production-owned final seed data is still pending later tasks
 - `scripts/sqlserver-final-catalog-seed.ps1` remains dry-run-first for SQL Server context; apply requires explicit confirmation and currently remains safely deferred rather than deleting or mutating user gameplay data
+- post-baseline catalog audit confirms the checked-in source files currently validate as `15` buildings, `8` research items, `4` orbital assets, `1` defense item, and `7` resources, but the backend still has no non-dry-run relational apply path and no dedicated final catalog table ownership model in the accepted SQL Server baseline
 
 ## Current Safety Posture
 
@@ -116,7 +117,7 @@ Seed position:
 1. PostgreSQL remains the checked-in default, so operators must still select SQL Server explicitly in external configuration.
 2. Existing root migration history remains PostgreSQL-specific; SQL Server uses the isolated baseline path.
 3. The accepted SQL Server baseline still needs manual SSMS apply and post-apply verification before any runtime validation can rely on the target schema.
-4. Catalog and seed ownership remain incomplete for final production initialization.
+4. Catalog and seed ownership remain incomplete for final production initialization; the next implementation step must decide the relational catalog model and deterministic upsert behavior before any `-Apply` path can be enabled.
 5. The current SQL Server smoke test proves connection-only behavior, not schema replay readiness.
 6. Any real SQL Server rollout still depends on careful operator-managed credentials, backups, restore drills, and manual script review.
 
