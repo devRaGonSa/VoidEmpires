@@ -3,7 +3,7 @@
 ---
 id: TASK-40G
 title: Generate idempotent SQL Server baseline script
-status: pending
+status: done
 type: platform
 team: database
 supporting_teams:

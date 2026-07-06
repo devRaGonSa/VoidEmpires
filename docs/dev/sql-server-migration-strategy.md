@@ -159,6 +159,20 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-script-m
 
 El helper genera un script `.sql` idempotente para revision manual. Selecciona `sqlserver`, limpia las variables de cadena de conexion del proceso, usa el fallback design-time sin password real, no ejecuta `database update` y no aplica migraciones. El archivo generado puede alterar esquema si un operador lo ejecuta despues en SSMS, asi que revisalo antes de cualquier apply manual y no lo commitees como salida one-off.
 
+## TASK-40G Script Generation Result
+
+`TASK-40G` generated the idempotent SQL Server baseline script with:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-script-migration.ps1 -OutputPath .\artifacts\sqlserver\VoidEmpires_Dev_SqlServerInitialBaseline.sql
+```
+
+Committed review artifact:
+
+- `artifacts/sqlserver/VoidEmpires_Dev_SqlServerInitialBaseline.sql`
+
+The script is committed for static review only. It is idempotent through `__EFMigrationsHistory` checks, contains no real credentials or full connection strings, and was not executed against any database.
+
 ## Safety Rules
 
 - do not commit a real SQL Server password
