@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using VoidEmpires.Application.Development;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Research;
+using VoidEmpires.Infrastructure;
 using VoidEmpires.Infrastructure.Development;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -44,7 +45,12 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
     {
         using var client = factory.CreateClientWithPersistenceDisabled();
         using var response = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}");
+        var payload = await response.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload!.Succeeded);
+        Assert.Contains("Persistence is not configured.", payload.Errors);
     }
 
     [Fact]
@@ -52,7 +58,12 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
     {
         using var client = factory.CreateClientWithPersistenceDisabled();
         using var response = await client.PostAsJsonAsync("/api/dev/research/qa-state/prepare", new { });
+        var payload = await response.Content.ReadFromJsonAsync<PrepareResearchQaStateResponse>();
+
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload!.Succeeded);
+        Assert.Contains("Persistence is not configured.", payload.Errors);
     }
 
     [Fact]
@@ -591,6 +602,7 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
                 }));
             builder.ConfigureTestServices(services =>
             {
+                services.AddVoidEmpiresPersistence($"Host=localhost;Database={databaseName}");
                 services.RemoveAll<DbContextOptions<VoidEmpiresDbContext>>();
                 services.RemoveAll<VoidEmpiresDbContext>();
                 services.AddDbContext<VoidEmpiresDbContext>(options =>

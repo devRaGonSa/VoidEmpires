@@ -15,13 +15,15 @@ internal static class DevResearchUiStateEndpoints
         app.MapGet("/api/dev/research/ui-state", async (
             Guid? civilizationId,
             Guid? planetId,
-            [FromServices] VoidEmpiresDbContext dbContext,
+            [FromServices] IServiceProvider services,
             [FromServices] IConfiguration configuration,
             CancellationToken cancellationToken) =>
         {
             if (string.IsNullOrWhiteSpace(configuration.GetConnectionString("DefaultConnection")))
             {
-                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+                return Results.Json(
+                    new DevResearchUiStateApiResponse(false, null, ["Persistence is not configured."]),
+                    statusCode: StatusCodes.Status503ServiceUnavailable);
             }
 
             if (civilizationId is null || civilizationId == Guid.Empty)
@@ -29,6 +31,7 @@ internal static class DevResearchUiStateEndpoints
                 return Results.BadRequest(new DevResearchUiStateApiResponse(false, null, ["Civilization id is required."]));
             }
 
+            var dbContext = services.GetRequiredService<VoidEmpiresDbContext>();
             var civilization = await dbContext.Set<Civilization>()
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.Id == civilizationId.Value, cancellationToken);

@@ -658,13 +658,15 @@ internal static class DevEndpointMappings
         app.MapGet("/api/dev/market/ui-state", async (
             Guid? civilizationId,
             Guid? planetId,
-            [FromServices] VoidEmpiresDbContext dbContext,
+            [FromServices] IServiceProvider services,
             [FromServices] IConfiguration configuration,
             CancellationToken cancellationToken) =>
         {
             if (!IsPersistenceConfigured(configuration))
             {
-                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+                return Results.Json(
+                    new DevMarketUiStateApiResponse(false, null, ["Persistence is not configured."]),
+                    statusCode: StatusCodes.Status503ServiceUnavailable);
             }
 
             if (civilizationId is null || civilizationId == Guid.Empty)
@@ -672,6 +674,7 @@ internal static class DevEndpointMappings
                 return Results.BadRequest(new DevMarketUiStateApiResponse(false, null, ["Civilization id is required."]));
             }
 
+            var dbContext = services.GetRequiredService<VoidEmpiresDbContext>();
             var service = new DevMarketUiStateService(dbContext);
             var uiState = await service.GetAsync(new GetDevMarketUiStateRequest(civilizationId.Value, planetId), cancellationToken);
 
@@ -691,7 +694,9 @@ internal static class DevEndpointMappings
         {
             if (!IsPersistenceConfigured(configuration))
             {
-                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+                return Results.Json(
+                    new EnqueueResearchOrderApiResponse(false, null, null, null, ["Persistence is not configured."]),
+                    statusCode: StatusCodes.Status503ServiceUnavailable);
             }
 
             var errors = ValidateEnqueueResearchOrder(request);
@@ -727,7 +732,9 @@ internal static class DevEndpointMappings
         {
             if (!IsPersistenceConfigured(configuration))
             {
-                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+                return Results.Json(
+                    new CompleteResearchOrdersApiResponse(false, 0, [], ["Persistence is not configured."]),
+                    statusCode: StatusCodes.Status503ServiceUnavailable);
             }
 
             var errors = ValidateCompleteResearchOrders(request);
@@ -754,7 +761,17 @@ internal static class DevEndpointMappings
         {
             if (!IsPersistenceConfigured(configuration))
             {
-                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+                return Results.Json(
+                    new ResearchQaStatePreparationApiResponse(
+                        false,
+                        null,
+                        0,
+                        0,
+                        null,
+                        null,
+                        [],
+                        ["Persistence is not configured."]),
+                    statusCode: StatusCodes.Status503ServiceUnavailable);
             }
 
             var errors = ValidateResearchQaStatePreparation(request);
@@ -893,7 +910,9 @@ internal static class DevEndpointMappings
         {
             if (!IsPersistenceConfigured(configuration))
             {
-                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+                return Results.Json(
+                    new DevRankingUiStateApiResponse(false, null, ["Persistence is not configured."]),
+                    statusCode: StatusCodes.Status503ServiceUnavailable);
             }
 
             if (civilizationId is null || civilizationId == Guid.Empty)

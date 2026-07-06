@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using VoidEmpires.Application.Development;
 using VoidEmpires.Application.Rankings;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Fleets;
+using VoidEmpires.Infrastructure;
 using VoidEmpires.Infrastructure.Development;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -37,8 +39,12 @@ public class DevRankingUiStateEndpointTests(WebApplicationFactory<Program> facto
         using var client = factory.CreateClientWithPersistenceDisabled();
 
         using var response = await client.GetAsync($"/api/dev/ranking/ui-state?civilizationId={SeedCivilizationId}");
+        var payload = await response.Content.ReadFromJsonAsync<DevRankingUiStateResponse>();
 
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.False(payload!.Succeeded);
+        Assert.Contains("Persistence is not configured.", payload.Errors);
     }
 
     [Fact]
@@ -127,7 +133,13 @@ public class DevRankingUiStateEndpointTests(WebApplicationFactory<Program> facto
                 {
                     ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=voidempires_ranking_ui_state_tests"
                 }));
-            builder.ConfigureTestServices(services => services.AddSingleton(dbContext));
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddVoidEmpiresPersistence("Host=localhost;Database=voidempires_ranking_ui_state_tests");
+                services.RemoveAll<DbContextOptions<VoidEmpiresDbContext>>();
+                services.RemoveAll<VoidEmpiresDbContext>();
+                services.AddSingleton(dbContext);
+            });
         }).CreateClient();
 
     private static VoidEmpiresDbContext CreateSeededDbContext(string profile = "minimal-validation")
