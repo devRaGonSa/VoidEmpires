@@ -78,19 +78,30 @@ Manual note:
 - `VoidEmpires_Dev` is the recommended first validation database name until a later task promotes any different target.
 - The helper does not drop, truncate, reset, migrate, or seed data.
 
-## 2. Set Local Environment Variables
+## 2. Configurar la conexion local sin commitear secretos
 
-For design-time tools and optional smoke validation, prefer environment variables over appsettings edits.
+Usa variables de entorno o user secrets. No edites `appsettings*.json` con valores reales.
 
-PowerShell example for the current shell:
+PowerShell para la sesion actual:
 
 ```powershell
-$env:VoidEmpires__Persistence__Provider="sqlserver"
+$env:VoidEmpires__Persistence__Provider="SqlServer"
 $env:ConnectionStrings__DefaultConnection="Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
 $env:VOIDEMPIRES_CONNECTION_STRING=$env:ConnectionStrings__DefaultConnection
 $env:VOIDEMPIRES_SQLSERVER_SMOKE_ENABLED="true"
 $env:VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING=$env:ConnectionStrings__DefaultConnection
 ```
+
+Reemplaza `<USER>` y `<PASSWORD>` solo en tu entorno local. Si usas notas privadas con nombres como `YOUR_USER` o `YOUR_PASSWORD`, no las pegues en chat, documentos, scripts, logs de terminal, tickets ni commits.
+
+El proyecto `src/VoidEmpires.Web` tiene `UserSecretsId`, asi que tambien puedes guardar la configuracion local con .NET user-secrets:
+
+```powershell
+dotnet user-secrets set "VoidEmpires:Persistence:Provider" "SqlServer" --project .\src\VoidEmpires.Web\VoidEmpires.Web.csproj
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;" --project .\src\VoidEmpires.Web\VoidEmpires.Web.csproj
+```
+
+Los user secrets son locales a la maquina de desarrollo y no se commitean. Para el smoke script sigue usando variables de entorno o el parametro `-ConnectionString`, porque ese helper lee configuracion explicita fuera del repositorio.
 
 Current repository behavior:
 

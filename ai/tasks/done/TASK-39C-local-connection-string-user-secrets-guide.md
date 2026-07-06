@@ -3,7 +3,7 @@
 ---
 id: TASK-39C
 title: Document local SQL Server connection string setup
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
