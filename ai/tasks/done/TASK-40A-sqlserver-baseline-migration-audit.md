@@ -3,7 +3,7 @@
 ---
 id: TASK-40A
 title: Audit SQL Server baseline migration setup
-status: pending
+status: done
 type: platform
 team: database
 supporting_teams:
