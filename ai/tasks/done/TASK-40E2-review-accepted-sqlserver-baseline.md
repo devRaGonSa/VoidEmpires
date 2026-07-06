@@ -3,7 +3,7 @@
 ---
 id: TASK-40E2
 title: Review accepted SQL Server baseline migration
-status: pending
+status: done
 type: platform
 team: database
 supporting_teams:
