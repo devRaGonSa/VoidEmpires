@@ -36,10 +36,16 @@ It does not enable SQL Server in the checked-in runtime, does not apply migratio
 Safe placeholder template:
 
 ```text
-Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;
+Server=<HOST>,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;
 ```
 
 Replace only the placeholders in environment variables or secret storage. `VoidEmpires_Dev` is the recommended first controlled validation database name; it remains an example target until an operator creates it manually.
+
+## Repository Secret Guard Coverage
+
+`scripts/check-repo-secret-scan.ps1` scans committed documentation, PowerShell and SQL scripts, `appsettings*.json`, EF Core migration files under `src/VoidEmpires.Infrastructure/Persistence/Migrations`, and reviewed SQL Server artifacts under `artifacts/sqlserver`.
+
+The guard intentionally skips build output such as `bin` and `obj`, allows documented placeholder values, and fails on real-looking password assignments or hardcoded SQL Server user values in connection examples. It does not require network or database access.
 
 ## Controlled Validation Posture
 

@@ -4,12 +4,30 @@ $ErrorActionPreference = "Stop"
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
 $docsRoot = Join-Path $repoRoot "docs"
 $scriptsRoot = Join-Path $repoRoot "scripts"
+$migrationRoot = Join-Path $repoRoot "src\VoidEmpires.Infrastructure\Persistence\Migrations"
+$sqlServerArtifactsRoot = Join-Path $repoRoot "artifacts\sqlserver"
 
 $scanFiles = New-Object System.Collections.Generic.List[System.IO.FileInfo]
-$scanFiles.AddRange([System.IO.FileInfo[]](Get-ChildItem -Path $docsRoot -Recurse -Include *.md -File))
-$scanFiles.AddRange([System.IO.FileInfo[]](Get-ChildItem -Path $scriptsRoot -Recurse -Include *.ps1 -File))
-$scanFiles.AddRange([System.IO.FileInfo[]](Get-ChildItem -Path $repoRoot -Recurse -Include appsettings*.json -File |
+function Add-SecretScanFiles {
+    param(
+        [System.IO.FileInfo[]]$Files
+    )
+
+    if ($null -ne $Files) {
+        $scanFiles.AddRange($Files)
+    }
+}
+
+Add-SecretScanFiles ([System.IO.FileInfo[]](Get-ChildItem -Path $docsRoot -Recurse -Include *.md,*.sql -File))
+Add-SecretScanFiles ([System.IO.FileInfo[]](Get-ChildItem -Path $scriptsRoot -Recurse -Include *.ps1,*.sql -File))
+Add-SecretScanFiles ([System.IO.FileInfo[]](Get-ChildItem -Path $repoRoot -Recurse -Include appsettings*.json -File |
     Where-Object { $_.FullName -notmatch "\\bin\\" -and $_.FullName -notmatch "\\obj\\" }))
+if (Test-Path -LiteralPath $migrationRoot) {
+    Add-SecretScanFiles ([System.IO.FileInfo[]](Get-ChildItem -Path $migrationRoot -Recurse -Include *.cs -File))
+}
+if (Test-Path -LiteralPath $sqlServerArtifactsRoot) {
+    Add-SecretScanFiles ([System.IO.FileInfo[]](Get-ChildItem -Path $sqlServerArtifactsRoot -Recurse -Include *.sql -File))
+}
 
 $allowedPasswordValues = @(
     '<PASSWORD>',
@@ -32,8 +50,16 @@ $allowedSecretValues = @(
     'LOCAL_PASSWORD'
 )
 
+$allowedUserValues = @(
+    '<USER>',
+    'YOUR_USER',
+    '${SQL_USER}',
+    '%SQL_USER%'
+)
+
 $violations = New-Object System.Collections.Generic.List[string]
 $passwordAssignmentPattern = '(?i)Password\s*=\s*("?)([^;"\s`]+)\1'
+$userAssignmentPattern = '(?i)(User\s+Id|UID)\s*=\s*("?)([^;"\s`]+)\2'
 
 function Test-IsAllowedPasswordValue {
     param(
@@ -42,6 +68,15 @@ function Test-IsAllowedPasswordValue {
     )
 
     return $allowedPasswordValues -contains $Value
+}
+
+function Test-IsAllowedUserValue {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Value
+    )
+
+    return $allowedUserValues -contains $Value
 }
 
 foreach ($file in $scanFiles) {
@@ -69,6 +104,22 @@ foreach ($file in $scanFiles) {
             }
 
             $violations.Add(("{0}:{1}: unsafe password assignment detected: {2}" -f $file.FullName, ($lineIndex + 1), $line.Trim()))
+        }
+
+        if ($line -match '(?i)(Server|Data\s+Source)\s*=' -and $line -match '(?i)Password\s*=') {
+            foreach ($match in [regex]::Matches($line, $userAssignmentPattern)) {
+                $value = $match.Groups[3].Value
+                if (Test-IsAllowedUserValue -Value $value) {
+                    continue
+                }
+
+                if ($value -match '(?i)^sa$') {
+                    $violations.Add(("{0}:{1}: SQL Server sa login must not be committed in connection examples: {2}" -f $file.FullName, ($lineIndex + 1), $line.Trim()))
+                    continue
+                }
+
+                $violations.Add(("{0}:{1}: hardcoded SQL Server user value detected in connection example: {2}" -f $file.FullName, ($lineIndex + 1), $line.Trim()))
+            }
         }
 
         foreach ($match in [regex]::Matches($line, '(?i)(ApiKey|Secret|Token)\s*[:=]\s*("?)([^",;\s`]+)\2')) {

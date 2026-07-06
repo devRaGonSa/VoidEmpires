@@ -108,6 +108,18 @@ if (Test-Path -LiteralPath $frontendCopyRegressionPath) {
 
 $repoSecretScanPath = Join-Path $PSScriptRoot "check-repo-secret-scan.ps1"
 if (Test-Path -LiteralPath $repoSecretScanPath) {
+    $repoSecretScan = Get-Content -LiteralPath $repoSecretScanPath -Raw
+    foreach ($requiredFragment in @(
+        "Persistence\Migrations",
+        "artifacts\sqlserver",
+        "*.sql",
+        "*.cs"
+    )) {
+        if ($repoSecretScan -notlike "*$requiredFragment*") {
+            throw "Expected check-repo-secret-scan.ps1 to cover '$requiredFragment'."
+        }
+    }
+
     & $repoSecretScanPath
 }
 

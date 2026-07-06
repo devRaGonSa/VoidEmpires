@@ -3,7 +3,7 @@
 ---
 id: TASK-40M
 title: Guard migration artifacts against committed secrets
-status: pending
+status: done
 type: platform
 team: security
 supporting_teams:
