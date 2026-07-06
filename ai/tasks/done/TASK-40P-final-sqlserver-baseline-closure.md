@@ -3,7 +3,7 @@
 ---
 id: TASK-40P
 title: Close SQL Server baseline migration block
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams:
