@@ -1,6 +1,6 @@
 # Final DB Security Notes
 
-Status date: 2026-06-19
+Status date: 2026-07-06
 
 This note captures the minimum security posture for a future user-managed SQL Server deployment of `VoidEmpires`.
 
@@ -33,10 +33,19 @@ It does not enable SQL Server in the checked-in runtime, does not apply migratio
 Safe placeholder template:
 
 ```text
-Server=192.168.178.28,1433;Database=VoidEmpires;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;
+Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;
 ```
 
-Replace only the placeholders in environment variables or secret storage.
+Replace only the placeholders in environment variables or secret storage. `VoidEmpires_Dev` is the recommended first controlled validation database name; it remains an example target until an operator creates it manually.
+
+## Controlled Validation Posture
+
+- Create `VoidEmpires_Dev` manually in SSMS after reviewing the SQL.
+- Keep the local connection string outside the repository.
+- Use the opt-in smoke path only for the read-only `SELECT 1` connection check.
+- Generate migration SQL only after the SQL Server baseline exists, then review the script before any manual apply.
+- Apply scripts manually only after explicit operator approval.
+- Run the app against SQL Server only after externally selecting the `sqlserver` provider.
 
 ## Deployment Hygiene
 
@@ -57,4 +66,5 @@ Replace only the placeholders in environment variables or secret storage.
 
 - The checked-in runtime and design-time provider remain PostgreSQL/Npgsql today.
 - SQL Server guidance in this repository is documentation for a future cutover path, not an active runtime commitment.
+- Current SQL Server helpers are non-destructive by default: the create-database helper is manual and guarded, the connection smoke runs `SELECT 1`, the migration script helper stops until the SQL Server baseline exists, and the final catalog helper defaults to dry-run/deferred apply.
 - No real SQL Server login, password, migration apply, firewall change, backup action, or restore action was performed for this task.

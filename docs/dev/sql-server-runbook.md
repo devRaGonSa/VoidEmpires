@@ -1,8 +1,10 @@
 # SQL Server Runbook
 
-Status date: 2026-06-18
+Status date: 2026-07-06
 
 This runbook describes the practical, user-managed SQL Server workflow for the final database target while the checked-in repository still remains PostgreSQL-first by default today.
+
+Recommended first controlled validation database: `VoidEmpires_Dev`.
 
 It does not make SQL Server the default runtime provider, does not apply migrations automatically, and does not store passwords in the repository.
 
@@ -30,13 +32,29 @@ Related reference:
 - Do not apply migrations automatically during app startup or normal test runs.
 - Run migration generation, script review, and apply steps only against a disposable or intentionally chosen target.
 - Prefer explicit manual apply through SSMS or reviewed SQL scripts for the real user-managed database.
+- Treat `VoidEmpires_Dev` as a safe recommended validation target name, not as proof that the repository has created or modified a real SQL Server database.
+
+## Ruta controlada para `VoidEmpires_Dev`
+
+Para la primera validacion manual use esta secuencia:
+
+1. Crear `VoidEmpires_Dev` manualmente en SSMS despues de revisar el SQL.
+2. Configurar la cadena local fuera del repositorio, por ejemplo en variables de entorno o user secrets.
+3. Ejecutar la validacion de conexion `SELECT 1` mediante el smoke opt-in.
+4. Generar el script de migracion solo cuando exista una baseline SQL Server revisada.
+5. Revisar el script generado antes de abrirlo en SSMS.
+6. Aplicarlo manualmente solo si el operador lo aprueba.
+7. Ejecutar el smoke SQL Server opcional contra `VoidEmpires_Dev`.
+8. Ejecutar la app contra SQL Server solo despues de seleccionar `sqlserver` mediante configuracion externa.
+
+No conectes este flujo a una base compartida o productiva por comodidad.
 
 ## Safe Connection String Template
 
 Use a placeholder-only template such as:
 
 ```text
-Server=192.168.178.28,1433;Database=VoidEmpires;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;
+Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;
 ```
 
 Replace only `<USER>` and `<PASSWORD>` in local environment variables or secret storage. Do not commit resolved values.
@@ -45,10 +63,10 @@ Replace only `<USER>` and `<PASSWORD>` in local environment variables or secret 
 
 In SQL Server Management Studio:
 
-1. Open `scripts/sqlserver/create-database.sql` in SSMS.
+1. Open `scripts/sqlserver/create-database.sql` in SSMS only as a reviewed helper/reference.
 2. Connect to the target SQL Server instance with your own operator credentials.
 3. Confirm the active database context is `master`, then review the script comments and any infrastructure-specific sizing or file-placement adjustments you need.
-4. Execute the script manually; it uses `DB_ID(...)` guards and defaults to creating `VoidEmpires` only when it does not already exist.
+4. For the first controlled validation target, create `VoidEmpires_Dev` manually. The current checked-in helper is non-destructive by default because it uses `DB_ID(...)` guards, but it still names `VoidEmpires`; do not execute it unchanged when the intended target is `VoidEmpires_Dev`.
 5. Create or assign the application login/user outside the repository workflow.
 6. Grant only the minimum rights needed for schema apply and application access.
 
@@ -57,6 +75,7 @@ Manual note:
 - This repository does not create the SQL Server database for you.
 - The checked-in helper is an SSMS-oriented manual script, not an automatic provisioning step.
 - This repository does not create SQL logins or passwords for you.
+- `VoidEmpires_Dev` is the recommended first validation database name until a later task promotes any different target.
 
 ## 2. Set Local Environment Variables
 
@@ -66,7 +85,7 @@ PowerShell example for the current shell:
 
 ```powershell
 $env:VoidEmpires__Persistence__Provider="sqlserver"
-$env:ConnectionStrings__DefaultConnection="Server=192.168.178.28,1433;Database=VoidEmpires;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+$env:ConnectionStrings__DefaultConnection="Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
 $env:VOIDEMPIRES_CONNECTION_STRING=$env:ConnectionStrings__DefaultConnection
 $env:VOIDEMPIRES_SQLSERVER_SMOKE_ENABLED="true"
 $env:VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING=$env:ConnectionStrings__DefaultConnection
@@ -115,7 +134,7 @@ Optional parameter form:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-connection-smoke.ps1 `
-  -ConnectionString "Server=<HOST>,1433;Database=VoidEmpires;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+  -ConnectionString "Server=<HOST>,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
 ```
 
 Expected current behavior:
@@ -190,11 +209,11 @@ Final catalog helper examples:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-final-catalog-seed.ps1 `
-  -ConnectionString "Server=<HOST>,1433;Database=VoidEmpires;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+  -ConnectionString "Server=<HOST>,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
 ```
 
 ```powershell
-$env:VOIDEMPIRES_CONNECTION_STRING="Server=<HOST>,1433;Database=VoidEmpires;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+$env:VOIDEMPIRES_CONNECTION_STRING="Server=<HOST>,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-final-catalog-seed.ps1
 ```
 

@@ -4,7 +4,7 @@
 
 The repository is consolidated through the Block 37 near-product documentation and readiness checkpoint for the current Development-only product shell.
 
-Block 38 SQL Server preparation is now in progress as a documentation-first safety pass for the future final database target. Current completed Block 38 work records safe appsettings templates, external deployment posture, SQL Server security guidance, backup and restore planning, and a guarded migration dry-run note without changing the checked-in runtime provider or applying any real database migration.
+Block 39 SQL Server final database readiness is now in progress as a controlled, documentation-first pass around the recommended `VoidEmpires_Dev` validation database. Current SQL Server work keeps PostgreSQL as the checked-in default, keeps real credentials outside the repository, and does not apply real database mutations automatically.
 
 ## Repository Reality
 
@@ -28,6 +28,7 @@ Current final-database preparation reality:
 - no real SQL Server migration, update, backup, restore, or seed apply has been performed by the completed Block 38 documentation tasks
 - repository secret and copy guards now also check for unsafe connection-string password examples and obvious committed secret patterns while allowing documented placeholders only
 - current helper scripts remain manual, validation-only, or explicitly operator-invoked by default rather than hidden SQL Server mutation automation
+- `VoidEmpires_Dev` is now documented as the recommended first controlled SQL Server validation target; existing helpers were audited as non-destructive by default, and the current create-database helper remains a manual SSMS reference rather than automatic provisioning
 
 Current final-database readiness status:
 
@@ -44,6 +45,7 @@ Current final-database readiness status:
 - current completed Block 38 work now includes the documentation-first subset, provider-selection and mapping-audit tasks through `TASK-38I`, the SQL Server migration guidance tasks through `TASK-38N`, and the consolidated final catalog audit in `TASK-38O`; the repository still has not completed SQL Server runtime cutover, SQL Server migration replay readiness, or final relational catalog ownership
 - next pending Block 38 implementation categories are the per-catalog ownership tasks (`TASK-38P` through `TASK-38U`) and the final seed architecture tasks (`TASK-38V` through `TASK-38Z`)
 - latest Block 38 final validation refresh: `dotnet build --no-restore` succeeded with `16` transient `MSB3026` copy-retry warnings and `0` errors while `testhost` held test output DLLs; `dotnet test --no-build` succeeded with `725` passing tests, `0` failed, and `0` skipped; `npm run build --prefix src/VoidEmpires.Frontend` succeeded with `106` transformed modules, `58.88 kB` CSS, and a `181.33 kB` minified / `59.14 kB` gzip shared entry chunk; `check-dev-qa-scripts.ps1`, `check-frontend-route-lazy-imports.ps1`, and `check-frontend-copy-regressions.ps1` all succeeded; this remained a documentation-first non-cutover validation pass only
+- latest Block 39A runbook audit note: SQL Server docs now describe the manual `VoidEmpires_Dev` path: create in SSMS, configure local secrets outside the repo, run the read-only `SELECT 1` smoke, generate and review migration scripts only after the SQL Server baseline exists, apply manually only with operator approval, and run the app against SQL Server only through external provider selection
 
 ## Application Status
 

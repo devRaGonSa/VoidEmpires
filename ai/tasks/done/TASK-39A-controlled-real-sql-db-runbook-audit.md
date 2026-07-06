@@ -3,7 +3,7 @@
 ---
 id: TASK-39A
 title: Controlled real SQL Server database runbook audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []
