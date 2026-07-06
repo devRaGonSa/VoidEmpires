@@ -3,7 +3,7 @@
 ---
 id: TASK-39I
 title: Document optional real SQL Server smoke test flow
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: []

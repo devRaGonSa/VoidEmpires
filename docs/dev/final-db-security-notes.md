@@ -45,6 +45,7 @@ Replace only the placeholders in environment variables or secret storage. `VoidE
 - Create `VoidEmpires_Dev` manually in SSMS after reviewing the SQL.
 - Keep the local connection string outside the repository.
 - Use the opt-in smoke path only for the read-only `SELECT 1` connection check.
+- Keep `VOIDEMPIRES_SQLSERVER_SMOKE_ENABLED` and `VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING` scoped to the local shell or operator-managed secret storage, then clear local shell variables after the smoke.
 - Generate migration SQL only after the SQL Server baseline exists, then review the script before any manual apply.
 - Apply scripts manually only after explicit operator approval.
 - Run the app against SQL Server only after externally selecting the `sqlserver` provider.

@@ -136,10 +136,19 @@ This confirms the ordinary repository regression baseline before any manual SQL 
 
 ## 4. Run The SQL Server Connection Smoke Check
 
-The repository now includes a dedicated read-only helper:
+El smoke real de SQL Server es opcional. `dotnet test --no-build` no requiere SQL Server en el flujo normal; `SqlServerSmokeTests` solo intenta conectarse cuando `VOIDEMPIRES_SQLSERVER_SMOKE_ENABLED=true` y existe una cadena externa en `VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING`.
+
+Configura la cadena en una variable local antes de ejecutarlo:
 
 ```powershell
-$sqlServerConnectionString=$env:ConnectionStrings__DefaultConnection
+$env:VOIDEMPIRES_SQLSERVER_SMOKE_ENABLED="true"
+$env:VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING="Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+```
+
+The repository includes a dedicated read-only helper:
+
+```powershell
+$sqlServerConnectionString=$env:VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-connection-smoke.ps1 -ConnectionString $sqlServerConnectionString
 ```
 
@@ -161,6 +170,14 @@ Expected current behavior:
 - it does not write gameplay data
 - it does not echo the provided password
 - common failures point to host/port reachability, SQL Authentication/login state, missing `VoidEmpires_Dev`, and encryption/certificate setup
+
+Limpia las variables de la sesion despues de la prueba:
+
+```powershell
+Remove-Item Env:VOIDEMPIRES_SQLSERVER_SMOKE_ENABLED -ErrorAction SilentlyContinue
+Remove-Item Env:VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING -ErrorAction SilentlyContinue
+Remove-Item Env:VOIDEMPIRES_CONNECTION_STRING -ErrorAction SilentlyContinue
+```
 
 ## 5. Generate Migration Scripts Manually
 
