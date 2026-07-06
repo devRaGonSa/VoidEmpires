@@ -7,8 +7,12 @@ Usa esta lista para validar manualmente `VoidEmpires_Dev`. No pegues usuarios, p
 - [ ] Ejecutar el smoke de conexion `SELECT 1` con `scripts/sqlserver-connection-smoke.ps1`.
 - [ ] Confirmar que `dotnet test --no-build` normal no requiere SQL Server.
 - [ ] Generar el script de migracion solo cuando exista `SqlServerInitialBaseline`.
-- [ ] Revisar el script SQL generado antes de abrirlo en SSMS.
-- [ ] Aplicar el script manualmente solo si el operador lo aprueba.
+- [ ] Ejecutar `scripts/check-sqlserver-generated-script-safety.ps1` contra el script generado.
+- [ ] Hacer backup manual de `VoidEmpires_Dev` en SSMS antes de aplicar cambios de esquema.
+- [ ] Abrir `artifacts/sqlserver/VoidEmpires_Dev_SqlServerInitialBaseline.sql` en SSMS y revisar todo el contenido antes de ejecutarlo.
+- [ ] Verificar manualmente que la conexion y la base activa apuntan a `VoidEmpires_Dev`.
+- [ ] Aplicar el script manualmente solo si el operador lo aprueba; los scripts del repositorio no aplican la migracion automaticamente.
+- [ ] Inspeccionar tablas creadas y consultar `dbo.__EFMigrationsHistory`.
 - [ ] Ejecutar de nuevo el smoke SQL Server opcional contra `VoidEmpires_Dev`.
 - [ ] Ejecutar la app local con `VoidEmpires__Persistence__Provider="SqlServer"` solo despues de que el esquema exista.
 - [ ] Ejecutar el dry-run de catalogos finales sin `-Apply` y confirmar que no borra datos de gameplay.

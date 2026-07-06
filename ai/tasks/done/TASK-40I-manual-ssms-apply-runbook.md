@@ -3,7 +3,7 @@
 ---
 id: TASK-40I
 title: Document manual SSMS apply runbook
-status: pending
+status: done
 type: platform
 team: docs
 supporting_teams:

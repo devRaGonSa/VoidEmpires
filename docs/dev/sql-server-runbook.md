@@ -43,10 +43,14 @@ Para la primera validacion manual use esta secuencia:
 2. Configurar la cadena local fuera del repositorio, por ejemplo en variables de entorno o user secrets.
 3. Ejecutar la validacion de conexion `SELECT 1` mediante el smoke opt-in.
 4. Generar el script de migracion solo cuando exista una baseline SQL Server revisada.
-5. Revisar el script generado antes de abrirlo en SSMS.
-6. Aplicarlo manualmente solo si el operador lo aprueba.
-7. Ejecutar el smoke SQL Server opcional contra `VoidEmpires_Dev`.
-8. Ejecutar la app contra SQL Server solo despues de seleccionar `sqlserver` mediante configuracion externa.
+5. Ejecutar el guard estatico del script SQL generado.
+6. Hacer backup manual de `VoidEmpires_Dev`.
+7. Abrir y revisar el script generado en SSMS.
+8. Verificar que SSMS apunta a `VoidEmpires_Dev`.
+9. Aplicarlo manualmente solo si el operador lo aprueba.
+10. Inspeccionar tablas y consultar `dbo.__EFMigrationsHistory`.
+11. Ejecutar el smoke SQL Server opcional contra `VoidEmpires_Dev`.
+12. Ejecutar la app contra SQL Server solo despues de seleccionar `sqlserver` mediante configuracion externa.
 
 No conectes este flujo a una base compartida o productiva por comodidad.
 
@@ -55,7 +59,7 @@ No conectes este flujo a una base compartida o productiva por comodidad.
 Use a placeholder-only template such as:
 
 ```text
-Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;
+Server=<HOST>,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;
 ```
 
 Replace only `<USER>` and `<PASSWORD>` in local environment variables or secret storage. Do not commit resolved values.
@@ -87,7 +91,7 @@ PowerShell para la sesion actual:
 
 ```powershell
 $env:VoidEmpires__Persistence__Provider="SqlServer"
-$env:ConnectionStrings__DefaultConnection="Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+$env:ConnectionStrings__DefaultConnection="Server=<HOST>,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
 $env:VOIDEMPIRES_CONNECTION_STRING=$env:ConnectionStrings__DefaultConnection
 $env:VOIDEMPIRES_SQLSERVER_SMOKE_ENABLED="true"
 $env:VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING=$env:ConnectionStrings__DefaultConnection
@@ -99,7 +103,7 @@ El proyecto `src/VoidEmpires.Web` tiene `UserSecretsId`, asi que tambien puedes 
 
 ```powershell
 dotnet user-secrets set "VoidEmpires:Persistence:Provider" "SqlServer" --project .\src\VoidEmpires.Web\VoidEmpires.Web.csproj
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;" --project .\src\VoidEmpires.Web\VoidEmpires.Web.csproj
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=<HOST>,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;" --project .\src\VoidEmpires.Web\VoidEmpires.Web.csproj
 ```
 
 Los user secrets son locales a la maquina de desarrollo y no se commitean. Para el smoke script sigue usando variables de entorno o el parametro `-ConnectionString`, porque ese helper lee configuracion explicita fuera del repositorio.
@@ -143,7 +147,7 @@ Configura la cadena en una variable local antes de ejecutarlo:
 
 ```powershell
 $env:VOIDEMPIRES_SQLSERVER_SMOKE_ENABLED="true"
-$env:VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING="Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+$env:VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING="Server=<HOST>,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
 ```
 
 The repository includes a dedicated read-only helper:
@@ -182,34 +186,87 @@ Remove-Item Env:VOIDEMPIRES_CONNECTION_STRING -ErrorAction SilentlyContinue
 
 ## 5. Generate Migration Scripts Manually
 
-Important current limitation:
+Current baseline state:
 
-- the checked-in migrations are PostgreSQL-shaped
-- direct SQL Server script generation is not yet a validated default repository path
+- `SqlServerInitialBaseline` exists under `src/VoidEmpires.Infrastructure/Persistence/Migrations/SqlServer`
+- the committed review artifact is `artifacts/sqlserver/VoidEmpires_Dev_SqlServerInitialBaseline.sql`
+- repository helpers generate and statically review SQL only; they do not apply it
 
-Because of that, do not treat current migration generation as ready for SQL Server replay on the real target.
-
-Safe current runbook posture:
-
-1. First follow `docs/dev/sql-server-migration-strategy.md` and complete its documented prerequisites for the first SQL Server baseline.
-2. Use the deferred environment-variable setup and `dotnet ef migrations add SqlServerInitialBaseline ...` command from that strategy document instead of improvising a mixed-provider migration.
-3. After that baseline exists, prefer `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-script-migration.ps1` to generate the local idempotent SQL script without applying it.
-4. Keep generated scripts outside automatic startup and outside default tests.
-
-Planned later script command shape:
+To regenerate the reviewed artifact after a migration change, run:
 
 ```powershell
-dotnet ef migrations script 0 SqlServerInitialBaseline --output .\artifacts\sql\voidempires-sqlserver-initial-baseline.sql
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-script-migration.ps1 `
+  -OutputPath .\artifacts\sqlserver\VoidEmpires_Dev_SqlServerInitialBaseline.sql
 ```
 
-Current honest note:
+Before opening the script in SSMS, run the static safety guard:
 
-- Do not run the command above yet without first following the deferred-generation prerequisites in `docs/dev/sql-server-migration-strategy.md`.
-- The helper script is intentionally guarded and will stop if `SqlServerInitialBaseline` does not exist yet.
-- Current `TASK-39H` result: idempotent SQL output generation remains blocked because `SqlServerInitialBaseline` is deferred and no SQL Server migration files exist under `src/VoidEmpires.Infrastructure/Persistence/Migrations/SqlServer`.
-- No one-off SQL output was generated or committed for this state.
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-sqlserver-generated-script-safety.ps1
+```
 
-## 6. Ejecutar la app local contra SQL Server
+The helper and guard do not connect to `VoidEmpires_Dev`, do not run `dotnet ef database update`, and do not apply schema changes. They only produce and inspect a SQL file for manual review.
+
+If the migration baseline changes, repeat the provider-sensitive review in `docs/dev/sql-server-migration-review.md` before using a regenerated script.
+
+## 6. Manual SSMS Apply Runbook
+
+This is the only approved apply path for the reviewed SQL Server baseline script. It is an operator action, not a repository script action.
+
+Pre-apply checks:
+
+1. Confirm `dotnet build --no-restore` and `dotnet test --no-build` pass locally.
+2. Confirm the read-only smoke in section 4 passes against `VoidEmpires_Dev`.
+3. Confirm the generated SQL guard in section 5 passes.
+4. Confirm no resolved usernames, passwords, or full real connection strings were copied into the script or notes.
+
+Backup:
+
+1. In SSMS, right-click `VoidEmpires_Dev`.
+2. Select `Tasks` > `Back Up...`.
+3. Take a full backup to the operator-approved location.
+4. Verify the backup completed successfully and record the backup timestamp in private operational notes.
+
+Manual review and apply:
+
+1. Open `artifacts/sqlserver/VoidEmpires_Dev_SqlServerInitialBaseline.sql` in SSMS.
+2. Connect with operator credentials; do not paste repository placeholder strings as real credentials.
+3. Verify the target server manually in SSMS.
+4. Verify the database dropdown or query context is `VoidEmpires_Dev`.
+5. Review the script header, `__EFMigrationsHistory` guards, table creation order, indexes, constraints, and the final history insert.
+6. Execute the script manually only after operator approval.
+7. Stop immediately on any error; do not continue with later batches until the failure is understood.
+
+Read-only post-apply inspection:
+
+```sql
+SELECT DB_NAME() AS CurrentDatabase;
+SELECT [name] FROM sys.tables WHERE is_ms_shipped = 0 ORDER BY [name];
+SELECT [MigrationId], [ProductVersion] FROM [dbo].[__EFMigrationsHistory] ORDER BY [MigrationId];
+```
+
+Expected inspection result after a successful manual apply:
+
+- `CurrentDatabase` is `VoidEmpires_Dev`
+- gameplay and Identity tables are visible
+- `dbo.__EFMigrationsHistory` contains `20260706131610_SqlServerInitialBaseline`
+
+Then rerun the read-only smoke from section 4:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sqlserver-connection-smoke.ps1 `
+  -ConnectionString "Server=<HOST>,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+```
+
+Repository scripts do not perform the manual apply above. This runbook documents the operator-controlled process only and does not claim the script has been applied.
+
+Do not:
+
+- hide apply inside app startup
+- hide apply inside `dotnet test`
+- run apply against a shared production-like server without manual confirmation
+
+## 7. Ejecutar la app local contra SQL Server
 
 Solo hagas esto despues de crear `VoidEmpires_Dev` y aplicar manualmente un esquema compatible y revisado. La app no aplica migraciones al arrancar.
 
@@ -217,7 +274,7 @@ PowerShell local con placeholders:
 
 ```powershell
 $env:VoidEmpires__Persistence__Provider="SqlServer"
-$env:ConnectionStrings__DefaultConnection="Server=192.168.178.28,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+$env:ConnectionStrings__DefaultConnection="Server=<HOST>,1433;Database=VoidEmpires_Dev;User Id=<USER>;Password=<PASSWORD>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
 $env:VOIDEMPIRES_CONNECTION_STRING=$env:ConnectionStrings__DefaultConnection
 dotnet run --project .\src\VoidEmpires.Web\VoidEmpires.Web.csproj
 ```
@@ -236,22 +293,6 @@ Remove-Item Env:VoidEmpires__Persistence__Provider -ErrorAction SilentlyContinue
 Remove-Item Env:ConnectionStrings__DefaultConnection -ErrorAction SilentlyContinue
 Remove-Item Env:VOIDEMPIRES_CONNECTION_STRING -ErrorAction SilentlyContinue
 ```
-
-## 7. Review And Apply Scripts Manually
-
-When a SQL Server-specific migration baseline exists in a later task:
-
-1. Open the reviewed SQL script in SSMS.
-2. Confirm the target server and database manually.
-3. Review schema names, table names, index filters, provider-specific SQL, and any seed inserts.
-4. Apply the script manually in SSMS.
-5. Record the applied script version in your own operational notes.
-
-Do not:
-
-- hide apply inside app startup
-- hide apply inside `dotnet test`
-- run apply against a shared production-like server without manual confirmation
 
 ## 8. Seed Catalogs And Development Data Carefully
 
@@ -337,18 +378,16 @@ If a manual SQL apply fails:
 
 - runtime and design-time provider selection now support an explicit SQL Server choice, but PostgreSQL remains the checked-in default path
 - existing migration history is PostgreSQL-shaped
-- filtered-index SQL and provider-specific migration SQL still need SQL Server audit
-- no checked-in SQL Server migration script helper exists yet
+- manual SSMS apply and post-apply verification remain operator-controlled and have not been performed by repository automation
 - final catalog operator scripting now exists only as a guarded dry-run and deferred-apply helper; no final relational catalog seed apply path exists yet
 
 ## 12. Recommended Future Task Order
 
-1. provider selection and dependency split
-2. SQL Server-compatible migration-baseline strategy
-3. SQL Server script-generation helper or documented command flow
-4. final relational catalog seed ownership
-5. explicit SQL Server validation gate and disposable replay checks
-6. final operational backup and restore verification
+1. complete post-apply verification documentation
+2. document app run checks after the SQL Server schema exists
+3. finish final relational catalog seed ownership
+4. add explicit SQL Server validation gates and disposable replay checks
+5. complete final operational backup and restore verification
 
 ## Validation
 
