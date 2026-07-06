@@ -44,6 +44,7 @@ Current migration/provider audit:
 - The design-time factory defaults to Npgsql when no provider environment variable is set.
 - The design-time factory selects SQL Server only when `VoidEmpires__Persistence__Provider` or `VOIDEMPIRES_DATABASE_PROVIDER` is set to `sqlserver`.
 - When SQL Server is selected without an explicit connection string, the design-time factory uses a passwordless localdb metadata placeholder: `Server=(localdb)\MSSQLLocalDB;Database=VoidEmpires_GenerationOnly;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;`.
+- SQL Server design-time generation replaces EF Core `IMigrationsAssembly` with `SqlServerDesignTimeMigrationsAssembly`, which only discovers migrations and snapshots under `VoidEmpires.Infrastructure.Persistence.Migrations.SqlServer`.
 - Runtime registration uses the same provider expectation: `AddVoidEmpiresPersistence` falls back to Npgsql and uses SQL Server only for an explicit `sqlserver` provider value.
 - The Infrastructure project references both `Microsoft.EntityFrameworkCore.SqlServer` and `Npgsql.EntityFrameworkCore.PostgreSQL`.
 - The checked-in root migration chain is PostgreSQL-shaped, not provider-neutral. Most migrations and the current snapshot contain Npgsql annotations or PostgreSQL column types; one recent migration includes provider-conditional SQL for PostgreSQL and SQL Server, but that does not make the full chain replayable as a SQL Server baseline.
@@ -61,7 +62,7 @@ Required safe generation approach:
 
 Actionable blockers before generation:
 
-1. prepare the isolated migration command so EF Core writes the SQL Server snapshot under the isolated folder without reusing or overwriting the root PostgreSQL snapshot
+1. rerun the isolated migration command so EF Core writes the SQL Server snapshot under the isolated folder without reusing or overwriting the root PostgreSQL snapshot
 2. complete a provider-sensitive model review for table names, column names, filters, indexes, identity columns, and DateTime/Guid storage
 3. confirm the intended baseline is generated from SQL Server provider metadata only
 4. run generation only with placeholder external configuration and without connecting to `VoidEmpires_Dev`
@@ -129,6 +130,12 @@ If the command tries to reuse the PostgreSQL-shaped snapshot or produces provide
 The command did not connect to or update a real database, but the generated migration was rejected and removed because EF Core reused the existing root PostgreSQL-shaped migration snapshot. The scaffolded `SqlServerInitialBaseline` was a provider-transition migration with `DropIndex`, `DropPrimaryKey`, `Rename*`, and many `AlterColumn` operations from PostgreSQL column types such as `uuid` and `timestamp with time zone` into SQL Server types. That is not an initial SQL Server schema baseline.
 
 The failed scaffold also changed the root `VoidEmpiresDbContextModelSnapshot`, so the local scaffold was removed and the snapshot was restored before commit. A narrowed follow-up task must isolate SQL Server migration history and snapshot discovery before retrying baseline generation.
+
+## TASK-40D1 Isolation Result
+
+SQL Server design-time migration generation now uses a provider-specific `IMigrationsAssembly` replacement from `VoidEmpiresDbContextFactory`. When `VoidEmpires__Persistence__Provider=sqlserver` is selected, EF Core discovers only migration and snapshot types in the `VoidEmpires.Infrastructure.Persistence.Migrations.SqlServer` namespace. Until the SQL Server baseline exists, that migration assembly intentionally reports no migrations and no model snapshot, so the next baseline-generation retry should scaffold `SqlServerInitialBaseline` as an initial SQL Server schema migration.
+
+The default PostgreSQL design-time path still uses EF Core's normal root migration assembly and root `VoidEmpiresDbContextModelSnapshot`.
 
 ## Deferred Script Generation Command
 

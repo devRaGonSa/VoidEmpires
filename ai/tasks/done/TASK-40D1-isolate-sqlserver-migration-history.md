@@ -3,7 +3,7 @@
 ---
 id: TASK-40D1
 title: Isolate SQL Server migration history for baseline generation
-status: pending
+status: done
 type: platform
 team: database
 supporting_teams:

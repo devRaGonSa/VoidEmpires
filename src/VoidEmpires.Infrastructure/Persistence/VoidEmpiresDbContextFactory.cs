@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace VoidEmpires.Infrastructure.Persistence;
 
@@ -22,7 +23,9 @@ public sealed class VoidEmpiresDbContextFactory : IDesignTimeDbContextFactory<Vo
 
         if (string.Equals(provider, "sqlserver", StringComparison.OrdinalIgnoreCase))
         {
-            optionsBuilder.UseSqlServer(ResolveConnectionString(connectionString, DesignTimeSqlServerConnectionString));
+            optionsBuilder
+                .UseSqlServer(ResolveConnectionString(connectionString, DesignTimeSqlServerConnectionString))
+                .ReplaceService<IMigrationsAssembly, SqlServerDesignTimeMigrationsAssembly>();
         }
         else
         {

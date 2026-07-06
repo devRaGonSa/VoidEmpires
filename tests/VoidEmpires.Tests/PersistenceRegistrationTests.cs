@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Email;
 using VoidEmpires.Infrastructure;
@@ -132,6 +134,67 @@ public class PersistenceRegistrationTests
             Assert.Equal("Microsoft.EntityFrameworkCore.SqlServer", context.Database.ProviderName);
             Assert.Contains("VoidEmpires_GenerationOnly", context.Database.GetConnectionString());
             Assert.DoesNotContain("Password", context.Database.GetConnectionString(), StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("VoidEmpires__Persistence__Provider", originalProvider);
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_DATABASE_PROVIDER", originalProviderAlias);
+            Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", originalConnection);
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_CONNECTION_STRING", originalConnectionAlias);
+        }
+    }
+
+    [Fact]
+    public void DesignTimeFactoryUsesIsolatedSqlServerMigrationAssembly()
+    {
+        var originalProvider = Environment.GetEnvironmentVariable("VoidEmpires__Persistence__Provider");
+        var originalProviderAlias = Environment.GetEnvironmentVariable("VOIDEMPIRES_DATABASE_PROVIDER");
+        var originalConnection = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+        var originalConnectionAlias = Environment.GetEnvironmentVariable("VOIDEMPIRES_CONNECTION_STRING");
+
+        try
+        {
+            Environment.SetEnvironmentVariable("VoidEmpires__Persistence__Provider", "sqlserver");
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_DATABASE_PROVIDER", null);
+            Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", null);
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_CONNECTION_STRING", null);
+
+            var context = new VoidEmpiresDbContextFactory().CreateDbContext([]);
+            var migrationsAssembly = context.GetService<IMigrationsAssembly>();
+
+            Assert.IsType<SqlServerDesignTimeMigrationsAssembly>(migrationsAssembly);
+            Assert.Empty(migrationsAssembly.Migrations);
+            Assert.Null(migrationsAssembly.ModelSnapshot);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("VoidEmpires__Persistence__Provider", originalProvider);
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_DATABASE_PROVIDER", originalProviderAlias);
+            Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", originalConnection);
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_CONNECTION_STRING", originalConnectionAlias);
+        }
+    }
+
+    [Fact]
+    public void DesignTimeFactoryKeepsDefaultRootMigrationAssemblyForPostgreSql()
+    {
+        var originalProvider = Environment.GetEnvironmentVariable("VoidEmpires__Persistence__Provider");
+        var originalProviderAlias = Environment.GetEnvironmentVariable("VOIDEMPIRES_DATABASE_PROVIDER");
+        var originalConnection = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+        var originalConnectionAlias = Environment.GetEnvironmentVariable("VOIDEMPIRES_CONNECTION_STRING");
+
+        try
+        {
+            Environment.SetEnvironmentVariable("VoidEmpires__Persistence__Provider", null);
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_DATABASE_PROVIDER", null);
+            Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", "Host=localhost;Database=voidempires_test");
+            Environment.SetEnvironmentVariable("VOIDEMPIRES_CONNECTION_STRING", null);
+
+            var context = new VoidEmpiresDbContextFactory().CreateDbContext([]);
+            var migrationsAssembly = context.GetService<IMigrationsAssembly>();
+
+            Assert.NotEmpty(migrationsAssembly.Migrations);
+            Assert.NotNull(migrationsAssembly.ModelSnapshot);
         }
         finally
         {
