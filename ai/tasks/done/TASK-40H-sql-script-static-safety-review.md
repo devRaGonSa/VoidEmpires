@@ -3,7 +3,7 @@
 ---
 id: TASK-40H
 title: Add static safety review for SQL Server scripts
-status: pending
+status: done
 type: platform
 team: security
 supporting_teams:

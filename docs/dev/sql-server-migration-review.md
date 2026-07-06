@@ -67,6 +67,18 @@ Secret and connection-string review:
 
 ## Required Next Step
 
-Generate the idempotent SQL Server script for manual review. The script still must not be applied automatically, and any manual SSMS apply remains a later operator-controlled step.
+## Static SQL Script Safety Review
+
+`scripts/check-sqlserver-generated-script-safety.ps1` now provides a focused static guard for the committed generated review artifact at `artifacts/sqlserver/VoidEmpires_Dev_SqlServerInitialBaseline.sql`.
+
+The guard checks that the script is the expected idempotent baseline review script, contains the manual-review header, and uses `__EFMigrationsHistory` gating. It fails on obvious unsafe SQL or credential-bearing fragments such as `DROP DATABASE`, `DROP LOGIN`, `DROP USER`, `TRUNCATE TABLE`, login/user creation statements, password assignments, and connection-string server or username values.
+
+The guard intentionally allows normal EF migration-history operations, including `__EFMigrationsHistory` table creation, reads, and migration-history insertion. It does not prove that every schema detail is semantically correct, that the target database is ready, or that execution is safe for a live environment.
+
+Manual review is still required before an operator opens the script in SSMS. That review must verify the target database, backups, expected schema shape, object ownership, operational timing, and rollback plan.
+
+## Required Next Step
+
+Run the static SQL script safety guard through the dev QA script, then perform manual SQL review. The script still must not be applied automatically, and any manual SSMS apply remains a later operator-controlled step.
 
 No SQL Server migration was applied automatically, no generated SQL was run, and no real SQL Server connection string or credential was added.

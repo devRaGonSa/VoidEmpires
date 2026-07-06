@@ -30,6 +30,7 @@ function Get-ExistingDevQaScriptPaths {
     $optionalScriptNames = @(
         "dev-qa-create-orbital-group-from-stock.ps1",
         "sqlserver-script-migration.ps1",
+        "check-sqlserver-generated-script-safety.ps1",
         "sqlserver-connection-smoke.ps1",
         "sqlserver-final-catalog-seed.ps1"
     )
@@ -108,6 +109,11 @@ if (Test-Path -LiteralPath $frontendCopyRegressionPath) {
 $repoSecretScanPath = Join-Path $PSScriptRoot "check-repo-secret-scan.ps1"
 if (Test-Path -LiteralPath $repoSecretScanPath) {
     & $repoSecretScanPath
+}
+
+$sqlServerGeneratedScriptSafetyPath = Join-Path $PSScriptRoot "check-sqlserver-generated-script-safety.ps1"
+if (Test-Path -LiteralPath $sqlServerGeneratedScriptSafetyPath) {
+    & $sqlServerGeneratedScriptSafetyPath
 }
 
 function Assert-ResourceSummaryContains {
