@@ -3,7 +3,7 @@
 ---
 id: TASK-40D
 title: Generate SQL Server initial baseline migration
-status: pending
+status: done
 type: platform
 team: database
 supporting_teams:

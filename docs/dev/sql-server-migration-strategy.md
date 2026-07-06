@@ -122,6 +122,14 @@ Do not run this command against `VoidEmpires_Dev`, do not provide a real usernam
 
 If the command tries to reuse the PostgreSQL-shaped snapshot or produces provider-conflicted diffs outside the intended SQL Server migration directory, stop and narrow the migration-layout decision in a follow-up task before committing anything.
 
+## TASK-40D Generation Attempt Result
+
+`TASK-40D` ran the exact offline baseline generation command with `VoidEmpires__Persistence__Provider=sqlserver` and with both design-time connection-string environment variables cleared.
+
+The command did not connect to or update a real database, but the generated migration was rejected and removed because EF Core reused the existing root PostgreSQL-shaped migration snapshot. The scaffolded `SqlServerInitialBaseline` was a provider-transition migration with `DropIndex`, `DropPrimaryKey`, `Rename*`, and many `AlterColumn` operations from PostgreSQL column types such as `uuid` and `timestamp with time zone` into SQL Server types. That is not an initial SQL Server schema baseline.
+
+The failed scaffold also changed the root `VoidEmpiresDbContextModelSnapshot`, so the local scaffold was removed and the snapshot was restored before commit. A narrowed follow-up task must isolate SQL Server migration history and snapshot discovery before retrying baseline generation.
+
 ## Deferred Script Generation Command
 
 Only after the SQL Server baseline migration exists and has been reviewed:
