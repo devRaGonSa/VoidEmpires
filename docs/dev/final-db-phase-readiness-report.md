@@ -43,7 +43,7 @@ The following work remains incomplete inside the repository:
 - manual SSMS apply and post-apply verification of the accepted SQL Server baseline
 - final relational catalog ownership for currently code-owned gameplay catalogs
 - final seed architecture for production initialization instead of Development-only QA profiles
-- any broader SQL Server validation beyond the current opt-in connection smoke check
+- disposable SQL Server baseline replay validation beyond the current opt-in connection smoke check; the checklist now exists at `docs/dev/sql-server-disposable-replay-validation.md`, but it has not been executed or automated
 
 ## Current Connection Setup Position
 
@@ -118,7 +118,7 @@ Seed position:
 2. Existing root migration history remains PostgreSQL-specific; SQL Server uses the isolated baseline path.
 3. The accepted SQL Server baseline still needs manual SSMS apply and post-apply verification before any runtime validation can rely on the target schema.
 4. Catalog and seed ownership remain incomplete for final production initialization; the next implementation step must decide the relational catalog model and deterministic upsert behavior before any `-Apply` path can be enabled.
-5. The current SQL Server smoke test proves connection-only behavior, not schema replay readiness.
+5. The current SQL Server smoke test proves connection-only behavior, not schema replay readiness; the disposable replay checklist remains a manual future validation gate.
 6. Any real SQL Server rollout still depends on careful operator-managed credentials, backups, restore drills, and manual script review.
 
 ## Current Honest Decision

@@ -25,6 +25,7 @@ Related reference:
 
 - `docs/dev/final-db-security-notes.md`
 - `docs/dev/sql-server-user-checklist.md`
+- `docs/dev/sql-server-disposable-replay-validation.md`
 
 ## Safety Rules
 
@@ -212,6 +213,8 @@ If the migration baseline changes, repeat the provider-sensitive review in `docs
 ## 6. Manual SSMS Apply Runbook
 
 This is the only approved apply path for the reviewed SQL Server baseline script. It is an operator action, not a repository script action.
+
+Before using this path as evidence of repeatable schema replay, run the separate disposable replay checklist in `docs/dev/sql-server-disposable-replay-validation.md` against a disposable database. That checklist is intentionally separate from `VoidEmpires_Dev` and must not target user data.
 
 Pre-apply checks:
 
