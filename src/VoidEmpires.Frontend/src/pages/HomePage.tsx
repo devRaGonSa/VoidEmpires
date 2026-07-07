@@ -1,9 +1,18 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import type { PlanetCockpitDto } from "../api/planetTypes";
+import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
+import { PlanetOverviewPanel } from "../components/PlanetOverviewPanel";
+import { QueueSummaryPanels } from "../components/QueueSummaryPanels";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { getCurrentAccountWorldEntry } from "../utils/currentAccountSession";
-import { buildCommandHubUrl, buildGalaxyUrl, buildLoginUrl, buildRegisterUrl } from "../utils/routeUrls";
+import {
+  buildGalaxyUrl,
+  buildLoginUrl,
+  buildRegisterUrl,
+} from "../utils/routeUrls";
 import { useCurrentAccountSession } from "../utils/useCurrentAccountSession";
 
 export function HomePage() {
@@ -11,50 +20,79 @@ export function HomePage() {
   const worldEntry = getCurrentAccountWorldEntry(currentAccountSession.session);
   const isLoading = currentAccountSession.status === "loading";
   const hasCommandHub = currentAccountSession.status === "ready" && worldEntry !== null;
+  const [planet, setPlanet] = useState<PlanetCockpitDto | null>(null);
+  const [isPlanetLoading, setIsPlanetLoading] = useState(false);
+  const [planetError, setPlanetError] = useState<string | null>(null);
   const planetLabel = worldEntry?.planetName ?? "planeta principal";
-  const continueUrl = worldEntry
-    ? buildCommandHubUrl(worldEntry.civilizationId, worldEntry.planetId)
-    : currentAccountSession.nextRoute ?? buildGalaxyUrl();
+
+  useEffect(() => {
+    if (!worldEntry) {
+      setPlanet(null);
+      setPlanetError(null);
+      return;
+    }
+
+    let isCurrent = true;
+    setIsPlanetLoading(true);
+    setPlanetError(null);
+    voidEmpiresApi.getPlanetUiState(worldEntry.civilizationId, worldEntry.planetId)
+      .then((response) => {
+        if (isCurrent) {
+          setPlanet(response.uiState?.planet ?? null);
+        }
+      })
+      .catch(() => {
+        if (isCurrent) {
+          setPlanet(null);
+          setPlanetError("No se pudo cargar el resumen del planeta actual.");
+        }
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setIsPlanetLoading(false);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [worldEntry?.civilizationId, worldEntry?.planetId]);
 
   return (
     <section className="page-grid">
       <CockpitHero
-        versionLabel={hasCommandHub ? "Cuenta activa" : isLoading ? "Comprobando cuenta" : "Acceso multijugador"}
-        title={hasCommandHub ? "Centro de mando" : "VoidEmpires online"}
+        versionLabel={hasCommandHub ? "Planeta actual" : isLoading ? "Comprobando cuenta" : "Acceso multijugador"}
+        title={hasCommandHub ? planet?.planetName ?? planetLabel : "VoidEmpires online"}
         description={hasCommandHub
-          ? `Continua desde ${planetLabel} y vuelve a las cabinas principales de tu imperio.`
-          : "Inicia sesion o registra tu comandante para entrar con una cuenta multijugador persistente."}
+          ? "Inicio resume la colonia activa, sus reservas, produccion y actividad inmediata."
+          : "Inicia sesion o crea una cuenta para entrar con un imperio persistente."}
         developmentNote="Acceso de cuenta."
         badges={
           <>
-            <UiBadge tone="good">{hasCommandHub ? "Mando disponible" : "Cuenta requerida"}</UiBadge>
-            <UiBadge>Planeta como hub</UiBadge>
+            <UiBadge tone="good">{hasCommandHub ? "Colonia activa" : "Cuenta requerida"}</UiBadge>
+            <UiBadge>Resumen planetario</UiBadge>
           </>
         }
       />
 
-      {hasCommandHub ? (
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Cuenta activa</p>
-              <h3>{planetLabel}</h3>
-              <p>Tu centro de mando esta listo para continuar desde la colonia principal.</p>
+      {hasCommandHub && worldEntry ? (
+        planet ? (
+          <div className="home-overview-layout">
+            <PlanetOverviewPanel civilizationLabel="Civilizacion activa" planet={planet} />
+            <QueueSummaryPanels planet={planet} />
+          </div>
+        ) : (
+          <UiCard className="panel">
+            <div className="figma-section-header">
+              <div>
+                <p className="eyebrow">{isPlanetLoading ? "Cargando" : "Planeta"}</p>
+                <h3>{isPlanetLoading ? "Preparando resumen" : "Resumen no disponible"}</h3>
+                <p>{planetError ?? "La cuenta esta lista, pero el planeta actual todavia no devolvio datos visibles."}</p>
+              </div>
+              <UiBadge tone={planetError ? "warn" : "neutral"}>{isPlanetLoading ? "En curso" : "Revisar"}</UiBadge>
             </div>
-            <UiBadge tone="good">Sesion lista</UiBadge>
-          </div>
-          <div className="home-account-summary">
-            <p>El acceso se comprueba con la cuenta actual antes de abrir las cabinas de juego.</p>
-          </div>
-          <div className="selection-chip-row">
-            <Link className="selection-chip selection-chip-active" to={continueUrl}>
-              Continuar al mando
-            </Link>
-            <Link className="selection-chip" to={buildGalaxyUrl(worldEntry.civilizationId, null, worldEntry.planetId)}>
-              Ver galaxia
-            </Link>
-          </div>
-        </UiCard>
+          </UiCard>
+        )
       ) : (
         <UiCard className="panel">
           <div className="figma-section-header">
@@ -64,7 +102,7 @@ export function HomePage() {
               <p>
                 {isLoading
                   ? "Estamos revisando si ya hay una cuenta activa en este navegador."
-                  : "Entra con tu cuenta o registra un nuevo comandante para crear tu primer mundo."}
+                  : "Entra con tu cuenta o crea una cuenta para fundar tu primer mundo."}
               </p>
             </div>
             <UiBadge tone={isLoading ? "neutral" : "good"}>{isLoading ? "En curso" : "Listo"}</UiBadge>
@@ -74,7 +112,7 @@ export function HomePage() {
               Entrar
             </Link>
             <Link className="selection-chip" to={buildRegisterUrl()}>
-              Registrar comandante
+              Crear cuenta
             </Link>
           </div>
         </UiCard>

@@ -826,6 +826,33 @@ select {
   color: color-mix(in srgb, var(--ve-color-text) 82%, var(--ve-color-muted));
 }
 
+.home-overview-layout {
+  display: grid;
+  gap: var(--ve-space-4);
+  grid-template-columns: minmax(320px, 0.95fr) minmax(0, 1.05fr);
+  align-items: start;
+}
+
+.home-planet-panel {
+  display: grid;
+  gap: var(--ve-space-4);
+}
+
+.home-planet-visual {
+  grid-template-columns: minmax(128px, 0.42fr) minmax(0, 1fr);
+}
+
+.home-planet-facts,
+.home-queue-grid {
+  display: grid;
+  gap: var(--ve-space-3);
+}
+
+.home-queue-card {
+  align-content: start;
+  padding: 16px;
+}
+
 .strategic-cockpit-top,
 .strategic-system-layout,
 .technical-disclosure-body {
@@ -3015,6 +3042,7 @@ select {
   .fleet-cockpit-layout,
   .fleet-action-stage,
   .fleet-selected-grid,
+  .home-overview-layout,
   .figma-map-layout {
     grid-template-columns: minmax(0, 1fr);
   }
