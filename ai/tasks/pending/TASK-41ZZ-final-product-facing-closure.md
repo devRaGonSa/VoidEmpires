@@ -19,6 +19,8 @@ Close Block 41.
 ## Context
 This is the final closure task after all Block 41 work is complete, validated, committed, and pushed.
 
+Queue note: this task must run only after the remaining pending Block 41 product-page tasks are complete. It was requeued after those tasks because closure cannot be accepted while other `TASK-41*` files remain pending.
+
 ## Implementation steps
 
 1. Verify all `TASK-41*` tasks are complete and move them to `ai/tasks/done`.
