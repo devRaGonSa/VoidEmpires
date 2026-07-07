@@ -493,6 +493,7 @@ if (-not (Test-Path -LiteralPath $materializationGuardPath)) {
 
 $materializationContent = Get-Content -LiteralPath $materializationGuardPath -Raw
 $requiredMaterializationFragments = @(
+  "{operatorMode ? (",
   "Development QA",
   "Materializa solo ordenes vencidas en backend",
   "Las ordenes no vencidas se mantienen abiertas.",
@@ -507,6 +508,42 @@ foreach ($fragment in $requiredMaterializationFragments) {
 
 if ($missingMaterializationFragments.Count -gt 0) {
   throw "Frontend materialization copy guard failed:`n$($missingMaterializationFragments -join [Environment]::NewLine)"
+}
+
+$operatorMaterializationPattern = '(?s)\{operatorMode \? \(\s*<div className=\{isConstructionRoute \? "construction-devtools-secondary" : undefined\}>\s*<DevelopmentToolsPanel'
+if ($materializationContent -notmatch $operatorMaterializationPattern) {
+  throw "Frontend materialization operator guard failed: DevelopmentToolsPanel must stay behind operatorMode."
+}
+
+$forbiddenProductMaterializationCopy = @(
+  @{
+    Path = "src/VoidEmpires.Frontend/src/pages/ShipyardPage.tsx"
+    Fragments = @(
+      "Usa la accion Development QA de Planeta",
+      "materializar ordenes vencidas",
+      "Tras materializar desde Planeta"
+    )
+  }
+)
+
+$visibleMaterializationLeaks = New-Object System.Collections.Generic.List[string]
+foreach ($requirement in $forbiddenProductMaterializationCopy) {
+  $path = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($requirement.Path)"))
+  if (-not (Test-Path -LiteralPath $path)) {
+    $visibleMaterializationLeaks.Add("Missing product materialization guard file '$($requirement.Path)'.")
+    continue
+  }
+
+  $content = Get-Content -LiteralPath $path -Raw
+  foreach ($fragment in $requirement.Fragments) {
+    if ($content -like "*$fragment*") {
+      $visibleMaterializationLeaks.Add("$($requirement.Path) contains forbidden product materialization copy: $fragment")
+    }
+  }
+}
+
+if ($visibleMaterializationLeaks.Count -gt 0) {
+  throw "Frontend visible materialization guard failed:`n$($visibleMaterializationLeaks -join [Environment]::NewLine)"
 }
 
 Write-Host "Frontend copy regression check passed." -ForegroundColor Green

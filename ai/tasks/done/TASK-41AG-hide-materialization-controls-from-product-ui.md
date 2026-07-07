@@ -3,7 +3,7 @@
 ---
 id: TASK-41AG
 title: Hide materialization controls from product UI
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

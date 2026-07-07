@@ -1294,7 +1294,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                 </UiBadge>
                 <UiBadge tone="warn">
                   {planet.actionSummary.completeDueSupported
-                    ? "Cierre disponible"
+                    ? "Cola pendiente"
                     : planet.actionSummary.display?.completeDueActionStatusLabel ?? "No disponible en esta cabina"}
                 </UiBadge>
               </div>
@@ -1310,14 +1310,13 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                 value={String(planet.actionSummary.dueConstructionCount)}
               />
               <PlanetDataRow
-                label="Completar vencidas"
+                label="Revision de cola"
                 value={planet.actionSummary.display?.completeDueActionReasonLabel ?? planet.actionSummary.completeDueActionReason}
               />
             </div>
             {!planet.actionSummary.completeDueSupported ? (
               <p className="figma-panel-note">
-                El cierre de construcciones vencidas sigue fuera de esta cabina porque
-                el servicio actual resuelve ese paso en lote global.
+                La cola vencida se resuelve fuera de esta vista; la cabina solo muestra el estado confirmado.
               </p>
             ) : null}
 

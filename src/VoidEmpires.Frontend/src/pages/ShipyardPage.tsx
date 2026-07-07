@@ -963,8 +963,8 @@ export function ShipyardPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Cola orbital</p>
-                <h3>Produccion visible y readiness temporal</h3>
-                <p>La cola muestra progreso o historial visible desde backend sin inventar cierres locales.</p>
+                <h3>Produccion visible y estado temporal</h3>
+                <p>La cola muestra progreso o historial confirmado sin cerrar producciones desde esta cabina.</p>
               </div>
               <div className="figma-badge-row">
                 <UiBadge tone={shipyard.queue.length > 0 ? "warn" : "neutral"}>
@@ -989,7 +989,7 @@ export function ShipyardPage() {
                 <div className="figma-data-list">
                   <div className="figma-data-row"><span>Ordenes visibles</span><strong>{formatCountLabel(shipyard.queue.length, "orden", "ordenes")}</strong></div>
                   <div className="figma-data-row"><span>Produccion vencida</span><strong>{dueQueueCount > 0 ? `${dueQueueCount} detectadas` : "No detectada"}</strong></div>
-                  <div className="figma-data-row"><span>Cierre seguro</span><strong>{hasSafeShipyardCompleteDue ? "Disponible con confirmacion" : "Usar Planeta para QA"}</strong></div>
+                  <div className="figma-data-row"><span>Cierre de cola</span><strong>{hasSafeShipyardCompleteDue ? "Pendiente de operador" : "No disponible desde esta cabina"}</strong></div>
                 </div>
                 <div className="selection-chip-row">
                   <button type="button" className="planet-action-button-blocked" disabled>
@@ -997,7 +997,7 @@ export function ShipyardPage() {
                   </button>
                 </div>
                 <p className="figma-panel-note">
-                  Esta cabina no ejecuta materializacion directa. Usa la accion Development QA de Planeta para materializar ordenes vencidas y volver a leer stock, cola y readiness desde backend.
+                  Esta cabina no cierra producciones vencidas directamente; solo muestra la cola y el stock confirmados por la lectura actual.
                 </p>
               </section>
               <section className="subpanel figma-subpanel">
@@ -1009,14 +1009,14 @@ export function ShipyardPage() {
                   <UiBadge tone="neutral">{cockpitStatusLabels.readOnly}</UiBadge>
                 </div>
                 <ul className="stack-list compact-list">
-                  <li>Una orden vencida significa que el backend la detecta; esta cabina espera una lectura posterior para mostrar stock o historial actualizado.</li>
+                  <li>Una orden vencida significa que su ventana de produccion ya paso; esta cabina espera una lectura posterior para mostrar stock o historial actualizado.</li>
                   <li>Las fechas muestran la ventana visible de produccion para que un futuro refresh refleje cambios reales.</li>
                   <li>La cola vacia sigue siendo un estado util y no se rellena con opciones artificiales.</li>
                 </ul>
               </section>
             </div>
             {shipyard.queue.length === 0 ? (
-              <p className="figma-panel-note">No hay ordenes orbitales abiertas ni historial visible en este planeta. Tras materializar desde Planeta, este panel debe seguir mostrando solo estado confirmado.</p>
+              <p className="figma-panel-note">No hay ordenes orbitales abiertas ni historial visible en este planeta. Cuando una lectura futura confirme cambios, este panel mostrara solo estado confirmado.</p>
             ) : (
               <div className="readiness-grid">
                 {shipyard.queue.map((item) => (
