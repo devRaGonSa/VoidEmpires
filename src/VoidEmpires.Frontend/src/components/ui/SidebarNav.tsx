@@ -3,7 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 export interface SidebarNavItem {
   label: string;
   to?: string;
-  state?: "playable" | "map" | "readiness" | "readOnly" | "future";
+  state?: "playable" | "map" | "account" | "readiness" | "readOnly" | "future";
 }
 
 interface SidebarNavProps {
@@ -16,6 +16,8 @@ function getSidebarStateNote(state: SidebarNavItem["state"]) {
       return "Activo";
     case "map":
       return "Mapa";
+    case "account":
+      return "Cuenta";
     case "readiness":
       return "Estado";
     case "readOnly":

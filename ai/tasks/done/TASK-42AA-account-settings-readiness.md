@@ -3,7 +3,7 @@
 ---
 id: TASK-42AA
 title: Account settings readiness
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

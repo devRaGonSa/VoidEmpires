@@ -26,6 +26,11 @@ const HomePage = lazy(async () => {
   return { default: module.HomePage };
 });
 
+const AccountSettingsPage = lazy(async () => {
+  const module = await import("./pages/AccountSettingsPage");
+  return { default: module.AccountSettingsPage };
+});
+
 const PlanetPage = lazy(async () => {
   const module = await import("./pages/PlanetPage");
   return { default: module.PlanetPage };
@@ -112,6 +117,8 @@ function getRouteStatusLabel(pathname: string) {
       return "Galaxia";
     case "/onboarding":
       return "Nueva partida";
+    case "/account-settings":
+      return "Cuenta";
     case "/planet":
       return "Planeta";
     case "/construction":
@@ -169,6 +176,7 @@ export default function App() {
     return [
       { label: "Inicio", to: "/", state: "playable" },
       { label: "Nueva partida", to: "/onboarding", state: "playable" },
+      { label: "Cuenta", to: "/account-settings", state: "account" },
       { label: "Galaxia", to: buildGalaxyUrl(civilizationId, systemId, planetId), state: "map" },
       { label: "Planeta", to: buildPlanetUrl(civilizationId, planetId), state: "playable" },
       { label: "Construccion", to: buildConstructionUrl(civilizationId, planetId), state: "playable" },
@@ -195,6 +203,7 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/galaxy" element={<StrategicMapPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/account-settings" element={<AccountSettingsPage />} />
           <Route path="/planet" element={<PlanetPage />} />
           <Route path="/construction" element={<ConstructionPage />} />
           {specializedPlanetModuleRoutes.map((route) => (

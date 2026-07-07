@@ -278,6 +278,7 @@ select {
 
 .sidebar-nav-item-playable,
 .sidebar-nav-item-map,
+.sidebar-nav-item-account,
 .sidebar-nav-item-readiness,
 .sidebar-nav-item-readOnly {
   border-color: color-mix(in srgb, var(--ve-color-border) 28%, transparent);
@@ -290,6 +291,10 @@ select {
 
 .sidebar-nav-item-readiness {
   border-color: color-mix(in srgb, var(--ve-color-warning) 24%, transparent);
+}
+
+.sidebar-nav-item-account {
+  border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 24%, transparent);
 }
 
 .sidebar-nav-item-readOnly {
@@ -2487,6 +2492,57 @@ select {
   background: color-mix(in srgb, var(--ve-color-bg) 72%, black);
   color: color-mix(in srgb, var(--ve-color-text) 68%, var(--ve-color-muted));
   font-weight: 600;
+}
+
+.account-settings-summary-grid,
+.account-settings-action-grid {
+  display: grid;
+  gap: var(--ve-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-top: 14px;
+}
+
+.account-settings-summary-card,
+.account-settings-action-card {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 16px;
+  border-radius: var(--ve-radius-md);
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 34%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 38%, transparent);
+}
+
+.account-settings-summary-card span {
+  color: var(--ve-color-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.account-settings-summary-card strong,
+.account-settings-action-card strong {
+  overflow-wrap: anywhere;
+}
+
+.account-settings-action-card {
+  justify-content: space-between;
+}
+
+.account-settings-action-card p {
+  margin: 6px 0 0;
+}
+
+.account-settings-action-card button {
+  justify-self: start;
+  min-height: 40px;
+  padding: 0 var(--ve-space-4);
+  border-radius: var(--ve-radius-sm);
+  border: 1px dashed color-mix(in srgb, var(--ve-color-border) 42%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 76%, black);
+  color: color-mix(in srgb, var(--ve-color-text) 68%, var(--ve-color-muted));
+  cursor: not-allowed;
 }
 
 .alliance-summary-panel {
