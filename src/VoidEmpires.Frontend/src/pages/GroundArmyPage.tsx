@@ -2,7 +2,6 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchGroundArmyUiState } from "../api/groundArmyApi";
 import { CockpitHero } from "../components/CockpitHero";
-import { PageContextStrip } from "../components/PageContextStrip";
 import { PlanetDataRow } from "../components/PlanetModuleLayout";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -126,52 +125,6 @@ export function GroundArmyPage() {
           </>
         }
       />
-
-      {queryCivilizationId ? (
-        <PageContextStrip
-          eyebrow="Cabina terrestre"
-          title={groundArmy?.planetName ?? "Preparacion terrestre"}
-          purpose="Guarnicion, poblacion, estructuras y opciones de preparacion visibles sin activar reclutamiento directo, combate ni invasion."
-          statusLabel={posture}
-          statusTone={groundArmy?.isOwnedByRequestingCivilization ? "good" : "warn"}
-          contextItems={[
-            { label: "Civilizacion", value: formatCompactGuid(activeCivilizationId) },
-            {
-              label: "Planeta",
-              value: groundArmy?.planetName ?? formatCompactGuid(selectedPlanetId) ?? "Sin planeta enfocado",
-              detail: groundArmy?.solarSystemName ?? undefined,
-            },
-            {
-              label: "Control",
-              value: groundArmy?.controlStatusLabel ?? "Sin lectura",
-              detail: recommendedNextStep,
-            },
-            {
-              label: "Guarnicion",
-              value: groundArmy ? `${groundArmy.readinessSummary.totalGarrisonQuantity} unidades` : "Sin lectura",
-              detail: groundArmy ? `${groundArmy.readinessSummary.garrisonUnitTypes} tipos` : "Carga pendiente",
-            },
-          ]}
-          resourceItems={[
-            { label: "Preparacion", value: cockpitStatusLabels.preparation, tone: "good" },
-            { label: "Entrenamiento", value: "Pendiente de activacion", tone: "warn" },
-            { label: "Combate", value: "Pendiente de activacion", tone: "neutral" },
-          ]}
-          primaryAction={
-            <div className="selection-chip-row">
-              <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>
-                Abrir Planeta
-              </Link>
-              <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
-                Abrir Construccion
-              </Link>
-              <Link className="selection-chip" to={buildDefensesUrl(activeCivilizationId, selectedPlanetId)}>
-                Abrir Defensas
-              </Link>
-            </div>
-          }
-        />
-      ) : null}
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">

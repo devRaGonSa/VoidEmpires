@@ -2,7 +2,6 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchDefensesUiState } from "../api/defenseApi";
 import { CockpitHero } from "../components/CockpitHero";
-import { PageContextStrip } from "../components/PageContextStrip";
 import { PlaceholderAsset } from "../components/PlaceholderAsset";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
@@ -242,43 +241,6 @@ export function DefensesPage() {
         session={bannerSession}
         onClear={() => setLocalSessionCleared(true)}
       />
-
-      {defenses ? (
-        <PageContextStrip
-          eyebrow="Cabina defensiva"
-          title={defenses.planetName}
-          purpose="Defensa planetaria, estructuras locales y enlace seguro hacia Construccion."
-          statusLabel={protectionPosture}
-          statusTone={defenses.isOwnedByRequestingCivilization ? "good" : "warn"}
-          contextItems={[
-            { label: "Sistema", value: defenses.solarSystemName },
-            { label: "Control", value: defenses.isOwnedByRequestingCivilization ? "Colonia propia" : defenses.ownerCivilizationName ?? "Sin control local" },
-            { label: "Siguiente paso", value: recommendedNextStep },
-            {
-              label: "Cola defensiva",
-              value: defenses.queue.length > 0 ? `${defenses.queue.length} ordenes visibles` : "Sin cola",
-              detail: `${defenses.protectionSummary.dueQueueItemCount} vencidas`,
-            },
-          ]}
-          resourceItems={defenses.stockpile.slice(0, 4).map((resource) => ({
-            label: formatResourceType(resource.resourceType),
-            value: String(resource.quantity),
-          }))}
-          primaryAction={
-            <div className="selection-chip-row">
-              <Link className="selection-chip selection-chip-active" to={buildConstructionUrl(activeCivilizationId, defenses.planetId)}>
-                Construccion
-              </Link>
-              <Link className="selection-chip" to={buildPlanetUrl(activeCivilizationId, defenses.planetId)}>
-                Planeta
-              </Link>
-              <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, null, defenses.planetId)}>
-                Galaxia
-              </Link>
-            </div>
-          }
-        />
-      ) : null}
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">

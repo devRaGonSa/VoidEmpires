@@ -5,7 +5,6 @@ import type { EnqueueResearchOrderFailureResponse, ResearchApiErrorCode } from "
 import { CockpitHero } from "../components/CockpitHero";
 import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { GameModal } from "../components/GameModal";
-import { PageContextStrip } from "../components/PageContextStrip";
 import { PlaceholderAsset } from "../components/PlaceholderAsset";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import type { ResearchTechnology, ResearchUiState } from "../utils/researchPresentation";
@@ -438,36 +437,6 @@ export function ResearchPage() {
         session={bannerSession}
         onClear={() => setLocalSessionCleared(true)}
       />
-
-      {uiState ? (
-        <PageContextStrip
-          eyebrow="Cabina de investigacion"
-          title={uiState.selectedPlanetName ?? "Laboratorio imperial"}
-          purpose="Cola de investigacion, tecnologias disponibles y bloqueos visibles para el contexto actual."
-          statusLabel={`${catalogSummary.availableCount} disponibles`}
-          statusTone={catalogSummary.availableCount > 0 ? "good" : "warn"}
-          contextItems={[
-            { label: "Civilizacion", value: "Contexto activo" },
-            { label: "Laboratorio", value: uiState.selectedPlanetName ?? "Sin planeta seleccionado" },
-            { label: "Cola de investigacion", value: `${uiState.queue.length} ordenes`, detail: `${dueQueueCount} listas para revisar` },
-            { label: "Tecnologias bloqueadas", value: String(catalogSummary.blockedCount), detail: "Razones en catalogo" },
-          ]}
-          primaryAction={
-            <div className="selection-chip-row">
-              <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>
-                Planeta
-              </Link>
-              <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
-                Construccion
-              </Link>
-              {selectedPlanetId ? <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>Flotas</Link> : null}
-              <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, null, selectedPlanetId)}>
-                Galaxia
-              </Link>
-            </div>
-          }
-        />
-      ) : null}
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">

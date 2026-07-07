@@ -5,7 +5,6 @@ import type { ShipyardApiErrorCode } from "../api/shipyardTypes";
 import { CockpitHero } from "../components/CockpitHero";
 import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { GameModal } from "../components/GameModal";
-import { PageContextStrip } from "../components/PageContextStrip";
 import { PlaceholderAsset } from "../components/PlaceholderAsset";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
@@ -612,45 +611,6 @@ export function ShipyardPage() {
         session={bannerSession}
         onClear={() => setLocalSessionCleared(true)}
       />
-
-      {shipyard ? (
-        <PageContextStrip
-          eyebrow="Cabina de astillero"
-          title={shipyard.planetName}
-          purpose="Astillero orbital, cola de produccion y stock local desde la lectura actual."
-          statusLabel={shipyard.actionAvailability.enqueue.reasonLabel}
-          statusTone={readinessTone}
-          contextItems={[
-            { label: "Sistema", value: shipyard.solarSystemName },
-            { label: "Control", value: shipyard.isOwnedByRequestingCivilization ? "Propio" : shipyard.ownerCivilizationName ?? "Sin control local" },
-            { label: "Cola de produccion", value: shipyard.queue.length > 0 ? formatCountLabel(shipyard.queue.length, "orden", "ordenes") : "Sin cola", detail: `${dueQueueCount} listas para revisar` },
-            { label: "Stock orbital", value: stockDigest },
-          ]}
-          resourceItems={shipyard.stockpile.slice(0, 4).map((resource) => ({
-            label: formatResourceLabel(resource.resourceType),
-            value: String(resource.quantity),
-          }))}
-          primaryAction={
-            <div className="selection-chip-row">
-              <Link className="selection-chip selection-chip-active" to={buildFleetsUrl(activeCivilizationId, shipyard.planetId)}>
-                Flotas
-              </Link>
-              <Link className="selection-chip" to={buildPlanetUrl(activeCivilizationId, shipyard.planetId)}>
-                Planeta
-              </Link>
-              <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, shipyard.planetId)}>
-                Construccion
-              </Link>
-              <Link className="selection-chip" to={buildResearchUrl(activeCivilizationId, shipyard.planetId)}>
-                Investigacion
-              </Link>
-              <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, null, shipyard.planetId)}>
-                Galaxia
-              </Link>
-            </div>
-          }
-        />
-      ) : null}
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">
