@@ -22,6 +22,7 @@ function Get-ExistingDevQaScriptPaths {
         "dev-qa-prepare-orbital-production-ui-state.ps1",
         "dev-qa-fleet-read-state.ps1",
         "dev-qa-prepare-playable-session-state.ps1",
+        "dev-qa-register-test-user.ps1",
         "dev-qa-materialize-due-queues.ps1",
         "dev-qa-get-playable-session-diagnostics.ps1",
         "dev-qa-playable-loop-guide.ps1"

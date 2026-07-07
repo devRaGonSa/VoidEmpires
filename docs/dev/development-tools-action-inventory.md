@@ -25,6 +25,12 @@ It is not a product feature list. It records the safety contract for the current
 | `/fleets` | Travel estimate | Calculates route, cost, and readiness preview. | Main Fleet command panel. | No modal required because it is a read-only preview. | No authoritative state change is expected. | Accepted read-only command preview. |
 | `/fleets` | Create transfer, cancel transfer, complete due transfer | Mutates Fleet transfer rows in the Development database. | Dedicated Fleet controlled-mutation panel, not Development tools. | In-panel explicit confirmation and checkbox per `fleet-controlled-mutation-checklist.md`; do not promote to generic QA tools. | Re-read Fleet UI state after success before treating transfer state as current. | Tracked by the dedicated Fleet checklist. |
 
+## Scripted QA Helpers
+
+| Helper | Backend effect | Safety contract | Status |
+|---|---|---|---|
+| `scripts/dev-qa-register-test-user.ps1` | Calls `POST /api/accounts/register` to create a local QA account plus its initial player world through the normal account bootstrap path. | Generates unique local email/name/password values by default, accepts `BaseUrl`, does not require committed credentials, does not apply seeds, and never prints a caller-supplied password. | Accepted local QA helper. |
+
 ## Explicit Non-Actions
 
 - Market buying, selling, auctions, player trading, and route execution remain unavailable.

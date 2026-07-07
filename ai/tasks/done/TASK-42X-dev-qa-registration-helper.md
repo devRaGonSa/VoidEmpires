@@ -3,7 +3,7 @@
 ---
 id: TASK-42X
 title: Dev QA registration helper
-status: pending
+status: done
 type: tooling
 team: platform
 supporting_teams: []
