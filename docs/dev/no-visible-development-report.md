@@ -60,3 +60,17 @@ This report does not approve new normal-UI Development copy. Future Development,
 This report also does not claim final production authorization hardening, account recovery/confirmation UX, public ranking, market transactions, alliance mutations, combat, invasion, interception, SQL Server deployment, or final fleet movement productization.
 
 No browser/manual QA, screenshot review, final image generation, SQL Server connection, migration apply, generated SQL execution, seed apply, or gameplay expansion was performed for the final closure validation.
+
+## Block 43 Visual Review Direction
+
+The next product-surface pass must also remove normal-UI concepts that make the game feel like an internal control dashboard rather than a browser strategy game. The corrected contract is:
+
+- Public account entry is standalone: `/login` and `/register` sit outside the authenticated empire shell.
+- Authenticated `Inicio` is the current planet overview, not a generic start or command-launch page.
+- `Planeta` is not a competing overview. It should be merged, redirected, or aliased to the same current-planet experience.
+- Construction, Research, Shipyard, Defense, and Ground Army present action catalogs with costs, requirements, availability, queue state, and supported actions.
+- Gameplay pages avoid duplicated module navigation cards when the shell navigation already provides those destinations.
+
+Forbidden normal gameplay concepts for this pass are: `cabina`, `contexto guardado`, `dar contexto`, `cargar mando`, `siguientes cabinas`, `registrar comandante` inside authenticated gameplay, generic `continuar` gameplay CTA, and duplicated module navigation cards.
+
+This section is a visual review contract only. It is not browser QA, screenshot acceptance, or proof that the current UI already satisfies the contract.

@@ -6,6 +6,15 @@ The visual state sandbox is a development-only inspection surface for the curren
 
 It is intended to validate data shape and visual interpretation before introducing a real renderer such as Three.js, Babylon.js, or a custom WebGL layer.
 
+It is not the canonical gameplay shell and must not drive public auth or OGame-like page layout decisions. The Block 43 visual contract belongs to the normal frontend:
+
+- `/login` and `/register` are standalone public account-entry pages.
+- Authenticated `Inicio` is the current planet overview.
+- `Planeta` should be merged, redirected, or aliased to that overview rather than duplicated.
+- Construction, Research, Shipyard, Defense, and Ground Army are focused action catalogs.
+
+The sandbox may keep development inspection language because it is gated tooling, but that language must not leak into normal player-facing pages.
+
 ## Sandbox route
 
 When the web project is running with development surfaces enabled, open:

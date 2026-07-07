@@ -47,6 +47,19 @@ Recorded on 2026-07-07 for `TASK-42AJ`:
 
 This was a non-visual automated validation pass. It did not perform browser/manual QA, did not connect to SQL Server, did not apply migrations or generated SQL, did not apply seeds, did not add real SQL Server credentials, and did not grant production readiness.
 
+## Block 43 Visual Review Contract
+
+Recorded on 2026-07-07 for `TASK-43A`:
+
+- The current UI must move away from an internal orchestrator/productivity-dashboard feel and toward a browser strategy game surface inspired by OGame-like information density.
+- `/login` and `/register` must be standalone public account pages outside the authenticated game shell. They should not render the empire sidebar, resource/status bar, or gameplay navigation as their primary frame.
+- `Inicio` becomes the authenticated current planet overview after account resolution. It should summarize the selected/current planet, resources, active queues, and direct gameplay actions.
+- `Planeta` should be merged into `Inicio` as the same current-planet overview. If the route remains for compatibility, `/planet` should redirect or alias to the `Inicio` experience instead of duplicating a second overview page.
+- Construction, Research, Shipyard, Defense, and Ground Army pages must read as focused action catalogs: dense four-column-capable catalog grids, clear costs, requirements, availability, queue/action state, and a direct primary action where the backend supports it.
+- Normal gameplay pages must not present internal workflow concepts as player-facing copy: `cabina`, `contexto guardado`, `dar contexto`, `cargar mando`, `siguientes cabinas`, `registrar comandante` inside gameplay pages, generic `continuar` gameplay CTA, or duplicated module navigation cards.
+
+This contract documents direction only. It does not claim browser/manual QA, screenshot acceptance, final art acceptance, SQL Server acceptance, or new gameplay behavior.
+
 ## Ready For Local Demo
 
 - One canonical demo path exists in `docs/dev/single-product-demo-guide.md`.

@@ -1,6 +1,14 @@
 # Cockpit Copy Guidelines
 
-Use this note when writing or revising visible UI copy for `Galaxy`, `Planet`, `Construction`, `Research`, `Shipyard`, `Fleets`, `Defenses`, and `Ground Army`.
+Use this note when writing or revising visible UI copy for `Galaxy`, `Inicio`, `Planet`, `Construction`, `Research`, `Shipyard`, `Fleets`, `Defenses`, and `Ground Army`.
+
+## Block 43 UI Contract
+
+- Public auth pages use account-entry language and must stand outside the authenticated game shell.
+- Authenticated `Inicio` is the current planet overview: resources, queues, planet state, and direct gameplay routes.
+- `Planeta` should not be a separate competing overview. Keep it only as a compatibility alias or redirect when needed.
+- Construction, Research, Shipyard, Defense, and Ground Army pages are action catalogs, not module launch hubs.
+- Gameplay copy should feel like a browser strategy game: direct state, costs, requirements, availability, queue pressure, and action outcomes.
 
 ## Layer Rules
 
@@ -25,8 +33,11 @@ Action terms:
 - `Preparar orden`
 - `Revisar orden`
 - `Confirmar`
-- `Abrir cabina`
 - `Volver a Galaxia`
+- `Construir`
+- `Investigar`
+- `Fabricar`
+- `Entrenar`
 
 Secondary labels:
 
@@ -46,6 +57,13 @@ Secondary labels:
 
 Avoid these in heroes, first-viewport summaries, visible action cards, and navigation labels unless the copy is inside diagnostics:
 
+- `cabina`
+- `contexto guardado`
+- `dar contexto`
+- `cargar mando`
+- `siguientes cabinas`
+- `registrar comandante` inside authenticated gameplay pages
+- generic `continuar` as a gameplay CTA
 - `endpoint`
 - `DTO`
 - `payload`
@@ -61,7 +79,7 @@ Avoid these in heroes, first-viewport summaries, visible action cards, and navig
 - `seed`
 - `cockpit-validation`
 
-Account entry should use account/world language such as `cuenta`, `comandante`, `mundo inicial`, or `centro de mando`. Do not present Development seed profiles or local-session/new-game concepts as the normal product path.
+Account entry should use account/world language such as `cuenta`, `comandante`, `mundo inicial`, or `centro de mando`. Inside authenticated gameplay, prefer planet/empire action language and avoid registration copy. Do not present Development seed profiles or local-session/new-game concepts as the normal product path.
 
 ## Allowed Limitation Patterns
 
