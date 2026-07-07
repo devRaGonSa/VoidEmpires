@@ -3,7 +3,7 @@
 ---
 id: TASK-42AF
 title: Product readiness doc update
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams: []

@@ -4,7 +4,7 @@ Date: 2026-07-07
 
 This report records the automated product-surface status for normal VoidEmpires UI. It distinguishes internal technical references that remain in source/docs from copy allowed in the default product experience.
 
-This is not a browser or manual visual QA report. No screenshot inspection, production login, SQL Server acceptance, or gameplay integration acceptance is claimed here.
+This is not a browser or manual visual QA report. No screenshot inspection, final production authorization, SQL Server acceptance, or gameplay integration acceptance is claimed here.
 
 ## Automated Guard Status
 
@@ -34,6 +34,8 @@ The final Block 41 page pass covered Market, Alliance, Ranking, and Espionage af
 The default product-mode contract remains:
 
 - Product mode is the default for normal route visits.
+- `/register` and `/login` are product account-entry surfaces; `/onboarding` is only a compatibility alias to registration, not a separate local/new-game model.
+- Development seed profiles remain QA/operator fixtures and are not presented as normal player registration.
 - Operator/internal mode must be explicitly revealed through the documented local mechanisms.
 - Operator mode is a visibility layer only; it is not authorization and does not weaken confirmations.
 
@@ -55,6 +57,6 @@ The remaining Development references are allowed only in these categories:
 
 This report does not approve new normal-UI Development copy. Future Development, QA, endpoint, localhost, backend profile, raw payload, or prototype wording must stay in docs, scripts, implementation identifiers, or explicitly gated operator surfaces. If a new exception is required, it should be added narrowly to `scripts/check-frontend-copy-regressions.ps1` with a matching reason.
 
-This report also does not claim final production authentication, public ranking, market transactions, alliance mutations, combat, invasion, interception, SQL Server deployment, or final fleet movement productization.
+This report also does not claim final production authorization hardening, account recovery/confirmation UX, public ranking, market transactions, alliance mutations, combat, invasion, interception, SQL Server deployment, or final fleet movement productization.
 
 No browser/manual QA, screenshot review, final image generation, SQL Server connection, migration apply, generated SQL execution, seed apply, or gameplay expansion was performed for the final closure validation.

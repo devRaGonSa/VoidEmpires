@@ -2,7 +2,7 @@
 
 Status date: 2026-07-07
 
-VoidEmpires currently has a coherent Development-only product shell suitable for local demo and QA. Normal route navigation and primary cockpit surfaces now default to product-facing copy: development/test/prototype wording, backend URLs, endpoint details, localhost references, and raw technical diagnostics are not part of the normal first-render UI. It is not production-ready: final database/model consolidation, final image and asset integration, production authentication, combat, final fleet movement, market transactions, alliance mutations, and screenshot-backed browser acceptance remain open.
+VoidEmpires currently has a coherent Development-only product shell suitable for local demo and QA. Normal route navigation and primary cockpit surfaces now default to product-facing copy: development/test/prototype wording, backend URLs, endpoint details, localhost references, and raw technical diagnostics are not part of the normal first-render UI. It is not production-ready: final database/model consolidation, final image and asset integration, production auth hardening, combat, final fleet movement, market transactions, alliance mutations, and screenshot-backed browser acceptance remain open.
 
 ## Readiness Summary
 
@@ -26,10 +26,11 @@ Recorded on 2026-07-07 for `TASK-42A`:
 - Account registration now creates the Identity user, `PlayerProfile`, initial `Civilization`, home planet, `PlanetOwnership`, starting resources, and production profile through the account bootstrap path.
 - `/register` is the primary product entry. `/onboarding` remains as an alias to registration.
 - Development seed profiles are not part of real player entry. `cockpit-validation` remains an internal QA fixture for repeatable cockpit validation and must not be presented as normal onboarding.
-- Login, `/api/accounts/me`, logout, cookie configuration, guarded frontend routes, and registration-to-home-world navigation are implemented.
+- Login, `/api/accounts/me`, logout, HTTP-only Identity cookie configuration, guarded frontend routes, and registration-to-home-world navigation are implemented.
 - The current registration contract is: register account, create/link player profile, create civilization, assign or generate home planet, create ownership, initialize economy/production state, login, then navigate to the generated home planet route.
+- The current multiplayer coexistence contract is: independent registrations create distinct player profiles, civilizations, home planets, and active ownership rows, while using the same starting resource and production baseline.
 - Local playable-session storage remains a navigation convenience only and is not authentication, authorization, ownership, role, token, cookie, or account state.
-- This audit still does not claim final gameplay authorization, production hardening, browser QA, or manual SQL Server registration validation.
+- This audit still does not claim final gameplay authorization, account recovery/confirmation product UX, production deployment hardening, browser QA, or manual SQL Server registration validation.
 
 ## Ready For Local Demo
 
@@ -59,12 +60,12 @@ These flows are usable for local QA and demo, but they are not production featur
 
 Recorded on 2026-07-07:
 
-- `/` is now a product-facing home route for continuing a saved local session, starting a new game, or entering the galaxy.
+- `/` is now a product-facing home route for account entry, continuing an account-backed route context, or entering the galaxy.
 - The global shell, sidebar, continuation banner, local session copy, confirmation modals, empty/error states, catalog placeholders, and resource labels have been polished away from development/test/prototype wording in normal UI.
 - Internal diagnostics, materialization controls, action manifests, and backend/operator details remain available only as hidden or explicit operator surfaces; they are still technical and are not accepted as production gameplay.
 - Safe local access to hidden operator surfaces is documented only in `docs/dev/operator-mode.md`.
 - The expanded frontend copy regression guard now fails on forbidden development/test/prototype wording in product-surface page and component copy while preserving narrow exceptions for operator-only code and documentation.
-- This update did not add gameplay behavior, production authentication, final assets, browser screenshot acceptance, SQL Server schema apply, or seed apply.
+- This update did not add gameplay behavior, final production authorization, final assets, browser screenshot acceptance, SQL Server schema apply, or seed apply.
 - Manual visual QA remains deferred to `docs/dev/deferred-visual-qa-master-checklist.md`.
 - The final no-visible-development report is recorded in `docs/dev/no-visible-development-report.md`.
 
@@ -160,7 +161,7 @@ No integration tests are configured for this documentation-only prep update.
 
 ## Product-Blocking Dependencies
 
-1. Production authentication and active civilization resolution.
+1. Production authorization hardening and active civilization resolution beyond the current one-initial-civilization account flow.
 2. Final authorization/ownership enforcement for cockpit context.
 3. Final database/model consolidation and migration policy.
 4. Final visual QA with captured screenshots across all major routes.
@@ -260,4 +261,4 @@ Recorded on 2026-06-17 for `TASK-37BV`:
 
 Decision: ready for Development-only local product-shell demo after the validation commands above pass.
 
-Decision not granted: production readiness, final visual acceptance, final database/model readiness, final art/asset readiness, combat readiness, final movement readiness, market readiness, alliance readiness, or production-auth readiness.
+Decision not granted: production readiness, final visual acceptance, final database/model readiness, final art/asset readiness, combat readiness, final movement readiness, market readiness, alliance readiness, or production authorization hardening.
