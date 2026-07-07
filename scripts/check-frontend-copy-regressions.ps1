@@ -500,7 +500,7 @@ $requiredSafetyCopy = @(
   @{
     Path = "src/VoidEmpires.Frontend/src/pages/FleetsPage.tsx"
     Fragments = @(
-      "La estimacion sigue en solo lectura y nunca reserva escuadras ni gasta recursos.",
+      "La estimacion revisa una ruta sin reservar escuadras ni gastar recursos.",
       "Flotas no promueve automaticamente stock orbital a grupo operativo."
     )
   }

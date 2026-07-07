@@ -49,7 +49,7 @@ import {
   presentCreateTransferResult,
 } from "../utils/fleetCommandPresentation";
 
-const knownDevelopmentPlanetIds = [
+const knownSeedPlanetIds = [
   "40000000-0000-0000-0000-000000000001",
   "40000000-0000-0000-0000-000000000002",
   "40000000-0000-0000-0000-000000000003",
@@ -127,7 +127,7 @@ function formatFleetDestinationOptionLabel(planetId: string) {
 function formatFleetResourceDigest(context: FleetResourceContext | null | undefined) {
   const balances = context?.balances ?? [];
   if (balances.length === 0) {
-    return "Sin reservas visibles en esta lectura";
+    return "Sin reservas visibles para este planeta";
   }
 
   return balances
@@ -289,11 +289,11 @@ export function FleetsPage() {
         : "Escuadras estacionadas"
       : "Sin escuadras visibles"
     : queryCivilizationId
-      ? "Pendiente de lectura"
+      ? "Pendiente de carga"
       : "Sin civilizacion cargada";
 
   const destinationOptions = useMemo(() => {
-    const candidates = new Set<string>(knownDevelopmentPlanetIds);
+    const candidates = new Set<string>(knownSeedPlanetIds);
 
     uiState?.groups.forEach((group) => {
       candidates.add(group.currentPlanetId);
@@ -730,7 +730,7 @@ export function FleetsPage() {
     }
 
     if (!hasCompleteDueAction) {
-      setCompleteDueTransferNetworkError("La API de desarrollo no expone completar vencidos en este entorno.");
+      setCompleteDueTransferNetworkError("La accion para cerrar llegadas vencidas no esta disponible en este entorno.");
       return;
     }
 
@@ -929,7 +929,7 @@ export function FleetsPage() {
         badges={
           <>
             <UiBadge>Resumen tactico</UiBadge>
-            <UiBadge>Lectura / readiness</UiBadge>
+            <UiBadge>Escuadras estacionadas</UiBadge>
             <UiBadge>Detalle enfocado</UiBadge>
             <UiBadge tone="warn">Ordenes protegidas</UiBadge>
           </>
@@ -945,7 +945,7 @@ export function FleetsPage() {
         <PageContextStrip
           eyebrow="Cabina orbital"
           title={focusedPlanetId ? formatPlanetPrimaryLabel(focusedPlanetId) : "Civilizacion cargada"}
-          purpose="Grupos orbitales visibles, reservas compartidas y handoff seguro hacia Astillero sin inventar stock ni combate."
+          purpose="Grupos orbitales visibles, reservas compartidas y enlace seguro hacia Astillero sin inventar stock ni combate."
           statusLabel={fleetContextStatus}
           statusTone={summary.groups > 0 ? "good" : "neutral"}
           contextItems={[
@@ -1032,10 +1032,10 @@ export function FleetsPage() {
             <UiBadge tone="warn">Protegido</UiBadge>
           </div>
           <ul className="stack-list compact-list fleet-dev-rules-list">
-            <li>La estimacion sigue en solo lectura y nunca reserva escuadras ni gasta recursos.</li>
+            <li>La estimacion revisa una ruta sin reservar escuadras ni gastar recursos.</li>
             <li>Crear traslado exige una estimacion vigente y una confirmacion explicita.</li>
             <li>Anular traslado exige un traslado activo visible y una confirmacion explicita.</li>
-            <li>Cerrar llegadas exige una ruta vencida visible; dividir y fusionar siguen como conceptos bloqueados.</li>
+            <li>Cerrar llegadas exige una ruta vencida visible; dividir y fusionar siguen pendientes de activacion.</li>
           </ul>
         </UiCard>
       </div>
@@ -1071,7 +1071,7 @@ export function FleetsPage() {
             <UiBadge tone="good">Memoria local</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Este enlace abre Flotas con ids locales de navegacion. No crea misiones, movimientos ni combate.
+            Este enlace abre Flotas con el contexto guardado de la ultima colonia. No crea misiones nuevas ni combate.
           </p>
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
@@ -1092,8 +1092,8 @@ export function FleetsPage() {
             <UiBadge tone="warn">Cero seguro</UiBadge>
           </div>
           <ul className="stack-list">
-            <li>Los contadores seguiran a cero hasta que otras herramientas creen escuadras.</li>
-            <li>Los manifiestos siguen visibles como contexto contractual para futuras validaciones.</li>
+            <li>Los contadores seguiran a cero hasta que otros sistemas creen escuadras.</li>
+            <li>El diagnostico secundario conserva las capacidades tecnicas para futuras validaciones.</li>
           </ul>
         </UiCard>
       )}
@@ -1210,12 +1210,12 @@ export function FleetsPage() {
               <UiCard className="panel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Vista previa no mutante</p>
-                    <h3>Plan de mando futuro</h3>
+                    <p className="eyebrow">Vista previa de mando</p>
+                    <h3>Movimiento pendiente de activacion</h3>
                     <p>Resumen de una posible orden usando solo el estado ya leido; no calcula ruta, no reserva escuadras y no crea misiones.</p>
                   </div>
                   <div className="figma-badge-row">
-                    <UiBadge tone="good">Solo lectura</UiBadge>
+                    <UiBadge tone="good">Revision segura</UiBadge>
                     <UiBadge tone="warn">No ejecuta</UiBadge>
                   </div>
                 </div>
@@ -1243,10 +1243,10 @@ export function FleetsPage() {
                   <section className="subpanel figma-subpanel">
                     <div className="figma-section-header">
                       <div>
-                        <p className="eyebrow">Readiness</p>
+                        <p className="eyebrow">Senales</p>
                         <h4>Senales de comando</h4>
                       </div>
-                      <UiBadge>Metadata actual</UiBadge>
+                      <UiBadge>Estado actual</UiBadge>
                     </div>
                     <div className="figma-data-list">
                       {previewReadinessItems.slice(0, 4).map((item) => (
@@ -1262,7 +1262,7 @@ export function FleetsPage() {
                         <p className="eyebrow">Movimiento futuro</p>
                         <h4>Orden completa</h4>
                       </div>
-                      <UiBadge tone="warn">Requiere contrato final</UiBadge>
+                      <UiBadge tone="warn">Pendiente de activacion</UiBadge>
                     </div>
                     <p className="figma-panel-note">La vista previa no sustituye la estimacion real ni la confirmacion protegida del flujo de traslado.</p>
                   </section>
@@ -1283,7 +1283,7 @@ export function FleetsPage() {
             <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">Readiness desde Astillero</p>
+                  <p className="eyebrow">Estado desde Astillero</p>
                   <h3>Que puede confirmar Flotas ahora mismo</h3>
                   <p>Flotas relee grupos visibles y reservas del planeta actual, pero no inventa stock orbital ni convierte produccion en una escuadra por su cuenta.</p>
                 </div>
@@ -1303,14 +1303,14 @@ export function FleetsPage() {
                 <section className="subpanel figma-subpanel">
                   <div className="figma-data-list">
                     <FleetDataRow label="Reservas visibles" value={formatFleetResourceDigest(focusedPlanetResourceContext)} />
-                    <FleetDataRow label="Stock orbital local" value="No expuesto por esta API de Flotas" />
-                    <FleetDataRow label="Lectura segura" value="Grupos y stockpile por planeta" />
+                    <FleetDataRow label="Stock orbital local" value="No expuesto en Flotas" />
+                    <FleetDataRow label="Estado seguro" value="Grupos y reservas por planeta" />
                     <FleetDataRow label="Siguiente cabina" value="Astillero para cola y stock local" />
                   </div>
                 </section>
               </div>
               <ul className="stack-list compact-list">
-                <li>Si Astillero acaba de gastar recursos, el cambio visible aqui debe aparecer en `resourceContexts[]` del mismo planeta.</li>
+                <li>Si Astillero acaba de gastar recursos, el cambio visible aqui debe aparecer como reservas del mismo planeta.</li>
                 <li>Si no aparece una escuadra nueva, eso no implica fallo: Flotas no promueve automaticamente stock orbital a grupo operativo.</li>
                 <li>La asignacion desde stock orbital a una escuadra sigue fuera del alcance seguro de este bloque.</li>
               </ul>
@@ -1331,7 +1331,7 @@ export function FleetsPage() {
                   <h3>Fronteras orbitales futuras</h3>
                   <p>La cabina muestra que piezas existen hoy y que decisiones siguen pendientes antes de convertir stock o ejecutar combate.</p>
                 </div>
-                <UiBadge tone="warn">Sin nueva mutacion</UiBadge>
+                <UiBadge tone="warn">Sin accion nueva</UiBadge>
               </div>
               <div className="readiness-grid">
                 <section className="subpanel figma-subpanel">
@@ -1352,7 +1352,7 @@ export function FleetsPage() {
                     </div>
                     <UiBadge tone="neutral">Concepto bloqueado</UiBadge>
                   </div>
-                  <p className="figma-panel-note">Las capacidades pueden aparecer en el manifiesto tecnico, pero no se elevan a accion jugable aqui.</p>
+                  <p className="figma-panel-note">Las capacidades pueden aparecer en el diagnostico tecnico, pero no se elevan a accion jugable aqui.</p>
                 </section>
                 <section className="subpanel figma-subpanel">
                   <div className="figma-section-header">
@@ -1360,7 +1360,7 @@ export function FleetsPage() {
                       <p className="eyebrow">Conflicto</p>
                       <h4>Intercepcion y combate</h4>
                     </div>
-                    <UiBadge tone="neutral">Lectura solamente</UiBadge>
+                    <UiBadge tone="neutral">Solo informativo</UiBadge>
                   </div>
                   <p className="figma-panel-note">Las senales de intercepcion son contexto operativo; no abren combate, persecucion ni orden hostil.</p>
                 </section>
@@ -1455,7 +1455,7 @@ export function FleetsPage() {
               </form>
               <div className="figma-badge-row">
                 <UiBadge>Estimacion</UiBadge>
-                <UiBadge tone="good">Solo lectura</UiBadge>
+                <UiBadge tone="good">Revision segura</UiBadge>
                 <UiBadge tone="warn">Ordenes protegidas</UiBadge>
               </div>
               {estimateStaleMessage ? <p className="error-text">{estimateStaleMessage}</p> : null}
@@ -1566,7 +1566,7 @@ export function FleetsPage() {
                       <h4>{createTransferResult.label}</h4>
                     </div>
                     <UiBadge tone={createTransferResult.tone}>
-                      {createTransferResult.tone === "good" ? "Mutacion aplicada" : "No aplicada"}
+                      {createTransferResult.tone === "good" ? "Orden aplicada" : "No aplicada"}
                     </UiBadge>
                   </div>
                   <p>{createTransferResult.summary}</p>
@@ -1594,7 +1594,7 @@ export function FleetsPage() {
                       <h4>{cancelTransferResult.label}</h4>
                     </div>
                     <UiBadge tone={cancelTransferResult.tone}>
-                      {cancelTransferResult.tone === "good" ? "Mutacion aplicada" : "No aplicada"}
+                      {cancelTransferResult.tone === "good" ? "Orden aplicada" : "No aplicada"}
                     </UiBadge>
                   </div>
                   <p>{cancelTransferResult.summary}</p>
@@ -1622,7 +1622,7 @@ export function FleetsPage() {
                       <h4>{completeDueTransferResult.label}</h4>
                     </div>
                     <UiBadge tone={completeDueTransferResult.tone}>
-                      {completeDueTransferResult.tone === "good" ? "Mutacion aplicada" : "No aplicada"}
+                      {completeDueTransferResult.tone === "good" ? "Orden aplicada" : "No aplicada"}
                     </UiBadge>
                   </div>
                   <p>{completeDueTransferResult.summary}</p>
@@ -1708,7 +1708,7 @@ export function FleetsPage() {
                         <p className="figma-panel-note">Faltan marcas horarias legibles para decidir progreso o completado desde esta tarjeta.</p>
                       ) : null}
                       {!presentation.canCancel && !presentation.canCompleteDue ? (
-                        <p className="figma-panel-note">Esta ruta sigue visible, pero ninguna mutacion controlada esta habilitada todavia.</p>
+                        <p className="figma-panel-note">Esta ruta sigue visible, pero ninguna accion controlada esta habilitada todavia.</p>
                       ) : null}
                       <div className="transfer-confirmation-actions">
                         <button
@@ -1766,13 +1766,13 @@ export function FleetsPage() {
               </UiCard>
             ) : null}
 
-            {uiState?.interceptionNotes?.length ? (
+            {operatorMode && uiState?.interceptionNotes?.length ? (
               <UiCard className="panel fleet-technical-panel">
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Tecnico secundario</p>
                     <h3>Alertas de intercepcion</h3>
-                    <p>Se mantienen visibles como lectura operativa, sin entrar en el flujo principal de ordenes.</p>
+                    <p>Se mantienen visibles como referencia operativa, sin entrar en el flujo principal de ordenes.</p>
                   </div>
                   <UiBadge tone="warn">Solo informativo</UiBadge>
                 </div>

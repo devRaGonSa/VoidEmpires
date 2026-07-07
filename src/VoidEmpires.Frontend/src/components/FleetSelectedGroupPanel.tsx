@@ -308,7 +308,7 @@ export function FleetSelectedGroupPanel({
                   </p>
                 </div>
                 <div className="figma-badge-row">
-                  <UiBadge tone="warn">Accion de desarrollo</UiBadge>
+                  <UiBadge tone="warn">Accion protegida</UiBadge>
                   <UiBadge tone="warn">No reembolsa recursos</UiBadge>
                 </div>
               </div>
