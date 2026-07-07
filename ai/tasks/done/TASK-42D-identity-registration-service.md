@@ -3,7 +3,7 @@
 ---
 id: TASK-42D
 title: Identity registration service
-status: pending
+status: done
 type: backend
 team: platform
 supporting_teams: []

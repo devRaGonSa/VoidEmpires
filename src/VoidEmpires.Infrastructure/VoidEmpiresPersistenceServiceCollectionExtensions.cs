@@ -217,6 +217,7 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
             .AddTokenProvider<DataProtectorTokenProvider<VoidEmpiresUser>>(TokenOptions.DefaultProvider);
 
         services.AddScoped<IdentityAccountService>();
+        services.AddScoped<IAccountRegistrationService, IdentityAccountRegistrationService>();
         services.AddScoped<IUserRegistrationService>(provider => provider.GetRequiredService<IdentityAccountService>());
         services.AddScoped<IEmailConfirmationService>(provider => provider.GetRequiredService<IdentityAccountService>());
 
