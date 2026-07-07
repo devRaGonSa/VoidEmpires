@@ -13,6 +13,7 @@ import {
   buildMarketUrl,
   buildPlanetUrl,
   buildRankingUrl,
+  buildRegisterUrl,
   buildSpecializedModuleUrl,
 } from "./utils/routeUrls";
 
@@ -86,9 +87,9 @@ const RankingPage = lazy(async () => {
   return { default: module.RankingPage };
 });
 
-const OnboardingPage = lazy(async () => {
-  const module = await import("./pages/OnboardingPage");
-  return { default: module.OnboardingPage };
+const RegisterPage = lazy(async () => {
+  const module = await import("./pages/RegisterPage");
+  return { default: module.RegisterPage };
 });
 
 const ModuleCabinPage = lazy(async () => {
@@ -115,8 +116,9 @@ function getRouteStatusLabel(pathname: string) {
       return "Inicio";
     case "/galaxy":
       return "Galaxia";
+    case "/register":
     case "/onboarding":
-      return "Nueva partida";
+      return "Registro";
     case "/account-settings":
       return "Cuenta";
     case "/planet":
@@ -175,7 +177,7 @@ export default function App() {
 
     return [
       { label: "Inicio", to: "/", state: "playable" },
-      { label: "Nueva partida", to: "/onboarding", state: "playable" },
+      { label: "Registro", to: buildRegisterUrl(), state: "playable" },
       { label: "Cuenta", to: "/account-settings", state: "account" },
       { label: "Galaxia", to: buildGalaxyUrl(civilizationId, systemId, planetId), state: "map" },
       { label: "Planeta", to: buildPlanetUrl(civilizationId, planetId), state: "playable" },
@@ -202,7 +204,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/galaxy" element={<StrategicMapPage />} />
-          <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/onboarding" element={<RegisterPage />} />
           <Route path="/account-settings" element={<AccountSettingsPage />} />
           <Route path="/planet" element={<PlanetPage />} />
           <Route path="/construction" element={<ConstructionPage />} />

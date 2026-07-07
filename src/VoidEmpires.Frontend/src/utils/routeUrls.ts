@@ -73,6 +73,10 @@ export function buildRankingUrl(civilizationId?: string | null) {
   return buildUrl("/ranking", { civilizationId });
 }
 
+export function buildRegisterUrl() {
+  return "/register";
+}
+
 export function buildSpecializedModuleUrl(
   module: PlanetModule,
   civilizationId: string,

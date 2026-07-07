@@ -3,7 +3,7 @@
 ---
 id: TASK-42M
 title: Registration page replaces onboarding
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
