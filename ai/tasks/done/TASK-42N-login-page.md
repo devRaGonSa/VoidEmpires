@@ -3,7 +3,7 @@
 ---
 id: TASK-42N
 title: Login page
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

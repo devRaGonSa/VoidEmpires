@@ -10,6 +10,7 @@ import {
   buildEspionageUrl,
   buildFleetsUrl,
   buildGalaxyUrl,
+  buildLoginUrl,
   buildMarketUrl,
   buildPlanetUrl,
   buildRankingUrl,
@@ -92,6 +93,11 @@ const RegisterPage = lazy(async () => {
   return { default: module.RegisterPage };
 });
 
+const LoginPage = lazy(async () => {
+  const module = await import("./pages/LoginPage");
+  return { default: module.LoginPage };
+});
+
 const ModuleCabinPage = lazy(async () => {
   const module = await import("./pages/ModuleCabinPage");
   return { default: module.ModuleCabinPage };
@@ -119,6 +125,8 @@ function getRouteStatusLabel(pathname: string) {
     case "/register":
     case "/onboarding":
       return "Registro";
+    case "/login":
+      return "Entrar";
     case "/account-settings":
       return "Cuenta";
     case "/planet":
@@ -178,6 +186,7 @@ export default function App() {
     return [
       { label: "Inicio", to: "/", state: "playable" },
       { label: "Registro", to: buildRegisterUrl(), state: "playable" },
+      { label: "Entrar", to: buildLoginUrl(), state: "account" },
       { label: "Cuenta", to: "/account-settings", state: "account" },
       { label: "Galaxia", to: buildGalaxyUrl(civilizationId, systemId, planetId), state: "map" },
       { label: "Planeta", to: buildPlanetUrl(civilizationId, planetId), state: "playable" },
@@ -206,6 +215,7 @@ export default function App() {
           <Route path="/galaxy" element={<StrategicMapPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/onboarding" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/account-settings" element={<AccountSettingsPage />} />
           <Route path="/planet" element={<PlanetPage />} />
           <Route path="/construction" element={<ConstructionPage />} />

@@ -77,6 +77,10 @@ export function buildRegisterUrl() {
   return "/register";
 }
 
+export function buildLoginUrl() {
+  return "/login";
+}
+
 export function buildSpecializedModuleUrl(
   module: PlanetModule,
   civilizationId: string,
