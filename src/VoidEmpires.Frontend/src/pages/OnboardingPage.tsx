@@ -1,10 +1,10 @@
 import { FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
-import { savePlayableSession } from "../utils/playableSession";
+import { isOperatorMode, savePlayableSession } from "../utils/playableSession";
 import {
   buildConstructionUrl,
   buildGalaxyUrl,
@@ -44,6 +44,12 @@ const accountAuthReadinessRows = [
   },
 ] as const;
 
+const defaultOnboardingLimitations = [
+  "La partida abre una colonia inicial lista para administrar.",
+  "Las cabinas conservan el contexto de juego al navegar.",
+  "Las ordenes importantes siguen pidiendo confirmacion explicita.",
+] as const;
+
 function toSpanishOnboardingError(message: string) {
   switch (message.trim()) {
     case "Display name is required.":
@@ -57,13 +63,34 @@ function toSpanishOnboardingError(message: string) {
     case "Civilization name is already in use.":
       return "Ese nombre de civilizacion ya esta en uso.";
     case "Persistence is not configured.":
-      return "El backend no tiene persistencia configurada para crear el inicio jugable.";
+      return "No se puede preparar la partida ahora mismo.";
     default:
       return message;
   }
 }
 
+function toProductOnboardingLimitation(message: string) {
+  const normalized = toSpanishOnboardingError(message);
+  const lower = normalized.toLowerCase();
+
+  if (lower.includes("desarrollo")) {
+    return "La partida usa un contexto local preparado para esta cabina.";
+  }
+
+  if (lower.includes("sesion") || lower.includes("auth")) {
+    return "La memoria local solo conserva la navegacion en este navegador.";
+  }
+
+  if (normalized.includes("civilizationId") || normalized.includes("planetId")) {
+    return "Las cabinas conservan el contexto de juego al navegar.";
+  }
+
+  return normalized;
+}
+
 export function OnboardingPage() {
+  const [searchParams] = useSearchParams();
+  const operatorMode = isOperatorMode(searchParams);
   const [displayName, setDisplayName] = useState("");
   const [civilizationName, setCivilizationName] = useState("");
   const [homePlanetName, setHomePlanetName] = useState("");
@@ -71,11 +98,7 @@ export function OnboardingPage() {
   const [error, setError] = useState<string | null>(null);
   const [technicalDetail, setTechnicalDetail] = useState<string | null>(null);
   const [createdStart, setCreatedStart] = useState<CreatedPlayableStart | null>(null);
-  const [limitations, setLimitations] = useState<string[]>([
-    "Flujo solo para desarrollo.",
-    "No crea una sesion autenticada.",
-    "Las cabinas seguiran navegando con `civilizationId` y `planetId` en la URL.",
-  ]);
+  const [limitations, setLimitations] = useState<string[]>([...defaultOnboardingLimitations]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -94,7 +117,7 @@ export function OnboardingPage() {
       });
 
       if (result.httpStatus !== 201 || !result.response?.succeeded) {
-        const backendError = result.response?.errors[0] ?? "El backend no pudo crear el inicio jugable.";
+        const backendError = result.response?.errors[0] ?? "No se pudo crear el inicio jugable.";
         setError(toSpanishOnboardingError(backendError));
         setTechnicalDetail(`Backend response: HTTP ${result.httpStatus}${result.bodyParseFailed ? " sin cuerpo JSON legible." : "."}`);
         return;
@@ -102,12 +125,12 @@ export function OnboardingPage() {
 
       setLimitations(
         result.response.limitations.length > 0
-          ? result.response.limitations.map(toSpanishOnboardingError)
-          : limitations,
+          ? result.response.limitations.map(toProductOnboardingLimitation)
+          : [...defaultOnboardingLimitations],
       );
 
       if (!result.response.civilizationId || !result.response.homePlanetId) {
-        setError("El backend creo el inicio, pero no devolvio el contexto minimo para abrir Planeta.");
+        setError("La partida se preparo, pero no se pudo abrir Planeta automaticamente.");
         setTechnicalDetail("Faltan civilizationId o homePlanetId en la respuesta.");
         return;
       }
@@ -138,7 +161,7 @@ export function OnboardingPage() {
         setTechnicalDetail("El inicio fue creado, pero el navegador no permitio guardar la memoria local de navegacion.");
       }
     } catch (requestError) {
-      setError("No se pudo contactar con el backend de Development para crear el inicio jugable.");
+      setError("No se pudo preparar la partida inicial. Reintenta en unos momentos.");
       setTechnicalDetail(requestError instanceof Error ? requestError.message : "Error desconocido.");
     } finally {
       setIsSubmitting(false);
@@ -148,19 +171,20 @@ export function OnboardingPage() {
   return (
     <section className="page-grid">
       <CockpitHero
-        versionLabel="Onboarding v1"
-        title="Crear inicio jugable"
-        description="Crea un punto de partida para tu imperio y abre Planeta con el contexto inicial de la colonia."
-        developmentNote="No es un login, no guarda credenciales y no resuelve una sesion persistente de produccion."
+        versionLabel="Nueva partida"
+        title="Comenzar partida"
+        description="Crea tu comandante, nombra una civilizacion y funda el mundo inicial desde el que administraras el imperio."
+        developmentNote="La partida se abre en Planeta cuando la colonia inicial queda lista."
         badges={
           <>
-            <UiBadge tone="warn">Development-only</UiBadge>
-            <UiBadge>Backend autoritativo</UiBadge>
-            <UiBadge>Sin autenticacion real</UiBadge>
+            <UiBadge tone="good">Nuevo imperio</UiBadge>
+            <UiBadge>Colonia inicial</UiBadge>
+            <UiBadge>Confirmacion local</UiBadge>
           </>
         }
       />
 
+      {operatorMode ? (
       <UiCard className="panel">
         <div className="figma-section-header">
           <div>
@@ -182,22 +206,23 @@ export function OnboardingPage() {
           ))}
         </div>
       </UiCard>
+      ) : null}
 
       <UiCard className="panel strategic-loader-panel">
         <div className="figma-section-header">
           <div>
-            <p className="eyebrow">Nuevo inicio</p>
-            <h3>Preparar comandante y colonia base</h3>
+            <p className="eyebrow">Nueva partida</p>
+            <h3>Preparar comandante y mundo inicial</h3>
           </div>
-          <UiBadge tone="warn">Sin login</UiBadge>
+          <UiBadge tone="good">Comienzo</UiBadge>
         </div>
         <p className="figma-panel-note">
-          El backend crea un inicio aislado para desarrollo y devuelve los ids necesarios para abrir la cabina de Planeta sin tocar la civilizacion sembrada de validacion.
+          Elige los nombres principales y abre tu primera colonia con una ruta lista hacia Planeta, Construccion, Investigacion y Astillero.
         </p>
 
         <form className="query-form" onSubmit={handleSubmit}>
           <label className="field">
-            <span>Nombre del jugador</span>
+            <span>Crear comandante</span>
             <input
               type="text"
               value={displayName}
@@ -207,7 +232,7 @@ export function OnboardingPage() {
             />
           </label>
           <label className="field">
-            <span>Nombre de la civilizacion</span>
+            <span>Nombrar civilizacion</span>
             <input
               type="text"
               value={civilizationName}
@@ -217,7 +242,7 @@ export function OnboardingPage() {
             />
           </label>
           <label className="field">
-            <span>Planeta inicial opcional</span>
+            <span>Fundar mundo inicial</span>
             <input
               type="text"
               value={homePlanetName}
@@ -227,15 +252,20 @@ export function OnboardingPage() {
             />
           </label>
           <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creando inicio..." : "Crear inicio jugable"}
+            {isSubmitting ? "Fundando mundo..." : "Comenzar partida"}
           </button>
         </form>
 
         {error ? <p className="error-text">{error}</p> : null}
-        {technicalDetail ? <p className="figma-panel-note">{technicalDetail}</p> : null}
+        {operatorMode && technicalDetail ? (
+          <details className="technical-disclosure">
+            <summary>Detalle tecnico de operador</summary>
+            <p className="figma-panel-note">{technicalDetail}</p>
+          </details>
+        ) : null}
         {error ? (
           <p className="figma-panel-note">
-            Arranca la API local y reintenta; si el backend responde con error, el detalle tecnico queda visible arriba.
+            Revisa los nombres elegidos y vuelve a intentarlo.
           </p>
         ) : null}
 
@@ -249,7 +279,7 @@ export function OnboardingPage() {
               <UiBadge tone="good">Contexto listo</UiBadge>
             </div>
             <p className="figma-panel-note">
-              La colonia inicial ya existe en el backend. La memoria local solo conserva los enlaces de navegacion para este navegador.
+              La colonia inicial esta lista. La memoria local conserva los enlaces de navegacion para este navegador.
             </p>
             <div className="selection-chip-row">
               <Link className="selection-chip selection-chip-active" to={createdStart.planetUrl}>
@@ -265,6 +295,7 @@ export function OnboardingPage() {
                 Astillero
               </Link>
             </div>
+            {operatorMode ? (
             <details className="technical-disclosure">
               <summary>Detalles de navegacion local</summary>
               <div className="figma-data-list">
@@ -276,6 +307,7 @@ export function OnboardingPage() {
                 <div className="figma-data-row"><span>planetId</span><strong>{createdStart.planetId}</strong></div>
               </div>
             </details>
+            ) : null}
           </div>
         ) : null}
 

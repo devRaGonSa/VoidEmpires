@@ -3,7 +3,7 @@
 ---
 id: TASK-41J
 title: Onboarding product start flow
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
