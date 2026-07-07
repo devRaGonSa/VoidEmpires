@@ -3,7 +3,7 @@
 ---
 id: TASK-41F
 title: Hide endpoint and backend cards
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

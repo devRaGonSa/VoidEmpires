@@ -30,7 +30,7 @@ const accountAuthReadinessRows = [
   {
     label: "Cuenta",
     value: "Registro y confirmacion existen en backend",
-    detail: "Esta pantalla no crea credenciales ni usa el endpoint de registro.",
+    detail: "Esta pantalla no crea credenciales ni abre el flujo de registro.",
   },
   {
     label: "Sesion",

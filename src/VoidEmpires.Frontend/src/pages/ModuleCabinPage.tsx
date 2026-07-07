@@ -395,7 +395,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
             <div>
               <p className="eyebrow">Contrato tipado</p>
               <h3>Estado normalizado del astillero</h3>
-              <p>La cabina ya consume un modelo frontend estable en lugar de depender del payload bruto del endpoint.</p>
+              <p>La cabina ya consume un modelo de estado estable para presentar la informacion del astillero.</p>
             </div>
             <UiBadge tone={recommendedShipyardAsset?.statusKey === "Available" ? "good" : "warn"}>
               {recommendedShipyardAsset ? getShipyardPrimaryAction(recommendedShipyardAsset) : "Sin recomendacion"}

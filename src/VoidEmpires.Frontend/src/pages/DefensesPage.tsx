@@ -604,7 +604,7 @@ export function DefensesPage() {
                   <UiBadge tone="good">{availableOptions.length}</UiBadge>
                 </div>
                 <p>Las preparaciones viables se revisan aqui, pero la confirmacion y el enqueue siguen perteneciendo a Construccion.</p>
-                {!hasSafeDefenseEnqueue ? <p className="figma-panel-note">La auditoria actual no encontro ningun `POST /api/dev/defenses/...` seguro. Defensas consume solo contratos de readiness derivados de Construccion.</p> : null}
+                {!hasSafeDefenseEnqueue ? <p className="figma-panel-note">La vista actual no encontro una orden defensiva segura propia. Defensas consume solo contratos de preparacion derivados de Construccion.</p> : null}
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">

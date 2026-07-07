@@ -253,6 +253,22 @@ foreach ($match in @($globalShellForbiddenMatches)) {
   $copyHygieneFailures.Add(("{0}:{1}: global shell must stay product-facing and hide development/backend copy: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
 }
 
+$visibleEndpointDetailPatterns = @(
+  "http://localhost",
+  "https://localhost",
+  "URL base del backend",
+  "Perfil esperado del backend",
+  "Endpoints Development",
+  "/api/dev/",
+  "POST /api/",
+  "GET /api/",
+  "payload bruto del endpoint"
+)
+$visibleEndpointDetailMatches = Select-String -Path ($primaryUiFiles | Select-Object -ExpandProperty FullName) -Pattern $visibleEndpointDetailPatterns -SimpleMatch -CaseSensitive:$false
+foreach ($match in @($visibleEndpointDetailMatches)) {
+  $copyHygieneFailures.Add(("{0}:{1}: endpoint URLs, localhost, backend profile, and raw endpoint details must not appear in normal UI: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
+}
+
 if ($copyHygieneFailures.Count -gt 0) {
   throw "Frontend copy hygiene guard failed:`n$($copyHygieneFailures -join [Environment]::NewLine)"
 }
