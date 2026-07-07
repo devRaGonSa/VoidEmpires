@@ -49,6 +49,7 @@ Recorded on 2026-07-07:
 - `/` is now a product-facing home route for continuing a saved local session, starting a new game, or entering the galaxy.
 - The global shell, sidebar, continuation banner, local session copy, confirmation modals, empty/error states, catalog placeholders, and resource labels have been polished away from development/test/prototype wording in normal UI.
 - Internal diagnostics, materialization controls, action manifests, and backend/operator details remain available only as hidden or explicit operator surfaces; they are still technical and are not accepted as production gameplay.
+- Safe local access to hidden operator surfaces is documented only in `docs/dev/operator-mode.md`.
 - The expanded frontend copy regression guard now fails on forbidden development/test/prototype wording in product-surface page and component copy while preserving narrow exceptions for operator-only code and documentation.
 - This update did not add gameplay behavior, production authentication, final assets, browser screenshot acceptance, SQL Server schema apply, or seed apply.
 - Manual visual QA remains deferred to `docs/dev/deferred-visual-qa-master-checklist.md`.

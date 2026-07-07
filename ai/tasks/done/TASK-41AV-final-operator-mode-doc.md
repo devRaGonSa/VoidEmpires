@@ -3,7 +3,7 @@
 ---
 id: TASK-41AV
 title: Final operator mode doc
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams:

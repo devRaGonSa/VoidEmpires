@@ -66,6 +66,7 @@ Current final-database readiness status:
 - latest disposable SQL Server replay validation note: `docs/dev/sql-server-disposable-replay-validation.md` now documents the manual disposable-database replay gate for the accepted baseline script, including idempotent second-run verification and post-apply inspection; the gate was not executed, is not automated, does not target `VoidEmpires_Dev`, and does not use `dotnet ef database update`
 - latest Block 41 product-surface documentation note: product-facing UI copy no longer exposes development/test/prototype wording by default, while operator/internal tools remain hidden and technical; accepted SQL Server seeded validation status is unchanged, manual visual QA remains deferred, and no gameplay expansion was added
 - latest Block 41AU subset closure note: `TASK-41A` through `TASK-41AT` are in `ai/tasks/done`; remaining pending Block 41 work is limited to later closure/follow-up tasks. Backend validation for this closure passed with `dotnet build --no-restore` and `dotnet test --no-build`; no browser/manual QA, migration apply, SQL Server action, or gameplay expansion was performed.
+- latest Block 41AV operator-mode note: `docs/dev/operator-mode.md` documents the local-only `?operator=1` and `localStorage["voidempires.operatorMode"] = "1"` reveal mechanisms, while keeping operator tools hidden from normal product flow and explicitly outside production/auth/SQL readiness claims.
 
 ## Application Status
 
