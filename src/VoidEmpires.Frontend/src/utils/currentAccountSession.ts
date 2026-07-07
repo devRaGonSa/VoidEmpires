@@ -95,6 +95,10 @@ export function createCurrentAccountSessionError(message: string): CurrentAccoun
   return createEmptySessionState("error", null, [{ code: "CurrentAccountUnavailable", message, field: null }]);
 }
 
+export function canEnterAccountRoute(state: CurrentAccountSessionState) {
+  return state.status === "ready";
+}
+
 export function getCurrentAccountDisplay(state: CurrentAccountSessionState): CurrentAccountDisplay {
   const worldEntry = getCurrentAccountWorldEntry(state.session);
 

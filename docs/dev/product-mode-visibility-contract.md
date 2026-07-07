@@ -53,14 +53,18 @@ Required behavior for any implementation:
 
 ## Route Requirements
 
-- `/onboarding`: product mode presents a local start flow without `Development-only` or backend details. Operator mode may expose returned IDs and request failures.
-- `/` and `/galaxy`: product mode shows the strategic map and selected context. Operator mode may expose payloads, visual seed, and system/planet diagnostics.
-- `/planet` and `/construction`: product mode shows colony state, construction queue, and guarded order confirmation. Operator mode may expose resource/materialization tools and diagnostics.
+- `/register` and `/login`: product mode presents account entry without internal backend details.
+- `/onboarding`: product mode routes through registration. Operator mode may preserve retained local start diagnostics when explicitly revealed.
+- `/`: product mode guides players to account entry or the current command hub.
+- `/galaxy`: product mode requires a current account before showing strategic map context. Operator mode may expose payloads, visual seed, and system/planet diagnostics.
+- `/planet` and `/construction`: product mode requires a current account before showing colony state, construction queue, and guarded order confirmation. Operator mode may expose resource/materialization tools and diagnostics.
 - `/research`: product mode shows catalog, queue, and guarded research confirmation. Operator mode may expose raw diagnostics and backend acceptance details.
 - `/shipyard`: product mode shows orbital production and queue readiness. Operator mode may expose materialization guidance and raw queue/stock payloads.
 - `/fleets`: product mode shows fleet/readiness summaries. Operator mode may expose transfer tooling, action manifests, tactical IDs, and raw transfer diagnostics.
 - `/defenses` and `/ground-army`: product mode shows readiness and scope boundaries. Operator mode may expose technical IDs and route limitations.
 - `/market`, `/espionage`, `/alliance`, `/ranking`: product mode stays advisory/read-only. Operator mode may expose context IDs, comparison diagnostics, and raw limitations.
+
+Route guards use the backend-backed current account state for normal product navigation. The only retained bypass is the documented operator reveal (`?operator=1` or the local operator flag), which is intended for local QA and does not change backend validation or confirmation requirements.
 
 ## Implementation Guidance For Follow-Ups
 

@@ -1,5 +1,6 @@
-import { Suspense, lazy, useMemo } from "react";
+import { Suspense, lazy, useMemo, type ReactElement } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
+import { AuthRequiredState } from "./components/AuthRequiredState";
 import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
 import { AppShell } from "./components/ui/AppShell";
 import type { SidebarNavItem } from "./components/ui/SidebarNav";
@@ -93,6 +94,11 @@ const RegisterPage = lazy(async () => {
   return { default: module.RegisterPage };
 });
 
+const OnboardingPage = lazy(async () => {
+  const module = await import("./pages/OnboardingPage");
+  return { default: module.OnboardingPage };
+});
+
 const LoginPage = lazy(async () => {
   const module = await import("./pages/LoginPage");
   return { default: module.LoginPage };
@@ -156,6 +162,10 @@ function getRouteStatusLabel(pathname: string) {
   }
 }
 
+function requireAccount(element: ReactElement) {
+  return <AuthRequiredState>{element}</AuthRequiredState>;
+}
+
 export default function App() {
   const location = useLocation();
   const shellStatusItems = useMemo(() => {
@@ -212,18 +222,18 @@ export default function App() {
       <Suspense fallback={<RouteLoadingFallback />}>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/galaxy" element={<StrategicMapPage />} />
+          <Route path="/galaxy" element={requireAccount(<StrategicMapPage />)} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/onboarding" element={<RegisterPage />} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/account-settings" element={<AccountSettingsPage />} />
-          <Route path="/planet" element={<PlanetPage />} />
-          <Route path="/construction" element={<ConstructionPage />} />
+          <Route path="/account-settings" element={requireAccount(<AccountSettingsPage />)} />
+          <Route path="/planet" element={requireAccount(<PlanetPage />)} />
+          <Route path="/construction" element={requireAccount(<ConstructionPage />)} />
           {specializedPlanetModuleRoutes.map((route) => (
             <Route
               key={route.path}
               path={route.path}
-              element={
+              element={requireAccount(
                 route.module === "Research"
                   ? <ResearchPage />
                   : route.module === "Defenses"
@@ -232,15 +242,15 @@ export default function App() {
                       ? <GroundArmyPage />
                       : route.module === "Shipyard"
                         ? <ShipyardPage />
-                        : <ModuleCabinPage route={route} />
-              }
+                        : <ModuleCabinPage route={route} />,
+              )}
             />
           ))}
-          <Route path="/fleets" element={<FleetsPage />} />
-          <Route path="/market" element={<MarketPage />} />
-          <Route path="/espionage" element={<EspionagePage />} />
-          <Route path="/alliance" element={<AlliancePage />} />
-          <Route path="/ranking" element={<RankingPage />} />
+          <Route path="/fleets" element={requireAccount(<FleetsPage />)} />
+          <Route path="/market" element={requireAccount(<MarketPage />)} />
+          <Route path="/espionage" element={requireAccount(<EspionagePage />)} />
+          <Route path="/alliance" element={requireAccount(<AlliancePage />)} />
+          <Route path="/ranking" element={requireAccount(<RankingPage />)} />
         </Routes>
       </Suspense>
     </AppShell>

@@ -3,7 +3,7 @@
 ---
 id: TASK-42R
 title: Route auth guards
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
