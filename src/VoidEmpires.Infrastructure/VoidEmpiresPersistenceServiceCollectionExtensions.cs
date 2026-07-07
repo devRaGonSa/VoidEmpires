@@ -59,6 +59,8 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
         services.AddScoped<CatalogSeedSourceLoader>();
         services.AddScoped<IFinalCatalogSeedService, FinalCatalogSeedService>();
         services.AddScoped<IStartingCivilizationService, StartingCivilizationService>();
+        services.AddScoped<IHomePlanetAllocator, HomePlanetAllocator>();
+        services.AddScoped<IInitialPlayerWorldBootstrapService, InitialPlayerWorldBootstrapService>();
         services.AddScoped<IPlanetColonizationService, PlanetColonizationService>();
         services.AddScoped<IPlanetEconomyTickService, PlanetEconomyTickService>();
         services.AddScoped<IResourceSpendService, ResourceSpendService>();

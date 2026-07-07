@@ -47,6 +47,7 @@ if (developmentEndpointsEnabled)
 }
 
 app.MapGet("/", () => "VoidEmpires");
+app.MapAccountEndpoints();
 app.MapPost("/api/auth/register", async (
     RegisterApiRequest request,
     [FromServices] IServiceProvider services,

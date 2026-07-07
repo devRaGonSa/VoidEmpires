@@ -3,7 +3,7 @@
 ---
 id: TASK-42H
 title: Registration API endpoint
-status: pending
+status: done
 type: backend
 team: platform
 supporting_teams: []
