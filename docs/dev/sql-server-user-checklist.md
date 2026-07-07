@@ -2,7 +2,7 @@
 
 Usa esta lista para validar manualmente `VoidEmpires_Dev`. No pegues usuarios, passwords ni cadenas reales en commits, chats, tickets o documentos.
 
-Estado Block 41: la limpieza de UI producto no cambia este flujo. SQL Server sigue siendo una validacion manual/controlada; no se debe asumir que `VoidEmpires_Dev` existe, no se debe aplicar el script generado automaticamente y no se deben commitear cadenas resueltas ni passwords reales.
+Estado Block 41: la limpieza de UI producto no cambia este flujo. SQL Server sigue siendo una validacion manual/controlada; no se debe asumir que `VoidEmpires_Dev` existe, no se debe aplicar el script generado automaticamente y no se deben commitear cadenas resueltas ni passwords reales. Este repositorio no registra como completados el apply manual del esquema ni una aceptacion de `cockpit-validation` contra SQL Server; tratalos como pendientes salvo evidencia privada del operador fuera del repo.
 
 - [ ] Crear `VoidEmpires_Dev` manualmente en SSMS usando `scripts/sqlserver/create-database.sql` despues de revisarlo.
 - [ ] Configurar la cadena local fuera del repo con `User Id=<USER>` y `Password=<PASSWORD>`.

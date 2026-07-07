@@ -61,6 +61,7 @@ Recorded on 2026-07-07:
 - Decide final queue, resource, stock, fleet, research, market, alliance, and ranking ownership boundaries.
 - Keep ordinary CI/test paths independent of any real operator-managed database; the checked-in provider is still PostgreSQL/Npgsql today, and future SQL Server validation must remain explicitly gated.
 - Block 41 product-surface copy work did not change the accepted SQL Server posture: `VoidEmpires_Dev` remains a manual/operator-managed validation target, the idempotent SQL review script is not auto-applied, and no real SQL password or resolved connection string belongs in the repository.
+- As of the Block 41 product-surface pass, the repository still does not record a completed manual SQL Server schema apply or accepted `cockpit-validation` seed run against SQL Server. Those remain operator-controlled validation steps outside normal `dotnet test`.
 
 ## Final DB Phase Prep Plan
 

@@ -3,7 +3,7 @@
 ---
 id: TASK-41AW
 title: Final SQL Server product readiness note
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams:
