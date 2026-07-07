@@ -3,7 +3,7 @@
 ---
 id: TASK-41AO
 title: Secret scan still green
-status: pending
+status: done
 type: tooling
 team: platform
 supporting_teams: []
