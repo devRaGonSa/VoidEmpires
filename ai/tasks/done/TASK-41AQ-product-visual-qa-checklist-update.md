@@ -3,7 +3,7 @@
 ---
 id: TASK-41AQ
 title: Product visual QA checklist update
-status: pending
+status: done
 type: docs
 team: frontend
 supporting_teams: []

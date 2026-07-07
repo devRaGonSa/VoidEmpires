@@ -20,20 +20,41 @@ Use it with:
 - Status: pending human browser execution.
 - Screenshots: pending capture.
 - Visual acceptance: not yet claimed.
-- Scope: `/onboarding`, `/galaxy`, `/planet`, `/construction`, `/research`, `/shipyard`, `/defenses`, `/ground-army`, `/fleets`, `/market`, `/espionage`, `/alliance`, and `/ranking`.
+- Scope: `/`, `/onboarding`, `/galaxy`, `/planet`, `/construction`, `/research`, `/shipyard`, `/defenses`, `/ground-army`, `/fleets`, `/market`, `/espionage`, `/alliance`, and `/ranking`.
 - Non-scope: production auth, real combat, fleet movement from Shipyard or Planet, exploration missions, WebGL/3D acceptance, and hidden auto-completion.
+
+## Product-Facing Copy Checks
+
+Run these checks with a normal browser session: no `?operator=1` query flag and no `localStorage["voidempires.operatorMode"] = "1"` flag.
+
+- Global shell: confirm header, sidebar, route status, secondary shell status, and loading states do not show `Development`, `Dev`, `QA`, `test`, `prueba`, `prototipo`, `endpoint`, `localhost`, backend profiles, raw payload wording, or provider names.
+- Home route `/`: confirm the first screen offers continue, new game, and galaxy entry without presenting a technical route alias or implementation detail.
+- Onboarding: confirm the start flow reads like a local game start, not production login, and does not expose backend URLs or returned raw ids unless operator mode is explicitly enabled.
+- Planet and Construction: confirm product mode shows colony state, resources, buildings, queue, and guarded confirmations before any diagnostics or operator controls.
+- Research and Shipyard: confirm catalog cards, costs, queues, blocked states, and confirmation modals use product-facing language and do not describe mutation helpers, backend acceptance, or technical complete-due paths as primary gameplay.
+- Readiness pages: confirm Galaxy, Defenses, Ground Army, Fleets, Market, Espionage, Alliance, and Ranking keep honest read-only/readiness copy without development/test/prototype wording or primary-looking unsupported actions.
+- Error and empty states: confirm recovery guidance is player-facing and never asks the user to inspect endpoints, local URLs, payloads, providers, or database details.
+
+## Operator Visibility Checks
+
+These checks verify default product mode only; do not enable operator mode unless the later pass explicitly includes an operator/internal subsection.
+
+- Confirm `DevEndpointNotice`, `DevelopmentToolsPanel`, `DevDiagnosticsPanel`, and `ActionManifestPanel` are not visible on first render or normal route navigation.
+- Confirm materialization controls, action manifests, direct transfer tooling, technical complete-due controls, raw GUID panels, and JSON payload previews are hidden by default.
+- Confirm generated product links do not preserve `operator=1` during normal navigation.
+- If operator mode is intentionally enabled for a secondary pass, confirm those tools remain visibly secondary, technical, and still require explicit confirmation before any state-changing request.
 
 ## Screenshot-Derived Decluttering Checks
 
 These checks come from the user's observed overloaded Planet and Construction screens. This implementation block cleans up the documented issues, but full browser QA remains user-driven until a later manual pass captures and reviews screenshots.
 
 - Global header: confirm it does not show disconnected mock resource bars or static empire values as if they were the selected backend context.
-- Sidebar: confirm playable mutation-capable routes, read-only routes, readiness routes, Development QA helpers, and future/disabled work are grouped or labeled distinctly.
+- Sidebar: confirm playable mutation-capable routes, read-only routes, readiness routes, operator-only helpers, and future/disabled work are grouped or labeled distinctly.
 - Mutating pages: confirm Construction, Research, Shipyard, guarded Fleet transfer actions, and Development materialization controls do not use obsolete primary `solo lectura` copy.
 - Planet hub: confirm primary actions and handoffs are visible before diagnostics, raw ids, endpoint metadata, or deep technical notes.
 - Construction catalog: confirm available and blocked construction options appear without excessive first-viewport scrolling, duplicate planet-summary noise, or debug-first panels.
-- Development tools: confirm QA-only resource/materialization actions are collapsed, secondary, or visually separated from normal gameplay actions.
-- Development actions: confirm any action that mutates Development data opens an explicit review or confirmation modal/flow before the backend request.
+- Operator tools: confirm resource/materialization actions are hidden from product mode, then collapsed, secondary, or visually separated if an operator-only pass explicitly reveals them.
+- Operator actions: confirm any revealed action that mutates local validation data opens an explicit review or confirmation modal/flow before the backend request.
 - Diagnostics: confirm diagnostics remain collapsed by default or clearly secondary, and never dominate the primary workflow.
 - Resource labels: confirm visible resource terms stay coherent as `Creditos`, `Metal`, `Cristal`, `Gas`, with `Energia`, `Deuterio`, and `Poblacion` treated as distinct context terms when shown.
 - Readiness pages: confirm Defensas, Flotas, Mercado, Alianzas, Ranking, Espionaje, and Ground Army keep honest read-only/readiness scope without primary-looking unavailable actions.
@@ -47,60 +68,61 @@ These checks come from the user's observed overloaded Planet and Construction sc
    - Confirm the guide only prints the sequence by default and does not enqueue or materialize anything.
 3. Start the frontend:
    - `npm run dev --prefix src\VoidEmpires.Frontend`
-4. Open `/onboarding`.
-5. Create a fresh Development playable session through the UI.
-6. Verify the success state exposes the returned Planet, Construction, Research, and Shipyard links without presenting this as production login.
-7. Open the returned Planet link.
-8. Verify the local playable-session banner or continuation card is available when ids are missing on a cockpit route.
-9. Verify the Planet hub first:
+4. Open `/`.
+5. Confirm the home route offers continue/new-game/galaxy entry and no product-surface forbidden terms.
+6. Open `/onboarding`.
+7. Create a fresh Development playable session through the UI.
+8. Verify the success state exposes the returned Planet, Construction, Research, and Shipyard links without presenting this as production login.
+9. Open the returned Planet link.
+10. Verify the local playable-session banner or continuation card is available when ids are missing on a cockpit route.
+11. Verify the Planet hub first:
    - colony identity, ownership, resources, production, buildings, construction queue, and handoff links are visible
    - diagnostics remain secondary
    - no queue materialization runs on page load
-10. Run explicit resource materialization only from the visible Development QA affordance or helper, then re-read Planet.
-11. Verify resource feedback distinguishes changed balances from a no-op materialization.
-12. Open Construction from the Planet hub.
-13. Enqueue one available construction action only through the guarded confirmation flow.
-14. Verify the result comes from a backend refresh:
+12. Confirm operator-only materialization controls are hidden in the normal product session.
+13. Open Construction from the Planet hub.
+14. Enqueue one available construction action only through the guarded confirmation flow.
+15. Verify the result comes from a backend refresh:
    - queue is updated from the read model
    - resources are reduced by the visible cost
    - accepted-but-not-visible state does not fabricate a queue row
-15. Open Research with the same ids.
-16. Enqueue one available research item only through the guarded confirmation flow.
-17. Verify the refreshed Research state:
+16. Open Research with the same ids.
+17. Enqueue one available research item only through the guarded confirmation flow.
+18. Verify the refreshed Research state:
    - active queue row is visible when backend returns it
    - blocked research remains non-mutating
    - complete-due remains unavailable from the normal cockpit
-18. Open Shipyard with the same ids.
-19. Enqueue one available orbital production item only through the guarded confirmation flow.
-20. Verify the refreshed Shipyard state:
+19. Open Shipyard with the same ids.
+20. Enqueue one available orbital production item only through the guarded confirmation flow.
+21. Verify the refreshed Shipyard state:
    - queue and resource deltas come from backend state
    - local orbital stock does not change until due-queue materialization runs
    - Shipyard still does not move or command fleets
-21. Materialize due queues explicitly with the printed scoped helper command, after orders are due:
+22. Materialize due queues explicitly with the printed scoped helper command, after orders are due:
    - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-materialize-due-queues.ps1 -CivilizationId {created-civilization-id} -PlanetId {created-planet-id} -ElapsedSeconds 3600`
-22. Re-open or refresh Planet, Construction, Research, and Shipyard.
-23. Verify completed construction, research progress, and orbital stock are visible only after backend-confirmed materialization and follow-up reads.
-24. Run read-only diagnostics:
+23. Re-open or refresh Planet, Construction, Research, and Shipyard.
+24. Verify completed construction, research progress, and orbital stock are visible only after backend-confirmed materialization and follow-up reads.
+25. Run read-only diagnostics:
    - `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-get-playable-session-diagnostics.ps1 -CivilizationId {created-civilization-id} -PlanetId {created-planet-id}`
-25. Open Defenses with the same ids.
-26. Verify Defenses stays read-only or construction-handoff scoped:
+26. Open Defenses with the same ids.
+27. Verify Defenses stays read-only or construction-handoff scoped:
    - no defense-specific combat, interception, or instant completion action appears executable
    - blocked and unavailable options remain visually secondary
-27. Open Fleets with the same ids.
-28. Verify Fleets read-state remains honest:
+28. Open Fleets with the same ids.
+29. Verify Fleets read-state remains honest:
    - visible groups, transfers, estimates, and resource contexts are readable
    - no movement, cancellation, complete-due, split, merge, or stock promotion runs without explicit guarded Fleet actions
-29. Open Galaxy with the same civilization and any known planet/system context.
-30. Verify Galaxy remains read-only and map-first, with selected-system and planet detail adjacent to the map.
-31. Open Ground Army, Market, Espionage, Alliance, and Ranking.
-32. Verify those routes keep their accepted boundaries:
+30. Open Galaxy with the same civilization and any known planet/system context.
+31. Verify Galaxy remains read-only and map-first, with selected-system and planet detail adjacent to the map.
+32. Open Ground Army, Market, Espionage, Alliance, and Ranking.
+33. Verify those routes keep their accepted boundaries:
    - Ground Army is readiness only and does not execute invasion or combat
    - Market is advisory and does not buy, sell, auction, trade, or execute routes
    - Espionage is intelligence-readiness only and does not run missions
    - Alliance is diplomacy-readiness only and does not create alliances, pacts, invitations, roles, treasury changes, or messages
    - Ranking is a power-index read and does not claim public ladder, reward, matchmaking, or profile readiness
-33. Return to Planet and verify the hub still preserves the same `civilizationId` and `planetId`.
-34. Confirm no route turns combat, movement, exploration missions, or materialization into normal always-on gameplay copy.
+34. Return to Planet and verify the hub still preserves the same `civilizationId` and `planetId`.
+35. Confirm no route turns combat, movement, exploration missions, or materialization into normal always-on gameplay copy.
 
 ## Screenshot Naming Convention
 
@@ -120,6 +142,7 @@ Capture these screenshots during the later browser pass. Each capture should sho
 
 - `/onboarding` before submit.
 - `/onboarding` success state with returned cockpit links.
+- `/` home route with continue/new-game/galaxy entry.
 - `/galaxy` map-first read-only view with selected system and planet context.
 - `/planet` initial loaded hub for the created playable session.
 - `/planet` local-session continuation state with ids absent.
@@ -162,6 +185,8 @@ Treat the later pass as failed if any of these appear:
 - Shipyard or Planet presents fleet movement as executable
 - Fleets presents movement, cancel, complete-due, split, merge, or stock promotion without explicit guarded user action
 - diagnostics dominate the primary viewport instead of staying secondary
+- product mode shows `Development`, `Dev`, `QA`, `test`, `prueba`, `prototipo`, endpoint URLs, localhost details, backend profile names, provider names, raw payload wording, or database details in primary UI
+- operator-only panels or controls appear without an explicit operator reveal
 
 ## Validation Before Running The Future Browser Pass
 
