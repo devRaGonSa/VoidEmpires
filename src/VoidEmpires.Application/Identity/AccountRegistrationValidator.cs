@@ -7,6 +7,11 @@ public static class AccountRegistrationValidator
 {
     public const int MaxNameLength = 128;
     public const int MinPasswordLength = 8;
+    public const int RequiredUniquePasswordChars = 1;
+    public const bool RequirePasswordDigit = true;
+    public const bool RequirePasswordLowercase = true;
+    public const bool RequirePasswordUppercase = true;
+    public const bool RequirePasswordNonAlphanumeric = true;
 
     public static AccountRegistrationValidationResult Validate(AccountRegistrationRequest request)
     {
@@ -90,10 +95,11 @@ public static class AccountRegistrationValidator
 
     private static bool IsStrongPassword(string value) =>
         value.Length >= MinPasswordLength &&
-        value.Any(char.IsUpper) &&
-        value.Any(char.IsLower) &&
-        value.Any(char.IsDigit) &&
-        value.Any(ch => !char.IsLetterOrDigit(ch));
+        (!RequirePasswordUppercase || value.Any(char.IsUpper)) &&
+        (!RequirePasswordLowercase || value.Any(char.IsLower)) &&
+        (!RequirePasswordDigit || value.Any(char.IsDigit)) &&
+        (!RequirePasswordNonAlphanumeric || value.Any(ch => !char.IsLetterOrDigit(ch))) &&
+        value.Distinct().Count() >= RequiredUniquePasswordChars;
 
     private static void Add(List<AccountRegistrationError> errors, string code, string message, string field) =>
         errors.Add(new AccountRegistrationError(code, message, field));

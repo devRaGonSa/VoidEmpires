@@ -214,6 +214,12 @@ public static class VoidEmpiresPersistenceServiceCollectionExtensions
             {
                 options.User.RequireUniqueEmail = true;
                 options.SignIn.RequireConfirmedEmail = true;
+                options.Password.RequiredLength = AccountRegistrationValidator.MinPasswordLength;
+                options.Password.RequiredUniqueChars = AccountRegistrationValidator.RequiredUniquePasswordChars;
+                options.Password.RequireDigit = AccountRegistrationValidator.RequirePasswordDigit;
+                options.Password.RequireLowercase = AccountRegistrationValidator.RequirePasswordLowercase;
+                options.Password.RequireUppercase = AccountRegistrationValidator.RequirePasswordUppercase;
+                options.Password.RequireNonAlphanumeric = AccountRegistrationValidator.RequirePasswordNonAlphanumeric;
             })
             .AddEntityFrameworkStores<VoidEmpiresDbContext>()
             .AddTokenProvider<DataProtectorTokenProvider<VoidEmpiresUser>>(TokenOptions.DefaultProvider);

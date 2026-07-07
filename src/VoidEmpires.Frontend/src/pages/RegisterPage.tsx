@@ -119,6 +119,9 @@ export function RegisterPage() {
             <span>Confirmar contrasena</span>
             <input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
           </label>
+          <p className="figma-panel-note">
+            Minimo 8 caracteres con mayuscula, minuscula, numero y simbolo. La contrasena se borra del formulario al terminar.
+          </p>
           <label className="field">
             <span>Comandante</span>
             <input type="text" value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={128} placeholder="Comandante Vega" />

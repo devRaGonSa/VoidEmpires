@@ -3,7 +3,7 @@
 ---
 id: TASK-42Z
 title: Password security copy and policy
-status: pending
+status: done
 type: fullstack
 team: platform
 supporting_teams: [frontend]

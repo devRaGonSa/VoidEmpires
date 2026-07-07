@@ -9,6 +9,7 @@ It does not add bearer tokens, localStorage auth tokens, role claims, production
 - `POST /api/auth/register` exists and uses `IUserRegistrationService` when persistence is configured.
 - `GET /api/auth/confirm-email` exists and uses `IEmailConfirmationService` when persistence is configured.
 - `POST /api/accounts/register` creates an Identity account and initial player world.
+- Account registration enforces the shared password policy before Identity user creation: at least 8 characters, at least one uppercase letter, one lowercase letter, one number, one symbol, and one unique character. The configured ASP.NET Core Identity password options use the same values.
 - `POST /api/accounts/login` validates credentials with ASP.NET Core Identity and returns a safe current player summary.
 - `GET /api/accounts/me` resolves the current account from the Identity application cookie and returns the safe player/civilization/home planet summary.
 - `POST /api/accounts/logout` clears the current Identity application cookie session.
@@ -34,7 +35,7 @@ It does not add bearer tokens, localStorage auth tokens, role claims, production
 The final product entry should replace `/onboarding` as the primary new-player path:
 
 1. A player registers with email, password, commander name, civilization name, and optional home planet name.
-2. The account service creates the ASP.NET Core Identity user and enforces email/password policy.
+2. The account service creates the ASP.NET Core Identity user and enforces the shared email/password policy without returning, logging, or storing plaintext passwords outside Identity's normal hash storage.
 3. The bootstrap workflow creates or links one `PlayerProfile` for that user.
 4. The workflow creates the initial `Civilization`, normalizes its lookup name, assigns or generates a home planet, creates active `PlanetOwnership`, and initializes starting economy/production/building state.
 5. The frontend signs in after successful registration, resolves the generated world route from the registration response, and can refresh current account state through `/api/accounts/me`.

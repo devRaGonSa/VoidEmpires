@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Email;
+using VoidEmpires.Application.Identity;
 using VoidEmpires.Infrastructure;
 using VoidEmpires.Infrastructure.Identity;
 using VoidEmpires.Infrastructure.Persistence;
@@ -229,6 +230,12 @@ public class PersistenceRegistrationTests
 
         Assert.True(identityOptions.User.RequireUniqueEmail);
         Assert.True(identityOptions.SignIn.RequireConfirmedEmail);
+        Assert.Equal(AccountRegistrationValidator.MinPasswordLength, identityOptions.Password.RequiredLength);
+        Assert.Equal(AccountRegistrationValidator.RequiredUniquePasswordChars, identityOptions.Password.RequiredUniqueChars);
+        Assert.Equal(AccountRegistrationValidator.RequirePasswordDigit, identityOptions.Password.RequireDigit);
+        Assert.Equal(AccountRegistrationValidator.RequirePasswordLowercase, identityOptions.Password.RequireLowercase);
+        Assert.Equal(AccountRegistrationValidator.RequirePasswordUppercase, identityOptions.Password.RequireUppercase);
+        Assert.Equal(AccountRegistrationValidator.RequirePasswordNonAlphanumeric, identityOptions.Password.RequireNonAlphanumeric);
         Assert.NotNull(provider.GetRequiredService<IUserStore<VoidEmpiresUser>>());
     }
 
