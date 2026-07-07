@@ -3,7 +3,7 @@
 ---
 id: TASK-41A
 title: Product surface audit
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
