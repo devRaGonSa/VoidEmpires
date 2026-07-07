@@ -10,6 +10,7 @@ import { cockpitNavigationLabels, cockpitStatusLabels } from "../utils/cockpitSt
 import { getMarketPrimaryAction, getMarketResourceSignalLabel, getMarketTradeSignalSummary, groupMarketSignals, mapMarketUiStateToViewModel, marketResourceOrder, selectRecommendedMarketFocus, type MarketUiState } from "../utils/marketViewModel";
 import { formatMarketResourceAmount, getMarketResourceLabel } from "../utils/marketPresentation";
 import { formatCompactGuid } from "../utils/domainPresentation";
+import { isOperatorMode } from "../utils/playableSession";
 
 interface MarketErrorPresentation {
   primaryMessage: string;
@@ -23,25 +24,25 @@ function formatMarketRequestFailure(message: string | null | undefined): MarketE
   switch (detail) {
     case "Civilization id is required.":
       return {
-        primaryMessage: "No se pudo cargar la lectura economica.",
+        primaryMessage: "No se pudo cargar Mercado.",
         followUp: "Introduce un id de civilizacion valido antes de abrir Mercado.",
         technicalDetail: detail,
       };
     case "Civilization was not found.":
       return {
-        primaryMessage: "No se pudo cargar la lectura economica.",
+        primaryMessage: "No se pudo cargar Mercado.",
         followUp: "La civilizacion no existe en el contexto visible.",
         technicalDetail: detail,
       };
     case "Planet id is required.":
       return {
-        primaryMessage: "No se pudo cargar la lectura economica.",
+        primaryMessage: "No se pudo cargar Mercado.",
         followUp: "Selecciona un planeta visible o deja que Mercado use el planeta conocido por defecto.",
         technicalDetail: detail,
       };
     case "Planet was not found.":
       return {
-        primaryMessage: "No se pudo cargar la lectura economica.",
+        primaryMessage: "No se pudo cargar Mercado.",
         followUp: "El planeta solicitado no esta disponible para esta cabina.",
         technicalDetail: detail,
       };
@@ -59,31 +60,31 @@ function formatMarketRequestFailure(message: string | null | undefined): MarketE
       };
     case "Market read is not available for this civilization.":
       return {
-        primaryMessage: "No se pudo cargar la lectura economica.",
+        primaryMessage: "No se pudo cargar Mercado.",
         followUp: "Inicia una partida nueva para cargar un escenario con reservas visibles.",
         technicalDetail: detail,
       };
     case "Market transactions are not supported in this version.":
       return {
         primaryMessage: "Las operaciones de mercado no estan disponibles en esta version.",
-        followUp: "Mercado sigue siendo una cabina de solo lectura.",
+        followUp: "Las operaciones comerciales permanecen pendientes de activacion.",
         technicalDetail: detail,
       };
     case "Request failed with status 404.":
       return {
-        primaryMessage: "No se pudo cargar la lectura economica.",
-        followUp: "La ruta de Mercado no esta disponible fuera del entorno de desarrollo.",
+        primaryMessage: "No se pudo cargar Mercado.",
+        followUp: "La ruta de Mercado no esta disponible en este entorno.",
         technicalDetail: detail,
       };
     case "Request failed with status 503.":
       return {
-        primaryMessage: "No se pudo cargar la lectura economica.",
-        followUp: "La persistencia de desarrollo no esta disponible ahora mismo.",
+        primaryMessage: "No se pudo cargar Mercado.",
+        followUp: "El estado economico no esta disponible ahora mismo.",
         technicalDetail: detail,
       };
     default:
       return {
-        primaryMessage: "No se pudo cargar la lectura economica.",
+        primaryMessage: "No se pudo cargar Mercado.",
         followUp: "Mercado no pudo cargarse con el contexto actual.",
         technicalDetail: detail,
       };
@@ -91,10 +92,21 @@ function formatMarketRequestFailure(message: string | null | undefined): MarketE
 }
 
 function getMarketReadinessStatus(market: MarketUiState["market"]) {
-  if (!market) return "Esperando lectura";
+  if (!market) return "Esperando mercado";
   if (market.summary.activeSignalCount > 0 || market.routePlaceholders.length > 0) return "Preparacion economica";
-  if (market.civilizationReserves.length > 0 || market.production.length > 0) return "Lectura estable";
+  if (market.civilizationReserves.length > 0 || market.production.length > 0) return "Mercado estable";
   return "Economia limitada";
+}
+
+function formatMarketProductLabel(label: string) {
+  return label
+    .replace(/solo\s+lectura/gi, "Orientativo")
+    .replace(/lectura\s+economica\s+prioritaria/gi, "Revisar senal economica")
+    .replace(/lectura\s+economica/gi, "Consulta economica")
+    .replace(/sin\s+lectura/gi, "Sin senal")
+    .replace(/para\s+esta\s+lectura/gi, "para este mercado")
+    .replace(/lectura\s+orientativa\s+sin\s+muta\S+\s+de\s+flotas\s+ni\s+recursos/gi, "referencia orientativa sin cambios en flotas ni recursos")
+    .replace(/operaci..n/g, "operacion");
 }
 
 export function MarketPage() {
@@ -112,6 +124,7 @@ export function MarketPage() {
   const market = uiState?.market ?? null;
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const selectedPlanetId = uiState?.selectedPlanetId ?? queryPlanetId ?? null;
+  const operatorMode = isOperatorMode(searchParams);
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
 
   const groupedSignals = useMemo(
@@ -123,7 +136,7 @@ export function MarketPage() {
     [market],
   );
   const primaryActionLabel = useMemo(
-    () => getMarketPrimaryAction(market),
+    () => formatMarketProductLabel(getMarketPrimaryAction(market)),
     [market],
   );
   const reserveCards = useMemo(
@@ -132,7 +145,7 @@ export function MarketPage() {
       label: getMarketResourceLabel(resourceType),
       civilizationReserve: market?.civilizationReserves.find((entry) => entry.resourceType === resourceType) ?? null,
       selectedReserve: market?.selectedPlanetReserves.find((entry) => entry.resourceType === resourceType) ?? null,
-      signalLabel: getMarketResourceSignalLabel(resourceType, market?.signals ?? []),
+      signalLabel: formatMarketProductLabel(getMarketResourceSignalLabel(resourceType, market?.signals ?? [])),
     })),
     [market],
   );
@@ -227,14 +240,14 @@ export function MarketPage() {
     <section className="page-grid">
       <CockpitHero
         versionLabel="Mercado v1"
-        title="Mercado"
-        description="Lectura economica de reservas, produccion y senal economica visible para orientar la siguiente decision del imperio."
-        developmentNote="Esta cabina no ejecuta compras ni ventas. Solo ordena la lectura economica y mantiene las operaciones futuras fuera de esta superficie."
+        title="Mercado galactico"
+        description="Reservas, produccion y senales comerciales visibles para orientar la siguiente decision economica del imperio."
+        developmentNote="Operaciones comerciales pendientes de activacion: no ejecuta compras, ventas, ofertas ni traslados."
         badges={(
           <>
-            <UiBadge tone="resource">Lectura economica</UiBadge>
-            <UiBadge>{cockpitStatusLabels.readOnly}</UiBadge>
-            <UiBadge tone="warn">Referencias orientativas</UiBadge>
+            <UiBadge tone="resource">Mercado galactico</UiBadge>
+            <UiBadge>Senales economicas</UiBadge>
+            <UiBadge tone="warn">Operaciones pendientes</UiBadge>
           </>
         )}
       />
@@ -242,7 +255,7 @@ export function MarketPage() {
       {queryCivilizationId ? (
         <PageContextStrip
           eyebrow="Cabina economica"
-          title={market?.selectedPlanetName ?? "Lectura de Mercado"}
+          title={market?.selectedPlanetName ?? "Mercado galactico"}
           purpose="Reservas, produccion, referencias y senales economicas visibles sin transacciones ni traslado de recursos."
           statusLabel={marketReadinessStatus}
           statusTone={market ? "good" : "warn"}
@@ -255,17 +268,17 @@ export function MarketPage() {
             },
             {
               label: "Reservas",
-              value: market ? `${market.summary.totalReserveTypes} tipos` : "Sin lectura",
+              value: market ? `${market.summary.totalReserveTypes} tipos` : "Sin datos",
               detail: market?.summary.reservePosture ?? "Carga pendiente",
             },
             {
               label: "Referencias",
-              value: market ? `${market.references.length} ratios` : "Sin lectura",
+              value: market ? `${market.references.length} ratios` : "Sin datos",
               detail: market?.summary.referenceAvailability ?? "Sin comparar",
             },
           ]}
           resourceItems={[
-            { label: "Mercado", value: "Solo lectura", tone: "good" },
+            { label: "Mercado", value: "Consulta economica", tone: "good" },
             { label: "Transacciones", value: "No disponibles", tone: "warn" },
             { label: "Rutas", value: "Contexto futuro", tone: "neutral" },
           ]}
@@ -291,10 +304,10 @@ export function MarketPage() {
         <UiCard className="panel strategic-loader-panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Contexto de lectura</p>
-              <h3>Cargar lectura economica</h3>
+              <p className="eyebrow">Contexto comercial</p>
+              <h3>Cargar mercado</h3>
             </div>
-            <UiBadge>{cockpitStatusLabels.developmentOnly}</UiBadge>
+            <UiBadge>Contexto activo</UiBadge>
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
@@ -318,7 +331,7 @@ export function MarketPage() {
               />
             </label>
             <button type="submit" disabled={isLoading}>
-              {isLoading ? "Cargando..." : "Abrir lectura"}
+              {isLoading ? "Cargando..." : "Abrir Mercado"}
             </button>
           </form>
           {error ? (
@@ -329,7 +342,7 @@ export function MarketPage() {
           ) : null}
           {!queryCivilizationId ? (
             <p className="figma-panel-note">
-              Introduce un `civilizationId` valido o entra desde otra cabina para conservar el contexto de Mercado.
+              Introduce un contexto de civilizacion valido o entra desde otra cabina para conservar el contexto de Mercado.
             </p>
           ) : null}
         </UiCard>
@@ -338,13 +351,13 @@ export function MarketPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Estado visible</p>
-              <h3>Resumen de lectura</h3>
+              <h3>Resumen de mercado</h3>
             </div>
             <UiBadge>{market?.selectedPlanetName ?? "Sin planeta"}</UiBadge>
           </div>
           {market ? (
             <div className="figma-data-list">
-              <div className="figma-data-row"><span>Prioridad de lectura</span><strong>{recommendedFocus}</strong></div>
+              <div className="figma-data-row"><span>Prioridad economica</span><strong>{recommendedFocus}</strong></div>
               <div className="figma-data-row"><span>Resumen principal</span><strong>{primaryActionLabel}</strong></div>
               <div className="figma-data-row"><span>Planeta activo</span><strong>{market.selectedPlanetName ?? "Sin seleccion"}</strong></div>
               <div className="figma-data-row"><span>Sistema</span><strong>{market.selectedSolarSystemName ?? "Sin sistema"}</strong></div>
@@ -360,7 +373,7 @@ export function MarketPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Limite actual</p>
-              <h3>Mercado mantiene una lectura economica</h3>
+              <h3>Mercado mantiene una consulta economica</h3>
             </div>
             <UiBadge tone="warn">Sin ejecucion</UiBadge>
           </div>
@@ -385,11 +398,13 @@ export function MarketPage() {
           <p className="figma-panel-note">
             Revisa que no hayas usado el id del planeta como civilizacion.
           </p>
-          <div className="selection-chip-row">
-            <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>
-              Abrir contexto de desarrollo
-            </Link>
-          </div>
+          {operatorMode ? (
+            <div className="selection-chip-row">
+              <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>
+                Abrir contexto de operador
+              </Link>
+            </div>
+          ) : null}
         </UiCard>
       ) : null}
 
@@ -398,7 +413,7 @@ export function MarketPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Cargando</p>
-              <h3>Sincronizando lectura economica</h3>
+              <h3>Sincronizando Mercado</h3>
             </div>
             <UiBadge>Cargando...</UiBadge>
           </div>
@@ -425,10 +440,10 @@ export function MarketPage() {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Lectura no disponible</p>
-              <h3>No se pudo cargar la lectura economica.</h3>
+              <p className="eyebrow">Mercado no disponible</p>
+              <h3>No se pudo cargar el mercado.</h3>
             </div>
-            <UiBadge tone="warn">Sin lectura</UiBadge>
+            <UiBadge tone="warn">Sin mercado</UiBadge>
           </div>
           <p className="error-text">{error}</p>
           {errorFollowUp ? <p>{errorFollowUp}</p> : null}
@@ -463,12 +478,12 @@ export function MarketPage() {
                     <p className="eyebrow">Produccion</p>
                     <h4>{market.summary.productionPosture}</h4>
                   </div>
-                  <UiBadge>{market.production.length > 0 ? `${market.production.length} lecturas` : "Sin perfil"}</UiBadge>
+                  <UiBadge>{market.production.length > 0 ? `${market.production.length} recursos` : "Sin perfil"}</UiBadge>
                 </div>
                 <p>
                   {market.production.length > 0
-                    ? "La cabina ya puede leer flujo estimado del planeta activo sin prometer una economia global persistida."
-                    : "El flujo productivo sigue incompleto; Mercado mantiene una lectura honesta en lugar de inventar cifras."}
+                    ? "La cabina ya puede mostrar flujo estimado del planeta activo sin prometer una economia global persistida."
+                    : "El flujo productivo sigue incompleto; Mercado mantiene un estado honesto en lugar de inventar cifras."}
                 </p>
               </section>
               <section className="subpanel figma-subpanel">
@@ -497,7 +512,7 @@ export function MarketPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Lectura lista</p>
+                <p className="eyebrow">Mercado listo</p>
                 <h3>Mercado visible</h3>
                 <p>La cabina interpreta la economia visible con contexto real y ordena donde mirar primero.</p>
               </div>
@@ -536,14 +551,14 @@ export function MarketPage() {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Senales visibles</p>
-                    <h4>Grupos de lectura</h4>
+                    <h4>Grupos economicos</h4>
                   </div>
                   <UiBadge>{Object.keys(groupedSignals).length} grupos</UiBadge>
                 </div>
                 <ul className="stack-list compact-list">
                   {Object.entries(groupedSignals).map(([key, signals]) => (
                     <li key={key}>
-                      {signals[0]?.signalLabel ?? key}: {signals.length} lectura{signals.length === 1 ? "" : "s"}
+                      {signals[0]?.signalLabel ?? key}: {signals.length} senal{signals.length === 1 ? "" : "es"}
                     </li>
                   ))}
                 </ul>
@@ -558,7 +573,7 @@ export function MarketPage() {
                 </div>
                 <ul className="stack-list compact-list">
                   {market.routePlaceholders.length > 0 ? market.routePlaceholders.map((route) => (
-                    <li key={route.actionKey}>{route.label}: {route.reasonLabel}</li>
+                    <li key={route.actionKey}>{formatMarketProductLabel(route.label)}: {formatMarketProductLabel(route.reasonLabel)}</li>
                   )) : (
                     <li>Sin rutas futuras visibles.</li>
                   )}
@@ -571,17 +586,17 @@ export function MarketPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Reservas y produccion</p>
-                <h3>Lectura economica visible</h3>
-                <p>Mercado agrega la lectura actual sin sustituir la gestion local que sigue perteneciendo a Planeta y otras cabinas.</p>
+                <h3>Economia visible</h3>
+                <p>Mercado agrega el estado actual sin sustituir la gestion local que sigue perteneciendo a Planeta y otras cabinas.</p>
               </div>
-              <UiBadge tone="resource">{market.selectedPlanetName ? `Reservas de ${market.selectedPlanetName}` : "Lectura de civilizacion"}</UiBadge>
+              <UiBadge tone="resource">{market.selectedPlanetName ? `Reservas de ${market.selectedPlanetName}` : "Reserva de civilizacion"}</UiBadge>
             </div>
             <div className="readiness-grid">
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Reservas</p>
-                    <h4>Lectura de civilizacion</h4>
+                    <h4>Reserva de civilizacion</h4>
                   </div>
                   <UiBadge>{reserveCards.filter((entry) => entry.civilizationReserve).length} visibles</UiBadge>
                 </div>
@@ -596,8 +611,8 @@ export function MarketPage() {
                         <UiBadge tone="resource">{entry.label}</UiBadge>
                       </div>
                       <div className="figma-data-list">
-                        <div className="figma-data-row"><span>Lectura de civilizacion</span><strong>{entry.civilizationReserve ? entry.civilizationReserve.quantityLabel : formatMarketResourceAmount(null, entry.resourceType)}</strong></div>
-                        <div className="figma-data-row"><span>{market.selectedPlanetName ? `Reservas de ${market.selectedPlanetName}` : "Reserva local"}</span><strong>{entry.selectedReserve ? entry.selectedReserve.quantityLabel : "Sin lectura local"}</strong></div>
+                        <div className="figma-data-row"><span>Reserva de civilizacion</span><strong>{entry.civilizationReserve ? entry.civilizationReserve.quantityLabel : formatMarketResourceAmount(null, entry.resourceType)}</strong></div>
+                        <div className="figma-data-row"><span>{market.selectedPlanetName ? `Reservas de ${market.selectedPlanetName}` : "Reserva local"}</span><strong>{entry.selectedReserve ? entry.selectedReserve.quantityLabel : "Sin reserva local"}</strong></div>
                       </div>
                     </section>
                   ))}
@@ -625,7 +640,7 @@ export function MarketPage() {
                       </div>
                       <div className="figma-data-list">
                         <div className="figma-data-row"><span>Produccion estimada</span><strong>{entry.flow?.quantityLabel ?? "Produccion no visible"}</strong></div>
-                        <div className="figma-data-row"><span>Alcance</span><strong>{entry.flow ? `Produccion estimada de ${market.selectedPlanetName ?? "planeta activo"}` : "No visible en esta lectura"}</strong></div>
+                        <div className="figma-data-row"><span>Alcance</span><strong>{entry.flow ? `Produccion estimada de ${market.selectedPlanetName ?? "planeta activo"}` : "No visible para este mercado"}</strong></div>
                       </div>
                     </section>
                   ))}
@@ -639,12 +654,12 @@ export function MarketPage() {
               <div>
                 <p className="eyebrow">Referencias de intercambio</p>
                 <h3>Referencias orientativas</h3>
-                <p>Estas comparaciones reutilizan referencias orientativas de la cabina y sirven para interpretar lectura economica, no para cerrar un intercambio.</p>
+                <p>Estas comparaciones reutilizan referencias orientativas de la cabina y sirven para interpretar condiciones economicas, no para cerrar un intercambio.</p>
               </div>
-              <UiBadge tone="warn">Solo lectura</UiBadge>
+              <UiBadge tone="warn">Orientativo</UiBadge>
             </div>
             <p className="figma-panel-note">
-              Mercado muestra una referencia de intercambio para lectura rapida. No es una oferta activa y no ejecuta compra, venta o traslado.
+              Mercado muestra una referencia de intercambio para comparacion rapida. No es una oferta activa y no ejecuta compra, venta o traslado.
             </p>
             <div className="readiness-grid">
               {market.referenceComparisons.length > 0 ? market.referenceComparisons.map((comparison) => (
@@ -659,7 +674,7 @@ export function MarketPage() {
                   <p className="figma-panel-note market-reference-note">No es una oferta activa.</p>
                   <div className="figma-data-list">
                     <div className="figma-data-row"><span>Referencia de intercambio</span><strong>{comparison.ratioLabel}</strong></div>
-                    <div className="figma-data-row"><span>Lectura</span><strong>{comparison.advisoryLabel}</strong></div>
+                    <div className="figma-data-row"><span>Referencia</span><strong>{comparison.advisoryLabel}</strong></div>
                     <div className="figma-data-row"><span>Limite</span><strong>{comparison.executionLabel}</strong></div>
                   </div>
                 </section>
@@ -693,7 +708,7 @@ export function MarketPage() {
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Lecturas visibles</p>
+                    <p className="eyebrow">Senales visibles</p>
                     <h4>Senales de economia</h4>
                   </div>
                   <UiBadge>{market.signals.length} senales</UiBadge>
@@ -701,10 +716,10 @@ export function MarketPage() {
                 <ul className="stack-list compact-list">
                   {market.signals.length > 0 ? market.signals.map((signal) => (
                     <li key={`${signal.signalKey}-${signal.resourceType ?? "global"}`}>
-                      <strong>{signal.signalLabel}</strong>: {getMarketTradeSignalSummary(signal)}
+                      <strong>{signal.signalLabel}</strong>: {formatMarketProductLabel(getMarketTradeSignalSummary(signal))}
                     </li>
                   )) : (
-                    <li>Sin senal economica visible en esta lectura.</li>
+                    <li>Sin senal economica visible para este mercado.</li>
                   )}
                 </ul>
               </section>
@@ -719,7 +734,7 @@ export function MarketPage() {
                 <ul className="stack-list compact-list">
                   {market.routePlaceholders.length > 0 ? market.routePlaceholders.map((route) => (
                     <li key={route.actionKey}>
-                      <strong>{route.label}</strong>: {route.reasonLabel}
+                      <strong>{formatMarketProductLabel(route.label)}</strong>: {formatMarketProductLabel(route.reasonLabel)}
                     </li>
                   )) : (
                     <li>Sin rutas futuras visibles para este contexto.</li>
@@ -798,7 +813,7 @@ export function MarketPage() {
                   </div>
                   <UiBadge tone="warn">Fase futura</UiBadge>
                 </div>
-                <p className="figma-panel-note">Persistencia final, autorizacion de produccion, activos finales, movimiento y alianzas siguen fuera de Mercado.</p>
+                <p className="figma-panel-note">Ejecucion comercial, autorizacion de produccion, activos finales, movimiento y alianzas siguen fuera de Mercado.</p>
               </section>
             </div>
           </UiCard>
@@ -810,13 +825,13 @@ export function MarketPage() {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Lectura incompleta</p>
+              <p className="eyebrow">Mercado incompleto</p>
               <h3>No hay reservas visibles para esta civilizacion.</h3>
             </div>
             <UiBadge tone="warn">Sin economia visible</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Inicia una partida nueva para cargar un escenario con reservas visibles o revisa si la civilizacion aun no expone stockpile ni planeta util para Mercado.
+            Inicia una partida nueva para cargar un escenario con reservas visibles o revisa si la civilizacion aun no expone reservas ni planeta util para Mercado.
           </p>
         </UiCard>
       ) : null}
@@ -824,7 +839,7 @@ export function MarketPage() {
       <UiCard className="panel">
         <div className="figma-section-header">
           <div>
-            <p className="eyebrow">Cabina implementada</p>
+            <p className="eyebrow">Cabina conectada</p>
             <h3>Mercado dentro de la suite actual</h3>
             <p>Mercado interpreta la economia visible y conserva el contexto actual cuando te deriva hacia la cabina propietaria para reservas locales, consumo, produccion orbital o contexto de ruta.</p>
           </div>
@@ -914,7 +929,7 @@ export function MarketPage() {
           <div>
             <p className="eyebrow">Navegacion</p>
             <h3>{cockpitNavigationLabels.relatedCabins}</h3>
-            <p>Mercado forma parte de la suite activa, pero mantiene su limite de solo lectura y conserva `civilizationId` y `planetId` cuando el contexto existe.</p>
+            <p>Mercado forma parte de la suite activa, pero mantiene las transacciones pendientes y conserva el contexto cuando existe.</p>
           </div>
           <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
         </div>
@@ -939,7 +954,7 @@ export function MarketPage() {
         </div>
       </UiCard>
 
-      {(technicalErrorDetail || uiState?.diagnostics.playerFacing.length || uiState?.diagnostics.technical.length || uiState?.diagnostics.limitations.length) ? (
+      {operatorMode && (technicalErrorDetail || uiState?.diagnostics.playerFacing.length || uiState?.diagnostics.technical.length || uiState?.diagnostics.limitations.length) ? (
         <details className="technical-disclosure">
           <summary>
             <div>
