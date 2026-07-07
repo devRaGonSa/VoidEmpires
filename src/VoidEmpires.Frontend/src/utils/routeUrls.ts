@@ -21,6 +21,10 @@ export function buildPlanetUrl(civilizationId: string, planetId?: string | null)
   return buildUrl("/planet", { civilizationId, planetId });
 }
 
+export function buildCommandHubUrl(civilizationId: string, planetId?: string | null) {
+  return buildPlanetUrl(civilizationId, planetId);
+}
+
 export function buildConstructionUrl(civilizationId: string, planetId?: string | null) {
   return buildUrl("/construction", { civilizationId, planetId });
 }

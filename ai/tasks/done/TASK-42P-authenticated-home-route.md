@@ -3,7 +3,7 @@
 ---
 id: TASK-42P
 title: Authenticated home route
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

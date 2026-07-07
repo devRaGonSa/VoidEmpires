@@ -706,6 +706,21 @@ select {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
 }
 
+.home-account-summary {
+  display: grid;
+  gap: var(--ve-space-2);
+  margin-top: var(--ve-space-3);
+  padding: var(--ve-space-3);
+  border-radius: var(--ve-radius-md);
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 46%, transparent);
+  background: color-mix(in srgb, var(--ve-color-bg) 52%, transparent);
+}
+
+.home-account-summary p {
+  margin: 0;
+  color: color-mix(in srgb, var(--ve-color-text) 82%, var(--ve-color-muted));
+}
+
 .strategic-cockpit-top,
 .strategic-system-layout,
 .technical-disclosure-body {
