@@ -3,7 +3,7 @@
 ---
 id: TASK-42U
 title: Multiple users registration tests
-status: pending
+status: done
 type: backend
 team: platform
 supporting_teams: []

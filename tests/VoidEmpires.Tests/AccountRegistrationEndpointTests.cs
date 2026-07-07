@@ -87,6 +87,10 @@ public class AccountRegistrationEndpointTests(WebApplicationFactory<Program> fac
         Assert.NotNull(payload);
         Assert.False(payload.Succeeded);
         Assert.Contains(payload.Errors, error => error.Code == "EmailAlreadyRegistered" && error.Field == "email");
+        using var scope = configuredFactory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+        Assert.Equal(1, await dbContext.PlayerProfiles.CountAsync());
+        Assert.Equal(1, await dbContext.Civilizations.CountAsync());
     }
 
     private static AccountRegistrationRequest ValidRequest() =>
