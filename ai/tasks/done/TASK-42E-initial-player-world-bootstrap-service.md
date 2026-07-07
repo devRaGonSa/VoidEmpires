@@ -3,7 +3,7 @@
 ---
 id: TASK-42E
 title: Initial player world bootstrap service
-status: pending
+status: done
 type: backend
 team: platform
 supporting_teams: []
