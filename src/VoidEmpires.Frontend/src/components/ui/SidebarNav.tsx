@@ -61,8 +61,10 @@ export function SidebarNav({ items, accountStatus }: SidebarNavProps) {
             className={({ isActive }) => {
               const shouldHighlightGalaxyAlias =
                 item.to === "/galaxy" && location.pathname === "/";
+              const shouldHighlightHomeAlias =
+                item.to === "/" && location.pathname === "/planet";
 
-              return isActive || shouldHighlightGalaxyAlias
+              return isActive || shouldHighlightGalaxyAlias || shouldHighlightHomeAlias
                 ? `sidebar-nav-item ${stateClass} sidebar-nav-item-active`
                 : `sidebar-nav-item ${stateClass}`;
             }}

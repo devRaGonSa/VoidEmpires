@@ -14,7 +14,6 @@ import {
   buildGalaxyUrl,
   buildLoginUrl,
   buildMarketUrl,
-  buildPlanetUrl,
   buildRankingUrl,
   buildRegisterUrl,
   buildSpecializedModuleUrl,
@@ -139,7 +138,7 @@ function getRouteStatusLabel(pathname: string) {
     case "/account-settings":
       return "Cuenta";
     case "/planet":
-      return "Planeta";
+      return "Inicio";
     case "/construction":
       return "Construccion";
     case "/research":
@@ -203,7 +202,6 @@ export default function App() {
       { label: "Entrar", to: buildLoginUrl(), state: "account" },
       { label: "Cuenta", to: "/account-settings", state: "account" },
       { label: "Galaxia", to: buildGalaxyUrl(civilizationId, systemId, planetId), state: "map" },
-      { label: "Planeta", to: buildPlanetUrl(civilizationId, planetId), state: "playable" },
       { label: "Construccion", to: buildConstructionUrl(civilizationId, planetId), state: "playable" },
       ...specializedPlanetModuleRoutes.map((route) => ({
         label: route.label,
@@ -228,7 +226,7 @@ export default function App() {
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/account-settings" element={requireAccount(<AccountSettingsPage />)} />
-        <Route path="/planet" element={requireAccount(<PlanetPage />)} />
+        <Route path="/planet" element={requireAccount(<HomePage />)} />
         <Route path="/construction" element={requireAccount(<ConstructionPage />)} />
         {specializedPlanetModuleRoutes.map((route) => (
           <Route

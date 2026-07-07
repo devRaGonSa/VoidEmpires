@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import type { PlanetCockpitDto } from "../api/planetTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
@@ -9,24 +9,28 @@ import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { getCurrentAccountWorldEntry } from "../utils/currentAccountSession";
 import {
-  buildGalaxyUrl,
   buildLoginUrl,
   buildRegisterUrl,
 } from "../utils/routeUrls";
 import { useCurrentAccountSession } from "../utils/useCurrentAccountSession";
 
 export function HomePage() {
+  const [searchParams] = useSearchParams();
   const currentAccountSession = useCurrentAccountSession();
   const worldEntry = getCurrentAccountWorldEntry(currentAccountSession.session);
+  const routeCivilizationId = searchParams.get("civilizationId")?.trim() ?? "";
+  const routePlanetId = searchParams.get("planetId")?.trim() ?? "";
+  const selectedCivilizationId = routeCivilizationId || worldEntry?.civilizationId || "";
+  const selectedPlanetId = routePlanetId || (!routeCivilizationId ? worldEntry?.planetId : null);
   const isLoading = currentAccountSession.status === "loading";
-  const hasCommandHub = currentAccountSession.status === "ready" && worldEntry !== null;
+  const hasCommandHub = currentAccountSession.status === "ready" && selectedCivilizationId.length > 0;
   const [planet, setPlanet] = useState<PlanetCockpitDto | null>(null);
   const [isPlanetLoading, setIsPlanetLoading] = useState(false);
   const [planetError, setPlanetError] = useState<string | null>(null);
   const planetLabel = worldEntry?.planetName ?? "planeta principal";
 
   useEffect(() => {
-    if (!worldEntry) {
+    if (!selectedCivilizationId) {
       setPlanet(null);
       setPlanetError(null);
       return;
@@ -35,7 +39,7 @@ export function HomePage() {
     let isCurrent = true;
     setIsPlanetLoading(true);
     setPlanetError(null);
-    voidEmpiresApi.getPlanetUiState(worldEntry.civilizationId, worldEntry.planetId)
+    voidEmpiresApi.getPlanetUiState(selectedCivilizationId, selectedPlanetId)
       .then((response) => {
         if (isCurrent) {
           setPlanet(response.uiState?.planet ?? null);
@@ -56,7 +60,7 @@ export function HomePage() {
     return () => {
       isCurrent = false;
     };
-  }, [worldEntry?.civilizationId, worldEntry?.planetId]);
+  }, [selectedCivilizationId, selectedPlanetId]);
 
   return (
     <section className="page-grid">
@@ -75,7 +79,7 @@ export function HomePage() {
         }
       />
 
-      {hasCommandHub && worldEntry ? (
+      {hasCommandHub ? (
         planet ? (
           <div className="home-overview-layout">
             <PlanetOverviewPanel civilizationLabel="Civilizacion activa" planet={planet} />
