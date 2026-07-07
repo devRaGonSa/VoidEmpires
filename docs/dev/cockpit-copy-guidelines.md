@@ -54,6 +54,14 @@ Avoid these in heroes, first-viewport summaries, visible action cards, and navig
 - `mutation`
 - `build`
 - `dev route`
+- `partida local`
+- `sesion local`
+- `new local game`
+- `Development-safe`
+- `seed`
+- `cockpit-validation`
+
+Account entry should use account/world language such as `cuenta`, `comandante`, `mundo inicial`, or `centro de mando`. Do not present Development seed profiles or local-session/new-game concepts as the normal product path.
 
 ## Allowed Limitation Patterns
 

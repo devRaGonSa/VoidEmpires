@@ -3,7 +3,7 @@
 ---
 id: TASK-42AG
 title: Copy regression auth product guard
-status: pending
+status: done
 type: tooling
 team: frontend
 supporting_teams: []

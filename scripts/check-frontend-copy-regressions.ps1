@@ -171,20 +171,23 @@ $obsoleteVisibleCopyPatterns = @(
   "mutacion de prototipo",
   "Partida local",
   "partida local",
+  "sesion local",
   "Nueva partida",
   "Continuar partida",
   "Olvidar partida",
   "Crear partida",
   "partida guardada",
   "Sesion local",
+  "sesión local",
   "Sin sesion local",
   "local game",
   "local session",
+  "new local game",
   "new game"
 )
 $obsoleteVisibleMatches = Select-String -Path ($primaryUiFiles | Select-Object -ExpandProperty FullName) -Pattern $obsoleteVisibleCopyPatterns -SimpleMatch -CaseSensitive:$false
 foreach ($match in @($obsoleteVisibleMatches)) {
-  $copyHygieneFailures.Add(("{0}:{1}: obsolete prototype-era wording in primary UI should use current Development cockpit language: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
+  $copyHygieneFailures.Add(("{0}:{1}: obsolete local-game wording in primary UI should use account/world-entry language: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
 }
 
 $placeholderCopyPatterns = @(
@@ -292,6 +295,8 @@ $productSurfaceForbiddenPatterns = @(
   "(?i)\bPrueba\b",
   "(?i)\bPrototipo\b",
   "(?i)Solo desarrollo",
+  "(?i)Development-safe",
+  "(?i)\bseed\b",
   "(?i)cockpit-validation",
   "(?i)minimal-validation",
   "(?i)\bendpoint(s)?\b",
