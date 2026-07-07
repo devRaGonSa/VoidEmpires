@@ -494,7 +494,7 @@ $requiredSafetyCopy = @(
     Path = "src/VoidEmpires.Frontend/src/pages/DefensesPage.tsx"
     Fragments = @(
       "Sin combate ni intercepcion",
-      "Una orden visible confirma readiness de construccion, no combate ni cierre automatico."
+      "Una orden visible confirma preparacion de construccion, no combate ni cierre automatico."
     )
   },
   @{

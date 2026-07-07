@@ -96,6 +96,14 @@ function getResourcePressureSummary(viewModel: DefensesViewModel["defenses"]) {
   return ordered.join(" | ");
 }
 
+function getProductDefenseStatusLabel(statusKey: string, fallbackLabel: string) {
+  if (statusKey === "Unsupported" || statusKey === "ReadOnly") {
+    return "Produccion pendiente";
+  }
+
+  return fallbackLabel;
+}
+
 export function DefensesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
@@ -218,13 +226,13 @@ export function DefensesPage() {
     <section className="page-grid">
       <CockpitHero
         versionLabel="Defensas v1"
-        title="Defensas"
-        description="Defensa planetaria, cobertura local y estructuras de proteccion para la colonia seleccionada."
-        developmentNote="Sin combate ni intercepcion: esta cabina mantiene la preparacion visible."
+        title="Defensa planetaria"
+        description="Sistemas defensivos, cobertura local y estructuras de proteccion para la colonia seleccionada."
+        developmentNote="Produccion defensiva pendiente de activacion: sin combate ni intercepcion en esta version."
         badges={
           <>
-            <UiBadge>Lectura / readiness</UiBadge>
-            <UiBadge>Preparacion visible</UiBadge>
+            <UiBadge>Sistemas defensivos</UiBadge>
+            <UiBadge>Produccion pendiente</UiBadge>
             <UiBadge tone="warn">Sin combate ni intercepcion</UiBadge>
           </>
         }
@@ -239,7 +247,7 @@ export function DefensesPage() {
         <PageContextStrip
           eyebrow="Cabina defensiva"
           title={defenses.planetName}
-          purpose="Readiness defensiva, estructuras locales y handoff seguro hacia Construccion."
+          purpose="Defensa planetaria, estructuras locales y enlace seguro hacia Construccion."
           statusLabel={protectionPosture}
           statusTone={defenses.isOwnedByRequestingCivilization ? "good" : "warn"}
           contextItems={[
@@ -279,7 +287,7 @@ export function DefensesPage() {
               <p className="eyebrow">Entrada de cabina</p>
               <h3>Cargar contexto defensivo</h3>
             </div>
-            <UiBadge>Uso local</UiBadge>
+            <UiBadge>Colonia activa</UiBadge>
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
@@ -327,9 +335,9 @@ export function DefensesPage() {
             <UiBadge tone="warn">{cockpitStatusLabels.preparation}</UiBadge>
           </div>
           <ul className="stack-list strategic-rules-list">
-            <li>Preparacion de proteccion planetaria y lectura de estructuras defensivas.</li>
+            <li>Preparacion de proteccion planetaria y estado de estructuras defensivas.</li>
             <li>Contexto de recursos, cola y capacidad para futuras fortificaciones.</li>
-            <li>Explicacion clara de limites y handoff hacia Construccion, Astillero y Flotas.</li>
+            <li>Explicacion clara de limites y enlace hacia Construccion, Astillero y Flotas.</li>
           </ul>
           <div className="figma-section-header module-boundary-spacer">
             <div>
@@ -368,7 +376,7 @@ export function DefensesPage() {
             <UiBadge tone="good">Memoria local</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Este enlace abre Defensas con ids locales de navegacion. La cabina sigue siendo solo lectura.
+            Este enlace abre Defensas con el contexto guardado de la ultima colonia.
           </p>
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
@@ -385,7 +393,7 @@ export function DefensesPage() {
               <div>
                 <p className="eyebrow">Dashboard defensivo</p>
                 <h3>Postura actual y siguiente paso</h3>
-                <p>La primera lectura resume proteccion real, presion visible y la siguiente accion segura para esta colonia.</p>
+                <p>El resumen muestra proteccion real, presion visible y la siguiente accion segura para esta colonia.</p>
               </div>
               <UiBadge tone={recommendedAction?.statusKey === "Available" ? "good" : "neutral"}>
                 {getDefensePrimaryAction(recommendedAction)}
@@ -417,8 +425,8 @@ export function DefensesPage() {
             </p>
             <p className="figma-panel-note">
               {defenses.actionAvailability.completeDue.supported
-                ? "La lectura detecta obras vencidas, pero esta cabina no las cierra porque la accion global sigue fuera de alcance."
-                : "La proteccion actual sigue anclada a readiness, recursos y cola; no implica eficacia de combate ni mitigacion real."}
+                ? "Hay obras vencidas, pero Defensas no las cierra hasta que exista una confirmacion acotada a la colonia."
+                : "La proteccion actual combina estructuras, recursos y cola; no implica eficacia de combate ni mitigacion real."}
             </p>
           </UiCard>
 
@@ -426,14 +434,14 @@ export function DefensesPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Reservas locales</p>
-                <h3>Scope real de affordability</h3>
+                <h3>Coste frente a reservas</h3>
                 <p>Las preparaciones defensivas se comparan contra las reservas visibles del planeta activo, no contra una economia global inventada.</p>
               </div>
               <UiBadge tone="resource">{defenses.stockpile.length} recursos</UiBadge>
             </div>
             <div className="figma-data-list">
-              <div className="figma-data-row"><span>Scope</span><strong>{`Reservas de ${defenses.planetName}`}</strong></div>
-              <div className="figma-data-row"><span>Lectura</span><strong>{resourcePressureSummary}</strong></div>
+              <div className="figma-data-row"><span>Reserva</span><strong>{`Reservas de ${defenses.planetName}`}</strong></div>
+              <div className="figma-data-row"><span>Recursos</span><strong>{resourcePressureSummary}</strong></div>
             </div>
           </UiCard>
 
@@ -467,7 +475,7 @@ export function DefensesPage() {
                       <div className="figma-data-list">
                         <div className="figma-data-row"><span>Estado</span><strong>Ya desplegada</strong></div>
                         <div className="figma-data-row"><span>Huella</span><strong>{structure.footprint}</strong></div>
-                        <div className="figma-data-row"><span>Lectura primaria</span><strong>Proteccion estructural</strong></div>
+                        <div className="figma-data-row"><span>Cobertura</span><strong>Proteccion estructural</strong></div>
                       </div>
                     </article>
                   ))}
@@ -488,7 +496,7 @@ export function DefensesPage() {
             <div className="figma-section-header module-boundary-spacer">
               <div>
                 <p className="eyebrow">Preparaciones disponibles</p>
-                <h4>Opciones viables en esta lectura</h4>
+                <h4>Opciones viables para esta colonia</h4>
               </div>
               <UiBadge tone={availableOptions.length > 0 ? "good" : "neutral"}>{availableOptions.length}</UiBadge>
             </div>
@@ -501,7 +509,7 @@ export function DefensesPage() {
                         <p className="eyebrow">{option.categoryLabel}</p>
                         <h4>{option.structureLabel}</h4>
                       </div>
-                      <UiBadge tone="good">{option.statusLabel}</UiBadge>
+                      <UiBadge tone="good">{getProductDefenseStatusLabel(option.statusKey, option.statusLabel)}</UiBadge>
                     </div>
                     <PlaceholderAsset
                       kind="defense"
@@ -522,7 +530,7 @@ export function DefensesPage() {
                         Abrir Construccion
                       </Link>
                       <span className="planet-action-handoff-message">
-                        Sin enqueue defensivo
+                        Produccion defensiva pendiente
                       </span>
                     </div>
                   </article>
@@ -532,10 +540,10 @@ export function DefensesPage() {
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Catalogo readiness</p>
+                    <p className="eyebrow">Catalogo defensivo</p>
                     <h4>Sin preparaciones disponibles</h4>
                   </div>
-                  <UiBadge tone="neutral">Handoff pendiente</UiBadge>
+                  <UiBadge tone="neutral">Produccion pendiente</UiBadge>
                 </div>
                 <p className="figma-panel-note">No hay una preparacion defensiva habilitada en este momento. Revisa la cola, los recursos o el control del planeta desde Construccion.</p>
               </section>
@@ -556,7 +564,7 @@ export function DefensesPage() {
                         <p className="eyebrow">{option.categoryLabel}</p>
                         <h4>{option.structureLabel}</h4>
                       </div>
-                      <UiBadge tone="warn">{option.statusLabel}</UiBadge>
+                      <UiBadge tone="warn">{getProductDefenseStatusLabel(option.statusKey, option.statusLabel)}</UiBadge>
                     </div>
                     <PlaceholderAsset
                       kind="defense"
@@ -575,7 +583,7 @@ export function DefensesPage() {
                     {option.requirementLabel ? <p className="figma-panel-note">{option.requirementLabel}</p> : null}
                     <div className="selection-chip-row">
                       <span className="planet-action-handoff-message">
-                        {option.statusKey === "Unsupported" ? cockpitStatusLabels.readOnly : "Bloqueada en esta lectura"}
+                        {option.statusKey === "Unsupported" ? "Produccion defensiva pendiente de activacion" : "Bloqueada para esta colonia"}
                       </span>
                     </div>
                   </article>
@@ -590,7 +598,7 @@ export function DefensesPage() {
                   </div>
                   <UiBadge tone="neutral">Sin bloqueos</UiBadge>
                 </div>
-                <p className="figma-panel-note">No hay preparaciones bloqueadas visibles para esta lectura. No se fabrica una lista defensiva adicional.</p>
+                <p className="figma-panel-note">No hay preparaciones bloqueadas visibles para esta colonia. No se fabrica una lista defensiva adicional.</p>
               </section>
             )}
             {optionGroups.length === 0 ? (
@@ -612,12 +620,12 @@ export function DefensesPage() {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">{cockpitStatusLabels.available}</p>
-                    <h4>Handoff a Construccion</h4>
+                    <h4>Enviar a Construccion</h4>
                   </div>
                   <UiBadge tone="good">{availableOptions.length}</UiBadge>
                 </div>
-                <p>Las preparaciones viables se revisan aqui, pero la confirmacion y el enqueue siguen perteneciendo a Construccion.</p>
-                {!hasSafeDefenseEnqueue ? <p className="figma-panel-note">La vista actual no encontro una orden defensiva segura propia. Defensas consume solo contratos de preparacion derivados de Construccion.</p> : null}
+                <p>Las preparaciones viables se revisan aqui, pero la confirmacion de produccion sigue perteneciendo a Construccion.</p>
+                {!hasSafeDefenseEnqueue ? <p className="figma-panel-note">Defensas todavia no activa produccion propia. La confirmacion defensiva se deriva de Construccion.</p> : null}
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
@@ -637,7 +645,7 @@ export function DefensesPage() {
               <div>
                 <p className="eyebrow">Cola defensiva</p>
                 <h3>Ordenes visibles y cierre conservador</h3>
-                <p>Esta lectura usa la cola de construccion filtrada para defensas y mantiene el cierre vencido como affordance secundaria.</p>
+                <p>Esta seccion usa la cola de construccion filtrada para defensas y mantiene el cierre vencido como accion secundaria no ejecutable.</p>
               </div>
               <div className="figma-badge-row">
                 <UiBadge tone={defenses.queue.length > 0 ? "warn" : "neutral"}>
@@ -653,13 +661,13 @@ export function DefensesPage() {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Estado general</p>
-                    <h4>Lectura de cola</h4>
+                    <h4>Estado de cola</h4>
                   </div>
                   <UiBadge tone="neutral">{cockpitStatusLabels.readOnly}</UiBadge>
                 </div>
                 <div className="figma-data-list">
                   <div className="figma-data-row"><span>Origen</span><strong>{defenses.planetName}</strong></div>
-                  <div className="figma-data-row"><span>Scope</span><strong>Construccion filtrada para defensas</strong></div>
+                  <div className="figma-data-row"><span>Filtro</span><strong>Construccion filtrada para defensas</strong></div>
                   <div className="figma-data-row"><span>Vencidas</span><strong>{defenses.protectionSummary.dueQueueItemCount}</strong></div>
                   <div className="figma-data-row"><span>Cierre visible</span><strong>{defenses.actionAvailability.completeDue.supported ? "Detectado pero no habilitado" : "No soportado"}</strong></div>
                 </div>
@@ -669,7 +677,7 @@ export function DefensesPage() {
                   </span>
                 </div>
                 <p className="figma-panel-note">
-                  El backend actual conserva un cierre global de construccion. Esta cabina no lo ejecuta hasta que exista una ruta segura y acotada al planeta.
+                  El cierre disponible no esta acotado a esta colonia. Defensas no lo ejecuta hasta que exista una ruta segura y limitada al planeta.
                 </p>
               </section>
               <section className="subpanel figma-subpanel">
@@ -681,9 +689,9 @@ export function DefensesPage() {
                   <UiBadge tone="warn">Sin auto-cierre</UiBadge>
                 </div>
                 <ul className="stack-list compact-list">
-                  <li>Una orden visible confirma readiness de construccion, no combate ni cierre automatico.</li>
-                  <li>Una orden vencida sigue siendo una lectura de backlog, no una autorizacion para completar desde aqui.</li>
-                  <li>Los ids tecnicos quedan fuera de la vista principal y se reservan para diagnosticos.</li>
+                  <li>Una orden visible confirma preparacion de construccion, no combate ni cierre automatico.</li>
+                  <li>Una orden vencida sigue siendo una senal de cola pendiente, no una autorizacion para completar desde aqui.</li>
+                  <li>Los identificadores tecnicos quedan fuera de la vista principal y se reservan para diagnosticos.</li>
                 </ul>
               </section>
             </div>
@@ -719,7 +727,7 @@ export function DefensesPage() {
               <div>
                 <p className="eyebrow">Navegacion</p>
                 <h3>{cockpitNavigationLabels.relatedCabins}</h3>
-                <p>Defensas resume proteccion y readiness, pero cada sistema vecino conserva su propio alcance y su propia accion segura.</p>
+                <p>Defensas resume proteccion y preparacion, pero cada sistema vecino conserva su propio alcance y su propia accion segura.</p>
               </div>
               <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
             </div>
