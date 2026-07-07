@@ -3,7 +3,7 @@
 ---
 id: TASK-41AL
 title: Product home route
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

@@ -21,6 +21,11 @@ const StrategicMapPage = lazy(async () => {
   return { default: module.StrategicMapPage };
 });
 
+const HomePage = lazy(async () => {
+  const module = await import("./pages/HomePage");
+  return { default: module.HomePage };
+});
+
 const PlanetPage = lazy(async () => {
   const module = await import("./pages/PlanetPage");
   return { default: module.PlanetPage };
@@ -102,6 +107,7 @@ function getPlanetModuleNavState(module: PlanetModuleRouteInfo["module"]): Sideb
 function getRouteStatusLabel(pathname: string) {
   switch (pathname) {
     case "/":
+      return "Inicio";
     case "/galaxy":
       return "Galaxia";
     case "/onboarding":
@@ -161,6 +167,7 @@ export default function App() {
     const systemId = civilizationId ? searchParams.get("systemId") : null;
 
     return [
+      { label: "Inicio", to: "/", state: "playable" },
       { label: "Nueva partida", to: "/onboarding", state: "playable" },
       { label: "Galaxia", to: buildGalaxyUrl(civilizationId, systemId, planetId), state: "map" },
       { label: "Planeta", to: buildPlanetUrl(civilizationId, planetId), state: "playable" },
@@ -185,7 +192,7 @@ export default function App() {
     >
       <Suspense fallback={<RouteLoadingFallback />}>
         <Routes>
-          <Route path="/" element={<StrategicMapPage />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/galaxy" element={<StrategicMapPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/planet" element={<PlanetPage />} />
