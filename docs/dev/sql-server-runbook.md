@@ -321,6 +321,21 @@ Expected behavior after an approved disposable validation seed:
 - final production catalog readiness still depends on the later final relational catalog seed path; do not infer it from Development seed success
 - do not run Development seeds against a shared or production-like database
 
+### Account registration behavior on SQL Server
+
+When the app is explicitly configured for SQL Server and the reviewed baseline schema has been applied manually, account registration uses the same persistence boundary as other runtime account flows:
+
+- ASP.NET Core Identity stores account rows in the Identity tables included in the SQL Server baseline.
+- `POST /api/accounts/register` creates the Identity user, then bootstraps one `PlayerProfile`, one `Civilization`, one active `PlanetOwnership`, starting resource stockpile, and starting production profile.
+- The bootstrap allocator can create the required account bootstrap galaxy/system/home planet records when no unowned home planet is available, so normal new-account creation does not require a prior Development seed.
+- Registration returns the generated `civilizationId`, `homePlanetId`, `homePlanetName`, starting resources, and next planet route for the frontend handoff.
+
+Deferred/manual status:
+
+- This documentation does not claim a manual SQL Server registration run was performed.
+- Operators must still apply and verify the SQL Server baseline manually before using this path.
+- Production hardening for confirmation, recovery, authorization on gameplay reads/mutations, backups, monitoring, and final catalog seed ownership remains outside this runbook step.
+
 Limpia las variables para volver al modo de desarrollo por defecto:
 
 ```powershell

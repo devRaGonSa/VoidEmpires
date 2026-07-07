@@ -12,23 +12,23 @@ VoidEmpires currently has a coherent Development-only product shell suitable for
 | Development seed baseline | `cockpit-validation` covers the accepted cockpit suite for local demo. | Demo ready. |
 | Frontend route shell | Accepted cockpit routes are lazy-loaded and share the current shell/navigation model. | Demo ready. |
 | Product-facing copy | Normal UI hides development/test language and backend details by default; operator-only tooling remains explicit and secondary. | Product-surface ready for local demo. |
-| Playable loop | `/onboarding`, `/planet`, `/construction`, `/research`, and `/shipyard` form the current controlled local loop. | Development-only ready. |
+| Account playable loop | `/register`, `/login`, `/planet`, `/construction`, `/research`, and `/shipyard` now use the account entry path and guarded game routes. | Backend/frontend foundation ready; production authorization still deferred. |
 | Readiness/advisory routes | Galaxy, Defenses, Ground Army, Fleets, Market, Espionage, Alliance, and Ranking expose accepted read or readiness states. | Development/read-only ready. |
 | Validation docs | Demo guide, product audit, deferred visual QA checklist, and cockpit checklists exist. | Documentation ready. |
 | Visual/browser acceptance | Checklist exists, but screenshots and human browser pass are not complete. | Not yet accepted. |
-| Production access | Registration and email confirmation exist, but cockpit context does not resolve from production auth. | Not product-ready. |
+| Production access | Registration, login, current session, logout, and initial world bootstrap exist; final gameplay authorization and manual SQL Server verification remain deferred. | Not product-ready. |
 
 ## Block 42 Registration Contract Audit
 
 Recorded on 2026-07-07 for `TASK-42A`:
 
 - ASP.NET Core Identity is present behind `POST /api/auth/register` and `GET /api/auth/confirm-email`; it is wired only when persistence is configured and sends confirmation mail through the transactional email abstraction.
-- Identity registration currently creates the account only. It does not create the `PlayerProfile`, initial `Civilization`, home planet, `PlanetOwnership`, starting resources, production profile, population profile, or initial buildings.
-- `StartingCivilizationService` already creates the gameplay bootstrap shape, but it is exposed through the Development-only playable-start path and uses explicit ids/local browser memory instead of an authenticated account session.
-- `/onboarding` remains the current local playable start and must be replaced as the product entry by account registration plus initial world bootstrap.
-- The final registration contract is: register account, create/link player profile, create civilization, assign or generate home planet, create ownership, initialize economy/production/building state, resolve `/api/accounts/me`, then navigate to the game from authenticated server-owned context.
+- Account registration now creates the Identity user, `PlayerProfile`, initial `Civilization`, home planet, `PlanetOwnership`, starting resources, and production profile through the account bootstrap path.
+- `/register` is the primary product entry. `/onboarding` remains as an alias to registration.
+- Login, `/api/accounts/me`, logout, cookie configuration, guarded frontend routes, and registration-to-home-world navigation are implemented.
+- The current registration contract is: register account, create/link player profile, create civilization, assign or generate home planet, create ownership, initialize economy/production state, login, then navigate to the generated home planet route.
 - Local playable-session storage remains a navigation convenience only and is not authentication, authorization, ownership, role, token, cookie, or account state.
-- This audit did not implement registration, login, `/api/accounts/me`, production sessions, authorization, SQL Server validation, browser QA, or UI copy changes.
+- This audit still does not claim final gameplay authorization, production hardening, browser QA, or manual SQL Server registration validation.
 
 ## Ready For Local Demo
 
@@ -46,7 +46,7 @@ These flows are usable for local QA and demo, but they are not production featur
 
 | Surface | Development-only behavior |
 |---|---|
-| `/onboarding` | Creates a local playable start with explicit ids; it is not login. |
+| `/onboarding` | Route alias to registration; retained for compatibility, not a separate local start. |
 | Seed profiles | Additive deterministic setup through Development endpoints. |
 | Queue materialization | Explicit scoped helper/action for due Development orders only. |
 | Resource accrual | Explicit backend materialization, not an automatic page-load timer. |
@@ -90,6 +90,7 @@ This was a non-visual automated validation pass. It did not perform browser or m
 - Keep ordinary CI/test paths independent of any real operator-managed database; the checked-in provider is still PostgreSQL/Npgsql today, and future SQL Server validation must remain explicitly gated.
 - Block 41 product-surface copy work did not change the accepted SQL Server posture: `VoidEmpires_Dev` remains a manual/operator-managed validation target, the idempotent SQL review script is not auto-applied, and no real SQL password or resolved connection string belongs in the repository.
 - As of the Block 41 product-surface pass, the repository still does not record a completed manual SQL Server schema apply or accepted `cockpit-validation` seed run against SQL Server. Those remain operator-controlled validation steps outside normal `dotnet test`.
+- As of the Block 42 account flow, SQL Server registration behavior is documented as using Identity tables plus account world bootstrap after manual schema apply, but no manual SQL Server registration run is recorded.
 
 ## Final DB Phase Prep Plan
 

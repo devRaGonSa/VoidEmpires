@@ -3,7 +3,7 @@
 ---
 id: TASK-42V
 title: SQL Server registration readiness doc
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams: []

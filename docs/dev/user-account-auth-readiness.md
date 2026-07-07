@@ -10,17 +10,20 @@ It does not add bearer tokens, localStorage auth tokens, role claims, production
 - `GET /api/auth/confirm-email` exists and uses `IEmailConfirmationService` when persistence is configured.
 - `POST /api/accounts/register` creates an Identity account and initial player world.
 - `POST /api/accounts/login` validates credentials with ASP.NET Core Identity and returns a safe current player summary.
+- `GET /api/accounts/me` resolves the current account from the Identity application cookie and returns the safe player/civilization/home planet summary.
+- `POST /api/accounts/logout` clears the current Identity application cookie session.
 - The selected session approach is an HTTP-only ASP.NET Core Identity application cookie named `VoidEmpires.Auth`; no bearer token or localStorage token is introduced.
 - Local Vite development origins `http://localhost:5173` and `http://127.0.0.1:5173` are explicitly allowed to send credentials through CORS.
 - Cookie security remains production-biased: cookies are HTTP-only, `SameSite=Lax`, and `SecurePolicy=Always` outside Development.
 - `IdentityAccountService` creates ASP.NET Core Identity users, generates email confirmation tokens, and sends transactional email through the configured email sender.
 - Identity is registered only when `ConnectionStrings:DefaultConnection` is non-empty; ordinary tests still avoid any real SQL Server dependency.
 - `/health` reports auth configured when persistence is configured.
-- These endpoints are account foundation only. They do not currently bootstrap the active playable civilization in the frontend shell.
+- SQL Server uses the same Identity tables and account bootstrap workflow after the SQL Server baseline schema has been manually applied; no real SQL Server registration QA is claimed in this note.
 
 ## Current Playable Start Boundary
 
-- `/onboarding` calls `POST /api/dev/players/starting-civilization`.
+- `/register` is the primary product account entry and posts to `POST /api/accounts/register`.
+- `/onboarding` is retained as a route alias to registration.
 - `StartingCivilizationService` creates a `PlayerProfile`, `Civilization`, generated galaxy/system/home planet, `PlanetOwnership`, starting resource stockpile, production profile, population profile, building capacity, and initial buildings.
 - The response returns explicit `civilizationId` and `homePlanetId`.
 - The frontend stores those ids in local browser navigation memory through `playableSession.ts`.
@@ -34,9 +37,9 @@ The final product entry should replace `/onboarding` as the primary new-player p
 2. The account service creates the ASP.NET Core Identity user and enforces email/password policy.
 3. The bootstrap workflow creates or links one `PlayerProfile` for that user.
 4. The workflow creates the initial `Civilization`, normalizes its lookup name, assigns or generates a home planet, creates active `PlanetOwnership`, and initializes starting economy/production/building state.
-5. A confirmed login/session resolves the current account and active civilization server-side.
-6. The frontend navigates to the game using session-owned data from `/api/accounts/me`, not client-trusted raw ids.
-7. Planet and cockpit reads validate ownership/visibility against the authenticated account before returning gameplay state.
+5. The frontend signs in after successful registration, resolves the generated world route from the registration response, and can refresh current account state through `/api/accounts/me`.
+6. The frontend stores only non-sensitive navigation context for fallback; no password, bearer token, or cookie value is written to browser storage.
+7. Planet and cockpit reads still need final ownership/visibility authorization before production readiness can be claimed.
 
 ### Home planet allocation
 
@@ -44,26 +47,24 @@ The account bootstrap allocator first selects an existing unowned Terran planet 
 
 ## Current UI Boundary
 
-`/onboarding` now includes a visible account/access boundary panel:
+The account UI now uses `/register`, `/login`, `/api/accounts/me`, and `/api/accounts/logout` for the primary account flow:
 
-- Account foundation exists in backend registration and email confirmation.
-- This screen does not create credentials or call the registration endpoint.
+- Registration creates credentials and an initial world, then routes to the generated home planet after login succeeds.
+- The shell and guarded game routes use backend-backed current account state.
 - Local memory stores navigation ids only.
 - Backend reads remain authoritative for ownership and cockpit state.
 
 ## Final Auth Dependencies
 
-Before claiming production auth, the product needs:
+Before claiming production auth, the product still needs:
 
-1. Login and logout flows.
-2. Authenticated session or token strategy.
-3. Active civilization resolution from the authenticated account.
-4. Server-side authorization on gameplay reads and mutations.
-5. Account-to-player/civilization selection rules.
-6. Email confirmation UX and resend/recovery behavior.
-7. Clear environment gating for Development-only playable-start endpoints.
-8. Tests proving unauthenticated users cannot read or mutate protected gameplay state.
-9. Registration-to-world smoke coverage proving account creation, session resolution, and home planet UI-state access without SQL Server.
+1. Server-side authorization on gameplay reads and mutations.
+2. Account-to-player/civilization selection rules beyond one initial civilization.
+3. Email confirmation UX and resend/recovery behavior.
+4. Clear environment gating for Development-only playable-start endpoints.
+5. Tests proving unauthenticated users cannot read or mutate protected gameplay state.
+6. Registration-to-world smoke coverage proving account creation, session resolution, and home planet UI-state access without SQL Server.
+7. Manual SQL Server registration verification after the operator-applied baseline exists.
 
 ## Validation
 
