@@ -3,7 +3,7 @@
 ---
 id: TASK-42C
 title: Registration validation rules
-status: pending
+status: done
 type: backend
 team: platform
 supporting_teams: []
