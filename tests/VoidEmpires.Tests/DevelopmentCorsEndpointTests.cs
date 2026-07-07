@@ -26,6 +26,7 @@ public class DevelopmentCorsEndpointTests(WebApplicationFactory<Program> factory
 
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         Assert.Equal(origin, response.Headers.Single(x => x.Key == "Access-Control-Allow-Origin").Value.Single());
+        Assert.Equal("true", response.Headers.Single(x => x.Key == "Access-Control-Allow-Credentials").Value.Single());
         Assert.Contains("Origin", response.Headers.Single(x => x.Key == "Vary").Value);
     }
 
@@ -42,6 +43,7 @@ public class DevelopmentCorsEndpointTests(WebApplicationFactory<Program> factory
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         Assert.Equal(AllowedOrigin, response.Headers.Single(x => x.Key == "Access-Control-Allow-Origin").Value.Single());
+        Assert.Equal("true", response.Headers.Single(x => x.Key == "Access-Control-Allow-Credentials").Value.Single());
         Assert.Contains("GET", response.Headers.Single(x => x.Key == "Access-Control-Allow-Methods").Value.Single());
         Assert.Contains("content-type", response.Headers.Single(x => x.Key == "Access-Control-Allow-Headers").Value.Single(), StringComparison.OrdinalIgnoreCase);
     }

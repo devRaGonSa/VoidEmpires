@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using VoidEmpires.Application.Identity;
@@ -11,6 +13,10 @@ const string LocalFrontendDevelopmentCorsPolicy = "LocalFrontendDevelopment";
 builder.Services.Configure<BrevoEmailOptions>(builder.Configuration.GetSection(BrevoEmailOptions.SectionName));
 builder.Services.AddVoidEmpiresTransactionalEmail();
 builder.Services.AddVoidEmpiresGalaxyGeneration();
+builder.Services.AddAuthorization();
+builder.Services
+    .AddAuthentication(IdentityConstants.ApplicationScheme)
+    .AddCookie(IdentityConstants.ApplicationScheme, options => ConfigureAccountCookie(options, builder.Environment.IsDevelopment()));
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(LocalFrontendDevelopmentCorsPolicy, policy =>
@@ -22,7 +28,8 @@ builder.Services.AddCors(options =>
             .WithMethods(HttpMethods.Get, HttpMethods.Post)
             .WithHeaders(
                 HeaderNames.Accept,
-                HeaderNames.ContentType);
+                HeaderNames.ContentType)
+            .AllowCredentials();
     });
 });
 
@@ -44,6 +51,11 @@ var developmentEndpointsEnabled = AreDevelopmentEndpointsEnabled(app.Environment
 if (developmentEndpointsEnabled)
 {
     app.UseCors(LocalFrontendDevelopmentCorsPolicy);
+}
+if (IsPersistenceConfigured(app.Configuration))
+{
+    app.UseAuthentication();
+    app.UseAuthorization();
 }
 
 app.MapGet("/", () => "VoidEmpires");
@@ -158,6 +170,26 @@ static string ResolvePersistenceProvider(IServiceProvider services, IConfigurati
 
 static bool AreDevelopmentEndpointsEnabled(IHostEnvironment environment, IConfiguration configuration) =>
     environment.IsDevelopment() || configuration.GetValue<bool>("VoidEmpires:DevEndpoints:Enabled");
+
+static void ConfigureAccountCookie(CookieAuthenticationOptions options, bool isDevelopment)
+{
+    options.Cookie.Name = "VoidEmpires.Auth";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = isDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+    options.LoginPath = "/api/accounts/login";
+    options.LogoutPath = "/api/accounts/logout";
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return Task.CompletedTask;
+    };
+}
 
 public partial class Program
 {

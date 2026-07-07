@@ -2,12 +2,17 @@
 
 This note documents the current account/auth boundary for the playable shell. It prepares the product handoff without claiming production authentication.
 
-It does not add login, session cookies, bearer tokens, role claims, production account selection, final authorization, combat, fleet movement, market transactions, alliance mutations, or final DB/model consolidation.
+It does not add bearer tokens, localStorage auth tokens, role claims, production account selection, final authorization, combat, fleet movement, market transactions, alliance mutations, or final DB/model consolidation.
 
 ## Current Backend Foundation
 
 - `POST /api/auth/register` exists and uses `IUserRegistrationService` when persistence is configured.
 - `GET /api/auth/confirm-email` exists and uses `IEmailConfirmationService` when persistence is configured.
+- `POST /api/accounts/register` creates an Identity account and initial player world.
+- `POST /api/accounts/login` validates credentials with ASP.NET Core Identity and returns a safe current player summary.
+- The selected session approach is an HTTP-only ASP.NET Core Identity application cookie named `VoidEmpires.Auth`; no bearer token or localStorage token is introduced.
+- Local Vite development origins `http://localhost:5173` and `http://127.0.0.1:5173` are explicitly allowed to send credentials through CORS.
+- Cookie security remains production-biased: cookies are HTTP-only, `SameSite=Lax`, and `SecurePolicy=Always` outside Development.
 - `IdentityAccountService` creates ASP.NET Core Identity users, generates email confirmation tokens, and sends transactional email through the configured email sender.
 - Identity is registered only when `ConnectionStrings:DefaultConnection` is non-empty; ordinary tests still avoid any real SQL Server dependency.
 - `/health` reports auth configured when persistence is configured.

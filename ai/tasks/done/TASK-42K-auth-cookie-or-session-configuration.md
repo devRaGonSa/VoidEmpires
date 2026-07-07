@@ -3,7 +3,7 @@
 ---
 id: TASK-42K
 title: Auth cookie or session configuration
-status: pending
+status: done
 type: backend
 team: platform
 supporting_teams: [frontend]
