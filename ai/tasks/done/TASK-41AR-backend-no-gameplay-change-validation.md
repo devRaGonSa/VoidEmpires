@@ -3,7 +3,7 @@
 ---
 id: TASK-41AR
 title: Backend no gameplay change validation
-status: pending
+status: done
 type: validation
 team: platform
 supporting_teams:
