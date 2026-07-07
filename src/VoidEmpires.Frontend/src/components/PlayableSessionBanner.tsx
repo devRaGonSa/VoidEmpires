@@ -16,8 +16,8 @@ export function PlayableSessionBanner({ session, onClear }: PlayableSessionBanne
   }
 
   const planetLabel = session.planetName ?? "Colonia guardada";
-  const civilizationLabel = session.civilizationName ?? "Civilizacion local";
-  const playerLabel = session.playerDisplayName ?? "Comandante local";
+  const civilizationLabel = session.civilizationName ?? "Civilizacion guardada";
+  const playerLabel = session.playerDisplayName ?? "Comandante";
   const planetUrl = buildPlanetUrl(session.civilizationId, session.planetId);
 
   function handleClearLocalSession() {
@@ -32,23 +32,23 @@ export function PlayableSessionBanner({ session, onClear }: PlayableSessionBanne
           <p className="eyebrow">Partida local</p>
           <h3>{planetLabel}</h3>
           <p>
-            {civilizationLabel} bajo {playerLabel}. Continua tu sesion de juego local desde la colonia guardada.
+            {civilizationLabel} bajo {playerLabel}. Continua tu partida desde la colonia guardada.
           </p>
         </div>
-        <UiBadge tone="good">Sesion local</UiBadge>
+        <UiBadge tone="good">Partida guardada</UiBadge>
       </div>
       <p className="figma-panel-note">
         Cada cabina vuelve a comprobar el estado de juego antes de mostrar recursos, colas u ordenes disponibles.
       </p>
       <div className="selection-chip-row">
         <Link className="selection-chip selection-chip-active" to={planetUrl}>
-          Ir al planeta
+          Continuar partida
         </Link>
         <Link className="selection-chip" to="/onboarding">
           Nueva partida
         </Link>
         <button type="button" className="selection-chip" onClick={handleClearLocalSession}>
-          Olvidar partida local
+          Olvidar partida
         </button>
       </div>
     </UiCard>

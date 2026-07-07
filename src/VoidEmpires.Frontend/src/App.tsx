@@ -105,7 +105,7 @@ function getRouteStatusLabel(pathname: string) {
     case "/galaxy":
       return "Galaxia";
     case "/onboarding":
-      return "Inicio";
+      return "Nueva partida";
     case "/planet":
       return "Planeta";
     case "/construction":
@@ -161,7 +161,7 @@ export default function App() {
     const systemId = civilizationId ? searchParams.get("systemId") : null;
 
     return [
-      { label: "Inicio", to: "/onboarding", state: "playable" },
+      { label: "Nueva partida", to: "/onboarding", state: "playable" },
       { label: "Galaxia", to: buildGalaxyUrl(civilizationId, systemId, planetId), state: "map" },
       { label: "Planeta", to: buildPlanetUrl(civilizationId, planetId), state: "playable" },
       { label: "Construccion", to: buildConstructionUrl(civilizationId, planetId), state: "playable" },

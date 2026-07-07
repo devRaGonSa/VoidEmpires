@@ -3,7 +3,7 @@
 ---
 id: TASK-41AK
 title: Product session persistence copy
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

@@ -34,8 +34,8 @@ const accountAuthReadinessRows = [
   },
   {
     label: "Partida local",
-    value: "Sesion de juego local",
-    detail: "Conserva el contexto de navegacion para reabrir cabinas; no guarda credenciales.",
+    value: "Partida guardada en este navegador",
+    detail: "Conserva el contexto de navegacion para reabrir cabinas; no sustituye una cuenta.",
   },
   {
     label: "Propiedad",
@@ -78,7 +78,7 @@ function toProductOnboardingLimitation(message: string) {
   }
 
   if (lower.includes("sesion") || lower.includes("auth")) {
-    return "La partida local solo conserva la navegacion en este navegador.";
+    return "La partida guardada solo conserva la navegacion en este navegador.";
   }
 
   if (normalized.includes("civilizationId") || normalized.includes("planetId")) {
