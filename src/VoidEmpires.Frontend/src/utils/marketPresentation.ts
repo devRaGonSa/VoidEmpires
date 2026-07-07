@@ -1,3 +1,5 @@
+import { formatResourceLabel } from "./resourceDisplay";
+
 type MarketValue = string | number | null | undefined;
 
 interface MarketLabelEntry {
@@ -12,12 +14,12 @@ const unknownTradeStateFallback = "Lectura de estado orientativa";
 const unknownActionFallback = "Lectura de accion orientativa";
 
 const marketResourceCatalog: readonly MarketLabelEntry[] = [
-  { key: "Credits", label: "Creditos" },
-  { key: "Metal", label: "Metal" },
-  { key: "Crystal", label: "Cristal" },
-  { key: "Gas", label: "Gas" },
-  { key: "Deuterium", label: "Deuterio" },
-  { key: "Energy", label: "Energia" },
+  { key: "Credits", label: formatResourceLabel("Credits") },
+  { key: "Metal", label: formatResourceLabel("Metal") },
+  { key: "Crystal", label: formatResourceLabel("Crystal") },
+  { key: "Gas", label: formatResourceLabel("Gas") },
+  { key: "Deuterium", label: formatResourceLabel("Deuterium") },
+  { key: "Energy", label: formatResourceLabel("Energy") },
 ] as const;
 
 const marketSignalCatalog: readonly MarketLabelEntry[] = [

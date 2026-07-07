@@ -40,7 +40,7 @@ function mapOption(item: GroundArmyOptionDto): GroundArmyOption {
   const reasonLabel = item.availabilityReason === "MissingRequiredBuilding"
     ? requirementLabel
     : item.availabilityReason === "InsufficientPopulationCapacity"
-      ? `Capacidad de poblacion insuficiente (${item.requiredPopulationCapacity})`
+      ? `Capacidad de población insuficiente (${item.requiredPopulationCapacity})`
       : getGroundReadinessLabel(item.availabilityReason);
   return {
     assetType,

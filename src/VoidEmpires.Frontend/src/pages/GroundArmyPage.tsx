@@ -212,7 +212,7 @@ export function GroundArmyPage() {
         {groundArmy ? (
           <div className="readiness-grid">
             <section className="subpanel figma-subpanel"><div className="figma-data-list">
-              <PlanetDataRow label="Poblacion total" value={groundArmy.population ? `${groundArmy.population.totalPopulation}` : "No disponible"} />
+              <PlanetDataRow label="Población total" value={groundArmy.population ? `${groundArmy.population.totalPopulation}` : "No disponible"} />
               <PlanetDataRow label="Reclutable base" value={groundArmy.population ? `${groundArmy.population.baseRecruitablePopulation}` : "No disponible"} />
               <PlanetDataRow label="Capacidad terrestre" value={groundArmy.population ? `${groundArmy.population.totalGroundCapacity}` : "No disponible"} />
               <PlanetDataRow label="Opciones visibles" value={`${groundArmy.catalog.length}`} />

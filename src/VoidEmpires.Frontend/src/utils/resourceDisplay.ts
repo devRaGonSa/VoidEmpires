@@ -6,26 +6,27 @@ export interface ResourceAmount {
 }
 
 export const resourceTerminologyV1 = {
-  credits: "Creditos",
+  credits: "Créditos",
   metal: "Metal",
   crystal: "Cristal",
   gas: "Gas",
   deuterium: "Deuterio",
-  energy: "Energia",
-  population: "Poblacion",
+  energy: "Energía",
+  population: "Población",
 } as const;
 
 export const resourceTerminologyNotesV1 = [
-  "Creditos is the spendable economy balance.",
-  "Energia is a power or infrastructure signal, not a synonym for Creditos.",
+  "Créditos is the spendable economy balance.",
+  "Energía is a power or infrastructure signal, not a synonym for Créditos.",
   "Deuterio remains a visible future term only and is not part of the persisted stockpile.",
-  "Poblacion is colony capacity context, not a stockpile currency.",
+  "Población is colony capacity context, not a stockpile currency.",
 ] as const;
 
 const resourceLabelsByName: Record<string, string> = {
   Credit: resourceTerminologyV1.credits,
   Credits: resourceTerminologyV1.credits,
   Creditos: resourceTerminologyV1.credits,
+  Créditos: resourceTerminologyV1.credits,
   Metal: resourceTerminologyV1.metal,
   Crystal: resourceTerminologyV1.crystal,
   Cristal: resourceTerminologyV1.crystal,
@@ -34,8 +35,10 @@ const resourceLabelsByName: Record<string, string> = {
   Deuterio: resourceTerminologyV1.deuterium,
   Energy: resourceTerminologyV1.energy,
   Energia: resourceTerminologyV1.energy,
+  Energía: resourceTerminologyV1.energy,
   Population: resourceTerminologyV1.population,
   Poblacion: resourceTerminologyV1.population,
+  Población: resourceTerminologyV1.population,
 };
 
 const resourceLabelsByNumber: Record<number, string> = {

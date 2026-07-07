@@ -121,7 +121,7 @@ export interface ResearchUiState {
 export const researchTechnologyCatalog: readonly ResearchCatalogEntry[] = [
   { id: 1, key: "PlanetaryEngineering", label: "Ingenieria planetaria", categoryKey: "Colonizacion", categoryLabel: "Colonizacion" },
   { id: 2, key: "ResourceExtraction", label: "Extraccion de recursos", categoryKey: "Economia", categoryLabel: "Economia" },
-  { id: 3, key: "EnergySystems", label: "Sistemas energeticos", categoryKey: "Energia", categoryLabel: "Energia" },
+  { id: 3, key: "EnergySystems", label: "Sistemas energéticos", categoryKey: "Energia", categoryLabel: "Energía" },
   { id: 4, key: "ConstructionAutomation", label: "Automatizacion de construccion", categoryKey: "Administracion", categoryLabel: "Administracion" },
   { id: 5, key: "Propulsion", label: "Propulsion", categoryKey: "Logistica", categoryLabel: "Logistica" },
   { id: 6, key: "ShipWeapons", label: "Armas de nave", categoryKey: "Militar espacial", categoryLabel: "Militar espacial" },
@@ -135,8 +135,8 @@ const researchTechnologyLabelCatalog: LabelCatalog = {
 };
 
 const researchCategoryCatalog: LabelCatalog = {
-  names: { Economia: "Economia", Energia: "Energia", Logistica: "Logistica", Exploracion: "Exploracion", MilitaryGround: "Militar terrestre", MilitarySpace: "Militar espacial", Defensa: "Defensa", Colonizacion: "Colonizacion", Administracion: "Administracion" },
-  numbers: { 1: "Economia", 2: "Energia", 3: "Logistica", 4: "Exploracion", 5: "Militar terrestre", 6: "Militar espacial", 7: "Defensa", 8: "Colonizacion", 9: "Administracion" },
+  names: { Economia: "Economia", Energia: "Energía", Logistica: "Logistica", Exploracion: "Exploracion", MilitaryGround: "Militar terrestre", MilitarySpace: "Militar espacial", Defensa: "Defensa", Colonizacion: "Colonizacion", Administracion: "Administracion" },
+  numbers: { 1: "Economia", 2: "Energía", 3: "Logistica", 4: "Exploracion", 5: "Militar terrestre", 6: "Militar espacial", 7: "Defensa", 8: "Colonizacion", 9: "Administracion" },
 };
 
 const researchStatusCatalog: LabelCatalog = {

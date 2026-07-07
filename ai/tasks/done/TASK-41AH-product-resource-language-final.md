@@ -3,7 +3,7 @@
 ---
 id: TASK-41AH
 title: Product resource language final
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
