@@ -29,18 +29,18 @@ interface CreatedPlayableStart {
 const accountAuthReadinessRows = [
   {
     label: "Cuenta",
-    value: "Registro y confirmacion existen en backend",
-    detail: "Esta pantalla no crea credenciales ni abre el flujo de registro.",
+    value: "Registro y confirmacion quedan fuera de esta ruta",
+    detail: "Esta pantalla solo prepara una partida local.",
   },
   {
-    label: "Sesion",
-    value: "Memoria local de navegacion",
-    detail: "Guarda ids devueltos por Development para reabrir cabinas; no es cookie, token ni rol.",
+    label: "Partida local",
+    value: "Sesion de juego local",
+    detail: "Conserva el contexto de navegacion para reabrir cabinas; no guarda credenciales.",
   },
   {
     label: "Propiedad",
-    value: "Revalidada por cada lectura backend",
-    detail: "Las cabinas usan civilizationId y planetId explicitos y vuelven a consultar el estado autoritativo.",
+    value: "Revalidada por cada lectura",
+    detail: "Las cabinas vuelven a consultar el estado autoritativo antes de mostrar datos de juego.",
   },
 ] as const;
 
@@ -78,7 +78,7 @@ function toProductOnboardingLimitation(message: string) {
   }
 
   if (lower.includes("sesion") || lower.includes("auth")) {
-    return "La memoria local solo conserva la navegacion en este navegador.";
+    return "La partida local solo conserva la navegacion en este navegador.";
   }
 
   if (normalized.includes("civilizationId") || normalized.includes("planetId")) {
@@ -158,7 +158,7 @@ export function OnboardingPage() {
       });
 
       if (!storedSession) {
-        setTechnicalDetail("El inicio fue creado, pero el navegador no permitio guardar la memoria local de navegacion.");
+        setTechnicalDetail("El inicio fue creado, pero el navegador no permitio guardar la partida local.");
       }
     } catch (requestError) {
       setError("No se pudo preparar la partida inicial. Reintenta en unos momentos.");
@@ -194,7 +194,7 @@ export function OnboardingPage() {
           <UiBadge tone="warn">Preparada, no productizada</UiBadge>
         </div>
         <p className="figma-panel-note">
-          VoidEmpires ya tiene una base tecnica de cuenta con registro y confirmacion por email, pero este inicio jugable no resuelve una sesion autenticada ni permisos de produccion.
+          VoidEmpires mantiene cuenta y confirmacion separadas de esta ruta. Esta pantalla solo prepara una partida local.
         </p>
         <div className="figma-data-list">
           {accountAuthReadinessRows.map((item) => (
@@ -279,7 +279,7 @@ export function OnboardingPage() {
               <UiBadge tone="good">Contexto listo</UiBadge>
             </div>
             <p className="figma-panel-note">
-              La colonia inicial esta lista. La memoria local conserva los enlaces de navegacion para este navegador.
+              La colonia inicial esta lista. La partida local conserva los enlaces de navegacion para este navegador.
             </p>
             <div className="selection-chip-row">
               <Link className="selection-chip selection-chip-active" to={createdStart.planetUrl}>
@@ -302,7 +302,7 @@ export function OnboardingPage() {
                 <div className="figma-data-row"><span>Jugador</span><strong>{createdStart.playerDisplayName}</strong></div>
                 <div className="figma-data-row"><span>Civilizacion</span><strong>{createdStart.civilizationName}</strong></div>
                 <div className="figma-data-row"><span>Planeta</span><strong>{createdStart.planetName}</strong></div>
-                <div className="figma-data-row"><span>Memoria local</span><strong>{createdStart.storedLocally ? "Guardada" : "No disponible"}</strong></div>
+                <div className="figma-data-row"><span>Partida local</span><strong>{createdStart.storedLocally ? "Guardada" : "No disponible"}</strong></div>
                 <div className="figma-data-row"><span>civilizationId</span><strong>{createdStart.civilizationId}</strong></div>
                 <div className="figma-data-row"><span>planetId</span><strong>{createdStart.planetId}</strong></div>
               </div>

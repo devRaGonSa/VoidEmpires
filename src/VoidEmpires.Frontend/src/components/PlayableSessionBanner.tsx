@@ -29,26 +29,26 @@ export function PlayableSessionBanner({ session, onClear }: PlayableSessionBanne
     <UiCard className="panel">
       <div className="figma-section-header">
         <div>
-          <p className="eyebrow">Memoria local de navegacion</p>
+          <p className="eyebrow">Partida local</p>
           <h3>{planetLabel}</h3>
           <p>
-            {civilizationLabel} bajo {playerLabel}. Guarda solo ids Development para reconstruir enlaces de cabina.
+            {civilizationLabel} bajo {playerLabel}. Continua tu sesion de juego local desde la colonia guardada.
           </p>
         </div>
-        <UiBadge tone="warn">No autentica</UiBadge>
+        <UiBadge tone="good">Sesion local</UiBadge>
       </div>
       <p className="figma-panel-note">
-        Esta memoria no es login, cookie, token, rol ni permiso. Cada cabina vuelve a leer el backend con los ids visibles antes de mostrar estado jugable.
+        Cada cabina vuelve a comprobar el estado de juego antes de mostrar recursos, colas u ordenes disponibles.
       </p>
       <div className="selection-chip-row">
         <Link className="selection-chip selection-chip-active" to={planetUrl}>
           Ir al planeta
         </Link>
         <Link className="selection-chip" to="/onboarding">
-          Crear otro inicio
+          Nueva partida
         </Link>
         <button type="button" className="selection-chip" onClick={handleClearLocalSession}>
-          Limpiar memoria local
+          Olvidar partida local
         </button>
       </div>
     </UiCard>

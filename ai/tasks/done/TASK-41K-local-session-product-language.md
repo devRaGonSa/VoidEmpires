@@ -3,7 +3,7 @@
 ---
 id: TASK-41K
 title: Local session product language
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
