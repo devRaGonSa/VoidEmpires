@@ -24,6 +24,7 @@ import {
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
 import { formatCompactGuid } from "../utils/domainPresentation";
+import { isOperatorMode } from "../utils/playableSession";
 
 function pickFocusedGroup(groups: readonly IntelligenceSystemTargetGroup[], systemId: string | null, recommendedTarget: EspionageViewModel["recommendedTarget"]) {
   return groups.find((group) => group.systemId === systemId)
@@ -40,17 +41,27 @@ function pickFocusedTarget(group: IntelligenceSystemTargetGroup | null, planetId
 }
 
 function getCoverageOverview(viewModel: EspionageViewModel | null) {
-  if (!viewModel) return "Sin lectura";
+  if (!viewModel) return "Sin red";
   if (viewModel.summary.partialTargetCount >= viewModel.summary.visibleTargetCount) return "Cobertura parcial";
   if (viewModel.summary.passiveSignalCount === 0) return "Cobertura limitada";
   return "Cobertura amplia";
 }
 
 function getReadinessPosture(viewModel: EspionageViewModel | null) {
-  if (!viewModel) return "Esperando lectura";
+  if (!viewModel) return "Esperando red";
   if (viewModel.summary.partialTargetCount > 0 || viewModel.summary.passiveSignalCount > 0) return "Preparacion activa";
-  if (viewModel.summary.visibleTargetCount > 0 || viewModel.summary.ownedTargetCount > 0) return "Lectura estable";
+  if (viewModel.summary.visibleTargetCount > 0 || viewModel.summary.ownedTargetCount > 0) return "Red estable";
   return "Cobertura minima";
+}
+
+function formatEspionageProductLabel(label: string) {
+  return label
+    .replace(/solo\s+lect\S+/gi, "consulta de inteligencia")
+    .replace(/lectura\s+de\s+inteligencia/gi, "red de inteligencia")
+    .replace(/lectura/gi, "senal")
+    .replace(/desarrollo/gi, "fase actual")
+    .replace(/persistencia/gi, "estado")
+    .replace(/acci\S+/gi, "operacion");
 }
 
 interface IntelligenceCatalogEntry {
@@ -93,8 +104,8 @@ function getTargetTypeLabel(target: IntelligenceTargetViewModel) {
 
 function getTargetStatusLabel(target: IntelligenceTargetViewModel) {
   if (isOwnedTarget(target)) return "Control confirmado";
-  if (isVisibleTarget(target)) return "Lectura estable";
-  return target.hasPassiveSignals ? "Lectura parcial" : "Contacto sin confirmar";
+  if (isVisibleTarget(target)) return "Senal estable";
+  return target.hasPassiveSignals ? "Contacto parcial" : "Contacto sin confirmar";
 }
 
 function getTargetHandoffLabel(target: IntelligenceTargetViewModel) {
@@ -121,7 +132,7 @@ function buildCatalogSections(groups: readonly IntelligenceSystemTargetGroup[]):
   const sections: IntelligenceCatalogSection[] = [
     { key: "owned", label: "Sistema propio", description: "Colonias y sistemas confirmados bajo control propio.", tone: "good", entries: [] },
     { key: "observed", label: "Sistema observado", description: "Objetivos visibles o conocidos sin exagerar la certeza.", tone: "neutral", entries: [] },
-    { key: "partial", label: "Contacto parcial", description: "Lecturas parciales con contexto suficiente para seguir observando.", tone: "warn", entries: [] },
+    { key: "partial", label: "Contacto parcial", description: "Senales parciales con contexto suficiente para seguir observando.", tone: "warn", entries: [] },
     { key: "signal", label: "Senal orbital", description: "Pistas pasivas y trayectorias todavia no elevadas a objetivo confirmado.", tone: "warn", entries: [] },
     { key: "unconfirmed", label: "Sin confirmar", description: "Contactos sin evidencia estable y con datos incompletos.", tone: "warn", entries: [] },
   ];
@@ -177,7 +188,7 @@ const intelligenceLegend: Array<{
   tone: "neutral" | "good" | "warn";
 }> = [
   { key: "owned", label: "Propio / control directo", badge: "Confirmado", tone: "good" },
-  { key: "observed", label: "Visible / observado", badge: "Lectura estable", tone: "neutral" },
+  { key: "observed", label: "Visible / observado", badge: "Senal estable", tone: "neutral" },
   { key: "partial", label: "Contacto parcial", badge: "Datos incompletos", tone: "warn" },
   { key: "signal", label: "Senal orbital", badge: "Senal pasiva", tone: "warn" },
   { key: "unconfirmed", label: "Sin confirmar", badge: "Sin evidencia estable", tone: "warn" },
@@ -206,7 +217,7 @@ const handoffCards = [
     key: "research",
     label: "Investigacion",
     title: "Progreso tecnologico",
-    description: "Muestra el progreso tecnologico relacionado con futuras mejoras de lectura e inteligencia.",
+    description: "Muestra el progreso tecnologico relacionado con futuras mejoras de sensores e inteligencia.",
   },
 ] as const;
 
@@ -231,7 +242,13 @@ export function EspionagePage() {
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const querySystemId = searchParams.get("systemId");
   const queryPlanetId = searchParams.get("planetId");
+  const operatorMode = isOperatorMode(searchParams);
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
+
+  function presentEspionageFailure(failure: ReturnType<typeof formatEspionageRequestFailure>) {
+    setError(formatEspionageProductLabel(failure.primaryMessage));
+    setTechnicalErrorDetail(failure.technicalDetail);
+  }
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -254,8 +271,7 @@ export function EspionagePage() {
         if (!response.succeeded || !response.uiState) {
           const failure = formatEspionageRequestFailure(response.errors[0] ?? null);
           setViewModel(null);
-          setError(failure.primaryMessage);
-          setTechnicalErrorDetail(failure.technicalDetail);
+          presentEspionageFailure(failure);
           return;
         }
 
@@ -270,8 +286,7 @@ export function EspionagePage() {
       } catch (requestError) {
         const failure = formatEspionageRequestFailure(requestError instanceof Error ? requestError.message : null);
         setViewModel(null);
-        setError(failure.primaryMessage);
-        setTechnicalErrorDetail(failure.technicalDetail);
+        presentEspionageFailure(failure);
       } finally {
         setIsLoading(false);
       }
@@ -286,8 +301,7 @@ export function EspionagePage() {
     const trimmedCivilizationId = civilizationIdInput.trim();
     if (!trimmedCivilizationId) {
       const failure = formatEspionageRequestFailure("Civilization id is required.");
-      setError(failure.primaryMessage);
-      setTechnicalErrorDetail(failure.technicalDetail);
+      presentEspionageFailure(failure);
       setViewModel(null);
       return;
     }
@@ -317,8 +331,8 @@ export function EspionagePage() {
       const action = knownActions.get(key);
       return {
         key,
-        label: getEspionageActionLabel(key) ?? "Accion futura",
-        reason: getEspionageFutureActionReasonLabel(key, action?.reasonLabel),
+        label: formatEspionageProductLabel(getEspionageActionLabel(key) ?? "Operacion futura"),
+        reason: formatEspionageProductLabel(getEspionageFutureActionReasonLabel(key, action?.reasonLabel)),
       };
     });
   }, [viewModel]);
@@ -327,13 +341,13 @@ export function EspionagePage() {
     <section className="page-grid">
       <CockpitHero
         versionLabel="Espionaje v1"
-        title="Espionaje"
+        title="Red de inteligencia"
         description="La cabina resume lo confirmado, lo observado y lo que sigue incompleto sin prometer operaciones activas."
-        developmentNote="La lectura reutiliza la cobertura estrategica disponible y deja cualquier futura mision como referencia bloqueada."
+        developmentNote="La red reutiliza la cobertura estrategica disponible y deja cualquier futura mision pendiente de activacion."
         badges={
           <>
             <UiBadge>{coverageOverview}</UiBadge>
-            <UiBadge>Solo lectura</UiBadge>
+            <UiBadge>Consulta de inteligencia</UiBadge>
             <UiBadge tone="warn">Sin operaciones activas</UiBadge>
           </>
         }
@@ -342,7 +356,7 @@ export function EspionagePage() {
       {queryCivilizationId ? (
         <PageContextStrip
           eyebrow="Cabina de inteligencia"
-          title={focusedTarget?.label ?? focusedGroup?.label ?? "Lectura de inteligencia"}
+          title={focusedTarget?.label ?? focusedGroup?.label ?? "Red de inteligencia"}
           purpose="Preparacion de objetivos, senales pasivas y handoffs sin habilitar operaciones ni inventar informacion no confirmada."
           statusLabel={readinessPosture}
           statusTone={viewModel ? "good" : "warn"}
@@ -355,18 +369,18 @@ export function EspionagePage() {
             },
             {
               label: "Sistemas",
-              value: viewModel ? String(viewModel.groups.length) : "Sin lectura",
+              value: viewModel ? String(viewModel.groups.length) : "Sin red",
               detail: viewModel ? `${viewModel.summary.visibleTargetCount} observados` : "Carga pendiente",
             },
             {
               label: "Senales",
-              value: viewModel ? String(viewModel.summary.passiveSignalCount) : "Sin lectura",
+              value: viewModel ? String(viewModel.summary.passiveSignalCount) : "Sin senales",
               detail: coverageOverview,
             },
           ]}
           resourceItems={[
-            { label: "Inteligencia", value: "Solo lectura", tone: "good" },
-            { label: "Misiones", value: "Bloqueadas", tone: "warn" },
+            { label: "Inteligencia", value: "Red visible", tone: "good" },
+            { label: "Misiones", value: "Pendientes", tone: "warn" },
             { label: "Datos", value: "Cobertura existente", tone: "neutral" },
           ]}
           primaryAction={
@@ -394,7 +408,7 @@ export function EspionagePage() {
               <p className="eyebrow">Enlace de inteligencia</p>
               <h3>Cargar cobertura</h3>
             </div>
-            <UiBadge>Uso local</UiBadge>
+            <UiBadge>Contexto activo</UiBadge>
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
@@ -412,20 +426,20 @@ export function EspionagePage() {
             <button type="submit" disabled={isLoading}>{isLoading ? "Cargando..." : "Cargar espionaje"}</button>
           </form>
           {error ? <p className="error-text">{error}</p> : null}
-          {technicalErrorDetail ? (
+          {operatorMode && technicalErrorDetail ? (
             <details className="json-details">
               <summary>Datos tecnicos del ultimo error</summary>
               <pre className="json-preview">{technicalErrorDetail}</pre>
             </details>
           ) : null}
-          {!queryCivilizationId ? <p className="figma-panel-note">Introduce un `civilizationId` valido para abrir la cabina de espionaje.</p> : null}
+          {!queryCivilizationId ? <p className="figma-panel-note">Introduce un contexto de civilizacion valido para abrir la cabina de inteligencia.</p> : null}
         </UiCard>
 
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Limite de la cabina</p>
-              <h3>Lectura de inteligencia</h3>
+              <h3>Red de inteligencia</h3>
             </div>
             <UiBadge tone="warn">Sin ejecucion</UiBadge>
           </div>
@@ -442,7 +456,7 @@ export function EspionagePage() {
               <p className="eyebrow">Estado actual</p>
               <h3>Resumen de cobertura</h3>
             </div>
-            <UiBadge>{viewModel ? `${viewModel.summary.passiveSignalCount} senales` : "Sin lectura"}</UiBadge>
+            <UiBadge>{viewModel ? `${viewModel.summary.passiveSignalCount} senales` : "Sin red"}</UiBadge>
           </div>
           {viewModel ? (
             <>
@@ -453,7 +467,7 @@ export function EspionagePage() {
                 <div className="figma-stat"><strong>{viewModel.summary.passiveSignalCount}</strong><span>Senales</span></div>
               </div>
               <p className="figma-panel-note">
-                Confirmado: control propio o lectura asentada. Observado: lectura visible o indirecta. Incompleto: contacto que todavia necesita seguimiento.
+                Confirmado: control propio o senal asentada. Observado: visibilidad directa o indirecta. Incompleto: contacto que todavia necesita seguimiento.
               </p>
             </>
           ) : (
@@ -467,7 +481,7 @@ export function EspionagePage() {
           <div>
             <p className="eyebrow">Preparacion de producto</p>
             <h3>Frontera de inteligencia</h3>
-            <p>Espionaje organiza la lectura disponible para futuras operaciones, pero no ejecuta acciones encubiertas ni consolida un modelo final de inteligencia.</p>
+            <p>Espionaje organiza la red disponible para futuras operaciones, pero no ejecuta misiones encubiertas ni consolida un modelo final de inteligencia.</p>
           </div>
           <UiBadge tone="warn">Fase futura</UiBadge>
         </div>
@@ -476,12 +490,12 @@ export function EspionagePage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Entrada actual</p>
-                <h4>Lectura reutilizada</h4>
+                <h4>Cobertura reutilizada</h4>
               </div>
               <UiBadge>{viewModel ? "Cargada" : "Pendiente"}</UiBadge>
             </div>
             <p className="figma-panel-note">
-              La cabina usa visibilidad estrategica, senales pasivas y objetivos ya expuestos por los contratos de desarrollo.
+              La cabina usa visibilidad estrategica, senales pasivas y objetivos ya expuestos por la cobertura actual.
             </p>
           </section>
           <section className="subpanel figma-subpanel">
@@ -505,7 +519,7 @@ export function EspionagePage() {
               <UiBadge tone="warn">No final</UiBadge>
             </div>
             <p className="figma-panel-note">
-              Persistencia final, autorizacion de produccion, activos finales, combate y movimiento siguen fuera de esta cabina.
+              Autoridad final de misiones, permisos de inteligencia, resultados encubiertos, combate y movimiento siguen fuera de esta cabina.
             </p>
           </section>
         </div>
@@ -514,9 +528,9 @@ export function EspionagePage() {
       <UiCard className="panel">
         <div className="figma-section-header">
           <div>
-            <p className="eyebrow">Lectura de niveles</p>
+            <p className="eyebrow">Niveles de inteligencia</p>
             <h3>Como leer la inteligencia</h3>
-            <p>Los datos incompletos no desbloquean acciones ofensivas. La lectura depende de la visibilidad estrategica actual.</p>
+            <p>Los datos incompletos no desbloquean acciones ofensivas. La red depende de la visibilidad estrategica actual.</p>
           </div>
           <UiBadge tone="warn">Sin precision falsa</UiBadge>
         </div>
@@ -536,7 +550,7 @@ export function EspionagePage() {
         </div>
       </UiCard>
 
-      {isSuspiciousContext ? (
+      {operatorMode && isSuspiciousContext ? (
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
@@ -547,7 +561,7 @@ export function EspionagePage() {
           </div>
           <p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p>
           <div className="selection-chip-row">
-            <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>Abrir contexto de desarrollo</Link>
+            <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>Abrir contexto de operador</Link>
           </div>
         </UiCard>
       ) : null}
@@ -558,7 +572,7 @@ export function EspionagePage() {
             <div>
               <p className="eyebrow">Foco recomendado</p>
               <h3>{focusedTarget?.label ?? "Sin objetivo priorizado"}</h3>
-              <p>La cabina prioriza objetivos parciales con senales pasivas y sugiere donde seguir la lectura.</p>
+              <p>La cabina prioriza objetivos parciales con senales pasivas y sugiere donde seguir la investigacion.</p>
             </div>
             <UiBadge tone={focusedTarget?.hasPassiveSignals ? "good" : "warn"}>{getEspionagePrimaryAction(viewModel)}</UiBadge>
           </div>
@@ -566,10 +580,10 @@ export function EspionagePage() {
             <section className="subpanel figma-subpanel">
               <div className="figma-data-list">
                 <div className="figma-data-row"><span>Objetivo</span><strong>{focusedTarget?.label ?? "Sin objetivo"}</strong></div>
-                <div className="figma-data-row"><span>Visibilidad</span><strong>{focusedTarget?.visibilityLabel ?? "Sin lectura"}</strong></div>
-                <div className="figma-data-row"><span>Inteligencia</span><strong>{focusedTarget?.intelligenceLabel ?? "Sin lectura"}</strong></div>
-                <div className="figma-data-row"><span>Confianza</span><strong>{focusedTarget?.confidenceLabel ?? "Sin lectura"}</strong></div>
-                <div className="figma-data-row"><span>Cobertura</span><strong>{focusedTarget?.coverageLabel ?? "Sin lectura"}</strong></div>
+                <div className="figma-data-row"><span>Visibilidad</span><strong>{focusedTarget?.visibilityLabel ?? "Sin senal"}</strong></div>
+                <div className="figma-data-row"><span>Inteligencia</span><strong>{focusedTarget?.intelligenceLabel ?? "Sin senal"}</strong></div>
+                <div className="figma-data-row"><span>Confianza</span><strong>{focusedTarget?.confidenceLabel ?? "Sin senal"}</strong></div>
+                <div className="figma-data-row"><span>Cobertura</span><strong>{focusedTarget?.coverageLabel ?? "Sin senal"}</strong></div>
               </div>
             </section>
             <section className="subpanel figma-subpanel">
@@ -578,7 +592,7 @@ export function EspionagePage() {
                   <p className="eyebrow">Sistema enfocado</p>
                   <h4>{focusedGroup?.label ?? "Sin sistema"}</h4>
                 </div>
-                <UiBadge>{(focusedGroup?.targets.length ?? 0) + (focusedGroup?.signals.length ?? 0)} lecturas</UiBadge>
+                <UiBadge>{(focusedGroup?.targets.length ?? 0) + (focusedGroup?.signals.length ?? 0)} senales</UiBadge>
               </div>
               {focusedGroup?.targets.length || focusedGroup?.signals.length ? (
                 <div className="espionage-system-list">
@@ -599,7 +613,7 @@ export function EspionagePage() {
                         <div className="figma-data-row"><span>Confianza</span><strong>{target.confidenceLabel}</strong></div>
                         <div className="figma-data-row"><span>Cobertura</span><strong>{target.coverageLabel}</strong></div>
                         {isOwnedTarget(target) ? <div className="figma-data-row"><span>Control</span><strong>Control propio</strong></div> : null}
-                        <div className="figma-data-row"><span>Siguiente lectura</span><strong>{getTargetHandoffLabel(target)}</strong></div>
+                        <div className="figma-data-row"><span>Siguiente seguimiento</span><strong>{getTargetHandoffLabel(target)}</strong></div>
                       </div>
                       {!isOwnedTarget(target) && !isVisibleTarget(target) ? (
                         <p className="espionage-target-note">{getEspionageMissingDataNote(target.hasPassiveSignals ? "partial" : "unconfirmed")}</p>
@@ -619,7 +633,7 @@ export function EspionagePage() {
                       <p className="figma-panel-note">{signal.summary}</p>
                       <div className="figma-data-list espionage-data-list">
                         <div className="figma-data-row"><span>Sistema</span><strong>{signal.systemLabel}</strong></div>
-                        <div className="figma-data-row"><span>Siguiente lectura</span><strong>{signal.planetId ? "Revisar en Galaxia" : "Volver al mapa"}</strong></div>
+                        <div className="figma-data-row"><span>Siguiente seguimiento</span><strong>{signal.planetId ? "Revisar en Galaxia" : "Volver al mapa"}</strong></div>
                       </div>
                       <p className="espionage-target-note">{getEspionageMissingDataNote("signal")}</p>
                     </article>
@@ -635,10 +649,10 @@ export function EspionagePage() {
         <div className="figma-section-header">
           <div>
             <p className="eyebrow">Misiones futuras</p>
-            <h3>Acciones de inteligencia</h3>
+            <h3>Operaciones de inteligencia</h3>
             <p>La hoja de ruta sigue visible, pero todas las operaciones permanecen desactivadas en esta version.</p>
           </div>
-          <UiBadge tone="warn">Solo lectura</UiBadge>
+          <UiBadge tone="warn">Pendientes</UiBadge>
         </div>
         <div className="espionage-mission-grid">
           {futureMissionCards.map((action) => (
@@ -654,7 +668,7 @@ export function EspionagePage() {
               <button type="button" className="planet-action-button-blocked" disabled>
                 No disponible en esta version
               </button>
-              <p className="espionage-target-note">Solo lectura en esta cabina.</p>
+              <p className="espionage-target-note">Operacion pendiente de activacion en esta cabina.</p>
             </article>
           ))}
         </div>
@@ -665,8 +679,8 @@ export function EspionagePage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Catalogo de objetivos</p>
-              <h3>Lectura agrupada</h3>
-              <p>La cabina separa control confirmado, observacion estable, lectura parcial y senales sin convertirlas en operaciones.</p>
+              <h3>Red agrupada</h3>
+              <p>La cabina separa control confirmado, observacion estable, contacto parcial y senales sin convertirlas en operaciones.</p>
             </div>
             <UiBadge>{catalogSections.length} grupos</UiBadge>
           </div>
@@ -676,7 +690,7 @@ export function EspionagePage() {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">{section.label}</p>
-                    <h4>{section.entries.length} lecturas</h4>
+                    <h4>{section.entries.length} senales</h4>
                     <p>{section.description}</p>
                   </div>
                   <UiBadge tone={section.tone}>{section.label}</UiBadge>
@@ -702,7 +716,7 @@ export function EspionagePage() {
                       <div className="figma-data-list espionage-data-list">
                         <div className="figma-data-row"><span>Cobertura</span><strong>{entry.coverageLabel}</strong></div>
                         {entry.controlLabel ? <div className="figma-data-row"><span>Control</span><strong>{entry.controlLabel}</strong></div> : null}
-                        <div className="figma-data-row"><span>Siguiente lectura</span><strong>{entry.handoffLabel}</strong></div>
+                        <div className="figma-data-row"><span>Siguiente seguimiento</span><strong>{entry.handoffLabel}</strong></div>
                       </div>
                       {entry.statusTone === "warn" ? (
                         <p className="espionage-target-note">
@@ -727,11 +741,11 @@ export function EspionagePage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Senales observadas</p>
-              <h3>Lecturas recientes</h3>
+              <h3>Senales recientes</h3>
               <p>Estas pistas reutilizan cobertura pasiva ya visible. No implican seguimiento en tiempo real ni vigilancia activa.</p>
             </div>
             <UiBadge tone={viewModel.passiveSignalEntries.length > 0 ? "neutral" : "warn"}>
-              {viewModel.passiveSignalEntries.length > 0 ? `${viewModel.passiveSignalEntries.length} lecturas` : "Sin lecturas"}
+              {viewModel.passiveSignalEntries.length > 0 ? `${viewModel.passiveSignalEntries.length} senales` : "Sin senales"}
             </UiBadge>
           </div>
 
@@ -741,7 +755,7 @@ export function EspionagePage() {
                 <article key={entry.id} className="espionage-target-card espionage-target-card-neutral">
                   <div className="espionage-target-card-head">
                     <div>
-                      <p className="eyebrow">Lectura pasiva</p>
+                      <p className="eyebrow">Senal pasiva</p>
                       <h5>{entry.title}</h5>
                       <p className="espionage-target-subtitle">{entry.systemLabel}</p>
                     </div>
@@ -749,7 +763,7 @@ export function EspionagePage() {
                   </div>
                   <p className="figma-panel-note">{entry.summary}</p>
                   <div className="figma-data-list espionage-data-list">
-                    <div className="figma-data-row"><span>Siguiente lectura</span><strong>{entry.handoffLabel}</strong></div>
+                    <div className="figma-data-row"><span>Siguiente seguimiento</span><strong>{entry.handoffLabel}</strong></div>
                     <div className="figma-data-row"><span>Estado</span><strong>{entry.statusLabel}</strong></div>
                   </div>
                 </article>
@@ -757,14 +771,14 @@ export function EspionagePage() {
             </div>
           ) : (
             <div className="espionage-empty-state">
-              <strong>No hay lecturas recientes para este contexto.</strong>
-              <p>La cabina seguira mostrando objetivos y niveles de certeza, pero no fabricara un historial cuando la lectura actual no lo ofrece.</p>
+              <strong>No hay senales recientes para este contexto.</strong>
+              <p>La cabina seguira mostrando objetivos y niveles de certeza, pero no fabricara un historial cuando la red actual no lo ofrece.</p>
             </div>
           )}
         </UiCard>
       ) : null}
 
-      {viewModel?.diagnostics.technical.length ? (
+      {operatorMode && viewModel?.diagnostics.technical.length ? (
         <details className="technical-disclosure">
           <summary>
             <div>

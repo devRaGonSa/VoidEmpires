@@ -3,7 +3,7 @@
 ---
 id: TASK-41Z
 title: Espionage product readiness copy
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
