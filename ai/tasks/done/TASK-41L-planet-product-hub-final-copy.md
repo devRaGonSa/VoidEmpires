@@ -3,7 +3,7 @@
 ---
 id: TASK-41L
 title: Planet product hub final copy
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

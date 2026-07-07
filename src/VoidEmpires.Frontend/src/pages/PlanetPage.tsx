@@ -545,7 +545,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
         if (!audit.visibleOrderId) {
           setConstructionFeedback(
-            "La orden fue aceptada por el backend; la cola visible se actualizara con la siguiente lectura disponible.",
+            "La orden fue aceptada; la cola visible se actualizara con la siguiente lectura disponible.",
           );
           setConstructionTechnicalDetail(
             result.response.orderId
@@ -769,22 +769,22 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
     <section className="page-grid">
       <CockpitHero
         versionLabel={isConstructionRoute ? "Construccion v1" : "Planeta v1"}
-        title={isConstructionRoute ? "Mando de construccion" : "Gestion de colonia"}
+        title={isConstructionRoute ? "Mando de construccion" : "Centro de mando planetario"}
         description={
           isConstructionRoute
             ? "Catalogo, reservas y cola del planeta activo con confirmacion explicita."
-            : "Identidad colonial, recursos y cola de construccion con acciones Development controladas."
+            : "Resumen del mundo, recursos, produccion, actividad orbital y accesos de mando de la colonia."
         }
         developmentNote={
           isConstructionRoute
-            ? "Mutaciones Development confirmadas: crear ordenes de construccion cuando el backend las acepta."
-            : "Mutaciones Development confirmadas: materializar recursos y colas vencidas desde controles explicitos."
+            ? "Las ordenes de construccion requieren confirmacion antes de entrar en cola."
+            : "El hub planetario concentra la lectura jugable y mantiene las herramientas internas fuera del flujo principal."
         }
         badges={
           <>
             <UiBadge>{isConstructionRoute ? "Sin 3D" : "Colonia en 2D"}</UiBadge>
-            <UiBadge tone="warn">Mutaciones Development confirmadas</UiBadge>
-            <UiBadge tone="warn">Galaxia sigue en observacion</UiBadge>
+            <UiBadge tone="good">Hub de mando</UiBadge>
+            <UiBadge tone="warn">Ordenes con confirmacion</UiBadge>
           </>
         }
       />
@@ -801,27 +801,27 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
               <p className="eyebrow">Enlace planetario</p>
               <h3>{isConstructionRoute ? "Cargar centro de construccion" : "Cargar cabina de planeta"}</h3>
             </div>
-            <UiBadge>{cockpitStatusLabels.developmentOnly}</UiBadge>
+            <UiBadge>Contexto de juego</UiBadge>
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
-              <span>Id de civilizacion</span>
+              <span>Contexto de civilizacion</span>
               <input
                 type="text"
                 value={civilizationIdInput}
                 onChange={(event) => setCivilizationIdInput(event.target.value)}
-                placeholder="00000000-0000-0000-0000-000000000000"
+                placeholder="Pega el contexto de civilizacion"
                 spellCheck={false}
               />
             </label>
             <button type="submit" disabled={isLoading}>
-              {isLoading ? "Cargando..." : "Abrir cabina"}
+              {isLoading ? "Cargando..." : isConstructionRoute ? "Abrir construccion" : "Abrir mundo"}
             </button>
           </form>
           {error ? <p className="error-text">{error}</p> : null}
           {!queryCivilizationId ? (
             <p className="figma-panel-note">
-              Introduce un `civilizationId` valido, entra desde Galaxia o usa el inicio local disponible para reconstruir la URL con contexto.
+              Pega un contexto valido, entra desde Galaxia o usa la partida local disponible para recuperar la seleccion.
             </p>
           ) : null}
         </UiCard>
@@ -830,10 +830,10 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Estado de colonia</p>
-              <h3>{isConstructionRoute ? "Contexto de construccion" : "Resumen de gestion"}</h3>
+              <h3>{isConstructionRoute ? "Contexto de construccion" : "Resumen del mundo"}</h3>
             </div>
             <UiBadge>
-              {planet ? formatPlanetShortReference(planet.planetId) : "Sin planeta"}
+              {planet ? "Planeta activo" : "Sin planeta"}
             </UiBadge>
           </div>
           {planet ? (
@@ -869,7 +869,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             <li>Solo puedes enviar una orden de construccion cuando la colonia esta lista y confirmas la accion.</li>
             <li>El cierre de obras vencidas sigue fuera de esta cabina y se gestiona por separado.</li>
             <li>Esta vista se centra en administracion colonial, no en combate ni maniobras espaciales.</li>
-            <li>Los ids y notas tecnicas quedan guardados en el diagnostico secundario.</li>
+            <li>Las notas tecnicas quedan separadas del flujo principal.</li>
           </ul>
         </UiCard>
       </div>
@@ -884,13 +884,15 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             <UiBadge tone="warn">Revisar contexto</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Revisa que no hayas usado el id del planeta como civilizacion.
+            Revisa que no hayas usado el contexto de planeta como civilizacion.
           </p>
-          <div className="selection-chip-row">
-            <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>
-              Abrir contexto de desarrollo
-            </Link>
-          </div>
+          {operatorMode ? (
+            <div className="selection-chip-row">
+              <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>
+                Abrir contexto de operador
+              </Link>
+            </div>
+          ) : null}
         </UiCard>
       ) : null}
 
@@ -898,13 +900,13 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Inicio local disponible</p>
+              <p className="eyebrow">Partida local disponible</p>
               <h3>Continuar con {playableSession.planetName ?? "la ultima colonia"}</h3>
             </div>
-            <UiBadge tone="good">Memoria local</UiBadge>
+            <UiBadge tone="good">Partida local</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Este enlace solo reconstruye la URL con ids guardados por `/onboarding`; el backend seguira validando el estado real.
+            Este enlace recupera la colonia guardada en este navegador; la cabina volvera a comprobar el estado de juego al abrir.
           </p>
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
@@ -936,9 +938,9 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             </div>
             <UiBadge tone="warn">Estado vacio</UiBadge>
           </div>
-          <p>Esta civilizacion todavia no expone un planeta propio o el contexto no incluye un `planetId` valido.</p>
+          <p>Esta civilizacion todavia no expone un planeta propio o el contexto no incluye un planeta valido.</p>
           <p className="figma-panel-note">
-            No se inventa una colonia alternativa: vuelve a Galaxia, Onboarding o al inicio local si necesitas recuperar ids validos.
+            No se inventa una colonia alternativa: vuelve a Galaxia, Nueva partida o a la partida local si necesitas recuperar el contexto.
           </p>
         </UiCard>
       ) : null}
@@ -1019,7 +1021,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
               <div className="figma-section-header">
                 <div>
                   <p className="eyebrow">Reservas y produccion</p>
-                  <h3>Economia local</h3>
+                  <h3>Recursos</h3>
                 </div>
                 <UiBadge tone="resource">
                   {planet.stockpile.length > 0 ? `${planet.stockpile.length} reservas visibles` : "Sin reservas"}
@@ -1184,7 +1186,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Infraestructura</p>
-                    <h3>Edificios actuales</h3>
+                    <h3>Produccion</h3>
                   </div>
                   <UiBadge>{planet.buildings.length} activos</UiBadge>
                 </div>
@@ -1227,7 +1229,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
               <div className="figma-section-header">
                 <div>
                   <p className="eyebrow">Cola de construccion</p>
-                  <h3>{isConstructionRoute ? "Ciclo de ordenes" : "Progreso legible"}</h3>
+                  <h3>{isConstructionRoute ? "Produccion en curso" : "Produccion"}</h3>
                 </div>
                 <UiBadge tone={planet.constructionQueue.length > 0 ? "warn" : "good"}>
                   {planet.constructionQueue.length > 0
@@ -1266,7 +1268,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                         <PlanetDataRow label="Termina" value={formatDateTime(item.endsAtUtc)} />
                         <PlanetDataRow label="Coste" value={formatCompactResourceCost(item.cost)} />
                       </div>
-                      <p className="dev-meta">{formatCompactGuid(item.orderId)}</p>
+                      {operatorMode ? <p className="dev-meta">{formatCompactGuid(item.orderId)}</p> : null}
                     </section>
                   ))}
                 </div>
@@ -1279,8 +1281,8 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">{isConstructionRoute ? "Catalogo de construccion" : "Desarrollo disponible"}</p>
-                  <h3>{isConstructionRoute ? "Centro de mando de obra" : "Acciones de construccion protegidas"}</h3>
+                  <p className="eyebrow">Accesos de mando</p>
+                  <h3>{isConstructionRoute ? "Centro de mando de obra" : "Ordenes de construccion"}</h3>
                   <p>
                     {isConstructionRoute
                     ? "Esta vista concentra solo la construccion general, la cola y las confirmaciones seguras para una sola colonia activa."
@@ -1317,7 +1319,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             {!planet.actionSummary.completeDueSupported ? (
               <p className="figma-panel-note">
                 El cierre de construcciones vencidas sigue fuera de esta cabina porque
-                el backend actual resuelve ese paso en lote global.
+                el servicio actual resuelve ese paso en lote global.
               </p>
             ) : null}
 
@@ -1354,7 +1356,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Actividad orbital y militar</p>
-                    <h3>Resumen del hub planetario</h3>
+                    <h3>Actividad orbital</h3>
                   </div>
                   <UiBadge tone="warn">Solo lectura</UiBadge>
                 </div>
@@ -1372,7 +1374,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                       <PlanetDataRow label="Astillero" value="Consulta cola orbital, stock local y gasto confirmado" />
                       <PlanetDataRow label="Defensas" value={getDefenseReadinessSummary(planet)} />
                       <PlanetDataRow label="Flotas" value="Consulta grupos visibles y reservas por planeta; no promueve stock orbital automaticamente" />
-                      <PlanetDataRow label="Mutacion local" value="No disponible desde Planeta" />
+                      <PlanetDataRow label="Ordenes directas" value="No disponibles desde Planeta" />
                     </div>
                   </section>
                 </div>
@@ -1400,7 +1402,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Modulos del planeta</p>
-                    <h3>Cabinas de gestion</h3>
+                    <h3>Accesos de mando</h3>
                   </div>
                   <UiBadge tone="good">Resumen</UiBadge>
                 </div>
