@@ -3,7 +3,7 @@
 ---
 id: TASK-42L
 title: Frontend account API client
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: [platform]

@@ -1,4 +1,5 @@
 import { appConfig } from "../config";
+import { accountApi } from "./accountApi";
 import type { ActionManifestResponse } from "./actionManifestTypes";
 import type {
   CancelOrbitalTransferRequest,
@@ -278,6 +279,7 @@ export interface PlanetVisualStateResponse {
 }
 
 export const voidEmpiresApi = {
+  account: accountApi,
   getHealth() {
     return requestJson<HealthResponse>("/health");
   },
