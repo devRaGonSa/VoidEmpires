@@ -73,6 +73,31 @@ export function getCurrentAccountWorldEntry(session: AccountSessionResponse | nu
   };
 }
 
+export function createAccountWorldRouteSearch(
+  session: AccountSessionResponse | null,
+  currentSearchParams: URLSearchParams,
+): URLSearchParams | null {
+  const worldEntry = getCurrentAccountWorldEntry(session);
+  if (!worldEntry) {
+    return null;
+  }
+
+  const nextSearchParams = new URLSearchParams(currentSearchParams);
+  let changed = false;
+
+  if (!nextSearchParams.get("civilizationId")?.trim()) {
+    nextSearchParams.set("civilizationId", worldEntry.civilizationId);
+    changed = true;
+  }
+
+  if (!nextSearchParams.get("planetId")?.trim()) {
+    nextSearchParams.set("planetId", worldEntry.planetId);
+    changed = true;
+  }
+
+  return changed ? nextSearchParams : null;
+}
+
 export function getRegistrationWorldEntry(
   registration: AccountRegistrationResponse | null,
 ): CurrentAccountWorldEntry | null {

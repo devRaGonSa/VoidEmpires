@@ -26,11 +26,13 @@ export function usePlayableRouteContext(civilizationId: string | null | undefine
     () => (hasQueryCivilizationId ? null : accountPlayableSession ?? loadPlayableSession()),
     [accountPlayableSession, hasQueryCivilizationId],
   );
+  const resolvedWorldEntry = accountWorldEntry ?? playableSession;
 
   return {
     accountWorldEntry,
     currentAccountSession,
     hasQueryCivilizationId,
     playableSession,
+    resolvedWorldEntry,
   };
 }

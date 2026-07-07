@@ -34,7 +34,7 @@ export function PageContextStrip({
   title,
   purpose,
   statusLabel,
-  eyebrow = "Contexto",
+  eyebrow = "Seleccion",
   statusTone = "neutral",
   contextItems = [],
   resourceItems = [],
@@ -60,7 +60,7 @@ export function PageContextStrip({
       {hasDetails ? (
         <div className="page-context-strip-details">
           {visibleContextItems.length > 0 ? (
-            <dl className="page-context-strip-list" aria-label="Contexto actual">
+            <dl className="page-context-strip-list" aria-label="Seleccion actual">
               {visibleContextItems.map((item) => (
                 <div key={`${item.label}:${item.value}`}>
                   <dt>{item.label}</dt>
