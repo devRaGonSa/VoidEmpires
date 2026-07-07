@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Players;
 using VoidEmpires.Domain.Colonization;
-using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Players;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -46,17 +45,13 @@ public sealed class InitialPlayerWorldBootstrapService : IInitialPlayerWorldBoot
         var homePlanet = await _homePlanetAllocator.AllocateAsync(homePlanetName, cancellationToken);
         var profile = PlayerProfile.Create(userId, displayName);
         var civilization = Civilization.Create(profile.Id, civilizationName, CivilizationArchetype.Balanced, homePlanet.Id);
-        var stockpile = PlanetResourceStockpile.Create(homePlanet.Id);
-        stockpile.Increase(ResourceType.Credits, 220);
-        stockpile.Increase(ResourceType.Metal, 320);
-        stockpile.Increase(ResourceType.Crystal, 220);
-        stockpile.Increase(ResourceType.Gas, 120);
+        var stockpile = StartingHomeWorldBaseline.CreateResourceStockpile(homePlanet.Id);
 
         profile.AddCivilization(civilization);
         _dbContext.PlayerProfiles.Add(profile);
         _dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(homePlanet.Id, civilization.Id));
         _dbContext.PlanetResourceStockpiles.Add(stockpile);
-        _dbContext.PlanetProductionProfiles.Add(PlanetProductionProfile.Create(homePlanet.Id, 18, 14, 6, 3));
+        _dbContext.PlanetProductionProfiles.Add(StartingHomeWorldBaseline.CreateProductionProfile(homePlanet.Id));
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return InitialPlayerWorldBootstrapResult.Success(
@@ -65,7 +60,7 @@ public sealed class InitialPlayerWorldBootstrapService : IInitialPlayerWorldBoot
             civilization.Id,
             homePlanet.Id,
             homePlanet.Name,
-            new CreateStartingCivilizationResourceSnapshot(stockpile.Credits, stockpile.Metal, stockpile.Crystal, stockpile.Gas));
+            StartingHomeWorldBaseline.CreateResourceSnapshot());
     }
 
     private static List<string> Validate(InitialPlayerWorldBootstrapRequest request)

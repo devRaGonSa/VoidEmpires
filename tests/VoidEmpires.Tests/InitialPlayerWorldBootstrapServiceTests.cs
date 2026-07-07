@@ -27,8 +27,35 @@ public class InitialPlayerWorldBootstrapServiceTests
         Assert.Equal(220, result.StartingResources?.Credits);
         Assert.True(await dbContext.PlayerProfiles.AnyAsync(x => x.UserId == "identity-user-1"));
         Assert.True(await dbContext.PlanetOwnerships.AnyAsync(x => x.PlanetId == result.HomePlanetId && x.CivilizationId == result.CivilizationId));
-        Assert.True(await dbContext.PlanetResourceStockpiles.AnyAsync(x => x.PlanetId == result.HomePlanetId && x.Metal == 320));
-        Assert.True(await dbContext.PlanetProductionProfiles.AnyAsync(x => x.PlanetId == result.HomePlanetId && x.CreditsPerHour == 18));
+        Assert.True(await dbContext.PlanetResourceStockpiles.AnyAsync(x => x.PlanetId == result.HomePlanetId && x.Metal == StartingHomeWorldBaseline.StartingMetal));
+        Assert.True(await dbContext.PlanetProductionProfiles.AnyAsync(x => x.PlanetId == result.HomePlanetId && x.CreditsPerHour == StartingHomeWorldBaseline.BaseCreditsPerHour));
+    }
+
+    [Fact]
+    public async Task CreateAsyncUsesEqualBaselineForIndependentUsers()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new InitialPlayerWorldBootstrapService(dbContext);
+
+        var first = await service.CreateAsync(ValidRequest());
+        var second = await service.CreateAsync(ValidRequest(
+            "identity-user-2",
+            "Commander Orion",
+            "Azure League",
+            "Azure Prime"));
+
+        Assert.True(first.Succeeded);
+        Assert.True(second.Succeeded);
+        Assert.Equal(first.StartingResources, second.StartingResources);
+
+        var firstProduction = await dbContext.PlanetProductionProfiles.SingleAsync(x => x.PlanetId == first.HomePlanetId!.Value);
+        var secondProduction = await dbContext.PlanetProductionProfiles.SingleAsync(x => x.PlanetId == second.HomePlanetId!.Value);
+        Assert.Equal(
+            (StartingHomeWorldBaseline.BaseCreditsPerHour, StartingHomeWorldBaseline.BaseMetalPerHour, StartingHomeWorldBaseline.BaseCrystalPerHour, StartingHomeWorldBaseline.BaseGasPerHour),
+            (firstProduction.CreditsPerHour, firstProduction.MetalPerHour, firstProduction.CrystalPerHour, firstProduction.GasPerHour));
+        Assert.Equal(
+            (firstProduction.CreditsPerHour, firstProduction.MetalPerHour, firstProduction.CrystalPerHour, firstProduction.GasPerHour),
+            (secondProduction.CreditsPerHour, secondProduction.MetalPerHour, secondProduction.CrystalPerHour, secondProduction.GasPerHour));
     }
 
     [Fact]
@@ -60,11 +87,15 @@ public class InitialPlayerWorldBootstrapServiceTests
         Assert.True(await dbContext.PlanetOwnerships.AnyAsync(x => x.PlanetId == SeedOwnedPlanetId));
     }
 
-    private static InitialPlayerWorldBootstrapRequest ValidRequest() => new(
-        "identity-user-1",
-        "Commander Vega",
-        "Solar Dominion",
-        "Nova Prime");
+    private static InitialPlayerWorldBootstrapRequest ValidRequest(
+        string userId = "identity-user-1",
+        string displayName = "Commander Vega",
+        string civilizationName = "Solar Dominion",
+        string homePlanetName = "Nova Prime") => new(
+            userId,
+            displayName,
+            civilizationName,
+            homePlanetName);
 
     private static VoidEmpiresDbContext CreateDbContext() =>
         new(new DbContextOptionsBuilder<VoidEmpiresDbContext>()

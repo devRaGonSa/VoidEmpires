@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Players;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Colonization;
-using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Domain.Players;
 using VoidEmpires.Domain.Population;
@@ -73,11 +72,7 @@ public sealed class StartingCivilizationService(VoidEmpiresDbContext dbContext) 
         profile.AddCivilization(civilization);
 
         var ownership = PlanetOwnership.Create(homePlanet.Id, civilization.Id);
-        var stockpile = PlanetResourceStockpile.Create(homePlanet.Id);
-        stockpile.Increase(ResourceType.Credits, 220);
-        stockpile.Increase(ResourceType.Metal, 320);
-        stockpile.Increase(ResourceType.Crystal, 220);
-        stockpile.Increase(ResourceType.Gas, 120);
+        var stockpile = StartingHomeWorldBaseline.CreateResourceStockpile(homePlanet.Id);
 
         dbContext.Galaxies.Add(galaxy);
         dbContext.Set<SolarSystem>().Add(solarSystem);
@@ -85,7 +80,7 @@ public sealed class StartingCivilizationService(VoidEmpiresDbContext dbContext) 
         dbContext.PlayerProfiles.Add(profile);
         dbContext.PlanetOwnerships.Add(ownership);
         dbContext.PlanetResourceStockpiles.Add(stockpile);
-        dbContext.PlanetProductionProfiles.Add(PlanetProductionProfile.Create(homePlanet.Id, 18, 14, 6, 3));
+        dbContext.PlanetProductionProfiles.Add(StartingHomeWorldBaseline.CreateProductionProfile(homePlanet.Id));
         dbContext.Set<PlanetPopulationProfile>().Add(PlanetPopulationProfile.Create(homePlanet.Id, 2_000, 500, 100));
         dbContext.Set<PlanetBuildingCapacity>().Add(PlanetBuildingCapacity.Create(homePlanet.Id, 120));
         dbContext.Set<PlanetBuilding>().Add(PlanetBuilding.Create(homePlanet.Id, BuildingType.CommandCenter, 4, 1));
@@ -104,7 +99,7 @@ public sealed class StartingCivilizationService(VoidEmpiresDbContext dbContext) 
             homePlanet.Name,
             solarSystem.Id,
             solarSystem.Name,
-            new CreateStartingCivilizationResourceSnapshot(stockpile.Credits, stockpile.Metal, stockpile.Crystal, stockpile.Gas),
+            StartingHomeWorldBaseline.CreateResourceSnapshot(),
             Limitations);
     }
 

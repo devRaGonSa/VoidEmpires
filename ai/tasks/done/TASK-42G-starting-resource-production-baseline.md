@@ -3,7 +3,7 @@
 ---
 id: TASK-42G
 title: Starting resource and production baseline
-status: pending
+status: done
 type: backend
 team: platform
 supporting_teams: []
