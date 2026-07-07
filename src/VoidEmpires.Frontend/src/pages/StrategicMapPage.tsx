@@ -47,7 +47,6 @@ import {
   buildPlanetUrl,
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
-import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { getUserFacingActionLabel } from "../utils/fleetCommandPresentation";
 import { isOperatorMode } from "../utils/playableSession";
 
@@ -149,7 +148,7 @@ function formatStrategicCommandSummary(
   if (isAvailable) {
     switch (readText(actionKey, "")) {
       case "strategicMap.system.view":
-        return "La lectura del sistema esta disponible desde el foco actual.";
+        return "El sistema puede inspeccionarse desde el foco actual.";
       case "strategicMap.planet.viewDetail":
         return "El detalle del planeta puede inspeccionarse desde esta cabina.";
       case "fleet.travel.estimate":
@@ -157,11 +156,11 @@ function formatStrategicCommandSummary(
       case "fleet.transfer.create":
         return "La cabina de flotas puede preparar esta ruta cuando exista contexto valido.";
       case "exploration.preview":
-        return "La lectura previa solo anticipa reconocimiento futuro y no activa ninguna mision.";
+        return "El reconocimiento queda como vista previa y no activa ninguna mision.";
       case "exploration.mission.create":
         return "La mision permanece fuera de alcance en esta version y debe mostrarse como hoja de ruta.";
       default:
-        return "Lectura disponible en esta vista de solo inspeccion.";
+        return "Informacion disponible en esta vista de inspeccion.";
     }
   }
 
@@ -321,9 +320,9 @@ export function StrategicMapPage() {
       : hasMissingContext
         ? "Sin contexto"
         : hasApiError
-          ? "Error de API"
+          ? "Error de carga"
           : hasEmptyStrategicReadModel
-            ? "Lectura vacia"
+            ? "Mapa vacio"
             : cockpitResult
               ? "Cabina lista"
               : "Sincronizacion pendiente";
@@ -587,12 +586,12 @@ export function StrategicMapPage() {
         versionLabel="Galaxia v1"
         title="Mapa estrategico"
         description="La vista tactica prioriza el frente, el foco de sistema y la inteligencia planetaria del imperio."
-        developmentNote="La lectura sigue orientada a QA local: conserva limites seguros, no ejecuta ordenes y mantiene las rutas tecnicas fuera del foco principal."
+        developmentNote="Exploracion y colonizacion permanecen pendientes de activacion; Galaxia no ejecuta expansion, movimiento ni combate."
         badges={
           <>
-            <UiBadge>{cockpitStatusLabels.readOnly}</UiBadge>
+            <UiBadge>Mapa estrategico</UiBadge>
             <UiBadge>Mapa tactico</UiBadge>
-            <UiBadge tone="warn">Sin mutaciones jugables</UiBadge>
+            <UiBadge tone="warn">Expansion pendiente</UiBadge>
           </>
         }
       />
@@ -601,8 +600,8 @@ export function StrategicMapPage() {
         <PageContextStrip
           eyebrow="Mapa de navegacion"
           title={selectedSystem?.systemName ?? "Teatro estrategico"}
-          purpose="Mapa 2D de inspeccion, foco de sistema y handoffs a cabinas propietarias sin ejecutar expansion, movimiento ni combate."
-          statusLabel={mapReadModel?.unknownSystems ? "Cobertura parcial" : "Lectura estable"}
+          purpose="Mapa 2D de inspeccion, foco de sistema y enlaces a cabinas propietarias sin ejecutar expansion, movimiento ni combate."
+          statusLabel={mapReadModel?.unknownSystems ? "Cobertura parcial" : "Mapa estable"}
           statusTone={mapReadModel?.unknownSystems ? "warn" : "good"}
           contextItems={[
             { label: "Civilizacion", value: "Contexto activo" },
@@ -623,7 +622,7 @@ export function StrategicMapPage() {
             },
           ]}
           resourceItems={[
-            { label: "Mapa", value: "Solo lectura", tone: "good" },
+            { label: "Mapa", value: "Inspeccion segura", tone: "good" },
             { label: "Expansion", value: "Diferida", tone: "warn" },
             { label: "Combate", value: "Fuera de alcance", tone: "neutral" },
           ]}
@@ -649,7 +648,7 @@ export function StrategicMapPage() {
               <p className="eyebrow">Enlace de mando</p>
               <h3>Cargar estado de cabina</h3>
             </div>
-            <UiBadge>Solo lectura</UiBadge>
+            <UiBadge>Contexto activo</UiBadge>
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
@@ -704,14 +703,14 @@ export function StrategicMapPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Limites actuales</p>
-              <h3>Reglas de lectura</h3>
+              <h3>Reglas del mapa</h3>
             </div>
             <UiBadge tone="warn">Inspeccion segura</UiBadge>
           </div>
           <ul className="stack-list strategic-rules-list">
-            <li>El servicio puede no estar disponible fuera del entorno local preparado para esta lectura.</li>
-            <li>Los datos siguen en solo lectura y no otorgan autorizacion de juego.</li>
-            <li>La disponibilidad y los metadatos de mando son orientativos, no autoridad.</li>
+            <li>El mapa depende de un contexto de civilizacion valido para cargar sistemas visibles.</li>
+            <li>Los datos de inspeccion no otorgan autorizacion para expansion o colonizacion.</li>
+            <li>La disponibilidad y las senales de mando son orientativas, no autoridad.</li>
             <li>Las ordenes directas, la actualizacion continua y la simulacion visual avanzada siguen fuera de alcance.</li>
           </ul>
         </UiCard>
@@ -746,7 +745,7 @@ export function StrategicMapPage() {
           title="Galaxia necesita una civilizacion activa"
           description="Carga un contexto de civilizacion para abrir Galaxia."
           detail="Puedes pegar el contexto de civilizacion o llegar desde Planeta, Construccion, Investigacion, Astillero o Flotas para conservar la seleccion actual."
-          badgeLabel="Uso local"
+          badgeLabel="Contexto local"
           badgeTone="neutral"
         />
       )}
@@ -782,7 +781,7 @@ export function StrategicMapPage() {
             <div>
               <p className="eyebrow">Estado vacio</p>
               <h3>No hay sistemas visibles para esta civilizacion.</h3>
-              <p>La solicitud devolvio un contexto valido, pero el teatro visible sigue vacio para esta lectura.</p>
+              <p>La solicitud devolvio un contexto valido, pero el teatro visible sigue vacio para este mapa.</p>
             </div>
             <UiBadge tone="warn">Sin sistemas</UiBadge>
           </div>
@@ -821,10 +820,10 @@ export function StrategicMapPage() {
               <div className="figma-mini-card">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Lectura actual</p>
+                    <p className="eyebrow">Inteligencia actual</p>
                     <h4>Resumen de inteligencia</h4>
                   </div>
-                  <UiBadge tone="warn">Solo lectura</UiBadge>
+                  <UiBadge tone="warn">Inspeccion segura</UiBadge>
                 </div>
                 <div className="figma-data-list">
                   <DataRow
@@ -851,7 +850,7 @@ export function StrategicMapPage() {
                     label="Marcadores orbitales"
                     value={`${mapReadModel?.fleetMarkers ?? 0} flotas | ${mapReadModel?.transferMarkers ?? 0} rutas`}
                   />
-                  <DataRow label="Malla tactica" value="64u | Proyeccion fija | Solo lectura" />
+                  <DataRow label="Malla tactica" value="64u | Proyeccion fija | Inspeccion segura" />
                 </div>
               </div>
 
@@ -877,7 +876,7 @@ export function StrategicMapPage() {
                   <div className="figma-legend-item">
                     <span className="figma-legend-dot figma-legend-unknown" />
                     <strong>Contacto parcial</strong>
-                    <small>Cuadro central y lectura incompleta</small>
+                    <small>Cuadro central y cobertura incompleta</small>
                   </div>
                   <div className="figma-legend-item">
                     <span className="figma-legend-dot figma-legend-fleet" />
@@ -897,7 +896,7 @@ export function StrategicMapPage() {
                   <div className="figma-section-header">
                     <div>
                       <p className="eyebrow">Pista operativa</p>
-                      <h4>Lectura de baja densidad</h4>
+                      <h4>Cobertura de baja densidad</h4>
                     </div>
                     <UiBadge tone="warn">Cobertura limitada</UiBadge>
                   </div>
@@ -1029,23 +1028,23 @@ export function StrategicMapPage() {
             <div>
               <p className="eyebrow">Limites de expansion</p>
               <h3>Galaxia navega, no conquista</h3>
-              <p>La lectura puede mostrar nodos desconocidos, rutas y metadatos de preparacion, pero no abre exploracion ejecutable ni control territorial.</p>
+              <p>El mapa puede mostrar nodos desconocidos, rutas y senales de preparacion, pero no abre exploracion ejecutable ni control territorial.</p>
             </div>
             <UiBadge tone="warn">Futuro diferido</UiBadge>
           </div>
           <div className="readiness-grid">
             <section className="subpanel figma-subpanel">
               <div className="figma-data-list">
-                <DataRow label="Expansion" value="Solo preview de elegibilidad" />
-                <DataRow label="Movimiento" value="Handoff a Flotas" />
-                <DataRow label="Produccion" value="Handoff a cabinas planetarias" />
+                <DataRow label="Expansion" value="Elegibilidad pendiente" />
+                <DataRow label="Movimiento" value="Abrir Flotas" />
+                <DataRow label="Produccion" value="Abrir cabinas planetarias" />
               </div>
             </section>
             <section className="subpanel figma-subpanel">
               <ul className="stack-list compact-list">
                 <li>No crea misiones de exploracion desde el mapa.</li>
                 <li>No revela sistemas por sensores, alianzas o espionaje.</li>
-                <li>No ejecuta combate, intercepcion, colonizacion ni cambios de ownership.</li>
+                <li>No ejecuta combate, intercepcion, colonizacion ni cambios de control territorial.</li>
               </ul>
             </section>
           </div>
@@ -1068,7 +1067,7 @@ export function StrategicMapPage() {
           </div>
           <ul className="stack-list">
             <li>Los contadores de sistemas, planetas, flotas y transferencias permanecen en cero.</li>
-            <li>La vista del mapa es solo visual y no crea datos.</li>
+            <li>La vista del mapa es de inspeccion y no crea datos.</li>
           </ul>
         </UiCard>
       )}
@@ -1082,7 +1081,7 @@ export function StrategicMapPage() {
                 <h3>Foco del sistema</h3>
                 <p>Cambia de sistema desde la banda operativa y deja el detalle tecnico en segundo plano.</p>
               </div>
-              <UiBadge tone="warn">Seleccion de lectura</UiBadge>
+              <UiBadge tone="warn">Seleccion del mapa</UiBadge>
             </div>
 
             <div className="selection-chip-row">
@@ -1105,7 +1104,7 @@ export function StrategicMapPage() {
                   <div>
                     <p className="eyebrow">Resumen del sistema</p>
                     <h4>{selectedSystem.systemName ?? "Sistema desconocido"}</h4>
-                    <p>La lectura principal prioriza posicion, control y presencia operativa sobre los metadatos de implementacion.</p>
+                    <p>La vista principal prioriza posicion, control y presencia operativa sobre los datos tecnicos.</p>
                   </div>
                   <UiBadge tone={getVisibilityTone(selectedSystem.visibilityLevel)}>
                     {getTargetVisibilityLabel(
@@ -1169,7 +1168,7 @@ export function StrategicMapPage() {
                     value={`${selectedSystem.planets?.length ?? 0} planetas | ${selectedSystem.fleetPresence?.length ?? 0} flotas | ${selectedSystem.transferOverlays?.length ?? 0} rutas`}
                   />
                 </div>
-                <details className="json-details">
+                {operatorMode ? <details className="json-details">
                   <summary>Diagnostico tecnico del sistema</summary>
                   <div className="figma-data-list">
                     <DataRow
@@ -1181,14 +1180,14 @@ export function StrategicMapPage() {
                       value={formatVisibilityReason(selectedSystem.visibilityReason)}
                     />
                     <DataRow
-                      label="Lecturas tacticas"
+                      label="Senales tacticas"
                       value={String(
                         (selectedSystem.sensorProfiles?.length ?? 0) +
                           (selectedSystem.detectionCoverage?.length ?? 0),
                       )}
                     />
                   </div>
-                </details>
+                </details> : null}
               </section>
 
               <section className="subpanel figma-subpanel">
@@ -1197,7 +1196,7 @@ export function StrategicMapPage() {
                     <p className="eyebrow">Estado operativo</p>
                     <h4>Acciones del sistema</h4>
                   </div>
-                  <UiBadge>{systemCommands.length} lecturas</UiBadge>
+                  <UiBadge>{systemCommands.length} senales</UiBadge>
                 </div>
                 {systemCommands.length > 0 ? (
                   <div className="figma-command-list">
@@ -1223,7 +1222,7 @@ export function StrategicMapPage() {
                   </div>
                 ) : (
                   <p className="figma-panel-note">
-                    No hay metadatos de acciones visibles para este sistema.
+                    No hay senales de acciones visibles para este sistema.
                   </p>
                 )}
               </section>
@@ -1235,7 +1234,7 @@ export function StrategicMapPage() {
               <div>
                 <p className="eyebrow">Navegacion preparada</p>
                 <h3>Sistema y planeta</h3>
-                <p>Los saltos conservan el contexto de civilizacion, sistema y planeta cuando la lectura actual ya tiene esos datos.</p>
+                <p>Los saltos conservan el contexto de civilizacion, sistema y planeta cuando la vista actual ya tiene esos datos.</p>
               </div>
               <UiBadge tone={selectedSystem.planets?.length ? "good" : "warn"}>
                 {selectedSystem.planets?.length ? "Datos listos" : "Dependencia pendiente"}
@@ -1253,7 +1252,7 @@ export function StrategicMapPage() {
                   </UiBadge>
                 </div>
                 <div className="figma-data-list">
-                  <DataRow label="Planetas devueltos" value={String(selectedSystem.planets?.length ?? 0)} />
+                  <DataRow label="Planetas visibles" value={String(selectedSystem.planets?.length ?? 0)} />
                   <DataRow label="Rutas visibles" value={String(selectedSystem.transferOverlays?.length ?? 0)} />
                   <DataRow label="Marcadores de flota" value={String(selectedSystem.fleetPresence?.length ?? 0)} />
                 </div>
@@ -1274,7 +1273,7 @@ export function StrategicMapPage() {
                     <h4>{selectedPlanet?.planetName ?? "Seleccion pendiente"}</h4>
                   </div>
                   <UiBadge tone={selectedPlanet ? "good" : "warn"}>
-                    {selectedPlanet ? "Handoff listo" : "Sin planeta activo"}
+                    {selectedPlanet ? "Enlace listo" : "Sin planeta activo"}
                   </UiBadge>
                 </div>
                 {selectedPlanet ? (
@@ -1282,7 +1281,7 @@ export function StrategicMapPage() {
                     <div className="figma-data-list">
                       <DataRow label="Control" value={Boolean(selectedPlanetRecord?.isOwnedByRequestingCivilization) ? "Propio" : formatVisibilityLevel(selectedPlanet.visibilityLevel)} />
                       <DataRow label="Tipo" value={formatPlanetType(readDomainValue(selectedPlanetRecord ?? {}, "planetType"), "Tipo pendiente")} />
-                      <DataRow label="Gestion" value={selectedPlanet.isVisible ? "Cabinas con contexto preservado" : "Lectura limitada"} />
+                      <DataRow label="Gestion" value={selectedPlanet.isVisible ? "Cabinas con contexto preservado" : "Vision limitada"} />
                     </div>
                     <div className="selection-chip-row">
                       <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(result.civilizationId, selectedPlanet.planetId)}>
@@ -1298,7 +1297,7 @@ export function StrategicMapPage() {
                   </>
                 ) : (
                   <p className="figma-panel-note">
-                    Selecciona un planeta devuelto por el mapa. Si el sistema no trae `planets[]`, falta consolidar el contrato final de sistema/planeta en DB o API.
+                    Selecciona un planeta visible del mapa. Si el sistema no trae planetas, el enlace de gestion permanece pendiente.
                   </p>
                 )}
               </section>
@@ -1361,7 +1360,7 @@ export function StrategicMapPage() {
                     <div>
                       <p className="eyebrow">Planeta seleccionado</p>
                       <h4>{selectedPlanet.planetName ?? "Planeta desconocido"}</h4>
-                      <p>El foco principal muestra tipo, control y estado colonial antes que claves de diagnostico.</p>
+                      <p>El foco principal muestra tipo, control y estado colonial antes que referencias tecnicas.</p>
                     </div>
                     <UiBadge tone={getVisibilityTone(selectedPlanet.visibilityLevel)}>
                       {getTargetVisibilityLabel(
@@ -1449,7 +1448,7 @@ export function StrategicMapPage() {
                       Abrir Planeta
                     </Link>
                   </div>
-                  <details className="json-details">
+                  {operatorMode ? <details className="json-details">
                     <summary>Diagnostico tecnico del planeta</summary>
                     <div className="figma-data-list">
                       <DataRow
@@ -1461,11 +1460,11 @@ export function StrategicMapPage() {
                         value={formatVisibilityReason(selectedPlanet.visibilityReason)}
                       />
                       <DataRow
-                        label="Metadatos de mando"
-                        value={`${planetCommands.length} lecturas disponibles`}
+                        label="Senales de mando"
+                        value={`${planetCommands.length} senales disponibles`}
                       />
                     </div>
-                  </details>
+                  </details> : null}
                 </section>
 
                 <section className="subpanel figma-subpanel">
@@ -1474,7 +1473,7 @@ export function StrategicMapPage() {
                       <p className="eyebrow">Consejo planetario</p>
                       <h4>Opciones de superficie</h4>
                     </div>
-                    <UiBadge>{planetCommands.length} lecturas</UiBadge>
+                    <UiBadge>{planetCommands.length} senales</UiBadge>
                   </div>
                   {planetCommands.length > 0 ? (
                     <div className="figma-command-list">
@@ -1500,7 +1499,7 @@ export function StrategicMapPage() {
                     </div>
                   ) : (
                     <p className="figma-panel-note">
-                      No hay metadatos de acciones visibles para este mundo.
+                      No hay senales de acciones visibles para este mundo.
                     </p>
                   )}
                 </section>
