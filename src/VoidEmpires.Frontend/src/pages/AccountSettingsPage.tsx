@@ -4,7 +4,7 @@ import { CockpitHero } from "../components/CockpitHero";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { loadPlayableSession } from "../utils/playableSession";
-import { buildPlanetUrl } from "../utils/routeUrls";
+import { buildPlanetUrl, buildRegisterUrl } from "../utils/routeUrls";
 
 const disabledAccountActions = [
   {
@@ -31,19 +31,19 @@ export function AccountSettingsPage() {
   const commanderLabel = session?.playerDisplayName ?? "Comandante sin cargar";
   const civilizationLabel = session?.civilizationName ?? "Civilizacion sin cargar";
   const planetLabel = session?.planetName ?? "Planeta natal sin cargar";
-  const planetUrl = session ? buildPlanetUrl(session.civilizationId, session.planetId) : "/onboarding";
+  const planetUrl = session ? buildPlanetUrl(session.civilizationId, session.planetId) : buildRegisterUrl();
 
   return (
     <section className="page-grid account-settings-page">
       <CockpitHero
         versionLabel="Cuenta"
         title="Ajustes de cuenta"
-        description="Resumen seguro del comandante y de la partida local, con acciones sensibles preparadas pero todavia desactivadas."
+        description="Resumen seguro del comandante y de la cuenta, con acciones sensibles preparadas pero todavia desactivadas."
         developmentNote="Cuenta y seguridad."
         badges={
           <>
             <UiBadge tone={hasSession ? "good" : "warn"}>
-              {hasSession ? "Sesion local" : "Sin sesion local"}
+              {hasSession ? "Contexto guardado" : "Cuenta pendiente"}
             </UiBadge>
             <UiBadge>Datos seguros</UiBadge>
           </>
@@ -54,9 +54,9 @@ export function AccountSettingsPage() {
         <div className="figma-section-header">
           <div>
             <p className="eyebrow">Perfil visible</p>
-            <h3>{hasSession ? commanderLabel : "Cuenta sin partida cargada"}</h3>
+            <h3>{hasSession ? commanderLabel : "Cuenta sin mundo cargado"}</h3>
             <p>
-              Esta superficie solo muestra nombres de juego guardados localmente y evita exponer
+              Esta superficie solo muestra nombres de cuenta disponibles y evita exponer
               identificadores internos o datos sensibles.
             </p>
           </div>
@@ -87,7 +87,7 @@ export function AccountSettingsPage() {
             </Link>
           ) : (
             <Link className="selection-chip selection-chip-active" to="/onboarding">
-              Crear partida
+              Crear cuenta
             </Link>
           )}
           <Link className="selection-chip" to="/">

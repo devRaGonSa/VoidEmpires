@@ -168,7 +168,19 @@ $obsoleteVisibleCopyPatterns = @(
   "alineacion del prototipo",
   "Nivel de prototipo",
   "Acciones de mutacion de prototipo",
-  "mutacion de prototipo"
+  "mutacion de prototipo",
+  "Partida local",
+  "partida local",
+  "Nueva partida",
+  "Continuar partida",
+  "Olvidar partida",
+  "Crear partida",
+  "partida guardada",
+  "Sesion local",
+  "Sin sesion local",
+  "local game",
+  "local session",
+  "new game"
 )
 $obsoleteVisibleMatches = Select-String -Path ($primaryUiFiles | Select-Object -ExpandProperty FullName) -Pattern $obsoleteVisibleCopyPatterns -SimpleMatch -CaseSensitive:$false
 foreach ($match in @($obsoleteVisibleMatches)) {

@@ -3,7 +3,7 @@
 ---
 id: TASK-42S
 title: Rename local session copy
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: [docs]

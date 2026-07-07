@@ -821,7 +821,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           {error ? <p className="error-text">{error}</p> : null}
           {!queryCivilizationId ? (
             <p className="figma-panel-note">
-              Pega un contexto valido, entra desde Galaxia o usa la partida local disponible para recuperar la seleccion.
+              Pega un contexto valido, entra desde Galaxia o usa el contexto guardado disponible para recuperar la seleccion.
             </p>
           ) : null}
         </UiCard>
@@ -900,13 +900,13 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Partida local disponible</p>
+              <p className="eyebrow">Contexto guardado disponible</p>
               <h3>Continuar con {playableSession.planetName ?? "la ultima colonia"}</h3>
             </div>
-            <UiBadge tone="good">Partida local</UiBadge>
+            <UiBadge tone="good">Contexto guardado</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Este enlace recupera la colonia guardada en este navegador; la cabina volvera a comprobar el estado de juego al abrir.
+            Este enlace recupera el mundo guardado en este navegador; la cabina volvera a comprobar la cuenta actual al abrir.
           </p>
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
@@ -940,7 +940,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           </div>
           <p>Esta civilizacion todavia no expone un planeta propio o el contexto no incluye un planeta valido.</p>
           <p className="figma-panel-note">
-            No se inventa una colonia alternativa: vuelve a Galaxia, Nueva partida o a la partida local si necesitas recuperar el contexto.
+            No se inventa una colonia alternativa: vuelve a Galaxia, Registro o al contexto guardado si necesitas recuperar la seleccion.
           </p>
         </UiCard>
       ) : null}

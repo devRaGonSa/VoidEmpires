@@ -150,7 +150,7 @@ export function clearPlayableSession() {
   try {
     storage.removeItem(playableSessionStorageKey);
   } catch {
-    // Local navigation memory is optional; storage failures must not break cockpit routing.
+    // Saved navigation memory is optional; storage failures must not break cockpit routing.
   }
 }
 

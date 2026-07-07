@@ -158,7 +158,7 @@ export function RegisterPage() {
           <UiBadge>Servidor autoritativo</UiBadge>
         </div>
         <p className="figma-panel-note">
-          Tras el registro, VoidEmpires abre el planeta inicial con los identificadores devueltos por el backend de cuentas.
+          Tras el registro, VoidEmpires abre el mundo inicial con el contexto seguro de la cuenta.
         </p>
         <div className="selection-chip-row">
           <Link className="selection-chip" to={buildGalaxyUrl()}>Ver galaxia</Link>
