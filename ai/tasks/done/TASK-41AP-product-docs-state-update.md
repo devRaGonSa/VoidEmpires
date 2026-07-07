@@ -3,7 +3,7 @@
 ---
 id: TASK-41AP
 title: Product docs state update
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams:

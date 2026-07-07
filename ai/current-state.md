@@ -2,9 +2,11 @@
 
 ## Phase
 
-The repository is consolidated through the Block 37 near-product documentation and readiness checkpoint for the current Development-only product shell.
+The repository is consolidated through the Block 41 product-facing surface pass for the current Development-only product shell.
 
 Block 40 SQL Server baseline work is now in the manual-review phase around the recommended `VoidEmpires_Dev` validation database. Current SQL Server work keeps PostgreSQL as the checked-in default, keeps real credentials outside the repository, and does not apply real database mutations automatically.
+
+Block 41 product-surface work now makes normal frontend navigation and primary cockpit surfaces product-facing by default: the home route, shell, sidebar, continuation banner, confirmation modals, empty/error states, catalog placeholder copy, resource labels, and secondary shell status avoid development/test/prototype language, backend URLs, endpoint details, and localhost references in normal UI. Internal operator panels, diagnostics, materialization controls, action manifests, and backend details remain technical and hidden unless explicitly revealed. This did not add gameplay behavior, production authentication, final assets, browser screenshot acceptance, SQL Server schema apply, or seed apply.
 
 ## Repository Reality
 
@@ -62,6 +64,7 @@ Current final-database readiness status:
 - latest Block 40P closure validation: `TASK-40A` through `TASK-40O` were verified in `ai/tasks/done`, `ai/tasks/pending` contains only `.gitkeep`, `dotnet build --no-restore` succeeded with `0` warnings and `0` errors, `dotnet test --no-build` succeeded with `744` passing tests, `0` failed, and `0` skipped, `npm run build --prefix src/VoidEmpires.Frontend` succeeded with `106` transformed modules and a `181.33 kB` minified / `59.13 kB` gzip shared entry chunk, and the QA, route lazy-import, frontend copy, and repository secret guards all passed; no real SQL Server password was committed, no generated SQL was executed, and no SQL Server migration was applied automatically
 - latest final catalog seed ownership audit: checked-in catalog source validation currently covers `15` building rows, `8` research rows, `4` orbital asset rows, `1` defense row, and `7` resource rows, but non-dry-run final catalog apply remains intentionally unsupported because the SQL Server baseline does not yet define dedicated final catalog table ownership, deterministic upsert behavior, or disposable replay validation for those rows
 - latest disposable SQL Server replay validation note: `docs/dev/sql-server-disposable-replay-validation.md` now documents the manual disposable-database replay gate for the accepted baseline script, including idempotent second-run verification and post-apply inspection; the gate was not executed, is not automated, does not target `VoidEmpires_Dev`, and does not use `dotnet ef database update`
+- latest Block 41 product-surface documentation note: product-facing UI copy no longer exposes development/test/prototype wording by default, while operator/internal tools remain hidden and technical; accepted SQL Server seeded validation status is unchanged, manual visual QA remains deferred, and no gameplay expansion was added
 
 ## Application Status
 
@@ -74,6 +77,8 @@ The repository contains `VoidEmpires.sln` with:
 - `tests/VoidEmpires.Tests`
 
 Current frontend cockpit baseline:
+
+- Block 41 product-facing surface work adds `/` as the product home route and keeps `/galaxy` as the map route, with normal UI copy avoiding development/test/prototype wording and backend/localhost details. Operator-only diagnostics and materialization tools remain secondary, explicitly revealed, and technical.
 
 - Block 36 completed the UI information architecture cleanup for the current cockpit suite without changing backend gameplay semantics. The global header no longer presents disconnected mock resource bars as selected-context truth, sidebar labels now better distinguish guarded mutations, readiness, read-only, Development QA, and future work, and obsolete global read-only copy was removed from mutation-capable surfaces.
 - Planet, Construction, Research, and Shipyard were decluttered around the active backend context, primary action/read-state, backend-owned resources or queues, handoffs, secondary Development tools, and collapsed diagnostics. Planet now reads as the hub, Construction reads as the focused catalog/queue surface, and Research/Shipyard use the shared page context strip plus one secondary diagnostic path.

@@ -2,6 +2,8 @@
 
 Usa esta lista para validar manualmente `VoidEmpires_Dev`. No pegues usuarios, passwords ni cadenas reales en commits, chats, tickets o documentos.
 
+Estado Block 41: la limpieza de UI producto no cambia este flujo. SQL Server sigue siendo una validacion manual/controlada; no se debe asumir que `VoidEmpires_Dev` existe, no se debe aplicar el script generado automaticamente y no se deben commitear cadenas resueltas ni passwords reales.
+
 - [ ] Crear `VoidEmpires_Dev` manualmente en SSMS usando `scripts/sqlserver/create-database.sql` despues de revisarlo.
 - [ ] Configurar la cadena local fuera del repo con `User Id=<USER>` y `Password=<PASSWORD>`.
 - [ ] Ejecutar el smoke de conexion `SELECT 1` con `scripts/sqlserver-connection-smoke.ps1`.
@@ -18,6 +20,7 @@ Usa esta lista para validar manualmente `VoidEmpires_Dev`. No pegues usuarios, p
 - [ ] Verificar `GET http://localhost:5142/health`: `persistence.configured=true` y `persistence.provider=Microsoft.EntityFrameworkCore.SqlServer`.
 - [ ] Antes de seed, asumir que las tablas de gameplay pueden estar vacias y que algunas vistas de catalogo/readiness pueden no tener opciones.
 - [ ] Despues de un seed aprobado solo para una base disposable, verificar que los endpoints dev reflejan el escenario sembrado.
+- [ ] Confirmar que las herramientas internas/operador siguen ocultas por defecto en la UI producto y que cualquier diagnostico tecnico se revisa como soporte, no como gameplay final.
 - [ ] Ejecutar el dry-run de catalogos finales sin `-Apply` y confirmar que no borra datos de gameplay.
 - [ ] Limpiar variables locales: `ASPNETCORE_ENVIRONMENT`, `VoidEmpires__Persistence__Provider`, `ConnectionStrings__DefaultConnection`, `VOIDEMPIRES_CONNECTION_STRING`, `VOIDEMPIRES_SQLSERVER_SMOKE_ENABLED`, `VOIDEMPIRES_SQLSERVER_SMOKE_CONNECTION_STRING`.
 

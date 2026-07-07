@@ -1,8 +1,8 @@
 # Product Readiness Report
 
-Status date: 2026-06-17
+Status date: 2026-07-07
 
-VoidEmpires currently has a coherent Development-only product shell suitable for local demo and QA. It is not production-ready: final database/model consolidation, final image and asset integration, production authentication, combat, final fleet movement, market transactions, alliance mutations, and screenshot-backed browser acceptance remain open.
+VoidEmpires currently has a coherent Development-only product shell suitable for local demo and QA. Normal route navigation and primary cockpit surfaces now default to product-facing copy: development/test/prototype wording, backend URLs, endpoint details, localhost references, and raw technical diagnostics are not part of the normal first-render UI. It is not production-ready: final database/model consolidation, final image and asset integration, production authentication, combat, final fleet movement, market transactions, alliance mutations, and screenshot-backed browser acceptance remain open.
 
 ## Readiness Summary
 
@@ -11,6 +11,7 @@ VoidEmpires currently has a coherent Development-only product shell suitable for
 | Backend host and project structure | Web, Application, Domain, Infrastructure, and Tests projects exist with established boundaries. | Foundation ready. |
 | Development seed baseline | `cockpit-validation` covers the accepted cockpit suite for local demo. | Demo ready. |
 | Frontend route shell | Accepted cockpit routes are lazy-loaded and share the current shell/navigation model. | Demo ready. |
+| Product-facing copy | Normal UI hides development/test language and backend details by default; operator-only tooling remains explicit and secondary. | Product-surface ready for local demo. |
 | Playable loop | `/onboarding`, `/planet`, `/construction`, `/research`, and `/shipyard` form the current controlled local loop. | Development-only ready. |
 | Readiness/advisory routes | Galaxy, Defenses, Ground Army, Fleets, Market, Espionage, Alliance, and Ranking expose accepted read or readiness states. | Development/read-only ready. |
 | Validation docs | Demo guide, product audit, deferred visual QA checklist, and cockpit checklists exist. | Documentation ready. |
@@ -24,7 +25,7 @@ VoidEmpires currently has a coherent Development-only product shell suitable for
 - The deferred browser screenshot pass is scripted in `docs/dev/deferred-visual-qa-master-checklist.md`.
 - Development QA scripts can prepare a playable session, print scoped materialization commands, read diagnostics, and parser-check helper behavior.
 - Construction, Research, and Shipyard create real Development database rows only after explicit confirmation and then rely on backend refreshes.
-- Planet Development QA tools are secondary and explicitly scoped to Development data.
+- Planet operator tools are hidden from product mode by default, remain technical when explicitly revealed, and stay scoped to Development data.
 - Read-only/advisory routes keep their current boundaries and do not add unsupported gameplay execution.
 
 ## Development-Only Surface
@@ -39,7 +40,18 @@ These flows are usable for local QA and demo, but they are not production featur
 | Resource accrual | Explicit backend materialization, not an automatic page-load timer. |
 | Construction/Research/Shipyard enqueue | Real persisted rows through Development-backed guarded flows. |
 | Fleet transfer tools | Controlled Development mutation path tracked by the Fleet checklist, not final movement productization. |
-| Diagnostics | Read backend state and raw payload context; they are support surfaces, not primary gameplay. |
+| Diagnostics and operator panels | Read backend state, raw payload context, and technical action metadata only after explicit operator reveal; they are support surfaces, not primary gameplay. |
+
+## Block 41 Product-Surface Update
+
+Recorded on 2026-07-07:
+
+- `/` is now a product-facing home route for continuing a saved local session, starting a new game, or entering the galaxy.
+- The global shell, sidebar, continuation banner, local session copy, confirmation modals, empty/error states, catalog placeholders, and resource labels have been polished away from development/test/prototype wording in normal UI.
+- Internal diagnostics, materialization controls, action manifests, and backend/operator details remain available only as hidden or explicit operator surfaces; they are still technical and are not accepted as production gameplay.
+- The expanded frontend copy regression guard now fails on forbidden development/test/prototype wording in product-surface page and component copy while preserving narrow exceptions for operator-only code and documentation.
+- This update did not add gameplay behavior, production authentication, final assets, browser screenshot acceptance, SQL Server schema apply, or seed apply.
+- Manual visual QA remains deferred to `docs/dev/deferred-visual-qa-master-checklist.md`.
 
 ## Final DB And Model Needs
 
@@ -47,6 +59,7 @@ These flows are usable for local QA and demo, but they are not production featur
 - Replace Development seed assumptions with production-owned initialization and migration strategy.
 - Decide final queue, resource, stock, fleet, research, market, alliance, and ranking ownership boundaries.
 - Keep ordinary CI/test paths independent of any real operator-managed database; the checked-in provider is still PostgreSQL/Npgsql today, and future SQL Server validation must remain explicitly gated.
+- Block 41 product-surface copy work did not change the accepted SQL Server posture: `VoidEmpires_Dev` remains a manual/operator-managed validation target, the idempotent SQL review script is not auto-applied, and no real SQL password or resolved connection string belongs in the repository.
 
 ## Final DB Phase Prep Plan
 
