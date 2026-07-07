@@ -43,9 +43,16 @@ Replace only the placeholders in environment variables or secret storage. `VoidE
 
 ## Repository Secret Guard Coverage
 
-`scripts/check-repo-secret-scan.ps1` scans committed documentation, PowerShell and SQL scripts, `appsettings*.json`, EF Core migration files under `src/VoidEmpires.Infrastructure/Persistence/Migrations`, and reviewed SQL Server artifacts under `artifacts/sqlserver`.
+`scripts/check-repo-secret-scan.ps1` scans committed documentation, PowerShell and SQL scripts, `appsettings*.json`, EF Core migration files under `src/VoidEmpires.Infrastructure/Persistence/Migrations`, reviewed SQL Server artifacts under `artifacts/sqlserver`, and auth-focused test fixture files.
 
 The guard intentionally skips build output such as `bin` and `obj`, allows documented placeholder values, and fails on real-looking password assignments or hardcoded SQL Server user values in connection examples. It does not require network or database access.
+
+For the Block 42 account registration work, the guard also checks auth test credential assignments against a narrow fake/local allowlist and verifies that `scripts/dev-qa-register-test-user.ps1` keeps generated QA accounts clearly local:
+
+- generated emails use the reserved `example.test` domain
+- generated temporary passwords use the local `Tmp!7...` pattern
+- caller-supplied passwords are not echoed
+- generated passwords are printed only for the local QA account and are not stored by the script
 
 ## Controlled Validation Posture
 

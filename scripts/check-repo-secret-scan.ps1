@@ -4,6 +4,7 @@ $ErrorActionPreference = "Stop"
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
 $docsRoot = Join-Path $repoRoot "docs"
 $scriptsRoot = Join-Path $repoRoot "scripts"
+$testsRoot = Join-Path $repoRoot "tests"
 $migrationRoot = Join-Path $repoRoot "src\VoidEmpires.Infrastructure\Persistence\Migrations"
 $sqlServerArtifactsRoot = Join-Path $repoRoot "artifacts\sqlserver"
 
@@ -27,6 +28,12 @@ if (Test-Path -LiteralPath $migrationRoot) {
 }
 if (Test-Path -LiteralPath $sqlServerArtifactsRoot) {
     Add-SecretScanFiles ([System.IO.FileInfo[]](Get-ChildItem -Path $sqlServerArtifactsRoot -Recurse -Include *.sql -File))
+}
+
+$authFixtureFiles = @()
+if (Test-Path -LiteralPath $testsRoot) {
+    $authFixtureFiles = Get-ChildItem -Path $testsRoot -Recurse -Include *Account*Tests.cs,*Auth*Tests.cs,*AuthenticatedPlayableLoopSmokeTests.cs -File |
+        Where-Object { $_.FullName -notmatch "\\bin\\" -and $_.FullName -notmatch "\\obj\\" }
 }
 
 $allowedPasswordValues = @(
@@ -57,9 +64,20 @@ $allowedUserValues = @(
     '%SQL_USER%'
 )
 
+$allowedAuthFixtureCredentialValues = @(
+    '',
+    'P@ssw0rd!23',
+    'WrongP@ssw0rd!23',
+    'OtherP@ssw0rd!23',
+    'test-password',
+    'weak',
+    'different'
+)
+
 $violations = New-Object System.Collections.Generic.List[string]
 $passwordAssignmentPattern = '(?i)Password\s*=\s*("?)([^;"\s`]+)\1'
 $userAssignmentPattern = '(?i)(User\s+Id|UID)\s*=\s*("?)([^;"\s`]+)\2'
+$authFixtureAssignmentPattern = '(?i)\b(password|confirmPassword)\s*=\s*"([^"]*)"'
 
 function Test-IsAllowedPasswordValue {
     param(
@@ -129,6 +147,38 @@ foreach ($file in $scanFiles) {
             }
 
             $violations.Add(("{0}:{1}: possible committed secret value detected: {2}" -f $file.FullName, ($lineIndex + 1), $line.Trim()))
+        }
+    }
+}
+
+foreach ($file in @($authFixtureFiles)) {
+    $lines = Get-Content -LiteralPath $file.FullName -Encoding UTF8
+    for ($lineIndex = 0; $lineIndex -lt $lines.Count; $lineIndex++) {
+        $line = $lines[$lineIndex]
+        foreach ($match in [regex]::Matches($line, $authFixtureAssignmentPattern)) {
+            $value = $match.Groups[2].Value
+            if ($allowedAuthFixtureCredentialValues -contains $value) {
+                continue
+            }
+
+            $violations.Add(("{0}:{1}: auth test credential assignment must use an approved fake/local value: {2}" -f $file.FullName, ($lineIndex + 1), $line.Trim()))
+        }
+    }
+}
+
+$qaRegistrationHelperPath = Join-Path $scriptsRoot "dev-qa-register-test-user.ps1"
+if (Test-Path -LiteralPath $qaRegistrationHelperPath) {
+    $qaRegistrationHelperContent = Get-Content -LiteralPath $qaRegistrationHelperPath -Raw -Encoding UTF8
+    $requiredQaRegistrationFragments = @(
+        'example.test',
+        'Tmp!7$suffix',
+        'Password: supplied by caller and intentionally not printed.',
+        'It is not stored by this script.'
+    )
+
+    foreach ($fragment in $requiredQaRegistrationFragments) {
+        if ($qaRegistrationHelperContent -notlike "*$fragment*") {
+            $violations.Add(("{0}: local QA registration helper is missing fake/local credential safety fragment: {1}" -f $qaRegistrationHelperPath, $fragment))
         }
     }
 }

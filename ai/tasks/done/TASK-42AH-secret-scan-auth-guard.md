@@ -3,7 +3,7 @@
 ---
 id: TASK-42AH
 title: Secret scan auth guard
-status: pending
+status: done
 type: security
 team: security
 supporting_teams: [platform]
