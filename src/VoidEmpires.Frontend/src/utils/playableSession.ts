@@ -1,3 +1,5 @@
+import type { AccountSessionResponse } from "../api/accountTypes";
+
 const playableSessionStorageKey = "voidempires.playableSession.v1";
 const operatorModeStorageKey = "voidempires.operatorMode";
 
@@ -60,7 +62,11 @@ function readRawSession(value: unknown): PlayableSession | null {
   };
 }
 
-export function savePlayableSession(input: PlayableSessionInput): PlayableSession | null {
+export function createPlayableSessionSnapshot(
+  input: PlayableSessionInput,
+  timestamp = new Date().toISOString(),
+  createdAt = timestamp,
+): PlayableSession | null {
   const civilizationId = normalizeRequiredId(input.civilizationId);
   const planetId = normalizeRequiredId(input.planetId);
 
@@ -68,6 +74,35 @@ export function savePlayableSession(input: PlayableSessionInput): PlayableSessio
     return null;
   }
 
+  return {
+    civilizationId,
+    planetId,
+    playerDisplayName: normalizeOptionalText(input.playerDisplayName),
+    civilizationName: normalizeOptionalText(input.civilizationName),
+    planetName: normalizeOptionalText(input.planetName),
+    createdAt,
+    updatedAt: timestamp,
+  };
+}
+
+export function getPlayableSessionInputFromAccountSession(
+  session: AccountSessionResponse | null,
+): PlayableSessionInput | null {
+  const civilizationId = normalizeRequiredId(session?.civilizationId);
+  const planetId = normalizeRequiredId(session?.homePlanetId);
+
+  if (!session?.succeeded || !civilizationId || !planetId) {
+    return null;
+  }
+
+  return {
+    civilizationId,
+    planetId,
+    planetName: normalizeOptionalText(session.homePlanetName),
+  };
+}
+
+export function savePlayableSession(input: PlayableSessionInput): PlayableSession | null {
   const storage = getLocalStorage();
   if (!storage) {
     return null;
@@ -75,15 +110,10 @@ export function savePlayableSession(input: PlayableSessionInput): PlayableSessio
 
   const existing = loadPlayableSession();
   const now = new Date().toISOString();
-  const session: PlayableSession = {
-    civilizationId,
-    planetId,
-    playerDisplayName: normalizeOptionalText(input.playerDisplayName),
-    civilizationName: normalizeOptionalText(input.civilizationName),
-    planetName: normalizeOptionalText(input.planetName),
-    createdAt: existing?.createdAt ?? now,
-    updatedAt: now,
-  };
+  const session = createPlayableSessionSnapshot(input, now, existing?.createdAt ?? now);
+  if (!session) {
+    return null;
+  }
 
   try {
     storage.setItem(playableSessionStorageKey, JSON.stringify(session));

@@ -3,7 +3,7 @@
 ---
 id: TASK-42O
 title: Current user session store
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
