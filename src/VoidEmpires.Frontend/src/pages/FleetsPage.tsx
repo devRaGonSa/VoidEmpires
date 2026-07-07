@@ -34,6 +34,7 @@ import {
   buildShipyardUrl,
 } from "../utils/routeUrls";
 import { cockpitNavigationLabels } from "../utils/cockpitStatus";
+import { isOperatorMode } from "../utils/playableSession";
 import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
 import {
   buildFleetCommandReadiness,
@@ -186,6 +187,7 @@ export function FleetsPage() {
   const [localSessionCleared, setLocalSessionCleared] = useState(false);
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
+  const operatorMode = isOperatorMode(searchParams);
 
   const summary = useMemo(() => {
     if (!uiState) {
@@ -1785,7 +1787,7 @@ export function FleetsPage() {
         </div>
       )}
 
-      {((fleetManifest.length > 0 || strategicMapManifest.length > 0) ||
+      {operatorMode && ((fleetManifest.length > 0 || strategicMapManifest.length > 0) ||
         (uiState && mutationConfirmations.length > 0)) && (
         <details className="technical-disclosure">
           <summary>

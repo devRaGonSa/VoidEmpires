@@ -1,4 +1,5 @@
 const playableSessionStorageKey = "voidempires.playableSession.v1";
+const operatorModeStorageKey = "voidempires.operatorMode";
 
 export interface PlayableSessionInput {
   civilizationId: string | null | undefined;
@@ -125,4 +126,21 @@ export function clearPlayableSession() {
 
 export function hasPlayableSession() {
   return loadPlayableSession() !== null;
+}
+
+export function isOperatorMode(searchParams?: URLSearchParams | null) {
+  if (searchParams?.get("operator") === "1") {
+    return true;
+  }
+
+  const storage = getLocalStorage();
+  if (!storage) {
+    return false;
+  }
+
+  try {
+    return storage.getItem(operatorModeStorageKey) === "1";
+  } catch {
+    return false;
+  }
 }

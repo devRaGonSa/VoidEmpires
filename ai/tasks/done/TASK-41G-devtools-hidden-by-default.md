@@ -3,7 +3,7 @@
 ---
 id: TASK-41G
 title: Devtools hidden by default
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

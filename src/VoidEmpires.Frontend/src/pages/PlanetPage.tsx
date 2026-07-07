@@ -64,6 +64,7 @@ import {
 } from "../utils/routeUrls";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { formatResourceDelta, formatResourceLabel } from "../utils/resourceDisplay";
+import { isOperatorMode } from "../utils/playableSession";
 import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
 
 interface PlanetPageProps {
@@ -291,6 +292,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const isConstructionRoute = variant === "construction";
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
+  const operatorMode = isOperatorMode(searchParams);
   const playableRouteContext = usePlayableRouteContext(queryCivilizationId);
   const playableSession = localSessionCleared ? null : playableRouteContext.playableSession;
   const routeSession = planet && activeCivilizationId
@@ -1094,6 +1096,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             </UiCard>
           </div>
 
+          {operatorMode ? (
           <div className={isConstructionRoute ? "construction-devtools-secondary" : undefined}>
             <DevelopmentToolsPanel
               title="Materializaciones Development"
@@ -1173,6 +1176,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
               }
             />
           </div>
+          ) : null}
 
           <div className="figma-two-column planet-overview-grid">
             {!isConstructionRoute ? (
