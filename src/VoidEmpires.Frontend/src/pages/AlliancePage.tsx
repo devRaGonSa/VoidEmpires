@@ -12,7 +12,6 @@ import {
   getAllianceContactCardTitle,
   getAllianceContactReadinessLabel,
   getAllianceNextCockpitHint,
-  getAllianceReadOnlyStatement,
   getAllianceStaticLabels,
 } from "../utils/alliancePresentation";
 import {
@@ -30,8 +29,10 @@ import {
   buildRankingUrl,
 } from "../utils/routeUrls";
 import { formatCompactGuid } from "../utils/domainPresentation";
+import { isOperatorMode } from "../utils/playableSession";
 
 const allianceLabels = getAllianceStaticLabels();
+const allianceBoundaryStatement = "Alianzas muestra contexto diplomatico sin abrir invitaciones, pactos, roles, tesoreria ni mensajes.";
 
 interface AllianceCatalogCard {
   key: string;
@@ -80,7 +81,7 @@ const allianceHandoffCards: readonly AllianceHandoffCard[] = [
     key: "espionage",
     label: "Espionaje",
     title: "Seguimiento de contactos",
-    description: "Permite seguir contactos parciales y lecturas incompletas sin abrir mensajes, pactos ni invitaciones.",
+    description: "Permite seguir contactos parciales y senales incompletas sin abrir mensajes, pactos ni invitaciones.",
     ctaLabel: "Abrir Espionaje",
   },
   {
@@ -93,10 +94,21 @@ const allianceHandoffCards: readonly AllianceHandoffCard[] = [
 ] as const;
 
 function getAllianceReadinessStatus(uiState: AllianceUiState | null) {
-  if (!uiState) return "Esperando lectura";
-  if (uiState.status?.hasActiveAlliance) return "Metadata de alianza";
+  if (!uiState) return "Esperando diplomacia";
+  if (uiState.status?.hasActiveAlliance) return "Federacion visible";
   if (uiState.contacts.length > 0) return "Contactos preparados";
   return "Sin alianza activa";
+}
+
+function formatAllianceProductLabel(label: string) {
+  return label
+    .replace(/diplomacia\s+solo\s+lect\S+/gi, "Diplomacia en consulta")
+    .replace(/solo\s+lect\S+/gi, "consulta")
+    .replace(/lectura\s+diplomatica/gi, "consulta diplomatica")
+    .replace(/lectura/gi, "consulta")
+    .replace(/desarrollo/gi, "fase actual")
+    .replace(/acci..n/g, "operacion")
+    .replace(/Acci..n/g, "Operacion");
 }
 
 export function AlliancePage() {
@@ -109,21 +121,29 @@ export function AlliancePage() {
   const [uiState, setUiState] = useState<AllianceUiState | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
+  const operatorMode = isOperatorMode(searchParams);
   const groupedContacts = useMemo(() => groupAllianceContacts(uiState?.contacts ?? []), [uiState?.contacts]);
   const recommendedFocus = useMemo(
-    () => (uiState ? selectRecommendedDiplomacyFocus(uiState) : allianceLabels.noActiveAlliance),
+    () => formatAllianceProductLabel(uiState ? selectRecommendedDiplomacyFocus(uiState) : allianceLabels.noActiveAlliance),
     [uiState],
   );
   const primaryAction = useMemo(
-    () => (uiState ? getAlliancePrimaryAction(uiState) : allianceLabels.futureAlliance),
+    () => formatAllianceProductLabel(uiState ? getAlliancePrimaryAction(uiState) : allianceLabels.futureAlliance),
     [uiState],
   );
   const pactFutureCount = uiState?.futurePacts.length ?? 0;
   const contactKnownCount = uiState?.contacts.length ?? 0;
-  const readOnlyStatement = getAllianceReadOnlyStatement();
+  const readOnlyStatement = allianceBoundaryStatement;
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const activeHomePlanetId = uiState?.identity?.homePlanetId ?? null;
   const allianceReadinessStatus = getAllianceReadinessStatus(uiState);
+
+  function presentAllianceFailure(failure: ReturnType<typeof formatAllianceRequestFailure>) {
+    setError(formatAllianceProductLabel(failure.primaryMessage));
+    setErrorFollowUp(failure.followUp ? formatAllianceProductLabel(failure.followUp) : null);
+    setTechnicalErrorDetail(failure.technicalDetail);
+  }
+
   const catalogSections = useMemo<AllianceCatalogSection[]>(() => {
     const confirmedCards = groupedContacts.confirmed.map((contact, index) => ({
       key: `known-${contact.contactedCivilizationId}`,
@@ -134,7 +154,7 @@ export function AlliancePage() {
       facts: [
         { label: "Estado", value: contact.statusLabel },
         { label: "Confianza", value: contact.confidenceLabel },
-        { label: "Lectura", value: getAllianceContactReadinessLabel("confirmed") },
+        { label: "Seguimiento", value: formatAllianceProductLabel(getAllianceContactReadinessLabel("confirmed")) },
         { label: "Siguiente cabina", value: getAllianceNextCockpitHint("confirmed", contact.sourceLabel) },
       ],
       note: `${contact.sourceLabel} | ${contact.discoveredAtLabel}`,
@@ -149,7 +169,7 @@ export function AlliancePage() {
       facts: [
         { label: "Estado", value: contact.statusLabel },
         { label: "Confianza", value: contact.confidenceLabel },
-        { label: "Lectura", value: getAllianceContactReadinessLabel("unconfirmed") },
+        { label: "Seguimiento", value: formatAllianceProductLabel(getAllianceContactReadinessLabel("unconfirmed")) },
         { label: "Siguiente cabina", value: getAllianceNextCockpitHint("unconfirmed", contact.sourceLabel) },
       ],
       note: `${contact.sourceLabel} | ${contact.discoveredAtLabel}`,
@@ -172,17 +192,17 @@ export function AlliancePage() {
       })) ?? []),
       ...((uiState?.futureActions ?? []).map((action) => ({
         key: `action-${action.actionKey}`,
-        eyebrow: "Accion futura",
-        title: action.label,
-        badgeLabel: action.stateLabel,
+        eyebrow: "Operacion futura",
+        title: formatAllianceProductLabel(action.label),
+        badgeLabel: formatAllianceProductLabel(action.stateLabel),
         badgeTone: "warn" as const,
         facts: [
-          { label: "Estado", value: action.stateLabel },
+          { label: "Estado", value: formatAllianceProductLabel(action.stateLabel) },
           { label: "Preparacion", value: "Bloqueado en esta version" },
           { label: "Disponibilidad", value: action.isAvailable ? "Visible" : "No ejecutable" },
-          { label: "Siguiente cabina", value: "Mantener lectura desde Alianzas" },
+          { label: "Siguiente cabina", value: "Mantener seguimiento desde Alianzas" },
         ],
-        note: action.reasonLabel,
+        note: formatAllianceProductLabel(action.reasonLabel),
       })) ?? []),
     ];
 
@@ -190,11 +210,11 @@ export function AlliancePage() {
       {
         key: "limited-readiness",
         eyebrow: "Limite actual",
-        title: "Lectura diplomatica limitada",
+        title: "Consulta diplomatica limitada",
         badgeLabel: cockpitStatusLabels.readOnly,
         badgeTone: "warn",
         facts: [
-          { label: "Estado", value: uiState?.actionSummary?.summaryLabel ?? allianceLabels.readOnlyDiplomacy },
+          { label: "Estado", value: formatAllianceProductLabel(uiState?.actionSummary?.summaryLabel ?? allianceLabels.readOnlyDiplomacy) },
           { label: "Confianza", value: "Metadata visible" },
           { label: "Pactos activos", value: String(uiState?.status?.activePactCount ?? 0) },
           { label: "Siguiente cabina", value: "Volver a Galaxia, Mercado o Espionaje" },
@@ -203,7 +223,7 @@ export function AlliancePage() {
       },
     ];
 
-    if (uiState?.diagnostics.limitations[0]) {
+    if (operatorMode && uiState?.diagnostics.limitations[0]) {
       limitedCards.push({
         key: "limited-diagnostics",
         eyebrow: "Limitacion visible",
@@ -212,7 +232,7 @@ export function AlliancePage() {
         badgeTone: "warn",
         facts: [
           { label: "Estado", value: "Sin ejecucion diplomatica" },
-          { label: "Confianza", value: "Lectura de desarrollo" },
+          { label: "Confianza", value: "Consulta de operador" },
           { label: "Notas", value: `${uiState.diagnostics.limitations.length} limitaciones` },
           { label: "Siguiente cabina", value: "Conservar contexto entre cabinas" },
         ],
@@ -224,8 +244,8 @@ export function AlliancePage() {
       {
         key: "known",
         label: "Contactos conocidos",
-        description: "Lecturas diplomaticas ya asentadas. La cabina no inventa participantes y solo muestra contexto verificable.",
-        badgeLabel: confirmedCards.length > 0 ? `${confirmedCards.length} lecturas` : "Sin contactos",
+        description: "Contactos diplomaticos ya asentados. La cabina no inventa participantes y solo muestra contexto verificable.",
+        badgeLabel: confirmedCards.length > 0 ? `${confirmedCards.length} contactos` : "Sin contactos",
         badgeTone: confirmedCards.length > 0 ? "good" : "warn",
         cards: confirmedCards.length > 0 ? confirmedCards : [{
           key: "known-empty",
@@ -235,8 +255,8 @@ export function AlliancePage() {
           badgeTone: "warn",
           facts: [
             { label: "Estado", value: allianceLabels.noActiveAlliance },
-            { label: "Confianza", value: "Lectura determinista" },
-            { label: "Lectura", value: "Sin participantes confirmados" },
+            { label: "Confianza", value: "Contacto verificable" },
+            { label: "Seguimiento", value: "Sin participantes confirmados" },
             { label: "Siguiente cabina", value: "Seguir desde Galaxia o Espionaje" },
           ],
           note: getAllianceCatalogPlaceholder("known"),
@@ -246,7 +266,7 @@ export function AlliancePage() {
         key: "potential",
         label: "Contactos potenciales",
         description: "Datos por confirmar que siguen visibles sin elevarse a relacion real ni a invitacion diplomatica.",
-        badgeLabel: potentialCards.length > 0 ? `${potentialCards.length} lecturas` : "Sin potencial",
+        badgeLabel: potentialCards.length > 0 ? `${potentialCards.length} contactos` : "Sin potencial",
         badgeTone: "warn",
         cards: potentialCards.length > 0 ? potentialCards : [{
           key: "potential-empty",
@@ -257,7 +277,7 @@ export function AlliancePage() {
           facts: [
             { label: "Estado", value: allianceLabels.unconfirmedContact },
             { label: "Confianza", value: "Sin evidencia adicional" },
-            { label: "Lectura", value: "No hay otra civilizacion visible" },
+            { label: "Seguimiento", value: "No hay otra civilizacion visible" },
             { label: "Siguiente cabina", value: "Mantener seguimiento en Espionaje" },
           ],
           note: getAllianceCatalogPlaceholder("potential"),
@@ -266,7 +286,7 @@ export function AlliancePage() {
       {
         key: "future",
         label: "Pactos futuros",
-        description: "La hoja de ruta mantiene pactos y acciones futuras como referencia visual, siempre bloqueados en esta fase.",
+        description: "La hoja de ruta mantiene pactos y operaciones futuras como referencia visual, siempre bloqueados en esta fase.",
         badgeLabel: futureCards.length > 0 ? `${futureCards.length} referencias` : "Sin pactos",
         badgeTone: "warn",
         cards: futureCards.length > 0 ? futureCards : [{
@@ -279,34 +299,34 @@ export function AlliancePage() {
             { label: "Estado", value: allianceLabels.futureAlliance },
             { label: "Preparacion", value: "Fase futura" },
             { label: "Disponibilidad", value: "No ejecutable" },
-            { label: "Siguiente cabina", value: "Conservar lectura en Alianzas" },
+            { label: "Siguiente cabina", value: "Conservar seguimiento en Alianzas" },
           ],
           note: getAllianceCatalogPlaceholder("future"),
         }],
       },
       {
         key: "limited",
-        label: "Lectura diplomatica limitada",
+        label: "Consulta diplomatica limitada",
         description: "La cabina muestra hasta donde llega la metadata actual y deriva el seguimiento a las superficies ya implementadas.",
         badgeLabel: `${limitedCards.length} notas`,
         badgeTone: "warn",
         cards: limitedCards.length > 0 ? limitedCards : [{
           key: "limited-empty",
-          eyebrow: "Lectura limitada",
+          eyebrow: "Consulta limitada",
           title: "Sin notas adicionales",
           badgeLabel: cockpitStatusLabels.readOnly,
           badgeTone: "warn",
           facts: [
-            { label: "Estado", value: allianceLabels.readOnlyDiplomacy },
-            { label: "Confianza", value: "Lectura de desarrollo" },
-            { label: "Notas", value: "Sin diagnosticos visibles" },
+            { label: "Estado", value: formatAllianceProductLabel(allianceLabels.readOnlyDiplomacy) },
+            { label: "Confianza", value: "Consulta de operador" },
+            { label: "Notas", value: "Sin notas visibles" },
             { label: "Siguiente cabina", value: "Volver a Galaxia o Mercado" },
           ],
           note: getAllianceCatalogPlaceholder("limited"),
         }],
       },
     ];
-  }, [groupedContacts.confirmed, groupedContacts.unconfirmed, readOnlyStatement, uiState]);
+  }, [groupedContacts.confirmed, groupedContacts.unconfirmed, operatorMode, readOnlyStatement, uiState]);
 
   useEffect(() => {
     setCivilizationIdInput(queryCivilizationId);
@@ -330,19 +350,15 @@ export function AlliancePage() {
         if (!response.succeeded || !response.uiState) {
           const failure = formatAllianceRequestFailure(response.errors[0] ?? null);
           setUiState(null);
-          setError(failure.primaryMessage);
-          setErrorFollowUp(failure.followUp);
-          setTechnicalErrorDetail(failure.technicalDetail);
+          presentAllianceFailure(failure);
           return;
         }
 
         setUiState(mapAllianceUiStateToViewModel(response.uiState));
       } catch (requestError) {
-        const failure = formatAllianceRequestFailure(requestError instanceof Error ? requestError.message : null);
-        setUiState(null);
-        setError(failure.primaryMessage);
-        setErrorFollowUp(failure.followUp);
-        setTechnicalErrorDetail(failure.technicalDetail);
+      const failure = formatAllianceRequestFailure(requestError instanceof Error ? requestError.message : null);
+      setUiState(null);
+      presentAllianceFailure(failure);
       } finally {
         setIsLoading(false);
       }
@@ -358,9 +374,7 @@ export function AlliancePage() {
     if (!trimmedCivilizationId) {
       const failure = formatAllianceRequestFailure("Civilization id is required.");
       setUiState(null);
-      setError(failure.primaryMessage);
-      setErrorFollowUp(failure.followUp);
-      setTechnicalErrorDetail(failure.technicalDetail);
+      presentAllianceFailure(failure);
       return;
     }
 
@@ -374,8 +388,8 @@ export function AlliancePage() {
       <CockpitHero
         versionLabel="Alianzas v1"
         title="Alianzas"
-        description="Cabina diplomatica de solo lectura para identidad, estado actual, contactos conocidos y pactos futuros todavia bloqueados."
-        developmentNote={`${readOnlyStatement} Conserva el contexto de lectura y no abre acciones de invitación o gestión.`}
+        description="Cabina diplomatica para identidad, estado actual, contactos conocidos y pactos futuros todavia bloqueados."
+        developmentNote={`${readOnlyStatement} Conserva el contexto diplomatico y mantiene las operaciones de invitacion y gestion pendientes de activacion.`}
         badges={(
           <>
             <UiBadge tone="resource">{uiState?.status?.stateLabel ?? "Estado diplomatico"}</UiBadge>
@@ -388,8 +402,8 @@ export function AlliancePage() {
       {queryCivilizationId ? (
         <PageContextStrip
           eyebrow="Cabina diplomatica"
-          title={uiState?.identity?.civilizationName ?? "Lectura de alianzas"}
-          purpose="Identidad, contactos y pactos futuros como metadata de solo lectura, sin invitaciones, permisos compartidos ni gestion de miembros."
+          title={uiState?.identity?.civilizationName ?? "Diplomacia de alianzas"}
+          purpose="Identidad, contactos y pactos futuros como contexto diplomatico, sin invitaciones, permisos compartidos ni gestion de miembros."
           statusLabel={allianceReadinessStatus}
           statusTone={uiState ? "good" : "warn"}
           contextItems={[
@@ -411,8 +425,8 @@ export function AlliancePage() {
             },
           ]}
           resourceItems={[
-            { label: "Diplomacia", value: "Solo lectura", tone: "good" },
-            { label: "Mutaciones", value: "Bloqueadas", tone: "warn" },
+            { label: "Diplomacia", value: "Consulta activa", tone: "good" },
+            { label: "Operaciones", value: "Pendientes", tone: "warn" },
             { label: "Visibilidad", value: "No compartida", tone: "neutral" },
           ]}
           primaryAction={
@@ -435,7 +449,7 @@ export function AlliancePage() {
         <div className="figma-section-header">
           <div>
             <p className="eyebrow">Resumen diplomatico</p>
-            <h3>Lectura rapida de alianzas</h3>
+            <h3>Resumen de alianzas</h3>
             <p>{readOnlyStatement}</p>
           </div>
           <UiBadge tone="warn">{cockpitStatusLabels.readOnly}</UiBadge>
@@ -449,7 +463,7 @@ export function AlliancePage() {
           <section className="subpanel figma-subpanel alliance-summary-card">
             <p className="eyebrow">Civilizacion propia</p>
             <strong>{uiState?.identity?.civilizationName ?? "Sin contexto cargado"}</strong>
-            <span>{uiState?.identity?.archetypeLabel ?? "Lectura diplomatica pendiente de clasificar"}</span>
+            <span>{uiState?.identity?.archetypeLabel ?? "Perfil diplomatico pendiente de clasificar"}</span>
           </section>
           <section className="subpanel figma-subpanel alliance-summary-card">
             <p className="eyebrow">Sin alianza activa</p>
@@ -479,9 +493,9 @@ export function AlliancePage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Contexto diplomatico</p>
-              <h3>Cargar lectura de alianzas</h3>
+              <h3>Cargar alianzas</h3>
             </div>
-            <UiBadge>{cockpitStatusLabels.developmentOnly}</UiBadge>
+            <UiBadge>Contexto activo</UiBadge>
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
@@ -506,7 +520,7 @@ export function AlliancePage() {
           ) : null}
           {!queryCivilizationId ? (
             <p className="figma-panel-note">
-              Introduce un `civilizationId` valido para convertir esta ruta en una cabina diplomatica real.
+              Introduce un contexto de civilizacion valido para abrir la cabina diplomatica.
             </p>
           ) : null}
         </UiCard>
@@ -528,7 +542,7 @@ export function AlliancePage() {
             </div>
           ) : (
             <p className="figma-panel-note">
-              Cuando exista un contexto valido, la cabina mostrara identidad, estado diplomatico y el siguiente foco de lectura.
+              Cuando exista un contexto valido, la cabina mostrara identidad, estado diplomatico y el siguiente foco de seguimiento.
             </p>
           )}
         </UiCard>
@@ -537,7 +551,7 @@ export function AlliancePage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Limite de la cabina</p>
-              <h3>Diplomacia solo lectura</h3>
+              <h3>Diplomacia pendiente de activacion</h3>
             </div>
             <UiBadge tone="warn">Sin ejecucion</UiBadge>
           </div>
@@ -555,18 +569,20 @@ export function AlliancePage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Sin contexto</p>
-              <h3>Alianzas necesita una civilizacion antes de mostrar una lectura util.</h3>
+              <h3>Alianzas necesita una civilizacion antes de mostrar diplomacia util.</h3>
             </div>
             <UiBadge tone="warn">Contexto requerido</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Usa el formulario superior o entra desde Galaxia, Mercado o Espionaje para conservar `civilizationId`.
+            Usa el formulario superior o entra desde Galaxia, Mercado o Espionaje para conservar el contexto diplomatico.
           </p>
-          <div className="selection-chip-row">
-            <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>
-              Abrir contexto de desarrollo
-            </Link>
-          </div>
+          {operatorMode ? (
+            <div className="selection-chip-row">
+              <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>
+                Abrir contexto de operador
+              </Link>
+            </div>
+          ) : null}
         </UiCard>
       ) : null}
 
@@ -575,7 +591,7 @@ export function AlliancePage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Cargando</p>
-              <h3>Sincronizando lectura diplomatica</h3>
+              <h3>Sincronizando diplomacia</h3>
             </div>
             <UiBadge>Cargando...</UiBadge>
           </div>
@@ -629,7 +645,7 @@ export function AlliancePage() {
               <section className="subpanel figma-subpanel">
                 <div className="figma-data-list">
                   <div className="figma-data-row"><span>Estado actual</span><strong>{uiState.status.stateLabel}</strong></div>
-                  <div className="figma-data-row"><span>Accion principal</span><strong>{primaryAction}</strong></div>
+                  <div className="figma-data-row"><span>Operacion principal</span><strong>{primaryAction}</strong></div>
                   <div className="figma-data-row"><span>Foco recomendado</span><strong>{recommendedFocus}</strong></div>
                 </div>
               </section>
@@ -661,7 +677,7 @@ export function AlliancePage() {
               <div>
                 <p className="eyebrow">Catalogo diplomatico</p>
                 <h3>Contactos y preparacion diplomatica</h3>
-                <p>La cabina separa contacto conocido, potencial, pactos futuros y limites de lectura sin fabricar participantes ni acuerdos activos.</p>
+                <p>La cabina separa contacto conocido, potencial, pactos futuros y limites de seguimiento sin fabricar participantes ni acuerdos activos.</p>
               </div>
               <UiBadge tone="warn">{cockpitStatusLabels.safePlaceholder}</UiBadge>
             </div>
@@ -731,7 +747,7 @@ export function AlliancePage() {
                   </div>
                   <UiBadge tone="warn">Fase futura</UiBadge>
                 </div>
-                <p className="figma-panel-note">Comercio, defensa y no agresion permanecen como lectura preparada, no como acuerdos activos.</p>
+                <p className="figma-panel-note">Comercio, defensa y no agresion permanecen como referencia preparada, no como acuerdos activos.</p>
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
@@ -741,14 +757,14 @@ export function AlliancePage() {
                   </div>
                   <UiBadge tone="warn">No final</UiBadge>
                 </div>
-                <p className="figma-panel-note">Persistencia final, autorizacion de produccion, activos finales, mercado, movimiento y combate siguen fuera de esta cabina.</p>
+                <p className="figma-panel-note">Autoridad final, permisos compartidos, tesoreria, mensajes, mercado, movimiento y combate siguen fuera de esta cabina.</p>
               </section>
             </div>
           </UiCard>
         </>
       ) : null}
 
-      {(technicalErrorDetail || uiState?.diagnostics.technical.length || uiState?.diagnostics.limitations.length) ? (
+      {operatorMode && (technicalErrorDetail || uiState?.diagnostics.technical.length || uiState?.diagnostics.limitations.length) ? (
         <details className="technical-disclosure">
           <summary>
             <div>
@@ -811,7 +827,7 @@ export function AlliancePage() {
           <div>
             <p className="eyebrow">Pasar a otras cabinas</p>
             <h3>Handoffs relacionados</h3>
-            <p>Alianzas conserva el contexto de civilizacion y solo deriva la lectura a las superficies ya implementadas, sin insinuar flujos diplomaticos ejecutables.</p>
+            <p>Alianzas conserva el contexto de civilizacion y deriva el seguimiento a las superficies ya implementadas, sin insinuar flujos diplomaticos ejecutables.</p>
           </div>
           <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
         </div>
