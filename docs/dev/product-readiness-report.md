@@ -9,7 +9,7 @@ VoidEmpires currently has a coherent Development-only product shell suitable for
 | Area | Current status | Readiness |
 |---|---|---|
 | Backend host and project structure | Web, Application, Domain, Infrastructure, and Tests projects exist with established boundaries. | Foundation ready. |
-| Development seed baseline | `cockpit-validation` covers the accepted cockpit suite for local demo. | Demo ready. |
+| Development seed baseline | `cockpit-validation` covers the accepted cockpit suite for local QA/operator demo only. | Demo ready. |
 | Frontend route shell | Accepted cockpit routes are lazy-loaded and share the current shell/navigation model. | Demo ready. |
 | Product-facing copy | Normal UI hides development/test language and backend details by default; operator-only tooling remains explicit and secondary. | Product-surface ready for local demo. |
 | Account playable loop | `/register`, `/login`, `/planet`, `/construction`, `/research`, and `/shipyard` now use the account entry path and guarded game routes. | Backend/frontend foundation ready; production authorization still deferred. |
@@ -25,6 +25,7 @@ Recorded on 2026-07-07 for `TASK-42A`:
 - ASP.NET Core Identity is present behind `POST /api/auth/register` and `GET /api/auth/confirm-email`; it is wired only when persistence is configured and sends confirmation mail through the transactional email abstraction.
 - Account registration now creates the Identity user, `PlayerProfile`, initial `Civilization`, home planet, `PlanetOwnership`, starting resources, and production profile through the account bootstrap path.
 - `/register` is the primary product entry. `/onboarding` remains as an alias to registration.
+- Development seed profiles are not part of real player entry. `cockpit-validation` remains an internal QA fixture for repeatable cockpit validation and must not be presented as normal onboarding.
 - Login, `/api/accounts/me`, logout, cookie configuration, guarded frontend routes, and registration-to-home-world navigation are implemented.
 - The current registration contract is: register account, create/link player profile, create civilization, assign or generate home planet, create ownership, initialize economy/production state, login, then navigate to the generated home planet route.
 - Local playable-session storage remains a navigation convenience only and is not authentication, authorization, ownership, role, token, cookie, or account state.
@@ -35,7 +36,7 @@ Recorded on 2026-07-07 for `TASK-42A`:
 - One canonical demo path exists in `docs/dev/single-product-demo-guide.md`.
 - The final frontend information architecture is documented in `docs/dev/product-completion-audit.md`.
 - The deferred browser screenshot pass is scripted in `docs/dev/deferred-visual-qa-master-checklist.md`.
-- Development QA scripts can prepare a playable session, print scoped materialization commands, read diagnostics, and parser-check helper behavior.
+- Development QA scripts can prepare seeded/operator validation state, print scoped materialization commands, read diagnostics, and parser-check helper behavior.
 - Construction, Research, and Shipyard create real Development database rows only after explicit confirmation and then rely on backend refreshes.
 - Planet operator tools are hidden from product mode by default, remain technical when explicitly revealed, and stay scoped to Development data.
 - Read-only/advisory routes keep their current boundaries and do not add unsupported gameplay execution.
@@ -47,7 +48,7 @@ These flows are usable for local QA and demo, but they are not production featur
 | Surface | Development-only behavior |
 |---|---|
 | `/onboarding` | Route alias to registration; retained for compatibility, not a separate local start. |
-| Seed profiles | Additive deterministic setup through Development endpoints. |
+| Seed profiles | Additive deterministic setup through Development endpoints for QA/operator validation, not player registration. |
 | Queue materialization | Explicit scoped helper/action for due Development orders only. |
 | Resource accrual | Explicit backend materialization, not an automatic page-load timer. |
 | Construction/Research/Shipyard enqueue | Real persisted rows through Development-backed guarded flows. |
@@ -85,7 +86,7 @@ This was a non-visual automated validation pass. It did not perform browser or m
 ## Final DB And Model Needs
 
 - Consolidate final persisted gameplay models before treating the shell as durable product behavior.
-- Replace Development seed assumptions with production-owned initialization and migration strategy.
+- Keep Development seed assumptions out of player registration, and replace any remaining final product initialization assumptions with production-owned initialization and migration strategy.
 - Decide final queue, resource, stock, fleet, research, market, alliance, and ranking ownership boundaries.
 - Keep ordinary CI/test paths independent of any real operator-managed database; the checked-in provider is still PostgreSQL/Npgsql today, and future SQL Server validation must remain explicitly gated.
 - Block 41 product-surface copy work did not change the accepted SQL Server posture: `VoidEmpires_Dev` remains a manual/operator-managed validation target, the idempotent SQL review script is not auto-applied, and no real SQL password or resolved connection string belongs in the repository.

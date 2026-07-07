@@ -3,6 +3,14 @@
 This document is the source of truth for the current Development-only seed profile system.
 Use these profiles instead of manual SQL for standard cockpit QA.
 
+## Boundary with real registration
+
+Seed profiles are QA/operator fixtures. They prepare deterministic cockpit state for local validation, but they are not player onboarding, account bootstrap, or production initialization.
+
+Real player entry starts at `/register`. Registration creates the account-linked player profile, civilization, generated home planet, ownership, starting resources, and production profile through the account bootstrap path. Normal UI must not describe this as seeded behavior, and seed profile names such as `cockpit-validation` belong only in docs, scripts, tests, and explicitly revealed operator surfaces.
+
+`/onboarding` is retained as a route alias to registration. It is not a separate Development local-start product path.
+
 ## Profile catalog
 
 `POST /api/dev/seeds/apply` remains Development-only and accepts exact profile names only. There are no undocumented aliases.
@@ -52,6 +60,7 @@ Invoke-RestMethod `
 Operational guidance:
 
 - Seed profiles are Development-only, deterministic, and idempotent.
+- Do not use seed profiles to create or recover real player accounts. Use `/register` for account bootstrap and use these profiles only for local QA/operator validation.
 - Reapply the documented profile when local QA state becomes confusing.
 - Reapplying `cockpit-validation`, `shipyard-validation`, `research-validation`, or `planet-full-validation` is supported on reused development databases even after manual QA has already created queue rows.
 - `cockpit-validation` is now also verified against real manual Construction and Research orders created through the supported dev endpoints; reapplying the profile preserves those active manual rows while still avoiding duplicate seeded history rows.

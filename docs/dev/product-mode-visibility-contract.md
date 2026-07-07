@@ -19,6 +19,7 @@ Product mode is the only mode allowed for first render, direct route visits, cop
 - Do not show raw GUIDs, endpoint paths, backend profiles, JSON payloads, or stack/request details in first-viewport content or primary cards.
 - Do not render `DevEndpointNotice`, `DevelopmentToolsPanel`, `DevDiagnosticsPanel`, or `ActionManifestPanel` in product mode.
 - Do not show materialization controls, action manifests, direct transfer tooling, or technical complete-due controls in product mode.
+- Do not present Development seed behavior, seed profile names, or `cockpit-validation` as onboarding, account creation, or normal player recovery.
 - Do not persist or display auth-like state. Local playable-session memory may rebuild navigation context, but it is not login, ownership proof, a role, a token, or production authorization.
 - Do not overclaim final systems: production authentication, public ranking, market transactions, alliance mutations, combat, invasion, interception, and final fleet movement productization stay out of product-mode claims.
 
@@ -45,7 +46,7 @@ Required behavior for any implementation:
 |---|---|---|
 | `AppShell` status copy | Player-facing context only. No backend profile, Development mode, or production-login caveat. | May show environment/profile details. |
 | `DevEndpointNotice` | Hidden. | May show API base URL and expected backend profile. |
-| `DevelopmentToolsPanel` | Hidden. | May show materialization and local operator actions, closed unless explicitly opened. |
+| `DevelopmentToolsPanel` | Hidden. | May show materialization, seed helpers, and local operator actions, closed unless explicitly opened. |
 | `DevDiagnosticsPanel` | Hidden. | May show summaries, raw IDs, and JSON payload preview. |
 | `ActionManifestPanel` | Hidden. | May show contract metadata and read-only/mutating action availability. |
 | Route ID forms | Product labels and local context recovery only. | May expose exact `civilizationId`, `planetId`, `systemId`, tactical IDs, and transfer IDs. |

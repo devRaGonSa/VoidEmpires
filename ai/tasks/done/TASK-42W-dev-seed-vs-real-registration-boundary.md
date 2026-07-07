@@ -3,7 +3,7 @@
 ---
 id: TASK-42W
 title: Dev seed versus real registration boundary
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams: [frontend]
