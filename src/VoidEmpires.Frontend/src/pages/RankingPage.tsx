@@ -26,6 +26,7 @@ import {
   buildMarketUrl,
 } from "../utils/routeUrls";
 import { formatCompactGuid } from "../utils/domainPresentation";
+import { isOperatorMode } from "../utils/playableSession";
 
 const rankingLabels = getRankingStaticLabels();
 const rankingHandoffCards = [
@@ -60,10 +61,23 @@ const rankingHandoffCards = [
 ] as const;
 
 function getRankingReadinessStatus(uiState: RankingUiState | null) {
-  if (!uiState?.summary) return "Esperando lectura";
+  if (!uiState?.summary) return "Esperando indice";
   if ((uiState.summary.categories.length ?? 0) > 0 && uiState.comparisons.length > 0) return "Indice preparado";
   if ((uiState.summary.categories.length ?? 0) > 0) return "Categorias visibles";
-  return "Lectura limitada";
+  return "Indice limitado";
+}
+
+function formatRankingProductLabel(label: string) {
+  return label
+    .replace(/solo\s+lect\S+/gi, "consulta interna")
+    .replace(/lectura\s+de\s+ranking/gi, "indice de poder")
+    .replace(/lectura\s+interna/gi, "clasificacion interna")
+    .replace(/lectura/gi, "indice")
+    .replace(/demo/gi, "referencia")
+    .replace(/demostraci\S+/gi, "referencia")
+    .replace(/desarrollo/gi, "fase actual")
+    .replace(/backend/gi, "servicio")
+    .replace(/mutaci\S+/gi, "actualizacion");
 }
 
 export function RankingPage() {
@@ -76,21 +90,22 @@ export function RankingPage() {
   const [uiState, setUiState] = useState<RankingUiState | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
+  const operatorMode = isOperatorMode(searchParams);
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const recommendedFocus = useMemo(
-    () => selectRecommendedRankingFocus(uiState),
+    () => formatRankingProductLabel(selectRecommendedRankingFocus(uiState)),
     [uiState],
   );
   const primaryAction = useMemo(
-    () => getRankingPrimaryAction(uiState),
+    () => formatRankingProductLabel(getRankingPrimaryAction(uiState)),
     [uiState],
   );
   const dominantCategory = useMemo(
-    () => selectDominantRankingCategory(uiState),
+    () => formatRankingProductLabel(selectDominantRankingCategory(uiState)),
     [uiState],
   );
   const weakestCategory = useMemo(
-    () => selectWeakestRankingFocus(uiState),
+    () => formatRankingProductLabel(selectWeakestRankingFocus(uiState)),
     [uiState],
   );
   const categoryCards = useMemo(
@@ -102,6 +117,12 @@ export function RankingPage() {
     [uiState?.comparisons],
   );
   const rankingReadinessStatus = getRankingReadinessStatus(uiState);
+
+  function presentRankingFailure(failure: ReturnType<typeof formatRankingRequestFailure>) {
+    setError(formatRankingProductLabel(failure.primaryMessage));
+    setErrorFollowUp(failure.followUp ? formatRankingProductLabel(failure.followUp) : null);
+    setTechnicalErrorDetail(failure.technicalDetail);
+  }
 
   useEffect(() => {
     document.title = "Ranking";
@@ -129,9 +150,7 @@ export function RankingPage() {
         if (!response.succeeded || !response.uiState) {
           const failure = formatRankingRequestFailure(new Error(response.errors[0] ?? ""));
           setUiState(null);
-          setError(failure.primaryMessage);
-          setErrorFollowUp(failure.followUp);
-          setTechnicalErrorDetail(failure.technicalDetail);
+          presentRankingFailure(failure);
           return;
         }
 
@@ -139,9 +158,7 @@ export function RankingPage() {
       } catch (requestError) {
         const failure = formatRankingRequestFailure(requestError);
         setUiState(null);
-        setError(failure.primaryMessage);
-        setErrorFollowUp(failure.followUp);
-        setTechnicalErrorDetail(failure.technicalDetail);
+        presentRankingFailure(failure);
       } finally {
         setIsLoading(false);
       }
@@ -156,9 +173,7 @@ export function RankingPage() {
     const trimmedCivilizationId = civilizationIdInput.trim();
     if (!trimmedCivilizationId) {
       const failure = formatRankingRequestFailure(new Error("Civilization id is required."));
-      setError(failure.primaryMessage);
-      setErrorFollowUp(failure.followUp);
-      setTechnicalErrorDetail(failure.technicalDetail);
+      presentRankingFailure(failure);
       setUiState(null);
       return;
     }
@@ -172,9 +187,9 @@ export function RankingPage() {
     <section className="page-grid">
       <CockpitHero
         versionLabel="Ranking v1"
-        title="Ranking"
-        description="Cabina de solo lectura para un indice de poder interno, comparativas de validación y referencias futuras todavía desactivadas."
-        developmentNote="Ranking no publica una clasificación global, no entrega recompensas y no ejecuta emparejamiento. Solo resume el estado visible de la civilización actual."
+        title="Indice de poder"
+        description="Clasificacion imperial interna con poder por categorias, comparativas de referencia y dependencias competitivas todavia desactivadas."
+        developmentNote="Ranking no publica una clasificacion global, no entrega recompensas y no ejecuta emparejamiento. Resume el estado visible de la civilizacion actual."
         badges={(
           <>
             <UiBadge tone="resource">{uiState?.summary?.totalPowerIndexLabel ?? "Sin indice"}</UiBadge>
@@ -187,16 +202,16 @@ export function RankingPage() {
       {queryCivilizationId ? (
         <PageContextStrip
           eyebrow="Indice interno"
-          title={uiState?.identity?.civilizationName ?? "Lectura de Ranking"}
-          purpose="Indice de poder por categorias, comparativas demo y dependencias de ladder sin clasificacion publica ni recompensas."
+          title={uiState?.identity?.civilizationName ?? "Clasificacion imperial"}
+          purpose="Indice de poder por categorias, comparativas de referencia y dependencias de ladder sin clasificacion publica ni recompensas."
           statusLabel={rankingReadinessStatus}
           statusTone={uiState?.summary ? "good" : "warn"}
           contextItems={[
             { label: "Civilizacion", value: formatCompactGuid(activeCivilizationId) },
             {
               label: "Poder",
-              value: uiState?.summary?.totalPowerIndexLabel ?? "Sin lectura",
-              detail: uiState?.publication?.stateLabel ?? rankingLabels.unpublishedRanking,
+              value: uiState?.summary?.totalPowerIndexLabel ?? "Sin indice",
+              detail: formatRankingProductLabel(uiState?.publication?.stateLabel ?? rankingLabels.unpublishedRanking),
             },
             {
               label: "Categoria fuerte",
@@ -205,12 +220,12 @@ export function RankingPage() {
             },
             {
               label: "Comparativa",
-              value: uiState ? `${uiState.comparisons.length} filas demo` : "Sin lectura",
-              detail: rankingLabels.demoScenarioReference,
+              value: uiState ? `${uiState.comparisons.length} referencias` : "Sin indice",
+              detail: formatRankingProductLabel(rankingLabels.demoScenarioReference),
             },
           ]}
           resourceItems={[
-            { label: "Indice", value: "Solo lectura", tone: "good" },
+            { label: "Indice", value: "Consulta interna", tone: "good" },
             { label: "Ladder", value: "No publicada", tone: "warn" },
             { label: "Recompensas", value: "No disponibles", tone: "neutral" },
           ]}
@@ -234,7 +249,7 @@ export function RankingPage() {
         <div className="figma-section-header">
           <div>
             <p className="eyebrow">Resumen de poder</p>
-            <h3>Lectura rapida de Ranking</h3>
+            <h3>Clasificacion imperial</h3>
             <p>Esta cabina no publica ranking global ni recompensas.</p>
           </div>
           <UiBadge tone="warn">{cockpitStatusLabels.readOnly}</UiBadge>
@@ -242,28 +257,28 @@ export function RankingPage() {
         <div className="alliance-summary-grid">
           <section className="subpanel figma-subpanel alliance-summary-card">
             <p className="eyebrow">{rankingLabels.powerIndex}</p>
-            <strong>{uiState?.summary?.totalPowerIndexLabel ?? "Sin lectura"}</strong>
-            <span>La lectura actual se calcula desde el escenario de validación.</span>
+            <strong>{uiState?.summary?.totalPowerIndexLabel ?? "Sin indice"}</strong>
+            <span>El indice actual se calcula desde referencias internas.</span>
           </section>
           <section className="subpanel figma-subpanel alliance-summary-card">
             <p className="eyebrow">Potencia total</p>
-            <strong>{uiState?.summary?.totalPowerIndexLabel ?? "Sin lectura"}</strong>
-            <span>{uiState?.publication?.stateLabel ?? rankingLabels.unpublishedRanking}</span>
+            <strong>{uiState?.summary?.totalPowerIndexLabel ?? "Sin indice"}</strong>
+            <span>{formatRankingProductLabel(uiState?.publication?.stateLabel ?? rankingLabels.unpublishedRanking)}</span>
           </section>
           <section className="subpanel figma-subpanel alliance-summary-card">
             <p className="eyebrow">Categoria dominante</p>
             <strong>{dominantCategory}</strong>
-            <span>{uiState?.summary?.recommendationLabel ?? rankingLabels.unclassifiedMetric}</span>
+            <span>{formatRankingProductLabel(uiState?.summary?.recommendationLabel ?? rankingLabels.unclassifiedMetric)}</span>
           </section>
           <section className="subpanel figma-subpanel alliance-summary-card">
             <p className="eyebrow">Área crítica</p>
             <strong>{weakestCategory}</strong>
-            <span>{rankingLabels.unclassifiedMetric}</span>
+            <span>{formatRankingProductLabel(rankingLabels.unclassifiedMetric)}</span>
           </section>
           <section className="subpanel figma-subpanel alliance-summary-card">
             <p className="eyebrow">Comparativa de validación</p>
-            <strong>{uiState?.comparisons[0]?.totalPowerIndexLabel ?? "Sin lectura"}</strong>
-            <span>{rankingLabels.demoComparison}</span>
+            <strong>{uiState?.comparisons[0]?.totalPowerIndexLabel ?? "Sin indice"}</strong>
+            <span>{formatRankingProductLabel(rankingLabels.demoComparison)}</span>
           </section>
           <section className="subpanel figma-subpanel alliance-summary-card">
             <p className="eyebrow">Foco recomendado</p>
@@ -272,7 +287,7 @@ export function RankingPage() {
           </section>
         </div>
         <p className="ranking-summary-note">
-          Esta cabina no publica ranking global ni recompensas. La lectura actual se calcula desde el escenario de validación.
+          Esta cabina no publica ranking global ni recompensas. El indice actual se calcula desde referencias internas.
         </p>
       </UiCard>
 
@@ -283,7 +298,7 @@ export function RankingPage() {
               <p className="eyebrow">Contexto de ranking</p>
               <h3>Cargar indice de poder</h3>
             </div>
-            <UiBadge>{cockpitStatusLabels.developmentOnly}</UiBadge>
+            <UiBadge>Contexto activo</UiBadge>
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
@@ -308,7 +323,7 @@ export function RankingPage() {
           ) : null}
           {!queryCivilizationId ? (
             <p className="figma-panel-note">
-              Introduce un `civilizationId` valido para convertir esta ruta en una cabina de ranking real.
+              Introduce un contexto de civilizacion valido para abrir la clasificacion imperial.
             </p>
           ) : null}
         </UiCard>
@@ -330,7 +345,7 @@ export function RankingPage() {
             </div>
           ) : (
             <p className="figma-panel-note">
-              Cuando exista un contexto valido, la cabina mostrara identidad, indice y postura publica de la lectura actual.
+              Cuando exista un contexto valido, la cabina mostrara identidad, indice y postura publica del poder actual.
             </p>
           )}
         </UiCard>
@@ -339,15 +354,15 @@ export function RankingPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Limite de la cabina</p>
-              <h3>Lectura interna no publicada</h3>
+              <h3>Clasificacion interna no publicada</h3>
             </div>
             <UiBadge tone="warn">Sin ladder</UiBadge>
           </div>
           <ul className="stack-list strategic-rules-list">
             <li>Lee el indice de poder y las categorias derivadas de la civilizacion actual.</li>
-            <li>Usa comparativas de validación, no jugadores reales ni perfiles públicos.</li>
+            <li>Usa comparativas de referencia, no jugadores reales ni perfiles publicos.</li>
             <li>No publica temporadas, recompensas ni clasificaciones globales.</li>
-            <li>No ejecuta rutas de mutación ni actualiza valores de forma optimista.</li>
+            <li>No actualiza el ladder ni modifica valores de forma optimista.</li>
           </ul>
         </UiCard>
       </div>
@@ -357,18 +372,20 @@ export function RankingPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Sin contexto</p>
-              <h3>Ranking necesita una civilizacion antes de mostrar una lectura util.</h3>
+              <h3>Ranking necesita una civilizacion antes de mostrar un indice util.</h3>
             </div>
             <UiBadge tone="warn">Contexto requerido</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Usa el formulario superior o entra desde Galaxia, Mercado, Espionaje o Alianza para conservar `civilizationId`.
+            Usa el formulario superior o entra desde Galaxia, Mercado, Espionaje o Alianza para conservar el contexto imperial.
           </p>
-          <div className="selection-chip-row">
-            <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>
-              Abrir contexto de desarrollo
-            </Link>
-          </div>
+          {operatorMode ? (
+            <div className="selection-chip-row">
+              <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>
+                Abrir contexto de operador
+              </Link>
+            </div>
+          ) : null}
         </UiCard>
       ) : null}
 
@@ -381,7 +398,7 @@ export function RankingPage() {
             </div>
             <UiBadge>Cargando...</UiBadge>
           </div>
-          <p>Consultando categorías de validación y referencias futuras sin publicar datos competitivos.</p>
+          <p>Consultando categorias de referencia y dependencias futuras sin publicar datos competitivos.</p>
         </UiCard>
       ) : null}
 
@@ -392,9 +409,9 @@ export function RankingPage() {
               <div>
                 <p className="eyebrow">Tablero de poder</p>
                 <h3>{uiState.summary.totalPowerIndexLabel}</h3>
-                <p>Ranking convierte la lectura técnica en tarjetas estables por dominio y deja las claves técnicas dentro del diagnóstico secundario.</p>
+                <p>Ranking convierte el indice interno en tarjetas estables por dominio y deja las claves de soporte fuera del modo producto.</p>
               </div>
-              <UiBadge tone="resource">{uiState.summary.recommendationLabel}</UiBadge>
+              <UiBadge tone="resource">{formatRankingProductLabel(uiState.summary.recommendationLabel)}</UiBadge>
             </div>
             <div className="ranking-category-grid">
               {categoryCards.map((category) => (
@@ -408,8 +425,8 @@ export function RankingPage() {
                   </div>
                   <p className="ranking-category-copy">{category.explanation}</p>
                   <div className="figma-data-list">
-                    <div className="figma-data-row"><span>Lectura</span><strong>{category.scoreLabel}</strong></div>
-                    <div className="figma-data-row"><span>Confianza</span><strong>{category.readinessLabel}</strong></div>
+                    <div className="figma-data-row"><span>Indice</span><strong>{category.scoreLabel}</strong></div>
+                    <div className="figma-data-row"><span>Confianza</span><strong>{formatRankingProductLabel(category.readinessLabel)}</strong></div>
                   </div>
                 </article>
               ))}
@@ -419,23 +436,23 @@ export function RankingPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Comparativa de validación</p>
-                <h3>Referencias de validación</h3>
-                <p>Las filas visibles comparan la situación actual con referencias internas y nunca con una clasificación real.</p>
+                <p className="eyebrow">Comparativa de referencia</p>
+                <h3>Referencias internas</h3>
+                <p>Las filas visibles comparan la situacion actual con referencias internas y nunca con una clasificacion real.</p>
               </div>
-              <UiBadge tone="warn">{rankingLabels.demoComparison}</UiBadge>
+              <UiBadge tone="warn">{formatRankingProductLabel(rankingLabels.demoComparison)}</UiBadge>
             </div>
             <div className="selection-chip-row ranking-state-chip-row">
-              <span className="selection-chip selection-chip-active">{rankingLabels.unpublishedRanking}</span>
-              <span className="selection-chip">{rankingLabels.readOnly}</span>
-              <span className="selection-chip">{rankingLabels.demoScenarioReference}</span>
+              <span className="selection-chip selection-chip-active">{formatRankingProductLabel(rankingLabels.unpublishedRanking)}</span>
+              <span className="selection-chip">Consulta interna</span>
+              <span className="selection-chip">{formatRankingProductLabel(rankingLabels.demoScenarioReference)}</span>
             </div>
             <div className="alliance-catalog-card-grid">
               {comparisonCards.map((comparison) => (
                 <article key={comparison.key} className={`alliance-catalog-card alliance-catalog-card-${comparison.emphasis}`}>
                   <div className="alliance-catalog-card-head">
                     <div>
-                      <p className="eyebrow">{comparison.visibilityLabel}</p>
+                      <p className="eyebrow">{formatRankingProductLabel(comparison.visibilityLabel)}</p>
                       <h5>{comparison.title}</h5>
                     </div>
                     <UiBadge tone={comparison.emphasis}>{comparison.scoreLabel}</UiBadge>
@@ -443,10 +460,10 @@ export function RankingPage() {
                   <div className="figma-data-list">
                     <div className="figma-data-row"><span>Diferencia</span><strong>{comparison.deltaLabel}</strong></div>
                     <div className="figma-data-row"><span>Postura</span><strong>{comparison.postureLabel}</strong></div>
-                    <div className="figma-data-row"><span>Estado</span><strong>{comparison.stateLabel}</strong></div>
-                    <div className="figma-data-row"><span>Visibilidad</span><strong>{comparison.visibilityLabel}</strong></div>
+                    <div className="figma-data-row"><span>Estado</span><strong>{formatRankingProductLabel(comparison.stateLabel)}</strong></div>
+                    <div className="figma-data-row"><span>Visibilidad</span><strong>{formatRankingProductLabel(comparison.visibilityLabel)}</strong></div>
                   </div>
-                  <p className="alliance-catalog-note">{comparison.note}</p>
+                  <p className="alliance-catalog-note">{formatRankingProductLabel(comparison.note)}</p>
                 </article>
               ))}
             </div>
@@ -468,7 +485,7 @@ export function RankingPage() {
                     <p className="eyebrow">Ladder global</p>
                     <h4>Clasificacion no publicada</h4>
                   </div>
-                  <UiBadge tone="warn">{rankingLabels.unpublishedRanking}</UiBadge>
+                  <UiBadge tone="warn">{formatRankingProductLabel(rankingLabels.unpublishedRanking)}</UiBadge>
                 </div>
                 <p className="figma-panel-note">No hay tabla publica, historial persistido ni comparacion real entre jugadores.</p>
               </section>
@@ -480,7 +497,7 @@ export function RankingPage() {
                   </div>
                   <UiBadge tone="warn">{rankingLabels.futureSeason}</UiBadge>
                 </div>
-                <p className="figma-panel-note">La lectura actual no abre ligas, emparejamiento ni cortes de temporada.</p>
+                <p className="figma-panel-note">El indice actual no abre ligas, emparejamiento ni cortes de temporada.</p>
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
@@ -490,7 +507,7 @@ export function RankingPage() {
                   </div>
                   <UiBadge tone="warn">{rankingLabels.rewardsUnavailable}</UiBadge>
                 </div>
-                <p className="figma-panel-note">No se entregan recompensas, insignias, paginas publicas ni ventajas por esta lectura.</p>
+                <p className="figma-panel-note">No se entregan recompensas, insignias, paginas publicas ni ventajas por este indice.</p>
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
@@ -500,14 +517,14 @@ export function RankingPage() {
                   </div>
                   <UiBadge tone="warn">No final</UiBadge>
                 </div>
-                <p className="figma-panel-note">Persistencia final, autorizacion de produccion, activos finales, combate, mercado y alianzas siguen fuera de esta cabina.</p>
+                <p className="figma-panel-note">Clasificacion publica, autorizacion competitiva, perfiles, recompensas, combate, mercado y alianzas siguen fuera de esta cabina.</p>
               </section>
             </div>
           </UiCard>
         </>
       ) : null}
 
-      {(technicalErrorDetail || uiState?.diagnostics.technical.length || uiState?.diagnostics.limitations.length) ? (
+      {operatorMode && (technicalErrorDetail || uiState?.diagnostics.technical.length || uiState?.diagnostics.limitations.length) ? (
         <details className="technical-disclosure">
           <summary>
             <div>
