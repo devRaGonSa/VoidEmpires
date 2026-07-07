@@ -2,14 +2,27 @@ using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Players;
 using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Economy;
-using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Domain.Players;
 using VoidEmpires.Infrastructure.Persistence;
 
 namespace VoidEmpires.Infrastructure.Players;
 
-public sealed class InitialPlayerWorldBootstrapService(VoidEmpiresDbContext dbContext) : IInitialPlayerWorldBootstrapService
+public sealed class InitialPlayerWorldBootstrapService : IInitialPlayerWorldBootstrapService
 {
+    private readonly VoidEmpiresDbContext _dbContext;
+    private readonly IHomePlanetAllocator _homePlanetAllocator;
+
+    public InitialPlayerWorldBootstrapService(VoidEmpiresDbContext dbContext)
+        : this(dbContext, new HomePlanetAllocator(dbContext))
+    {
+    }
+
+    public InitialPlayerWorldBootstrapService(VoidEmpiresDbContext dbContext, IHomePlanetAllocator homePlanetAllocator)
+    {
+        _dbContext = dbContext;
+        _homePlanetAllocator = homePlanetAllocator;
+    }
+
     public async Task<InitialPlayerWorldBootstrapResult> CreateAsync(
         InitialPlayerWorldBootstrapRequest request,
         CancellationToken cancellationToken = default)
@@ -26,19 +39,11 @@ public sealed class InitialPlayerWorldBootstrapService(VoidEmpiresDbContext dbCo
         var normalizedDisplayName = PlayerProfile.NormalizeLookupKey(displayName);
         var normalizedCivilizationName = PlayerProfile.NormalizeLookupKey(civilizationName);
 
-        if (await dbContext.PlayerProfiles.AnyAsync(x => x.UserId == userId, cancellationToken)) return InitialPlayerWorldBootstrapResult.Failure("Player profile already exists for this user.");
-        if (await dbContext.PlayerProfiles.AnyAsync(x => x.NormalizedDisplayName == normalizedDisplayName, cancellationToken)) return InitialPlayerWorldBootstrapResult.Failure("Display name is already in use.");
-        if (await dbContext.Civilizations.AnyAsync(x => x.NormalizedName == normalizedCivilizationName, cancellationToken)) return InitialPlayerWorldBootstrapResult.Failure("Civilization name is already in use.");
+        if (await _dbContext.PlayerProfiles.AnyAsync(x => x.UserId == userId, cancellationToken)) return InitialPlayerWorldBootstrapResult.Failure("Player profile already exists for this user.");
+        if (await _dbContext.PlayerProfiles.AnyAsync(x => x.NormalizedDisplayName == normalizedDisplayName, cancellationToken)) return InitialPlayerWorldBootstrapResult.Failure("Display name is already in use.");
+        if (await _dbContext.Civilizations.AnyAsync(x => x.NormalizedName == normalizedCivilizationName, cancellationToken)) return InitialPlayerWorldBootstrapResult.Failure("Civilization name is already in use.");
 
-        var galaxy = Galaxy.Create($"{civilizationName} Realm");
-        var solarSystemId = Guid.NewGuid();
-        var solarSystem = new SolarSystem(
-            solarSystemId,
-            galaxy.Id,
-            $"{homePlanetName} System",
-            new GalaxyCoordinates(0, 0, 0),
-            Star.Create(solarSystemId, $"{homePlanetName} Star", StarType.YellowDwarf));
-        var homePlanet = Planet.Create(solarSystemId, homePlanetName, 1, PlanetType.Terran, 118, PlanetColonizationStatus.Colonized);
+        var homePlanet = await _homePlanetAllocator.AllocateAsync(homePlanetName, cancellationToken);
         var profile = PlayerProfile.Create(userId, displayName);
         var civilization = Civilization.Create(profile.Id, civilizationName, CivilizationArchetype.Balanced, homePlanet.Id);
         var stockpile = PlanetResourceStockpile.Create(homePlanet.Id);
@@ -48,14 +53,11 @@ public sealed class InitialPlayerWorldBootstrapService(VoidEmpiresDbContext dbCo
         stockpile.Increase(ResourceType.Gas, 120);
 
         profile.AddCivilization(civilization);
-        dbContext.Galaxies.Add(galaxy);
-        dbContext.SolarSystems.Add(solarSystem);
-        dbContext.Planets.Add(homePlanet);
-        dbContext.PlayerProfiles.Add(profile);
-        dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(homePlanet.Id, civilization.Id));
-        dbContext.PlanetResourceStockpiles.Add(stockpile);
-        dbContext.PlanetProductionProfiles.Add(PlanetProductionProfile.Create(homePlanet.Id, 18, 14, 6, 3));
-        await dbContext.SaveChangesAsync(cancellationToken);
+        _dbContext.PlayerProfiles.Add(profile);
+        _dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(homePlanet.Id, civilization.Id));
+        _dbContext.PlanetResourceStockpiles.Add(stockpile);
+        _dbContext.PlanetProductionProfiles.Add(PlanetProductionProfile.Create(homePlanet.Id, 18, 14, 6, 3));
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         return InitialPlayerWorldBootstrapResult.Success(
             userId,

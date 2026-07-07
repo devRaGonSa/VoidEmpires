@@ -33,6 +33,10 @@ The final product entry should replace `/onboarding` as the primary new-player p
 6. The frontend navigates to the game using session-owned data from `/api/accounts/me`, not client-trusted raw ids.
 7. Planet and cockpit reads validate ownership/visibility against the authenticated account before returning gameplay state.
 
+### Home planet allocation
+
+The account bootstrap allocator first selects an existing unowned Terran planet ordered by system and orbital slot. If no candidate exists, it creates `Account Bootstrap Galaxy`, adds a new system at the next unused `(x, 0, 0)` coordinate, and creates a Terran home planet in slot 1. Ownership is created by the bootstrap workflow in the same persistence operation, and existing owned planets, including validation seed planets, are not reassigned.
+
 ## Current UI Boundary
 
 `/onboarding` now includes a visible account/access boundary panel:

@@ -3,7 +3,7 @@
 ---
 id: TASK-42F
 title: Home planet allocation strategy
-status: pending
+status: done
 type: backend
 team: platform
 supporting_teams: []
