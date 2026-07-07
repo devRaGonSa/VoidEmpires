@@ -320,7 +320,7 @@ select {
 .shell-intro-grid {
   display: grid;
   gap: var(--ve-space-4);
-  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  grid-template-columns: minmax(0, 1fr);
   margin-bottom: var(--ve-space-6);
 }
 
@@ -334,7 +334,7 @@ select {
 }
 
 .shell-intro-grid-compact {
-  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--ve-space-3);
   margin-bottom: var(--ve-space-4);
 }

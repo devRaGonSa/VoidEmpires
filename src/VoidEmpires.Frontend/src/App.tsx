@@ -1,6 +1,5 @@
 import { Suspense, lazy, useMemo } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
-import { appConfig } from "./config";
 import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
 import { AppShell } from "./components/ui/AppShell";
 import type { SidebarNavItem } from "./components/ui/SidebarNav";
@@ -100,6 +99,40 @@ function getPlanetModuleNavState(module: PlanetModuleRouteInfo["module"]): Sideb
   }
 }
 
+function getRouteStatusLabel(pathname: string) {
+  switch (pathname) {
+    case "/":
+    case "/galaxy":
+      return "Galaxia";
+    case "/onboarding":
+      return "Nuevo inicio";
+    case "/planet":
+      return "Planeta";
+    case "/construction":
+      return "Construccion";
+    case "/research":
+      return "Investigacion";
+    case "/shipyard":
+      return "Astillero";
+    case "/fleets":
+      return "Flotas";
+    case "/defenses":
+      return "Defensas";
+    case "/ground-army":
+      return "Ejercito Tierra";
+    case "/market":
+      return "Mercado";
+    case "/espionage":
+      return "Espionaje";
+    case "/alliance":
+      return "Alianza";
+    case "/ranking":
+      return "Ranking";
+    default:
+      return "Cabina";
+  }
+}
+
 export default function App() {
   const location = useLocation();
   const shellStatusItems = useMemo(() => {
@@ -108,18 +141,18 @@ export default function App() {
     const planetId = civilizationId ? searchParams.get("planetId") : null;
 
     return [
-      { label: "Entorno", value: "Modo Development" },
+      { label: "Vista", value: getRouteStatusLabel(location.pathname) },
       {
         label: "Contexto",
         value: civilizationId
           ? planetId
-            ? "Civilizacion y planeta en URL"
-            : "Civilizacion en URL"
-          : "Sin contexto seleccionado",
+            ? "Planeta seleccionado"
+            : "Civilizacion seleccionada"
+          : "Seleccion pendiente",
       },
-      { label: "Sesion", value: "Navegacion local sin login de produccion" },
+      { label: "Ordenes", value: "Confirmacion requerida" },
     ];
-  }, [location.search]);
+  }, [location.pathname, location.search]);
 
   const sidebarItems = useMemo<SidebarNavItem[]>(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -147,8 +180,6 @@ export default function App() {
 
   return (
     <AppShell
-      apiBaseUrl={appConfig.apiBaseUrl}
-      backendProfile={appConfig.backendProfile}
       sidebarItems={[...sidebarItems]}
       statusItems={shellStatusItems}
     >

@@ -1,21 +1,16 @@
 import type { ReactNode } from "react";
 import { useLocation } from "react-router-dom";
-import { DevEndpointNotice } from "./DevEndpointNotice";
 import { SidebarNav, type SidebarNavItem } from "./SidebarNav";
 import { TopStatusBar, type TopBarStatusItem } from "./TopResourceBar";
 import { UiCard } from "./UiCard";
 
 interface AppShellProps {
-  apiBaseUrl: string;
-  backendProfile: string;
   children: ReactNode;
   sidebarItems: SidebarNavItem[];
   statusItems: TopBarStatusItem[];
 }
 
 export function AppShell({
-  apiBaseUrl,
-  backendProfile,
   children,
   sidebarItems,
   statusItems,
@@ -36,7 +31,7 @@ export function AppShell({
           <span className="app-topbar-brand-mark">VE</span>
           <div>
             <strong>VoidEmpires</strong>
-            <p>Suite jugable local</p>
+            <p>Imperio espacial persistente</p>
           </div>
         </div>
         <TopStatusBar items={statusItems} />
@@ -47,7 +42,7 @@ export function AppShell({
           <div className="app-sidebar-head">
             <p className="eyebrow">Superficie imperial</p>
             <h2>Mapa de mando</h2>
-            <p>Bucle jugable local, preparacion y lecturas de soporte.</p>
+            <p>Colonias, flotas y rutas estrategicas del imperio.</p>
           </div>
           <SidebarNav items={sidebarItems} />
         </aside>
@@ -68,28 +63,23 @@ export function AppShell({
               }
             >
               <div className="shell-intro-copy">
-                <p className="eyebrow">VoidEmpires local</p>
+                <p className="eyebrow">VoidEmpires</p>
                 <h1>
                   {isFleetRoute
                     ? "Readiness orbital"
                     : isStrategicMapRoute
-                      ? "Cabina estrategica de lectura"
-                      : "Bucle jugable Development"}
+                      ? "Mapa estrategico"
+                      : "Centro de mando imperial"}
                 </h1>
                 <p className="lede">
                   {isFleetRoute
-                    ? "Flotas muestra readiness, carga y ordenes confirmadas sin ocultar el alcance local."
+                    ? "Flotas muestra preparacion, carga y ordenes confirmadas para el contexto seleccionado."
                     : isStrategicMapRoute
-                      ? "La galaxia prioriza mapa, seleccion y contexto tactico. Los detalles tecnicos siguen disponibles, pero pasan a una segunda capa."
-                      : "Cabinas con lecturas backend y mutaciones Development confirmadas cuando la pagina lo permite; sin autenticacion de produccion."}
+                      ? "La galaxia prioriza mapa, seleccion y contexto tactico para continuar hacia las cabinas del imperio."
+                      : "Cabinas de colonia, investigacion, astillero y flotas con lectura de estado y confirmaciones explicitas cuando la pagina lo permite."}
                 </p>
               </div>
             </UiCard>
-            <DevEndpointNotice
-              apiBaseUrl={apiBaseUrl}
-              backendProfile={backendProfile}
-              compact={isFleetRoute}
-            />
           </section>
 
           <main className="page-frame" id="main-content" tabIndex={-1}>{children}</main>

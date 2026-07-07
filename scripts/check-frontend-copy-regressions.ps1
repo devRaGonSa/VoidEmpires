@@ -230,6 +230,29 @@ foreach ($match in @($productionAuthOverclaimMatches)) {
   $copyHygieneFailures.Add(("{0}:{1}: production-auth overclaim detected in Development UI copy: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
 }
 
+$globalShellFiles = $frontendFiles |
+  Where-Object {
+    $_.FullName -match "\\src\\VoidEmpires.Frontend\\src\\App\.tsx$" -or
+    $_.FullName -match "\\src\\VoidEmpires.Frontend\\src\\components\\ui\\(AppShell|TopResourceBar)\.tsx$"
+  }
+$globalShellForbiddenPatterns = @(
+  "Modo Development",
+  "Suite jugable local",
+  "VoidEmpires local",
+  "Bucle jugable Development",
+  "lecturas backend",
+  "mutaciones Development",
+  "login de produccion",
+  "Sin recursos globales simulados",
+  "URL base del backend",
+  "Perfil esperado del backend",
+  "Endpoints Development"
+)
+$globalShellForbiddenMatches = Select-String -Path ($globalShellFiles | Select-Object -ExpandProperty FullName) -Pattern $globalShellForbiddenPatterns -SimpleMatch -CaseSensitive:$false
+foreach ($match in @($globalShellForbiddenMatches)) {
+  $copyHygieneFailures.Add(("{0}:{1}: global shell must stay product-facing and hide development/backend copy: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
+}
+
 if ($copyHygieneFailures.Count -gt 0) {
   throw "Frontend copy hygiene guard failed:`n$($copyHygieneFailures -join [Environment]::NewLine)"
 }

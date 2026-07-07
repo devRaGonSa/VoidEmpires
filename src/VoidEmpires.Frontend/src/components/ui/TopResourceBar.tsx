@@ -11,7 +11,7 @@ interface TopStatusBarProps {
 
 export function TopStatusBar({ items }: TopStatusBarProps) {
   return (
-    <div className="top-status-bar" aria-label="Estado global de la suite">
+    <div className="top-status-bar" aria-label="Estado global del imperio">
       <div className="top-status-pill-row">
         {items.map((item) => (
           <section key={item.label} className="top-status-pill">
@@ -22,7 +22,7 @@ export function TopStatusBar({ items }: TopStatusBarProps) {
           </section>
         ))}
       </div>
-      <UiBadge tone="resource">Sin recursos globales simulados</UiBadge>
+      <UiBadge tone="resource">Estado imperial</UiBadge>
     </div>
   );
 }
