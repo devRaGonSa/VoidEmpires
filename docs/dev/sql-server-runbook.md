@@ -330,6 +330,12 @@ When the app is explicitly configured for SQL Server and the reviewed baseline s
 - The bootstrap allocator can create the required account bootstrap galaxy/system/home planet records when no unowned home planet is available, so normal new-account creation does not require a prior Development seed.
 - Registration returns the generated `civilizationId`, `homePlanetId`, `homePlanetName`, starting resources, and next planet route for the frontend handoff.
 
+Manual validation checklist:
+
+- Use `docs/dev/sql-server-user-checklist.md` for the prepared registration evidence steps.
+- The checklist covers `AspNetUsers`, `PlayerProfile`, `Civilization`, `PlanetOwnership`, starting resource and production rows, second-user coexistence, and verification that no plaintext password is stored.
+- Keep all evidence that contains real hostnames, usernames, emails, passwords, or resolved connection strings outside the repository.
+
 Deferred/manual status:
 
 - This documentation does not claim a manual SQL Server registration run was performed.

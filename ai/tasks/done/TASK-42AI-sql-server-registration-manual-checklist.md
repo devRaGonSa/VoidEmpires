@@ -3,7 +3,7 @@
 ---
 id: TASK-42AI
 title: SQL Server registration manual checklist
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams: []
