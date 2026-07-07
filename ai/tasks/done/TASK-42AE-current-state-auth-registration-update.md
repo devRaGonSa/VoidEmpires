@@ -3,7 +3,7 @@
 ---
 id: TASK-42AE
 title: Current state auth registration update
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams: []
