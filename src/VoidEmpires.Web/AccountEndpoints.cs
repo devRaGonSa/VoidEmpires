@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +15,8 @@ internal static class AccountEndpoints
     {
         app.MapPost("/api/accounts/register", RegisterAsync);
         app.MapPost("/api/accounts/login", LoginAsync);
+        app.MapPost("/api/accounts/logout", (Delegate)LogoutAsync);
+        app.MapGet("/api/accounts/me", MeAsync);
     }
     private static async Task<IResult> RegisterAsync(
         AccountRegistrationRequest? request,
@@ -50,6 +54,7 @@ internal static class AccountEndpoints
         new(request?.Email ?? string.Empty, request?.Password ?? string.Empty, request?.ConfirmPassword ?? string.Empty, request?.DisplayName ?? string.Empty, request?.CivilizationName ?? string.Empty, request?.HomePlanetName);
     private static async Task<IResult> LoginAsync(
         AccountLoginRequest? request,
+        HttpContext httpContext,
         [FromServices] UserManager<VoidEmpiresUser> userManager,
         [FromServices] VoidEmpiresDbContext dbContext,
         [FromServices] IConfiguration configuration,
@@ -63,7 +68,35 @@ internal static class AccountEndpoints
         if (user is null || !await userManager.CheckPasswordAsync(user, safeRequest.Password)) return Results.Json(
             AccountSessionResult.Failure(new AccountSessionError("InvalidCredentials", "Email or password is incorrect.")),
             statusCode: StatusCodes.Status401Unauthorized);
+        await SignInAsync(httpContext, user.Id, user.Email ?? safeRequest.Email);
         return Results.Ok(await BuildSessionAsync(dbContext, user.Id, cancellationToken));
+    }
+    private static async Task<IResult> LogoutAsync(HttpContext httpContext)
+    {
+        await httpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+        return Results.Ok(new AccountLogoutResponse(true, []));
+    }
+    private static async Task<IResult> MeAsync(
+        HttpContext httpContext,
+        [FromServices] VoidEmpiresDbContext dbContext,
+        [FromServices] IConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        if (!IsPersistenceConfigured(configuration)) return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId)) return Results.Json(CurrentAccountSession.Unauthenticated(), statusCode: StatusCodes.Status401Unauthorized);
+        return Results.Ok(CurrentAccountSession.From(await BuildSessionAsync(dbContext, userId, cancellationToken)));
+    }
+    private static Task SignInAsync(HttpContext httpContext, string userId, string email)
+    {
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId),
+            new Claim(ClaimTypes.Email, email),
+            new Claim(ClaimTypes.Name, email)
+        };
+        var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, IdentityConstants.ApplicationScheme));
+        return httpContext.SignInAsync(IdentityConstants.ApplicationScheme, principal, new AuthenticationProperties { IsPersistent = false });
     }
     private static AccountLoginRequest Sanitize(AccountLoginRequest? request) =>
         new((request?.Email ?? string.Empty).Trim().ToLowerInvariant(), request?.Password ?? string.Empty);
@@ -125,3 +158,5 @@ internal sealed record AccountRegistrationApiResponse(bool Succeeded, string? Us
         new(false, null, null, null, null, null, null, null, errors);
 }
 internal sealed record AccountRegistrationApiError(string Code, string Message, string? Field);
+
+internal sealed record AccountLogoutResponse(bool Succeeded, IReadOnlyList<string> Errors);

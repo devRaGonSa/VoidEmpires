@@ -3,7 +3,7 @@
 ---
 id: TASK-42J
 title: Logout and current session endpoints
-status: pending
+status: done
 type: backend
 team: platform
 supporting_teams: []
