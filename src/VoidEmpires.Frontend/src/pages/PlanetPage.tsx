@@ -1821,12 +1821,12 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           actionScope="gameplay"
           canClose={!isSubmittingConstruction}
           closeLabel="Cerrar"
-          description="Esta orden enviara una unica accion segura a la cola de construccion del planeta actual."
+          description="Revisa edificio, coste y duracion antes de enviar la obra a la cola del planeta."
           isBusy={isSubmittingConstruction}
           isOpen
           onClose={handleConstructionCancel}
           primaryAction={{
-            label: "Enviar orden",
+            label: "Enviar obra",
             onClick: () => void handleConstructionSubmit(),
             disabled: !hasConstructionAcknowledgement,
           }}
@@ -1834,7 +1834,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             label: "Cancelar revision",
             onClick: handleConstructionCancel,
           }}
-          title="Confirmar orden de construccion"
+          title="Enviar obra a construccion"
         >
           <div className="figma-data-list">
             <PlanetDataRow
@@ -1850,7 +1850,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
               value={preparedActionModuleLabel ?? "Pendiente de clasificar"}
             />
             <PlanetDataRow
-              label="Accion"
+              label="Obra"
               value={`${preparedAction.display?.actionLabel ?? formatConstructionAction(preparedAction.action)} a nivel ${preparedAction.targetLevel}`}
             />
             <PlanetDataRow
@@ -1864,7 +1864,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             />
           </div>
           <p className="figma-panel-note">
-            {preparedAction.display?.availabilityReasonLabel ?? "La orden esta lista para enviarse cuando confirmes."}
+            {preparedAction.display?.availabilityReasonLabel ?? "La obra esta lista para entrar en cola cuando confirmes."}
           </p>
           <label className="confirmation-checkbox">
             <input

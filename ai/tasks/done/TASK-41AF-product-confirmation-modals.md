@@ -3,7 +3,7 @@
 ---
 id: TASK-41AF
 title: Product confirmation modals
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

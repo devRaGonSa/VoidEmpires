@@ -1234,12 +1234,12 @@ export function ShipyardPage() {
           actionScope="gameplay"
           canClose={!isSubmittingEnqueue}
           closeLabel="Cerrar"
-          description="La cabina revisa el impacto visible antes de habilitar cualquier accion real, incluido el gasto inmediato de recursos cuando el envio se acepta."
+          description="Revisa nave, coste y duracion antes de enviar la produccion orbital a la cola."
           isBusy={isSubmittingEnqueue}
           isOpen
           onClose={handleCancelReview}
           primaryAction={{
-            label: reviewSelection.bucket === "available" ? "Confirmar" : "No disponible en esta version",
+            label: reviewSelection.bucket === "available" ? "Enviar produccion" : "No disponible",
             onClick: () => void handleConfirmProduction(),
             disabled: reviewSelection.bucket !== "available" || !hasEnqueueAcknowledgement,
           }}
@@ -1248,10 +1248,10 @@ export function ShipyardPage() {
             onClick: handleCancelReview,
             disabled: isSubmittingEnqueue,
           }}
-          title="Confirmacion de produccion orbital"
+          title="Enviar produccion orbital"
         >
           <UiBadge tone={reviewSelection.bucket === "available" ? "good" : "warn"}>
-            {reviewSelection.bucket === "available" ? "Lista para futura cola" : "No enviable"}
+            {reviewSelection.bucket === "available" ? "Lista para cola" : "No enviable"}
           </UiBadge>
           <div className="readiness-grid">
             <section className="subpanel figma-subpanel">
@@ -1274,7 +1274,7 @@ export function ShipyardPage() {
             <section className="subpanel figma-subpanel">
               <div className="figma-data-list">
                 <div className="figma-data-row"><span>Coste</span><strong>{reviewSelection.asset.estimatedCostLabel}</strong></div>
-                <div className="figma-data-row"><span>Readiness</span><strong>{reviewSelection.asset.statusLabel}</strong></div>
+                <div className="figma-data-row"><span>Estado</span><strong>{reviewSelection.asset.statusLabel}</strong></div>
                 <div className="figma-data-row"><span>Requisitos</span><strong>{formatRequirementLabel(reviewSelection.asset)}</strong></div>
                 <div className="figma-data-row"><span>Motivo visible</span><strong>{reviewSelection.asset.reasonLabel}</strong></div>
               </div>
@@ -1282,8 +1282,8 @@ export function ShipyardPage() {
           </div>
           <p>
             {reviewSelection.bucket === "available"
-              ? "La opcion ya puede enviarse por la via protegida de desarrollo si confirmas la revision. Si el backend la acepta, el coste visible se descuenta al momento."
-              : "Esta revision permanece en modo diagnostico. La cabina no intentara enviar nada mientras el estado siga bloqueado o no soportado."}
+              ? "La produccion entrara en la cola orbital cuando confirmes. Si la orden queda aceptada, el coste visible se descuenta al momento."
+              : "Esta opcion no puede enviarse todavia. Revisa requisitos y estado antes de volver a intentarlo."}
           </p>
           {reviewSelection.bucket === "available" ? (
             <label className="confirmation-checkbox">

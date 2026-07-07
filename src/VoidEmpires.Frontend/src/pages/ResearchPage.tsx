@@ -841,12 +841,12 @@ export function ResearchPage() {
           actionScope="gameplay"
           canClose={!isSubmittingEnqueue}
           closeLabel="Cerrar"
-          description="Esta accion creara una orden real de investigacion en la base de datos de Development."
+          description="Revisa tecnologia, coste y duracion antes de enviar la investigacion a la cola del planeta."
           isBusy={isSubmittingEnqueue}
           isOpen
           onClose={handleResearchCancel}
           primaryAction={{
-            label: "Confirmar investigacion",
+            label: "Iniciar investigacion",
             onClick: () => void handleResearchSubmit(),
             disabled: !hasEnqueueAcknowledgement,
           }}
@@ -854,7 +854,7 @@ export function ResearchPage() {
             label: "Cancelar",
             onClick: handleResearchCancel,
           }}
-          title="Confirmar inicio de investigacion"
+          title="Iniciar investigacion"
         >
           <div className="figma-data-list">
             <div className="figma-data-row"><span>Planeta</span><strong>{uiState?.selectedPlanetName ?? "Sin planeta"}</strong></div>
@@ -867,13 +867,13 @@ export function ResearchPage() {
           </div>
           <p className="figma-panel-note">
             {preparedResearch.availability.reasonKey === "Ready"
-              ? "La orden esta lista para enviarse cuando confirmes."
-              : `La cabina validara tambien: ${preparedResearch.availability.reasonLabel}.`}
+              ? "La investigacion esta lista para entrar en cola cuando confirmes."
+              : `Requisito pendiente: ${preparedResearch.availability.reasonLabel}.`}
           </p>
           <ul className="stack-list compact-list">
-            <li>Esta accion creara una orden real de investigacion en la base de datos de Development.</li>
-            <li>Los recursos se descontaran cuando el backend confirme la orden.</li>
-            <li>No se completara automaticamente desde esta cabina.</li>
+            <li>El coste indicado se descuenta cuando la orden queda aceptada.</li>
+            <li>La cola mostrara el progreso en la siguiente lectura disponible.</li>
+            <li>Esta confirmacion no completa la investigacion de forma instantanea.</li>
           </ul>
           <label className="confirmation-checkbox">
             <input
