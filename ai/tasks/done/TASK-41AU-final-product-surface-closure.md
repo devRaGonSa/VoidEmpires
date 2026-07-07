@@ -3,7 +3,7 @@
 ---
 id: TASK-41AU
 title: Final product surface closure
-status: pending
+status: done
 type: workflow
 team: platform
 supporting_teams: []
