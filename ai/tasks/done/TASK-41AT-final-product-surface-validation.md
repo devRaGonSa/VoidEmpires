@@ -3,7 +3,7 @@
 ---
 id: TASK-41AT
 title: Final product surface validation
-status: pending
+status: done
 type: validation
 team: platform
 supporting_teams:
