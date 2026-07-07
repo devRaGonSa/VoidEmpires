@@ -921,8 +921,8 @@ export function FleetsPage() {
     <section className="page-grid">
       <CockpitHero
         versionLabel="Flotas v1"
-        title="Cabina de mando orbital"
-        description="Lectura / readiness de escuadras, carga y ordenes disponibles."
+        title="Mando de flotas"
+        description="Escuadras orbitales, carga y ordenes disponibles para el contexto seleccionado."
         developmentNote="Las ordenes disponibles requieren confirmacion; el diagnostico queda en segundo plano."
         badges={
           <>

@@ -583,8 +583,8 @@ export function StrategicMapPage() {
     <section className="page-grid">
       <CockpitHero
         versionLabel="Galaxia v1"
-        title="Cabina estrategica de Galaxia"
-        description="La vista tactica prioriza el frente, el foco de sistema y la inteligencia planetaria antes que el detalle tecnico."
+        title="Mapa estrategico"
+        description="La vista tactica prioriza el frente, el foco de sistema y la inteligencia planetaria del imperio."
         developmentNote="La lectura sigue orientada a QA local: conserva limites seguros, no ejecuta ordenes y mantiene las rutas tecnicas fuera del foco principal."
         badges={
           <>

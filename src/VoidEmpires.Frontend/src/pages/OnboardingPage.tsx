@@ -150,7 +150,7 @@ export function OnboardingPage() {
       <CockpitHero
         versionLabel="Onboarding v1"
         title="Crear inicio jugable"
-        description="Esta ruta crea un punto de partida Development-only y te lleva directamente a Planeta con el contexto devuelto por el backend."
+        description="Crea un punto de partida para tu imperio y abre Planeta con el contexto inicial de la colonia."
         developmentNote="No es un login, no guarda credenciales y no resuelve una sesion persistente de produccion."
         badges={
           <>

@@ -218,7 +218,7 @@ export function DefensesPage() {
       <CockpitHero
         versionLabel="Defensas v1"
         title="Defensas"
-        description="Lectura / readiness de proteccion planetaria y estructuras locales."
+        description="Defensa planetaria, cobertura local y estructuras de proteccion para la colonia seleccionada."
         developmentNote="Sin combate ni intercepcion: esta cabina mantiene la preparacion visible."
         badges={
           <>

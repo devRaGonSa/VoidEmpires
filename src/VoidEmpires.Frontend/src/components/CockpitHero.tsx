@@ -15,9 +15,6 @@ export function CockpitHero({
   title,
   description,
   versionLabel,
-  badges,
-  developmentNote,
-  developmentNoteLabel = "Preparado",
 }: CockpitHeroProps) {
   return (
     <UiCard className="panel panel-hero figma-hero-card">
@@ -25,11 +22,6 @@ export function CockpitHero({
         <UiBadge tone="resource">{versionLabel}</UiBadge>
         <h2>{title}</h2>
         <p>{description}</p>
-      </div>
-      <div className="figma-badge-row">{badges}</div>
-      <div className="cockpit-hero-dev-note">
-        <UiBadge tone="warn">{developmentNoteLabel}</UiBadge>
-        <p>{developmentNote}</p>
       </div>
     </UiCard>
   );
