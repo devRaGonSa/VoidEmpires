@@ -3,7 +3,7 @@
 ---
 id: TASK-41AS
 title: Frontend bundle and lazy validation
-status: pending
+status: done
 type: validation
 team: frontend
 supporting_teams: []

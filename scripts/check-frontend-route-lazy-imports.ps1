@@ -12,6 +12,7 @@ $appContent = Get-Content -LiteralPath $resolvedAppPath -Raw
 
 $protectedPages = @(
     "StrategicMapPage",
+    "HomePage",
     "PlanetPage",
     "ConstructionPage",
     "ResearchPage",
@@ -42,6 +43,7 @@ if ($staticImportViolations.Count -gt 0) {
 
 $requiredLazyPages = @(
     "StrategicMapPage",
+    "HomePage",
     "PlanetPage",
     "ConstructionPage",
     "ResearchPage",
