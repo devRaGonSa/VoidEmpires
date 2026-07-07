@@ -1,8 +1,8 @@
 # Final Acceptance Criteria Before DB And Asset Phases
 
-Status date: 2026-06-17
+Status date: 2026-07-07
 
-These criteria define the accepted near-product state for the current Development-only shell. They do not grant production readiness, final database/model readiness, final generated asset readiness, browser screenshot acceptance, production auth readiness, combat readiness, final movement readiness, market readiness, or alliance readiness.
+These criteria define the accepted near-product state for the current Development-only shell after Block 42 account registration and initial world bootstrap work. They do not grant production readiness, final database/model readiness, final generated asset readiness, browser screenshot acceptance, final authorization readiness, combat readiness, final movement readiness, market readiness, or alliance readiness.
 
 ## Accepted Near-Product State
 
@@ -11,8 +11,8 @@ The current shell is accepted for local Development demo when all of these are t
 1. `docs/dev/single-product-demo-guide.md` is the canonical demo path.
 2. The demo runs against a local or disposable Development database.
 3. Development seed/profile helpers are explicit and do not run automatically on startup.
-4. `/onboarding` creates a Development playable start and returns explicit ids; it is not production login.
-5. Cockpit routes keep using visible `civilizationId` and `planetId` context, with local browser memory only as navigation assistance.
+4. `/register` creates an account-backed playable start, logs in through the Identity cookie flow, and returns explicit generated world ids; `/onboarding` remains only a compatibility alias to registration.
+5. Cockpit routes use backend-backed current account state plus visible `civilizationId` and `planetId` context, with local browser memory only as navigation assistance.
 6. Planet remains the hub for selected colony context, backend-owned resources, buildings, queues, handoffs, and secondary Development QA tools.
 7. Construction, Research, and Shipyard create real Development database orders only after explicit confirmation and backend refresh.
 8. Due-queue materialization and resource accrual remain explicit Development QA actions.
@@ -39,8 +39,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-cop
 
 The current state is not accepted for:
 
-- production authentication or active civilization resolution
-- final authorization/ownership enforcement for product traffic
+- final authorization/ownership enforcement for product traffic beyond the current guarded account route foundation
+- account recovery/confirmation product UX, production deployment hardening, or multi-civilization account selection
 - final database/model consolidation or product migration readiness
 - final generated or curated image/asset acceptance
 - screenshot-backed browser/visual acceptance

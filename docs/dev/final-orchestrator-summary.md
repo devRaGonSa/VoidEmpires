@@ -1,12 +1,14 @@
 # Final Orchestrator Summary
 
-Status date: 2026-06-17
+Status date: 2026-07-07
 
-Use this as the quick handoff for future chats after Block 37 near-product closure work.
+Use this as the quick handoff for future chats after Block 42 account registration and initial world bootstrap work.
 
 ## Current State
 
 - VoidEmpires has a coherent Development-only local product shell.
+- `/register` is the primary product account entry; `/login`, `/api/accounts/me`, and `/api/accounts/logout` exist behind an HTTP-only ASP.NET Core Identity application cookie.
+- Registration creates the Identity user plus an initial player profile, civilization, home planet ownership, starting resources, and production state.
 - The canonical demo guide is `docs/dev/single-product-demo-guide.md`.
 - The current accepted criteria are in `docs/dev/final-acceptance-criteria.md`.
 - Remaining risks are in `docs/dev/final-risk-register.md`.
@@ -15,7 +17,7 @@ Use this as the quick handoff for future chats after Block 37 near-product closu
 
 ## Accepted Development Shell
 
-- `/onboarding` creates a Development playable start and returns explicit ids.
+- `/register` creates the account-backed playable start and returns the generated world context; `/onboarding` is only a compatibility alias to registration.
 - Planet is the hub for selected colony context, backend-owned resources, buildings, queues, handoffs, and secondary Development QA tools.
 - Construction, Research, and Shipyard are guarded persisted Development mutation surfaces.
 - Due-queue materialization and resource accrual remain explicit Development QA actions.
@@ -26,7 +28,8 @@ Use this as the quick handoff for future chats after Block 37 near-product closu
 
 Do not claim or add these without explicit future tasks and validation:
 
-- production auth, login/logout, active civilization resolution, or final authorization
+- final gameplay authorization/ownership enforcement beyond the current guarded account route foundation
+- account recovery/confirmation product UX, production deployment hardening, or multi-civilization account selection
 - final database/model consolidation, migrations, or product seed readiness
 - final generated or curated assets
 - browser screenshot acceptance or final visual QA
@@ -70,5 +73,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-qa-playable-lo
 1. Final DB/model consolidation and catalog seed validation.
 2. Final generated/curated asset manifest and placeholder replacement.
 3. Post-DB/post-asset browser screenshot QA and corrections.
-4. Production auth and active civilization resolution.
+4. Production authorization hardening, account recovery/confirmation UX, and active civilization selection beyond the current initial-world account flow.
 5. Combat, movement productization, market transactions, and alliance mutations as separate backend-owned systems.

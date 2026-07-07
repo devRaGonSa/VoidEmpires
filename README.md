@@ -9,22 +9,22 @@ The repository defines the project direction, keeps the AI-assisted task workflo
 - AI Platform workflow assets are installed under `ai/`
 - repository context, roadmap, and architecture planning documents are in place
 - `VoidEmpires.sln` contains the initial Web, Application, Domain, Infrastructure, and Tests projects
-- `VoidEmpires.Web` exposes `/`, `/health`, `/api/auth/register`, `/api/auth/confirm-email`, and a controlled development galaxy generation endpoint
+- `VoidEmpires.Web` exposes `/`, `/health`, `/api/auth/register`, `/api/auth/confirm-email`, `/api/accounts/register`, `/api/accounts/login`, `/api/accounts/me`, `/api/accounts/logout`, and controlled Development endpoints
 - `VoidEmpires.Infrastructure` contains EF Core/Npgsql persistence, ASP.NET Core Identity, Identity and galaxy migrations, Brevo transactional email wiring, deterministic galaxy generation, and a persisted galaxy generation service
 - The current cockpit suite is a coherent Development-only product shell for local demo and QA; it is not production-ready.
 
 ## Near-Product Local Demo
 
-Use `docs/dev/single-product-demo-guide.md` as the canonical local demo path. It covers backend startup, frontend startup, Development playable-session creation, Planet/Construction/Research/Shipyard guarded enqueue flows, deliberate due-queue materialization, diagnostics, and expected visible route states.
+Use `docs/dev/single-product-demo-guide.md` as the canonical local demo path. It covers backend startup, frontend startup, account registration/login, generated initial world navigation, Planet/Construction/Research/Shipyard guarded enqueue flows, deliberate due-queue materialization, diagnostics, and expected visible route states.
 
 Current demo boundary:
 
 - Run against a local or disposable Development database only.
-- Use Development endpoints and seed/profile helpers explicitly; they do not run automatically on startup.
-- `/onboarding` creates a local playable start with explicit ids. It is not production login, and cockpit routes still use visible `civilizationId` and `planetId` context.
+- Use Development endpoints and seed/profile helpers explicitly for QA/operator fixtures; they do not run automatically on startup and are not normal player entry.
+- `/register` creates an account-backed playable start with explicit generated world ids. `/onboarding` is only a compatibility alias to registration, and cockpit routes still preserve visible `civilizationId` and `planetId` navigation context.
 - Construction, Research, and Shipyard enqueue real Development database rows only after explicit confirmation and backend refresh.
 - Galaxy, Defenses, Ground Army, Market, Espionage, Alliance, and Ranking remain read-only or readiness/advisory surfaces unless a narrower accepted mutation path is documented.
-- Final database/model consolidation, final generated assets, browser screenshot acceptance, production auth hardening, combat, final fleet movement, market transactions, and alliance mutations remain deferred.
+- Final database/model consolidation, final generated assets, browser screenshot acceptance, production authorization hardening, account recovery/confirmation UX, manual SQL Server registration validation, combat, final fleet movement, market transactions, and alliance mutations remain deferred.
 
 Quick guide command:
 
@@ -70,6 +70,8 @@ The initial runtime checks are:
 - `GET /health` returns service status plus `persistence.configured` and `persistence.provider` metadata without exposing connection string values.
 - `POST /api/auth/register` accepts an email and password, creates a user through the registration service, and sends confirmation email through the transactional email abstraction.
 - `GET /api/auth/confirm-email` accepts `userId` and `token` query parameters and delegates confirmation to the email confirmation service.
+- `POST /api/accounts/register` creates an account plus initial player world and returns generated route context.
+- `POST /api/accounts/login`, `GET /api/accounts/me`, and `POST /api/accounts/logout` use the HTTP-only Identity application cookie flow.
 - `POST /api/dev/galaxies/generate` is available only in Development, or when `VoidEmpires:DevEndpoints:Enabled` is explicitly set to `true`, and requires configured persistence.
 - `POST /api/dev/seeds/apply` is available only in Development, or when `VoidEmpires:DevEndpoints:Enabled=true`, and is the explicit opt-in entrypoint for local validation seed profiles.
 
@@ -247,4 +249,4 @@ AI workers should process the first pending task, keep changes scoped to that ta
 
 ## Next Step
 
-The next planned implementation milestones are to keep hardening the technical foundation before adding gameplay, login/session flows, deployment, or UI complexity.
+The next planned implementation milestones are to keep hardening the technical foundation before adding final authorization, account recovery/confirmation product UX, deployment, broader gameplay, or UI complexity.
