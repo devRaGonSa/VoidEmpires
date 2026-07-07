@@ -10,7 +10,6 @@ import { PlaceholderAsset } from "../components/PlaceholderAsset";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
-import { formatPlanetPrimaryLabel, formatPlanetSecondaryLabel } from "../utils/domainPresentation";
 import {
   getShipyardPrimaryAction,
   groupAssetOptionsByCategory,
@@ -375,7 +374,7 @@ export function ShipyardPage() {
   }, [shipyard]);
   const resourceDigest = useMemo(() => {
     if (!shipyard || shipyard.stockpile.length === 0) {
-      return "El backend todavia no expone reservas locales utiles.";
+      return "La lectura actual todavia no muestra reservas locales utiles.";
     }
 
     return formatResourceAmountList(
@@ -468,7 +467,7 @@ export function ShipyardPage() {
     const trimmedCivilizationId = civilizationIdInput.trim();
 
     if (!trimmedCivilizationId) {
-      setError("El id de civilizacion es obligatorio.");
+      setError("El contexto de civilizacion es obligatorio.");
       setErrorFollowUp("Carga una civilizacion valida antes de abrir esta cabina.");
       setTechnicalErrorDetail("Civilization id is required.");
       setUiState(null);
@@ -573,16 +572,16 @@ export function ShipyardPage() {
       setEnqueueRefreshAudit(audit);
 
       if (!audit.visibleOrderId) {
-        setEnqueueFeedback("La orden fue aceptada por el backend; la cola visible se actualizara con la siguiente lectura disponible.");
+        setEnqueueFeedback("La orden fue aceptada; la cola visible se actualizara con la siguiente lectura disponible.");
         setTechnicalErrorDetail(
           result.response.orderId
             ? `Order accepted with id ${result.response.orderId}, but the refreshed queue does not expose it yet.`
-            : "Order accepted by backend, but refreshed queue visibility is still pending.",
+            : "Order accepted, but refreshed queue visibility is still pending.",
         );
         return;
       }
 
-      setEnqueueFeedback("Produccion enviada a la cola con lectura backend actualizada.");
+      setEnqueueFeedback("Produccion enviada a la cola con lectura actualizada.");
     } catch (requestError) {
       const failure = formatShipyardCommandFailure({ detail: requestError instanceof Error ? requestError.message : null }, shipyard.planetName);
       setEnqueueError(failure.primaryMessage);
@@ -597,14 +596,14 @@ export function ShipyardPage() {
     <section className="page-grid">
       <CockpitHero
         versionLabel="Astillero v1"
-        title="Astillero"
-        description="Produccion orbital, cola y stock con confirmacion antes de gastar recursos."
-        developmentNote="Mutaciones Development confirmadas: crear ordenes de astillero; el mando de flotas queda fuera."
+        title="Astillero orbital"
+        description="Naves disponibles, cola de produccion y stock orbital con confirmacion antes de gastar recursos."
+        developmentNote="Produccion orbital con confirmacion obligatoria; preparar escuadras queda fuera de esta cabina."
         badges={
           <>
-            <UiBadge tone="warn">Mutaciones Development confirmadas</UiBadge>
-            <UiBadge>Cola y stock</UiBadge>
-            <UiBadge tone="warn">Sin movimiento de flota</UiBadge>
+            <UiBadge tone="good">Naves disponibles</UiBadge>
+            <UiBadge>Cola de produccion</UiBadge>
+            <UiBadge tone="warn">Sin misiones de flota</UiBadge>
           </>
         }
       />
@@ -618,13 +617,13 @@ export function ShipyardPage() {
         <PageContextStrip
           eyebrow="Cabina de astillero"
           title={shipyard.planetName}
-          purpose="Produccion orbital, cola y stock local desde la lectura backend actual."
+          purpose="Astillero orbital, cola de produccion y stock local desde la lectura actual."
           statusLabel={shipyard.actionAvailability.enqueue.reasonLabel}
           statusTone={readinessTone}
           contextItems={[
             { label: "Sistema", value: shipyard.solarSystemName },
             { label: "Control", value: shipyard.isOwnedByRequestingCivilization ? "Propio" : shipyard.ownerCivilizationName ?? "Sin control local" },
-            { label: "Cola", value: shipyard.queue.length > 0 ? formatCountLabel(shipyard.queue.length, "orden", "ordenes") : "Sin cola", detail: `${dueQueueCount} vencidas` },
+            { label: "Cola de produccion", value: shipyard.queue.length > 0 ? formatCountLabel(shipyard.queue.length, "orden", "ordenes") : "Sin cola", detail: `${dueQueueCount} listas para revisar` },
             { label: "Stock orbital", value: stockDigest },
           ]}
           resourceItems={shipyard.stockpile.slice(0, 4).map((resource) => ({
@@ -657,29 +656,29 @@ export function ShipyardPage() {
         <UiCard className="panel strategic-loader-panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Entrada de cabina</p>
-              <h3>Cargar contexto del astillero</h3>
+              <p className="eyebrow">Astillero orbital</p>
+              <h3>Cargar contexto de produccion</h3>
             </div>
             <UiBadge>Uso local</UiBadge>
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
-              <span>Id de civilizacion</span>
+              <span>Civilizacion</span>
               <input
                 type="text"
                 value={civilizationIdInput}
                 onChange={(event) => setCivilizationIdInput(event.target.value)}
-                placeholder="00000000-0000-0000-0000-000000000000"
+                placeholder="Usa el contexto guardado o un enlace de Galaxia"
                 spellCheck={false}
               />
             </label>
             <label className="field">
-              <span>Id de planeta opcional</span>
+              <span>Planeta con astillero</span>
               <input
                 type="text"
                 value={planetIdInput}
                 onChange={(event) => setPlanetIdInput(event.target.value)}
-                placeholder="40000000-0000-0000-0000-000000000000"
+                placeholder="Opcional si vienes desde una colonia"
                 spellCheck={false}
               />
             </label>
@@ -695,21 +694,21 @@ export function ShipyardPage() {
           ) : null}
           {isLoading ? <p className="figma-panel-note">Cargando catalogo, cola, stock y capacidad orbital...</p> : null}
           {!queryCivilizationId && !isLoading ? (
-            <p className="figma-panel-note">Introduce un `civilizationId` valido, entra desde Galaxia o usa el inicio local disponible para abrir Astillero con contexto.</p>
+            <p className="figma-panel-note">Entra desde Galaxia o usa el inicio local disponible para abrir Astillero con contexto.</p>
           ) : null}
         </UiCard>
 
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Limite del modulo</p>
+              <p className="eyebrow">Astillero orbital</p>
               <h3>Que hace esta cabina</h3>
             </div>
             <UiBadge tone="warn">Frontera visible</UiBadge>
           </div>
           <ul className="stack-list strategic-rules-list">
-            <li>Astillero prepara o produce activos orbitales.</li>
-            <li>Flotas mueve escuadras orbitales ya existentes.</li>
+            <li>Astillero orbital produce naves y conserva stock orbital.</li>
+            <li>Preparar escuadras pertenece a Flotas y queda fuera de esta cabina.</li>
             <li>La cola, el stock y los bloqueos deben mostrarse de forma honesta aunque falten acciones ejecutables.</li>
           </ul>
         </UiCard>
@@ -720,11 +719,11 @@ export function ShipyardPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Contexto sospechoso</p>
-              <h3>El identificador de civilizacion no parece valido para esta cabina.</h3>
+              <h3>El contexto de civilizacion no parece valido para esta cabina.</h3>
             </div>
             <UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge>
           </div>
-          <p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p>
+          <p className="figma-panel-note">Revisa que no hayas usado el contexto de planeta como civilizacion.</p>
         </UiCard>
       ) : null}
 
@@ -738,7 +737,7 @@ export function ShipyardPage() {
             <UiBadge tone="good">Memoria local</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Este enlace solo reconstruye la URL con ids guardados por `/onboarding`; el backend seguira validando el estado real.
+            Este enlace recupera la ultima colonia local guardada; cada cabina volvera a comprobar el estado de juego antes de mostrar acciones.
           </p>
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
@@ -753,7 +752,7 @@ export function ShipyardPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Overview orbital</p>
+                <p className="eyebrow">Astillero orbital</p>
                 <h3>Resumen estrategico del astillero</h3>
                 <p>Lectura rapida de capacidad, cola, stock y accion recomendada antes de revisar el catalogo.</p>
               </div>
@@ -770,13 +769,13 @@ export function ShipyardPage() {
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Mando actual</p>
+                    <p className="eyebrow">Contexto actual</p>
                     <h4>Contexto seleccionado</h4>
                   </div>
-                  <UiBadge>{formatPlanetSecondaryLabel(shipyard.planetId) ?? "Planeta activo"}</UiBadge>
+                  <UiBadge>Planeta activo</UiBadge>
                 </div>
                 <div className="figma-data-list">
-                  <div className="figma-data-row"><span>Civilizacion</span><strong>{uiState?.civilizationId ?? activeCivilizationId}</strong></div>
+                  <div className="figma-data-row"><span>Civilizacion</span><strong>Contexto activo</strong></div>
                   <div className="figma-data-row"><span>Planeta</span><strong>{shipyard.planetName}</strong></div>
                   <div className="figma-data-row"><span>Sistema</span><strong>{shipyard.solarSystemName}</strong></div>
                   <div className="figma-data-row"><span>Control</span><strong>{shipyard.isOwnedByRequestingCivilization ? "Propio" : shipyard.ownerCivilizationName ?? "Sin control local"}</strong></div>
@@ -786,7 +785,7 @@ export function ShipyardPage() {
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Capacidad de produccion</p>
-                    <h4>Readiness orbital</h4>
+                    <h4>Preparacion orbital</h4>
                   </div>
                   <UiBadge tone={readinessTone}>{shipyard.actionAvailability.enqueue.reasonLabel}</UiBadge>
                 </div>
@@ -832,7 +831,7 @@ export function ShipyardPage() {
                 </div>
                 <p>{recommendedActionSummary}</p>
                 <div className="figma-data-list">
-                  <div className="figma-data-row"><span>Enqueue</span><strong>{shipyard.actionAvailability.enqueue.reasonLabel}</strong></div>
+                  <div className="figma-data-row"><span>Produccion</span><strong>{shipyard.actionAvailability.enqueue.reasonLabel}</strong></div>
                   <div className="figma-data-row"><span>Completar vencidas</span><strong>{shipyard.actionAvailability.completeDue.reasonLabel}</strong></div>
                 </div>
               </section>
@@ -863,7 +862,7 @@ export function ShipyardPage() {
                     </div>
                     <p className="figma-panel-note">
                       {catalogBuckets.available.length > 0
-                        ? "Estas opciones tienen una lectura de readiness util en el backend actual."
+                        ? "Estas opciones estan listas para revisar una orden de produccion."
                         : "No hay opciones claramente producibles en la lectura actual."}
                     </p>
                   </section>
@@ -877,7 +876,7 @@ export function ShipyardPage() {
                     </div>
                     <p className="figma-panel-note">
                       {catalogBuckets.blocked.length > 0
-                        ? "Cada carta mantiene visible el motivo del bloqueo para evitar lecturas engañosas."
+                        ? "Cada carta mantiene visible el motivo del bloqueo para evitar lecturas confusas."
                         : "No hay bloqueos catalogados aparte de los limites visibles de esta lectura."}
                     </p>
                   </section>
@@ -891,7 +890,7 @@ export function ShipyardPage() {
                     </div>
                     <p className="figma-panel-note">
                       {catalogBuckets.unsupported.length > 0
-                        ? "El servicio aun no describe bien estas opciones y la UI las muestra como limite real."
+                        ? "La lectura actual aun no describe bien estas opciones y la cabina las muestra como limite real."
                         : "No hay opciones marcadas como no soportadas."}
                     </p>
                   </section>
@@ -1127,7 +1126,7 @@ export function ShipyardPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Handoff a Flotas</p>
+                <p className="eyebrow">Conexion con Flotas</p>
                 <h3>Como se relacionan stock, cola y grupos orbitales</h3>
                 <p>Astillero produce y conserva stock local. Flotas inspecciona los grupos orbitales ya visibles y sus movimientos.</p>
               </div>
@@ -1158,7 +1157,7 @@ export function ShipyardPage() {
                 </div>
                 <ul className="stack-list compact-list">
                   <li>El stock orbital no equivale automaticamente a una escuadra visible en Flotas.</li>
-                  <li>Las ordenes en cola siguen en produccion hasta que el backend las complete y las convierta en stock util.</li>
+                  <li>Las ordenes en cola siguen en produccion hasta que una lectura posterior las convierta en stock util.</li>
                   <li>La asignacion a flota se mantiene fuera de esta cabina en esta version.</li>
                 </ul>
               </section>
@@ -1194,7 +1193,7 @@ export function ShipyardPage() {
             <div>
               <p className="eyebrow">Confirmacion registrada</p>
               <h3>Produccion enviada</h3>
-              <p>La cabina recargo cola, catalogo y reservas con el estado confirmado por el backend.</p>
+              <p>La cabina recargo cola, catalogo y reservas con el estado confirmado por la lectura actual.</p>
             </div>
             <UiBadge tone="good">Actualizada</UiBadge>
           </div>
@@ -1203,14 +1202,14 @@ export function ShipyardPage() {
             <div className="figma-data-list">
               <div className="figma-data-row"><span>Cola visible</span><strong>{`${enqueueRefreshAudit.queueBefore} -> ${enqueueRefreshAudit.queueAfter}`}</strong></div>
               <div className="figma-data-row"><span>Orden refrescada</span><strong>{enqueueRefreshAudit.visibleOrderLabel ?? "Pendiente de aparecer en la lectura actual"}</strong></div>
-              <div className="figma-data-row"><span>Ventana visible</span><strong>{enqueueRefreshAudit.visibleOrderWindow ?? "Pendiente de lectura backend"}</strong></div>
+              <div className="figma-data-row"><span>Ventana visible</span><strong>{enqueueRefreshAudit.visibleOrderWindow ?? "Pendiente de nueva lectura"}</strong></div>
               <div className="figma-data-row"><span>Stock orbital visible</span><strong>{enqueueRefreshAudit.stockDigest}</strong></div>
               <div className="figma-data-row"><span>Delta de recursos</span><strong>{enqueueRefreshAudit.resourceDelta.length > 0 ? enqueueRefreshAudit.resourceDelta.join(" · ") : "Sin cambios visibles"}</strong></div>
             </div>
           ) : null}
           <div className="selection-chip-row">
             <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
-              Ver readiness en Flotas
+              Ver preparacion en Flotas
             </Link>
           </div>
         </UiCard>

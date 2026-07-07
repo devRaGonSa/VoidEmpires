@@ -3,7 +3,7 @@
 ---
 id: TASK-41R
 title: Shipyard product page copy
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
