@@ -8,6 +8,14 @@ import { buildPlanetUrl } from "../utils/routeUrls";
 
 const disabledAccountActions = [
   {
+    label: "Renombrar civilizacion",
+    detail: "Preparado para validar propiedad y limite de 128 caracteres antes de guardar.",
+  },
+  {
+    label: "Renombrar planeta natal",
+    detail: "Preparado para cambiar solo el planeta natal controlado por tu civilizacion.",
+  },
+  {
     label: "Cambiar email",
     detail: "Pendiente de activar cuando exista un flujo seguro de verificacion.",
   },
@@ -92,10 +100,10 @@ export function AccountSettingsPage() {
         <div className="figma-section-header">
           <div>
             <p className="eyebrow">Seguridad</p>
-            <h3>Acciones sensibles preparadas</h3>
+            <h3>Cambios de cuenta preparados</h3>
             <p>
-              Email y contrasena quedan visibles como capacidades futuras, sin ejecutar cambios
-              hasta que el backend exponga contratos seguros.
+              Renombres, email y contrasena quedan visibles como capacidades futuras, sin ejecutar
+              cambios hasta que el backend exponga contratos seguros.
             </p>
           </div>
           <UiBadge tone="warn">No disponible</UiBadge>

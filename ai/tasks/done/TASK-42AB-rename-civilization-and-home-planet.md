@@ -3,7 +3,7 @@
 ---
 id: TASK-42AB
 title: Rename civilization and home planet
-status: pending
+status: done
 type: fullstack
 team: platform
 supporting_teams: [frontend]
