@@ -1,26 +1,12 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import type { AccountApiError, AccountSessionResponse } from "../api/accountTypes";
+import type { AccountSessionResponse } from "../api/accountTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
+import { formatAccountRequestException, formatLoginErrors } from "../utils/accountErrorCopy";
 import { buildPlanetUrl, buildRegisterUrl } from "../utils/routeUrls";
-
-function toLoginError(error: AccountApiError) {
-  switch (error.code) {
-    case "EmailRequired":
-      return "El correo es obligatorio.";
-    case "PasswordRequired":
-      return "La contrasena es obligatoria.";
-    case "InvalidCredentials":
-      return "Correo o contrasena incorrectos.";
-    case "Unauthenticated":
-      return "Inicia sesion para continuar.";
-    default:
-      return "No se pudo iniciar sesion.";
-  }
-}
 
 function resolveNextRoute(session: AccountSessionResponse | null) {
   if (!session?.succeeded) {
@@ -52,14 +38,13 @@ export function LoginPage() {
       });
 
       if (result.httpStatus !== 200 || !result.response?.succeeded) {
-        const nextErrors = result.response?.errors.map(toLoginError) ?? ["No se pudo iniciar sesion."];
-        setErrors(nextErrors.length > 0 ? nextErrors : ["No se pudo iniciar sesion."]);
+        setErrors(formatLoginErrors(result));
         return;
       }
 
       navigate(resolveNextRoute(result.response), { replace: true });
     } catch {
-      setErrors(["No se pudo contactar el servicio de cuentas."]);
+      setErrors(formatAccountRequestException());
     } finally {
       setPassword("");
       setIsSubmitting(false);

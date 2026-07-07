@@ -3,7 +3,7 @@
 ---
 id: TASK-42Y
 title: Registration and login error copy
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

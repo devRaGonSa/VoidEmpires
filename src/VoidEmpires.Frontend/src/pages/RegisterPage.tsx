@@ -1,46 +1,14 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import type { AccountApiError, AccountRegistrationResponse } from "../api/accountTypes";
+import type { AccountRegistrationResponse } from "../api/accountTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
+import { formatAccountRequestException, formatRegistrationErrors } from "../utils/accountErrorCopy";
 import { getRegistrationWorldEntry } from "../utils/currentAccountSession";
 import { savePlayableSession } from "../utils/playableSession";
 import { buildGalaxyUrl, buildWorldEntryUrl } from "../utils/routeUrls";
-
-function toRegisterError(error: AccountApiError) {
-  switch (error.code) {
-    case "EmailRequired":
-      return "El correo es obligatorio.";
-    case "EmailInvalid":
-      return "El correo debe ser valido.";
-    case "EmailAlreadyRegistered":
-      return "Ese correo ya tiene una cuenta.";
-    case "PasswordRequired":
-      return "La contrasena es obligatoria.";
-    case "PasswordTooWeak":
-      return "La contrasena no cumple la politica minima.";
-    case "ConfirmPasswordRequired":
-      return "Confirma la contrasena.";
-    case "PasswordMismatch":
-      return "Las contrasenas no coinciden.";
-    case "DisplayNameRequired":
-      return "El nombre del comandante es obligatorio.";
-    case "CivilizationNameRequired":
-      return "El nombre de la civilizacion es obligatorio.";
-    case "DisplayNameTooLong":
-    case "CivilizationNameTooLong":
-    case "HomePlanetNameTooLong":
-      return "Uno de los nombres es demasiado largo.";
-    case "DisplayNameTaken":
-      return "Ese comandante ya existe.";
-    case "CivilizationNameTaken":
-      return "Esa civilizacion ya existe.";
-    default:
-      return "No se pudo completar el registro.";
-  }
-}
 
 function resolveRegistrationRoute(registration: AccountRegistrationResponse) {
   const worldEntry = getRegistrationWorldEntry(registration);
@@ -77,8 +45,7 @@ export function RegisterPage() {
       });
 
       if (result.httpStatus !== 201 || !result.response?.succeeded) {
-        const nextErrors = result.response?.errors.map(toRegisterError) ?? ["No se pudo crear la cuenta."];
-        setErrors(nextErrors.length > 0 ? nextErrors : ["No se pudo crear la cuenta."]);
+        setErrors(formatRegistrationErrors(result));
         return;
       }
 
@@ -103,7 +70,7 @@ export function RegisterPage() {
       });
       navigate(resolveRegistrationRoute(result.response), { replace: true });
     } catch {
-      setErrors(["No se pudo contactar el servicio de cuentas."]);
+      setErrors(formatAccountRequestException());
     } finally {
       setPassword("");
       setConfirmPassword("");
