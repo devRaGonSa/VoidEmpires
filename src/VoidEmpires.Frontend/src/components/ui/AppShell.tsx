@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { voidEmpiresApi } from "../../api/voidEmpiresApi";
-import { getCurrentAccountDisplay } from "../../utils/currentAccountSession";
+import type { PlanetCockpitDto, PlanetResourceBalanceDto } from "../../api/planetTypes";
+import { getCurrentAccountDisplay, getCurrentAccountWorldEntry } from "../../utils/currentAccountSession";
+import { formatResourceLabel } from "../../utils/resourceDisplay";
 import { buildLoginUrl, buildRegisterUrl } from "../../utils/routeUrls";
 import { useCurrentAccountSession } from "../../utils/useCurrentAccountSession";
 import { SidebarNav, type SidebarNavItem } from "./SidebarNav";
-import { TopStatusBar, type TopBarStatusItem } from "./TopResourceBar";
+import { TopStatusBar, type TopBarResourceItem, type TopBarStatusItem } from "./TopResourceBar";
 import { UiCard } from "./UiCard";
 
 interface AppShellProps {
@@ -23,6 +25,8 @@ export function AppShell({
   const location = useLocation();
   const currentAccountSession = useCurrentAccountSession();
   const accountDisplay = getCurrentAccountDisplay(currentAccountSession);
+  const worldEntry = getCurrentAccountWorldEntry(currentAccountSession.session);
+  const [resourcePlanet, setResourcePlanet] = useState<PlanetCockpitDto | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isHomeRoute = location.pathname === "/";
   const isFleetRoute = location.pathname === "/fleets";
@@ -46,6 +50,13 @@ export function AppShell({
         : "Cabinas de colonia, investigacion, astillero y flotas con lectura de estado y confirmaciones explicitas cuando la pagina lo permite.";
 
   const isSignedIn = currentAccountSession.status === "ready";
+  const selectedResourceContext = useMemo(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const civilizationId = searchParams.get("civilizationId")?.trim() || worldEntry?.civilizationId || "";
+    const planetId = searchParams.get("planetId")?.trim() || worldEntry?.planetId || null;
+
+    return civilizationId ? { civilizationId, planetId } : null;
+  }, [location.search, worldEntry?.civilizationId, worldEntry?.planetId]);
   const filteredStatusItems = useMemo(
     () => [
       ...statusItems,
@@ -56,6 +67,34 @@ export function AppShell({
     ],
     [accountDisplay.planetLabel, accountDisplay.statusLabel, isSignedIn, statusItems],
   );
+  const resourceItems = useMemo(
+    () => buildTopResourceItems(resourcePlanet),
+    [resourcePlanet],
+  );
+
+  useEffect(() => {
+    if (!isSignedIn || !selectedResourceContext) {
+      setResourcePlanet(null);
+      return;
+    }
+
+    let isCurrent = true;
+    voidEmpiresApi.getPlanetUiState(selectedResourceContext.civilizationId, selectedResourceContext.planetId)
+      .then((response) => {
+        if (isCurrent) {
+          setResourcePlanet(response.uiState?.planet ?? null);
+        }
+      })
+      .catch(() => {
+        if (isCurrent) {
+          setResourcePlanet(null);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [isSignedIn, selectedResourceContext]);
 
   async function handleLogout() {
     setIsLoggingOut(true);
@@ -91,6 +130,7 @@ export function AppShell({
             onLogout: handleLogout,
           }}
           items={filteredStatusItems}
+          resources={resourceItems}
         />
       </header>
 
@@ -137,4 +177,46 @@ export function AppShell({
       </div>
     </div>
   );
+}
+
+function buildTopResourceItems(planet: PlanetCockpitDto | null): TopBarResourceItem[] {
+  if (!planet?.isOwnedByRequestingCivilization) {
+    return [];
+  }
+
+  const productionByResource = new Map<string, number>([
+    ["1", planet.productionSummary?.creditsPerHour ?? 0],
+    ["2", planet.productionSummary?.metalPerHour ?? 0],
+    ["3", planet.productionSummary?.crystalPerHour ?? 0],
+    ["4", planet.productionSummary?.gasPerHour ?? 0],
+    ["Credits", planet.productionSummary?.creditsPerHour ?? 0],
+    ["Metal", planet.productionSummary?.metalPerHour ?? 0],
+    ["Crystal", planet.productionSummary?.crystalPerHour ?? 0],
+    ["Gas", planet.productionSummary?.gasPerHour ?? 0],
+  ]);
+
+  return planet.stockpile
+    .map((entry) => createTopResourceItem(entry, productionByResource))
+    .filter((entry): entry is TopBarResourceItem => entry !== null);
+}
+
+function createTopResourceItem(
+  entry: PlanetResourceBalanceDto,
+  productionByResource: ReadonlyMap<string, number>,
+): TopBarResourceItem | null {
+  const key = String(entry.resourceType);
+  const production = productionByResource.get(key) ?? 0;
+
+  return {
+    key,
+    label: formatResourceLabel(entry.resourceType),
+    amount: formatCompactNumber(entry.quantity),
+    detail: production > 0 ? `+${formatCompactNumber(production)}/h` : null,
+  };
+}
+
+function formatCompactNumber(value: number) {
+  return new Intl.NumberFormat("es-ES", {
+    maximumFractionDigits: value >= 100 ? 0 : 1,
+  }).format(value);
 }

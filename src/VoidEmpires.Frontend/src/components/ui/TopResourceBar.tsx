@@ -6,9 +6,17 @@ export interface TopBarStatusItem {
   value: string;
 }
 
+export interface TopBarResourceItem {
+  key: string;
+  label: string;
+  amount: string;
+  detail?: string | null;
+}
+
 interface TopStatusBarProps {
   account?: TopBarAccountItem;
   items: TopBarStatusItem[];
+  resources?: TopBarResourceItem[];
 }
 
 export interface TopBarAccountItem {
@@ -21,9 +29,20 @@ export interface TopBarAccountItem {
   onLogout: () => void;
 }
 
-export function TopStatusBar({ account, items }: TopStatusBarProps) {
+export function TopStatusBar({ account, items, resources = [] }: TopStatusBarProps) {
   return (
     <div className="top-status-bar" aria-label="Estado global del imperio">
+      {resources.length > 0 ? (
+        <div className="top-resource-pill-row" aria-label="Recursos del planeta seleccionado">
+          {resources.map((resource) => (
+            <section key={resource.key} className="top-resource-pill">
+              <span>{resource.label}</span>
+              <strong>{resource.amount}</strong>
+              {resource.detail ? <small>{resource.detail}</small> : null}
+            </section>
+          ))}
+        </div>
+      ) : null}
       <div className="top-status-pill-row">
         {items.map((item) => (
           <section key={item.label} className="top-status-pill">
