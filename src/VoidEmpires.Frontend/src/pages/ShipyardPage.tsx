@@ -932,12 +932,14 @@ export function ShipyardPage() {
                               imageKey={asset.imageKey}
                             />
                             <div className="figma-data-list">
+                              <div className="figma-data-row"><span>Rol</span><strong>{asset.roleLabel}</strong></div>
+                              <div className="figma-data-row"><span>Clase</span><strong>{asset.categoryLabel}</strong></div>
+                              <div className="figma-data-row"><span>Stock orbital actual</span><strong>{asset.quantityLabel}</strong></div>
                               <div className="figma-data-row"><span>Coste</span><strong>{asset.estimatedCostLabel}</strong></div>
                               <div className="figma-data-row"><span>Duracion</span><strong>{asset.estimatedDurationLabel}</strong></div>
-                              <div className="figma-data-row"><span>Stock local</span><strong>{asset.quantityLabel}</strong></div>
                               <div className="figma-data-row"><span>Requisitos</span><strong>{formatRequirementLabel(asset)}</strong></div>
                             </div>
-                            <p>{bucket === "available" ? "Lista para preparar produccion cuando la accion dedicada quede habilitada." : asset.reasonLabel}</p>
+                            <p>{bucket === "available" ? "Lista para revisar y confirmar produccion orbital." : asset.reasonLabel}</p>
                             <div className="selection-chip-row">
                               <button
                                 type="button"
@@ -1265,8 +1267,10 @@ export function ShipyardPage() {
             <section className="subpanel figma-subpanel">
               <div className="figma-data-list">
                 <div className="figma-data-row"><span>Planeta</span><strong>{shipyard.planetName}</strong></div>
-                <div className="figma-data-row"><span>Activo</span><strong>{reviewSelection.asset.label}</strong></div>
-                <div className="figma-data-row"><span>Salida</span><strong>{reviewSelection.asset.quantityLabel}</strong></div>
+                <div className="figma-data-row"><span>Nave</span><strong>{reviewSelection.asset.label}</strong></div>
+                <div className="figma-data-row"><span>Rol</span><strong>{reviewSelection.asset.roleLabel}</strong></div>
+                <div className="figma-data-row"><span>Clase</span><strong>{reviewSelection.asset.categoryLabel}</strong></div>
+                <div className="figma-data-row"><span>Stock orbital actual</span><strong>{reviewSelection.asset.quantityLabel}</strong></div>
                 <div className="figma-data-row"><span>Duracion</span><strong>{reviewSelection.asset.estimatedDurationLabel}</strong></div>
               </div>
             </section>

@@ -3,7 +3,7 @@
 ---
 id: TASK-41S
 title: Shipyard card product polish
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
