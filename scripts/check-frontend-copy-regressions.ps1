@@ -440,6 +440,19 @@ if (-not (Test-Path -LiteralPath $playableSessionPath)) {
 }
 
 $playableSessionViolations = New-Object System.Collections.Generic.List[string]
+$credentialStorageViolations = New-Object System.Collections.Generic.List[string]
+$credentialStoragePattern = '(?is)(localStorage|sessionStorage)\s*\.\s*(setItem|getItem|removeItem)\s*\([^)]*(password|token|credential|auth|cookie|bearer)'
+foreach ($file in $frontendFiles) {
+  $content = Get-Content -LiteralPath $file.FullName -Raw
+  if ($content -match $credentialStoragePattern) {
+    $credentialStorageViolations.Add("$($file.FullName): browser storage must not read or write password, token, auth, cookie, bearer, or credential fields.")
+  }
+}
+
+if ($credentialStorageViolations.Count -gt 0) {
+  throw "Frontend credential storage guard failed:`n$($credentialStorageViolations -join [Environment]::NewLine)"
+}
+
 $browserStorageMatches = Select-String -Path (
   $frontendFiles |
     Where-Object { $_.FullName -ne $playableSessionPath } |

@@ -24,7 +24,9 @@ $protectedPages = @(
     "AlliancePage",
     "MarketPage",
     "RankingPage",
+    "RegisterPage",
     "OnboardingPage",
+    "LoginPage",
     "ModuleCabinPage"
 )
 
@@ -55,7 +57,9 @@ $requiredLazyPages = @(
     "AlliancePage",
     "MarketPage",
     "RankingPage",
+    "RegisterPage",
     "OnboardingPage",
+    "LoginPage",
     "ModuleCabinPage"
 )
 

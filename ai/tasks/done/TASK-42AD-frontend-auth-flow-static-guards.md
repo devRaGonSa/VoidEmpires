@@ -3,7 +3,7 @@
 ---
 id: TASK-42AD
 title: Frontend auth flow static guards
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
