@@ -3,7 +3,7 @@
 ---
 id: TASK-41O
 title: Construction card product polish
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

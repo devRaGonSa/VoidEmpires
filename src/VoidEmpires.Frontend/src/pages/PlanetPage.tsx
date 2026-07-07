@@ -17,6 +17,7 @@ import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { DevelopmentToolsPanel } from "../components/DevelopmentToolsPanel";
 import { GameModal } from "../components/GameModal";
 import { PageContextStrip } from "../components/PageContextStrip";
+import { PlaceholderAsset } from "../components/PlaceholderAsset";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -1493,6 +1494,16 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                         isPrepared,
                       );
                       const missingResources = formatMissingPlanetResources(planet.stockpile, action.cost);
+                      const buildingLabel = action.display?.buildingTypeLabel ?? formatBuildingType(action.buildingType);
+                      const categoryLabel = action.display?.categoryLabel ?? getPlanetModuleLabel(module.key as PlanetModule);
+                      const availabilityLabel =
+                        action.display?.availabilityLabel ?? formatConstructionAvailability(action.availabilityStatus);
+                      const requirementLabel = action.availabilityStatus === "InsufficientResources" && missingResources
+                        ? missingResources
+                        : action.display?.availabilityReasonLabel ?? action.availabilityReason;
+                      const currentLevelLabel = action.currentLevel > 0
+                        ? `Nivel ${action.currentLevel}`
+                        : "Sin construir";
 
                       return (
                         <article
@@ -1503,25 +1514,31 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                         >
                           <div className="figma-section-header">
                             <div>
-                              <p className="eyebrow">{getPlanetModuleLabel(module.key as PlanetModule)}</p>
-                              <h4>{action.display?.buildingTypeLabel ?? formatBuildingType(action.buildingType)}</h4>
+                              <p className="eyebrow">{isAvailable ? "Lista para ordenar" : "Requisito pendiente"}</p>
+                              <h4>{buildingLabel}</h4>
                             </div>
                             <UiBadge tone={isAvailable ? "good" : "warn"}>
-                              {action.display?.availabilityLabel ?? formatConstructionAvailability(action.availabilityStatus)}
+                              {availabilityLabel}
                             </UiBadge>
                           </div>
+                          <PlaceholderAsset
+                            kind="building"
+                            label={buildingLabel}
+                            typeLabel={categoryLabel}
+                            detail={`${currentLevelLabel}. Proxima obra: nivel ${action.targetLevel}.`}
+                          />
                           <div className="planet-action-facts">
                             <div className="planet-action-stat">
-                              <span>Orden</span>
-                              <strong>{action.display?.actionLabel ?? formatConstructionAction(action.action)}</strong>
+                              <span>Estado</span>
+                              <strong>{availabilityLabel}</strong>
                             </div>
                             <div className="planet-action-stat">
-                              <span>Nivel</span>
-                              <strong>
-                                {action.currentLevel > 0
-                                  ? `${action.currentLevel} -> ${action.targetLevel}`
-                                  : `Nuevo ${action.targetLevel}`}
-                              </strong>
+                              <span>Nivel actual</span>
+                              <strong>{currentLevelLabel}</strong>
+                            </div>
+                            <div className="planet-action-stat">
+                              <span>Nivel objetivo</span>
+                              <strong>Nivel {action.targetLevel}</strong>
                             </div>
                             <div className="planet-action-stat">
                               <span>Duracion</span>
@@ -1529,14 +1546,13 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                             </div>
                           </div>
                           <div className="planet-action-cost-block">
-                            <span>Coste previsto</span>
+                            <span>Coste de obra</span>
                             <strong>{formatCompactResourceCost(action.cost)}</strong>
                           </div>
-                          <p className="figma-panel-note planet-action-reason">
-                            {action.availabilityStatus === "InsufficientResources" && missingResources
-                              ? missingResources
-                              : action.display?.availabilityReasonLabel ?? action.availabilityReason}
-                          </p>
+                          <div className="planet-action-requirements">
+                            <span>Requisitos</span>
+                            <strong>{requirementLabel}</strong>
+                          </div>
                           <div className="transfer-confirmation-actions">
                             {canRenderInModule ? (
                               <button

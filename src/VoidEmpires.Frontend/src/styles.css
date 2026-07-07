@@ -1036,7 +1036,8 @@ select {
 }
 
 .planet-action-stat,
-.planet-action-cost-block {
+.planet-action-cost-block,
+.planet-action-requirements {
   display: grid;
   gap: 4px;
   min-width: 0;
@@ -1047,7 +1048,8 @@ select {
 }
 
 .planet-action-stat span,
-.planet-action-cost-block span {
+.planet-action-cost-block span,
+.planet-action-requirements span {
   color: color-mix(in srgb, var(--ve-color-text) 68%, var(--ve-color-muted));
   font-size: 0.75rem;
   letter-spacing: 0.08em;
@@ -1055,7 +1057,8 @@ select {
 }
 
 .planet-action-stat strong,
-.planet-action-cost-block strong {
+.planet-action-cost-block strong,
+.planet-action-requirements strong {
   overflow-wrap: anywhere;
 }
 
@@ -1064,9 +1067,8 @@ select {
   line-height: 1.5;
 }
 
-.planet-action-reason {
-  margin: 0;
-  min-height: 0;
+.planet-action-requirements {
+  border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 20%, transparent);
 }
 
 .planet-action-card .transfer-confirmation-actions button {
