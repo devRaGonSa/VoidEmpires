@@ -28,11 +28,11 @@ Local playable memory is not:
 - permission to mutate gameplay state
 - a server-side active civilization resolver
 
-## UI Boundary Added In This Task
+## Current UI Boundary
 
-`PlayableSessionBanner` now describes stored context as "Memoria local de navegacion" and states that it keeps only Development ids for cockpit links.
+`PlayableSessionBanner`, `/`, `/onboarding`, and `/account-settings` may display friendly commander, civilization, and planet labels from local storage for convenience.
 
-The banner copy now explicitly says the memory is not login, cookie, token, role, or permission, and that each cockpit still re-reads backend state using visible ids before showing playable state.
+Those surfaces must not treat local storage as login, cookie, token, role, permission, or proof of ownership. Each cockpit still re-reads backend state before showing playable state.
 
 ## Runtime Rule
 
@@ -50,9 +50,18 @@ Cockpits may use local memory only to rebuild URLs when query ids are missing. B
 
 Missing, stale, or cleared local memory must fall back to explicit route entry or `/onboarding`, not hidden auth or a different civilization.
 
+## Replacement Target
+
+The product replacement for local memory is server-owned account resolution:
+
+1. Registration creates the Identity user and initial world bootstrap in one account-owned workflow.
+2. Login establishes the session or token.
+3. `/api/accounts/me` returns safe commander, civilization, and home planet summary data for the authenticated user.
+4. The frontend uses that response to route into Planet and related cockpits.
+5. Client-stored ids become optional navigation hints only; backend ownership and visibility remain authoritative.
+
 ## Validation
 
-- Frontend build: `npm run build --prefix src/VoidEmpires.Frontend`.
-- Lazy route guard: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1`.
-- Copy guard: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1`.
-- No browser, screenshot, auth integration, production session, or final authorization validation was performed for this note.
+- This is a documentation audit only.
+- Required validation for the task: `dotnet build --no-restore` and `dotnet test --no-build`.
+- No browser, screenshot, auth integration, production session, SQL Server connection, or final authorization validation was performed for this note.

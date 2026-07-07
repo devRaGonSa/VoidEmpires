@@ -3,7 +3,7 @@
 ---
 id: TASK-42A
 title: Registration product contract audit
-status: pending
+status: done
 type: docs
 team: platform
 supporting_teams: [frontend, backend]

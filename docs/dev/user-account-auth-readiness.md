@@ -9,18 +9,31 @@ It does not add login, session cookies, bearer tokens, role claims, production a
 - `POST /api/auth/register` exists and uses `IUserRegistrationService` when persistence is configured.
 - `GET /api/auth/confirm-email` exists and uses `IEmailConfirmationService` when persistence is configured.
 - `IdentityAccountService` creates ASP.NET Core Identity users, generates email confirmation tokens, and sends transactional email through the configured email sender.
+- Identity is registered only when `ConnectionStrings:DefaultConnection` is non-empty; ordinary tests still avoid any real SQL Server dependency.
 - `/health` reports auth configured when persistence is configured.
 - These endpoints are account foundation only. They do not currently bootstrap the active playable civilization in the frontend shell.
 
 ## Current Playable Start Boundary
 
 - `/onboarding` calls `POST /api/dev/players/starting-civilization`.
-- The backend creates a Development-only player profile, civilization, homeworld, resources, buildings, and local context.
+- `StartingCivilizationService` creates a `PlayerProfile`, `Civilization`, generated galaxy/system/home planet, `PlanetOwnership`, starting resource stockpile, production profile, population profile, building capacity, and initial buildings.
 - The response returns explicit `civilizationId` and `homePlanetId`.
 - The frontend stores those ids in local browser navigation memory through `playableSession.ts`.
 - Cockpit routes continue to use URL query ids and backend reads; local storage is not auth, ownership, a bearer token, a cookie, a role claim, or production session state.
 
-## UI Boundary Added In This Task
+## Registration Product Contract
+
+The final product entry should replace `/onboarding` as the primary new-player path:
+
+1. A player registers with email, password, commander name, civilization name, and optional home planet name.
+2. The account service creates the ASP.NET Core Identity user and enforces email/password policy.
+3. The bootstrap workflow creates or links one `PlayerProfile` for that user.
+4. The workflow creates the initial `Civilization`, normalizes its lookup name, assigns or generates a home planet, creates active `PlanetOwnership`, and initializes starting economy/production/building state.
+5. A confirmed login/session resolves the current account and active civilization server-side.
+6. The frontend navigates to the game using session-owned data from `/api/accounts/me`, not client-trusted raw ids.
+7. Planet and cockpit reads validate ownership/visibility against the authenticated account before returning gameplay state.
+
+## Current UI Boundary
 
 `/onboarding` now includes a visible account/access boundary panel:
 
@@ -41,10 +54,10 @@ Before claiming production auth, the product needs:
 6. Email confirmation UX and resend/recovery behavior.
 7. Clear environment gating for Development-only playable-start endpoints.
 8. Tests proving unauthenticated users cannot read or mutate protected gameplay state.
+9. Registration-to-world smoke coverage proving account creation, session resolution, and home planet UI-state access without SQL Server.
 
 ## Validation
 
-- Frontend build: `npm run build --prefix src/VoidEmpires.Frontend`.
-- Lazy route guard: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1`.
-- Copy guard: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1`.
-- No browser, screenshot, auth integration, production session, or final authorization validation was performed for this note.
+- This is a documentation audit only.
+- Required validation for the task: `dotnet build --no-restore` and `dotnet test --no-build`.
+- No browser, screenshot, auth integration, production session, SQL Server connection, or final authorization validation was performed for this note.

@@ -18,6 +18,18 @@ VoidEmpires currently has a coherent Development-only product shell suitable for
 | Visual/browser acceptance | Checklist exists, but screenshots and human browser pass are not complete. | Not yet accepted. |
 | Production access | Registration and email confirmation exist, but cockpit context does not resolve from production auth. | Not product-ready. |
 
+## Block 42 Registration Contract Audit
+
+Recorded on 2026-07-07 for `TASK-42A`:
+
+- ASP.NET Core Identity is present behind `POST /api/auth/register` and `GET /api/auth/confirm-email`; it is wired only when persistence is configured and sends confirmation mail through the transactional email abstraction.
+- Identity registration currently creates the account only. It does not create the `PlayerProfile`, initial `Civilization`, home planet, `PlanetOwnership`, starting resources, production profile, population profile, or initial buildings.
+- `StartingCivilizationService` already creates the gameplay bootstrap shape, but it is exposed through the Development-only playable-start path and uses explicit ids/local browser memory instead of an authenticated account session.
+- `/onboarding` remains the current local playable start and must be replaced as the product entry by account registration plus initial world bootstrap.
+- The final registration contract is: register account, create/link player profile, create civilization, assign or generate home planet, create ownership, initialize economy/production/building state, resolve `/api/accounts/me`, then navigate to the game from authenticated server-owned context.
+- Local playable-session storage remains a navigation convenience only and is not authentication, authorization, ownership, role, token, cookie, or account state.
+- This audit did not implement registration, login, `/api/accounts/me`, production sessions, authorization, SQL Server validation, browser QA, or UI copy changes.
+
 ## Ready For Local Demo
 
 - One canonical demo path exists in `docs/dev/single-product-demo-guide.md`.
