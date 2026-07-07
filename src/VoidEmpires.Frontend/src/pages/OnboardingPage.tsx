@@ -179,7 +179,7 @@ export function OnboardingPage() {
           <>
             <UiBadge tone="good">Nuevo imperio</UiBadge>
             <UiBadge>Colonia inicial</UiBadge>
-            <UiBadge>Confirmacion local</UiBadge>
+            <UiBadge>Contexto guardado</UiBadge>
           </>
         }
       />
@@ -217,7 +217,7 @@ export function OnboardingPage() {
           <UiBadge tone="good">Comienzo</UiBadge>
         </div>
         <p className="figma-panel-note">
-          Elige los nombres principales y abre tu primera colonia con una ruta lista hacia Planeta, Construccion, Investigacion y Astillero.
+          Elige los nombres principales y entra a Planeta para administrar recursos, obras y siguientes ordenes desde tu primera colonia.
         </p>
 
         <form className="query-form" onSubmit={handleSubmit}>
@@ -252,7 +252,7 @@ export function OnboardingPage() {
             />
           </label>
           <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Fundando mundo..." : "Comenzar partida"}
+            {isSubmitting ? "Fundando colonia..." : "Comenzar partida"}
           </button>
         </form>
 
@@ -273,20 +273,20 @@ export function OnboardingPage() {
           <div className="subpanel figma-subpanel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Inicio creado</p>
+                <p className="eyebrow">Partida lista</p>
                 <h3>{createdStart.planetName}</h3>
               </div>
-              <UiBadge tone="good">Contexto listo</UiBadge>
+              <UiBadge tone="good">Planeta listo</UiBadge>
             </div>
             <p className="figma-panel-note">
-              La colonia inicial esta lista. La partida local conserva los enlaces de navegacion para este navegador.
+              Tu primera colonia esta lista. Entra por Planeta para revisar la colonia y abrir las demas cabinas con el mismo contexto.
             </p>
             <div className="selection-chip-row">
               <Link className="selection-chip selection-chip-active" to={createdStart.planetUrl}>
-                Abrir Planeta
+                Entrar a Planeta
               </Link>
               <Link className="selection-chip" to={createdStart.constructionUrl}>
-                Construccion
+                Planificar obras
               </Link>
               <Link className="selection-chip" to={createdStart.researchUrl}>
                 Investigacion
@@ -321,8 +321,8 @@ export function OnboardingPage() {
       <UiCard className="panel">
         <div className="figma-section-header">
           <div>
-            <p className="eyebrow">Limites honestos</p>
-            <h3>Lo que esta ruta si y no hace</h3>
+            <p className="eyebrow">Partida local</p>
+            <h3>Como funciona este inicio</h3>
           </div>
           <UiBadge>Lectura clara</UiBadge>
         </div>

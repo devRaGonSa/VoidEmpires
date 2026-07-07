@@ -3,7 +3,7 @@
 ---
 id: TASK-41AJ
 title: Product onboarding to planet flow
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
