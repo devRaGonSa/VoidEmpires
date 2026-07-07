@@ -3,7 +3,7 @@
 ---
 id: TASK-41B
 title: Product mode visibility contract
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
