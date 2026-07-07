@@ -3,7 +3,7 @@
 ---
 id: TASK-41AI
 title: Product catalog placeholders polish
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

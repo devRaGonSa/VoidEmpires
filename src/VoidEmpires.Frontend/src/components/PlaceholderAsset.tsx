@@ -52,7 +52,7 @@ export function PlaceholderAsset({
       <div className="placeholder-asset-copy">
         <div className="placeholder-asset-head">
           <p className="eyebrow">{typeLabel}</p>
-          <UiBadge>Imagen futura</UiBadge>
+          <UiBadge>Imagen pendiente</UiBadge>
         </div>
         <strong>{label}</strong>
         {detail ? <p>{detail}</p> : null}

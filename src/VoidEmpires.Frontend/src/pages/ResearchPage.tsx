@@ -6,6 +6,7 @@ import { CockpitHero } from "../components/CockpitHero";
 import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { GameModal } from "../components/GameModal";
 import { PageContextStrip } from "../components/PageContextStrip";
+import { PlaceholderAsset } from "../components/PlaceholderAsset";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import type { ResearchTechnology, ResearchUiState } from "../utils/researchPresentation";
 import {
@@ -651,6 +652,12 @@ export function ResearchPage() {
                             {visualState === "blocked" ? blockedReasonLabel : technology.availability.label}
                           </UiBadge>
                         </div>
+                        <PlaceholderAsset
+                          kind="technology"
+                          label={technology.label}
+                          typeLabel={technology.categoryLabel}
+                          detail={`Nivel actual ${technology.currentLevel}. Siguiente nivel ${technology.nextLevel}.`}
+                        />
                         <div className="figma-data-list">
                           <div className="figma-data-row"><span>Nivel</span><strong>{`${technology.currentLevel} -> ${technology.nextLevel}`}</strong></div>
                           <div className="figma-data-row"><span>Coste</span><strong>{technology.estimatedCostLabel}</strong></div>

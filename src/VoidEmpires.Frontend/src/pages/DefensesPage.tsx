@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { fetchDefensesUiState } from "../api/defenseApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { PageContextStrip } from "../components/PageContextStrip";
+import { PlaceholderAsset } from "../components/PlaceholderAsset";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -502,6 +503,12 @@ export function DefensesPage() {
                       </div>
                       <UiBadge tone="good">{option.statusLabel}</UiBadge>
                     </div>
+                    <PlaceholderAsset
+                      kind="defense"
+                      label={option.structureLabel}
+                      typeLabel={option.categoryLabel}
+                      detail={`Preparacion a nivel ${option.targetLevel}.`}
+                    />
                     <div className="figma-data-list">
                       <div className="figma-data-row"><span>Accion</span><strong>{option.actionLabel}</strong></div>
                       <div className="figma-data-row"><span>Objetivo</span><strong>Nivel {option.targetLevel}</strong></div>
@@ -551,6 +558,12 @@ export function DefensesPage() {
                       </div>
                       <UiBadge tone="warn">{option.statusLabel}</UiBadge>
                     </div>
+                    <PlaceholderAsset
+                      kind="defense"
+                      label={option.structureLabel}
+                      typeLabel={option.categoryLabel}
+                      detail={`Preparacion a nivel ${option.targetLevel}.`}
+                    />
                     <div className="figma-data-list">
                       <div className="figma-data-row"><span>Accion</span><strong>{option.actionLabel}</strong></div>
                       <div className="figma-data-row"><span>Objetivo</span><strong>Nivel {option.targetLevel}</strong></div>

@@ -1984,6 +1984,7 @@ select {
 }
 
 .placeholder-asset {
+  position: relative;
   display: grid;
   grid-template-columns: 72px minmax(0, 1fr);
   gap: var(--ve-space-3);
@@ -1992,7 +1993,27 @@ select {
   padding: 12px;
   border: 1px solid color-mix(in srgb, var(--ve-color-border) 38%, transparent);
   border-radius: var(--ve-radius-md);
-  background: color-mix(in srgb, var(--ve-color-bg) 34%, transparent);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--ve-color-panel-2) 18%, transparent) 0 8px,
+      color-mix(in srgb, var(--ve-color-bg) 24%, transparent) 8px 16px
+    ),
+    color-mix(in srgb, var(--ve-color-bg) 34%, transparent);
+  overflow: hidden;
+}
+
+.placeholder-asset::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 20%, transparent);
+  border-radius: calc(var(--ve-radius-md) - 2px);
+  pointer-events: none;
+}
+
+.placeholder-asset > * {
+  position: relative;
 }
 
 .placeholder-asset-slot {
@@ -2006,6 +2027,18 @@ select {
     linear-gradient(135deg, color-mix(in srgb, var(--ve-color-panel-2) 78%, transparent), color-mix(in srgb, var(--ve-color-panel) 92%, transparent));
   color: color-mix(in srgb, var(--ve-color-text) 84%, var(--ve-color-muted));
   font-weight: 800;
+}
+
+.placeholder-asset-slot span {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ve-color-panel) 72%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ve-color-border) 30%, transparent);
+  font-size: 0.9rem;
+  letter-spacing: 0;
 }
 
 .placeholder-asset-copy {
