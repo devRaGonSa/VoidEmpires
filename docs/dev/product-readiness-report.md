@@ -32,6 +32,21 @@ Recorded on 2026-07-07 for `TASK-42A`:
 - Local playable-session storage remains a navigation convenience only and is not authentication, authorization, ownership, role, token, cookie, or account state.
 - This audit still does not claim final gameplay authorization, account recovery/confirmation product UX, production deployment hardening, browser QA, or manual SQL Server registration validation.
 
+## Block 42 Final Automated Validation Gate
+
+Recorded on 2026-07-07 for `TASK-42AJ`:
+
+- `dotnet build --no-restore` succeeded with `0` warnings and `0` errors.
+- `dotnet test --no-build` succeeded with `779` passing tests, `0` failed, and `0` skipped.
+- `npm run build --prefix src/VoidEmpires.Frontend` succeeded; Vite transformed `114` modules and emitted a `193.87 kB` minified / `62.21 kB` gzip entry chunk.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` succeeded, including route lazy-import, copy-regression, repository secret-scan, SQL Server generated-script safety, and QA helper checks.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` succeeded.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1` succeeded.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-repo-secret-scan.ps1` succeeded.
+- `git status` was reviewed after validation.
+
+This was a non-visual automated validation pass. It did not perform browser/manual QA, did not connect to SQL Server, did not apply migrations or generated SQL, did not apply seeds, did not add real SQL Server credentials, and did not grant production readiness.
+
 ## Ready For Local Demo
 
 - One canonical demo path exists in `docs/dev/single-product-demo-guide.md`.

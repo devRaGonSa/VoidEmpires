@@ -10,6 +10,8 @@ Block 41 product-surface work now makes normal frontend navigation and primary c
 
 Block 42 account-registration work now makes `/register` the real player entry for the current playable loop. Registration creates an ASP.NET Core Identity user, account-linked player profile, civilization, home planet ownership, starting resources, production state, and account-backed route context; `/login`, `/api/accounts/me`, and `/api/accounts/logout` support the same account flow. Final gameplay authorization, account recovery/confirmation hardening, production deployment readiness, browser/manual QA, and a manual SQL Server registration run remain deferred.
 
+Latest Block 42 automated validation gate: `dotnet build --no-restore` succeeded with `0` warnings and `0` errors; `dotnet test --no-build` succeeded with `779` passing tests, `0` failed, and `0` skipped; `npm run build --prefix src/VoidEmpires.Frontend` succeeded with `114` transformed modules and a `193.87 kB` minified / `62.21 kB` gzip entry chunk; `check-dev-qa-scripts.ps1`, `check-frontend-route-lazy-imports.ps1`, `check-frontend-copy-regressions.ps1`, and `check-repo-secret-scan.ps1` all succeeded. This was non-visual automated validation only: no browser/manual QA, SQL Server connection, migration apply, generated SQL execution, seed apply, or real credential handling was performed.
+
 ## Repository Reality
 
 The AI Platform template has been adapted into a VoidEmpires-specific project workspace with:
