@@ -377,7 +377,7 @@ export function ResearchPage() {
       const refreshed = await reloadResearchState(civilizationId, sourcePlanetId, false, true);
       if (!refreshed) {
         setEnqueueError(
-          "La investigacion fue aceptada por el backend; la cola visible se actualizara con la siguiente lectura disponible.",
+          "La investigacion fue aceptada; la cola visible se actualizara con la siguiente lectura disponible.",
         );
         setTechnicalErrorDetail("Research UI state refresh failed after a successful enqueue.");
       }
@@ -422,13 +422,13 @@ export function ResearchPage() {
     <section className="page-grid">
       <CockpitHero
         versionLabel="Investigacion v1"
-        title="Investigacion"
-        description="Catalogo, cola y coste visible antes de confirmar una investigacion."
-        developmentNote="Mutaciones Development confirmadas: crear ordenes de investigacion cuando el backend las acepta."
+        title="Laboratorio"
+        description="Tecnologias disponibles, cola de investigacion y coste visible antes de confirmar una orden cientifica."
+        developmentNote="Progreso cientifico con confirmacion obligatoria antes de iniciar una investigacion."
         badges={
           <>
-            <UiBadge tone="warn">Mutaciones Development confirmadas</UiBadge>
-            <UiBadge>Catalogo y cola</UiBadge>
+            <UiBadge tone="good">Tecnologias disponibles</UiBadge>
+            <UiBadge>Cola de investigacion</UiBadge>
             <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
           </>
         }
@@ -442,15 +442,15 @@ export function ResearchPage() {
       {uiState ? (
         <PageContextStrip
           eyebrow="Cabina de investigacion"
-          title={uiState.selectedPlanetName ?? "Investigacion imperial"}
-          purpose="Cola, catalogo y bloqueos visibles desde la lectura backend actual."
+          title={uiState.selectedPlanetName ?? "Laboratorio imperial"}
+          purpose="Cola de investigacion, tecnologias disponibles y bloqueos visibles para el contexto actual."
           statusLabel={`${catalogSummary.availableCount} disponibles`}
           statusTone={catalogSummary.availableCount > 0 ? "good" : "warn"}
           contextItems={[
             { label: "Civilizacion", value: "Contexto activo" },
-            { label: "Planeta fuente", value: uiState.selectedPlanetName ?? "Sin planeta seleccionado" },
-            { label: "Cola", value: `${uiState.queue.length} ordenes`, detail: `${dueQueueCount} vencidas` },
-            { label: "Bloqueadas", value: String(catalogSummary.blockedCount), detail: "Razones en catalogo" },
+            { label: "Laboratorio", value: uiState.selectedPlanetName ?? "Sin planeta seleccionado" },
+            { label: "Cola de investigacion", value: `${uiState.queue.length} ordenes`, detail: `${dueQueueCount} listas para revisar` },
+            { label: "Tecnologias bloqueadas", value: String(catalogSummary.blockedCount), detail: "Razones en catalogo" },
           ]}
           primaryAction={
             <div className="selection-chip-row">
@@ -473,39 +473,39 @@ export function ResearchPage() {
         <UiCard className="panel strategic-loader-panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Enlace cientifico</p>
-              <h3>Cargar contexto de investigacion</h3>
+              <p className="eyebrow">Laboratorio</p>
+              <h3>Cargar contexto cientifico</h3>
             </div>
             <UiBadge>Uso local</UiBadge>
           </div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
-              <span>Id de civilizacion</span>
-              <input type="text" value={civilizationIdInput} onChange={(event) => setCivilizationIdInput(event.target.value)} placeholder="00000000-0000-0000-0000-000000000000" spellCheck={false} />
+              <span>Civilizacion</span>
+              <input type="text" value={civilizationIdInput} onChange={(event) => setCivilizationIdInput(event.target.value)} placeholder="Usa el contexto guardado o un enlace de Galaxia" spellCheck={false} />
             </label>
             <label className="field">
-              <span>Id de planeta opcional</span>
-              <input type="text" value={planetIdInput} onChange={(event) => setPlanetIdInput(event.target.value)} placeholder="40000000-0000-0000-0000-000000000000" spellCheck={false} />
+              <span>Planeta de laboratorio</span>
+              <input type="text" value={planetIdInput} onChange={(event) => setPlanetIdInput(event.target.value)} placeholder="Opcional si vienes desde una colonia" spellCheck={false} />
             </label>
             <button type="submit" disabled={isLoading}>{isLoading ? "Cargando..." : "Abrir cabina"}</button>
           </form>
           {error ? <p className="error-text">{error}</p> : null}
-          {!queryCivilizationId ? <p className="figma-panel-note">Introduce un `civilizationId` valido, entra desde Galaxia o usa el inicio local disponible para reconstruir la URL con contexto.</p> : null}
+          {!queryCivilizationId ? <p className="figma-panel-note">Entra desde Galaxia o usa el inicio local disponible para reconstruir la URL con contexto.</p> : null}
         </UiCard>
 
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Limites de cabina</p>
+              <p className="eyebrow">Laboratorio</p>
               <h3>Que entra aqui</h3>
             </div>
             <UiBadge tone="good">Lectura segura</UiBadge>
           </div>
           <ul className="stack-list strategic-rules-list">
-            <li>La cabina prioriza lectura de catalogo, cola y proyectos completados.</li>
-            <li>La navegacion conserva `civilizationId` y `planetId` siempre que existen.</li>
-            <li>Las altas a cola requieren confirmacion explicita y solo usan una via segura de desarrollo.</li>
-            <li>El diagnostico tecnico se mantiene aparte para no ensuciar la vista principal.</li>
+            <li>La cabina prioriza tecnologias disponibles, cola de investigacion y proyectos completados.</li>
+            <li>La navegacion conserva el contexto cientifico al cambiar de cabina.</li>
+            <li>Las altas a cola requieren confirmacion explicita.</li>
+            <li>Los detalles de soporte quedan fuera de la vista principal.</li>
           </ul>
         </UiCard>
       </div>
@@ -536,7 +536,7 @@ export function ResearchPage() {
             <UiBadge tone="good">Memoria local</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Este enlace solo reconstruye la URL con ids guardados por `/onboarding`; el backend seguira validando el estado real.
+            Este enlace recupera la ultima colonia local guardada; cada cabina volvera a comprobar el estado de juego antes de mostrar acciones.
           </p>
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
@@ -546,13 +546,13 @@ export function ResearchPage() {
         </UiCard>
       ) : null}
 
-      {isLoading ? <UiCard className="panel"><p>Cargando investigacion, catalogo y diagnostico del contexto seleccionado.</p></UiCard> : null}
+      {isLoading ? <UiCard className="panel"><p>Cargando laboratorio, tecnologias disponibles y cola de investigacion.</p></UiCard> : null}
 
       {!isLoading && uiState && uiState.catalog.length === 0 ? (
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Catalogo vacio</p>
+              <p className="eyebrow">Laboratorio</p>
               <h3>Tecnologia pendiente de seleccion.</h3>
             </div>
             <UiBadge tone="warn">Sin catalogo</UiBadge>
@@ -566,15 +566,15 @@ export function ResearchPage() {
           <UiCard className="panel research-queue-panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Cola y progreso</p>
-                <h3>Elementos activos y completados</h3>
+                <p className="eyebrow">Progreso cientifico</p>
+                <h3>Cola de investigacion</h3>
               </div>
               <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
             </div>
             <div className="figma-two-column">
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
-                  <div><p className="eyebrow">Cola</p><h4>Ordenes e historial visible</h4></div>
+                  <div><p className="eyebrow">Cola de investigacion</p><h4>Ordenes e historial visible</h4></div>
                   <UiBadge>{uiState.queue.length}</UiBadge>
                 </div>
                 {uiState.queue.length > 0 ? (
@@ -589,7 +589,7 @@ export function ResearchPage() {
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
-                  <div><p className="eyebrow">Completadas</p><h4>Proyectos cerrados</h4></div>
+                  <div><p className="eyebrow">Progreso cientifico</p><h4>Tecnologias completadas</h4></div>
                   <UiBadge>{uiState.projects.length}</UiBadge>
                 </div>
                 {uiState.projects.length > 0 ? (
@@ -606,8 +606,8 @@ export function ResearchPage() {
           <UiCard className="panel research-catalog-panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Catalogo</p>
-                <h3>Tecnologias por categoria</h3>
+                <p className="eyebrow">Laboratorio</p>
+                <h3>Tecnologias disponibles y bloqueadas</h3>
               </div>
               <UiBadge tone="good">Vista normalizada</UiBadge>
             </div>
@@ -726,9 +726,9 @@ export function ResearchPage() {
               <div className="figma-section-header">
                 <div>
                   <p className="eyebrow">Orden creada</p>
-                  <h3>Resultado confirmado por la API</h3>
+                  <h3>Investigacion aceptada</h3>
                 </div>
-                <UiBadge tone="good">Sin optimismo local</UiBadge>
+                <UiBadge tone="good">Lectura actualizada</UiBadge>
               </div>
               <div className="figma-data-list">
                 <div className="figma-data-row"><span>Inicio</span><strong>{enqueueOrderDetails.startsAtUtc ? formatDateTime(enqueueOrderDetails.startsAtUtc) : "No devuelto"}</strong></div>
@@ -742,7 +742,7 @@ export function ResearchPage() {
               <div>
                 <p className="eyebrow">Cierre vencido</p>
                 <h3>Completar investigaciones vencidas</h3>
-                <p>La via disponible en esta version procesa vencimientos de forma global y no queda limitada a esta cabina.</p>
+                <p>El cierre seguro de investigaciones vencidas todavia no esta disponible desde esta cabina.</p>
               </div>
               <UiBadge tone="warn">{dueQueueCount} vencidas</UiBadge>
             </div>
