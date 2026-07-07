@@ -1,14 +1,19 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using VoidEmpires.Application.Identity;
 using VoidEmpires.Application.Players;
+using VoidEmpires.Infrastructure.Identity;
 using VoidEmpires.Infrastructure.Persistence;
 
 internal static class AccountEndpoints
 {
-    public static void MapAccountEndpoints(this WebApplication app) =>
+    public static void MapAccountEndpoints(this WebApplication app)
+    {
         app.MapPost("/api/accounts/register", RegisterAsync);
+        app.MapPost("/api/accounts/login", LoginAsync);
+    }
     private static async Task<IResult> RegisterAsync(
         AccountRegistrationRequest? request,
         [FromServices] IServiceProvider services,
@@ -43,6 +48,41 @@ internal static class AccountEndpoints
     }
     private static AccountRegistrationRequest Sanitize(AccountRegistrationRequest? request) =>
         new(request?.Email ?? string.Empty, request?.Password ?? string.Empty, request?.ConfirmPassword ?? string.Empty, request?.DisplayName ?? string.Empty, request?.CivilizationName ?? string.Empty, request?.HomePlanetName);
+    private static async Task<IResult> LoginAsync(
+        AccountLoginRequest? request,
+        [FromServices] UserManager<VoidEmpiresUser> userManager,
+        [FromServices] VoidEmpiresDbContext dbContext,
+        [FromServices] IConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        if (!IsPersistenceConfigured(configuration)) return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        var safeRequest = Sanitize(request);
+        var errors = ValidateLogin(safeRequest);
+        if (errors.Count > 0) return Results.BadRequest(AccountSessionResult.Failure(errors.ToArray()));
+        var user = await userManager.FindByEmailAsync(safeRequest.Email);
+        if (user is null || !await userManager.CheckPasswordAsync(user, safeRequest.Password)) return Results.Json(
+            AccountSessionResult.Failure(new AccountSessionError("InvalidCredentials", "Email or password is incorrect.")),
+            statusCode: StatusCodes.Status401Unauthorized);
+        return Results.Ok(await BuildSessionAsync(dbContext, user.Id, cancellationToken));
+    }
+    private static AccountLoginRequest Sanitize(AccountLoginRequest? request) =>
+        new((request?.Email ?? string.Empty).Trim().ToLowerInvariant(), request?.Password ?? string.Empty);
+    private static List<AccountSessionError> ValidateLogin(AccountLoginRequest request)
+    {
+        var errors = new List<AccountSessionError>();
+        if (string.IsNullOrWhiteSpace(request.Email)) errors.Add(new AccountSessionError("EmailRequired", "Email is required.", "email"));
+        if (string.IsNullOrWhiteSpace(request.Password)) errors.Add(new AccountSessionError("PasswordRequired", "Password is required.", "password"));
+        return errors;
+    }
+    private static async Task<AccountSessionResult> BuildSessionAsync(VoidEmpiresDbContext dbContext, string userId, CancellationToken cancellationToken)
+    {
+        var profile = await dbContext.PlayerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+        if (profile is null) return AccountSessionResult.Success(userId, null, null, null, null, null);
+        var civilization = await dbContext.Civilizations.AsNoTracking().OrderBy(x => x.Name).FirstOrDefaultAsync(x => x.PlayerProfileId == profile.Id, cancellationToken);
+        if (civilization?.HomePlanetId is not Guid homePlanetId) return AccountSessionResult.Success(userId, profile.Id, civilization?.Id, null, null, null);
+        var homePlanetName = await dbContext.Planets.AsNoTracking().Where(x => x.Id == homePlanetId).Select(x => x.Name).SingleOrDefaultAsync(cancellationToken);
+        return AccountSessionResult.Success(userId, profile.Id, civilization.Id, homePlanetId, homePlanetName, $"/planet?civilizationId={civilization.Id}&planetId={homePlanetId}");
+    }
     private static async Task<IDbContextTransaction?> BeginTransactionIfRelationalAsync(
         IServiceProvider services,
         CancellationToken cancellationToken)
