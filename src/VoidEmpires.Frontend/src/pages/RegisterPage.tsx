@@ -1,11 +1,13 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import type { AccountApiError } from "../api/accountTypes";
+import type { AccountApiError, AccountRegistrationResponse } from "../api/accountTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
-import { buildGalaxyUrl, buildPlanetUrl } from "../utils/routeUrls";
+import { getRegistrationWorldEntry } from "../utils/currentAccountSession";
+import { savePlayableSession } from "../utils/playableSession";
+import { buildGalaxyUrl, buildWorldEntryUrl } from "../utils/routeUrls";
 
 function toRegisterError(error: AccountApiError) {
   switch (error.code) {
@@ -40,6 +42,13 @@ function toRegisterError(error: AccountApiError) {
   }
 }
 
+function resolveRegistrationRoute(registration: AccountRegistrationResponse) {
+  const worldEntry = getRegistrationWorldEntry(registration);
+  return worldEntry
+    ? buildWorldEntryUrl(worldEntry.civilizationId, worldEntry.planetId, worldEntry.nextRoute)
+    : "/";
+}
+
 export function RegisterPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -57,8 +66,9 @@ export function RegisterPage() {
     setErrors([]);
 
     try {
+      const normalizedEmail = email.trim();
       const result = await voidEmpiresApi.account.register({
-        email: email.trim(),
+        email: normalizedEmail,
         password,
         confirmPassword,
         displayName: displayName.trim(),
@@ -72,11 +82,26 @@ export function RegisterPage() {
         return;
       }
 
-      const nextRoute = result.response.nextRoute
-        ?? (result.response.civilizationId && result.response.homePlanetId
-          ? buildPlanetUrl(result.response.civilizationId, result.response.homePlanetId)
-          : "/");
-      navigate(nextRoute, { replace: true });
+      const worldEntry = getRegistrationWorldEntry(result.response);
+      if (!worldEntry) {
+        setErrors(["La cuenta fue creada, pero no se pudo resolver el mundo inicial."]);
+        return;
+      }
+
+      const loginResult = await voidEmpiresApi.account.login({ email: normalizedEmail, password });
+      if (loginResult.httpStatus !== 200 || !loginResult.response?.succeeded) {
+        setErrors(["La cuenta fue creada. Entra con tu correo para abrir el mundo inicial."]);
+        return;
+      }
+
+      savePlayableSession({
+        civilizationId: worldEntry.civilizationId,
+        planetId: worldEntry.planetId,
+        playerDisplayName: displayName.trim(),
+        civilizationName: civilizationName.trim(),
+        planetName: worldEntry.planetName ?? homePlanetName.trim(),
+      });
+      navigate(resolveRegistrationRoute(result.response), { replace: true });
     } catch {
       setErrors(["No se pudo contactar el servicio de cuentas."]);
     } finally {

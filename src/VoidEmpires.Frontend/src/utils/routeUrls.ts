@@ -25,6 +25,11 @@ export function buildCommandHubUrl(civilizationId: string, planetId?: string | n
   return buildPlanetUrl(civilizationId, planetId);
 }
 
+export function buildWorldEntryUrl(civilizationId: string, planetId: string, nextRoute?: string | null) {
+  const trimmedNextRoute = nextRoute?.trim();
+  return trimmedNextRoute ? trimmedNextRoute : buildPlanetUrl(civilizationId, planetId);
+}
+
 export function buildConstructionUrl(civilizationId: string, planetId?: string | null) {
   return buildUrl("/construction", { civilizationId, planetId });
 }

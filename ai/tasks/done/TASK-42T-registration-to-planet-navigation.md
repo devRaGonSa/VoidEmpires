@@ -3,7 +3,7 @@
 ---
 id: TASK-42T
 title: Registration to planet navigation
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

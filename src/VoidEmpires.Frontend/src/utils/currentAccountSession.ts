@@ -1,4 +1,9 @@
-import type { AccountApiError, AccountApiResult, AccountSessionResponse } from "../api/accountTypes";
+import type {
+  AccountApiError,
+  AccountApiResult,
+  AccountRegistrationResponse,
+  AccountSessionResponse,
+} from "../api/accountTypes";
 
 export type CurrentAccountSessionStatus = "loading" | "ready" | "signedOut" | "error";
 
@@ -65,6 +70,28 @@ export function getCurrentAccountWorldEntry(session: AccountSessionResponse | nu
     planetId,
     planetName: normalizeText(session.homePlanetName) ?? undefined,
     nextRoute: normalizeText(session.nextRoute) ?? undefined,
+  };
+}
+
+export function getRegistrationWorldEntry(
+  registration: AccountRegistrationResponse | null,
+): CurrentAccountWorldEntry | null {
+  if (!registration?.succeeded) {
+    return null;
+  }
+
+  const civilizationId = normalizeText(registration.civilizationId);
+  const planetId = normalizeText(registration.homePlanetId);
+
+  if (!civilizationId || !planetId) {
+    return null;
+  }
+
+  return {
+    civilizationId,
+    planetId,
+    planetName: normalizeText(registration.homePlanetName) ?? undefined,
+    nextRoute: normalizeText(registration.nextRoute) ?? undefined,
   };
 }
 
