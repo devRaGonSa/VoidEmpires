@@ -16,10 +16,26 @@ export function AppShell({
   statusItems,
 }: AppShellProps) {
   const location = useLocation();
+  const isHomeRoute = location.pathname === "/";
   const isFleetRoute = location.pathname === "/fleets";
-  const isStrategicMapRoute =
-    location.pathname === "/" || location.pathname === "/galaxy";
-  const isCompactIntro = isFleetRoute || isStrategicMapRoute;
+  const isStrategicMapRoute = location.pathname === "/galaxy";
+  const isCompactIntro = isHomeRoute || isFleetRoute || isStrategicMapRoute;
+
+  const introTitle = isHomeRoute
+    ? "Inicio del imperio"
+    : isFleetRoute
+      ? "Readiness orbital"
+      : isStrategicMapRoute
+        ? "Mapa estrategico"
+        : "Centro de mando imperial";
+
+  const introDescription = isHomeRoute
+    ? "Retoma tu partida, funda una colonia nueva o entra a la galaxia desde la superficie principal."
+    : isFleetRoute
+      ? "Flotas muestra preparacion, carga y ordenes confirmadas para el contexto seleccionado."
+      : isStrategicMapRoute
+        ? "La galaxia prioriza mapa, seleccion y contexto tactico para continuar hacia las cabinas del imperio."
+        : "Cabinas de colonia, investigacion, astillero y flotas con lectura de estado y confirmaciones explicitas cuando la pagina lo permite.";
 
   return (
     <div className="app-shell">
@@ -45,6 +61,11 @@ export function AppShell({
             <p>Colonias, flotas y rutas estrategicas del imperio.</p>
           </div>
           <SidebarNav items={sidebarItems} />
+          <div className="app-sidebar-status" aria-label="Estado del producto">
+            <span>Superficie imperial</span>
+            <strong>Partida y cabinas listas</strong>
+            <p>Inicio, nueva partida y navegacion principal permanecen disponibles sin detalles tecnicos.</p>
+          </div>
         </aside>
 
         <div className="app-main-column">
@@ -64,20 +85,8 @@ export function AppShell({
             >
               <div className="shell-intro-copy">
                 <p className="eyebrow">VoidEmpires</p>
-                <h1>
-                  {isFleetRoute
-                    ? "Readiness orbital"
-                    : isStrategicMapRoute
-                      ? "Mapa estrategico"
-                      : "Centro de mando imperial"}
-                </h1>
-                <p className="lede">
-                  {isFleetRoute
-                    ? "Flotas muestra preparacion, carga y ordenes confirmadas para el contexto seleccionado."
-                    : isStrategicMapRoute
-                      ? "La galaxia prioriza mapa, seleccion y contexto tactico para continuar hacia las cabinas del imperio."
-                      : "Cabinas de colonia, investigacion, astillero y flotas con lectura de estado y confirmaciones explicitas cuando la pagina lo permite."}
-                </p>
+                <h1>{introTitle}</h1>
+                <p className="lede">{introDescription}</p>
               </div>
             </UiCard>
           </section>
