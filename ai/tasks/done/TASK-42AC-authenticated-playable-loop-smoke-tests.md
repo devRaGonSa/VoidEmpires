@@ -3,7 +3,7 @@
 ---
 id: TASK-42AC
 title: Authenticated playable loop smoke tests
-status: pending
+status: done
 type: backend
 team: platform
 supporting_teams: []
