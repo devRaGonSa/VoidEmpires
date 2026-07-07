@@ -1579,46 +1579,48 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           ) : null}
           </UiCard>
 
-          <div id="planet-dev-diagnostics">
-            <DevDiagnosticsPanel
-              title={isConstructionRoute ? "Diagnostico de construccion" : "Diagnostico de planeta"}
-              summaryItems={[
-                { label: "Civilizacion", value: activeCivilizationId },
-                { label: "Planeta", value: planet.planetId },
-                { label: "Reserva persistida", value: planet.diagnostics.hasResourceStockpile ? "Si" : "No" },
-                { label: "Perfil de produccion", value: planet.diagnostics.hasProductionProfile ? "Si" : "No" },
-                { label: "Ordenes abiertas", value: planet.diagnostics.openConstructionOrderCount },
-                { label: "Cola visible", value: planet.constructionQueue.length },
-              ]}
-              notes={planet.diagnostics.notes}
-              rawPayload={{
-                diagnostics: planet.diagnostics,
-                constructionRefreshAudit,
-                economyRefreshAudit,
-                queueMaterializationAudit,
-              }}
-            />
-          </div>
-
-          <details className="technical-disclosure">
-            <summary>
-              <div>
-                <p className="eyebrow">Diagnostico secundario</p>
-                <strong>Ids, notas de soporte y lectura tecnica</strong>
+          {operatorMode ? (
+            <>
+              <div id="planet-dev-diagnostics">
+                <DevDiagnosticsPanel
+                  title={isConstructionRoute ? "Diagnostico de construccion" : "Diagnostico de planeta"}
+                  summaryItems={[
+                    { label: "Civilizacion", value: activeCivilizationId },
+                    { label: "Planeta", value: planet.planetId },
+                    { label: "Reserva persistida", value: planet.diagnostics.hasResourceStockpile ? "Si" : "No" },
+                    { label: "Perfil de produccion", value: planet.diagnostics.hasProductionProfile ? "Si" : "No" },
+                    { label: "Ordenes abiertas", value: planet.diagnostics.openConstructionOrderCount },
+                    { label: "Cola visible", value: planet.constructionQueue.length },
+                  ]}
+                  notes={planet.diagnostics.notes}
+                  rawPayload={{
+                    diagnostics: planet.diagnostics,
+                    constructionRefreshAudit,
+                    economyRefreshAudit,
+                    queueMaterializationAudit,
+                  }}
+                />
               </div>
-              <UiBadge tone="warn">Contraido por defecto</UiBadge>
-            </summary>
 
-            <div className="technical-disclosure-body">
-              <UiCard className="panel">
-                <div className="figma-section-header">
+              <details className="technical-disclosure">
+                <summary>
                   <div>
-                    <p className="eyebrow">Metadatos tecnicos</p>
-                    <h3>Lectura de soporte</h3>
+                    <p className="eyebrow">Diagnostico secundario</p>
+                    <strong>Ids, notas de soporte y lectura tecnica</strong>
                   </div>
-                  <UiBadge>Soporte tecnico</UiBadge>
-                </div>
-                <div className="figma-detail-grid strategic-detail-grid">
+                  <UiBadge tone="warn">Contraido por defecto</UiBadge>
+                </summary>
+
+                <div className="technical-disclosure-body">
+                  <UiCard className="panel">
+                    <div className="figma-section-header">
+                      <div>
+                        <p className="eyebrow">Metadatos tecnicos</p>
+                        <h3>Lectura de soporte</h3>
+                      </div>
+                      <UiBadge>Soporte tecnico</UiBadge>
+                    </div>
+                    <div className="figma-detail-grid strategic-detail-grid">
                   <section className="subpanel figma-subpanel">
                     <div className="figma-data-list">
                       <PlanetDataRow label="Id planeta" value={formatCompactGuid(planet.planetId)} />
@@ -1748,9 +1750,11 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                     </div>
                   </section>
                 ) : null}
-              </UiCard>
-            </div>
-          </details>
+                  </UiCard>
+                </div>
+              </details>
+            </>
+          ) : null}
         </>
       ) : null}
 

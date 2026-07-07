@@ -29,6 +29,7 @@ import {
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
 import { cockpitNavigationLabels, cockpitStatusLabels } from "../utils/cockpitStatus";
+import { isOperatorMode } from "../utils/playableSession";
 import { formatResourceAmountList, formatResourceDelta, formatResourceLabel } from "../utils/resourceDisplay";
 import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
 
@@ -301,6 +302,7 @@ export function ShipyardPage() {
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
+  const operatorMode = isOperatorMode(searchParams);
   const selectedPlanetId = uiState?.selectedPlanetId ?? queryPlanetId ?? null;
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
@@ -1062,7 +1064,7 @@ export function ShipyardPage() {
             </UiCard>
           ) : null}
 
-          {shipyard.diagnostics.playerFacing.length > 0 || technicalErrorDetail || enqueueOrderDetails ? (
+          {operatorMode && (shipyard.diagnostics.playerFacing.length > 0 || technicalErrorDetail || enqueueOrderDetails) ? (
             <DevDiagnosticsPanel
               title="Diagnostico de astillero"
               summaryItems={[
@@ -1086,7 +1088,7 @@ export function ShipyardPage() {
             />
           ) : null}
 
-          {shipyard.diagnostics.playerFacing.length > 0 || technicalErrorDetail || enqueueOrderDetails ? (
+          {operatorMode && (shipyard.diagnostics.playerFacing.length > 0 || technicalErrorDetail || enqueueOrderDetails) ? (
             <details className="technical-disclosure">
               <summary>
                 <div>

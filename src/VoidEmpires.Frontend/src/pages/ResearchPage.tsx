@@ -20,6 +20,7 @@ import {
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
+import { isOperatorMode } from "../utils/playableSession";
 import { buildConstructionUrl, buildFleetsUrl, buildGalaxyUrl, buildPlanetUrl, buildResearchUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
 
@@ -216,6 +217,7 @@ export function ResearchPage() {
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
+  const operatorMode = isOperatorMode(searchParams);
   const selectedPlanetId = uiState?.selectedPlanetId ?? queryPlanetId ?? null;
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
@@ -763,70 +765,74 @@ export function ResearchPage() {
             </div>
           </UiCard>
 
-          <DevDiagnosticsPanel
-            title="Diagnostico de investigacion"
-            summaryItems={[
-              { label: "Civilizacion", value: activeCivilizationId },
-              { label: "Planeta", value: selectedPlanetId },
-              { label: "Tecnologias", value: uiState.catalog.length },
-              { label: "Cola visible", value: uiState.queue.length },
-              { label: "Ordenes vencidas", value: dueQueueCount },
-              { label: "Proyectos completados", value: uiState.projects.length },
-            ]}
-            notes={[
-              ...uiState.diagnostics.limitations,
-              ...(technicalErrorDetail ? [technicalErrorDetail] : []),
-            ]}
-            rawPayload={{
-              diagnostics: uiState.diagnostics,
-              enqueueOrderDetails,
-            }}
-          />
+          {operatorMode ? (
+            <>
+              <DevDiagnosticsPanel
+                title="Diagnostico de investigacion"
+                summaryItems={[
+                  { label: "Civilizacion", value: activeCivilizationId },
+                  { label: "Planeta", value: selectedPlanetId },
+                  { label: "Tecnologias", value: uiState.catalog.length },
+                  { label: "Cola visible", value: uiState.queue.length },
+                  { label: "Ordenes vencidas", value: dueQueueCount },
+                  { label: "Proyectos completados", value: uiState.projects.length },
+                ]}
+                notes={[
+                  ...uiState.diagnostics.limitations,
+                  ...(technicalErrorDetail ? [technicalErrorDetail] : []),
+                ]}
+                rawPayload={{
+                  diagnostics: uiState.diagnostics,
+                  enqueueOrderDetails,
+                }}
+              />
 
-          <details className="technical-disclosure">
-            <summary>
-              <div>
-                <p className="eyebrow">Diagnostico secundario</p>
-                <strong>Ids, limites y lectura tecnica</strong>
-              </div>
-              <UiBadge tone="warn">Contraido por defecto</UiBadge>
-            </summary>
-            <div className="technical-disclosure-body">
-              <UiCard className="panel">
-                <div className="figma-section-header">
-                  <div><p className="eyebrow">Metadatos</p><h3>Soporte tecnico</h3></div>
-                  <UiBadge>{cockpitStatusLabels.diagnostics}</UiBadge>
-                </div>
-                <div className="figma-data-list">
-                  {uiState.diagnostics.lines.map((line) => <div key={line} className="figma-data-row"><span>Linea</span><strong>{line}</strong></div>)}
-                </div>
-                {uiState.diagnostics.limitations.length > 0 ? (
-                  <ul className="stack-list compact-list">
-                    {uiState.diagnostics.limitations.map((item) => <li key={item}>{item}</li>)}
-                  </ul>
-                ) : null}
-                {technicalErrorDetail ? (
-                  technicalErrorDetail.includes("\n") ? (
-                    <div className="figma-data-list">
-                      <div className="figma-data-row">
-                        <span>Detalle tecnico</span>
-                        <pre style={{ margin: 0, whiteSpace: "pre-wrap" }}>{technicalErrorDetail}</pre>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="figma-data-list">
-                      <div className="figma-data-row"><span>Detalle tecnico</span><strong>{technicalErrorDetail}</strong></div>
-                    </div>
-                  )
-                ) : null}
-                {enqueueOrderDetails?.orderId ? (
-                  <div className="figma-data-list">
-                    <div className="figma-data-row"><span>Orden confirmada</span><strong>{enqueueOrderDetails.orderId}</strong></div>
+              <details className="technical-disclosure">
+                <summary>
+                  <div>
+                    <p className="eyebrow">Diagnostico secundario</p>
+                    <strong>Ids, limites y lectura tecnica</strong>
                   </div>
-                ) : null}
-              </UiCard>
-            </div>
-          </details>
+                  <UiBadge tone="warn">Contraido por defecto</UiBadge>
+                </summary>
+                <div className="technical-disclosure-body">
+                  <UiCard className="panel">
+                    <div className="figma-section-header">
+                      <div><p className="eyebrow">Metadatos</p><h3>Soporte tecnico</h3></div>
+                      <UiBadge>{cockpitStatusLabels.diagnostics}</UiBadge>
+                    </div>
+                    <div className="figma-data-list">
+                      {uiState.diagnostics.lines.map((line) => <div key={line} className="figma-data-row"><span>Linea</span><strong>{line}</strong></div>)}
+                    </div>
+                    {uiState.diagnostics.limitations.length > 0 ? (
+                      <ul className="stack-list compact-list">
+                        {uiState.diagnostics.limitations.map((item) => <li key={item}>{item}</li>)}
+                      </ul>
+                    ) : null}
+                    {technicalErrorDetail ? (
+                      technicalErrorDetail.includes("\n") ? (
+                        <div className="figma-data-list">
+                          <div className="figma-data-row">
+                            <span>Detalle tecnico</span>
+                            <pre style={{ margin: 0, whiteSpace: "pre-wrap" }}>{technicalErrorDetail}</pre>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="figma-data-list">
+                          <div className="figma-data-row"><span>Detalle tecnico</span><strong>{technicalErrorDetail}</strong></div>
+                        </div>
+                      )
+                    ) : null}
+                    {enqueueOrderDetails?.orderId ? (
+                      <div className="figma-data-list">
+                        <div className="figma-data-row"><span>Orden confirmada</span><strong>{enqueueOrderDetails.orderId}</strong></div>
+                      </div>
+                    ) : null}
+                  </UiCard>
+                </div>
+              </details>
+            </>
+          ) : null}
         </>
       ) : null}
 

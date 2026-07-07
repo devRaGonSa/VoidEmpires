@@ -3,7 +3,7 @@
 ---
 id: TASK-41H
 title: Debug operator mode gate
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
