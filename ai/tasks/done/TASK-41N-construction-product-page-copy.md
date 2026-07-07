@@ -3,7 +3,7 @@
 ---
 id: TASK-41N
 title: Construction product page copy
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

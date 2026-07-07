@@ -768,10 +768,10 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
     <section className="page-grid">
       <CockpitHero
         versionLabel={isConstructionRoute ? "Construccion v1" : "Planeta v1"}
-        title={isConstructionRoute ? "Mando de construccion" : "Centro de mando planetario"}
+        title={isConstructionRoute ? "Obras de la colonia" : "Centro de mando planetario"}
         description={
           isConstructionRoute
-            ? "Catalogo, reservas y cola del planeta activo con confirmacion explicita."
+            ? "Catalogo de edificios, recursos disponibles y cola de obras del planeta activo con confirmacion explicita."
             : "Resumen del mundo, recursos, produccion, actividad orbital y accesos de mando de la colonia."
         }
         developmentNote={
@@ -1020,7 +1020,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
               <div className="figma-section-header">
                 <div>
                   <p className="eyebrow">Reservas y produccion</p>
-                  <h3>Recursos</h3>
+                  <h3>{isConstructionRoute ? "Recursos disponibles" : "Recursos"}</h3>
                 </div>
                 <UiBadge tone="resource">
                   {planet.stockpile.length > 0 ? `${planet.stockpile.length} reservas visibles` : "Sin reservas"}
@@ -1180,12 +1180,11 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           ) : null}
 
           <div className="figma-two-column planet-overview-grid">
-            {!isConstructionRoute ? (
               <UiCard className="panel">
                 <div className="figma-section-header">
                   <div>
                     <p className="eyebrow">Infraestructura</p>
-                    <h3>Produccion</h3>
+                    <h3>{isConstructionRoute ? "Edificios actuales" : "Produccion"}</h3>
                   </div>
                   <UiBadge>{planet.buildings.length} activos</UiBadge>
                 </div>
@@ -1222,13 +1221,12 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                   </p>
                 )}
               </UiCard>
-            ) : null}
 
             <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">Cola de construccion</p>
-                  <h3>{isConstructionRoute ? "Produccion en curso" : "Produccion"}</h3>
+                  <p className="eyebrow">{isConstructionRoute ? "Cola de obras" : "Cola de construccion"}</p>
+                  <h3>{isConstructionRoute ? "Cola de obras" : "Produccion"}</h3>
                 </div>
                 <UiBadge tone={planet.constructionQueue.length > 0 ? "warn" : "good"}>
                   {planet.constructionQueue.length > 0
@@ -1280,8 +1278,8 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">Accesos de mando</p>
-                  <h3>{isConstructionRoute ? "Centro de mando de obra" : "Ordenes de construccion"}</h3>
+                  <p className="eyebrow">{isConstructionRoute ? "Catalogo de edificios" : "Accesos de mando"}</p>
+                  <h3>{isConstructionRoute ? "Catalogo de edificios" : "Ordenes de construccion"}</h3>
                   <p>
                     {isConstructionRoute
                     ? "Esta vista concentra solo la construccion general, la cola y las confirmaciones seguras para una sola colonia activa."
