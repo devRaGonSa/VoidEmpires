@@ -3,7 +3,7 @@
 ---
 id: TASK-41Q
 title: Research card product polish
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

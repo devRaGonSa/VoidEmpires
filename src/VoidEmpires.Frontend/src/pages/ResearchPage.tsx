@@ -645,7 +645,7 @@ export function ResearchPage() {
                       >
                         <div className="figma-section-header">
                           <div>
-                            <p className="eyebrow">{technology.bonusLabel}</p>
+                            <p className="eyebrow">{technology.categoryLabel}</p>
                             <h4>{technology.label}</h4>
                           </div>
                           <UiBadge tone={visualState === "ready" ? "good" : visualState === "blocked" ? "warn" : "resource"}>
@@ -656,16 +656,19 @@ export function ResearchPage() {
                           kind="technology"
                           label={technology.label}
                           typeLabel={technology.categoryLabel}
-                          detail={`Nivel actual ${technology.currentLevel}. Siguiente nivel ${technology.nextLevel}.`}
+                          detail={`Impacto: ${technology.bonusLabel}. Nivel ${technology.currentLevel} a ${technology.nextLevel}.`}
                         />
                         <div className="figma-data-list">
-                          <div className="figma-data-row"><span>Nivel</span><strong>{`${technology.currentLevel} -> ${technology.nextLevel}`}</strong></div>
+                          <div className="figma-data-row"><span>Categoria</span><strong>{technology.categoryLabel}</strong></div>
+                          <div className="figma-data-row"><span>Nivel actual</span><strong>{technology.currentLevel}</strong></div>
+                          <div className="figma-data-row"><span>Siguiente nivel</span><strong>{technology.nextLevel}</strong></div>
+                          <div className="figma-data-row"><span>Impacto</span><strong>{technology.bonusLabel}</strong></div>
                           <div className="figma-data-row"><span>Coste</span><strong>{technology.estimatedCostLabel}</strong></div>
                           <div className="figma-data-row"><span>Duracion</span><strong>{technology.estimatedDurationLabel}</strong></div>
                           <div className="figma-data-row"><span>Accion</span><strong>{getResearchPrimaryAction(technology)}</strong></div>
                         </div>
                         <div className="research-requirements-block">
-                          <p className="research-card-caption">Requisitos visibles</p>
+                          <p className="research-card-caption">Requisitos para iniciar</p>
                           <div className="selection-chip-row research-requirements-row">
                             {technology.requirements.map((requirement) => (
                               <span key={`${technology.researchType}-${requirement.key}`} className="selection-chip">
@@ -676,7 +679,7 @@ export function ResearchPage() {
                         </div>
                         {visualState === "blocked" ? (
                           <div className="research-blocked-affordance" aria-disabled="true">
-                            <strong>Solo lectura</strong>
+                            <strong>Tecnologia bloqueada</strong>
                             <span>{blockedReasonLabel}</span>
                           </div>
                         ) : (
