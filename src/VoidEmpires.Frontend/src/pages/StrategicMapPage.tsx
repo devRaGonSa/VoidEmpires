@@ -49,6 +49,7 @@ import {
 } from "../utils/routeUrls";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { getUserFacingActionLabel } from "../utils/fleetCommandPresentation";
+import { isOperatorMode } from "../utils/playableSession";
 
 const readinessSections = [
   { label: "Notas de ruta y combustible", key: "routeFuelNotes" },
@@ -303,13 +304,14 @@ export function StrategicMapPage() {
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const querySystemId = searchParams.get("systemId");
   const queryPlanetId = searchParams.get("planetId");
+  const operatorMode = isOperatorMode(searchParams);
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
   const hasMissingContext = !queryCivilizationId;
   const hasInvalidContext = isSuspiciousContext;
   const hasApiError = Boolean(queryCivilizationId && error && !result);
   const hasEmptyStrategicReadModel = Boolean(result && result.systems.length === 0);
   const cockpitResult = result && result.systems.length > 0 ? result : null;
-  const shouldRenderDiagnostics = Boolean(
+  const shouldRenderDiagnostics = operatorMode && Boolean(
     queryCivilizationId || result || error || isLoading || hasInvalidContext,
   );
   const loadStatusLabel = isLoading
@@ -603,7 +605,7 @@ export function StrategicMapPage() {
           statusLabel={mapReadModel?.unknownSystems ? "Cobertura parcial" : "Lectura estable"}
           statusTone={mapReadModel?.unknownSystems ? "warn" : "good"}
           contextItems={[
-            { label: "Civilizacion", value: formatCompactGuid(cockpitResult.civilizationId) },
+            { label: "Civilizacion", value: "Contexto activo" },
             {
               label: "Sistemas",
               value: String(summary?.systems ?? cockpitResult.systems.length),
@@ -656,9 +658,9 @@ export function StrategicMapPage() {
                 type="text"
                 value={civilizationId}
                 onChange={(event) => setCivilizationId(event.target.value)}
-                placeholder="00000000-0000-0000-0000-000000000000"
+                placeholder="Pega el contexto de civilizacion"
                 spellCheck={false}
-                aria-label="Id de civilizacion"
+                aria-label="Contexto de civilizacion"
               />
             </label>
             <button type="submit" disabled={isLoading}>
@@ -680,7 +682,7 @@ export function StrategicMapPage() {
               <h3>Estado del frente</h3>
             </div>
             <UiBadge>
-              {summary ? formatCompactGuid(result?.civilizationId) : "Esperando mapa"}
+              {summary ? "Mapa cargado" : "Esperando mapa"}
             </UiBadge>
           </div>
           {summary ? (
@@ -727,11 +729,13 @@ export function StrategicMapPage() {
           <p className="figma-panel-note">
             Revisa que no hayas usado el id del planeta como civilizacion.
           </p>
-          <div className="selection-chip-row">
-            <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>
-              Abrir contexto de desarrollo
-            </Link>
-          </div>
+          {operatorMode ? (
+            <div className="selection-chip-row">
+              <Link className="selection-chip selection-chip-active" to={buildDevelopmentHelperUrl()}>
+                Abrir contexto de operador
+              </Link>
+            </div>
+          ) : null}
         </UiCard>
       )}
 
@@ -741,7 +745,7 @@ export function StrategicMapPage() {
           eyebrow="Contexto requerido"
           title="Galaxia necesita una civilizacion activa"
           description="Carga un contexto de civilizacion para abrir Galaxia."
-          detail="Puedes introducir el civilizationId manualmente o llegar desde Planeta, Construccion, Investigacion, Astillero o Flotas para conservar el contexto actual."
+          detail="Puedes pegar el contexto de civilizacion o llegar desde Planeta, Construccion, Investigacion, Astillero o Flotas para conservar la seleccion actual."
           badgeLabel="Uso local"
           badgeTone="neutral"
         />
@@ -760,10 +764,10 @@ export function StrategicMapPage() {
           kind="error"
           eyebrow="Fallo de carga"
           title="No se pudo cargar el mapa de Galaxia."
-          description={error ?? "La cabina sigue accesible, pero el backend no devolvio un mapa util para este contexto."}
-          detail="La cabina sigue accesible, pero el backend no devolvio un mapa util para este contexto."
+          description={error ?? "La cabina sigue accesible, pero no hay un mapa util para este contexto."}
+          detail="La cabina sigue accesible, pero no hay un mapa util para este contexto."
           badgeLabel="Sin mapa"
-          action={errorTechnicalDetail ? (
+          action={operatorMode && errorTechnicalDetail ? (
             <details className="json-details">
               <summary>Detalle tecnico</summary>
               <pre className="json-preview">{errorTechnicalDetail}</pre>
@@ -794,7 +798,7 @@ export function StrategicMapPage() {
                   <p className="eyebrow">Galaxia</p>
                   <h3>Mapa principal del teatro</h3>
                   <p>
-                    Las coordenadas del backend se proyectan en un plano 2D
+                    Las coordenadas del mapa se proyectan en un plano 2D
                     determinista para que el contexto espacial siga al frente de la
                     inspeccion.
                   </p>
@@ -1052,11 +1056,11 @@ export function StrategicMapPage() {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Estado vacio de desarrollo</p>
+              <p className="eyebrow">Estado vacio de Galaxia</p>
               <h3>No hay sistemas relevantes por ahora</h3>
               <p>
                 La civilizacion actual no tiene sistemas propios ni descubiertos en
-                este conjunto de desarrollo, por lo que Galaxia permanece en un
+                este conjunto actual, por lo que Galaxia permanece en un
                 estado cero seguro.
               </p>
             </div>
@@ -1231,7 +1235,7 @@ export function StrategicMapPage() {
               <div>
                 <p className="eyebrow">Navegacion preparada</p>
                 <h3>Sistema y planeta</h3>
-                <p>Los saltos conservan el contexto de civilizacion, sistema y planeta cuando el backend ya devolvio esos datos.</p>
+                <p>Los saltos conservan el contexto de civilizacion, sistema y planeta cuando la lectura actual ya tiene esos datos.</p>
               </div>
               <UiBadge tone={selectedSystem.planets?.length ? "good" : "warn"}>
                 {selectedSystem.planets?.length ? "Datos listos" : "Dependencia pendiente"}

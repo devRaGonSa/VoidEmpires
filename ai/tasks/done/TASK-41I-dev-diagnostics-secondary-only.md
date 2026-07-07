@@ -3,7 +3,7 @@
 ---
 id: TASK-41I
 title: Dev diagnostics secondary only
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
