@@ -269,6 +269,92 @@ foreach ($match in @($visibleEndpointDetailMatches)) {
   $copyHygieneFailures.Add(("{0}:{1}: endpoint URLs, localhost, backend profile, and raw endpoint details must not appear in normal UI: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
 }
 
+$operatorOnlyComponentPattern = "\\src\\VoidEmpires.Frontend\\src\\components\\(ActionManifestPanel|DevDiagnosticsPanel|DevEndpointNotice|DevelopmentToolsPanel)\.tsx$"
+$productSurfaceFiles = $primaryUiFiles |
+  Where-Object { $_.FullName -notmatch $operatorOnlyComponentPattern }
+$productSurfaceForbiddenPatterns = @(
+  "(?i)\bDevelopment\b",
+  "(?i)\bDev\b",
+  "(?i)\bQA\b",
+  "(?i)\bTest\b",
+  "(?i)\bPrueba\b",
+  "(?i)\bPrototipo\b",
+  "(?i)Solo desarrollo",
+  "(?i)cockpit-validation",
+  "(?i)minimal-validation",
+  "(?i)\bendpoint(s)?\b",
+  "(?i)localhost"
+)
+
+$productSurfaceAllowedLinePatterns = @(
+  "^\s*import\b",
+  "^\s*(export\s+)?(interface|type)\b",
+  "^\s*(const|function)\s+.*(Development|Dev|QA|Test|endpoint|localhost)",
+  "actionScope",
+  "aria-",
+  "className",
+  "data-",
+  "dev-diagnostics",
+  "dev-meta",
+  "developmentNote=",
+  "DevelopmentToolsPanel",
+  "DevDiagnosticsPanel",
+  "DevEndpointNotice",
+  "GameModalScope",
+  "id=",
+  "isOperatorMode",
+  "operatorMode",
+  "setTechnicalErrorDetail",
+  "technicalDetail",
+  "technical-disclosure"
+)
+$operatorOnlyVisibleFragments = @(
+  "Materializaciones Development",
+  "Las acciones QA mutan la base de datos Development",
+  "Development QA",
+  "Esta accion es solo Development",
+  "Confirmar accion Development",
+  "Esta accion muta la base de datos de Development."
+)
+$nonRenderedCockpitHeroFragments = @(
+  "Mutaciones Development confirmadas"
+)
+
+$productSurfaceForbiddenMatches = Select-String -Path ($productSurfaceFiles | Select-Object -ExpandProperty FullName) -Pattern $productSurfaceForbiddenPatterns -Encoding UTF8
+foreach ($match in @($productSurfaceForbiddenMatches)) {
+  $line = $match.Line.Trim()
+
+  $isAllowed = $false
+  foreach ($allowedPattern in $productSurfaceAllowedLinePatterns) {
+    if ($line -match $allowedPattern) {
+      $isAllowed = $true
+      break
+    }
+  }
+
+  if (-not $isAllowed) {
+    foreach ($fragment in $operatorOnlyVisibleFragments) {
+      if ($line -like "*$fragment*") {
+        $isAllowed = $true
+        break
+      }
+    }
+  }
+
+  if (-not $isAllowed) {
+    foreach ($fragment in $nonRenderedCockpitHeroFragments) {
+      if ($line -like "*$fragment*") {
+        $isAllowed = $true
+        break
+      }
+    }
+  }
+
+  if (-not $isAllowed) {
+    $copyHygieneFailures.Add(("{0}:{1}: forbidden dev/test/prototype wording in product-surface UI; keep this copy operator-only or product-facing: {2}" -f $match.Path, $match.LineNumber, $line))
+  }
+}
+
 if ($copyHygieneFailures.Count -gt 0) {
   throw "Frontend copy hygiene guard failed:`n$($copyHygieneFailures -join [Environment]::NewLine)"
 }

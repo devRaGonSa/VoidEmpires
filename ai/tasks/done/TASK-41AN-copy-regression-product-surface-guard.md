@@ -3,7 +3,7 @@
 ---
 id: TASK-41AN
 title: Copy regression product surface guard
-status: pending
+status: done
 type: tooling
 team: platform
 supporting_teams:

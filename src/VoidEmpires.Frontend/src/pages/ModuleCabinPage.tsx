@@ -310,7 +310,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
                   <p className="eyebrow">Flujo controlado</p>
                   <h4>Acciones del modulo</h4>
                 </div>
-                <UiBadge tone="warn">Dev-safe</UiBadge>
+                <UiBadge tone="warn">Flujo seguro</UiBadge>
               </div>
               <ul className="stack-list compact-list">
                 {shipyardActions.map((action) => (
@@ -377,7 +377,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
                   <p className="eyebrow">Flujo seguro</p>
                   <h4>Acciones del modulo</h4>
                 </div>
-                <UiBadge tone="warn">Dev-safe</UiBadge>
+                <UiBadge tone="warn">Flujo seguro</UiBadge>
               </div>
               <ul className="stack-list compact-list">
                 {defenseActions.map((action) => (

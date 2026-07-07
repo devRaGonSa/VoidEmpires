@@ -347,7 +347,7 @@ export function RankingPage() {
             <li>Lee el indice de poder y las categorias derivadas de la civilizacion actual.</li>
             <li>Usa comparativas de validación, no jugadores reales ni perfiles públicos.</li>
             <li>No publica temporadas, recompensas ni clasificaciones globales.</li>
-            <li>No llama endpoints de mutación ni actualiza valores de forma optimista.</li>
+            <li>No ejecuta rutas de mutación ni actualiza valores de forma optimista.</li>
           </ul>
         </UiCard>
       </div>

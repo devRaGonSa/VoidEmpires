@@ -54,13 +54,13 @@ function formatMarketRequestFailure(message: string | null | undefined): MarketE
     case "No owned planets were found for the requesting civilization.":
       return {
         primaryMessage: "No hay reservas visibles para esta civilizacion.",
-        followUp: "Aplica cockpit-validation para cargar el escenario demo.",
+        followUp: "Inicia una partida nueva para cargar un escenario con reservas visibles.",
         technicalDetail: detail,
       };
     case "Market read is not available for this civilization.":
       return {
         primaryMessage: "No se pudo cargar la lectura economica.",
-        followUp: "Aplica cockpit-validation para cargar el escenario demo.",
+        followUp: "Inicia una partida nueva para cargar un escenario con reservas visibles.",
         technicalDetail: detail,
       };
     case "Market transactions are not supported in this version.":
@@ -816,7 +816,7 @@ export function MarketPage() {
             <UiBadge tone="warn">Sin economia visible</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Aplica cockpit-validation para cargar el escenario demo o revisa si la civilizacion aun no expone stockpile ni planeta util para Mercado.
+            Inicia una partida nueva para cargar un escenario con reservas visibles o revisa si la civilizacion aun no expone stockpile ni planeta util para Mercado.
           </p>
         </UiCard>
       ) : null}
