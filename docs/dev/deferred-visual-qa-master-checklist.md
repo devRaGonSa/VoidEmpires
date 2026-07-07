@@ -20,16 +20,16 @@ Use it with:
 - Status: pending human browser execution.
 - Screenshots: pending capture.
 - Visual acceptance: not yet claimed.
-- Scope: `/`, `/onboarding`, `/galaxy`, `/planet`, `/construction`, `/research`, `/shipyard`, `/defenses`, `/ground-army`, `/fleets`, `/market`, `/espionage`, `/alliance`, and `/ranking`.
-- Non-scope: production auth, real combat, fleet movement from Shipyard or Planet, exploration missions, WebGL/3D acceptance, and hidden auto-completion.
+- Scope: `/`, `/register`, `/login`, `/onboarding` as a registration alias, `/galaxy`, `/planet`, `/construction`, `/research`, `/shipyard`, `/defenses`, `/ground-army`, `/fleets`, `/market`, `/espionage`, `/alliance`, and `/ranking`.
+- Non-scope: final production authorization, account recovery/confirmation product UX, real combat, fleet movement from Shipyard or Planet, exploration missions, WebGL/3D acceptance, and hidden auto-completion.
 
 ## Product-Facing Copy Checks
 
 Run these checks with a normal browser session: no `?operator=1` query flag and no `localStorage["voidempires.operatorMode"] = "1"` flag.
 
 - Global shell: confirm header, sidebar, route status, secondary shell status, and loading states do not show `Development`, `Dev`, `QA`, `test`, `prueba`, `prototipo`, `endpoint`, `localhost`, backend profiles, raw payload wording, or provider names.
-- Home route `/`: confirm the first screen offers continue, new game, and galaxy entry without presenting a technical route alias or implementation detail.
-- Onboarding: confirm the start flow reads like a local game start, not production login, and does not expose backend URLs or returned raw ids unless operator mode is explicitly enabled.
+- Home route `/`: confirm the first screen offers account entry, current command continuation, and galaxy entry without presenting a technical route alias or implementation detail.
+- Registration/login: confirm account entry reads as the normal product path, `/onboarding` behaves only as a compatibility alias to registration, and neither flow exposes backend URLs or returned raw ids unless operator mode is explicitly enabled.
 - Planet and Construction: confirm product mode shows colony state, resources, buildings, queue, and guarded confirmations before any diagnostics or operator controls.
 - Research and Shipyard: confirm catalog cards, costs, queues, blocked states, and confirmation modals use product-facing language and do not describe mutation helpers, backend acceptance, or technical complete-due paths as primary gameplay.
 - Readiness pages: confirm Galaxy, Defenses, Ground Army, Fleets, Market, Espionage, Alliance, and Ranking keep honest read-only/readiness copy without development/test/prototype wording or primary-looking unsupported actions.
@@ -69,10 +69,10 @@ These checks come from the user's observed overloaded Planet and Construction sc
 3. Start the frontend:
    - `npm run dev --prefix src\VoidEmpires.Frontend`
 4. Open `/`.
-5. Confirm the home route offers continue/new-game/galaxy entry and no product-surface forbidden terms.
-6. Open `/onboarding`.
-7. Create a fresh Development playable session through the UI.
-8. Verify the success state exposes the returned Planet, Construction, Research, and Shipyard links without presenting this as production login.
+5. Confirm the home route offers account entry, command continuation, and galaxy entry with no product-surface forbidden terms.
+6. Open `/register`.
+7. Register a fresh account through the UI and confirm it routes to the generated initial world.
+8. Open `/login` and `/onboarding`; verify login presents account entry and onboarding only aliases to registration.
 9. Open the returned Planet link.
 10. Verify the local playable-session banner or continuation card is available when ids are missing on a cockpit route.
 11. Verify the Planet hub first:
@@ -128,8 +128,8 @@ These checks come from the user's observed overloaded Planet and Construction sc
 
 Use stable names so captures can be compared across passes without relying on local machine paths:
 
-- `01-onboarding-entry.png`
-- `02-onboarding-success.png`
+- `01-registration-entry.png`
+- `02-registration-success.png`
 - `03-planet-hub-initial.png`
 - continue with two-digit route order plus short state, for example `08-research-post-enqueue.png`
 - use `desktop` or `mobile` suffix only when the same state is captured at multiple viewport sizes
@@ -140,9 +140,10 @@ Do not commit screenshots in this task. Capture files belong to the later human/
 
 Capture these screenshots during the later browser pass. Each capture should show the primary workflow first and keep diagnostics collapsed or visibly secondary unless the row says otherwise.
 
-- `/onboarding` before submit.
-- `/onboarding` success state with returned cockpit links.
-- `/` home route with continue/new-game/galaxy entry.
+- `/register` before submit.
+- `/register` success state or generated-world navigation after account creation.
+- `/login` account entry state.
+- `/` home route with account entry, command continuation, and galaxy entry.
 - `/galaxy` map-first read-only view with selected system and planet context.
 - `/planet` initial loaded hub for the created playable session.
 - `/planet` local-session continuation state with ids absent.
@@ -210,7 +211,7 @@ Recommended entry criteria:
 1. Final DB/model changes have passed their build, test, seed-drift, and migration validation gates.
 2. Final asset or manifest changes have passed frontend build, lazy-route guard, copy guard, and asset-key validation.
 3. The browser pass starts from a known seed/profile or production-equivalent setup path documented for that phase.
-4. Any route that depends on production auth, combat, movement productization, market transactions, or alliance mutations has an explicit accepted task before it is tested as executable.
+4. Any route that depends on production authorization hardening, combat, movement productization, market transactions, or alliance mutations has an explicit accepted task before it is tested as executable.
 5. Screenshots are captured with the naming convention above and are reviewed route by route.
 
 Recommended correction loop:
@@ -227,7 +228,7 @@ Correction acceptance rules:
 - A corrected route must still preserve `civilizationId` and `planetId` handoffs when those ids are part of the accepted flow.
 - Resource, queue, stock, ranking, and readiness displays must still come from backend reads.
 - Final images may improve recognition, but must not imply ownership, availability, combat power, market price, or alliance membership that the backend does not return.
-- Production-auth wording is accepted only after active civilization resolution and ownership enforcement are implemented.
+- Production authorization wording is accepted only after active civilization resolution and ownership enforcement are implemented.
 - Combat, fleet movement productization, market transactions, and alliance mutations remain non-accepted unless their separate executable workflows exist.
 
 No browser, screenshot, DB migration, final asset generation, or correction pass was performed for this prep update.
