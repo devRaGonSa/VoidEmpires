@@ -1,6 +1,7 @@
 import { Suspense, lazy, useMemo, type ReactElement } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { AuthRequiredState } from "./components/AuthRequiredState";
+import { PublicAuthLayout } from "./components/PublicAuthLayout";
 import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
 import { AppShell } from "./components/ui/AppShell";
 import type { SidebarNavItem } from "./components/ui/SidebarNav";
@@ -109,6 +110,8 @@ const ModuleCabinPage = lazy(async () => {
   return { default: module.ModuleCabinPage };
 });
 
+const publicAuthPathnames = new Set(["/login", "/register", "/registro", "/onboarding"]);
+
 function getPlanetModuleNavState(module: PlanetModuleRouteInfo["module"]): SidebarNavItem["state"] {
   switch (module) {
     case "Research":
@@ -168,6 +171,7 @@ function requireAccount(element: ReactElement) {
 
 export default function App() {
   const location = useLocation();
+  const isPublicAuthRoute = publicAuthPathnames.has(location.pathname);
   const shellStatusItems = useMemo(() => {
     const searchParams = new URLSearchParams(location.search);
     const civilizationId = searchParams.get("civilizationId") ?? "";
@@ -214,45 +218,54 @@ export default function App() {
     ];
   }, [location.search]);
 
+  const routeContent = (
+    <Suspense fallback={<RouteLoadingFallback />}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/galaxy" element={requireAccount(<StrategicMapPage />)} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/registro" element={<RegisterPage />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/account-settings" element={requireAccount(<AccountSettingsPage />)} />
+        <Route path="/planet" element={requireAccount(<PlanetPage />)} />
+        <Route path="/construction" element={requireAccount(<ConstructionPage />)} />
+        {specializedPlanetModuleRoutes.map((route) => (
+          <Route
+            key={route.path}
+            path={route.path}
+            element={requireAccount(
+              route.module === "Research"
+                ? <ResearchPage />
+                : route.module === "Defenses"
+                  ? <DefensesPage />
+                  : route.module === "GroundArmy"
+                    ? <GroundArmyPage />
+                    : route.module === "Shipyard"
+                      ? <ShipyardPage />
+                      : <ModuleCabinPage route={route} />,
+            )}
+          />
+        ))}
+        <Route path="/fleets" element={requireAccount(<FleetsPage />)} />
+        <Route path="/market" element={requireAccount(<MarketPage />)} />
+        <Route path="/espionage" element={requireAccount(<EspionagePage />)} />
+        <Route path="/alliance" element={requireAccount(<AlliancePage />)} />
+        <Route path="/ranking" element={requireAccount(<RankingPage />)} />
+      </Routes>
+    </Suspense>
+  );
+
+  if (isPublicAuthRoute) {
+    return <PublicAuthLayout>{routeContent}</PublicAuthLayout>;
+  }
+
   return (
     <AppShell
       sidebarItems={[...sidebarItems]}
       statusItems={shellStatusItems}
     >
-      <Suspense fallback={<RouteLoadingFallback />}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/galaxy" element={requireAccount(<StrategicMapPage />)} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/onboarding" element={<OnboardingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/account-settings" element={requireAccount(<AccountSettingsPage />)} />
-          <Route path="/planet" element={requireAccount(<PlanetPage />)} />
-          <Route path="/construction" element={requireAccount(<ConstructionPage />)} />
-          {specializedPlanetModuleRoutes.map((route) => (
-            <Route
-              key={route.path}
-              path={route.path}
-              element={requireAccount(
-                route.module === "Research"
-                  ? <ResearchPage />
-                  : route.module === "Defenses"
-                    ? <DefensesPage />
-                    : route.module === "GroundArmy"
-                      ? <GroundArmyPage />
-                      : route.module === "Shipyard"
-                        ? <ShipyardPage />
-                        : <ModuleCabinPage route={route} />,
-              )}
-            />
-          ))}
-          <Route path="/fleets" element={requireAccount(<FleetsPage />)} />
-          <Route path="/market" element={requireAccount(<MarketPage />)} />
-          <Route path="/espionage" element={requireAccount(<EspionagePage />)} />
-          <Route path="/alliance" element={requireAccount(<AlliancePage />)} />
-          <Route path="/ranking" element={requireAccount(<RankingPage />)} />
-        </Routes>
-      </Suspense>
+      {routeContent}
     </AppShell>
   );
 }

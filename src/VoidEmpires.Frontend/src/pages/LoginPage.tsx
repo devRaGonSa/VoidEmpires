@@ -52,7 +52,7 @@ export function LoginPage() {
   }
 
   return (
-    <section className="page-grid">
+    <section className="page-grid public-auth-page">
       <CockpitHero
         versionLabel="Cuenta"
         title="Entrar"

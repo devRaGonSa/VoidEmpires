@@ -112,6 +112,76 @@ select {
   padding: var(--ve-space-4) 0 var(--ve-space-12);
 }
 
+.public-auth-shell {
+  width: min(1080px, calc(100% - var(--ve-space-8)));
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: var(--ve-space-4) 0 var(--ve-space-12);
+}
+
+.public-auth-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ve-space-4);
+  margin-bottom: var(--ve-space-6);
+  padding: 14px var(--ve-space-4);
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 46%, transparent);
+  border-radius: var(--ve-radius-xl);
+  background: color-mix(in srgb, var(--ve-color-topbar) 80%, transparent);
+  box-shadow: var(--ve-shadow-panel);
+}
+
+.public-auth-brand,
+.public-auth-brand span,
+.public-auth-nav {
+  display: flex;
+  align-items: center;
+}
+
+.public-auth-brand {
+  gap: var(--ve-space-3);
+}
+
+.public-auth-brand span {
+  gap: 2px;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.public-auth-brand small {
+  color: var(--ve-color-muted);
+}
+
+.public-auth-nav {
+  gap: var(--ve-space-2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.public-auth-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 var(--ve-space-4);
+  border: 1px solid color-mix(in srgb, var(--ve-color-border) 42%, transparent);
+  border-radius: var(--ve-radius-sm);
+  background: color-mix(in srgb, var(--ve-color-panel) 52%, transparent);
+  color: color-mix(in srgb, var(--ve-color-text) 82%, var(--ve-color-muted));
+  font-weight: 700;
+}
+
+.public-auth-link-active {
+  border-color: color-mix(in srgb, var(--ve-color-accent-cyan) 42%, transparent);
+  background: color-mix(in srgb, var(--ve-color-accent-blue) 16%, transparent);
+  color: #f3f8ff;
+}
+
+.public-auth-main {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
 .skip-link {
   position: fixed;
   top: 12px;
@@ -2931,6 +3001,24 @@ select {
     padding-top: var(--ve-space-4);
   }
 
+  .public-auth-shell {
+    width: min(100% - 16px, 1080px);
+  }
+
+  .public-auth-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .public-auth-nav {
+    justify-content: stretch;
+  }
+
+  .public-auth-link {
+    flex: 1;
+    justify-content: center;
+  }
+
   .app-topbar,
   .app-shell-frame,
   .shell-intro-grid {
@@ -3035,8 +3123,14 @@ select {
     padding-top: var(--ve-space-3);
   }
 
+  .public-auth-shell {
+    width: min(100% - 12px, 1080px);
+    padding-top: var(--ve-space-3);
+  }
+
   .app-topbar,
   .app-sidebar,
+  .public-auth-header,
   .ui-card,
   .environment-panel,
   .panel {

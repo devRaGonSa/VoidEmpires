@@ -8,7 +8,7 @@ import { UiCard } from "../components/ui/UiCard";
 import { formatAccountRequestException, formatRegistrationErrors } from "../utils/accountErrorCopy";
 import { getRegistrationWorldEntry } from "../utils/currentAccountSession";
 import { savePlayableSession } from "../utils/playableSession";
-import { buildGalaxyUrl, buildWorldEntryUrl } from "../utils/routeUrls";
+import { buildLoginUrl, buildWorldEntryUrl } from "../utils/routeUrls";
 
 function resolveRegistrationRoute(registration: AccountRegistrationResponse) {
   const worldEntry = getRegistrationWorldEntry(registration);
@@ -79,7 +79,7 @@ export function RegisterPage() {
   }
 
   return (
-    <section className="page-grid">
+    <section className="page-grid public-auth-page">
       <CockpitHero
         versionLabel="Cuenta"
         title="Crear cuenta"
@@ -156,7 +156,7 @@ export function RegisterPage() {
           Tras el registro, VoidEmpires abre el mundo inicial con el contexto seguro de la cuenta.
         </p>
         <div className="selection-chip-row">
-          <Link className="selection-chip" to={buildGalaxyUrl()}>Ver galaxia</Link>
+          <Link className="selection-chip" to={buildLoginUrl()}>Ya tengo cuenta</Link>
         </div>
       </UiCard>
     </section>
