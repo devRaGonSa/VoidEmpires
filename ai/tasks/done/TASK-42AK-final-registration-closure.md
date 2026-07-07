@@ -3,7 +3,7 @@
 ---
 id: TASK-42AK
 title: Final registration closure
-status: pending
+status: done
 type: release
 team: platform
 supporting_teams: [frontend, security]
@@ -107,3 +107,17 @@ At the end, run `git status`, stage only intended files, commit with a clear mes
 - Prefer modifying fewer than 5 files for any fixes discovered during closure.
 - Prefer changes under 200 lines of code for any fixes discovered during closure.
 - Split the work into additional tasks if limits are exceeded.
+
+## Completion notes
+
+- Prior `TASK-42*` files are in `ai/tasks/done`; this closure task is the final `TASK-42*` file moved from pending/in-progress.
+- `ai/tasks/pending` contains only `.gitkeep`.
+- `dotnet build --no-restore`: passed with 0 warnings and 0 errors.
+- `dotnet test --no-build`: passed with 779 tests, 0 failed, 0 skipped.
+- `npm run build --prefix src/VoidEmpires.Frontend`: passed with 114 transformed modules and a 193.87 kB minified / 62.21 kB gzip entry chunk.
+- `check-dev-qa-scripts.ps1`: passed, including nested route, copy, secret, SQL script safety, and QA helper checks.
+- `check-frontend-route-lazy-imports.ps1`: passed.
+- `check-frontend-copy-regressions.ps1`: passed.
+- `check-repo-secret-scan.ps1`: passed.
+- `git status` and `dir ai/tasks/pending` were reviewed.
+- No browser/manual QA, SQL Server connection, migration apply, generated SQL execution, seed apply, or real credential handling was performed.
