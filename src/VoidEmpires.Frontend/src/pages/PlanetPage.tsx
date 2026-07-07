@@ -50,7 +50,6 @@ import {
   groupActionsByModule,
   groupBuildingsByModule,
   isGeneralConstructionAction,
-  specializedPlanetModuleRoutes,
   toPlanetCatalogId,
 } from "../utils/planetPresentation";
 import {
@@ -1412,25 +1411,39 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                 <div className="planet-related-modules-grid">
                   {[
                     {
-                      label: "Construccion",
+                      label: "Construir",
                       path: buildConstructionUrl(activeCivilizationId, planet?.planetId),
                       title: "Construccion",
                       status: "Disponible",
-                      purpose: "Gestiona edificios civiles, economicos e infraestructura general.",
+                      purpose: "Levanta edificios civiles, economia e infraestructura general.",
                     },
-                    ...specializedPlanetModuleRoutes.map((module) => ({
-                      label: module.label,
-                      path: buildSpecializedModuleUrl(module.module, activeCivilizationId, planet?.planetId),
-                      title: module.title,
-                      status: "Disponible",
-                      purpose: module.purpose,
-                    })),
                     {
-                      label: "Flotas",
+                      label: "Investigar",
+                      path: buildSpecializedModuleUrl("Research", activeCivilizationId, planet?.planetId),
+                      title: "Investigacion",
+                      status: "Disponible",
+                      purpose: "Abre el catalogo tecnologico y revisa la cola cientifica.",
+                    },
+                    {
+                      label: "Producir naves",
+                      path: buildSpecializedModuleUrl("Shipyard", activeCivilizationId, planet?.planetId),
+                      title: "Astillero",
+                      status: "Disponible",
+                      purpose: "Consulta produccion orbital, stock local y opciones navales.",
+                    },
+                    {
+                      label: "Revisar defensas",
+                      path: buildSpecializedModuleUrl("Defenses", activeCivilizationId, planet?.planetId),
+                      title: "Defensas",
+                      status: "Disponible",
+                      purpose: "Comprueba preparacion defensiva y limites de combate.",
+                    },
+                    {
+                      label: "Gestionar flotas",
                       path: buildFleetsUrl(activeCivilizationId, planet?.planetId),
                       title: "Flotas",
                       status: "Disponible",
-                      purpose: "Consulta grupos orbitales, movimientos y despliegues.",
+                      purpose: "Revisa grupos orbitales, reservas y movimientos visibles.",
                     },
                     {
                       label: "Galaxia",

@@ -3,7 +3,7 @@
 ---
 id: TASK-41M
 title: Planet primary actions product layout
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
