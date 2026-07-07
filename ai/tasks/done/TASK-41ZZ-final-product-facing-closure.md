@@ -3,7 +3,7 @@
 ---
 id: TASK-41AZ
 title: Final product-facing closure
-status: pending
+status: done
 type: workflow
 team: platform
 supporting_teams:

@@ -18,9 +18,18 @@ Result: passed.
 
 The guard blocks visible product-surface use of development/test/prototype/local endpoint language such as `Development`, `Dev`, `QA`, `Test`, `Prueba`, `Prototipo`, `Solo desarrollo`, `cockpit-validation`, `minimal-validation`, `endpoint`, and `localhost` unless the line is explicitly allowlisted as internal or operator-only.
 
+Final Block 41 closure validation also passed:
+
+- `dotnet build --no-restore`: passed with 0 warnings and 0 errors.
+- `dotnet test --no-build`: passed with 744 tests, 0 failed, 0 skipped.
+- `npm run build --prefix src/VoidEmpires.Frontend`: passed with 106 transformed modules.
+- `check-dev-qa-scripts.ps1`, `check-frontend-route-lazy-imports.ps1`, `check-frontend-copy-regressions.ps1`, and `check-repo-secret-scan.ps1`: passed.
+
 ## Normal UI Status
 
 According to the automated guard, normal product UI no longer exposes Development wording, endpoint URLs, localhost details, backend profile details, raw endpoint details, or Development-only mutation copy outside the accepted internal boundaries.
+
+The final Block 41 page pass covered Market, Alliance, Ranking, and Espionage after the earlier Onboarding, Planet, Construction, Research, Shipyard, Defenses, Fleets, Galaxy, Ground Army, shell, modal, error, empty-state, and operator-mode work. Normal UI now favors product terms such as market, diplomacy, classification, intelligence, readiness, pending operations, and operator-only diagnostics instead of development/read-only/test/prototype primary copy.
 
 The default product-mode contract remains:
 
@@ -47,3 +56,5 @@ The remaining Development references are allowed only in these categories:
 This report does not approve new normal-UI Development copy. Future Development, QA, endpoint, localhost, backend profile, raw payload, or prototype wording must stay in docs, scripts, implementation identifiers, or explicitly gated operator surfaces. If a new exception is required, it should be added narrowly to `scripts/check-frontend-copy-regressions.ps1` with a matching reason.
 
 This report also does not claim final production authentication, public ranking, market transactions, alliance mutations, combat, invasion, interception, SQL Server deployment, or final fleet movement productization.
+
+No browser/manual QA, screenshot review, final image generation, SQL Server connection, migration apply, generated SQL execution, seed apply, or gameplay expansion was performed for the final closure validation.
