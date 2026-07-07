@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
+import type { CurrentAccountSessionStatus } from "../../utils/currentAccountSession";
 
 export interface SidebarNavItem {
   label: string;
@@ -8,6 +9,7 @@ export interface SidebarNavItem {
 
 interface SidebarNavProps {
   items: SidebarNavItem[];
+  accountStatus?: CurrentAccountSessionStatus;
 }
 
 function getSidebarStateNote(state: SidebarNavItem["state"]) {
@@ -29,12 +31,25 @@ function getSidebarStateNote(state: SidebarNavItem["state"]) {
   }
 }
 
-export function SidebarNav({ items }: SidebarNavProps) {
+function shouldShowItem(item: SidebarNavItem, accountStatus: CurrentAccountSessionStatus | undefined) {
+  if (accountStatus === "ready") {
+    return item.to !== "/login" && item.to !== "/register";
+  }
+
+  if (accountStatus === "signedOut" || accountStatus === "error") {
+    return item.to !== "/account-settings";
+  }
+
+  return true;
+}
+
+export function SidebarNav({ items, accountStatus }: SidebarNavProps) {
   const location = useLocation();
+  const visibleItems = items.filter((item) => shouldShowItem(item, accountStatus));
 
   return (
     <nav className="sidebar-nav" aria-label="Navegacion principal">
-      {items.map((item) => {
+      {visibleItems.map((item) => {
         const stateNote = getSidebarStateNote(item.state);
         const stateClass = `sidebar-nav-item-${item.state ?? "readiness"}`;
 

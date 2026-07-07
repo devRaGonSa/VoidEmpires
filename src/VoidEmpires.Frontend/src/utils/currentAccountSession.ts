@@ -18,6 +18,14 @@ export interface CurrentAccountSessionState {
   hasWorldEntry: boolean;
 }
 
+export interface CurrentAccountDisplay {
+  statusLabel: string;
+  commanderLabel: string;
+  civilizationLabel: string;
+  planetLabel: string;
+  detailLabel: string;
+}
+
 export const initialCurrentAccountSessionState: CurrentAccountSessionState = {
   status: "loading",
   session: null,
@@ -85,4 +93,36 @@ export function resolveCurrentAccountSession(
 
 export function createCurrentAccountSessionError(message: string): CurrentAccountSessionState {
   return createEmptySessionState("error", null, [{ code: "CurrentAccountUnavailable", message, field: null }]);
+}
+
+export function getCurrentAccountDisplay(state: CurrentAccountSessionState): CurrentAccountDisplay {
+  const worldEntry = getCurrentAccountWorldEntry(state.session);
+
+  if (state.status === "loading") {
+    return {
+      statusLabel: "Comprobando cuenta",
+      commanderLabel: "Comandante pendiente",
+      civilizationLabel: "Civilizacion pendiente",
+      planetLabel: "Planeta pendiente",
+      detailLabel: "Revisando la cuenta actual.",
+    };
+  }
+
+  if (state.status !== "ready") {
+    return {
+      statusLabel: "Cuenta requerida",
+      commanderLabel: "Sin cuenta activa",
+      civilizationLabel: "Acceso pendiente",
+      planetLabel: "Sin planeta activo",
+      detailLabel: "Entra o registra un comandante.",
+    };
+  }
+
+  return {
+    statusLabel: worldEntry ? "Cuenta activa" : "Cuenta incompleta",
+    commanderLabel: "Comandante activo",
+    civilizationLabel: state.session?.civilizationId ? "Civilizacion activa" : "Civilizacion pendiente",
+    planetLabel: worldEntry?.planetName ?? "Planeta pendiente",
+    detailLabel: worldEntry ? `Mando listo en ${worldEntry.planetName ?? "tu planeta principal"}.` : "Falta el mundo inicial.",
+  };
 }

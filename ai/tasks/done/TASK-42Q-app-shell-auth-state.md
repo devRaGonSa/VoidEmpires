@@ -3,7 +3,7 @@
 ---
 id: TASK-42Q
 title: App shell auth state
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

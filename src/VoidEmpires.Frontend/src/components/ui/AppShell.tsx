@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
+import { useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { voidEmpiresApi } from "../../api/voidEmpiresApi";
+import { getCurrentAccountDisplay } from "../../utils/currentAccountSession";
+import { buildLoginUrl, buildRegisterUrl } from "../../utils/routeUrls";
+import { useCurrentAccountSession } from "../../utils/useCurrentAccountSession";
 import { SidebarNav, type SidebarNavItem } from "./SidebarNav";
 import { TopStatusBar, type TopBarStatusItem } from "./TopResourceBar";
 import { UiCard } from "./UiCard";
@@ -16,6 +21,9 @@ export function AppShell({
   statusItems,
 }: AppShellProps) {
   const location = useLocation();
+  const currentAccountSession = useCurrentAccountSession();
+  const accountDisplay = getCurrentAccountDisplay(currentAccountSession);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isHomeRoute = location.pathname === "/";
   const isFleetRoute = location.pathname === "/fleets";
   const isStrategicMapRoute = location.pathname === "/galaxy";
@@ -30,12 +38,34 @@ export function AppShell({
         : "Centro de mando imperial";
 
   const introDescription = isHomeRoute
-    ? "Retoma tu partida, funda una colonia nueva o entra a la galaxia desde la superficie principal."
+    ? "Accede con tu cuenta, registra un comandante o continua hacia el centro de mando disponible."
     : isFleetRoute
       ? "Flotas muestra preparacion, carga y ordenes confirmadas para el contexto seleccionado."
       : isStrategicMapRoute
         ? "La galaxia prioriza mapa, seleccion y contexto tactico para continuar hacia las cabinas del imperio."
         : "Cabinas de colonia, investigacion, astillero y flotas con lectura de estado y confirmaciones explicitas cuando la pagina lo permite.";
+
+  const isSignedIn = currentAccountSession.status === "ready";
+  const filteredStatusItems = useMemo(
+    () => [
+      ...statusItems,
+      {
+        label: "Mando",
+        value: isSignedIn ? accountDisplay.planetLabel : accountDisplay.statusLabel,
+      },
+    ],
+    [accountDisplay.planetLabel, accountDisplay.statusLabel, isSignedIn, statusItems],
+  );
+
+  async function handleLogout() {
+    setIsLoggingOut(true);
+    try {
+      await voidEmpiresApi.account.logout();
+      await currentAccountSession.refresh();
+    } finally {
+      setIsLoggingOut(false);
+    }
+  }
 
   return (
     <div className="app-shell">
@@ -50,7 +80,18 @@ export function AppShell({
             <p>Imperio espacial persistente</p>
           </div>
         </div>
-        <TopStatusBar items={statusItems} />
+        <TopStatusBar
+          account={{
+            detail: accountDisplay.detailLabel,
+            isBusy: isLoggingOut,
+            isSignedIn,
+            loginUrl: buildLoginUrl(),
+            registerUrl: buildRegisterUrl(),
+            value: isSignedIn ? accountDisplay.commanderLabel : accountDisplay.statusLabel,
+            onLogout: handleLogout,
+          }}
+          items={filteredStatusItems}
+        />
       </header>
 
       <div className="app-shell-frame">
@@ -60,11 +101,11 @@ export function AppShell({
             <h2>Mapa de mando</h2>
             <p>Colonias, flotas y rutas estrategicas del imperio.</p>
           </div>
-          <SidebarNav items={sidebarItems} />
+          <SidebarNav accountStatus={currentAccountSession.status} items={sidebarItems} />
           <div className="app-sidebar-status" aria-label="Estado del producto">
-            <span>Superficie imperial</span>
-            <strong>Partida y cabinas listas</strong>
-            <p>Inicio, nueva partida y navegacion principal permanecen disponibles sin detalles tecnicos.</p>
+            <span>{accountDisplay.statusLabel}</span>
+            <strong>{isSignedIn ? accountDisplay.civilizationLabel : "Entrada de cuenta"}</strong>
+            <p>{accountDisplay.detailLabel}</p>
           </div>
         </aside>
 
