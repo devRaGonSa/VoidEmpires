@@ -3,7 +3,7 @@
 ---
 id: TASK-41D
 title: Sidebar product navigation
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []

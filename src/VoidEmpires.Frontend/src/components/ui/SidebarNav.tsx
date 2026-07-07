@@ -13,15 +13,15 @@ interface SidebarNavProps {
 function getSidebarStateNote(state: SidebarNavItem["state"]) {
   switch (state) {
     case "playable":
-      return "Bucle jugable";
+      return "Activo";
     case "map":
       return "Mapa";
     case "readiness":
-      return "Preparacion";
+      return "Estado";
     case "readOnly":
-      return "Disponible";
+      return "Consulta";
     case "future":
-      return "Futuro";
+      return "Proximamente";
     default:
       return null;
   }
