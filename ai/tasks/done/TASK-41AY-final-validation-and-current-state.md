@@ -3,7 +3,7 @@
 ---
 id: TASK-41AY
 title: Final validation and current state
-status: pending
+status: done
 type: validation
 team: platform
 supporting_teams:

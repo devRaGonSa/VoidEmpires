@@ -53,6 +53,22 @@ Recorded on 2026-07-07:
 - The expanded frontend copy regression guard now fails on forbidden development/test/prototype wording in product-surface page and component copy while preserving narrow exceptions for operator-only code and documentation.
 - This update did not add gameplay behavior, production authentication, final assets, browser screenshot acceptance, SQL Server schema apply, or seed apply.
 - Manual visual QA remains deferred to `docs/dev/deferred-visual-qa-master-checklist.md`.
+- The final no-visible-development report is recorded in `docs/dev/no-visible-development-report.md`.
+
+## Block 41 Final Validation Baseline
+
+Recorded on 2026-07-07 for `TASK-41AY`:
+
+- `dotnet build --no-restore` succeeded with `0` warnings and `0` errors.
+- `dotnet test --no-build` succeeded with `744` passing tests, `0` failed, and `0` skipped.
+- `npm run build --prefix src/VoidEmpires.Frontend` succeeded; Vite transformed `106` modules, emitted `60.39 kB` CSS, and kept the shared entry chunk at `181.48 kB` minified / `59.10 kB` gzip.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-dev-qa-scripts.ps1` succeeded, including the route lazy-import guard, copy regression guard, repository secret scan, and SQL Server generated-script safety check.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-route-lazy-imports.ps1` succeeded.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1` succeeded.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-repo-secret-scan.ps1` succeeded.
+- Tooling note: the .NET commands reported available workload updates; this was informational and did not fail validation.
+
+This was a non-visual automated validation pass. It did not perform browser or manual QA, did not connect to SQL Server, did not apply migrations or generated SQL, did not apply seeds, did not add real SQL Server credentials, and did not add gameplay behavior.
 
 ## Final DB And Model Needs
 
