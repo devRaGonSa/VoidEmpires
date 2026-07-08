@@ -42,7 +42,6 @@ import {
   formatPlanetShortReference,
   getPlanetModuleLabel,
   getPlanetModuleForBuilding,
-  groupActionsByModule,
   groupBuildingsByModule,
   isGeneralConstructionAction,
   toPlanetCatalogId,
@@ -239,6 +238,37 @@ function getDefenseReadinessSummary(planet: PlanetCockpitDto) {
   return "La defensa local sigue limitada a readiness y handoff; no hay una superficie propia mas profunda en este resumen.";
 }
 
+function getConstructionProductOrder(action: PlanetCockpitDto["constructionActions"][number]) {
+  const buildingKey = typeof action.buildingType === "number"
+    ? planetBuildingTypeCatalog.find((entry) => entry.id === action.buildingType)?.key
+    : `${action.buildingType}`;
+
+  switch (buildingKey) {
+    case "MetalMine":
+    case "CrystalMine":
+    case "GasExtractor":
+      return 10;
+    case "SolarPlant":
+      return 20;
+    case "CommandCenter":
+    case "HabitationDistrict":
+    case "MedicalCenter":
+    case "LogisticsHub":
+      return 30;
+    case "ResearchLab":
+      return 40;
+    case "Shipyard":
+    case "CrewAcademy":
+    case "FleetCommandCenter":
+      return 50;
+    case "MilitaryAcademy":
+    case "Barracks":
+      return 60;
+    default:
+      return 70;
+  }
+}
+
 function findPreparedAction(
   planet: PlanetCockpitDto | null,
   preparedActionKey: string,
@@ -339,11 +369,6 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
     [isConstructionRoute, planet?.constructionActions],
   );
 
-  const actionsByModule = useMemo(
-    () => groupActionsByModule(constructionActions),
-    [constructionActions],
-  );
-
   const generalConstructionActions = useMemo(
     () => (planet?.constructionActions ?? []).filter(isGeneralConstructionAction),
     [planet?.constructionActions],
@@ -372,15 +397,18 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
     [buildingsByModule],
   );
 
-  const visibleActionGroups = useMemo(
-    () => planetModuleCatalog
-      .filter((module) => module.key === "GeneralConstruction" || module.key === "Logistics")
-      .map((module) => ({
-        module,
-        items: actionsByModule[module.key as PlanetModule] ?? [],
-      }))
-      .filter((group) => group.items.length > 0),
-    [actionsByModule],
+  const visibleConstructionActions = useMemo(
+    () => [...constructionActions].sort((left, right) => {
+      const productOrder = getConstructionProductOrder(left) - getConstructionProductOrder(right);
+      if (productOrder !== 0) {
+        return productOrder;
+      }
+
+      const leftSort = planetBuildingTypeCatalog.find((entry) => entry.key === `${left.buildingType}` || entry.id === left.buildingType)?.id ?? 0;
+      const rightSort = planetBuildingTypeCatalog.find((entry) => entry.key === `${right.buildingType}` || entry.id === right.buildingType)?.id ?? 0;
+      return leftSort - rightSort;
+    }),
+    [constructionActions],
   );
 
   useEffect(() => {
@@ -765,11 +793,11 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
   return (
     <section className="page-grid">
       <CockpitHero
-        versionLabel={isConstructionRoute ? "Construccion v1" : "Planeta v1"}
+        versionLabel={isConstructionRoute ? null : "Planeta v1"}
         title={isConstructionRoute ? "Obras de la colonia" : "Centro de mando planetario"}
         description={
           isConstructionRoute
-            ? "Catalogo de edificios, recursos disponibles y cola de obras del planeta activo con confirmacion explicita."
+            ? "Catalogo compacto de edificios y cola activa del planeta seleccionado."
             : "Resumen del mundo, recursos, produccion, actividad orbital y accesos de mando de la colonia."
         }
         developmentNote={
@@ -786,10 +814,12 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         }
       />
 
-      <PlayableSessionBanner
-        session={bannerSession}
-        onClear={() => setLocalSessionCleared(true)}
-      />
+      {!isConstructionRoute ? (
+        <PlayableSessionBanner
+          session={bannerSession}
+          onClear={() => setLocalSessionCleared(true)}
+        />
+      ) : null}
 
       {!isConstructionRoute ? (
       <div className="strategic-cockpit-top">
@@ -895,11 +925,11 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         </UiCard>
       ) : null}
 
-      {!queryCivilizationId && playableSession && playableSessionUrl ? (
+      {!isConstructionRoute && !queryCivilizationId && playableSession && playableSessionUrl ? (
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Continuar mundo</p>
+              <p className="eyebrow">Reanudar colonia</p>
               <h3>Continuar con {playableSession.planetName ?? "la ultima colonia"}</h3>
             </div>
             <UiBadge tone="good">Seleccion lista</UiBadge>
@@ -1116,12 +1146,14 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             <QueueSummaryPanels planet={planet} />
           ) : null}
 
+          {(!isConstructionRoute || planet.constructionQueue.length > 0) ? (
           <div className="figma-two-column planet-overview-grid">
+              {!isConstructionRoute ? (
               <UiCard className="panel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Infraestructura</p>
-                    <h3>{isConstructionRoute ? "Edificios actuales" : "Produccion"}</h3>
+                    <p className="eyebrow">Desarrollo</p>
+                    <h3>Produccion</h3>
                   </div>
                   <UiBadge>{planet.buildings.length} activos</UiBadge>
                 </div>
@@ -1158,7 +1190,9 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                   </p>
                 )}
               </UiCard>
+              ) : null}
 
+            {(!isConstructionRoute || planet.constructionQueue.length > 0) ? (
             <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
@@ -1210,7 +1244,9 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                 <p className="figma-panel-note">Sin obras en cola</p>
               )}
             </UiCard>
+            ) : null}
           </div>
+          ) : null}
 
           <UiCard className="panel">
               <div className="figma-section-header">
@@ -1236,6 +1272,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
               </div>
             </div>
 
+            {!isConstructionRoute ? (
             <div className="figma-data-list">
               <PlanetDataRow
                 label="Estado de cola"
@@ -1250,6 +1287,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                 value={planet.actionSummary.display?.completeDueActionReasonLabel ?? planet.actionSummary.completeDueActionReason}
               />
             </div>
+            ) : null}
             {!planet.actionSummary.completeDueSupported ? (
               <p className="figma-panel-note">
                 La cola vencida se resuelve fuera de esta vista; el resumen solo muestra el estado confirmado.
@@ -1379,20 +1417,12 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             {isConstructionRoute ? (
             <>
             <div className="planet-action-groups">
-              {visibleActionGroups.length > 0 ? visibleActionGroups.map(({ module, items: actions }) => (
-                <section key={module.key} className="subpanel figma-subpanel">
-                  <div className="figma-section-header">
-                    <div>
-                      <p className="eyebrow">Modulo</p>
-                      <h4>{getPlanetModuleLabel(module.key as PlanetModule)}</h4>
-                    </div>
-                    <UiBadge>{actions.length} opciones</UiBadge>
-                  </div>
+              {visibleConstructionActions.length > 0 ? (
                   <div className="planet-action-grid construction-catalog-grid">
-                    {actions.map((action) => {
+                    {visibleConstructionActions.map((action) => {
                       const actionKey = `${action.action}-${action.buildingType}`;
                       const isPrepared = preparedActionKey === actionKey;
-                      const categoryLabel = action.display?.categoryLabel ?? getPlanetModuleLabel(module.key as PlanetModule);
+                      const categoryLabel = action.display?.categoryLabel ?? "Construccion";
 
                       return (
                         <ConstructionCatalogCard
@@ -1407,8 +1437,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                       );
                     })}
                   </div>
-                </section>
-              )) : (
+              ) : (
                 <p className="figma-panel-note">
                   No hay acciones de construccion general disponibles en este planeta.
                 </p>

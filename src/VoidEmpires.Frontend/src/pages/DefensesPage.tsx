@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { fetchDefensesUiState } from "../api/defenseApi";
+import { enqueueDefenseProduction, fetchDefensesUiState } from "../api/defenseApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { DefenseCatalogCard } from "../components/DefenseCatalogCard";
 import { UiBadge } from "../components/ui/UiBadge";
@@ -27,13 +27,40 @@ export function DefensesPage() {
   const [errorFollowUp, setErrorFollowUp] = useState<string | null>(null);
   const [technicalErrorDetail, setTechnicalErrorDetail] = useState<string | null>(null);
   const [uiState, setUiState] = useState<DefensesViewModel | null>(null);
+  const [quantityByBuildingType, setQuantityByBuildingType] = useState<Record<string, number>>({});
+  const [enqueueFeedback, setEnqueueFeedback] = useState<string | null>(null);
+  const [enqueueError, setEnqueueError] = useState<string | null>(null);
+  const [isSubmittingEnqueue, setIsSubmittingEnqueue] = useState(false);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
   const defenses = uiState?.defenses ?? null;
-  const hasSafeDefenseEnqueue = false;
+  const hasSafeDefenseEnqueue = defenses?.actionAvailability.enqueue.supported ?? false;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
   const catalogOptions = useMemo(() => defenses?.options ?? [], [defenses?.options]);
+
+  async function reloadDefensesState(replaceParams = false) {
+    const response = await fetchDefensesUiState(queryCivilizationId, queryPlanetId);
+    if (!response.succeeded || !response.uiState) {
+      const failure = formatDefenseRequestFailure(response.errors[0] ?? null);
+      setUiState(null);
+      setError(failure.primaryMessage);
+      setErrorFollowUp(failure.followUp);
+      setTechnicalErrorDetail(failure.technicalDetail);
+      return null;
+    }
+
+    const nextState = mapDefensesUiStateToViewModel(response.uiState);
+    setUiState(nextState);
+
+    if (nextState.selectedPlanetId && nextState.selectedPlanetId !== queryPlanetId) {
+      const nextRoute = buildDefensesUrl(queryCivilizationId, nextState.selectedPlanetId);
+      const nextParams = new URLSearchParams(nextRoute.split("?")[1] ?? "");
+      setSearchParams(nextParams, { replace: replaceParams });
+    }
+
+    return nextState;
+  }
 
   useEffect(() => {
     async function load() {
@@ -51,24 +78,7 @@ export function DefensesPage() {
       setTechnicalErrorDetail(null);
 
       try {
-        const response = await fetchDefensesUiState(queryCivilizationId, queryPlanetId);
-        if (!response.succeeded || !response.uiState) {
-          const failure = formatDefenseRequestFailure(response.errors[0] ?? null);
-          setUiState(null);
-          setError(failure.primaryMessage);
-          setErrorFollowUp(failure.followUp);
-          setTechnicalErrorDetail(failure.technicalDetail);
-          return;
-        }
-
-        const nextState = mapDefensesUiStateToViewModel(response.uiState);
-        setUiState(nextState);
-
-        if (nextState.selectedPlanetId && nextState.selectedPlanetId !== queryPlanetId) {
-          const nextRoute = buildDefensesUrl(queryCivilizationId, nextState.selectedPlanetId);
-          const nextParams = new URLSearchParams(nextRoute.split("?")[1] ?? "");
-          setSearchParams(nextParams, { replace: true });
-        }
+        await reloadDefensesState(true);
       } catch (requestError) {
         const failure = formatDefenseRequestFailure(requestError instanceof Error ? requestError.message : null);
         setUiState(null);
@@ -83,13 +93,53 @@ export function DefensesPage() {
     void load();
   }, [queryCivilizationId, queryPlanetId, searchParams, setSearchParams]);
 
+  function handleQuantityChange(buildingType: string, quantity: number) {
+    setQuantityByBuildingType((current) => ({
+      ...current,
+      [buildingType]: Number.isFinite(quantity) && quantity > 0 ? Math.floor(quantity) : 1,
+    }));
+  }
+
+  async function handleBuildDefense(option: typeof catalogOptions[number], quantity: number) {
+    if (!defenses || !option.assetType || option.statusKey !== "Available" || isSubmittingEnqueue) {
+      return;
+    }
+
+    setIsSubmittingEnqueue(true);
+    setEnqueueFeedback(null);
+    setEnqueueError(null);
+    setTechnicalErrorDetail(null);
+
+    try {
+      const result = await enqueueDefenseProduction({
+        civilizationId: queryCivilizationId,
+        planetId: defenses.planetId,
+        assetType: option.assetType,
+        quantity: Number.isFinite(quantity) && quantity > 0 ? Math.floor(quantity) : 1,
+        requestedAtUtc: new Date().toISOString(),
+      });
+
+      if (result.httpStatus !== 201 || !result.response?.succeeded) {
+        setEnqueueError(result.response?.errors[0] ?? "No se pudo enviar la produccion defensiva.");
+        return;
+      }
+
+      setEnqueueFeedback("Produccion defensiva enviada a la cola.");
+      await reloadDefensesState(false);
+    } catch (requestError) {
+      const failure = formatDefenseRequestFailure(requestError instanceof Error ? requestError.message : null);
+      setEnqueueError(failure.primaryMessage);
+      setTechnicalErrorDetail(failure.technicalDetail);
+    } finally {
+      setIsSubmittingEnqueue(false);
+    }
+  }
+
   return (
     <section className="page-grid">
       <CockpitHero
-        versionLabel="Defensas v1"
         title="Defensa planetaria"
-        description="Sistemas defensivos, cobertura local y estructuras de proteccion para la colonia seleccionada."
-        developmentNote="Produccion defensiva pendiente de activacion: sin combate ni intercepcion en esta version."
+        description="Catalogo compacto de defensas, produccion por unidades y cola defensiva activa."
         badges={
           <>
             <UiBadge>Sistemas defensivos</UiBadge>
@@ -121,6 +171,7 @@ export function DefensesPage() {
 
       {defenses ? (
         <>
+          {defenses.queue.length > 0 ? (
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
@@ -146,7 +197,10 @@ export function DefensesPage() {
                     </div>
                     <div className="figma-data-list">
                       <div className="figma-data-row"><span>Planeta</span><strong>{defenses.planetName}</strong></div>
-                      <div className="figma-data-row"><span>Objetivo</span><strong>Nivel {item.targetLevel}</strong></div>
+                      <div className="figma-data-row">
+                        <span>{item.productionModel === "unit" ? "Unidades" : "Objetivo"}</span>
+                        <strong>{item.productionModel === "unit" ? item.targetLevel : `Nivel ${item.targetLevel}`}</strong>
+                      </div>
                       <div className="figma-data-row"><span>Inicio</span><strong>{formatDateTime(item.startsAtUtc)}</strong></div>
                       <div className="figma-data-row"><span>Fin</span><strong>{formatDateTime(item.endsAtUtc)}</strong></div>
                       <div className="figma-data-row"><span>Coste</span><strong>{item.estimatedCostLabel}</strong></div>
@@ -156,8 +210,8 @@ export function DefensesPage() {
                 ))}
               </div>
             )}
-            <p className="figma-panel-note">Una orden visible confirma preparacion de construccion, no combate ni cierre automatico.</p>
           </UiCard>
+          ) : null}
 
           <UiCard className="panel">
             <div className="figma-section-header">
@@ -174,6 +228,9 @@ export function DefensesPage() {
                     key={`${option.buildingType}-${option.targetLevel}`}
                     option={option}
                     hasProductionAction={hasSafeDefenseEnqueue}
+                    quantity={quantityByBuildingType[option.buildingType] ?? 1}
+                    onQuantityChange={handleQuantityChange}
+                    onBuild={handleBuildDefense}
                   />
                 ))}
               </div>
@@ -187,6 +244,8 @@ export function DefensesPage() {
               <p className="figma-panel-note">{technicalErrorDetail}</p>
             </UiCard>
           ) : null}
+          {enqueueFeedback ? <p>{enqueueFeedback}</p> : null}
+          {enqueueError ? <p className="error-text">{enqueueError}</p> : null}
         </>
       ) : (
         !isLoading && queryCivilizationId && !error ? (

@@ -5,16 +5,26 @@ import type { DefenseOption } from "../utils/defenseViewModel";
 interface DefenseCatalogCardProps {
   option: DefenseOption;
   hasProductionAction: boolean;
+  quantity: number;
+  onQuantityChange: (buildingType: string, quantity: number) => void;
+  onBuild: (option: DefenseOption, quantity: number) => void;
 }
 
 export function DefenseCatalogCard({
   option,
   hasProductionAction,
+  quantity,
+  onQuantityChange,
+  onBuild,
 }: DefenseCatalogCardProps) {
   const isAvailable = option.statusKey === "Available";
+  const isUnitBased = option.productionModel === "unit";
   const requirementLabel = isAvailable
-    ? option.requirementLabel ?? "Lista para revisar desde Construccion"
+    ? option.requirementLabel ?? "Lista para construir"
     : option.affordabilityLabel ?? option.requirementLabel ?? option.reasonLabel;
+  const primaryLabel = isUnitBased
+    ? `Stock ${option.currentLevel}`
+    : `Nivel ${option.currentLevel} -> ${option.targetLevel}`;
 
   return (
     <article className={`subpanel figma-subpanel defense-catalog-card${isAvailable ? "" : " defense-catalog-card-blocked"}`}>
@@ -26,8 +36,8 @@ export function DefenseCatalogCard({
         <UiBadge tone={isAvailable ? "good" : "warn"}>{option.statusLabel}</UiBadge>
       </div>
       <div className="defense-catalog-card-primary">
-        <span>Nivel {option.currentLevel} {"->"} {option.targetLevel}</span>
-        <strong>{hasProductionAction && isAvailable ? option.actionLabel : "Sin accion local"}</strong>
+        <span>{primaryLabel}</span>
+        <strong>{hasProductionAction && isAvailable ? "Construir" : "Bloqueado"}</strong>
       </div>
       <div className="figma-data-list defense-catalog-card-details">
         <div className="figma-data-row"><span>Coste</span><strong>{option.estimatedCostLabel}</strong></div>
@@ -38,10 +48,29 @@ export function DefenseCatalogCard({
         {formatDefenseOptionEffect(option.buildingType)}
       </p>
       <div className="transfer-confirmation-actions">
-        <span className="planet-action-handoff-message">
-          {hasProductionAction && isAvailable ? "Accion disponible" : "Produccion defensiva no disponible aqui"}
-        </span>
+        {isUnitBased ? (
+          <label className="field defense-quantity-field">
+            <span>Unidades</span>
+            <input
+              type="number"
+              min={1}
+              step={1}
+              value={quantity}
+              disabled={!hasProductionAction || !isAvailable}
+              onChange={(event) => onQuantityChange(option.buildingType, Number(event.target.value))}
+            />
+          </label>
+        ) : null}
+        <button
+          type="button"
+          className={hasProductionAction && isAvailable ? "planet-action-button-secondary" : "planet-action-button-blocked"}
+          disabled={!hasProductionAction || !isAvailable}
+          onClick={() => onBuild(option, isUnitBased ? quantity : 1)}
+        >
+          Construir
+        </button>
       </div>
+      {!isAvailable ? <p className="figma-panel-note">{requirementLabel}</p> : null}
     </article>
   );
 }

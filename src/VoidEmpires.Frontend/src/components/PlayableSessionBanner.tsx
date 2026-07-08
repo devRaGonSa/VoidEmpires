@@ -29,7 +29,7 @@ export function PlayableSessionBanner({ session, onClear }: PlayableSessionBanne
     <UiCard className="panel">
       <div className="figma-section-header">
         <div>
-          <p className="eyebrow">Continuar mundo</p>
+          <p className="eyebrow">Reanudar colonia</p>
           <h3>{planetLabel}</h3>
           <p>
             {civilizationLabel} bajo {playerLabel}. Continua desde el mundo principal guardado.

@@ -3,7 +3,7 @@
 ---
 id: TASK-46P
 title: Card action copy polish
-status: pending
+status: done
 type: frontend
 team: product
 supporting_teams: []
@@ -67,4 +67,3 @@ At the end:
 
 - Prefer modifying fewer than 5 files.
 - Prefer changes under 200 lines of code.
-

@@ -3,7 +3,7 @@
 ---
 id: TASK-46L
 title: Defense unit vs level model
-status: pending
+status: done
 type: fullstack
 team: product
 supporting_teams: []
@@ -70,4 +70,3 @@ At the end:
 
 - Prefer modifying fewer than 5 files.
 - Prefer changes under 200 lines of code.
-

@@ -2,7 +2,7 @@ export const cockpitStatusLabels = {
   available: "Disponible",
   blocked: "Bloqueada",
   completed: "Completada",
-  contextPreserved: "Contexto conservado",
+  contextPreserved: "Contexto activo",
   developmentOnly: "Preparado",
   diagnostics: "Diagnostico secundario",
   implementedReadOnly: "Disponible",

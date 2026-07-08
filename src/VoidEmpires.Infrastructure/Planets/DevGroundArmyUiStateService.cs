@@ -13,6 +13,13 @@ public sealed class DevGroundArmyUiStateService(
     VoidEmpiresDbContext dbContext) : IDevGroundArmyUiStateService
 {
     private static readonly TimeSpan BaseDuration = TimeSpan.FromMinutes(3);
+    private static readonly PlanetaryAssetType[] GroundAssetTypes =
+    [
+        PlanetaryAssetType.PatrolGroup,
+        PlanetaryAssetType.ExpeditionGroup,
+        PlanetaryAssetType.VehicleGroup,
+        PlanetaryAssetType.SupportGroup
+    ];
 
     public async Task<GetDevGroundArmyUiStateResult> GetAsync(GetDevGroundArmyUiStateRequest request, CancellationToken cancellationToken = default)
     {
@@ -69,7 +76,7 @@ public sealed class DevGroundArmyUiStateService(
         var buildingBonus = population is null ? 0 : realBuildings.Sum(PlanetMilitaryCapacityCalculator.GetGroundForceCapacityBonus);
         var totalCapacity = population is null ? 0 : PlanetMilitaryCapacityCalculator.CalculateGroundForceCapacity(population, realBuildings);
 
-        var catalog = Enum.GetValues<PlanetaryAssetType>().Select(assetType =>
+        var catalog = GroundAssetTypes.Select(assetType =>
         {
             var definition = PlanetaryAssetCatalog.Get(assetType);
             var requiredBuilding = realBuildings.SingleOrDefault(x => x.BuildingType == definition.Requirement.RequiredBuildingType);

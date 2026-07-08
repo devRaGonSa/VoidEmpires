@@ -22,7 +22,23 @@ public static class PlanetaryAssetCatalog
             [PlanetaryAssetType.SupportGroup] = new(
                 PlanetaryAssetType.SupportGroup,
                 new AssetRequirement(150, 0, BuildingType.LogisticsHub, 1),
-                new ConstructionCost(0, 220, 120, 20))
+                new ConstructionCost(0, 220, 120, 20)),
+            [PlanetaryAssetType.MissileBattery] = new(
+                PlanetaryAssetType.MissileBattery,
+                new AssetRequirement(5, 0, BuildingType.DefenseGrid, 1),
+                new ConstructionCost(0, 120, 40, 10)),
+            [PlanetaryAssetType.LaserTurret] = new(
+                PlanetaryAssetType.LaserTurret,
+                new AssetRequirement(6, 0, BuildingType.DefenseGrid, 1),
+                new ConstructionCost(0, 140, 90, 15)),
+            [PlanetaryAssetType.IonCannon] = new(
+                PlanetaryAssetType.IonCannon,
+                new AssetRequirement(8, 0, BuildingType.DefenseGrid, 2),
+                new ConstructionCost(0, 220, 160, 45)),
+            [PlanetaryAssetType.PlasmaCannon] = new(
+                PlanetaryAssetType.PlasmaCannon,
+                new AssetRequirement(10, 0, BuildingType.DefenseGrid, 3),
+                new ConstructionCost(0, 320, 240, 80))
         };
 
     public static PlanetaryAssetDefinition Get(PlanetaryAssetType assetType) => Definitions[assetType];

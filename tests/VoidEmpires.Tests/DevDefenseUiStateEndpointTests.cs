@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Development;
 using VoidEmpires.Application.Planets;
+using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Infrastructure.Development;
@@ -106,11 +107,17 @@ public class DevDefenseUiStateEndpointTests(WebApplicationFactory<Program> facto
         Assert.Single(payload.UiState.Defenses.DefenseStructures);
         Assert.Equal(BuildingType.DefenseGrid, payload.UiState.Defenses.DefenseStructures[0].BuildingType);
         Assert.Equal(5, payload.UiState.Defenses.DefenseOptions.Count);
+        var missileBattery = Assert.Single(payload.UiState.Defenses.DefenseOptions, x => x.BuildingType == BuildingType.MissileBattery);
+        Assert.Equal(0, missileBattery.CurrentLevel);
+        Assert.Equal(1, missileBattery.TargetLevel);
+        Assert.Equal("Construir", missileBattery.Display?.ActionLabel);
+        Assert.Contains("production", missileBattery.Metadata?.DurationPolicyKey, StringComparison.OrdinalIgnoreCase);
         Assert.Contains(payload.UiState.Defenses.DefenseOptions, x => x.BuildingType == BuildingType.DefenseGrid);
         Assert.Contains(payload.UiState.Defenses.DefenseOptions, x => x.BuildingType == BuildingType.PlanetaryShield);
-        Assert.Contains("construction readiness", payload.UiState.Defenses.Diagnostics.Notes[1], StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("unit production", payload.UiState.Defenses.Diagnostics.Notes[1], StringComparison.OrdinalIgnoreCase);
         Assert.Equal(initialOrderCount, await dbContext.Set<PlanetConstructionOrder>().CountAsync());
         Assert.Equal(initialBuildingCount, await dbContext.Set<PlanetBuilding>().CountAsync());
+        Assert.Empty(await dbContext.Set<AssetProductionOrder>().Where(x => x.Status == AssetProductionOrderStatus.Active).ToListAsync());
     }
 
     [Fact]
@@ -130,7 +137,12 @@ public class DevDefenseUiStateEndpointTests(WebApplicationFactory<Program> facto
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(payload?.UiState?.Defenses);
         Assert.Equal(5, payload.UiState.Defenses.DefenseOptions.Count);
-        Assert.All(payload.UiState.Defenses.DefenseOptions, option => Assert.Equal("InsufficientResources", option.AvailabilityStatus));
+        Assert.Contains(payload.UiState.Defenses.DefenseOptions, option =>
+            option.BuildingType == BuildingType.MissileBattery &&
+            option.AvailabilityReason == "MissingRequiredBuilding");
+        Assert.Contains(payload.UiState.Defenses.DefenseOptions, option =>
+            option.BuildingType == BuildingType.PlanetaryShield &&
+            option.AvailabilityStatus == "InsufficientResources");
         Assert.Equal(0, payload.UiState.Defenses.ProtectionSummary.AvailableOptionCount);
         Assert.Equal(5, payload.UiState.Defenses.ProtectionSummary.BlockedOptionCount);
     }
@@ -165,7 +177,7 @@ public class DevDefenseUiStateEndpointTests(WebApplicationFactory<Program> facto
             {
                 var planetUiStateService = new DevPlanetUiStateService(dbContext);
                 services.AddSingleton<IDevPlanetUiStateService>(planetUiStateService);
-                services.AddSingleton<IDevDefenseUiStateService>(new DevDefenseUiStateService(planetUiStateService));
+                services.AddSingleton<IDevDefenseUiStateService>(new DevDefenseUiStateService(planetUiStateService, dbContext));
             });
         }).CreateClient();
 

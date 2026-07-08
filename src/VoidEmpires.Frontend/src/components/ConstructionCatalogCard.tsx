@@ -52,7 +52,9 @@ export function ConstructionCatalogCard({
   const currentLevelLabel = action.currentLevel > 0
     ? `Nivel ${action.currentLevel}`
     : "Sin construir";
-  const actionButtonLabel = formatConstructionActionButtonLabel(action.availabilityStatus, isPrepared);
+  const actionButtonLabel = isAvailable
+    ? (isPrepared ? "En cola" : "Construir")
+    : formatConstructionActionButtonLabel(action.availabilityStatus, isPrepared);
 
   return (
     <article
@@ -93,7 +95,7 @@ export function ConstructionCatalogCard({
           }}
           disabled={!isAvailable}
         >
-          {isAvailable && !isPrepared ? "Revisar orden" : actionButtonLabel}
+          {actionButtonLabel}
         </button>
       </div>
     </article>

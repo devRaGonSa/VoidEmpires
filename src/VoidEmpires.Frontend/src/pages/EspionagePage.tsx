@@ -817,7 +817,7 @@ export function EspionagePage() {
             <h3>Pasar a otras sistemas</h3>
             <p>Espionaje interpreta inteligencia. Las demas superficies siguen siendo propietarias del mapa, la superficie planetaria, el mando orbital y el progreso tecnologico.</p>
           </div>
-          <UiBadge tone="warn">Contexto conservado</UiBadge>
+          <UiBadge tone="warn">Contexto activo</UiBadge>
         </div>
         <div className="espionage-handoff-grid">
           {handoffCards.map((card) => {

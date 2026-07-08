@@ -11,9 +11,7 @@ import {
   formatResearchCommandFailure,
   formatResearchRequestFailure,
   getResearchVisualState,
-  groupResearchTechnologiesByCategory,
   mapResearchUiStateToViewModel,
-  summarizeResearchCatalog,
 } from "../utils/researchPresentation";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { UiBadge } from "../components/ui/UiBadge";
@@ -93,6 +91,37 @@ function getBlockedResearchReasonDetail(
     default:
       return `No se puede iniciar: ${technology.availability.reasonLabel}`;
   }
+}
+
+function getResearchProductOrder(technology: ResearchTechnology) {
+  const key = `${technology.researchType}`.toLowerCase();
+  const category = `${technology.categoryKey}`.toLowerCase();
+
+  if (key.includes("energy") || key.includes("resource") || category.includes("energy") || category.includes("econom")) {
+    return 10;
+  }
+
+  if (key.includes("constructionautomation") || category.includes("administr")) {
+    return 20;
+  }
+
+  if (key.includes("propulsion") || category.includes("log")) {
+    return 30;
+  }
+
+  if (key.includes("weapon") || key.includes("shield") || category.includes("militar") || category.includes("defense")) {
+    return 40;
+  }
+
+  if (key.includes("espionage") || category.includes("explor")) {
+    return 50;
+  }
+
+  if (key.includes("planetary") || category.includes("colon")) {
+    return 60;
+  }
+
+  return 70;
 }
 
 function formatResearchEnqueueValidationError(
@@ -215,8 +244,10 @@ export function ResearchPage() {
   const selectedPlanetId = uiState?.selectedPlanetId ?? queryPlanetId ?? null;
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
-  const catalogGroups = useMemo(() => groupResearchTechnologiesByCategory(uiState?.catalog ?? []), [uiState?.catalog]);
-  const catalogSummary = useMemo(() => summarizeResearchCatalog(uiState?.catalog ?? []), [uiState?.catalog]);
+  const catalogItems = useMemo(
+    () => [...(uiState?.catalog ?? [])].sort((left, right) => getResearchProductOrder(left) - getResearchProductOrder(right)),
+    [uiState?.catalog],
+  );
   const preparedResearch = useMemo(
     () => uiState?.catalog.find((item) => item.researchType === preparedResearchType) ?? null,
     [preparedResearchType, uiState?.catalog],
@@ -376,10 +407,8 @@ export function ResearchPage() {
   return (
     <section className="page-grid">
       <CockpitHero
-        versionLabel="Investigacion v1"
         title="Laboratorio"
-        description="Tecnologias disponibles, cola de investigacion y coste visible antes de confirmar una orden cientifica."
-        developmentNote="Progreso cientifico con confirmacion obligatoria antes de iniciar una investigacion."
+        description="Catalogo tecnologico compacto y cola activa cuando hay una investigacion en curso."
         badges={
           <>
             <UiBadge tone="good">Tecnologias disponibles</UiBadge>
@@ -424,45 +453,23 @@ export function ResearchPage() {
 
       {uiState ? (
         <>
+          {uiState.queue.length > 0 ? (
           <UiCard className="panel research-queue-panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Progreso cientifico</p>
                 <h3>Investigacion activa</h3>
               </div>
-              <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
+              <UiBadge tone="warn">{uiState.queue.length} en curso</UiBadge>
             </div>
-            <div className="figma-two-column">
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div><p className="eyebrow">Investigacion activa</p><h4>Ordenes visibles</h4></div>
-                  <UiBadge>{uiState.queue.length}</UiBadge>
-                </div>
-                {uiState.queue.length > 0 ? (
-                  <ul className="stack-list compact-list">
-                    {uiState.queue.map((item) => (
-                      <li key={item.orderId}>
-                        {item.label} nivel {item.targetLevel} | {item.isDue ? "Lista para cierre" : item.statusLabel} | cierre {formatDateTime(item.endsAtUtc)}
-                      </li>
-                    ))}
-                  </ul>
-                ) : <p className="figma-panel-note">Sin investigacion activa</p>}
-              </section>
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div><p className="eyebrow">Progreso cientifico</p><h4>Tecnologias completadas</h4></div>
-                  <UiBadge>{uiState.projects.length}</UiBadge>
-                </div>
-                {uiState.projects.length > 0 ? (
-                  <ul className="stack-list compact-list">
-                    {uiState.projects.map((item) => (
-                      <li key={`${item.researchType}`}>{item.label} nivel {item.currentLevel}</li>
-                    ))}
-                  </ul>
-                ) : <p className="figma-panel-note">No hay proyectos completados para mostrar.</p>}
-              </section>
-            </div>
+            <ul className="stack-list compact-list">
+              {uiState.queue.map((item) => (
+                <li key={item.orderId}>
+                  {item.label} nivel {item.targetLevel} | {item.isDue ? "Lista para cierre" : item.statusLabel} | cierre {formatDateTime(item.endsAtUtc)}
+                </li>
+              ))}
+            </ul>
           </UiCard>
+          ) : null}
 
           <UiCard className="panel research-catalog-panel">
             <div className="figma-section-header">
@@ -470,20 +477,10 @@ export function ResearchPage() {
                 <p className="eyebrow">Laboratorio</p>
                 <h3>Tecnologias disponibles y bloqueadas</h3>
               </div>
-              <UiBadge tone="good">Vista normalizada</UiBadge>
+              <UiBadge tone="good">{catalogItems.length} tecnologias</UiBadge>
             </div>
-            <div className="planet-building-groups research-catalog-groups">
-              {catalogGroups.map((group) => (
-                <section key={group.key} className="subpanel figma-subpanel">
-                  <div className="figma-section-header">
-                    <div>
-                      <p className="eyebrow">{group.label}</p>
-                      <h4>{group.label}</h4>
-                    </div>
-                    <UiBadge>{group.technologies.length}</UiBadge>
-                  </div>
-                  <div className="planet-building-grid research-tech-grid">
-                    {group.technologies.map((technology) => {
+            <div className="planet-building-grid research-tech-grid">
+                    {catalogItems.map((technology) => {
                       const visualState = getResearchVisualState(technology);
                       const canPrepare = hasSafeResearchEnqueue && visualState === "ready" && Boolean(technology.enqueueCommand);
                       const blockedReasonLabel = getBlockedResearchReasonLabel(
@@ -507,9 +504,6 @@ export function ResearchPage() {
                         />
                       );
                     })}
-                  </div>
-                </section>
-              ))}
             </div>
           </UiCard>
 

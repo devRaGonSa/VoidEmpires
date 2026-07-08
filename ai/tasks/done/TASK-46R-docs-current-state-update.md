@@ -3,7 +3,7 @@
 ---
 id: TASK-46R
 title: Docs current state update
-status: pending
+status: done
 type: docs
 team: product
 supporting_teams: []
@@ -66,4 +66,3 @@ At the end:
 
 - Prefer modifying fewer than 5 files.
 - Prefer changes under 200 lines of code.
-

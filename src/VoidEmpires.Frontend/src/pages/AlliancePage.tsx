@@ -421,7 +421,7 @@ export function AlliancePage() {
             {
               label: "Mundo base",
               value: uiState?.identity?.homePlanetLabel ?? formatCompactGuid(activeHomePlanetId) ?? "Sin mundo base",
-              detail: activeHomePlanetId ? "Contexto conservado" : undefined,
+              detail: activeHomePlanetId ? "Contexto activo" : undefined,
             },
           ]}
           resourceItems={[

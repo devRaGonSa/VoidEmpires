@@ -10,7 +10,6 @@ import { ShipyardCatalogCard } from "../components/ShipyardCatalogCard";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import {
-  groupAssetOptionsByCategory,
   mapShipyardUiStateToViewModel,
   selectRecommendedAssetProduction,
   type ShipyardAssetOption,
@@ -51,6 +50,7 @@ function formatRequirementLabel(asset: ShipyardAssetOption) {
 interface ShipyardReviewSelection {
   asset: ShipyardAssetOption;
   bucket: "available" | "blocked" | "unsupported";
+  quantity: number;
 }
 
 interface ShipyardErrorPresentation {
@@ -284,6 +284,7 @@ export function ShipyardPage() {
     endsAtUtc: string | null;
   } | null>(null);
   const [enqueueRefreshAudit, setEnqueueRefreshAudit] = useState<ShipyardRefreshAudit | null>(null);
+  const [quantityByAssetType, setQuantityByAssetType] = useState<Record<string, number>>({});
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -293,7 +294,7 @@ export function ShipyardPage() {
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
   const shipyard = uiState?.shipyard ?? null;
   const hasSafeShipyardEnqueue = shipyard?.actionAvailability.enqueue.supported ?? false;
-  const categoryGroups = useMemo(() => groupAssetOptionsByCategory(shipyard?.catalog ?? []), [shipyard?.catalog]);
+  const catalogItems = useMemo(() => [...(shipyard?.catalog ?? [])], [shipyard?.catalog]);
   const recommendedAsset = useMemo(() => selectRecommendedAssetProduction(shipyard?.catalog ?? []), [shipyard?.catalog]);
   const catalogBuckets = useMemo(() => {
     const assets = shipyard?.catalog ?? [];
@@ -390,7 +391,18 @@ export function ShipyardPage() {
     void load();
   }, [queryCivilizationId, queryPlanetId, searchParams, setSearchParams]);
 
-  function handleReviewAsset(asset: ShipyardAssetOption) {
+  function handleQuantityChange(assetType: string, quantity: number) {
+    setQuantityByAssetType((current) => ({
+      ...current,
+      [assetType]: Number.isFinite(quantity) && quantity > 0 ? Math.floor(quantity) : 1,
+    }));
+  }
+
+  function handleReviewAsset(asset: ShipyardAssetOption, quantity: number) {
+    if (getCatalogBucket(asset) !== "available") {
+      return;
+    }
+
     setHasEnqueueAcknowledgement(false);
     setEnqueueFeedback(null);
     setEnqueueError(null);
@@ -401,6 +413,7 @@ export function ShipyardPage() {
     setReviewSelection({
       asset,
       bucket: getCatalogBucket(asset),
+      quantity: Number.isFinite(quantity) && quantity > 0 ? Math.floor(quantity) : 1,
     });
   }
 
@@ -440,7 +453,7 @@ export function ShipyardPage() {
         route: reviewSelection.asset.enqueueCommand?.route,
         target: reviewSelection.asset.enqueueCommand?.target,
         assetType: reviewSelection.asset.enqueueCommand?.assetType ?? reviewSelection.asset.assetType,
-        quantity: reviewSelection.asset.enqueueCommand?.quantity ?? 1,
+        quantity: reviewSelection.quantity,
         requestedAtUtc: new Date().toISOString(),
       });
 
@@ -502,10 +515,8 @@ export function ShipyardPage() {
   return (
     <section className="page-grid">
       <CockpitHero
-        versionLabel="Astillero v1"
         title="Astillero orbital"
-        description="Naves disponibles, cola de produccion y stock orbital con confirmacion antes de gastar recursos. El stock orbital no equivale automaticamente a una escuadra visible en Flotas."
-        developmentNote="Produccion orbital con confirmacion obligatoria; preparar escuadras queda fuera de esta vista."
+        description="Catalogo compacto de naves, produccion por unidades y cola orbital activa."
         badges={
           <>
             <UiBadge tone="good">Naves disponibles</UiBadge>
@@ -549,21 +560,11 @@ export function ShipyardPage() {
             {shipyard.catalog.length === 0 ? (
               <p className="figma-panel-note">El catalogo orbital aun no tiene opciones utiles para este contexto. Astillero mantiene el acceso y deja visible la frontera del modulo.</p>
             ) : (
-              <>
-                {categoryGroups.map((group) => (
-                  <section key={group.key} className="subpanel figma-subpanel">
-                    <div className="figma-section-header">
-                      <div>
-                        <p className="eyebrow">Categoria orbital</p>
-                        <h4>{group.label}</h4>
-                        <p>{formatCountLabel(group.assets.length, "opcion visible", "opciones visibles")}</p>
-                      </div>
-                      <UiBadge>{group.assets.length} activos</UiBadge>
-                    </div>
                     <div className="readiness-grid shipyard-catalog-grid">
-                      {group.assets.map((asset) => {
+                      {catalogItems.map((asset) => {
                         const isRecommended = recommendedAsset?.assetType === asset.assetType && asset.statusKey === "Available";
                         const bucket = getCatalogBucket(asset);
+                        const quantity = quantityByAssetType[asset.assetType] ?? 1;
 
                         return (
                           <ShipyardCatalogCard
@@ -571,18 +572,17 @@ export function ShipyardPage() {
                             asset={asset}
                             bucket={bucket}
                             isRecommended={isRecommended}
-                            onReview={handleReviewAsset}
+                            quantity={quantity}
+                            onQuantityChange={handleQuantityChange}
+                            onProduce={handleReviewAsset}
                           />
                         );
                       })}
                     </div>
-                  </section>
-                ))}
-
-              </>
             )}
           </UiCard>
 
+          {shipyard.queue.length > 0 ? (
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
@@ -625,6 +625,7 @@ export function ShipyardPage() {
               </div>
             )}
           </UiCard>
+          ) : null}
 
           {operatorMode && (shipyard.diagnostics.playerFacing.length > 0 || technicalErrorDetail || enqueueOrderDetails) ? (
             <DevDiagnosticsPanel
@@ -748,9 +749,9 @@ export function ShipyardPage() {
           isOpen
           onClose={handleCancelReview}
           primaryAction={{
-            label: reviewSelection.bucket === "available" ? "Enviar produccion" : "No disponible",
+            label: "Producir",
             onClick: () => void handleConfirmProduction(),
-            disabled: reviewSelection.bucket !== "available" || !hasEnqueueAcknowledgement,
+            disabled: !hasEnqueueAcknowledgement,
           }}
           secondaryAction={{
             label: "Cancelar",
@@ -779,6 +780,7 @@ export function ShipyardPage() {
                 <div className="figma-data-row"><span>Rol</span><strong>{reviewSelection.asset.roleLabel}</strong></div>
                 <div className="figma-data-row"><span>Clase</span><strong>{reviewSelection.asset.categoryLabel}</strong></div>
                 <div className="figma-data-row"><span>Stock orbital actual</span><strong>{reviewSelection.asset.quantityLabel}</strong></div>
+                <div className="figma-data-row"><span>Unidades</span><strong>{reviewSelection.quantity}</strong></div>
                 <div className="figma-data-row"><span>Duracion</span><strong>{reviewSelection.asset.estimatedDurationLabel}</strong></div>
               </div>
             </section>

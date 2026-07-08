@@ -8,7 +8,9 @@ interface ShipyardCatalogCardProps {
   asset: ShipyardAssetOption;
   bucket: ShipyardCatalogBucket;
   isRecommended: boolean;
-  onReview: (asset: ShipyardAssetOption) => void;
+  quantity: number;
+  onQuantityChange: (assetType: string, quantity: number) => void;
+  onProduce: (asset: ShipyardAssetOption, quantity: number) => void;
 }
 
 function formatRequirementLabel(asset: ShipyardAssetOption) {
@@ -19,22 +21,18 @@ export function ShipyardCatalogCard({
   asset,
   bucket,
   isRecommended,
-  onReview,
+  quantity,
+  onQuantityChange,
+  onProduce,
 }: ShipyardCatalogCardProps) {
+  const isAvailable = bucket === "available";
   const badgeTone = bucket === "available" ? "good" : bucket === "blocked" ? "warn" : "neutral";
-  const reviewLabel = bucket === "available"
-    ? "Revisar orden"
-    : bucket === "blocked"
-      ? "Revisar bloqueo"
-      : "Revisar limite";
   const primaryActionLabel = bucket === "available"
-    ? "Lista para cola"
+    ? "Producir"
     : bucket === "blocked"
       ? "Bloqueada"
       : "No disponible";
-  const requirementLabel = bucket === "available"
-    ? formatRequirementLabel(asset)
-    : asset.reasonLabel;
+  const requirementLabel = isAvailable ? formatRequirementLabel(asset) : asset.reasonLabel;
 
   return (
     <article className={`subpanel figma-subpanel shipyard-catalog-card shipyard-catalog-card-${bucket}`}>
@@ -62,14 +60,29 @@ export function ShipyardCatalogCard({
         {asset.roleLabel}. {formatShipyardAssetEffect(asset.assetType, asset.description)}
       </p>
       <div className="transfer-confirmation-actions">
+        <label className="field shipyard-quantity-field">
+          <span>Unidades</span>
+          <input
+            type="number"
+            min={1}
+            step={1}
+            value={quantity}
+            disabled={!isAvailable}
+            onChange={(event) => onQuantityChange(asset.assetType, Number(event.target.value))}
+          />
+        </label>
         <button
           type="button"
-          className={bucket === "available" ? "planet-action-button-secondary" : "planet-action-button-blocked"}
-          onClick={() => onReview(asset)}
+          className={isAvailable ? "planet-action-button-secondary" : "planet-action-button-blocked"}
+          onClick={() => onProduce(asset, quantity)}
+          disabled={!isAvailable}
         >
-          {reviewLabel}
+          Producir
         </button>
       </div>
+      {!isAvailable ? (
+        <p className="figma-panel-note">{requirementLabel}</p>
+      ) : null}
     </article>
   );
 }

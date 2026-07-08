@@ -1,5 +1,5 @@
 import { formatResourceAmountList } from "./resourceDisplay";
-import { formatProductActionLabel, productActionLabels } from "./cockpitStatus";
+import { productActionLabels } from "./cockpitStatus";
 import type {
   ResearchCost as ResearchCostDto,
   ResearchDefinitionDto,
@@ -477,7 +477,7 @@ export function getResearchPrimaryAction(technology: ResearchTechnology) {
   }
 
   if (visualState === "active") {
-    return technology.availability.canCompleteDue ? productActionLabels.confirm : "En investigacion";
+    return technology.availability.canCompleteDue ? productActionLabels.confirm : "Investigando";
   }
 
   if (visualState === "ready") {
@@ -492,7 +492,7 @@ export function getResearchPrimaryAction(technology: ResearchTechnology) {
     return "En cola";
   }
 
-  return formatProductActionLabel("review", "requisitos");
+  return "Bloqueada";
 }
 
 export function selectRecommendedResearch(technologies: readonly ResearchTechnology[]) {

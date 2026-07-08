@@ -157,3 +157,24 @@ export interface DefensesUiStateResponse {
   uiState: DefensesUiStateDto | null;
   errors: readonly string[];
 }
+
+export interface EnqueueDefenseProductionRequest {
+  civilizationId: string;
+  planetId: string;
+  assetType: string;
+  quantity: number;
+  requestedAtUtc: string;
+}
+
+export interface EnqueueDefenseProductionResponse {
+  succeeded: boolean;
+  orderId: string | null;
+  startsAtUtc: string | null;
+  endsAtUtc: string | null;
+  errors: readonly string[];
+}
+
+export interface EnqueueDefenseProductionResult {
+  httpStatus: number;
+  response: EnqueueDefenseProductionResponse | null;
+}

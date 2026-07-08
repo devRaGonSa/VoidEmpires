@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Players;
+using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Players;
 using VoidEmpires.Infrastructure.Persistence;
@@ -52,6 +53,7 @@ public sealed class InitialPlayerWorldBootstrapService : IInitialPlayerWorldBoot
         _dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(homePlanet.Id, civilization.Id));
         _dbContext.PlanetResourceStockpiles.Add(stockpile);
         _dbContext.PlanetProductionProfiles.Add(StartingHomeWorldBaseline.CreateProductionProfile(homePlanet.Id));
+        _dbContext.Set<PlanetBuildingCapacity>().Add(PlanetBuildingCapacity.Create(homePlanet.Id, 120));
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return InitialPlayerWorldBootstrapResult.Success(

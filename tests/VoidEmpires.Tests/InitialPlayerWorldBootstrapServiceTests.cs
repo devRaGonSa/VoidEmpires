@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Development;
 using VoidEmpires.Application.Players;
+using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Infrastructure.Development;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.Players;
@@ -29,6 +30,36 @@ public class InitialPlayerWorldBootstrapServiceTests
         Assert.True(await dbContext.PlanetOwnerships.AnyAsync(x => x.PlanetId == result.HomePlanetId && x.CivilizationId == result.CivilizationId));
         Assert.True(await dbContext.PlanetResourceStockpiles.AnyAsync(x => x.PlanetId == result.HomePlanetId && x.Metal == StartingHomeWorldBaseline.StartingMetal));
         Assert.True(await dbContext.PlanetProductionProfiles.AnyAsync(x => x.PlanetId == result.HomePlanetId && x.CreditsPerHour == StartingHomeWorldBaseline.BaseCreditsPerHour));
+        Assert.True(await dbContext.PlanetBuildingCapacities.AnyAsync(x => x.PlanetId == result.HomePlanetId && x.BaseCapacity == 120));
+    }
+
+    [Fact]
+    public async Task CreateAsyncStartsWithBasicConstructionOptionsAffordableAndCapacityBacked()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new InitialPlayerWorldBootstrapService(dbContext);
+
+        var result = await service.CreateAsync(ValidRequest());
+
+        Assert.True(result.Succeeded);
+        var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == result.HomePlanetId);
+        var capacity = await dbContext.PlanetBuildingCapacities.SingleAsync(x => x.PlanetId == result.HomePlanetId);
+        Assert.True(capacity.TotalCapacity >= 20);
+        foreach (var buildingType in new[]
+        {
+            BuildingType.MetalMine,
+            BuildingType.CrystalMine,
+            BuildingType.GasExtractor,
+            BuildingType.SolarPlant
+        })
+        {
+            var definition = BuildingCatalog.Get(buildingType);
+            Assert.True(stockpile.CanSpend(
+                definition.Cost.Credits,
+                definition.Cost.Metal,
+                definition.Cost.Crystal,
+                definition.Cost.Gas));
+        }
     }
 
     [Fact]

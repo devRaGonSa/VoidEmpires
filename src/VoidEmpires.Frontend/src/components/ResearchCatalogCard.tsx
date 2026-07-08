@@ -83,7 +83,7 @@ export function ResearchCatalogCard({
             onClick={() => onPrepare(technology)}
             disabled={!canPrepare}
           >
-            {isPrepared ? "Revision preparada" : technology.primaryActionLabel}
+            {isPrepared ? "Investigar" : technology.primaryActionLabel}
           </button>
         </div>
       )}

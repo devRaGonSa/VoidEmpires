@@ -5,5 +5,9 @@ public enum PlanetaryAssetType
     PatrolGroup = 1,
     ExpeditionGroup = 2,
     VehicleGroup = 3,
-    SupportGroup = 4
+    SupportGroup = 4,
+    MissileBattery = 10,
+    LaserTurret = 11,
+    IonCannon = 12,
+    PlasmaCannon = 13
 }

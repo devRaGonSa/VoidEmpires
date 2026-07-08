@@ -3,7 +3,7 @@
 ---
 id: TASK-46Q
 title: Copy guard module polish
-status: pending
+status: done
 type: tooling
 team: product
 supporting_teams: []
@@ -61,4 +61,3 @@ At the end:
 
 - Prefer modifying fewer than 5 files.
 - Prefer changes under 200 lines of code.
-

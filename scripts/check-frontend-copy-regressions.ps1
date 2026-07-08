@@ -326,6 +326,28 @@ $coreModuleClutterMatches = Select-String -Path $coreModuleCopyGuardFiles -Patte
 foreach ($match in @($coreModuleClutterMatches)) {
   $copyHygieneFailures.Add(("{0}:{1}: forbidden core-module clutter copy detected in normal UI source: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
 }
+
+$block46ForbiddenModulePatterns = @(
+  "(?i)continuar mundo",
+  "(?i)tecnolog[iÃ­]as completadas",
+  "(?i)progreso cient[iÃ­]fico",
+  "(?i)contexto conservado",
+  "(?i)vista normalizada",
+  "(?i)revisar bloqueo",
+  "(?i)sin acci[oÃ³]n local",
+  "(?i)producci[oÃ³]n defensiva no disponible aqu[iÃ­]",
+  "(?i)construcci[oÃ³]n v1",
+  "(?i)investigaci[oÃ³]n v1",
+  "(?i)astillero v1",
+  "(?i)defensas v1",
+  "(?i)edificios actuales",
+  "(?i)^\s*<p className=""eyebrow"">infraestructura</p>"
+)
+$block46ForbiddenModuleMatches = Select-String -Path ($productSurfaceFiles | Select-Object -ExpandProperty FullName) -Pattern $block46ForbiddenModulePatterns -Encoding UTF8
+foreach ($match in @($block46ForbiddenModuleMatches)) {
+  $copyHygieneFailures.Add(("{0}:{1}: forbidden Block 46 module polish copy detected in normal frontend UI source: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
+}
+
 $ogameLikeForbiddenNormalUiPatterns = @(
   "contexto guardado",
   "dar contexto",
@@ -573,14 +595,14 @@ $requiredSafetyCopy = @(
     Path = "src/VoidEmpires.Frontend/src/pages/ShipyardPage.tsx"
     Fragments = @(
       "La vista la mantiene visible sin completarla automaticamente.",
-      "El stock orbital no equivale automaticamente a una escuadra visible en Flotas."
+      "Catalogo compacto de naves, produccion por unidades y cola orbital activa."
     )
   },
   @{
     Path = "src/VoidEmpires.Frontend/src/pages/DefensesPage.tsx"
     Fragments = @(
       "Sin combate ni intercepcion",
-      "Una orden visible confirma preparacion de construccion, no combate ni cierre automatico."
+      "Catalogo compacto de defensas, produccion por unidades y cola defensiva activa."
     )
   },
   @{

@@ -492,7 +492,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
             <p className="eyebrow">Navegacion</p>
             <h3>Siguientes sistemas</h3>
           </div>
-          <UiBadge tone="warn">Contexto conservado</UiBadge>
+          <UiBadge tone="warn">Contexto activo</UiBadge>
         </div>
         <div className="selection-chip-row">
           <Link

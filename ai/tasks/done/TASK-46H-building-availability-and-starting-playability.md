@@ -3,7 +3,7 @@
 ---
 id: TASK-46H
 title: Building availability and starting playability
-status: pending
+status: done
 type: backend
 team: product
 supporting_teams: []
@@ -68,4 +68,3 @@ At the end:
 
 - Prefer modifying fewer than 5 files.
 - Prefer changes under 200 lines of code.
-

@@ -37,6 +37,8 @@ export interface DefenseStructure {
 export interface DefenseOption {
   actionKey: string;
   actionLabel: string;
+  assetType: string | null;
+  productionModel: "unit" | "level";
   buildingType: string;
   structureLabel: string;
   categoryKey: string;
@@ -59,6 +61,7 @@ export interface DefenseQueueItem {
   actionKey: string;
   actionLabel: string;
   buildingType: string;
+  productionModel: "unit" | "level";
   structureLabel: string;
   statusKey: string;
   statusLabel: string;
@@ -129,7 +132,20 @@ const reasonLabels: Record<string, string> = {
   "Planet building capacity would be exceeded.": "La capacidad planetaria impediria esta fortificacion",
   "Insufficient resources.": "No hay recursos suficientes en la colonia",
   "Planet is not controlled by the requesting civilization.": "La colonia no esta bajo control local",
+  MissingRequiredBuilding: "Falta malla defensiva o nivel requerido",
+  InsufficientPopulationCapacity: "Capacidad local insuficiente",
+  InsufficientResources: "No hay recursos suficientes en la colonia",
 };
+
+const unitDefenseAssetTypes: Record<string, string> = {
+  MissileBattery: "MissileBattery",
+  LaserTurret: "LaserTurret",
+  IonCannon: "IonCannon",
+};
+
+function getDefenseProductionModel(buildingType: string): "unit" | "level" {
+  return unitDefenseAssetTypes[buildingType] ? "unit" : "level";
+}
 
 function mapCost(entries: readonly DefenseResourceStockpileItemDto[]): DefenseCost[] {
   return entries.map((entry) => ({
@@ -197,6 +213,8 @@ function mapOption(item: DefenseOptionDto, stockpile: DefenseCost[], metadataByB
   return {
     actionKey,
     actionLabel: item.display?.actionLabel ?? getDefenseActionLabel(actionKey),
+    assetType: unitDefenseAssetTypes[buildingType] ?? null,
+    productionModel: getDefenseProductionModel(buildingType),
     buildingType,
     structureLabel: metadata?.displayName ?? item.display?.buildingTypeLabel ?? getDefenseStructureLabel(buildingType),
     categoryKey: metadata?.categoryKey ?? categoryKey,
@@ -238,6 +256,7 @@ function mapQueueItem(item: DefenseQueueItemDto, metadataByBuildingType: Readonl
     actionKey,
     actionLabel: item.display?.actionLabel ?? getDefenseActionLabel(actionKey),
     buildingType,
+    productionModel: getDefenseProductionModel(buildingType),
     structureLabel: metadata?.displayName ?? item.display?.buildingTypeLabel ?? getDefenseStructureLabel(buildingType),
     statusKey,
     statusLabel: item.display?.statusLabel ?? getDefenseStatusLabel(statusKey),

@@ -5,9 +5,9 @@ import { UiCard } from "./ui/UiCard";
 interface CockpitHeroProps {
   title: string;
   description: string;
-  versionLabel: string;
-  badges: ReactNode;
-  developmentNote: string;
+  versionLabel?: string | null;
+  badges?: ReactNode;
+  developmentNote?: string;
   developmentNoteLabel?: string;
 }
 
@@ -19,7 +19,7 @@ export function CockpitHero({
   return (
     <UiCard className="panel panel-hero figma-hero-card">
       <div className="figma-hero-copy">
-        <UiBadge tone="resource">{versionLabel}</UiBadge>
+        {versionLabel ? <UiBadge tone="resource">{versionLabel}</UiBadge> : null}
         <h2>{title}</h2>
         <p>{description}</p>
       </div>
