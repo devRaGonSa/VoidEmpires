@@ -1264,6 +1264,7 @@ select {
 
 .shipyard-catalog-grid {
   align-items: stretch;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .shipyard-catalog-card {
@@ -3151,6 +3152,10 @@ select {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .shipyard-catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .planet-action-facts {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
@@ -3237,6 +3242,10 @@ select {
   }
 
   .research-tech-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shipyard-catalog-grid {
     grid-template-columns: 1fr;
   }
 
