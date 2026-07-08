@@ -104,6 +104,10 @@ export function formatResourceAmountWithCapacity(entry: ResourceAmount) {
   return `${formatResourceAmount(entry)} / ${entry.capacity}`;
 }
 
+export function splitResourceDetailParts(detail: string | null | undefined) {
+  return detail?.split("|").map((part) => part.trim()).filter(Boolean) ?? [];
+}
+
 export function formatResourceDelta(entry: ResourceAmount) {
   const prefix = entry.quantity > 0 ? "+" : "";
   return `${formatResourceLabel(entry.resourceType)} ${prefix}${entry.quantity}`;

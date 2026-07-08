@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { splitResourceDetailParts } from "../../utils/resourceDisplay";
 import { UiBadge } from "./UiBadge";
 
 export interface TopBarStatusItem {
@@ -35,11 +36,7 @@ export function TopStatusBar({ account, items, resources = [] }: TopStatusBarPro
       {resources.length > 0 ? (
         <div className="top-resource-pill-row" aria-label="Recursos del planeta seleccionado">
           {resources.map((resource) => (
-            <section key={resource.key} className="top-resource-pill">
-              <span>{resource.label}</span>
-              <strong>{resource.amount}</strong>
-              {resource.detail ? <small>{resource.detail}</small> : null}
-            </section>
+            <TopResourcePill key={resource.key} resource={resource} />
           ))}
         </div>
       ) : null}
@@ -77,5 +74,25 @@ export function TopStatusBar({ account, items, resources = [] }: TopStatusBarPro
         <UiBadge tone="resource">Estado imperial</UiBadge>
       )}
     </div>
+  );
+}
+
+function TopResourcePill({ resource }: { resource: TopBarResourceItem }) {
+  const detailParts = splitResourceDetailParts(resource.detail);
+
+  return (
+    <section className="top-resource-pill">
+      <div className="top-resource-pill-main">
+        <span className="top-resource-pill-label">{resource.label}</span>
+        <strong className="top-resource-pill-amount">{resource.amount}</strong>
+      </div>
+      {detailParts.length > 0 ? (
+        <div className="top-resource-pill-meta">
+          {detailParts.map((part) => (
+            <small key={part}>{part}</small>
+          ))}
+        </div>
+      ) : null}
+    </section>
   );
 }
