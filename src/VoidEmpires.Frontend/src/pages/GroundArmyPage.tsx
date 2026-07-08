@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { fetchGroundArmyUiState } from "../api/groundArmyApi";
 import { CockpitHero } from "../components/CockpitHero";
+import { GroundArmyCatalogCard } from "../components/GroundArmyCatalogCard";
 import { PlanetDataRow } from "../components/PlanetModuleLayout";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -21,7 +22,7 @@ function getGroundPosture(viewModel: ReturnType<typeof mapGroundArmyUiStateToVie
 }
 
 function getRecommendedNextStep(viewModel: ReturnType<typeof mapGroundArmyUiStateToViewModel>["groundArmy"]) {
-  if (!viewModel) return "Cargar contexto terrestre";
+  if (!viewModel) return "Abrir vista terrestre";
   if (!viewModel.isOwnedByRequestingCivilization) return "Volver a una colonia propia";
   if (viewModel.readinessSummary.queueItemCount > 0) return "Revisar cola terrestre";
   if (viewModel.actionAvailability.enqueueSupported) return "Preparar entrenamiento";
@@ -50,8 +51,6 @@ export function GroundArmyPage() {
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
   const groundArmy = uiState?.groundArmy ?? null;
-  const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
-  const selectedPlanetId = uiState?.selectedPlanetId ?? queryPlanetId ?? null;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
   const posture = getGroundPosture(groundArmy);
   const recommendedNextStep = getRecommendedNextStep(groundArmy);
@@ -114,9 +113,9 @@ export function GroundArmyPage() {
       <CockpitHero
         versionLabel="Ejercito de Tierra v1"
         title="Ejercito de Tierra"
-        description="El mando terrestre prioriza guarnicion local, capacidad de entrenamiento y preparacion defensiva antes de activar operaciones de superficie."
+        description="Guarnicion local, capacidad de entrenamiento y unidades terrestres disponibles para la colonia seleccionada."
         developmentNoteLabel="Activacion pendiente"
-        developmentNote="Entrenamiento directo, invasion y combate terrestre siguen pendientes de activacion. Esta vista conserva la lectura de mando sin ejecutar ordenes nuevas."
+        developmentNote="Entrenamiento directo, invasion y combate terrestre siguen pendientes de activacion. Esta vista muestra catalogo y preparacion sin ejecutar ordenes nuevas."
         badges={
           <>
             <UiBadge>Guarnicion y entrenamiento</UiBadge>
@@ -128,11 +127,11 @@ export function GroundArmyPage() {
 
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Contexto</p><h3>Cargar mando terrestre</h3></div><UiBadge>Consulta de mando</UiBadge></div>
+          <div className="figma-section-header"><div><p className="eyebrow">Ejercito terrestre</p><h3>Abrir entrenamiento terrestre</h3></div><UiBadge>Colonia activa</UiBadge></div>
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field"><span>Id de civilizacion</span><input type="text" value={civilizationIdInput} onChange={(event) => setCivilizationIdInput(event.target.value)} placeholder="00000000-0000-0000-0000-000000000000" spellCheck={false} /></label>
             <label className="field"><span>Id de planeta opcional</span><input type="text" value={planetIdInput} onChange={(event) => setPlanetIdInput(event.target.value)} placeholder="40000000-0000-0000-0000-000000000000" spellCheck={false} /></label>
-            <button type="submit" disabled={isLoading}>{isLoading ? "Cargando..." : "Abrir mando"}</button>
+            <button type="submit" disabled={isLoading}>{isLoading ? "Cargando..." : "Abrir ejercito"}</button>
           </form>
           {error ? <p className="error-text">{error}</p> : null}
         </UiCard>
@@ -146,17 +145,7 @@ export function GroundArmyPage() {
               <PlanetDataRow label="Control" value={groundArmy.controlStatusLabel ?? "Sin control"} />
               <PlanetDataRow label="Siguiente paso" value={recommendedNextStep} />
             </div>
-          ) : <p className="figma-panel-note">La vista mostrara preparacion terrestre, estructuras y guarnicion cuando el contexto sea valido.</p>}
-        </UiCard>
-
-        <UiCard className="panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Limite de la vista</p><h3>Preparacion terrestre</h3></div><UiBadge tone="warn">{cockpitStatusLabels.preparation}</UiBadge></div>
-          <ul className="stack-list strategic-rules-list">
-            <li>Resume fuerzas terrestres, guarnicion y preparacion local.</li>
-            <li>Construccion mantiene edificios militares y Defensas mantiene proteccion planetaria.</li>
-            <li>Flotas mantiene movimiento orbital y transporte.</li>
-            <li>Invasion, combate y ocupacion siguen pendientes de activacion.</li>
-          </ul>
+          ) : <p className="figma-panel-note">La vista mostrara entrenamiento terrestre, estructuras y guarnicion cuando los datos sean validos.</p>}
         </UiCard>
       </div>
 
@@ -184,12 +173,12 @@ export function GroundArmyPage() {
               <PlanetDataRow label="Operacion terrestre" value="Combate e invasion pendientes de activacion." />
             </div></section>
           </div>
-        ) : <p className="figma-panel-note">Todavia no hay datos terrestres visibles. El mando mantiene un estado honesto hasta cargar una colonia valida.</p>}
+        ) : <p className="figma-panel-note">Todavia no hay datos terrestres visibles. La vista mantiene un estado honesto hasta cargar una colonia valida.</p>}
       </UiCard>
 
       {groundArmy ? (
         <UiCard className="panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Catalogo terrestre</p><h3>Unidades, estructuras y preparacion</h3><p>Las tarjetas muestran preparacion terrestre y continuidad de mando, no combate activo.</p></div><UiBadge tone={recommendedOption?.statusKey === "Available" ? "good" : "warn"}>{recommendedOption?.label ?? "Sin recomendacion"}</UiBadge></div>
+          <div className="figma-section-header"><div><p className="eyebrow">Catalogo terrestre</p><h3>Unidades, estructuras y preparacion</h3><p>Las tarjetas muestran entrenamiento terrestre y requisitos, no combate activo.</p></div><UiBadge tone={recommendedOption?.statusKey === "Available" ? "good" : "warn"}>{recommendedOption?.label ?? "Sin recomendacion"}</UiBadge></div>
           <div className="readiness-grid">
             <section className="subpanel figma-subpanel">
               <div className="figma-section-header"><div><p className="eyebrow">Guarnicion</p><h4>Unidades visibles</h4></div><UiBadge>{groundArmy.garrison.length} tipos</UiBadge></div>
@@ -205,17 +194,15 @@ export function GroundArmyPage() {
             </section>
           </div>
           <div className="figma-section-header module-boundary-spacer"><div><p className="eyebrow">Opciones agrupadas</p><h4>Catalogo de preparacion</h4></div></div>
-          <div className="readiness-grid">
+          <div className="ground-army-catalog-groups">
             {optionGroups.map((group) => (
               <section key={group.key} className="subpanel figma-subpanel">
                 <div className="figma-section-header"><div><p className="eyebrow">Categoria</p><h4>{group.label}</h4></div><UiBadge>{group.options.length} tarjetas</UiBadge></div>
-                <ul className="stack-list compact-list">
+                <div className="readiness-grid ground-army-catalog-grid">
                   {group.options.map((option) => (
-                    <li key={option.assetType}>
-                      {option.label} | {option.statusLabel} | {option.reasonLabel} | {option.requirementLabel} | {option.resourceScopeLabel} | Coste {option.estimatedCostLabel} | Duracion {option.estimatedDurationLabel}{option.missingLabel ? ` | ${option.missingLabel}` : ""}
-                    </li>
+                    <GroundArmyCatalogCard key={option.assetType} option={option} />
                   ))}
-                </ul>
+                </div>
               </section>
             ))}
           </div>
@@ -238,24 +225,6 @@ export function GroundArmyPage() {
           )}
           <div className="figma-section-header module-boundary-spacer"><div><p className="eyebrow">Completar vencidas</p><h4>{cockpitStatusLabels.safePlaceholder}</h4></div><UiBadge tone="warn">{groundArmy.actionAvailability.completeDueStatusLabel}</UiBadge></div>
           <p className="figma-panel-note">{groundArmy.actionAvailability.completeDueReason}. La cola terrestre sigue visible, pero el cierre por planeta permanece pendiente de activacion.</p>
-        </UiCard>
-      ) : null}
-
-      {groundArmy && recommendedOption ? (
-        <UiCard className="panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Preparacion recomendada</p><h3>Orden pendiente o bloqueo visible</h3><p>El mando muestra la mejor preparacion visible sin confirmar entrenamiento ni saltarse Construccion.</p></div><UiBadge tone={recommendedOption.statusKey === "Available" ? "good" : "warn"}>{recommendedOption.statusLabel}</UiBadge></div>
-          <div className="figma-data-list">
-            <PlanetDataRow label="Preparacion" value={recommendedOption.label} />
-            <PlanetDataRow label="Requisito" value={recommendedOption.requirementLabel} />
-            <PlanetDataRow label="Coste" value={recommendedOption.estimatedCostLabel} />
-            <PlanetDataRow label="Duracion" value={recommendedOption.estimatedDurationLabel} />
-          </div>
-          <p className="figma-panel-note">
-            {recommendedOption.statusKey === "Available"
-              ? "La opcion esta preparada para revision, pero la confirmacion directa sigue pendiente hasta que exista una via terrestre dedicada."
-              : `La accion permanece bloqueada: ${recommendedOption.reasonLabel}.`}
-          </p>
-          <span className="planet-action-handoff-message">Entrenamiento directo pendiente de activacion.</span>
         </UiCard>
       ) : null}
 

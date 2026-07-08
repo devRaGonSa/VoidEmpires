@@ -137,6 +137,10 @@ export function getGroundActionLabel(value: GroundArmyValue) {
   return resolveCatalogLabel(value, groundArmyActionCatalog, unknownActionFallback);
 }
 
+export function formatGroundArmyOptionEffect(value: GroundArmyValue) {
+  return findGroundArmyUnit(value)?.roleLabel ?? "Unidad terrestre visible para la colonia seleccionada.";
+}
+
 export function formatGroundTrainingCost(
   cost: ReadonlyArray<{ resourceType: GroundArmyValue; quantity: number }>,
   fallback = "Sin coste terrestre visible",
