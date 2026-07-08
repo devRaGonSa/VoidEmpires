@@ -3,7 +3,7 @@
 ---
 id: TASK-47B
 title: Remove repeated Centro imperial hero
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
@@ -55,4 +55,3 @@ Core module pages should be direct OGame-like screens with the authenticated sid
 
 - npm run build --prefix src/VoidEmpires.Frontend
 - powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1
-

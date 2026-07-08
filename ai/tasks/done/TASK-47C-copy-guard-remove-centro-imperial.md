@@ -3,7 +3,7 @@
 ---
 id: TASK-47C
 title: Guard against Centro imperial copy returning
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
@@ -47,4 +47,3 @@ The copy regression guard protects product-facing frontend pages from old intern
 
 - powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1
 - npm run build --prefix src/VoidEmpires.Frontend
-

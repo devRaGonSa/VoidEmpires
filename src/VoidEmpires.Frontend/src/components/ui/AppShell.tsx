@@ -31,23 +31,19 @@ export function AppShell({
   const isHomeRoute = location.pathname === "/";
   const isFleetRoute = location.pathname === "/fleets";
   const isStrategicMapRoute = location.pathname === "/galaxy";
-  const isCompactIntro = isHomeRoute || isFleetRoute || isStrategicMapRoute;
+  const shouldShowShellIntro = isHomeRoute || isFleetRoute || isStrategicMapRoute;
 
   const introTitle = isHomeRoute
     ? "Inicio del imperio"
     : isFleetRoute
       ? "Readiness orbital"
-      : isStrategicMapRoute
-        ? "Mapa estrategico"
-        : "Centro imperial";
+      : "Mapa estrategico";
 
   const introDescription = isHomeRoute
     ? "Resume recursos, colas y estado del planeta seleccionado."
     : isFleetRoute
       ? "Flotas muestra preparacion, carga y ordenes confirmadas para el contexto seleccionado."
-      : isStrategicMapRoute
-        ? "La galaxia prioriza mapa, seleccion y contexto tactico para continuar hacia los sistemas del imperio."
-        : "Sistemas de colonia, investigacion, astillero y flotas con lectura de estado y confirmaciones explicitas cuando la pagina lo permite.";
+      : "La galaxia prioriza mapa, seleccion y contexto tactico para continuar hacia los sistemas del imperio.";
 
   const isSignedIn = currentAccountSession.status === "ready";
   const selectedResourceContext = useMemo(() => {
@@ -150,27 +146,17 @@ export function AppShell({
         </aside>
 
         <div className="app-main-column">
-          <section
-            className={
-              isCompactIntro
-                ? "shell-intro-grid shell-intro-grid-compact"
-                : "shell-intro-grid"
-            }
-          >
-            <UiCard
-              className={
-                isCompactIntro
-                  ? "shell-intro-card shell-intro-card-compact"
-                  : "shell-intro-card"
-              }
-            >
-              <div className="shell-intro-copy">
-                <p className="eyebrow">VoidEmpires</p>
-                <h1>{introTitle}</h1>
-                <p className="lede">{introDescription}</p>
-              </div>
-            </UiCard>
-          </section>
+          {shouldShowShellIntro ? (
+            <section className="shell-intro-grid shell-intro-grid-compact">
+              <UiCard className="shell-intro-card shell-intro-card-compact">
+                <div className="shell-intro-copy">
+                  <p className="eyebrow">VoidEmpires</p>
+                  <h1>{introTitle}</h1>
+                  <p className="lede">{introDescription}</p>
+                </div>
+              </UiCard>
+            </section>
+          ) : null}
 
           <main className="page-frame" id="main-content" tabIndex={-1}>{children}</main>
         </div>

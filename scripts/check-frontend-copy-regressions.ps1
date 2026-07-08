@@ -341,7 +341,10 @@ $block46ForbiddenModulePatterns = @(
   "(?i)astillero v1",
   "(?i)defensas v1",
   "(?i)edificios actuales",
-  "(?i)^\s*<p className=""eyebrow"">infraestructura</p>"
+  "(?i)^\s*<p className=""eyebrow"">infraestructura</p>",
+  "(?i)centro imperial",
+  "(?i)sistemas de colonia, investigaci[oÃƒÂ³]n, astillero y flotas",
+  "(?i)lectura de estado y confirmaciones expl[iÃƒÂ­]citas"
 )
 $block46ForbiddenModuleMatches = Select-String -Path ($productSurfaceFiles | Select-Object -ExpandProperty FullName) -Pattern $block46ForbiddenModulePatterns -Encoding UTF8
 foreach ($match in @($block46ForbiddenModuleMatches)) {
