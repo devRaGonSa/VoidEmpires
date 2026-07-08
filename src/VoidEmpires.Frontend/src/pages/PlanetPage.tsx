@@ -946,6 +946,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
       {planet ? (
         <>
+          {!isConstructionRoute ? (
           <div className="figma-two-column planet-overview-grid">
             <UiCard className="panel">
               <div className="figma-section-header">
@@ -1027,6 +1028,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
               </div>
             </UiCard>
           </div>
+          ) : null}
 
           {operatorMode ? (
           <div className={isConstructionRoute ? "construction-devtools-secondary" : undefined}>

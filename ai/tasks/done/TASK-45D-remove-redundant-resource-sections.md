@@ -3,7 +3,7 @@
 ---
 id: TASK-45D
 title: Remove redundant resource sections
-status: pending
+status: done
 type: frontend
 team: platform
 supporting_teams: []

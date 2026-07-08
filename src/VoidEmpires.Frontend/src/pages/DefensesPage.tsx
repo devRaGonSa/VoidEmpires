@@ -5,7 +5,6 @@ import { CockpitHero } from "../components/CockpitHero";
 import { DefenseCatalogCard } from "../components/DefenseCatalogCard";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
-import { formatResourceType } from "../utils/domainPresentation";
 import { formatDefenseRequestFailure } from "../utils/defensePresentation";
 import {
   getDefensePrimaryAction,
@@ -72,19 +71,6 @@ function getRecommendedNextStep(viewModel: DefensesViewModel["defenses"]) {
   return "Continuar en Construccion";
 }
 
-function getResourcePressureSummary(viewModel: DefensesViewModel["defenses"]) {
-  if (!viewModel || viewModel.stockpile.length === 0) {
-    return "Sin reservas visibles";
-  }
-
-  const ordered = [...viewModel.stockpile]
-    .sort((left, right) => right.quantity - left.quantity)
-    .slice(0, 3)
-    .map((entry) => `${formatResourceType(entry.resourceType)} ${entry.quantity}`);
-
-  return ordered.join(" | ");
-}
-
 function getProductDefenseStatusLabel(statusKey: string, fallbackLabel: string) {
   if (statusKey === "Unsupported" || statusKey === "ReadOnly") {
     return "Produccion pendiente";
@@ -110,7 +96,6 @@ export function DefensesPage() {
   const recommendedAction = useMemo(() => selectRecommendedDefenseAction(defenses?.options ?? []), [defenses?.options]);
   const protectionPosture = useMemo(() => getProtectionPosture(defenses), [defenses]);
   const recommendedNextStep = useMemo(() => getRecommendedNextStep(defenses), [defenses]);
-  const resourcePressureSummary = useMemo(() => getResourcePressureSummary(defenses), [defenses]);
   const availableOptions = useMemo(() => (defenses?.options ?? []).filter((option) => option.statusKey === "Available"), [defenses?.options]);
   const blockedOptions = useMemo(() => (defenses?.options ?? []).filter((option) => option.statusKey !== "Available"), [defenses?.options]);
 
@@ -223,7 +208,6 @@ export function DefensesPage() {
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-data-list">
-                  <div className="figma-data-row"><span>Presion de recursos</span><strong>{resourcePressureSummary}</strong></div>
                   <div className="figma-data-row"><span>Cola defensiva</span><strong>{defenses.protectionSummary.queueItemCount}</strong></div>
                   <div className="figma-data-row"><span>Vencidas</span><strong>{defenses.protectionSummary.dueQueueItemCount}</strong></div>
                   <div className="figma-data-row"><span>Opciones disponibles</span><strong>{defenses.protectionSummary.availableOptionCount}</strong></div>
@@ -241,21 +225,6 @@ export function DefensesPage() {
                 ? "Hay obras vencidas, pero Defensas no las cierra hasta que exista una confirmacion acotada a la colonia."
                 : "La proteccion actual combina estructuras, recursos y cola; no implica eficacia de combate ni mitigacion real."}
             </p>
-          </UiCard>
-
-          <UiCard className="panel">
-            <div className="figma-section-header">
-              <div>
-                <p className="eyebrow">Reservas locales</p>
-                <h3>Coste frente a reservas</h3>
-                <p>Las preparaciones defensivas se comparan contra las reservas visibles del planeta activo, no contra una economia global inventada.</p>
-              </div>
-              <UiBadge tone="resource">{defenses.stockpile.length} recursos</UiBadge>
-            </div>
-            <div className="figma-data-list">
-              <div className="figma-data-row"><span>Reserva</span><strong>{`Reservas de ${defenses.planetName}`}</strong></div>
-              <div className="figma-data-row"><span>Recursos</span><strong>{resourcePressureSummary}</strong></div>
-            </div>
           </UiCard>
 
           <UiCard className="panel">

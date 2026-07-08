@@ -20,7 +20,7 @@ import {
 import { isSuspiciousCabinContext } from "../utils/routeUrls";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { isOperatorMode } from "../utils/playableSession";
-import { formatResourceAmountList, formatResourceDelta, formatResourceLabel } from "../utils/resourceDisplay";
+import { formatResourceDelta } from "../utils/resourceDisplay";
 
 function formatDateTime(value: string) {
   const parsed = Date.parse(value);
@@ -343,19 +343,6 @@ export function ShipyardPage() {
 
     return `${formatCountLabel(totalUnits, "unidad local", "unidades locales")} en ${formatCountLabel(shipyard.orbitalStock.length, "tipo", "tipos")}${leadStock.length > 0 ? ` · ${leadStock.join(" · ")}` : ""}`;
   }, [shipyard]);
-  const resourceDigest = useMemo(() => {
-    if (!shipyard || shipyard.stockpile.length === 0) {
-      return "La lectura actual todavia no muestra reservas locales utiles.";
-    }
-
-    return formatResourceAmountList(
-      shipyard.stockpile
-        .slice()
-        .sort((left, right) => right.quantity - left.quantity)
-        .slice(0, 3),
-      { separator: " · " },
-    );
-  }, [shipyard]);
   const readinessTone = shipyard?.actionAvailability.enqueue.supported
     ? "good"
     : shipyard?.actionAvailability.completeDue.supported
@@ -636,13 +623,12 @@ export function ShipyardPage() {
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Reservas y stock</p>
-                    <h4>Estado local</h4>
+                    <p className="eyebrow">Stock orbital</p>
+                    <h4>Reservas de naves</h4>
                   </div>
-                  <UiBadge tone="resource">{formatCountLabel(shipyard.stockpile.length, "recurso", "recursos")}</UiBadge>
+                  <UiBadge>{formatCountLabel(shipyard.orbitalStock.length, "tipo", "tipos")}</UiBadge>
                 </div>
                 <div className="figma-data-list">
-                  <div className="figma-data-row"><span>Recursos clave</span><strong>{resourceDigest}</strong></div>
                   <div className="figma-data-row"><span>Stock orbital</span><strong>{stockDigest}</strong></div>
                   <div className="figma-data-row"><span>Cola activa</span><strong>{shipyard.queue.length > 0 ? formatCountLabel(shipyard.queue.length, "orden abierta", "ordenes abiertas") : "Sin ordenes abiertas"}</strong></div>
                 </div>
@@ -840,27 +826,6 @@ export function ShipyardPage() {
               </div>
             )}
           </UiCard>
-
-          {shipyard.stockpile.length > 0 ? (
-            <UiCard className="panel">
-              <div className="figma-section-header">
-                <div>
-                  <p className="eyebrow">Reservas locales</p>
-                  <h3>Recursos disponibles</h3>
-                </div>
-                <UiBadge tone="resource">{shipyard.stockpile.length} balances</UiBadge>
-              </div>
-              <div className="readiness-grid">
-                {shipyard.stockpile.map((entry) => (
-                  <section key={entry.resourceType} className="subpanel figma-subpanel">
-                    <div className="figma-data-list">
-                      <div className="figma-data-row"><span>{formatResourceLabel(entry.resourceType)}</span><strong>{entry.quantity}</strong></div>
-                    </div>
-                  </section>
-                ))}
-              </div>
-            </UiCard>
-          ) : null}
 
           {operatorMode && (shipyard.diagnostics.playerFacing.length > 0 || technicalErrorDetail || enqueueOrderDetails) ? (
             <DevDiagnosticsPanel
