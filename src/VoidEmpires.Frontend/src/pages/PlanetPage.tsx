@@ -18,6 +18,7 @@ import { DevelopmentToolsPanel } from "../components/DevelopmentToolsPanel";
 import { GameModal } from "../components/GameModal";
 import { ConstructionCatalogCard } from "../components/ConstructionCatalogCard";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
+import { QueueSummaryPanels } from "../components/QueueSummaryPanels";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { ModuleStatusCard, PlanetDataRow } from "../components/PlanetModuleLayout";
@@ -1105,6 +1106,10 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
               }
             />
           </div>
+          ) : null}
+
+          {!isConstructionRoute ? (
+            <QueueSummaryPanels planet={planet} />
           ) : null}
 
           <div className="figma-two-column planet-overview-grid">

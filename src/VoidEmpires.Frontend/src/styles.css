@@ -853,6 +853,11 @@ select {
   padding: 16px;
 }
 
+.home-queue-card h4,
+.home-queue-card .figma-panel-note {
+  overflow-wrap: anywhere;
+}
+
 .strategic-cockpit-top,
 .strategic-system-layout,
 .technical-disclosure-body {
