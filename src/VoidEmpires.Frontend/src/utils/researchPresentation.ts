@@ -283,6 +283,29 @@ export function getResearchBonusLabel(value: ResearchValue, fallback = "Benefici
   return resolveLabel(value, researchBonusCatalog, fallback, true);
 }
 
+export function formatResearchTechnologyEffect(technology: ResearchTechnology) {
+  switch (technology.bonusKey) {
+    case "planet_capacity":
+      return "Amplia el margen de crecimiento de las colonias.";
+    case "resource_output":
+      return "Mejora la produccion sostenida de recursos.";
+    case "energy_output":
+      return "Refuerza la energia disponible para la colonia.";
+    case "build_speed":
+      return "Reduce el tiempo necesario para nuevas construcciones.";
+    case "fleet_speed":
+      return "Aumenta la movilidad de las naves.";
+    case "weapon_damage":
+      return "Incrementa el dano de armamento espacial.";
+    case "shield_strength":
+      return "Mejora la resistencia de escudos y defensas.";
+    case "intel_strength":
+      return "Aumenta la calidad de informacion pasiva.";
+    default:
+      return technology.bonusLabel;
+  }
+}
+
 export function formatResearchCommandFailure(
   rawError: string | null | undefined,
   httpStatus?: number,

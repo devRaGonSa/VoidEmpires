@@ -1184,6 +1184,34 @@ select {
   overflow-wrap: anywhere;
 }
 
+.research-tech-card-header {
+  align-items: flex-start;
+}
+
+.research-tech-card-primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--ve-color-accent-cyan) 18%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ve-color-bg) 58%, transparent);
+}
+
+.research-tech-card-primary span,
+.research-tech-card-primary strong {
+  min-width: 0;
+}
+
+.research-tech-card-details .figma-data-row {
+  grid-template-columns: minmax(74px, 0.42fr) minmax(0, 1fr);
+}
+
+.research-tech-card-effect {
+  margin: 0;
+}
+
 .research-requirements-block {
   display: grid;
   gap: 6px;

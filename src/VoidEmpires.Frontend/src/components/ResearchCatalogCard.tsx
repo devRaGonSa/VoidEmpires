@@ -1,7 +1,7 @@
-import { PlaceholderAsset } from "./PlaceholderAsset";
 import { UiBadge } from "./ui/UiBadge";
 import type { ResearchTechnology } from "../utils/researchPresentation";
 import {
+  formatResearchTechnologyEffect,
   getResearchPrimaryAction,
   getResearchVisualState,
 } from "../utils/researchPresentation";
@@ -28,10 +28,17 @@ export function ResearchCatalogCard({
   const buttonClassName = visualState === "ready"
     ? "research-action-button-ready"
     : "planet-action-button-secondary";
+  const levelLabel = technology.currentLevel > 0
+    ? `Nivel ${technology.currentLevel}`
+    : "Sin investigar";
+  const actionLabel = getResearchPrimaryAction(technology);
+  const requirementLabel = technology.requirements.length > 0
+    ? technology.requirements.map((requirement) => requirement.label).join(", ")
+    : "Sin requisitos previos";
 
   return (
     <article className={cardClassName}>
-      <div className="figma-section-header">
+      <div className="figma-section-header research-tech-card-header">
         <div>
           <p className="eyebrow">{technology.categoryLabel}</p>
           <h4>{technology.label}</h4>
@@ -40,23 +47,18 @@ export function ResearchCatalogCard({
           {visualState === "blocked" ? blockedReasonLabel : technology.availability.label}
         </UiBadge>
       </div>
-      <PlaceholderAsset
-        kind="technology"
-        label={technology.label}
-        typeLabel={technology.categoryLabel}
-        detail={`Impacto: ${technology.bonusLabel}. Nivel ${technology.currentLevel} a ${technology.nextLevel}.`}
-      />
-      <div className="figma-data-list">
-        <div className="figma-data-row"><span>Categoria</span><strong>{technology.categoryLabel}</strong></div>
-        <div className="figma-data-row"><span>Nivel actual</span><strong>{technology.currentLevel}</strong></div>
-        <div className="figma-data-row"><span>Siguiente nivel</span><strong>{technology.nextLevel}</strong></div>
-        <div className="figma-data-row"><span>Impacto</span><strong>{technology.bonusLabel}</strong></div>
+      <div className="research-tech-card-primary">
+        <span>{levelLabel}</span>
+        <strong>{actionLabel}</strong>
+      </div>
+      <div className="figma-data-list research-tech-card-details">
+        <div className="figma-data-row"><span>Objetivo</span><strong>Nivel {technology.nextLevel}</strong></div>
         <div className="figma-data-row"><span>Coste</span><strong>{technology.estimatedCostLabel}</strong></div>
         <div className="figma-data-row"><span>Duracion</span><strong>{technology.estimatedDurationLabel}</strong></div>
-        <div className="figma-data-row"><span>Accion</span><strong>{getResearchPrimaryAction(technology)}</strong></div>
+        <div className="figma-data-row"><span>Requisitos</span><strong>{visualState === "blocked" ? blockedReasonLabel : requirementLabel}</strong></div>
       </div>
       <div className="research-requirements-block">
-        <p className="research-card-caption">Requisitos para iniciar</p>
+        <p className="research-card-caption">Requisitos</p>
         <div className="selection-chip-row research-requirements-row">
           {technology.requirements.map((requirement) => (
             <span key={`${technology.researchType}-${requirement.key}`} className="selection-chip">
@@ -65,6 +67,9 @@ export function ResearchCatalogCard({
           ))}
         </div>
       </div>
+      <p className="figma-panel-note research-tech-card-effect">
+        {formatResearchTechnologyEffect(technology)}
+      </p>
       {visualState === "blocked" ? (
         <div className="research-blocked-affordance" aria-disabled="true">
           <strong>Tecnologia bloqueada</strong>
