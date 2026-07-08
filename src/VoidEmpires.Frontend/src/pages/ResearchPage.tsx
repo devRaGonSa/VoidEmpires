@@ -5,13 +5,12 @@ import type { EnqueueResearchOrderFailureResponse, ResearchApiErrorCode } from "
 import { CockpitHero } from "../components/CockpitHero";
 import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { GameModal } from "../components/GameModal";
-import { PlaceholderAsset } from "../components/PlaceholderAsset";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
+import { ResearchCatalogCard } from "../components/ResearchCatalogCard";
 import type { ResearchTechnology, ResearchUiState } from "../utils/researchPresentation";
 import {
   formatResearchCommandFailure,
   formatResearchRequestFailure,
-  getResearchPrimaryAction,
   getResearchVisualState,
   groupResearchTechnologiesByCategory,
   mapResearchUiStateToViewModel,
@@ -594,10 +593,6 @@ export function ResearchPage() {
                     {group.technologies.map((technology) => {
                       const visualState = getResearchVisualState(technology);
                       const canPrepare = hasSafeResearchEnqueue && visualState === "ready" && Boolean(technology.enqueueCommand);
-                      const cardClassName = `subpanel figma-subpanel research-tech-card research-tech-card-${visualState}`;
-                      const buttonClassName = visualState === "ready"
-                        ? "research-action-button-ready"
-                        : "planet-action-button-secondary";
                       const blockedReasonLabel = getBlockedResearchReasonLabel(
                         technology.availability.reasonKey,
                         technology.availability.canCompleteDue,
@@ -608,81 +603,15 @@ export function ResearchPage() {
                       );
 
                       return (
-                      <article
-                        key={`${technology.researchType}`}
-                        className={cardClassName}
-                      >
-                        <div className="figma-section-header">
-                          <div>
-                            <p className="eyebrow">{technology.categoryLabel}</p>
-                            <h4>{technology.label}</h4>
-                          </div>
-                          <UiBadge tone={visualState === "ready" ? "good" : visualState === "blocked" ? "warn" : "resource"}>
-                            {visualState === "blocked" ? blockedReasonLabel : technology.availability.label}
-                          </UiBadge>
-                        </div>
-                        <PlaceholderAsset
-                          kind="technology"
-                          label={technology.label}
-                          typeLabel={technology.categoryLabel}
-                          detail={`Impacto: ${technology.bonusLabel}. Nivel ${technology.currentLevel} a ${technology.nextLevel}.`}
+                        <ResearchCatalogCard
+                          key={`${technology.researchType}`}
+                          technology={technology}
+                          isPrepared={preparedResearchType === technology.researchType}
+                          canPrepare={canPrepare}
+                          blockedReasonLabel={blockedReasonLabel}
+                          blockedReasonDetail={blockedReasonDetail}
+                          onPrepare={handleResearchPreparation}
                         />
-                        <div className="figma-data-list">
-                          <div className="figma-data-row"><span>Categoria</span><strong>{technology.categoryLabel}</strong></div>
-                          <div className="figma-data-row"><span>Nivel actual</span><strong>{technology.currentLevel}</strong></div>
-                          <div className="figma-data-row"><span>Siguiente nivel</span><strong>{technology.nextLevel}</strong></div>
-                          <div className="figma-data-row"><span>Impacto</span><strong>{technology.bonusLabel}</strong></div>
-                          <div className="figma-data-row"><span>Coste</span><strong>{technology.estimatedCostLabel}</strong></div>
-                          <div className="figma-data-row"><span>Duracion</span><strong>{technology.estimatedDurationLabel}</strong></div>
-                          <div className="figma-data-row"><span>Accion</span><strong>{getResearchPrimaryAction(technology)}</strong></div>
-                        </div>
-                        <div className="research-requirements-block">
-                          <p className="research-card-caption">Requisitos para iniciar</p>
-                          <div className="selection-chip-row research-requirements-row">
-                            {technology.requirements.map((requirement) => (
-                              <span key={`${technology.researchType}-${requirement.key}`} className="selection-chip">
-                                {requirement.label}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        {visualState === "blocked" ? (
-                          <div className="research-blocked-affordance" aria-disabled="true">
-                            <strong>Tecnologia bloqueada</strong>
-                            <span>{blockedReasonLabel}</span>
-                          </div>
-                        ) : (
-                          <div className="transfer-confirmation-actions">
-                            <button
-                              type="button"
-                              className={buttonClassName}
-                              onClick={() => handleResearchPreparation(technology)}
-                              disabled={!canPrepare}
-                            >
-                              {preparedResearchType === technology.researchType
-                                ? "Revision preparada"
-                                : technology.primaryActionLabel}
-                            </button>
-                          </div>
-                        )}
-                        {visualState !== "ready" ? (
-                          <p className="figma-panel-note">
-                            {blockedReasonDetail}
-                          </p>
-                        ) : !hasSafeResearchEnqueue ? (
-                          <p className="figma-panel-note">
-                            Esta version no expone una via segura para iniciar investigacion desde la vista.
-                          </p>
-                        ) : !technology.enqueueCommand ? (
-                          <p className="figma-panel-note">
-                            No se puede preparar esta investigacion en esta version.
-                          </p>
-                        ) : (
-                          <p className="figma-panel-note">
-                            La investigacion no se enviara hasta que confirmes la orden en el paso final.
-                          </p>
-                        )}
-                      </article>
                       );
                     })}
                   </div>
