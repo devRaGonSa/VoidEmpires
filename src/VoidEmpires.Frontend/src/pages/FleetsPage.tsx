@@ -1071,7 +1071,7 @@ export function FleetsPage() {
             <UiBadge tone="good">Memoria local</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Este enlace abre Flotas con el contexto guardado de la ultima colonia. No crea misiones nuevas ni combate.
+            Este enlace abre Flotas con la seleccion disponible de la ultima colonia. No crea misiones nuevas ni combate.
           </p>
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>

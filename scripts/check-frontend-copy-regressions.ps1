@@ -287,6 +287,21 @@ foreach ($match in @($visibleEndpointDetailMatches)) {
 $operatorOnlyComponentPattern = "\\src\\VoidEmpires.Frontend\\src\\components\\(ActionManifestPanel|DevDiagnosticsPanel|DevEndpointNotice|DevelopmentToolsPanel)\.tsx$"
 $productSurfaceFiles = $primaryUiFiles |
   Where-Object { $_.FullName -notmatch $operatorOnlyComponentPattern }
+$ogameLikeForbiddenNormalUiPatterns = @(
+  "contexto guardado",
+  "dar contexto",
+  "cargar mando",
+  "siguientes cabinas",
+  "(?i)\bcabina(s)?\b",
+  "registrar comandante",
+  "partida local",
+  "nueva partida"
+)
+$ogameLikeForbiddenMatches = Select-String -Path ($productSurfaceFiles | Select-Object -ExpandProperty FullName) -Pattern $ogameLikeForbiddenNormalUiPatterns -Encoding UTF8
+foreach ($match in @($ogameLikeForbiddenMatches)) {
+  $copyHygieneFailures.Add(("{0}:{1}: OGame-like gameplay UI must not show removed internal workflow copy: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
+}
+
 $productSurfaceForbiddenPatterns = @(
   "(?i)\bDevelopment\b",
   "(?i)\bDev\b",

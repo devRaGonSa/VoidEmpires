@@ -818,7 +818,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           {error ? <p className="error-text">{error}</p> : null}
           {!queryCivilizationId ? (
             <p className="figma-panel-note">
-              Pega un contexto valido, entra desde Galaxia o usa el contexto guardado disponible para recuperar la seleccion.
+              Pega una seleccion valida, entra desde Galaxia o usa la seleccion disponible para recuperar la colonia.
             </p>
           ) : null}
         </UiCard>
@@ -897,10 +897,10 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Contexto guardado disponible</p>
+              <p className="eyebrow">Seleccion disponible</p>
               <h3>Continuar con {playableSession.planetName ?? "la ultima colonia"}</h3>
             </div>
-            <UiBadge tone="good">Contexto guardado</UiBadge>
+            <UiBadge tone="good">Seleccion lista</UiBadge>
           </div>
           <p className="figma-panel-note">
             Este enlace recupera el mundo guardado en este navegador; la vista volvera a comprobar la cuenta actual al abrir.
@@ -937,7 +937,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           </div>
           <p>Esta civilizacion todavia no expone un planeta propio o el contexto no incluye un planeta valido.</p>
           <p className="figma-panel-note">
-            No se inventa una colonia alternativa: vuelve a Galaxia, Registro o al contexto guardado si necesitas recuperar la seleccion.
+            No se inventa una colonia alternativa: vuelve a Galaxia, Registro o a la seleccion disponible si necesitas recuperar la colonia.
           </p>
         </UiCard>
       ) : null}

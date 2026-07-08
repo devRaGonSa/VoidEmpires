@@ -449,7 +449,7 @@ export function ResearchPage() {
           <form className="query-form" onSubmit={handleSubmit}>
             <label className="field">
               <span>Civilizacion</span>
-              <input type="text" value={civilizationIdInput} onChange={(event) => setCivilizationIdInput(event.target.value)} placeholder="Usa el contexto guardado o un enlace de Galaxia" spellCheck={false} />
+              <input type="text" value={civilizationIdInput} onChange={(event) => setCivilizationIdInput(event.target.value)} placeholder="Usa la seleccion disponible o un enlace de Galaxia" spellCheck={false} />
             </label>
             <label className="field">
               <span>Planeta de laboratorio</span>

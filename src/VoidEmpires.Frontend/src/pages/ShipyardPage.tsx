@@ -624,7 +624,7 @@ export function ShipyardPage() {
                 type="text"
                 value={civilizationIdInput}
                 onChange={(event) => setCivilizationIdInput(event.target.value)}
-                placeholder="Usa el contexto guardado o un enlace de Galaxia"
+                placeholder="Usa la seleccion disponible o un enlace de Galaxia"
                 spellCheck={false}
               />
             </label>

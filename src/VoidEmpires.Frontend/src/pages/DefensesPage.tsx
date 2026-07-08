@@ -308,7 +308,7 @@ export function DefensesPage() {
             <UiBadge tone="good">Memoria local</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Este enlace abre Defensas con el contexto guardado de la ultima colonia.
+            Este enlace abre Defensas con la seleccion disponible de la ultima colonia.
           </p>
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>

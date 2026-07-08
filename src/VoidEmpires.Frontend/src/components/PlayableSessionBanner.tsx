@@ -17,7 +17,7 @@ export function PlayableSessionBanner({ session, onClear }: PlayableSessionBanne
 
   const planetLabel = session.planetName ?? "Mundo guardado";
   const civilizationLabel = session.civilizationName ?? "Civilizacion activa";
-  const playerLabel = session.playerDisplayName ?? "Comandante";
+  const playerLabel = session.playerDisplayName ?? "Cuenta";
   const planetUrl = buildPlanetUrl(session.civilizationId, session.planetId);
 
   function handleClearSavedContext() {
@@ -29,7 +29,7 @@ export function PlayableSessionBanner({ session, onClear }: PlayableSessionBanne
     <UiCard className="panel">
       <div className="figma-section-header">
         <div>
-          <p className="eyebrow">Contexto guardado</p>
+          <p className="eyebrow">Seleccion disponible</p>
           <h3>{planetLabel}</h3>
           <p>
             {civilizationLabel} bajo {playerLabel}. Continua desde el mundo principal guardado.
@@ -45,10 +45,10 @@ export function PlayableSessionBanner({ session, onClear }: PlayableSessionBanne
           Continuar
         </Link>
         <Link className="selection-chip" to="/register">
-          Registrar comandante
+          Crear cuenta
         </Link>
         <button type="button" className="selection-chip" onClick={handleClearSavedContext}>
-          Olvidar contexto
+          Limpiar seleccion
         </button>
       </div>
     </UiCard>

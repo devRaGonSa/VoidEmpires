@@ -43,7 +43,7 @@ Secondary labels:
 
 - `Diagnostico secundario`
 - `Detalle tecnico`
-- `Fuera del alcance de esta cabina`
+- `Fuera del alcance de esta vista`
 
 ## Preferred Concept Mapping
 
@@ -79,14 +79,16 @@ Avoid these in heroes, first-viewport summaries, visible action cards, and navig
 - `seed`
 - `cockpit-validation`
 
+The copy guard fails normal product-surface frontend files for these removed Block 43 phrases. Documentation may still mention them when describing deprecated wording or migration rules.
+
 Account entry should use account/world language such as `cuenta`, `comandante`, `mundo inicial`, or `centro de mando`. Inside authenticated gameplay, prefer planet/empire action language and avoid registration copy. Do not present Development seed profiles or local-session/new-game concepts as the normal product path.
 
 ## Allowed Limitation Patterns
 
-- `Esta accion todavia no esta habilitada desde esta cabina.`
+- `Esta accion todavia no esta habilitada desde esta vista.`
 - `El cierre automatico permanece fuera de esta superficie.`
 - `La resolucion de combate no forma parte de esta version.`
-- `Esta cabina mantiene la lectura visible, pero la confirmacion sigue en el modulo propietario.`
+- `Esta vista mantiene la lectura visible, pero la confirmacion sigue en el modulo propietario.`
 
 ## Writing Guidance
 

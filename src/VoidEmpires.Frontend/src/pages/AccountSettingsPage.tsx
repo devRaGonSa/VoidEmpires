@@ -43,7 +43,7 @@ export function AccountSettingsPage() {
         badges={
           <>
             <UiBadge tone={hasSession ? "good" : "warn"}>
-              {hasSession ? "Contexto guardado" : "Cuenta pendiente"}
+              {hasSession ? "Seleccion disponible" : "Cuenta pendiente"}
             </UiBadge>
             <UiBadge>Datos seguros</UiBadge>
           </>
