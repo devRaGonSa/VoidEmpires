@@ -14,10 +14,8 @@ import {
   buildEspionageUrl,
   buildFleetsUrl,
   buildGalaxyUrl,
-  buildLoginUrl,
   buildMarketUrl,
   buildRankingUrl,
-  buildRegisterUrl,
   buildSpecializedModuleUrl,
 } from "./utils/routeUrls";
 import { useCurrentAccountSession } from "./utils/useCurrentAccountSession";
@@ -220,21 +218,14 @@ export default function App() {
 
     return [
       { label: "Inicio", to: "/", state: "playable" },
-      { label: "Registro", to: buildRegisterUrl(), state: "playable" },
-      { label: "Entrar", to: buildLoginUrl(), state: "account" },
-      { label: "Cuenta", to: "/account-settings", state: "account" },
-      { label: "Galaxia", to: buildGalaxyUrl(civilizationId, systemId, planetId), state: "map" },
       { label: "Construccion", to: buildConstructionUrl(civilizationId, planetId), state: "playable" },
-      ...specializedPlanetModuleRoutes.map((route) => ({
-        label: route.label,
-        to: buildSpecializedModuleUrl(route.module, civilizationId, planetId),
-        state: getPlanetModuleNavState(route.module),
-      })),
+      ...buildOrderedPlanetModuleSidebarItems(civilizationId, planetId),
       { label: "Flotas", to: buildFleetsUrl(civilizationId, planetId), state: "readiness" },
-      { label: "Espionaje", to: buildEspionageUrl(civilizationId, systemId, planetId), state: "readiness" },
-      { label: "Alianza", to: buildAllianceUrl(civilizationId), state: "readOnly" },
+      { label: "Galaxia", to: buildGalaxyUrl(civilizationId, systemId, planetId), state: "map" },
       { label: "Mercado", to: buildMarketUrl(civilizationId, planetId), state: "readiness" },
+      { label: "Alianza", to: buildAllianceUrl(civilizationId), state: "readOnly" },
       { label: "Ranking", to: buildRankingUrl(civilizationId), state: "readOnly" },
+      { label: "Espionaje", to: buildEspionageUrl(civilizationId, systemId, planetId), state: "readiness" },
     ];
   }, [searchParams]);
 
@@ -288,4 +279,17 @@ export default function App() {
       {routeContent}
     </AppShell>
   );
+}
+
+function buildOrderedPlanetModuleSidebarItems(civilizationId: string, planetId: string | null): SidebarNavItem[] {
+  const moduleOrder: PlanetModuleRouteInfo["module"][] = ["Research", "Shipyard", "Defenses", "GroundArmy"];
+
+  return moduleOrder
+    .map((module) => specializedPlanetModuleRoutes.find((route) => route.module === module))
+    .filter((route): route is PlanetModuleRouteInfo => Boolean(route))
+    .map((route) => ({
+      label: route.label,
+      to: buildSpecializedModuleUrl(route.module, civilizationId, planetId),
+      state: getPlanetModuleNavState(route.module),
+    }));
 }
