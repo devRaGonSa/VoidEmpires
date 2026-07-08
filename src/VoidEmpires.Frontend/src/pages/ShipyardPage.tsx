@@ -16,7 +16,7 @@ import {
   type ShipyardAssetOption,
   type ShipyardViewModel,
 } from "../utils/shipyardViewModel";
-import { isSuspiciousCabinContext } from "../utils/routeUrls";
+import { buildShipyardUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { isOperatorMode } from "../utils/playableSession";
 import { formatResourceDelta } from "../utils/resourceDisplay";
@@ -351,9 +351,8 @@ export function ShipyardPage() {
     setUiState(nextState);
 
     if (nextState.selectedPlanetId && nextState.selectedPlanetId !== planetId) {
-      const nextParams = new URLSearchParams(searchParams);
-      nextParams.set("civilizationId", civilizationId);
-      nextParams.set("planetId", nextState.selectedPlanetId);
+      const nextRoute = buildShipyardUrl(civilizationId, nextState.selectedPlanetId);
+      const nextParams = new URLSearchParams(nextRoute.split("?")[1] ?? "");
       setSearchParams(nextParams, { replace: replaceParams });
     }
 

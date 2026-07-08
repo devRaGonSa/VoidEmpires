@@ -10,7 +10,7 @@ import {
   mapDefensesUiStateToViewModel,
   type DefensesViewModel,
 } from "../utils/defenseViewModel";
-import { isSuspiciousCabinContext } from "../utils/routeUrls";
+import { buildDefensesUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
 
 function formatDateTime(value: string) {
@@ -65,9 +65,8 @@ export function DefensesPage() {
         setUiState(nextState);
 
         if (nextState.selectedPlanetId && nextState.selectedPlanetId !== queryPlanetId) {
-          const nextParams = new URLSearchParams(searchParams);
-          nextParams.set("civilizationId", queryCivilizationId);
-          nextParams.set("planetId", nextState.selectedPlanetId);
+          const nextRoute = buildDefensesUrl(queryCivilizationId, nextState.selectedPlanetId);
+          const nextParams = new URLSearchParams(nextRoute.split("?")[1] ?? "");
           setSearchParams(nextParams, { replace: true });
         }
       } catch (requestError) {

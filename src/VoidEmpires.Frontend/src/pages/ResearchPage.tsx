@@ -19,7 +19,7 @@ import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { isOperatorMode } from "../utils/playableSession";
-import { buildPlanetUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
+import { buildPlanetUrl, buildResearchUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 
 function formatDateTime(value: string) {
   const parsed = Date.parse(value);
@@ -248,9 +248,8 @@ export function ResearchPage() {
     setUiState(nextState);
 
     if (nextState.selectedPlanetId && nextState.selectedPlanetId !== planetId) {
-      const nextParams = new URLSearchParams(searchParams);
-      nextParams.set("civilizationId", civilizationId);
-      nextParams.set("planetId", nextState.selectedPlanetId);
+      const nextRoute = buildResearchUrl(civilizationId, nextState.selectedPlanetId);
+      const nextParams = new URLSearchParams(nextRoute.split("?")[1] ?? "");
       setSearchParams(nextParams, { replace: replaceParams });
     }
 

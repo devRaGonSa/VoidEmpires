@@ -3,7 +3,7 @@
 ---
 id: TASK-45N
 title: Final validation and closure
-status: pending
+status: done
 type: release
 team: platform
 supporting_teams: []
