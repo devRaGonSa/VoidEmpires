@@ -60,6 +60,18 @@ Recorded on 2026-07-07 for `TASK-43A`:
 
 This contract documents direction only. It does not claim browser/manual QA, screenshot acceptance, final art acceptance, SQL Server acceptance, or new gameplay behavior.
 
+## Block 44 Shell Regression Audit
+
+Recorded on 2026-07-08 for `TASK-44A`:
+
+- Block 43 correctly removed duplicated in-page navigation cards, but the current routing also lets game routes render through `PublicAuthLayout` whenever the app-level account session is not ready. That removes the left game sidebar because the public layout intentionally has no sidebar or resource bar.
+- The current account state is loaded independently by `App`, `AppShell`, `AuthRequiredState`, and route pages. Those separate async checks can disagree during loading or refresh, which can produce mixed states such as game content from a ready route component while the shell header still shows anonymous `Entrar` / `Crear cuenta` actions.
+- `/`, `/planet`, and all guarded module routes are protected by `AuthRequiredState`, but `App.tsx` can wrap those same routes in the public layout before the guard and shell settle. Direct URLs with `civilizationId` and `planetId` must not bypass the account-backed game-shell decision in normal UI.
+- Intended shell matrix: `/login`, `/register`, and `/registro` use standalone public account layout with no sidebar; authenticated `/`, `/planet`, `/construction`, `/research`, `/shipyard`, `/defenses`, `/ground-army`, `/fleets`, `/galaxy`, `/market`, `/alliance`, `/ranking`, and `/espionage` use the game layout with persistent desktop sidebar and top resources where selected-planet data is available; anonymous access to game routes shows a clean account prompt or redirect without game content.
+- Restoring the global sidebar must not restore duplicated module-navigation cards inside Construction, Research, Shipyard, Defenses, or Ground Army. Those pages remain focused catalogs.
+
+This audit was code and documentation review only. It did not perform browser/manual QA and did not add gameplay behavior.
+
 ## Ready For Local Demo
 
 - One canonical demo path exists in `docs/dev/single-product-demo-guide.md`.
