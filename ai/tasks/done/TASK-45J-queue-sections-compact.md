@@ -3,7 +3,7 @@
 ---
 id: TASK-45J
 title: Queue sections compact
-status: pending
+status: done
 type: frontend
 team: platform
 supporting_teams: []

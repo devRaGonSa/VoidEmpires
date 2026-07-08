@@ -125,15 +125,15 @@ export function DefensesPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Cola defensiva</p>
-                <h3>Ordenes defensivas visibles</h3>
+                <p className="eyebrow">Produccion defensiva</p>
+                <h3>Produccion defensiva</h3>
               </div>
               <UiBadge tone={defenses.queue.length > 0 ? "warn" : "neutral"}>
-                {defenses.queue.length > 0 ? `${defenses.queue.length} visibles` : "Sin cola"}
+                {defenses.queue.length > 0 ? `${defenses.queue.length} visibles` : "0 visibles"}
               </UiBadge>
             </div>
             {defenses.queue.length === 0 ? (
-              <p className="figma-panel-note">No hay ordenes defensivas en cola.</p>
+              <p className="figma-panel-note">Sin produccion defensiva</p>
             ) : (
               <div className="readiness-grid">
                 {defenses.queue.map((item) => (

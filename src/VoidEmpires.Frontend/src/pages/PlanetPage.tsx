@@ -1162,13 +1162,13 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">{isConstructionRoute ? "Cola de obras" : "Cola de construccion"}</p>
-                  <h3>{isConstructionRoute ? "Cola de obras" : "Produccion"}</h3>
+                  <p className="eyebrow">{isConstructionRoute ? "Obras en cola" : "Cola de construccion"}</p>
+                  <h3>{isConstructionRoute ? "Obras en cola" : "Produccion"}</h3>
                 </div>
                 <UiBadge tone={planet.constructionQueue.length > 0 ? "warn" : "good"}>
                   {planet.constructionQueue.length > 0
                     ? `${planet.constructionQueue.length} ordenes`
-                    : "Sin cola"}
+                    : "0 ordenes"}
                 </UiBadge>
               </div>
               {planet.constructionQueue.length > 0 ? (
@@ -1207,7 +1207,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                   ))}
                 </div>
               ) : (
-                <p className="figma-panel-note">No hay construcciones en cola.</p>
+                <p className="figma-panel-note">Sin obras en cola</p>
               )}
             </UiCard>
           </div>

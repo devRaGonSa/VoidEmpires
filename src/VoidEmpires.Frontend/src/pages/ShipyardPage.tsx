@@ -587,13 +587,12 @@ export function ShipyardPage() {
           <UiCard className="panel">
             <div className="figma-section-header">
               <div>
-                <p className="eyebrow">Cola orbital</p>
-                <h3>Produccion visible y estado temporal</h3>
-                <p>La cola muestra progreso o historial confirmado sin cerrar producciones desde esta vista.</p>
+                <p className="eyebrow">Produccion orbital</p>
+                <h3>Produccion orbital</h3>
               </div>
               <div className="figma-badge-row">
                 <UiBadge tone={shipyard.queue.length > 0 ? "warn" : "neutral"}>
-                  {shipyard.queue.length > 0 ? `${shipyard.queue.length} visibles` : "Sin cola visible"}
+                  {shipyard.queue.length > 0 ? `${shipyard.queue.length} visibles` : "0 visibles"}
                 </UiBadge>
                 <UiBadge tone={dueQueueCount > 0 ? "warn" : "neutral"}>
                   {dueQueueCount > 0 ? `${dueQueueCount} vencidas` : "Sin vencidas"}
@@ -601,7 +600,7 @@ export function ShipyardPage() {
               </div>
             </div>
             {shipyard.queue.length === 0 ? (
-              <p className="figma-panel-note">No hay ordenes orbitales abiertas ni historial visible en este planeta. Cuando una lectura futura confirme cambios, este panel mostrara solo estado confirmado.</p>
+              <p className="figma-panel-note">Sin produccion orbital</p>
             ) : (
               <div className="readiness-grid">
                 {shipyard.queue.map((item) => (

@@ -429,14 +429,14 @@ export function ResearchPage() {
             <div className="figma-section-header">
               <div>
                 <p className="eyebrow">Progreso cientifico</p>
-                <h3>Cola de investigacion</h3>
+                <h3>Investigacion activa</h3>
               </div>
               <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
             </div>
             <div className="figma-two-column">
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
-                  <div><p className="eyebrow">Cola de investigacion</p><h4>Ordenes e historial visible</h4></div>
+                  <div><p className="eyebrow">Investigacion activa</p><h4>Ordenes visibles</h4></div>
                   <UiBadge>{uiState.queue.length}</UiBadge>
                 </div>
                 {uiState.queue.length > 0 ? (
@@ -447,7 +447,7 @@ export function ResearchPage() {
                       </li>
                     ))}
                   </ul>
-                ) : <p className="figma-panel-note">No hay ordenes abiertas ni historial de cola para mostrar.</p>}
+                ) : <p className="figma-panel-note">Sin investigacion activa</p>}
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
