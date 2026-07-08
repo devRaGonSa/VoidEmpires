@@ -26,7 +26,7 @@ const userFacingActionLabels: Record<string, string> = {
   "fleet.transfer.complete": "Cerrar llegadas vencidas",
   "fleet.group.split": "Dividir escuadra orbital",
   "fleet.group.merge": "Fusionar escuadras orbitales",
-  "fleet.uiState.read": "Leer estado de la cabina de flotas",
+  "fleet.uiState.read": "Leer estado de la vista de flotas",
   "fleet.actionManifest.read": "Leer manifiesto de acciones de flota",
   "strategicMap.actionManifest.read": "Leer manifiesto del mapa estrategico",
   "strategicMap.read": "Leer mapa estrategico",
@@ -400,22 +400,22 @@ export function buildFleetMutationConfirmations(
           readinessTone: activeTransfers > 0 ? "warn" : "neutral",
           requiresConfirmation: true,
           confirmationText: "Requeriria una confirmacion de riesgo antes de completar traslados vencidos por lote.",
-          disabledReason: "Completar vencidos sigue desactivado porque es una mutacion global, no una accion rutinaria de cabina.",
+          disabledReason: "Completar vencidos sigue desactivado porque es una mutacion global, no una accion rutinaria de vista.",
         };
       }
 
       const disabledReasonByAction: Record<string, string> = {
         "fleet.transfer.create": stationedGroups > 0
-          ? "Hay un flujo local de confirmacion, pero la ejecucion de ruta sigue limitada en la cabina."
+          ? "Hay un flujo local de confirmacion, pero la ejecucion de ruta sigue limitada en la vista."
           : "No hay escuadras apostadas listas para preparar un traslado.",
         "fleet.transfer.cancel": activeTransfers > 0
-          ? "Hay un flujo local para preparar la anulacion, pero la ejecucion sigue limitada en la cabina."
+          ? "Hay un flujo local para preparar la anulacion, pero la ejecucion sigue limitada en la vista."
           : "No hay traslados activos disponibles para anular.",
         "fleet.group.split": splitReadyGroups > 0
-          ? "La ejecucion sigue desactivada en la cabina aunque existan escuadras listas para dividir."
+          ? "La ejecucion sigue desactivada en la vista aunque existan escuadras listas para dividir."
           : "No hay escuadras en un estado seguro para dividir.",
         "fleet.group.merge": mergeReadyGroups > 0
-          ? "La ejecucion sigue desactivada en la cabina aunque existan escuadras listas para fusionar."
+          ? "La ejecucion sigue desactivada en la vista aunque existan escuadras listas para fusionar."
           : "No hay escuadras compatibles en un estado seguro para fusionar.",
       };
 
@@ -453,7 +453,7 @@ export function buildFleetMutationConfirmations(
         requiresConfirmation: true,
         confirmationText: `Se requeriria confirmacion de prototipo antes de ${getUserFacingActionLabel(action.actionKey, action.displayName).toLowerCase()}.`,
         disabledReason: disabledReasonByAction[action.actionKey]
-          ?? "Este contrato de mutacion se muestra solo como metadata en la cabina.",
+          ?? "Este contrato de mutacion se muestra solo como metadata en la vista.",
       };
     });
 }

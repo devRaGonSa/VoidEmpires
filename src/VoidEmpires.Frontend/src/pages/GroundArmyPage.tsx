@@ -146,11 +146,11 @@ export function GroundArmyPage() {
               <PlanetDataRow label="Control" value={groundArmy.controlStatusLabel ?? "Sin control"} />
               <PlanetDataRow label="Siguiente paso" value={recommendedNextStep} />
             </div>
-          ) : <p className="figma-panel-note">La cabina mostrara preparacion terrestre, estructuras y guarnicion cuando el contexto sea valido.</p>}
+          ) : <p className="figma-panel-note">La vista mostrara preparacion terrestre, estructuras y guarnicion cuando el contexto sea valido.</p>}
         </UiCard>
 
         <UiCard className="panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Limite de la cabina</p><h3>Preparacion terrestre</h3></div><UiBadge tone="warn">{cockpitStatusLabels.preparation}</UiBadge></div>
+          <div className="figma-section-header"><div><p className="eyebrow">Limite de la vista</p><h3>Preparacion terrestre</h3></div><UiBadge tone="warn">{cockpitStatusLabels.preparation}</UiBadge></div>
           <ul className="stack-list strategic-rules-list">
             <li>Resume fuerzas terrestres, guarnicion y preparacion local.</li>
             <li>Construccion mantiene edificios militares y Defensas mantiene proteccion planetaria.</li>
@@ -260,7 +260,7 @@ export function GroundArmyPage() {
       ) : null}
 
       {isSuspiciousContext ? (
-        <UiCard className="panel"><div className="figma-section-header"><div><p className="eyebrow">Contexto sospechoso</p><h3>El identificador de civilizacion no parece valido para esta cabina.</h3></div><UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge></div><p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p></UiCard>
+        <UiCard className="panel"><div className="figma-section-header"><div><p className="eyebrow">Contexto sospechoso</p><h3>El identificador de civilizacion no parece valido para esta vista.</h3></div><UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge></div><p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p></UiCard>
       ) : null}
 
     </section>

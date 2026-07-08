@@ -46,8 +46,8 @@ export function AppShell({
     : isFleetRoute
       ? "Flotas muestra preparacion, carga y ordenes confirmadas para el contexto seleccionado."
       : isStrategicMapRoute
-        ? "La galaxia prioriza mapa, seleccion y contexto tactico para continuar hacia las cabinas del imperio."
-        : "Cabinas de colonia, investigacion, astillero y flotas con lectura de estado y confirmaciones explicitas cuando la pagina lo permite.";
+        ? "La galaxia prioriza mapa, seleccion y contexto tactico para continuar hacia los sistemas del imperio."
+        : "Sistemas de colonia, investigacion, astillero y flotas con lectura de estado y confirmaciones explicitas cuando la pagina lo permite.";
 
   const isSignedIn = currentAccountSession.status === "ready";
   const selectedResourceContext = useMemo(() => {
@@ -135,7 +135,7 @@ export function AppShell({
       </header>
 
       <div className="app-shell-frame">
-        <aside className="app-sidebar" aria-label="Navegacion de cabinas">
+        <aside className="app-sidebar" aria-label="Navegacion de sistemas">
           <div className="app-sidebar-head">
             <p className="eyebrow">Superficie imperial</p>
             <h2>Mapa de mando</h2>

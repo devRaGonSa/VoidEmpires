@@ -337,7 +337,7 @@ export function getMarketTradeSignalSummary(signal: MarketSignal) {
     case "DemandPressure":
       return `${resourceLabel} muestra tension y depende de produccion local o apoyo logistico posterior.`;
     case "FutureTradeRoute":
-      return "La cabina detecta una dependencia de ruta futura, pero no puede crear ni ejecutar esa ruta desde Mercado.";
+      return "La vista detecta una dependencia de ruta futura, pero no puede crear ni ejecutar esa ruta desde Mercado.";
     case "EstimatedProduction":
       return signal.productionPerHour !== null
         ? `${resourceLabel} conserva una produccion estimada de ${signal.productionPerHour}/h para esta lectura.`
@@ -474,7 +474,7 @@ export function buildMarketReferenceComparisons(
       pairLabel: `${left.label} <-> ${right.label}`,
       ratioLabel: formatMarketRatio(left.advisoryRatio / right.advisoryRatio),
       advisoryLabel: "Precio no ejecutable",
-      executionLabel: "No ejecutable en esta cabina",
+      executionLabel: "No ejecutable en esta vista",
     }];
   });
 }

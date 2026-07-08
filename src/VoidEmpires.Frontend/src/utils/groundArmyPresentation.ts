@@ -51,7 +51,7 @@ const groundArmyReadinessCatalog: readonly GroundArmyLabelCatalogEntry[] = [
   { key: "MissingCapacityData", label: "Sin capacidad confirmada" },
   { key: "Unsupported", label: "Pendiente de activacion" },
   { key: "ReadOnly", label: "Consulta disponible" },
-  { key: "Placeholder", label: "Cabina preparada" },
+  { key: "Placeholder", label: "Vista preparada" },
   { key: "Pending", label: "Pendiente" },
   { key: "Active", label: "En preparacion" },
   { key: "Completed", label: "Completada" },
@@ -160,13 +160,13 @@ export function formatGroundArmyRequestFailure(rawError: string | null | undefin
 
   switch (technicalDetail) {
     case "Civilization id is required.":
-      return { primaryMessage: "Falta el id de civilizacion. Revisa el contexto antes de cargar la cabina.", technicalDetail };
+      return { primaryMessage: "Falta el id de civilizacion. Revisa el contexto antes de cargar la vista.", technicalDetail };
     case "Planet was not found.":
       return { primaryMessage: "El planeta no existe o ya no esta visible. Revisa el contexto.", technicalDetail };
     case "Planet is not controlled by the requesting civilization.":
       return { primaryMessage: "La colonia seleccionada no pertenece a tu civilizacion. Abre una colonia propia.", technicalDetail };
     case "Request failed with status 404.":
-      return { primaryMessage: "La cabina terrestre no esta disponible en este entorno.", technicalDetail };
+      return { primaryMessage: "La vista terrestre no esta disponible en este entorno.", technicalDetail };
     case "Request failed with status 503.":
       return { primaryMessage: "El estado terrestre no esta disponible temporalmente. Revisa el contexto e intentalo de nuevo.", technicalDetail };
     case "MissingRequiredBuilding":
@@ -176,6 +176,6 @@ export function formatGroundArmyRequestFailure(rawError: string | null | undefin
     case "InsufficientPopulationCapacity":
       return { primaryMessage: "La capacidad de poblacion terrestre es insuficiente para esta preparacion.", technicalDetail };
     default:
-      return { primaryMessage: "La cabina terrestre no pudo completar la solicitud. Revisa el contexto e intentalo de nuevo.", technicalDetail };
+      return { primaryMessage: "La vista terrestre no pudo completar la solicitud. Revisa el contexto e intentalo de nuevo.", technicalDetail };
   }
 }

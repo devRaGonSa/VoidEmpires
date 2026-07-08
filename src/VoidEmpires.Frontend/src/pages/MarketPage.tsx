@@ -43,7 +43,7 @@ function formatMarketRequestFailure(message: string | null | undefined): MarketE
     case "Planet was not found.":
       return {
         primaryMessage: "No se pudo cargar Mercado.",
-        followUp: "El planeta solicitado no esta disponible para esta cabina.",
+        followUp: "El planeta solicitado no esta disponible para esta vista.",
         technicalDetail: detail,
       };
     case "Planet is not owned by the requesting civilization.":
@@ -254,7 +254,7 @@ export function MarketPage() {
 
       {queryCivilizationId ? (
         <PageContextStrip
-          eyebrow="Cabina economica"
+          eyebrow="Vista economica"
           title={market?.selectedPlanetName ?? "Mercado galactico"}
           purpose="Reservas, produccion, referencias y senales economicas visibles sin transacciones ni traslado de recursos."
           statusLabel={marketReadinessStatus}
@@ -342,7 +342,7 @@ export function MarketPage() {
           ) : null}
           {!queryCivilizationId ? (
             <p className="figma-panel-note">
-              Introduce un contexto de civilizacion valido o entra desde otra cabina para conservar el contexto de Mercado.
+              Introduce un contexto de civilizacion valido o entra desde otra vista para conservar el contexto de Mercado.
             </p>
           ) : null}
         </UiCard>
@@ -379,7 +379,7 @@ export function MarketPage() {
           </div>
           <ul className="stack-list strategic-rules-list">
             <li>Mercado lee reservas, produccion y senal economica visible.</li>
-            <li>Esta cabina no ejecuta compras ni ventas.</li>
+            <li>Esta vista no ejecuta compras ni ventas.</li>
             <li>Las rutas comerciales futuras aparecen solo como orientacion, no como ordenes activas.</li>
             <li>Los detalles tecnicos permanecen en diagnostico secundario.</li>
           </ul>
@@ -457,7 +457,7 @@ export function MarketPage() {
               <div>
                 <p className="eyebrow">Resumen economico</p>
                 <h3>Panorama economico</h3>
-                <p>La cabina resume reservas, flujo, senal economica y referencias orientativas antes de pasar al detalle.</p>
+                <p>La vista resume reservas, flujo, senal economica y referencias orientativas antes de pasar al detalle.</p>
               </div>
               <UiBadge tone="good">{market.summary.primaryActionLabel}</UiBadge>
             </div>
@@ -482,7 +482,7 @@ export function MarketPage() {
                 </div>
                 <p>
                   {market.production.length > 0
-                    ? "La cabina ya puede mostrar flujo estimado del planeta activo sin prometer una economia global persistida."
+                    ? "La vista ya puede mostrar flujo estimado del planeta activo sin prometer una economia global persistida."
                     : "El flujo productivo sigue incompleto; Mercado mantiene un estado honesto en lugar de inventar cifras."}
                 </p>
               </section>
@@ -494,7 +494,7 @@ export function MarketPage() {
                   </div>
                   <UiBadge tone="warn">{market.routePlaceholders.length} rutas futuras</UiBadge>
                 </div>
-                <p>Mercado observa senal economica y excedente, pero deja cualquier confirmacion comercial fuera de esta cabina.</p>
+                <p>Mercado observa senal economica y excedente, pero deja cualquier confirmacion comercial fuera de esta vista.</p>
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
@@ -514,7 +514,7 @@ export function MarketPage() {
               <div>
                 <p className="eyebrow">Mercado listo</p>
                 <h3>Mercado visible</h3>
-                <p>La cabina interpreta la economia visible con contexto real y ordena donde mirar primero.</p>
+                <p>La vista interpreta la economia visible con contexto real y ordena donde mirar primero.</p>
               </div>
               <div className="figma-badge-row">
                 <UiBadge tone="good">{market.summary.recommendedFocus}</UiBadge>
@@ -587,7 +587,7 @@ export function MarketPage() {
               <div>
                 <p className="eyebrow">Reservas y produccion</p>
                 <h3>Economia visible</h3>
-                <p>Mercado agrega el estado actual sin sustituir la gestion local que sigue perteneciendo a Planeta y otras cabinas.</p>
+                <p>Mercado agrega el estado actual sin sustituir la gestion local que sigue perteneciendo a Planeta y otras sistemas.</p>
               </div>
               <UiBadge tone="resource">{market.selectedPlanetName ? `Reservas de ${market.selectedPlanetName}` : "Reserva de civilizacion"}</UiBadge>
             </div>
@@ -654,7 +654,7 @@ export function MarketPage() {
               <div>
                 <p className="eyebrow">Referencias de intercambio</p>
                 <h3>Referencias orientativas</h3>
-                <p>Estas comparaciones reutilizan referencias orientativas de la cabina y sirven para interpretar condiciones economicas, no para cerrar un intercambio.</p>
+                <p>Estas comparaciones reutilizan referencias orientativas de la vista y sirven para interpretar condiciones economicas, no para cerrar un intercambio.</p>
               </div>
               <UiBadge tone="warn">Orientativo</UiBadge>
             </div>
@@ -688,7 +688,7 @@ export function MarketPage() {
                     <UiBadge tone="warn">Referencia ausente</UiBadge>
                   </div>
                   <p className="figma-panel-note">
-                    La cabina no recibio suficientes referencias orientativas para construir comparaciones seguras en esta fase.
+                    La vista no recibio suficientes referencias orientativas para construir comparaciones seguras en esta fase.
                   </p>
                 </section>
               )}
@@ -751,13 +751,13 @@ export function MarketPage() {
               <section className="subpanel figma-subpanel market-secondary-card">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">Dependencia de cabina</p>
+                    <p className="eyebrow">Dependencia de vista</p>
                     <h4>Continuar en logistica</h4>
                   </div>
                   <UiBadge tone="warn">Sin ejecucion</UiBadge>
                 </div>
                 <p className="figma-panel-note">
-                  Esta cabina mantiene visible la senal economica, pero la resolucion real permanece en Flotas y Galaxia.
+                  Esta vista mantiene visible la senal economica, pero la resolucion real permanece en Flotas y Galaxia.
                 </p>
                 <ul className="stack-list compact-list">
                   <li>Revisar logistica en Flotas.</li>
@@ -839,9 +839,9 @@ export function MarketPage() {
       <UiCard className="panel">
         <div className="figma-section-header">
           <div>
-            <p className="eyebrow">Cabina conectada</p>
+            <p className="eyebrow">Vista conectada</p>
             <h3>Mercado dentro de la suite actual</h3>
-            <p>Mercado interpreta la economia visible y conserva el contexto actual cuando te deriva hacia la cabina propietaria para reservas locales, consumo, produccion orbital o contexto de ruta.</p>
+            <p>Mercado interpreta la economia visible y conserva el contexto actual cuando te deriva hacia la vista propietaria para reservas locales, consumo, produccion orbital o contexto de ruta.</p>
           </div>
           <UiBadge tone="warn">{cockpitStatusLabels.implementedReadOnly}</UiBadge>
         </div>
@@ -852,7 +852,7 @@ export function MarketPage() {
                 <p className="eyebrow">Planeta</p>
                 <h4>Reservas y produccion local</h4>
               </div>
-              <UiBadge>Cabina vecina</UiBadge>
+              <UiBadge>Vista vecina</UiBadge>
             </div>
             <p className="figma-panel-note">
               Usa Planeta para revisar la colonia activa, sus reservas persistidas y la produccion del mundo seleccionado.
@@ -867,7 +867,7 @@ export function MarketPage() {
                 <p className="eyebrow">Construccion</p>
                 <h4>Sumideros e infraestructura</h4>
               </div>
-              <UiBadge>Cabina vecina</UiBadge>
+              <UiBadge>Vista vecina</UiBadge>
             </div>
             <p className="figma-panel-note">
               Usa Construccion para validar donde se consumen recursos y que mejoras estan tensionando la economia visible.
@@ -882,7 +882,7 @@ export function MarketPage() {
                 <p className="eyebrow">Astillero</p>
                 <h4>Produccion orbital y stock</h4>
               </div>
-              <UiBadge>Cabina vecina</UiBadge>
+              <UiBadge>Vista vecina</UiBadge>
             </div>
             <p className="figma-panel-note">
               Usa Astillero para revisar produccion orbital, cola local y stock que aun no se convierte en movimiento de flota.
@@ -897,7 +897,7 @@ export function MarketPage() {
                 <p className="eyebrow">Flotas</p>
                 <h4>Logistica y movimiento</h4>
               </div>
-              <UiBadge>Cabina vecina</UiBadge>
+              <UiBadge>Vista vecina</UiBadge>
             </div>
             <p className="figma-panel-note">
               Usa Flotas para revisar grupos orbitales, dependencias logisticas y cualquier traslado que Mercado solo puede anticipar.
@@ -912,7 +912,7 @@ export function MarketPage() {
                 <p className="eyebrow">Galaxia</p>
                 <h4>Ruta y sistema</h4>
               </div>
-              <UiBadge>Cabina vecina</UiBadge>
+              <UiBadge>Vista vecina</UiBadge>
             </div>
             <p className="figma-panel-note">
               Usa Galaxia para recuperar el sistema activo y el contexto espacial que explica por que una ruta futura podria importar.
@@ -974,7 +974,7 @@ export function MarketPage() {
               </div>
               {technicalErrorDetail ? (
                 <>
-                  <p className="figma-panel-note">Ultimo detalle tecnico conservado por la cabina.</p>
+                  <p className="figma-panel-note">Ultimo detalle tecnico conservado por la vista.</p>
                   <ul className="stack-list compact-list">
                     <li>{technicalErrorDetail}</li>
                   </ul>

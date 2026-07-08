@@ -48,7 +48,7 @@ const rankingHandoffCards = [
     key: "espionage",
     label: "Espionaje",
     title: "Cobertura e inteligencia",
-    description: "Detalla visibilidad, senales pasivas y objetivos observados sin convertir Ranking en una cabina de inteligencia.",
+    description: "Detalla visibilidad, senales pasivas y objetivos observados sin convertir Ranking en una vista de inteligencia.",
     ctaLabel: "Abrir Espionaje",
   },
   {
@@ -250,7 +250,7 @@ export function RankingPage() {
           <div>
             <p className="eyebrow">Resumen de poder</p>
             <h3>Clasificacion imperial</h3>
-            <p>Esta cabina no publica ranking global ni recompensas.</p>
+            <p>Esta vista no publica ranking global ni recompensas.</p>
           </div>
           <UiBadge tone="warn">{cockpitStatusLabels.readOnly}</UiBadge>
         </div>
@@ -287,7 +287,7 @@ export function RankingPage() {
           </section>
         </div>
         <p className="ranking-summary-note">
-          Esta cabina no publica ranking global ni recompensas. El indice actual se calcula desde referencias internas.
+          Esta vista no publica ranking global ni recompensas. El indice actual se calcula desde referencias internas.
         </p>
       </UiCard>
 
@@ -345,7 +345,7 @@ export function RankingPage() {
             </div>
           ) : (
             <p className="figma-panel-note">
-              Cuando exista un contexto valido, la cabina mostrara identidad, indice y postura publica del poder actual.
+              Cuando exista un contexto valido, la vista mostrara identidad, indice y postura publica del poder actual.
             </p>
           )}
         </UiCard>
@@ -353,7 +353,7 @@ export function RankingPage() {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Limite de la cabina</p>
+              <p className="eyebrow">Limite de la vista</p>
               <h3>Clasificacion interna no publicada</h3>
             </div>
             <UiBadge tone="warn">Sin ladder</UiBadge>
@@ -517,7 +517,7 @@ export function RankingPage() {
                   </div>
                   <UiBadge tone="warn">No final</UiBadge>
                 </div>
-                <p className="figma-panel-note">Clasificacion publica, autorizacion competitiva, perfiles, recompensas, combate, mercado y alianzas siguen fuera de esta cabina.</p>
+                <p className="figma-panel-note">Clasificacion publica, autorizacion competitiva, perfiles, recompensas, combate, mercado y alianzas siguen fuera de esta vista.</p>
               </section>
             </div>
           </UiCard>
@@ -585,9 +585,9 @@ export function RankingPage() {
       <UiCard className="panel">
         <div className="figma-section-header">
           <div>
-            <p className="eyebrow">Pasar a otras cabinas</p>
+            <p className="eyebrow">Pasar a otras sistemas</p>
             <h3>Handoffs relacionados</h3>
-            <p>Ranking no duplica las superficies vecinas y deriva a las cabinas que ya explican las fuentes de cada categoria.</p>
+            <p>Ranking no duplica las superficies vecinas y deriva a los sistemas que ya explican las fuentes de cada categoria.</p>
           </div>
           <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
         </div>

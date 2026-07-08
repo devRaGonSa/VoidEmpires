@@ -20,8 +20,8 @@ export const cockpitNavigationLabels = {
   openFleets: "Abrir Flotas",
   openResearch: "Abrir Investigacion",
   openShipyard: "Abrir Astillero",
-  relatedCabin: "Cabina relacionada",
-  relatedCabins: "Siguientes cabinas",
+  relatedCabin: "Vista relacionada",
+  relatedCabins: "Siguientes sistemas",
   returnToGalaxy: "Volver a Galaxia",
   returnToPlanet: "Volver a Planeta",
 } as const;

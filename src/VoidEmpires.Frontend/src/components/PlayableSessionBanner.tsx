@@ -38,7 +38,7 @@ export function PlayableSessionBanner({ session, onClear }: PlayableSessionBanne
         <UiBadge tone="good">Mundo guardado</UiBadge>
       </div>
       <p className="figma-panel-note">
-        Cada cabina vuelve a comprobar la cuenta actual antes de mostrar recursos, colas u ordenes disponibles.
+        Cada vista vuelve a comprobar la cuenta actual antes de mostrar recursos, colas u ordenes disponibles.
       </p>
       <div className="selection-chip-row">
         <Link className="selection-chip selection-chip-active" to={planetUrl}>

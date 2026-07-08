@@ -59,7 +59,7 @@ const defenseReadinessCatalog: readonly DefenseLabelCatalogEntry[] = [
   { key: "Unsupported", label: "Solo lectura" },
   { key: "ConstructionReady", label: "Fortificacion lista para preparar" },
   { key: "ReadOnly", label: "Solo lectura" },
-  { key: "Placeholder", label: "Cabina preparada" },
+  { key: "Placeholder", label: "Vista preparada" },
 ] as const;
 
 const defenseStatusCatalog: readonly DefenseLabelCatalogEntry[] = [
@@ -219,7 +219,7 @@ export function formatDefenseRequestFailure(rawError: string | null | undefined)
     case "Civilization id is required.":
       return {
         primaryMessage: "Falta el id de civilizacion para abrir Defensas.",
-        followUp: "Revisa el contexto antes de cargar la cabina.",
+        followUp: "Revisa el contexto antes de cargar la vista.",
         technicalDetail,
       };
     case "Planet was not found.":
@@ -236,7 +236,7 @@ export function formatDefenseRequestFailure(rawError: string | null | undefined)
       };
     case "Planet resource stockpile was not found.":
       return {
-        primaryMessage: "La cabina no encontro reservas locales utilizables para esta lectura.",
+        primaryMessage: "La vista no encontro reservas locales utilizables para esta lectura.",
         followUp: "Aplica `cockpit-validation` o revisa la seed antes de continuar.",
         technicalDetail,
       };
@@ -254,7 +254,7 @@ export function formatDefenseRequestFailure(rawError: string | null | undefined)
       };
     default:
       return {
-        primaryMessage: "La cabina de Defensas no pudo cargar el estado solicitado.",
+        primaryMessage: "La vista de Defensas no pudo cargar el estado solicitado.",
         followUp: "Revisa el contexto o abre Construccion si solo necesitas confirmar una obra defensiva.",
         technicalDetail,
       };

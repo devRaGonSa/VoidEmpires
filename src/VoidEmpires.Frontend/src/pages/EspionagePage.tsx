@@ -211,7 +211,7 @@ const handoffCards = [
     key: "fleets",
     label: "Flotas",
     title: "Movimiento orbital",
-    description: "Permite revisar grupos orbitales, rutas y transferencias sin convertir Espionaje en una cabina de mando.",
+    description: "Permite revisar grupos orbitales, rutas y transferencias sin convertir Espionaje en una vista de mando.",
   },
   {
     key: "research",
@@ -342,7 +342,7 @@ export function EspionagePage() {
       <CockpitHero
         versionLabel="Espionaje v1"
         title="Red de inteligencia"
-        description="La cabina resume lo confirmado, lo observado y lo que sigue incompleto sin prometer operaciones activas."
+        description="La vista resume lo confirmado, lo observado y lo que sigue incompleto sin prometer operaciones activas."
         developmentNote="La red reutiliza la cobertura estrategica disponible y deja cualquier futura mision pendiente de activacion."
         badges={
           <>
@@ -355,7 +355,7 @@ export function EspionagePage() {
 
       {queryCivilizationId ? (
         <PageContextStrip
-          eyebrow="Cabina de inteligencia"
+          eyebrow="Vista de inteligencia"
           title={focusedTarget?.label ?? focusedGroup?.label ?? "Red de inteligencia"}
           purpose="Preparacion de objetivos, senales pasivas y handoffs sin habilitar operaciones ni inventar informacion no confirmada."
           statusLabel={readinessPosture}
@@ -432,20 +432,20 @@ export function EspionagePage() {
               <pre className="json-preview">{technicalErrorDetail}</pre>
             </details>
           ) : null}
-          {!queryCivilizationId ? <p className="figma-panel-note">Introduce un contexto de civilizacion valido para abrir la cabina de inteligencia.</p> : null}
+          {!queryCivilizationId ? <p className="figma-panel-note">Introduce un contexto de civilizacion valido para abrir la vista de inteligencia.</p> : null}
         </UiCard>
 
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Limite de la cabina</p>
+              <p className="eyebrow">Limite de la vista</p>
               <h3>Red de inteligencia</h3>
             </div>
             <UiBadge tone="warn">Sin ejecucion</UiBadge>
           </div>
           <ul className="stack-list strategic-rules-list">
             <li>Resume objetivos propios, visibles, conocidos y parciales.</li>
-            <li>Lee senales pasivas, trayectorias y cobertura ya expuestas por la cabina estrategica.</li>
+            <li>Lee senales pasivas, trayectorias y cobertura ya expuestas por la vista estrategica.</li>
             <li>No crea misiones de espionaje, infiltracion ni sabotaje.</li>
           </ul>
         </UiCard>
@@ -471,7 +471,7 @@ export function EspionagePage() {
               </p>
             </>
           ) : (
-            <p className="figma-panel-note">La cabina mostrara su resumen cuando exista un contexto valido de civilizacion.</p>
+            <p className="figma-panel-note">La vista mostrara su resumen cuando exista un contexto valido de civilizacion.</p>
           )}
         </UiCard>
       </div>
@@ -495,7 +495,7 @@ export function EspionagePage() {
               <UiBadge>{viewModel ? "Cargada" : "Pendiente"}</UiBadge>
             </div>
             <p className="figma-panel-note">
-              La cabina usa visibilidad estrategica, senales pasivas y objetivos ya expuestos por la cobertura actual.
+              La vista usa visibilidad estrategica, senales pasivas y objetivos ya expuestos por la cobertura actual.
             </p>
           </section>
           <section className="subpanel figma-subpanel">
@@ -519,7 +519,7 @@ export function EspionagePage() {
               <UiBadge tone="warn">No final</UiBadge>
             </div>
             <p className="figma-panel-note">
-              Autoridad final de misiones, permisos de inteligencia, resultados encubiertos, combate y movimiento siguen fuera de esta cabina.
+              Autoridad final de misiones, permisos de inteligencia, resultados encubiertos, combate y movimiento siguen fuera de esta vista.
             </p>
           </section>
         </div>
@@ -555,7 +555,7 @@ export function EspionagePage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Contexto sospechoso</p>
-              <h3>El identificador de civilizacion no parece valido para esta cabina.</h3>
+              <h3>El identificador de civilizacion no parece valido para esta vista.</h3>
             </div>
             <UiBadge tone="warn">Revisar contexto</UiBadge>
           </div>
@@ -572,7 +572,7 @@ export function EspionagePage() {
             <div>
               <p className="eyebrow">Foco recomendado</p>
               <h3>{focusedTarget?.label ?? "Sin objetivo priorizado"}</h3>
-              <p>La cabina prioriza objetivos parciales con senales pasivas y sugiere donde seguir la investigacion.</p>
+              <p>La vista prioriza objetivos parciales con senales pasivas y sugiere donde seguir la investigacion.</p>
             </div>
             <UiBadge tone={focusedTarget?.hasPassiveSignals ? "good" : "warn"}>{getEspionagePrimaryAction(viewModel)}</UiBadge>
           </div>
@@ -668,7 +668,7 @@ export function EspionagePage() {
               <button type="button" className="planet-action-button-blocked" disabled>
                 No disponible en esta version
               </button>
-              <p className="espionage-target-note">Operacion pendiente de activacion en esta cabina.</p>
+              <p className="espionage-target-note">Operacion pendiente de activacion en esta vista.</p>
             </article>
           ))}
         </div>
@@ -680,7 +680,7 @@ export function EspionagePage() {
             <div>
               <p className="eyebrow">Catalogo de objetivos</p>
               <h3>Red agrupada</h3>
-              <p>La cabina separa control confirmado, observacion estable, contacto parcial y senales sin convertirlas en operaciones.</p>
+              <p>La vista separa control confirmado, observacion estable, contacto parcial y senales sin convertirlas en operaciones.</p>
             </div>
             <UiBadge>{catalogSections.length} grupos</UiBadge>
           </div>
@@ -772,7 +772,7 @@ export function EspionagePage() {
           ) : (
             <div className="espionage-empty-state">
               <strong>No hay senales recientes para este contexto.</strong>
-              <p>La cabina seguira mostrando objetivos y niveles de certeza, pero no fabricara un historial cuando la red actual no lo ofrece.</p>
+              <p>La vista seguira mostrando objetivos y niveles de certeza, pero no fabricara un historial cuando la red actual no lo ofrece.</p>
             </div>
           )}
         </UiCard>
@@ -814,7 +814,7 @@ export function EspionagePage() {
         <div className="figma-section-header">
           <div>
             <p className="eyebrow">Navegacion</p>
-            <h3>Pasar a otras cabinas</h3>
+            <h3>Pasar a otras sistemas</h3>
             <p>Espionaje interpreta inteligencia. Las demas superficies siguen siendo propietarias del mapa, la superficie planetaria, el mando orbital y el progreso tecnologico.</p>
           </div>
           <UiBadge tone="warn">Contexto conservado</UiBadge>

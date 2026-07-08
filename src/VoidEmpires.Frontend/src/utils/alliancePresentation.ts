@@ -216,7 +216,7 @@ export function formatAllianceDiagnostics(
 }
 
 export function getAllianceReadOnlyStatement() {
-  return "La cabina de Alianzas permanece en solo lectura durante esta fase.";
+  return "La vista de Alianzas permanece en solo lectura durante esta fase.";
 }
 
 export function getAllianceCatalogPlaceholder(kind: "known" | "potential" | "future" | "limited") {
@@ -239,7 +239,7 @@ export function getAllianceContactCardTitle(group: "confirmed" | "unconfirmed", 
 }
 
 export function getAllianceContactReadinessLabel(group: "confirmed" | "unconfirmed") {
-  return group === "confirmed" ? "Listo para seguimiento entre cabinas" : "Pendiente de confirmacion";
+  return group === "confirmed" ? "Listo para seguimiento entre sistemas" : "Pendiente de confirmacion";
 }
 
 export function getAllianceNextCockpitHint(group: "confirmed" | "unconfirmed", sourceLabel: string) {
@@ -268,7 +268,7 @@ export function formatAllianceRequestFailure(rawError: string | null | undefined
     case "Civilization id is required.":
       return {
         primaryMessage: "No hay contexto de civilizacion.",
-        followUp: "Introduce un id valido o vuelve a entrar desde otra cabina para conservar el contexto.",
+        followUp: "Introduce un id valido o vuelve a entrar desde otra vista para conservar el contexto.",
         technicalDetail,
       };
     case "Civilization was not found.":
@@ -294,7 +294,7 @@ export function formatAllianceRequestFailure(rawError: string | null | undefined
     case "Request failed with status 501.":
       return {
         primaryMessage: "Las acciones diplomaticas no estan disponibles en esta version.",
-        followUp: "La cabina mantiene una lectura segura y no expone acciones ejecutables.",
+        followUp: "La vista mantiene una lectura segura y no expone acciones ejecutables.",
         technicalDetail,
       };
     case "Request failed with status 503.":

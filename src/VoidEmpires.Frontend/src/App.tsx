@@ -160,7 +160,7 @@ function getRouteStatusLabel(pathname: string) {
     case "/ranking":
       return "Ranking";
     default:
-      return "Cabina";
+      return "Vista";
   }
 }
 

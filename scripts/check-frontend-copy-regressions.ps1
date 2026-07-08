@@ -336,6 +336,8 @@ $operatorOnlyVisibleFragments = @(
 $nonRenderedCockpitHeroFragments = @(
   "Mutaciones Development confirmadas"
 )
+$forbiddenLegacyModuleTermPattern = "(?i)\bca" + "bina(s)?\b"
+$productSurfaceForbiddenPatterns = @($forbiddenLegacyModuleTermPattern) + $productSurfaceForbiddenPatterns
 
 $productSurfaceForbiddenMatches = Select-String -Path ($productSurfaceFiles | Select-Object -ExpandProperty FullName) -Pattern $productSurfaceForbiddenPatterns -Encoding UTF8
 foreach ($match in @($productSurfaceForbiddenMatches)) {
@@ -516,7 +518,7 @@ $requiredSafetyCopy = @(
   @{
     Path = "src/VoidEmpires.Frontend/src/pages/ShipyardPage.tsx"
     Fragments = @(
-      "La cabina la mantiene visible sin completarla automaticamente.",
+      "La vista la mantiene visible sin completarla automaticamente.",
       "El stock orbital no equivale automaticamente a una escuadra visible en Flotas."
     )
   },

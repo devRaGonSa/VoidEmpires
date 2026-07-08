@@ -745,7 +745,7 @@ export function FleetsPage() {
     }
 
     if (!uiState?.civilizationId) {
-      setCompleteDueTransferNetworkError("Primero carga una cabina valida antes de ejecutar completar vencidos.");
+      setCompleteDueTransferNetworkError("Primero carga una vista valida antes de ejecutar completar vencidos.");
       return;
     }
 
@@ -764,7 +764,7 @@ export function FleetsPage() {
         setPreparedCompleteDueGroupId("");
         setHasCompleteDueAcknowledgement(false);
         setCompleteDueTransferStaleMessage(
-          "El lote controlado se ejecuto. La cabina debe refrescarse para confirmar que las llegadas vencidas ya no siguen activas.",
+          "El lote controlado se ejecuto. La vista debe refrescarse para confirmar que las llegadas vencidas ya no siguen activas.",
         );
 
         try {
@@ -943,7 +943,7 @@ export function FleetsPage() {
 
       {uiState && summary ? (
         <PageContextStrip
-          eyebrow="Cabina orbital"
+          eyebrow="Vista orbital"
           title={focusedPlanetId ? formatPlanetPrimaryLabel(focusedPlanetId) : "Civilizacion cargada"}
           purpose="Grupos orbitales visibles, reservas compartidas y enlace seguro hacia Astillero sin inventar stock ni combate."
           statusLabel={fleetContextStatus}
@@ -997,8 +997,8 @@ export function FleetsPage() {
         <UiCard className="panel fleet-dev-loader-panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Entrada de cabina</p>
-              <h3>Cargar cabina</h3>
+              <p className="eyebrow">Entrada de vista</p>
+              <h3>Cargar vista</h3>
               <p>El cargador sigue visible, pero ya no ocupa la cabecera principal.</p>
             </div>
             <UiBadge tone="neutral">Secundario</UiBadge>
@@ -1274,7 +1274,7 @@ export function FleetsPage() {
                       </div>
                       <UiBadge tone="neutral">No disponible</UiBadge>
                     </div>
-                    <p className="figma-panel-note">Las misiones, persecuciones, combate e intercepcion ejecutable siguen fuera del alcance de esta cabina.</p>
+                    <p className="figma-panel-note">Las misiones, persecuciones, combate e intercepcion ejecutable siguen fuera del alcance de esta vista.</p>
                   </section>
                 </div>
               </UiCard>
@@ -1305,7 +1305,7 @@ export function FleetsPage() {
                     <FleetDataRow label="Reservas visibles" value={formatFleetResourceDigest(focusedPlanetResourceContext)} />
                     <FleetDataRow label="Stock orbital local" value="No expuesto en Flotas" />
                     <FleetDataRow label="Estado seguro" value="Grupos y reservas por planeta" />
-                    <FleetDataRow label="Siguiente cabina" value="Astillero para cola y stock local" />
+                    <FleetDataRow label="Siguiente vista" value="Astillero para cola y stock local" />
                   </div>
                 </section>
               </div>
@@ -1329,7 +1329,7 @@ export function FleetsPage() {
                 <div>
                   <p className="eyebrow">Conceptos de mando</p>
                   <h3>Fronteras orbitales futuras</h3>
-                  <p>La cabina muestra que piezas existen hoy y que decisiones siguen pendientes antes de convertir stock o ejecutar combate.</p>
+                  <p>La vista muestra que piezas existen hoy y que decisiones siguen pendientes antes de convertir stock o ejecutar combate.</p>
                 </div>
                 <UiBadge tone="warn">Sin accion nueva</UiBadge>
               </div>

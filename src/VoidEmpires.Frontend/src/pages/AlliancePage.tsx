@@ -67,7 +67,7 @@ const allianceHandoffCards: readonly AllianceHandoffCard[] = [
     key: "galaxy",
     label: "Galaxia",
     title: "Vista estrategica",
-    description: "Mantiene el mapa, el contexto planetario conocido y la continuidad del frente sin convertir Alianzas en una cabina de mando.",
+    description: "Mantiene el mapa, el contexto planetario conocido y la continuidad del frente sin convertir Alianzas en una vista de mando.",
     ctaLabel: "Volver a Galaxia",
   },
   {
@@ -155,7 +155,7 @@ export function AlliancePage() {
         { label: "Estado", value: contact.statusLabel },
         { label: "Confianza", value: contact.confidenceLabel },
         { label: "Seguimiento", value: formatAllianceProductLabel(getAllianceContactReadinessLabel("confirmed")) },
-        { label: "Siguiente cabina", value: getAllianceNextCockpitHint("confirmed", contact.sourceLabel) },
+        { label: "Siguiente vista", value: getAllianceNextCockpitHint("confirmed", contact.sourceLabel) },
       ],
       note: `${contact.sourceLabel} | ${contact.discoveredAtLabel}`,
     }));
@@ -170,7 +170,7 @@ export function AlliancePage() {
         { label: "Estado", value: contact.statusLabel },
         { label: "Confianza", value: contact.confidenceLabel },
         { label: "Seguimiento", value: formatAllianceProductLabel(getAllianceContactReadinessLabel("unconfirmed")) },
-        { label: "Siguiente cabina", value: getAllianceNextCockpitHint("unconfirmed", contact.sourceLabel) },
+        { label: "Siguiente vista", value: getAllianceNextCockpitHint("unconfirmed", contact.sourceLabel) },
       ],
       note: `${contact.sourceLabel} | ${contact.discoveredAtLabel}`,
     }));
@@ -186,7 +186,7 @@ export function AlliancePage() {
           { label: "Estado", value: pact.stateLabel },
           { label: "Preparacion", value: "Preparado para fase futura" },
           { label: "Disponibilidad", value: pact.isAvailable ? "Visible" : "Bloqueado" },
-          { label: "Siguiente cabina", value: "Seguir desde Espionaje o Mercado" },
+          { label: "Siguiente vista", value: "Seguir desde Espionaje o Mercado" },
         ],
         note: pact.reasonLabel,
       })) ?? []),
@@ -200,7 +200,7 @@ export function AlliancePage() {
           { label: "Estado", value: formatAllianceProductLabel(action.stateLabel) },
           { label: "Preparacion", value: "Bloqueado en esta version" },
           { label: "Disponibilidad", value: action.isAvailable ? "Visible" : "No ejecutable" },
-          { label: "Siguiente cabina", value: "Mantener seguimiento desde Alianzas" },
+          { label: "Siguiente vista", value: "Mantener seguimiento desde Alianzas" },
         ],
         note: formatAllianceProductLabel(action.reasonLabel),
       })) ?? []),
@@ -217,7 +217,7 @@ export function AlliancePage() {
           { label: "Estado", value: formatAllianceProductLabel(uiState?.actionSummary?.summaryLabel ?? allianceLabels.readOnlyDiplomacy) },
           { label: "Confianza", value: "Metadata visible" },
           { label: "Pactos activos", value: String(uiState?.status?.activePactCount ?? 0) },
-          { label: "Siguiente cabina", value: "Volver a Galaxia, Mercado o Espionaje" },
+          { label: "Siguiente vista", value: "Volver a Galaxia, Mercado o Espionaje" },
         ],
         note: readOnlyStatement,
       },
@@ -234,7 +234,7 @@ export function AlliancePage() {
           { label: "Estado", value: "Sin ejecucion diplomatica" },
           { label: "Confianza", value: "Consulta de operador" },
           { label: "Notas", value: `${uiState.diagnostics.limitations.length} limitaciones` },
-          { label: "Siguiente cabina", value: "Conservar contexto entre cabinas" },
+          { label: "Siguiente vista", value: "Conservar contexto entre sistemas" },
         ],
         note: uiState.diagnostics.limitations[0],
       });
@@ -244,7 +244,7 @@ export function AlliancePage() {
       {
         key: "known",
         label: "Contactos conocidos",
-        description: "Contactos diplomaticos ya asentados. La cabina no inventa participantes y solo muestra contexto verificable.",
+        description: "Contactos diplomaticos ya asentados. La vista no inventa participantes y solo muestra contexto verificable.",
         badgeLabel: confirmedCards.length > 0 ? `${confirmedCards.length} contactos` : "Sin contactos",
         badgeTone: confirmedCards.length > 0 ? "good" : "warn",
         cards: confirmedCards.length > 0 ? confirmedCards : [{
@@ -257,7 +257,7 @@ export function AlliancePage() {
             { label: "Estado", value: allianceLabels.noActiveAlliance },
             { label: "Confianza", value: "Contacto verificable" },
             { label: "Seguimiento", value: "Sin participantes confirmados" },
-            { label: "Siguiente cabina", value: "Seguir desde Galaxia o Espionaje" },
+            { label: "Siguiente vista", value: "Seguir desde Galaxia o Espionaje" },
           ],
           note: getAllianceCatalogPlaceholder("known"),
         }],
@@ -278,7 +278,7 @@ export function AlliancePage() {
             { label: "Estado", value: allianceLabels.unconfirmedContact },
             { label: "Confianza", value: "Sin evidencia adicional" },
             { label: "Seguimiento", value: "No hay otra civilizacion visible" },
-            { label: "Siguiente cabina", value: "Mantener seguimiento en Espionaje" },
+            { label: "Siguiente vista", value: "Mantener seguimiento en Espionaje" },
           ],
           note: getAllianceCatalogPlaceholder("potential"),
         }],
@@ -299,7 +299,7 @@ export function AlliancePage() {
             { label: "Estado", value: allianceLabels.futureAlliance },
             { label: "Preparacion", value: "Fase futura" },
             { label: "Disponibilidad", value: "No ejecutable" },
-            { label: "Siguiente cabina", value: "Conservar seguimiento en Alianzas" },
+            { label: "Siguiente vista", value: "Conservar seguimiento en Alianzas" },
           ],
           note: getAllianceCatalogPlaceholder("future"),
         }],
@@ -307,7 +307,7 @@ export function AlliancePage() {
       {
         key: "limited",
         label: "Consulta diplomatica limitada",
-        description: "La cabina muestra hasta donde llega la metadata actual y deriva el seguimiento a las superficies ya implementadas.",
+        description: "La vista muestra hasta donde llega la metadata actual y deriva el seguimiento a las superficies ya implementadas.",
         badgeLabel: `${limitedCards.length} notas`,
         badgeTone: "warn",
         cards: limitedCards.length > 0 ? limitedCards : [{
@@ -320,7 +320,7 @@ export function AlliancePage() {
             { label: "Estado", value: formatAllianceProductLabel(allianceLabels.readOnlyDiplomacy) },
             { label: "Confianza", value: "Consulta de operador" },
             { label: "Notas", value: "Sin notas visibles" },
-            { label: "Siguiente cabina", value: "Volver a Galaxia o Mercado" },
+            { label: "Siguiente vista", value: "Volver a Galaxia o Mercado" },
           ],
           note: getAllianceCatalogPlaceholder("limited"),
         }],
@@ -388,7 +388,7 @@ export function AlliancePage() {
       <CockpitHero
         versionLabel="Alianzas v1"
         title="Alianzas"
-        description="Cabina diplomatica para identidad, estado actual, contactos conocidos y pactos futuros todavia bloqueados."
+        description="Vista diplomatica para identidad, estado actual, contactos conocidos y pactos futuros todavia bloqueados."
         developmentNote={`${readOnlyStatement} Conserva el contexto diplomatico y mantiene las operaciones de invitacion y gestion pendientes de activacion.`}
         badges={(
           <>
@@ -401,7 +401,7 @@ export function AlliancePage() {
 
       {queryCivilizationId ? (
         <PageContextStrip
-          eyebrow="Cabina diplomatica"
+          eyebrow="Vista diplomatica"
           title={uiState?.identity?.civilizationName ?? "Diplomacia de alianzas"}
           purpose="Identidad, contactos y pactos futuros como contexto diplomatico, sin invitaciones, permisos compartidos ni gestion de miembros."
           statusLabel={allianceReadinessStatus}
@@ -520,7 +520,7 @@ export function AlliancePage() {
           ) : null}
           {!queryCivilizationId ? (
             <p className="figma-panel-note">
-              Introduce un contexto de civilizacion valido para abrir la cabina diplomatica.
+              Introduce un contexto de civilizacion valido para abrir la vista diplomatica.
             </p>
           ) : null}
         </UiCard>
@@ -542,7 +542,7 @@ export function AlliancePage() {
             </div>
           ) : (
             <p className="figma-panel-note">
-              Cuando exista un contexto valido, la cabina mostrara identidad, estado diplomatico y el siguiente foco de seguimiento.
+              Cuando exista un contexto valido, la vista mostrara identidad, estado diplomatico y el siguiente foco de seguimiento.
             </p>
           )}
         </UiCard>
@@ -550,7 +550,7 @@ export function AlliancePage() {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Limite de la cabina</p>
+              <p className="eyebrow">Limite de la vista</p>
               <h3>Diplomacia pendiente de activacion</h3>
             </div>
             <UiBadge tone="warn">Sin ejecucion</UiBadge>
@@ -606,7 +606,7 @@ export function AlliancePage() {
               <div>
                 <p className="eyebrow">Identidad diplomatica</p>
                 <h3>{uiState.identity.civilizationName}</h3>
-                <p>La cabina toma como fuente principal a la civilización actual y deja el perfil del jugador como soporte técnico.</p>
+                <p>La vista toma como fuente principal a la civilización actual y deja el perfil del jugador como soporte técnico.</p>
               </div>
               <UiBadge tone={uiState.status.hasActiveAlliance ? "good" : "warn"}>
                 {uiState.status.stateLabel}
@@ -637,7 +637,7 @@ export function AlliancePage() {
               <div>
                 <p className="eyebrow">Estado de alianza</p>
                 <h3>{uiState.status.headline}</h3>
-                <p>Si existe una alianza activa, la cabina solo muestra metadata. Si no existe, deja referencias futuras sin insinuar acciones ejecutables.</p>
+                <p>Si existe una alianza activa, la vista solo muestra metadata. Si no existe, deja referencias futuras sin insinuar acciones ejecutables.</p>
               </div>
               <UiBadge tone={uiState.status.hasActiveAlliance ? "good" : "warn"}>{uiState.status.supportText}</UiBadge>
             </div>
@@ -665,7 +665,7 @@ export function AlliancePage() {
                   </div>
                 ) : (
                   <p className="figma-panel-note">
-                    {allianceLabels.noActiveAlliance}. La cabina mantiene el estado honesto y deriva cualquier futura accion a referencias desactivadas.
+                    {allianceLabels.noActiveAlliance}. La vista mantiene el estado honesto y deriva cualquier futura accion a referencias desactivadas.
                   </p>
                 )}
               </section>
@@ -677,7 +677,7 @@ export function AlliancePage() {
               <div>
                 <p className="eyebrow">Catalogo diplomatico</p>
                 <h3>Contactos y preparacion diplomatica</h3>
-                <p>La cabina separa contacto conocido, potencial, pactos futuros y limites de seguimiento sin fabricar participantes ni acuerdos activos.</p>
+                <p>La vista separa contacto conocido, potencial, pactos futuros y limites de seguimiento sin fabricar participantes ni acuerdos activos.</p>
               </div>
               <UiBadge tone="warn">{cockpitStatusLabels.safePlaceholder}</UiBadge>
             </div>
@@ -737,7 +737,7 @@ export function AlliancePage() {
                   </div>
                   <UiBadge tone="warn">No disponible</UiBadge>
                 </div>
-                <p className="figma-panel-note">La cabina no abre altas, bajas, invitaciones, solicitudes ni gestion de miembros.</p>
+                <p className="figma-panel-note">La vista no abre altas, bajas, invitaciones, solicitudes ni gestion de miembros.</p>
               </section>
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
@@ -757,7 +757,7 @@ export function AlliancePage() {
                   </div>
                   <UiBadge tone="warn">No final</UiBadge>
                 </div>
-                <p className="figma-panel-note">Autoridad final, permisos compartidos, tesoreria, mensajes, mercado, movimiento y combate siguen fuera de esta cabina.</p>
+                <p className="figma-panel-note">Autoridad final, permisos compartidos, tesoreria, mensajes, mercado, movimiento y combate siguen fuera de esta vista.</p>
               </section>
             </div>
           </UiCard>
@@ -825,7 +825,7 @@ export function AlliancePage() {
       <UiCard className="panel">
         <div className="figma-section-header">
           <div>
-            <p className="eyebrow">Pasar a otras cabinas</p>
+            <p className="eyebrow">Pasar a otras sistemas</p>
             <h3>Handoffs relacionados</h3>
             <p>Alianzas conserva el contexto de civilizacion y deriva el seguimiento a las superficies ya implementadas, sin insinuar flujos diplomaticos ejecutables.</p>
           </div>

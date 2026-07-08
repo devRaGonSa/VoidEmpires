@@ -101,7 +101,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
 
         if (!planetResponse.succeeded || !planetResponse.uiState) {
           setUiState(null);
-          setError(planetResponse.errors[0] ?? "La cabina especializada no pudo cargarse.");
+          setError(planetResponse.errors[0] ?? "La vista especializada no pudo cargarse.");
           return;
         }
 
@@ -118,7 +118,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
         setError(
           requestError instanceof Error
             ? requestError.message
-            : "La cabina especializada no pudo cargarse.",
+            : "La vista especializada no pudo cargarse.",
         );
       } finally {
         setIsLoading(false);
@@ -158,7 +158,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
           <p>{route.purpose}</p>
         </div>
         <div className="figma-badge-row">
-          <UiBadge>Cabina preparada para futura implementación.</UiBadge>
+          <UiBadge>Sistema preparado para futura implementación.</UiBadge>
           <UiBadge tone="warn">Esta sección no ejecuta órdenes todavía.</UiBadge>
           <UiBadge tone="warn">Proximamente</UiBadge>
         </div>
@@ -195,13 +195,13 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
               />
             </label>
             <button type="submit" disabled={isLoading}>
-              {isLoading ? "Cargando..." : "Abrir cabina"}
+              {isLoading ? "Cargando..." : "Abrir vista"}
             </button>
           </form>
           {error ? <p className="error-text">{error}</p> : null}
           {!queryCivilizationId ? (
             <p className="figma-panel-note">
-              Introduce un `civilizationId` valido para cargar el contexto de la cabina especializada.
+              Introduce un `civilizationId` valido para cargar el contexto de la vista especializada.
             </p>
           ) : null}
         </UiCard>
@@ -223,7 +223,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
             </div>
           ) : (
             <p className="figma-panel-note">
-              La cabina mostrara el planeta seleccionado cuando el contexto incluya `civilizationId` y, si aplica, `planetId`.
+              La vista mostrara el planeta seleccionado cuando el contexto incluya `civilizationId` y, si aplica, `planetId`.
             </p>
           )}
         </UiCard>
@@ -232,7 +232,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Que pertenece aqui</p>
-              <h3>Limite de la cabina</h3>
+              <h3>Limite de la vista</h3>
             </div>
             <UiBadge tone="good">Sin ordenes activas</UiBadge>
           </div>
@@ -261,7 +261,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
             <div>
               <p className="eyebrow">Taxonomia orbital</p>
               <h3>Vocabulario jugable del astillero</h3>
-              <p>Los nombres visibles priorizan lectura de cabina y dejan las claves tecnicas fuera del flujo principal.</p>
+              <p>Los nombres visibles priorizan lectura del astillero y dejan las claves tecnicas fuera del flujo principal.</p>
             </div>
             <UiBadge tone="resource">{shipyardAssets.length} clases</UiBadge>
           </div>
@@ -327,7 +327,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Taxonomia defensiva</p>
-              <h3>Vocabulario jugable de la cabina</h3>
+              <h3>Vocabulario jugable de la vista</h3>
               <p>Los nombres visibles priorizan proteccion y readiness sin insinuar combate activo.</p>
             </div>
             <UiBadge tone="resource">{defenseStructures.length} estructuras</UiBadge>
@@ -395,7 +395,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
             <div>
               <p className="eyebrow">Contrato tipado</p>
               <h3>Estado normalizado del astillero</h3>
-              <p>La cabina ya consume un modelo de estado estable para presentar la informacion del astillero.</p>
+              <p>La vista ya consume un modelo de estado estable para presentar la informacion del astillero.</p>
             </div>
             <UiBadge tone={recommendedShipyardAsset?.statusKey === "Available" ? "good" : "warn"}>
               {recommendedShipyardAsset ? getShipyardPrimaryAction(recommendedShipyardAsset) : "Sin recomendacion"}
@@ -471,7 +471,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Contexto sospechoso</p>
-              <h3>El identificador de civilizacion no parece valido para esta cabina.</h3>
+              <h3>El identificador de civilizacion no parece valido para esta vista.</h3>
             </div>
             <UiBadge tone="warn">Revisar contexto</UiBadge>
           </div>
@@ -490,7 +490,7 @@ export function ModuleCabinPage({ route }: ModuleCabinPageProps) {
         <div className="figma-section-header">
           <div>
             <p className="eyebrow">Navegacion</p>
-            <h3>Siguientes cabinas</h3>
+            <h3>Siguientes sistemas</h3>
           </div>
           <UiBadge tone="warn">Contexto conservado</UiBadge>
         </div>

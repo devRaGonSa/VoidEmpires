@@ -294,7 +294,7 @@ export function formatResearchCommandFailure(
   switch (technicalDetail) {
     case "Civilization id is required.":
       return {
-        primaryMessage: "Falta el id de civilizacion. Actualiza la cabina o vuelve a entrar desde Galaxia.",
+        primaryMessage: "Falta el id de civilizacion. Actualiza la vista o vuelve a entrar desde Galaxia.",
         technicalDetail,
       };
     case "Civilization was not found.":
@@ -311,17 +311,17 @@ export function formatResearchCommandFailure(
     case "Planet was not found.":
     case "Planet resource stockpile was not found.":
       return {
-        primaryMessage: "El planeta no pertenece a la civilizacion o ya no esta disponible. Actualiza la cabina y vuelve a prepararla.",
+        primaryMessage: "El planeta no pertenece a la civilizacion o ya no esta disponible. Actualiza la vista y vuelve a prepararla.",
         technicalDetail,
       };
     case "Planet is not owned by the requesting civilization.":
       return {
-        primaryMessage: "La colonia ya no pertenece a tu civilizacion activa. Recarga la cabina y revisa el planeta antes de volver a intentarlo.",
+        primaryMessage: "La colonia ya no pertenece a tu civilizacion activa. Recarga la vista y revisa el planeta antes de volver a intentarlo.",
         technicalDetail,
       };
     case "Research type is required.":
       return {
-        primaryMessage: "Tecnologia no encontrada. Actualiza la cabina y vuelve a preparar la investigacion.",
+        primaryMessage: "Tecnologia no encontrada. Actualiza la vista y vuelve a preparar la investigacion.",
         technicalDetail,
       };
     case "Insufficient resources.":
@@ -337,7 +337,7 @@ export function formatResearchCommandFailure(
     case "Requested date is required.":
     case "Requested date must be UTC.":
       return {
-        primaryMessage: "La orden llego incompleta a la API. Actualiza la cabina y vuelve a intentarlo.",
+        primaryMessage: "La orden llego incompleta a la API. Actualiza la vista y vuelve a intentarlo.",
         technicalDetail,
       };
     default:
@@ -360,13 +360,13 @@ export function formatResearchCommandFailure(
 
   if (httpStatus === 400) {
     return {
-      primaryMessage: "El contrato de envio no coincide con la accion preparada. Actualiza la cabina y vuelve a preparar la investigacion.",
+      primaryMessage: "El contrato de envio no coincide con la accion preparada. Actualiza la vista y vuelve a preparar la investigacion.",
       technicalDetail,
     };
   }
 
   return {
-    primaryMessage: "La cabina de investigacion no pudo completar la accion. Actualiza la cabina y vuelve a intentarlo.",
+    primaryMessage: "La vista de investigacion no pudo completar la accion. Actualiza la vista y vuelve a intentarlo.",
     technicalDetail,
   };
 }

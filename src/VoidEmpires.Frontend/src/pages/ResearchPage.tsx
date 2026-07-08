@@ -79,7 +79,7 @@ function getBlockedResearchReasonDetail(
   selectedPlanetName?: string | null,
 ) {
   if (technology.availability.canCompleteDue) {
-    return "El cierre manual de investigaciones vencidas sigue fuera de esta cabina.";
+    return "El cierre manual de investigaciones vencidas sigue fuera de esta vista.";
   }
 
   switch (technology.availability.reasonKey) {
@@ -90,7 +90,7 @@ function getBlockedResearchReasonDetail(
     case "OpenQueueSlot":
       return "Ya hay una investigacion en curso para esta civilizacion y no se puede abrir otra orden.";
     case "NotAvailableInThisBuild":
-      return "Esta investigacion no esta disponible en la lectura actual de la cabina.";
+      return "Esta investigacion no esta disponible en la lectura actual de la vista.";
     case "SourcePlanetMissing":
       return "El contexto visible ya no permite enviar esta investigacion desde este planeta.";
     default:
@@ -138,7 +138,7 @@ function formatResearchEnqueueValidationError(
 
   if (hasCode("MissingCivilizationId") || hasPattern("civilization was not found", "civilization id is required")) {
     return {
-      primaryMessage: "La civilizacion indicada no es valida para esta cabina. Recarga el contexto desde Galaxia antes de reintentar.",
+      primaryMessage: "La civilizacion indicada no es valida para esta vista. Recarga el contexto desde Galaxia antes de reintentar.",
       technicalDetail,
     };
   }
@@ -148,14 +148,14 @@ function formatResearchEnqueueValidationError(
     hasPattern("source planet id is required", "planet is not owned", "planet resource stockpile was not found", "planet was not found")
   ) {
     return {
-      primaryMessage: "El planeta de origen ya no es valido para esta orden. Actualiza la cabina y vuelve a seleccionar el contexto.",
+      primaryMessage: "El planeta de origen ya no es valido para esta orden. Actualiza la vista y vuelve a seleccionar el contexto.",
       technicalDetail,
     };
   }
 
   if (hasCode("MissingResearchType") || hasPattern("research type is required", "research type was not found", "invalid research type")) {
     return {
-      primaryMessage: "La tecnologia solicitada no es valida o ya no esta disponible en esta version. Actualiza la cabina antes de reintentar.",
+      primaryMessage: "La tecnologia solicitada no es valida o ya no esta disponible en esta version. Actualiza la vista antes de reintentar.",
       technicalDetail,
     };
   }
@@ -456,7 +456,7 @@ export function ResearchPage() {
               <span>Planeta de laboratorio</span>
               <input type="text" value={planetIdInput} onChange={(event) => setPlanetIdInput(event.target.value)} placeholder="Opcional si vienes desde una colonia" spellCheck={false} />
             </label>
-            <button type="submit" disabled={isLoading}>{isLoading ? "Cargando..." : "Abrir cabina"}</button>
+            <button type="submit" disabled={isLoading}>{isLoading ? "Cargando..." : "Abrir vista"}</button>
           </form>
           {error ? <p className="error-text">{error}</p> : null}
           {!queryCivilizationId ? <p className="figma-panel-note">Entra desde Galaxia o usa el inicio local disponible para reconstruir la URL con contexto.</p> : null}
@@ -471,8 +471,8 @@ export function ResearchPage() {
             <UiBadge tone="good">Lectura segura</UiBadge>
           </div>
           <ul className="stack-list strategic-rules-list">
-            <li>La cabina prioriza tecnologias disponibles, cola de investigacion y proyectos completados.</li>
-            <li>La navegacion conserva el contexto cientifico al cambiar de cabina.</li>
+            <li>La vista prioriza tecnologias disponibles, cola de investigacion y proyectos completados.</li>
+            <li>La navegacion conserva el contexto cientifico al cambiar de vista.</li>
             <li>Las altas a cola requieren confirmacion explicita.</li>
             <li>Los detalles de soporte quedan fuera de la vista principal.</li>
           </ul>
@@ -484,7 +484,7 @@ export function ResearchPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Contexto sospechoso</p>
-              <h3>El id de civilizacion no parece valido para esta cabina.</h3>
+              <h3>El id de civilizacion no parece valido para esta vista.</h3>
             </div>
             <UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge>
           </div>
@@ -505,7 +505,7 @@ export function ResearchPage() {
             <UiBadge tone="good">Memoria local</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Este enlace recupera la ultima colonia local guardada; cada cabina volvera a comprobar el estado de juego antes de mostrar acciones.
+            Este enlace recupera la ultima colonia local guardada; cada vista volvera a comprobar el estado de juego antes de mostrar acciones.
           </p>
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
@@ -526,7 +526,7 @@ export function ResearchPage() {
             </div>
             <UiBadge tone="warn">Sin catalogo</UiBadge>
           </div>
-          <p className="figma-panel-note">La cabina esta preparada, pero este contexto aun no tiene tecnologias de investigacion visibles; no se muestran opciones falsas.</p>
+          <p className="figma-panel-note">La vista esta preparada, pero este contexto aun no tiene tecnologias de investigacion visibles; no se muestran opciones falsas.</p>
         </UiCard>
       ) : null}
 
@@ -671,7 +671,7 @@ export function ResearchPage() {
                           </p>
                         ) : !hasSafeResearchEnqueue ? (
                           <p className="figma-panel-note">
-                            Esta version no expone una via segura para iniciar investigacion desde la cabina.
+                            Esta version no expone una via segura para iniciar investigacion desde la vista.
                           </p>
                         ) : !technology.enqueueCommand ? (
                           <p className="figma-panel-note">
@@ -714,7 +714,7 @@ export function ResearchPage() {
               <div>
                 <p className="eyebrow">Cierre vencido</p>
                 <h3>Completar investigaciones vencidas</h3>
-                <p>El cierre seguro de investigaciones vencidas todavia no esta disponible desde esta cabina.</p>
+                <p>El cierre seguro de investigaciones vencidas todavia no esta disponible desde esta vista.</p>
               </div>
               <UiBadge tone="warn">{dueQueueCount} vencidas</UiBadge>
             </div>

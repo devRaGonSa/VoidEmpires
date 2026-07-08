@@ -265,7 +265,7 @@ export function getActionHandoffTarget(action: PlanetConstructionActionDto) {
 export function getWrongModuleMessage(action: PlanetConstructionActionDto) {
   const module = resolveModuleByAction(action);
   if (module === "UnknownOrDiagnostics") {
-    return "Disponible en una cabina futura.";
+    return "Disponible en una vista futura.";
   }
 
   return `Esta orden pertenece a ${getPlanetModuleLabel(module)}.`;
@@ -340,7 +340,7 @@ export function formatConstructionEnqueueSuccess(
   buildingType: PlanetValue,
   targetLevel: number,
 ) {
-  return `${formatBuildingType(buildingType)} en cola para nivel ${targetLevel}. La cabina se actualizo con el estado confirmado por la API.`;
+  return `${formatBuildingType(buildingType)} en cola para nivel ${targetLevel}. La vista se actualizo con el estado confirmado por la API.`;
 }
 
 export function formatConstructionAvailability(value: string) {
@@ -392,12 +392,12 @@ export function formatConstructionCommandFailure(
       };
     case "Planet resource stockpile was not found.":
       return {
-        primaryMessage: "La reserva del planeta no esta disponible. Recarga la cabina o revisa la seed local antes de volver a intentarlo.",
+        primaryMessage: "La reserva del planeta no esta disponible. Recarga la vista o revisa la seed local antes de volver a intentarlo.",
         technicalDetail,
       };
     case "Planet is not owned by the requesting civilization.":
       return {
-        primaryMessage: "La colonia ya no pertenece a tu civilizacion activa. Recarga la cabina y revisa el planeta antes de volver a intentarlo.",
+        primaryMessage: "La colonia ya no pertenece a tu civilizacion activa. Recarga la vista y revisa el planeta antes de volver a intentarlo.",
         technicalDetail,
       };
     case "Planet building capacity would be exceeded.":
@@ -407,17 +407,17 @@ export function formatConstructionCommandFailure(
       };
     case "Planet building capacity was not found.":
       return {
-        primaryMessage: "La capacidad de edificios no esta disponible en este entorno. Recarga la cabina o valida la seed antes de continuar.",
+        primaryMessage: "La capacidad de edificios no esta disponible en este entorno. Recarga la vista o valida la seed antes de continuar.",
         technicalDetail,
       };
     case "Building was not found.":
       return {
-        primaryMessage: "El edificio base ya no esta disponible para mejorar. Recarga la cabina y revisa el estado actual antes de reintentar.",
+        primaryMessage: "El edificio base ya no esta disponible para mejorar. Recarga la vista y revisa el estado actual antes de reintentar.",
         technicalDetail,
       };
     case "Planet was not found.":
       return {
-        primaryMessage: "La colonia ya no existe en la lectura actual. Recarga la cabina y vuelve a seleccionar un planeta valido.",
+        primaryMessage: "La colonia ya no existe en la lectura actual. Recarga la vista y vuelve a seleccionar un planeta valido.",
         technicalDetail,
       };
     case "Civilization was not found.":
@@ -462,13 +462,13 @@ export function formatConstructionCommandFailure(
 
   if (httpStatus === 409) {
     return {
-      primaryMessage: "La orden ya no es valida con el estado actual. Recarga la cabina para revisar recursos, propiedad o cola antes de reintentar.",
+      primaryMessage: "La orden ya no es valida con el estado actual. Recarga la vista para revisar recursos, propiedad o cola antes de reintentar.",
       technicalDetail,
     };
   }
 
   return {
-    primaryMessage: "La orden no pudo entrar en la cola de construccion. Recarga la cabina y vuelve a intentarlo.",
+    primaryMessage: "La orden no pudo entrar en la cola de construccion. Recarga la vista y vuelve a intentarlo.",
     technicalDetail,
   };
 }

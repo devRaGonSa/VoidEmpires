@@ -363,11 +363,11 @@ function getReasonLabel(reasonKey: string) {
     case "notpublished":
       return "La clasificacion global permanece desactivada en esta version.";
     case "futureseason":
-      return "La temporada futura sigue fuera del alcance de esta cabina.";
+      return "La temporada futura sigue fuera del alcance de esta vista.";
     case "rewardsunavailable":
       return "Las recompensas no forman parte de esta fase.";
     default:
-      return "La referencia futura sigue deshabilitada en esta cabina.";
+      return "La referencia futura sigue deshabilitada en esta vista.";
   }
 }
 
@@ -446,7 +446,7 @@ export function formatRankingRequestFailure(error: unknown): RankingErrorPresent
         return {
           code: error.code,
           primaryMessage: "No hay contexto de civilizacion.",
-          followUp: "Introduce un id valido o entra desde otra cabina para conservar el contexto.",
+          followUp: "Introduce un id valido o entra desde otra vista para conservar el contexto.",
           technicalDetail: error.detail,
         };
       case "civilizationNotFound":
@@ -493,7 +493,7 @@ export function formatRankingRequestFailure(error: unknown): RankingErrorPresent
     return {
       code: "invalidCivilizationId",
       primaryMessage: "No hay contexto de civilizacion.",
-      followUp: "Introduce un id valido o entra desde otra cabina para conservar el contexto.",
+      followUp: "Introduce un id valido o entra desde otra vista para conservar el contexto.",
       technicalDetail: detail,
     };
   }
@@ -637,13 +637,13 @@ export function buildRankingFutureLeaderboardCards(actions: readonly RankingFutu
       key: "alliance-leaderboard",
       title: rankingStaticLabels.allianceLeaderboard,
       stateLabel: rankingStaticLabels.unpublishedRanking,
-      reasonLabel: "La clasificacion de alianzas sigue fuera del alcance de esta cabina.",
+      reasonLabel: "La clasificacion de alianzas sigue fuera del alcance de esta vista.",
     },
     {
       key: "future-season",
       title: rankingStaticLabels.futureSeason,
       stateLabel: season?.stateLabel ?? rankingStaticLabels.futureSeason,
-      reasonLabel: season?.reasonLabel ?? "La temporada futura sigue fuera del alcance de esta cabina.",
+      reasonLabel: season?.reasonLabel ?? "La temporada futura sigue fuera del alcance de esta vista.",
     },
     {
       key: "rewards",
@@ -671,13 +671,13 @@ export function buildRankingFutureCapabilityCards(actions: readonly RankingFutur
       key: "view-alliance-leaderboard",
       title: "Ver ranking de alianzas",
       stateLabel: rankingStaticLabels.unavailable,
-      reasonLabel: "La clasificacion de alianzas sigue fuera del alcance de esta cabina.",
+      reasonLabel: "La clasificacion de alianzas sigue fuera del alcance de esta vista.",
     },
     {
       key: "open-season",
       title: "Abrir temporada",
       stateLabel: season?.stateLabel ?? rankingStaticLabels.unavailable,
-      reasonLabel: season?.reasonLabel ?? "La temporada futura sigue fuera del alcance de esta cabina.",
+      reasonLabel: season?.reasonLabel ?? "La temporada futura sigue fuera del alcance de esta vista.",
     },
     {
       key: "claim-reward",
@@ -695,7 +695,7 @@ export function buildRankingFutureCapabilityCards(actions: readonly RankingFutur
       key: "compare-player",
       title: "Comparar jugador",
       stateLabel: rankingStaticLabels.unavailable,
-      reasonLabel: "Las comparativas entre jugadores reales permanecen fuera del alcance de esta cabina.",
+      reasonLabel: "Las comparativas entre jugadores reales permanecen fuera del alcance de esta vista.",
     },
   ];
 }

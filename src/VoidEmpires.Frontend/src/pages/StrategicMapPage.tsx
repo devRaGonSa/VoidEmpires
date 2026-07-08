@@ -150,11 +150,11 @@ function formatStrategicCommandSummary(
       case "strategicMap.system.view":
         return "El sistema puede inspeccionarse desde el foco actual.";
       case "strategicMap.planet.viewDetail":
-        return "El detalle del planeta puede inspeccionarse desde esta cabina.";
+        return "El detalle del planeta puede inspeccionarse desde esta vista.";
       case "fleet.travel.estimate":
-        return "La ruta puede revisarse desde la cabina de flotas sin mutar datos.";
+        return "La ruta puede revisarse desde la vista de flotas sin mutar datos.";
       case "fleet.transfer.create":
-        return "La cabina de flotas puede preparar esta ruta cuando exista contexto valido.";
+        return "La vista de flotas puede preparar esta ruta cuando exista contexto valido.";
       case "exploration.preview":
         return "El reconocimiento queda como vista previa y no activa ninguna mision.";
       case "exploration.mission.create":
@@ -324,7 +324,7 @@ export function StrategicMapPage() {
           : hasEmptyStrategicReadModel
             ? "Mapa vacio"
             : cockpitResult
-              ? "Cabina lista"
+              ? "Vista lista"
               : "Sincronizacion pendiente";
 
   const summary = useMemo(() => {
@@ -600,7 +600,7 @@ export function StrategicMapPage() {
         <PageContextStrip
           eyebrow="Mapa de navegacion"
           title={selectedSystem?.systemName ?? "Teatro estrategico"}
-          purpose="Mapa 2D de inspeccion, foco de sistema y enlaces a cabinas propietarias sin ejecutar expansion, movimiento ni combate."
+          purpose="Mapa 2D de inspeccion, foco de sistema y enlaces a sistemas propietarias sin ejecutar expansion, movimiento ni combate."
           statusLabel={mapReadModel?.unknownSystems ? "Cobertura parcial" : "Mapa estable"}
           statusTone={mapReadModel?.unknownSystems ? "warn" : "good"}
           contextItems={[
@@ -646,7 +646,7 @@ export function StrategicMapPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Enlace de mando</p>
-              <h3>Cargar estado de cabina</h3>
+              <h3>Cargar estado de vista</h3>
             </div>
             <UiBadge>Contexto activo</UiBadge>
           </div>
@@ -763,8 +763,8 @@ export function StrategicMapPage() {
           kind="error"
           eyebrow="Fallo de carga"
           title="No se pudo cargar el mapa de Galaxia."
-          description={error ?? "La cabina sigue accesible, pero no hay un mapa util para este contexto."}
-          detail="La cabina sigue accesible, pero no hay un mapa util para este contexto."
+          description={error ?? "La vista sigue accesible, pero no hay un mapa util para este contexto."}
+          detail="La vista sigue accesible, pero no hay un mapa util para este contexto."
           badgeLabel="Sin mapa"
           action={operatorMode && errorTechnicalDetail ? (
             <details className="json-details">
@@ -1037,7 +1037,7 @@ export function StrategicMapPage() {
               <div className="figma-data-list">
                 <DataRow label="Expansion" value="Elegibilidad pendiente" />
                 <DataRow label="Movimiento" value="Abrir Flotas" />
-                <DataRow label="Produccion" value="Abrir cabinas planetarias" />
+                <DataRow label="Produccion" value="Abrir sistemas planetarias" />
               </div>
             </section>
             <section className="subpanel figma-subpanel">
@@ -1281,7 +1281,7 @@ export function StrategicMapPage() {
                     <div className="figma-data-list">
                       <DataRow label="Control" value={Boolean(selectedPlanetRecord?.isOwnedByRequestingCivilization) ? "Propio" : formatVisibilityLevel(selectedPlanet.visibilityLevel)} />
                       <DataRow label="Tipo" value={formatPlanetType(readDomainValue(selectedPlanetRecord ?? {}, "planetType"), "Tipo pendiente")} />
-                      <DataRow label="Gestion" value={selectedPlanet.isVisible ? "Cabinas con contexto preservado" : "Vision limitada"} />
+                      <DataRow label="Gestion" value={selectedPlanet.isVisible ? "Sistemas con contexto preservado" : "Vision limitada"} />
                     </div>
                     <div className="selection-chip-row">
                       <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(result.civilizationId, selectedPlanet.planetId)}>
@@ -1309,7 +1309,7 @@ export function StrategicMapPage() {
               <div>
                 <p className="eyebrow">Inteligencia planetaria</p>
                 <h3>Colonias y mundos</h3>
-                <p>La lista planetaria deja claro que mundos puedes inspeccionar ahora y a que cabina de gestion podras saltar despues.</p>
+                <p>La lista planetaria deja claro que mundos puedes inspeccionar ahora y a que vista de gestion podras saltar despues.</p>
               </div>
               <UiBadge>{selectedSystem.planets?.length ?? 0} planetas</UiBadge>
             </div>
@@ -1629,9 +1629,9 @@ export function StrategicMapPage() {
                 <UiBadge>Solo inspeccion</UiBadge>
               </div>
               <p className="figma-panel-note">
-                Galaxia sigue siendo una cabina de solo lectura: estas vistas previas
+                Galaxia sigue siendo una vista de solo lectura: estas vistas previas
                 y metadatos nunca ejecutan ordenes, y cualquier accion real debe
-                hacerse desde la cabina propietaria.
+                hacerse desde la vista propietaria.
               </p>
               <div className="figma-detail-grid strategic-detail-grid">
                 <section className="subpanel figma-subpanel">

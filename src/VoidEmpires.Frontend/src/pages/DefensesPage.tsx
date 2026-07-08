@@ -242,7 +242,7 @@ export function DefensesPage() {
         <UiCard className="panel strategic-loader-panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Entrada de cabina</p>
+              <p className="eyebrow">Entrada de vista</p>
               <h3>Cargar contexto defensivo</h3>
             </div>
             <UiBadge>Colonia activa</UiBadge>
@@ -280,7 +280,7 @@ export function DefensesPage() {
           ) : null}
           {isLoading ? <p className="figma-panel-note">Cargando estructuras, opciones y limites defensivos...</p> : null}
           {!queryCivilizationId && !isLoading ? (
-            <p className="figma-panel-note">Introduce un `civilizationId` valido para abrir la cabina de defensas.</p>
+            <p className="figma-panel-note">Introduce un `civilizationId` valido para abrir la vista de defensas.</p>
           ) : null}
         </UiCard>
 
@@ -316,7 +316,7 @@ export function DefensesPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Contexto sospechoso</p>
-              <h3>El identificador de civilizacion no parece valido para esta cabina.</h3>
+              <h3>El identificador de civilizacion no parece valido para esta vista.</h3>
             </div>
             <UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge>
           </div>
@@ -448,7 +448,7 @@ export function DefensesPage() {
                   </div>
                   <UiBadge tone="warn">Sin despliegue</UiBadge>
                 </div>
-                <p className="figma-panel-note">Todavia no hay estructuras defensivas visibles en esta colonia. La cabina conserva el contexto y mostrara preparaciones o bloqueos reales cuando existan.</p>
+                <p className="figma-panel-note">Todavia no hay estructuras defensivas visibles en esta colonia. La vista conserva el contexto y mostrara preparaciones o bloqueos reales cuando existan.</p>
               </section>
             )}
             <div className="figma-section-header module-boundary-spacer">
@@ -560,7 +560,7 @@ export function DefensesPage() {
               </section>
             )}
             {optionGroups.length === 0 ? (
-              <p className="figma-panel-note">El catalogo defensivo aun no tiene mas opciones para esta colonia. La cabina conserva el contexto y explica el limite con honestidad.</p>
+              <p className="figma-panel-note">El catalogo defensivo aun no tiene mas opciones para esta colonia. La vista conserva el contexto y explica el limite con honestidad.</p>
             ) : null}
           </UiCard>
 
@@ -569,7 +569,7 @@ export function DefensesPage() {
               <div>
                 <p className="eyebrow">Ejecucion segura</p>
                 <h3>Como se trata cada accion visible</h3>
-                <p>Defensas no duplica el flujo de confirmacion de Construccion en esta build. La cabina clasifica cada opcion y aplica el tratamiento seguro correspondiente.</p>
+                <p>Defensas no duplica el flujo de confirmacion de Construccion en esta build. La vista clasifica cada opcion y aplica el tratamiento seguro correspondiente.</p>
               </div>
               <UiBadge tone="warn">Sin accion local</UiBadge>
             </div>
@@ -722,7 +722,7 @@ export function DefensesPage() {
               </div>
               <UiBadge tone="warn">Preparacion limitada</UiBadge>
             </div>
-            <p className="figma-panel-note">No hay un contexto defensivo util para este planeta. La cabina mantiene acceso, contexto y explicacion de limites.</p>
+            <p className="figma-panel-note">No hay un contexto defensivo util para este planeta. La vista mantiene acceso, contexto y explicacion de limites.</p>
           </UiCard>
         ) : null
       )}

@@ -415,7 +415,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
         if (!response.succeeded || !response.uiState) {
           setUiState(null);
-          setError(response.errors[0] ?? "La cabina de planeta no pudo cargarse.");
+          setError(response.errors[0] ?? "La vista de planeta no pudo cargarse.");
           return;
         }
 
@@ -545,7 +545,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         }
       } else {
         setConstructionError(
-          "La orden se envio, pero la cabina no pudo recargar el estado actualizado. Refresca la vista para confirmar el resultado final.",
+          "La orden se envio, pero la vista no pudo recargar el estado actualizado. Refresca la vista para confirmar el resultado final.",
         );
         setConstructionTechnicalDetail(
           refreshed.errors[0] ?? "Planet UI state refresh failed after a successful enqueue.",
@@ -604,7 +604,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
       );
 
       if (!refreshed.succeeded || !refreshed.uiState?.planet) {
-        setEconomyError("La produccion se aplico, pero la cabina no pudo releer el estado actualizado.");
+        setEconomyError("La produccion se aplico, pero la vista no pudo releer el estado actualizado.");
         return;
       }
 
@@ -664,7 +664,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
       const refreshed = await voidEmpiresApi.getPlanetUiState(uiState.civilizationId, planet.planetId);
       if (!refreshed.succeeded || !refreshed.uiState?.planet) {
-        setQueueMaterializationError("El backend materializo las colas, pero la cabina no pudo releer el planeta.");
+        setQueueMaterializationError("El backend materializo las colas, pero la vista no pudo releer el planeta.");
         setQueueMaterializationAudit({
           refreshedAt: formatDateTime(new Date().toISOString()),
           response: result.response,
@@ -789,7 +789,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Enlace planetario</p>
-              <h3>{isConstructionRoute ? "Cargar centro de construccion" : "Cargar cabina de planeta"}</h3>
+              <h3>{isConstructionRoute ? "Cargar centro de construccion" : "Cargar vista de planeta"}</h3>
             </div>
             <UiBadge>Contexto de juego</UiBadge>
           </div>
@@ -841,7 +841,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             </div>
           ) : (
             <p className="figma-panel-note">
-              La cabina mostrara colonia, reservas, edificios y cola cuando exista
+              La vista mostrara colonia, reservas, edificios y cola cuando exista
               un planeta seleccionado.
             </p>
           )}
@@ -857,7 +857,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           </div>
           <ul className="stack-list strategic-rules-list">
             <li>Solo puedes enviar una orden de construccion cuando la colonia esta lista y confirmas la accion.</li>
-            <li>El cierre de obras vencidas sigue fuera de esta cabina y se gestiona por separado.</li>
+            <li>El cierre de obras vencidas sigue fuera de esta vista y se gestiona por separado.</li>
             <li>Esta vista se centra en administracion colonial, no en combate ni maniobras espaciales.</li>
             <li>Las notas tecnicas quedan separadas del flujo principal.</li>
           </ul>
@@ -869,7 +869,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Contexto sospechoso</p>
-              <h3>El identificador de civilizacion no parece valido para esta cabina.</h3>
+              <h3>El identificador de civilizacion no parece valido para esta vista.</h3>
             </div>
             <UiBadge tone="warn">Revisar contexto</UiBadge>
           </div>
@@ -896,7 +896,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             <UiBadge tone="good">Contexto guardado</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Este enlace recupera el mundo guardado en este navegador; la cabina volvera a comprobar la cuenta actual al abrir.
+            Este enlace recupera el mundo guardado en este navegador; la vista volvera a comprobar la cuenta actual al abrir.
           </p>
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
@@ -1023,7 +1023,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           <div className={isConstructionRoute ? "construction-devtools-secondary" : undefined}>
             <DevelopmentToolsPanel
               title="Materializaciones Development"
-              description="Esta cabina no simula crecimiento en el navegador. Las acciones QA mutan la base de datos Development y despues releen el planeta."
+              description="Esta vista no simula crecimiento en el navegador. Las acciones QA mutan la base de datos Development y despues releen el planeta."
               lastResult={developmentToolsLastResult}
               diagnosticsLink={<a className="selection-chip" href="#planet-dev-diagnostics">Ver diagnostico tecnico</a>}
               actions={
@@ -1216,7 +1216,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                 <UiBadge tone="warn">
                   {planet.actionSummary.completeDueSupported
                     ? "Cola pendiente"
-                    : planet.actionSummary.display?.completeDueActionStatusLabel ?? "No disponible en esta cabina"}
+                    : planet.actionSummary.display?.completeDueActionStatusLabel ?? "No disponible en esta vista"}
                 </UiBadge>
               </div>
             </div>
@@ -1237,7 +1237,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             </div>
             {!planet.actionSummary.completeDueSupported ? (
               <p className="figma-panel-note">
-                La cola vencida se resuelve fuera de esta vista; la cabina solo muestra el estado confirmado.
+                La cola vencida se resuelve fuera de esta vista; el resumen solo muestra el estado confirmado.
               </p>
             ) : null}
 
@@ -1270,7 +1270,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                 </div>
                 <ul className="stack-list compact-list">
                   <li>Planeta solo resume actividad visible: la cola orbital detallada sigue en Astillero.</li>
-                  <li>Defensas y Flotas conservan sus propios limites seguros y no reciben ordenes ejecutables desde esta cabina.</li>
+                  <li>Defensas y Flotas conservan sus propios limites seguros y no reciben ordenes ejecutables desde esta vista.</li>
                   <li>Si faltan stock orbital o grupos nuevos, este hub lo declara como limite de lectura en vez de inventar estado.</li>
                 </ul>
                 <div className="selection-chip-row">
@@ -1297,7 +1297,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                   <UiBadge tone="good">Resumen</UiBadge>
                 </div>
                 <p className="figma-panel-note">
-                  La cabina de planeta te guia hacia las superficies especializadas sin duplicar el catalogo completo.
+                  La vista de planeta te guia hacia las superficies especializadas sin duplicar el catalogo completo.
                 </p>
                 <div className="planet-related-modules-grid">
                   {[

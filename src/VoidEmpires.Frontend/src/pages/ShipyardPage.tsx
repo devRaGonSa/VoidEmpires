@@ -147,7 +147,7 @@ function formatShipyardCommandFailure(failureContext: ShipyardFailureContext, pl
     case "Civilization id is required.":
       return {
         primaryMessage: "La civilizacion es obligatoria para enviar produccion.",
-        followUp: "Carga una civilizacion valida antes de abrir esta cabina.",
+        followUp: "Carga una civilizacion valida antes de abrir esta vista.",
         technicalDetail: detail,
       };
     case "MissingPlanetId":
@@ -175,7 +175,7 @@ function formatShipyardCommandFailure(failureContext: ShipyardFailureContext, pl
     case "Asset type is required.":
     case "Space asset type is invalid.":
       return {
-        primaryMessage: "El activo orbital seleccionado no es valido para esta cabina.",
+        primaryMessage: "El activo orbital seleccionado no es valido para esta vista.",
         followUp: "Vuelve a abrir la revision desde una carta orbital visible.",
         technicalDetail: detail,
       };
@@ -231,13 +231,13 @@ function formatShipyardCommandFailure(failureContext: ShipyardFailureContext, pl
     case "RequestedAtUtcNotUtc":
     case "Requested date must be UTC.":
       return {
-        primaryMessage: "La cabina no pudo preparar una fecha valida para esta orden.",
+        primaryMessage: "La vista no pudo preparar una fecha valida para esta orden.",
         followUp: "Reintenta la accion.",
         technicalDetail: detail,
       };
     case "Shipyard UI state refresh failed after a successful enqueue.":
       return {
-        primaryMessage: "La orden se envio, pero la cabina no pudo recargar el estado actualizado.",
+        primaryMessage: "La orden se envio, pero la vista no pudo recargar el estado actualizado.",
         followUp: "Abre de nuevo el astillero para confirmar cola, stock y bloqueos.",
         technicalDetail: detail,
       };
@@ -462,7 +462,7 @@ export function ShipyardPage() {
 
     if (!trimmedCivilizationId) {
       setError("El contexto de civilizacion es obligatorio.");
-      setErrorFollowUp("Carga una civilizacion valida antes de abrir esta cabina.");
+      setErrorFollowUp("Carga una civilizacion valida antes de abrir esta vista.");
       setTechnicalErrorDetail("Civilization id is required.");
       setUiState(null);
       return;
@@ -592,7 +592,7 @@ export function ShipyardPage() {
         versionLabel="Astillero v1"
         title="Astillero orbital"
         description="Naves disponibles, cola de produccion y stock orbital con confirmacion antes de gastar recursos."
-        developmentNote="Produccion orbital con confirmacion obligatoria; preparar escuadras queda fuera de esta cabina."
+        developmentNote="Produccion orbital con confirmacion obligatoria; preparar escuadras queda fuera de esta vista."
         badges={
           <>
             <UiBadge tone="good">Naves disponibles</UiBadge>
@@ -657,13 +657,13 @@ export function ShipyardPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Astillero orbital</p>
-              <h3>Que hace esta cabina</h3>
+              <h3>Que hace esta vista</h3>
             </div>
             <UiBadge tone="warn">Frontera visible</UiBadge>
           </div>
           <ul className="stack-list strategic-rules-list">
             <li>Astillero orbital produce naves y conserva stock orbital.</li>
-            <li>Preparar escuadras pertenece a Flotas y queda fuera de esta cabina.</li>
+            <li>Preparar escuadras pertenece a Flotas y queda fuera de esta vista.</li>
             <li>La cola, el stock y los bloqueos deben mostrarse de forma honesta aunque falten acciones ejecutables.</li>
           </ul>
         </UiCard>
@@ -674,7 +674,7 @@ export function ShipyardPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Contexto sospechoso</p>
-              <h3>El contexto de civilizacion no parece valido para esta cabina.</h3>
+              <h3>El contexto de civilizacion no parece valido para esta vista.</h3>
             </div>
             <UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge>
           </div>
@@ -692,7 +692,7 @@ export function ShipyardPage() {
             <UiBadge tone="good">Memoria local</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Este enlace recupera la ultima colonia local guardada; cada cabina volvera a comprobar el estado de juego antes de mostrar acciones.
+            Este enlace recupera la ultima colonia local guardada; cada vista volvera a comprobar el estado de juego antes de mostrar acciones.
           </p>
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
@@ -803,7 +803,7 @@ export function ShipyardPage() {
                   <UiBadge tone="warn">{cockpitStatusLabels.readOnly}</UiBadge>
             </div>
             {shipyard.catalog.length === 0 ? (
-              <p className="figma-panel-note">El catalogo orbital aun no tiene opciones utiles para este contexto. La cabina mantiene la vista y deja visible la frontera del modulo.</p>
+              <p className="figma-panel-note">El catalogo orbital aun no tiene opciones utiles para este contexto. Astillero mantiene el acceso y deja visible la frontera del modulo.</p>
             ) : (
               <>
                 <div className="readiness-grid">
@@ -845,7 +845,7 @@ export function ShipyardPage() {
                     </div>
                     <p className="figma-panel-note">
                       {catalogBuckets.unsupported.length > 0
-                        ? "La lectura actual aun no describe bien estas opciones y la cabina las muestra como limite real."
+                        ? "La lectura actual aun no describe bien estas opciones y la vista las muestra como limite real."
                         : "No hay opciones marcadas como no soportadas."}
                     </p>
                   </section>
@@ -920,7 +920,7 @@ export function ShipyardPage() {
               <div>
                 <p className="eyebrow">Cola orbital</p>
                 <h3>Produccion visible y estado temporal</h3>
-                <p>La cola muestra progreso o historial confirmado sin cerrar producciones desde esta cabina.</p>
+                <p>La cola muestra progreso o historial confirmado sin cerrar producciones desde esta vista.</p>
               </div>
               <div className="figma-badge-row">
                 <UiBadge tone={shipyard.queue.length > 0 ? "warn" : "neutral"}>
@@ -945,7 +945,7 @@ export function ShipyardPage() {
                 <div className="figma-data-list">
                   <div className="figma-data-row"><span>Ordenes visibles</span><strong>{formatCountLabel(shipyard.queue.length, "orden", "ordenes")}</strong></div>
                   <div className="figma-data-row"><span>Produccion vencida</span><strong>{dueQueueCount > 0 ? `${dueQueueCount} detectadas` : "No detectada"}</strong></div>
-                  <div className="figma-data-row"><span>Cierre de cola</span><strong>{hasSafeShipyardCompleteDue ? "Pendiente de operador" : "No disponible desde esta cabina"}</strong></div>
+                  <div className="figma-data-row"><span>Cierre de cola</span><strong>{hasSafeShipyardCompleteDue ? "Pendiente de operador" : "No disponible desde esta vista"}</strong></div>
                 </div>
                 <div className="selection-chip-row">
                   <button type="button" className="planet-action-button-blocked" disabled>
@@ -953,7 +953,7 @@ export function ShipyardPage() {
                   </button>
                 </div>
                 <p className="figma-panel-note">
-                  Esta cabina no cierra producciones vencidas directamente; solo muestra la cola y el stock confirmados por la lectura actual.
+                  Esta vista no cierra producciones vencidas directamente; solo muestra la cola y el stock confirmados por la lectura actual.
                 </p>
               </section>
               <section className="subpanel figma-subpanel">
@@ -965,7 +965,7 @@ export function ShipyardPage() {
                   <UiBadge tone="neutral">{cockpitStatusLabels.readOnly}</UiBadge>
                 </div>
                 <ul className="stack-list compact-list">
-                  <li>Una orden vencida significa que su ventana de produccion ya paso; esta cabina espera una lectura posterior para mostrar stock o historial actualizado.</li>
+                  <li>Una orden vencida significa que su ventana de produccion ya paso; esta vista espera una lectura posterior para mostrar stock o historial actualizado.</li>
                   <li>Las fechas muestran la ventana visible de produccion para que un futuro refresh refleje cambios reales.</li>
                   <li>La cola vacia sigue siendo un estado util y no se rellena con opciones artificiales.</li>
                 </ul>
@@ -992,7 +992,7 @@ export function ShipyardPage() {
                       <div className="figma-data-row"><span>Inicio visible</span><strong>{formatDateTime(item.startsAtUtc)}</strong></div>
                       <div className="figma-data-row"><span>Fin visible</span><strong>{formatDateTime(item.endsAtUtc)}</strong></div>
                     </div>
-                    <p>{item.isDue ? "La orden ya vencio en la lectura actual. La cabina la mantiene visible sin completarla automaticamente." : "La orden sigue en progreso o pendiente dentro de la ventana temporal visible."}</p>
+                    <p>{item.isDue ? "La orden ya vencio en la lectura actual. La vista la mantiene visible sin completarla automaticamente." : "La orden sigue en progreso o pendiente dentro de la ventana temporal visible."}</p>
                   </section>
                 ))}
               </div>
@@ -1093,7 +1093,7 @@ export function ShipyardPage() {
               <section className="subpanel figma-subpanel">
                 <div className="figma-section-header">
                   <div>
-                    <p className="eyebrow">En esta cabina</p>
+                    <p className="eyebrow">En esta vista</p>
                     <h4>Produccion y gasto inmediato</h4>
                   </div>
                   <UiBadge tone="resource">{shipyard.orbitalStock.length} stocks</UiBadge>
@@ -1110,12 +1110,12 @@ export function ShipyardPage() {
                     <p className="eyebrow">En Flotas</p>
                     <h4>Grupos orbitales y movimiento</h4>
                   </div>
-                  <UiBadge>Cabina vecina</UiBadge>
+                  <UiBadge>Vista vecina</UiBadge>
                 </div>
                 <ul className="stack-list compact-list">
                   <li>El stock orbital no equivale automaticamente a una escuadra visible en Flotas.</li>
                   <li>Las ordenes en cola siguen en produccion hasta que una lectura posterior las convierta en stock util.</li>
-                  <li>La asignacion a flota se mantiene fuera de esta cabina en esta version.</li>
+                  <li>La asignacion a flota se mantiene fuera de esta vista en esta version.</li>
                 </ul>
               </section>
             </div>
@@ -1131,7 +1131,7 @@ export function ShipyardPage() {
               </div>
               <UiBadge tone="warn">Pendiente</UiBadge>
             </div>
-            <p className="figma-panel-note">No hay un contexto de astillero util para este planeta. La cabina sigue visible para mantener el acceso y el contexto de navegacion.</p>
+            <p className="figma-panel-note">No hay un contexto de astillero util para este planeta. La vista sigue visible para mantener el acceso y el contexto de navegacion.</p>
           </UiCard>
         ) : null
       )}
@@ -1142,7 +1142,7 @@ export function ShipyardPage() {
             <div>
               <p className="eyebrow">Confirmacion registrada</p>
               <h3>Produccion enviada</h3>
-              <p>La cabina recargo cola, catalogo y reservas con el estado confirmado por la lectura actual.</p>
+              <p>La vista recargo cola, catalogo y reservas con el estado confirmado por la lectura actual.</p>
             </div>
             <UiBadge tone="good">Actualizada</UiBadge>
           </div>

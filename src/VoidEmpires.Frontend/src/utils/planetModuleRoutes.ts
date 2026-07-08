@@ -15,7 +15,7 @@ export const specializedPlanetModuleRoutes: readonly PlanetModuleRouteInfo[] = [
     module: "Research",
     path: "/research",
     label: "Investigacion",
-    title: "Cabina de Investigacion",
+    title: "Laboratorio",
     purpose: "Preparada para la investigacion, la consulta de progreso y la futura gestion de tecnologia.",
     belongsTo: [
       "Laboratorios, proyectos y mejoras tecnologicas.",
@@ -30,7 +30,7 @@ export const specializedPlanetModuleRoutes: readonly PlanetModuleRouteInfo[] = [
     module: "GroundArmy",
     path: "/ground-army",
     label: "Ejercito Tierra",
-    title: "Cabina de Ejercito Tierra",
+    title: "Ejercito de Tierra",
     purpose: "Preparada para la organizacion terrestre y el seguimiento del estado de fuerza.",
     belongsTo: [
       "Entrenamiento, despliegue y lectura de fuerzas terrestres.",
@@ -45,7 +45,7 @@ export const specializedPlanetModuleRoutes: readonly PlanetModuleRouteInfo[] = [
     module: "Shipyard",
     path: "/shipyard",
     label: "Astillero",
-    title: "Cabina de Astillero",
+    title: "Astillero",
     purpose: "Preparada para la produccion orbital, la lectura de taxonomia naval y el futuro seguimiento de stock y colas.",
     belongsTo: [
       "Catalogo orbital, etiquetas de nave y lectura de roles navales.",
@@ -60,7 +60,7 @@ export const specializedPlanetModuleRoutes: readonly PlanetModuleRouteInfo[] = [
     module: "Defenses",
     path: "/defenses",
     label: "Defensas",
-    title: "Cabina de Defensas",
+    title: "Defensas",
     purpose: "Preparada para la lectura defensiva y la futura gestion de proteccion planetaria.",
     belongsTo: [
       "Estructuras defensivas, lectura de cobertura y proteccion del planeta.",

@@ -106,7 +106,7 @@ export function getEspionageActionLabel(actionKey: string | null | undefined) {
 export function getEspionageFutureActionReasonLabel(actionKey: string | null | undefined, rawReason: string | null | undefined) {
   switch (actionKey) {
     case "espionage.reconnaissance.create":
-      return "La mision queda visible como referencia futura, pero no se puede ejecutar desde esta cabina.";
+      return "La mision queda visible como referencia futura, pero no se puede ejecutar desde esta vista.";
     case "espionage.infiltration.create":
       return "La infiltracion sigue fuera del alcance de esta version y solo aparece como referencia futura.";
     case "espionage.sabotage.create":
@@ -120,7 +120,7 @@ export function getEspionageFutureActionReasonLabel(actionKey: string | null | u
         return "No disponible en esta version.";
       }
 
-      return "La accion queda visible como referencia futura, pero sigue fuera del alcance de esta cabina.";
+      return "La accion queda visible como referencia futura, pero sigue fuera del alcance de esta vista.";
   }
 }
 
@@ -137,7 +137,7 @@ export function getEspionageCueDescription(cue: "owned" | "observed" | "partial"
     case "observed":
       return "Objetivo visible o conocido desde la lectura estrategica actual.";
     case "partial":
-      return "Hay fragmentos utiles, pero la cabina todavia no confirma todos los campos.";
+      return "Hay fragmentos utiles, pero la vista todavia no confirma todos los campos.";
     case "signal":
       return "La pista existe, pero sigue siendo solo una senal pasiva.";
     default:
@@ -152,7 +152,7 @@ export function getEspionageMissingDataNote(cue: "partial" | "signal" | "unconfi
     case "signal":
       return "La lectura depende de la visibilidad estrategica actual.";
     default:
-      return "La cabina oculta campos no confirmados en lugar de inventarlos.";
+      return "La vista oculta campos no confirmados en lugar de inventarlos.";
   }
 }
 
