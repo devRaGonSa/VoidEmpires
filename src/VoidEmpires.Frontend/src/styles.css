@@ -206,6 +206,8 @@ select {
   gap: var(--ve-space-4);
   align-items: center;
   min-height: var(--ve-layout-topbar-height);
+  width: 100%;
+  min-width: 0;
   margin-bottom: var(--ve-space-4);
   padding: 0 var(--ve-space-4);
   border: 1px solid color-mix(in srgb, var(--ve-color-border) 58%, transparent);
@@ -250,6 +252,7 @@ select {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--ve-space-4);
+  min-width: 0;
 }
 
 .top-resource-pill-row {
@@ -257,6 +260,7 @@ select {
   grid-column: 1 / -1;
   grid-template-columns: repeat(6, minmax(112px, 1fr));
   gap: 8px;
+  min-width: 0;
 }
 
 .top-status-pill-row {
@@ -351,6 +355,8 @@ select {
   grid-template-columns: var(--ve-layout-sidebar-width) minmax(0, 1fr);
   gap: var(--ve-space-6);
   align-items: start;
+  width: 100%;
+  min-width: 0;
 }
 
 .app-sidebar {

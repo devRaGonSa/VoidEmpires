@@ -111,7 +111,7 @@ export function AppShell({
       <a className="skip-link" href="#main-content">
         Saltar al contenido principal
       </a>
-      <header className="app-topbar">
+      <header className="app-topbar" aria-label="Barra superior del juego" data-resource-scope="selected-planet">
         <div className="app-topbar-brand">
           <span className="app-topbar-brand-mark">VE</span>
           <div>
