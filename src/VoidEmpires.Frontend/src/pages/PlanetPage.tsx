@@ -819,7 +819,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           {error ? <p className="error-text">{error}</p> : null}
           {!queryCivilizationId ? (
             <p className="figma-panel-note">
-              Pega una seleccion valida, entra desde Galaxia o usa la seleccion disponible para recuperar la colonia.
+              Pega una ruta valida o entra desde Galaxia para recuperar la colonia.
             </p>
           ) : null}
         </UiCard>
@@ -899,13 +899,13 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
-              <p className="eyebrow">Seleccion disponible</p>
+              <p className="eyebrow">Continuar mundo</p>
               <h3>Continuar con {playableSession.planetName ?? "la ultima colonia"}</h3>
             </div>
             <UiBadge tone="good">Seleccion lista</UiBadge>
           </div>
           <p className="figma-panel-note">
-            Este enlace recupera el mundo guardado en este navegador; la vista volvera a comprobar la cuenta actual al abrir.
+            Este enlace recupera el ultimo mundo de este navegador; la vista volvera a comprobar la cuenta actual al abrir.
           </p>
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
@@ -939,7 +939,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           </div>
           <p>Esta civilizacion todavia no expone un planeta propio o el contexto no incluye un planeta valido.</p>
           <p className="figma-panel-note">
-            No se inventa una colonia alternativa: vuelve a Galaxia, Registro o a la seleccion disponible si necesitas recuperar la colonia.
+            No se inventa una colonia alternativa: vuelve a Galaxia o Registro si necesitas recuperar la colonia.
           </p>
         </UiCard>
       ) : null}

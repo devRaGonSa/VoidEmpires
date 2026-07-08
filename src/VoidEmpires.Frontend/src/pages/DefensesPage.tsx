@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { fetchDefensesUiState } from "../api/defenseApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { DefenseCatalogCard } from "../components/DefenseCatalogCard";
-import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { formatResourceType } from "../utils/domainPresentation";
@@ -15,12 +14,8 @@ import {
   selectRecommendedDefenseAction,
   type DefensesViewModel,
 } from "../utils/defenseViewModel";
-import {
-  buildDefensesUrl,
-  isSuspiciousCabinContext,
-} from "../utils/routeUrls";
+import { isSuspiciousCabinContext } from "../utils/routeUrls";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
-import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
 
 function formatDateTime(value: string) {
   const parsed = Date.parse(value);
@@ -105,29 +100,10 @@ export function DefensesPage() {
   const [errorFollowUp, setErrorFollowUp] = useState<string | null>(null);
   const [technicalErrorDetail, setTechnicalErrorDetail] = useState<string | null>(null);
   const [uiState, setUiState] = useState<DefensesViewModel | null>(null);
-  const [localSessionCleared, setLocalSessionCleared] = useState(false);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
-  const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
-  const selectedPlanetId = uiState?.selectedPlanetId ?? queryPlanetId ?? null;
   const defenses = uiState?.defenses ?? null;
-  const playableRouteContext = usePlayableRouteContext(queryCivilizationId);
-  const playableSession = localSessionCleared ? null : playableRouteContext.playableSession;
-  const routeSession = uiState?.civilizationId && defenses
-    ? {
-      civilizationId: uiState.civilizationId,
-      planetId: defenses.planetId,
-      civilizationName: defenses.ownerCivilizationName ?? undefined,
-      planetName: defenses.planetName,
-      createdAt: "route-context",
-      updatedAt: "route-context",
-    }
-    : null;
-  const bannerSession = routeSession ?? playableSession;
-  const playableSessionUrl = playableSession
-    ? buildDefensesUrl(playableSession.civilizationId, playableSession.planetId)
-    : null;
   const hasSafeDefenseEnqueue = false;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
   const optionGroups = useMemo(() => groupDefenseOptionsByCategory(defenses?.options ?? []), [defenses?.options]);
@@ -203,11 +179,6 @@ export function DefensesPage() {
         }
       />
 
-      <PlayableSessionBanner
-        session={bannerSession}
-        onClear={() => setLocalSessionCleared(true)}
-      />
-
       {error ? (
         <UiCard className="panel">
           <p className="error-text">{error}</p>
@@ -225,26 +196,6 @@ export function DefensesPage() {
             <UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge>
           </div>
           <p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p>
-        </UiCard>
-      ) : null}
-
-      {!queryCivilizationId && playableSession && playableSessionUrl ? (
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Inicio local disponible</p>
-              <h3>Continuar con {playableSession.planetName ?? "la ultima colonia"}</h3>
-            </div>
-            <UiBadge tone="good">Memoria local</UiBadge>
-          </div>
-          <p className="figma-panel-note">
-            Este enlace abre Defensas con la seleccion disponible de la ultima colonia.
-          </p>
-          <div className="selection-chip-row">
-            <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
-              Continuar a Defensas
-            </Link>
-          </div>
         </UiCard>
       ) : null}
 

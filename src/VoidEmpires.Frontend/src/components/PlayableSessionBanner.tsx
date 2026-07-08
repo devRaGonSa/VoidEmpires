@@ -15,7 +15,7 @@ export function PlayableSessionBanner({ session, onClear }: PlayableSessionBanne
     return null;
   }
 
-  const planetLabel = session.planetName ?? "Mundo guardado";
+  const planetLabel = session.planetName ?? "Planeta principal";
   const civilizationLabel = session.civilizationName ?? "Civilizacion activa";
   const playerLabel = session.playerDisplayName ?? "Cuenta";
   const planetUrl = buildPlanetUrl(session.civilizationId, session.planetId);
@@ -29,16 +29,16 @@ export function PlayableSessionBanner({ session, onClear }: PlayableSessionBanne
     <UiCard className="panel">
       <div className="figma-section-header">
         <div>
-          <p className="eyebrow">Seleccion disponible</p>
+          <p className="eyebrow">Continuar mundo</p>
           <h3>{planetLabel}</h3>
           <p>
             {civilizationLabel} bajo {playerLabel}. Continua desde el mundo principal guardado.
           </p>
         </div>
-        <UiBadge tone="good">Mundo guardado</UiBadge>
+        <UiBadge tone="good">Cuenta activa</UiBadge>
       </div>
       <p className="figma-panel-note">
-        Cada vista vuelve a comprobar la cuenta actual antes de mostrar recursos, colas u ordenes disponibles.
+        La cuenta activa actualiza recursos, colas y ordenes antes de mostrar acciones.
       </p>
       <div className="selection-chip-row">
         <Link className="selection-chip selection-chip-active" to={planetUrl}>

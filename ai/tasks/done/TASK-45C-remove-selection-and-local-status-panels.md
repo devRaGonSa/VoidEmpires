@@ -3,7 +3,7 @@
 ---
 id: TASK-45C
 title: Remove selection and local status panels
-status: pending
+status: done
 type: frontend
 team: platform
 supporting_teams: []

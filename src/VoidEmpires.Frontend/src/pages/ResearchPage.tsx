@@ -5,7 +5,6 @@ import type { EnqueueResearchOrderFailureResponse, ResearchApiErrorCode } from "
 import { CockpitHero } from "../components/CockpitHero";
 import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { GameModal } from "../components/GameModal";
-import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { ResearchCatalogCard } from "../components/ResearchCatalogCard";
 import type { ResearchTechnology, ResearchUiState } from "../utils/researchPresentation";
 import {
@@ -20,8 +19,7 @@ import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { isOperatorMode } from "../utils/playableSession";
-import { buildPlanetUrl, buildResearchUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
-import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
+import { buildPlanetUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 
 function formatDateTime(value: string) {
   const parsed = Date.parse(value);
@@ -210,7 +208,6 @@ export function ResearchPage() {
     startsAtUtc: string | null;
     endsAtUtc: string | null;
   } | null>(null);
-  const [localSessionCleared, setLocalSessionCleared] = useState(false);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -218,21 +215,6 @@ export function ResearchPage() {
   const selectedPlanetId = uiState?.selectedPlanetId ?? queryPlanetId ?? null;
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
-  const playableRouteContext = usePlayableRouteContext(queryCivilizationId);
-  const playableSession = localSessionCleared ? null : playableRouteContext.playableSession;
-  const routeSession = uiState?.civilizationId && selectedPlanetId
-    ? {
-      civilizationId: uiState.civilizationId,
-      planetId: selectedPlanetId,
-      planetName: uiState.selectedPlanetName ?? undefined,
-      createdAt: "route-context",
-      updatedAt: "route-context",
-    }
-    : null;
-  const bannerSession = routeSession ?? playableSession;
-  const playableSessionUrl = playableSession
-    ? buildResearchUrl(playableSession.civilizationId, playableSession.planetId)
-    : null;
   const catalogGroups = useMemo(() => groupResearchTechnologiesByCategory(uiState?.catalog ?? []), [uiState?.catalog]);
   const catalogSummary = useMemo(() => summarizeResearchCatalog(uiState?.catalog ?? []), [uiState?.catalog]);
   const preparedResearch = useMemo(
@@ -408,29 +390,6 @@ export function ResearchPage() {
         }
       />
 
-      <PlayableSessionBanner
-        session={bannerSession}
-        onClear={() => setLocalSessionCleared(true)}
-      />
-
-      <div className="strategic-cockpit-top">
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Laboratorio</p>
-              <h3>Que entra aqui</h3>
-            </div>
-            <UiBadge tone="good">Lectura segura</UiBadge>
-          </div>
-          <ul className="stack-list strategic-rules-list">
-            <li>La vista prioriza tecnologias disponibles, cola de investigacion y proyectos completados.</li>
-            <li>La navegacion conserva el contexto cientifico al cambiar de vista.</li>
-            <li>Las altas a cola requieren confirmacion explicita.</li>
-            <li>Los detalles de soporte quedan fuera de la vista principal.</li>
-          </ul>
-        </UiCard>
-      </div>
-
       {error ? <p className="error-text">{error}</p> : null}
 
       {isSuspiciousContext ? (
@@ -445,26 +404,6 @@ export function ResearchPage() {
           <p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p>
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>Abrir Planeta</Link>
-          </div>
-        </UiCard>
-      ) : null}
-
-      {!queryCivilizationId && playableSession && playableSessionUrl ? (
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Inicio local disponible</p>
-              <h3>Continuar con {playableSession.planetName ?? "la ultima colonia"}</h3>
-            </div>
-            <UiBadge tone="good">Memoria local</UiBadge>
-          </div>
-          <p className="figma-panel-note">
-            Este enlace recupera la ultima colonia local guardada; cada vista volvera a comprobar el estado de juego antes de mostrar acciones.
-          </p>
-          <div className="selection-chip-row">
-            <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
-              Abrir Investigacion
-            </Link>
           </div>
         </UiCard>
       ) : null}

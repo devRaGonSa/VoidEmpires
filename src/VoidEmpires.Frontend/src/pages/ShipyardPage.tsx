@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { enqueueShipyardProduction, fetchShipyardUiState } from "../api/shipyardApi";
 import type { ShipyardApiErrorCode } from "../api/shipyardTypes";
 import { CockpitHero } from "../components/CockpitHero";
 import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { GameModal } from "../components/GameModal";
 import { PlaceholderAsset } from "../components/PlaceholderAsset";
-import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { ShipyardCatalogCard } from "../components/ShipyardCatalogCard";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -18,14 +17,10 @@ import {
   type ShipyardAssetOption,
   type ShipyardViewModel,
 } from "../utils/shipyardViewModel";
-import {
-  buildShipyardUrl,
-  isSuspiciousCabinContext,
-} from "../utils/routeUrls";
+import { isSuspiciousCabinContext } from "../utils/routeUrls";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { isOperatorMode } from "../utils/playableSession";
 import { formatResourceAmountList, formatResourceDelta, formatResourceLabel } from "../utils/resourceDisplay";
-import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
 
 function formatDateTime(value: string) {
   const parsed = Date.parse(value);
@@ -290,7 +285,6 @@ export function ShipyardPage() {
     endsAtUtc: string | null;
   } | null>(null);
   const [enqueueRefreshAudit, setEnqueueRefreshAudit] = useState<ShipyardRefreshAudit | null>(null);
-  const [localSessionCleared, setLocalSessionCleared] = useState(false);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -298,23 +292,7 @@ export function ShipyardPage() {
   const selectedPlanetId = uiState?.selectedPlanetId ?? queryPlanetId ?? null;
   const activeCivilizationId = uiState?.civilizationId ?? queryCivilizationId;
   const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
-  const playableRouteContext = usePlayableRouteContext(queryCivilizationId);
-  const playableSession = localSessionCleared ? null : playableRouteContext.playableSession;
   const shipyard = uiState?.shipyard ?? null;
-  const routeSession = uiState?.civilizationId && shipyard
-    ? {
-      civilizationId: uiState.civilizationId,
-      planetId: shipyard.planetId,
-      civilizationName: shipyard.ownerCivilizationName ?? undefined,
-      planetName: shipyard.planetName,
-      createdAt: "route-context",
-      updatedAt: "route-context",
-    }
-    : null;
-  const bannerSession = routeSession ?? playableSession;
-  const playableSessionUrl = playableSession
-    ? buildShipyardUrl(playableSession.civilizationId, playableSession.planetId)
-    : null;
   const hasSafeShipyardEnqueue = shipyard?.actionAvailability.enqueue.supported ?? false;
   const hasSafeShipyardCompleteDue = false;
   const categoryGroups = useMemo(() => groupAssetOptionsByCategory(shipyard?.catalog ?? []), [shipyard?.catalog]);
@@ -577,11 +555,6 @@ export function ShipyardPage() {
         }
       />
 
-      <PlayableSessionBanner
-        session={bannerSession}
-        onClear={() => setLocalSessionCleared(true)}
-      />
-
       {error ? (
         <UiCard className="panel">
           <p className="error-text">{error}</p>
@@ -599,26 +572,6 @@ export function ShipyardPage() {
             <UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge>
           </div>
           <p className="figma-panel-note">Revisa que no hayas usado el contexto de planeta como civilizacion.</p>
-        </UiCard>
-      ) : null}
-
-      {!queryCivilizationId && playableSession && playableSessionUrl ? (
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Inicio local disponible</p>
-              <h3>Continuar con {playableSession.planetName ?? "la ultima colonia"}</h3>
-            </div>
-            <UiBadge tone="good">Memoria local</UiBadge>
-          </div>
-          <p className="figma-panel-note">
-            Este enlace recupera la ultima colonia local guardada; cada vista volvera a comprobar el estado de juego antes de mostrar acciones.
-          </p>
-          <div className="selection-chip-row">
-            <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
-              Abrir Astillero
-            </Link>
-          </div>
         </UiCard>
       ) : null}
 
