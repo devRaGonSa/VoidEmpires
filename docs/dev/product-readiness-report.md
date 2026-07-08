@@ -10,7 +10,7 @@ VoidEmpires currently has a coherent Development-only product shell suitable for
 |---|---|---|
 | Backend host and project structure | Web, Application, Domain, Infrastructure, and Tests projects exist with established boundaries. | Foundation ready. |
 | Development seed baseline | `cockpit-validation` covers the accepted cockpit suite for local QA/operator demo only. | Demo ready. |
-| Frontend route shell | Accepted cockpit routes are lazy-loaded and share the current shell/navigation model. | Demo ready. |
+| Frontend route shell | Public auth pages are standalone; authenticated game routes are lazy-loaded and use the game shell with the persistent left sidebar and top resource bar. | Demo ready. |
 | Product-facing copy | Normal UI hides development/test language and backend details by default; operator-only tooling remains explicit and secondary. | Product-surface ready for local demo. |
 | Account playable loop | `/register`, `/login`, `/planet`, `/construction`, `/research`, and `/shipyard` now use the account entry path and guarded game routes. | Backend/frontend foundation ready; production authorization still deferred. |
 | Readiness/advisory routes | Galaxy, Defenses, Ground Army, Fleets, Market, Espionage, Alliance, and Ranking expose accepted read or readiness states. | Development/read-only ready. |
@@ -70,8 +70,10 @@ Recorded on 2026-07-08 for `TASK-44A`:
 - Intended shell matrix: `/login`, `/register`, and `/registro` use standalone public account layout with no sidebar; authenticated `/`, `/planet`, `/construction`, `/research`, `/shipyard`, `/defenses`, `/ground-army`, `/fleets`, `/galaxy`, `/market`, `/alliance`, `/ranking`, and `/espionage` use the game layout with persistent desktop sidebar and top resources where selected-planet data is available; anonymous access to game routes shows a clean account prompt or redirect without game content.
 - Restoring the global sidebar must not restore duplicated module-navigation cards inside Construction, Research, Shipyard, Defenses, or Ground Army. Those pages remain focused catalogs.
 - Follow-up preservation check: restoring the global sidebar did not re-add duplicated cross-module cards inside the catalog pages. Construction remains backed by the planet construction catalog, Research keeps a technology grid, Shipyard keeps a production grid, Defenses keeps a defense catalog, and Ground Army keeps a land-unit catalog. Planet/Inicio may keep concise hub/activity links, but module pages should rely on the global sidebar for main navigation.
+- Correction decision: Block 44 restores the authenticated game shell/sidebar that Block 43 accidentally removed or failed to show, while keeping `/login`, `/register`, `/registro`, and `/onboarding` standalone. Authenticated gameplay pages should show the left sidebar on desktop plus the selected-planet resource/status bar; anonymous account entry must not mix with game content.
+- Static guard follow-up: the frontend route lazy-import script now also checks the auth shell split, the explicit `GameLayout`, the public layout boundary, and the `AppShell` sidebar/resource-bar markers.
 
-This audit was code and documentation review only. It did not perform browser/manual QA and did not add gameplay behavior.
+This audit and correction record were code and documentation review only. They did not perform browser/manual QA and did not add gameplay behavior.
 
 ## Ready For Local Demo
 

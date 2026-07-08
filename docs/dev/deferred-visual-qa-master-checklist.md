@@ -28,7 +28,7 @@ Use it with:
 Run these checks with a normal browser session: no `?operator=1` query flag and no `localStorage["voidempires.operatorMode"] = "1"` flag.
 
 - Block 43 shell split: confirm `/login`, `/register`, `/registro`, and `/onboarding` render in the public account layout without the game sidebar, game shell intro, or resource/status bar.
-- Authenticated game shell: confirm authenticated gameplay routes render the game shell and top resource bar with selected-planet `Creditos`, `Metal`, `Cristal`, and `Gas` amounts plus capacity/production detail when returned by the backend.
+- Authenticated game shell: confirm authenticated gameplay routes render the game shell with the persistent left sidebar on desktop and the top resource bar with selected-planet `Creditos`, `Metal`, `Cristal`, and `Gas` amounts plus capacity/production detail when returned by the backend.
 - Inicio/Planeta: confirm `/` is the current planet overview after account resolution and `/planet` presents the same overview instead of a competing second dashboard.
 - Catalog routes: confirm Construction is a building catalog, Research is a compact technology grid, Shipyard is a compact ship-production grid, Defenses is a defense catalog, and Ground Army is a land-unit catalog/training surface.
 - Removed copy terms: confirm normal UI does not show `cabina`, `contexto guardado`, `dar contexto`, `cargar mando`, `siguientes cabinas`, `registrar comandante`, `partida local`, or `nueva partida`.
