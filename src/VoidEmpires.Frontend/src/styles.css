@@ -1262,6 +1262,31 @@ select {
   overflow-wrap: anywhere;
 }
 
+.shipyard-catalog-grid {
+  align-items: stretch;
+}
+
+.shipyard-catalog-card {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.shipyard-catalog-card-blocked,
+.shipyard-catalog-card-unsupported {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 76%, transparent), color-mix(in srgb, var(--ve-color-panel) 94%, transparent));
+  border-color: color-mix(in srgb, var(--ve-color-warning) 18%, transparent);
+}
+
+.shipyard-catalog-card h4,
+.shipyard-catalog-card strong,
+.shipyard-catalog-card p {
+  overflow-wrap: anywhere;
+}
+
 .planet-action-card {
   gap: 12px;
   overflow: hidden;

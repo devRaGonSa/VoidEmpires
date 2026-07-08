@@ -7,6 +7,7 @@ import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { GameModal } from "../components/GameModal";
 import { PlaceholderAsset } from "../components/PlaceholderAsset";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
+import { ShipyardCatalogCard } from "../components/ShipyardCatalogCard";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import {
@@ -861,50 +862,19 @@ export function ShipyardPage() {
                       </div>
                       <UiBadge>{group.assets.length} activos</UiBadge>
                     </div>
-                    <div className="readiness-grid">
+                    <div className="readiness-grid shipyard-catalog-grid">
                       {group.assets.map((asset) => {
                         const isRecommended = recommendedAsset?.assetType === asset.assetType && asset.statusKey === "Available";
                         const bucket = getCatalogBucket(asset);
-                        const badgeTone = bucket === "available" ? "good" : bucket === "blocked" ? "warn" : "neutral";
 
                         return (
-                          <article key={asset.assetType} className="subpanel figma-subpanel">
-                            <div className="figma-section-header">
-                              <div>
-                                <p className="eyebrow">{asset.roleLabel}</p>
-                                <h4>{asset.label}</h4>
-                              </div>
-                              <div className="figma-badge-row">
-                                {isRecommended ? <UiBadge tone="good">Recomendada</UiBadge> : null}
-                                <UiBadge tone={badgeTone}>{asset.statusLabel}</UiBadge>
-                              </div>
-                            </div>
-                            <PlaceholderAsset
-                              kind="ship"
-                              label={asset.label}
-                              typeLabel={asset.roleLabel}
-                              detail={asset.description}
-                              imageKey={asset.imageKey}
-                            />
-                            <div className="figma-data-list">
-                              <div className="figma-data-row"><span>Rol</span><strong>{asset.roleLabel}</strong></div>
-                              <div className="figma-data-row"><span>Clase</span><strong>{asset.categoryLabel}</strong></div>
-                              <div className="figma-data-row"><span>Stock orbital actual</span><strong>{asset.quantityLabel}</strong></div>
-                              <div className="figma-data-row"><span>Coste</span><strong>{asset.estimatedCostLabel}</strong></div>
-                              <div className="figma-data-row"><span>Duracion</span><strong>{asset.estimatedDurationLabel}</strong></div>
-                              <div className="figma-data-row"><span>Requisitos</span><strong>{formatRequirementLabel(asset)}</strong></div>
-                            </div>
-                            <p>{bucket === "available" ? "Lista para revisar y confirmar produccion orbital." : asset.reasonLabel}</p>
-                            <div className="selection-chip-row">
-                              <button
-                                type="button"
-                                className="planet-action-button-secondary"
-                                onClick={() => handleReviewAsset(asset)}
-                              >
-                                {bucket === "available" ? "Revisar orden" : bucket === "blocked" ? "Revisar bloqueo" : "Revisar limite"}
-                              </button>
-                            </div>
-                          </article>
+                          <ShipyardCatalogCard
+                            key={asset.assetType}
+                            asset={asset}
+                            bucket={bucket}
+                            isRecommended={isRecommended}
+                            onReview={handleReviewAsset}
+                          />
                         );
                       })}
                     </div>
@@ -1080,46 +1050,6 @@ export function ShipyardPage() {
             </details>
           ) : null}
 
-          <UiCard className="panel">
-            <div className="figma-section-header">
-              <div>
-                <p className="eyebrow">Conexion con Flotas</p>
-                <h3>Como se relacionan stock, cola y grupos orbitales</h3>
-                <p>Astillero produce y conserva stock local. Flotas inspecciona los grupos orbitales ya visibles y sus movimientos.</p>
-              </div>
-              <UiBadge tone="warn">Sin accion de flota</UiBadge>
-            </div>
-            <div className="readiness-grid">
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">En esta vista</p>
-                    <h4>Produccion y gasto inmediato</h4>
-                  </div>
-                  <UiBadge tone="resource">{shipyard.orbitalStock.length} stocks</UiBadge>
-                </div>
-                <div className="figma-data-list">
-                  <div className="figma-data-row"><span>Cola orbital</span><strong>{shipyard.queue.length > 0 ? formatCountLabel(shipyard.queue.length, "orden activa", "ordenes activas") : "Sin ordenes activas"}</strong></div>
-                  <div className="figma-data-row"><span>Stock local</span><strong>{shipyard.orbitalStock.length > 0 ? formatCountLabel(shipyard.orbitalStock.length, "tipo en reserva", "tipos en reserva") : "Sin stock orbital visible"}</strong></div>
-                  <div className="figma-data-row"><span>Lectura de flota</span><strong>Fuera de este modulo</strong></div>
-                </div>
-              </section>
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">En Flotas</p>
-                    <h4>Grupos orbitales y movimiento</h4>
-                  </div>
-                  <UiBadge>Vista vecina</UiBadge>
-                </div>
-                <ul className="stack-list compact-list">
-                  <li>El stock orbital no equivale automaticamente a una escuadra visible en Flotas.</li>
-                  <li>Las ordenes en cola siguen en produccion hasta que una lectura posterior las convierta en stock util.</li>
-                  <li>La asignacion a flota se mantiene fuera de esta vista en esta version.</li>
-                </ul>
-              </section>
-            </div>
-          </UiCard>
         </>
       ) : (
         !isLoading && queryCivilizationId && !error ? (
