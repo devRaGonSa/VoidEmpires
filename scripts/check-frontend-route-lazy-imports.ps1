@@ -83,19 +83,19 @@ $routeGuardPages = @(
     },
     @{
         Path = "src/VoidEmpires.Frontend/src/pages/ShipyardPage.tsx"
-        RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildResearchUrl", "buildGalaxyUrl", "buildFleetsUrl")
+        RequiredHelpers = @("buildShipyardUrl")
     },
     @{
         Path = "src/VoidEmpires.Frontend/src/pages/ResearchPage.tsx"
-        RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildGalaxyUrl", "buildFleetsUrl")
+        RequiredHelpers = @("buildPlanetUrl", "buildResearchUrl")
     },
     @{
         Path = "src/VoidEmpires.Frontend/src/pages/DefensesPage.tsx"
-        RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildShipyardUrl", "buildGalaxyUrl", "buildFleetsUrl")
+        RequiredHelpers = @("buildDefensesUrl")
     },
     @{
         Path = "src/VoidEmpires.Frontend/src/pages/GroundArmyPage.tsx"
-        RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildDefensesUrl", "buildGalaxyUrl", "buildFleetsUrl")
+        RequiredHelpers = @()
     },
     @{
         Path = "src/VoidEmpires.Frontend/src/pages/FleetsPage.tsx"
