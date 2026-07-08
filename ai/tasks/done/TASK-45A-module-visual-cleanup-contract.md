@@ -3,7 +3,7 @@
 ---
 id: TASK-45A
 title: Core module visual cleanup contract
-status: pending
+status: done
 type: frontend
 team: platform
 supporting_teams: []
