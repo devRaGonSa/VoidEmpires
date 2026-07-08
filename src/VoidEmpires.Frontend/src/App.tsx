@@ -5,6 +5,8 @@ import { PublicAuthLayout } from "./components/PublicAuthLayout";
 import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
 import { AppShell } from "./components/ui/AppShell";
 import type { SidebarNavItem } from "./components/ui/SidebarNav";
+import { canEnterAccountRoute } from "./utils/currentAccountSession";
+import { isOperatorMode } from "./utils/playableSession";
 import { specializedPlanetModuleRoutes, type PlanetModuleRouteInfo } from "./utils/planetModuleRoutes";
 import {
   buildAllianceUrl,
@@ -18,6 +20,7 @@ import {
   buildRegisterUrl,
   buildSpecializedModuleUrl,
 } from "./utils/routeUrls";
+import { useCurrentAccountSession } from "./utils/useCurrentAccountSession";
 
 const StrategicMapPage = lazy(async () => {
   const module = await import("./pages/StrategicMapPage");
@@ -110,6 +113,22 @@ const ModuleCabinPage = lazy(async () => {
 });
 
 const publicAuthPathnames = new Set(["/login", "/register", "/registro", "/onboarding"]);
+const accountRequiredPathnames = new Set([
+  "/",
+  "/account-settings",
+  "/planet",
+  "/construction",
+  "/galaxy",
+  "/fleets",
+  "/market",
+  "/espionage",
+  "/alliance",
+  "/ranking",
+]);
+
+function isAccountRequiredPathname(pathname: string) {
+  return accountRequiredPathnames.has(pathname) || specializedPlanetModuleRoutes.some((route) => route.path === pathname);
+}
 
 function getPlanetModuleNavState(module: PlanetModuleRouteInfo["module"]): SidebarNavItem["state"] {
   switch (module) {
@@ -170,16 +189,20 @@ function requireAccount(element: ReactElement) {
 
 export default function App() {
   const location = useLocation();
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const currentAccountSession = useCurrentAccountSession();
   const isPublicAuthRoute = publicAuthPathnames.has(location.pathname);
+  const requiresAccount = isAccountRequiredPathname(location.pathname);
+  const shouldShowPublicAccountPrompt =
+    requiresAccount && !isOperatorMode(searchParams) && !canEnterAccountRoute(currentAccountSession);
   const shellStatusItems = useMemo(() => {
-    const searchParams = new URLSearchParams(location.search);
     const civilizationId = searchParams.get("civilizationId") ?? "";
     const planetId = civilizationId ? searchParams.get("planetId") : null;
 
     return [
       { label: "Vista", value: getRouteStatusLabel(location.pathname) },
       {
-        label: "Contexto",
+        label: "Seleccion",
         value: civilizationId
           ? planetId
             ? "Planeta seleccionado"
@@ -188,10 +211,9 @@ export default function App() {
       },
       { label: "Ordenes", value: "Confirmacion requerida" },
     ];
-  }, [location.pathname, location.search]);
+  }, [location.pathname, searchParams]);
 
   const sidebarItems = useMemo<SidebarNavItem[]>(() => {
-    const searchParams = new URLSearchParams(location.search);
     const civilizationId = searchParams.get("civilizationId") ?? "";
     const planetId = civilizationId ? searchParams.get("planetId") : null;
     const systemId = civilizationId ? searchParams.get("systemId") : null;
@@ -214,12 +236,12 @@ export default function App() {
       { label: "Mercado", to: buildMarketUrl(civilizationId, planetId), state: "readiness" },
       { label: "Ranking", to: buildRankingUrl(civilizationId), state: "readOnly" },
     ];
-  }, [location.search]);
+  }, [searchParams]);
 
   const routeContent = (
     <Suspense fallback={<RouteLoadingFallback />}>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={requireAccount(<HomePage />)} />
         <Route path="/galaxy" element={requireAccount(<StrategicMapPage />)} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/registro" element={<RegisterPage />} />
@@ -254,7 +276,7 @@ export default function App() {
     </Suspense>
   );
 
-  if (isPublicAuthRoute) {
+  if (isPublicAuthRoute || shouldShowPublicAccountPrompt) {
     return <PublicAuthLayout>{routeContent}</PublicAuthLayout>;
   }
 

@@ -39,10 +39,10 @@ export function AppShell({
       ? "Readiness orbital"
       : isStrategicMapRoute
         ? "Mapa estrategico"
-        : "Centro de mando imperial";
+        : "Centro imperial";
 
   const introDescription = isHomeRoute
-    ? "Accede con tu cuenta, registra un comandante o continua hacia el centro de mando disponible."
+    ? "Resume recursos, colas y estado del planeta seleccionado."
     : isFleetRoute
       ? "Flotas muestra preparacion, carga y ordenes confirmadas para el contexto seleccionado."
       : isStrategicMapRoute
@@ -61,7 +61,7 @@ export function AppShell({
     () => [
       ...statusItems,
       {
-        label: "Mando",
+        label: "Planeta",
         value: isSignedIn ? accountDisplay.planetLabel : accountDisplay.statusLabel,
       },
     ],
@@ -138,7 +138,7 @@ export function AppShell({
         <aside className="app-sidebar" aria-label="Navegacion de sistemas">
           <div className="app-sidebar-head">
             <p className="eyebrow">Superficie imperial</p>
-            <h2>Mapa de mando</h2>
+            <h2>Mapa imperial</h2>
             <p>Colonias, flotas y rutas estrategicas del imperio.</p>
           </div>
           <SidebarNav accountStatus={currentAccountSession.status} items={sidebarItems} />

@@ -592,7 +592,7 @@ export function ShipyardPage() {
       <CockpitHero
         versionLabel="Astillero v1"
         title="Astillero orbital"
-        description="Naves disponibles, cola de produccion y stock orbital con confirmacion antes de gastar recursos."
+        description="Naves disponibles, cola de produccion y stock orbital con confirmacion antes de gastar recursos. El stock orbital no equivale automaticamente a una escuadra visible en Flotas."
         developmentNote="Produccion orbital con confirmacion obligatoria; preparar escuadras queda fuera de esta vista."
         badges={
           <>

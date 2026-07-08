@@ -41,7 +41,7 @@ export function AuthRequiredState({ children }: AuthRequiredStateProps) {
         description={
           isLoading
             ? "Estamos revisando si ya hay una cuenta activa para abrir esta pagina de juego."
-            : "Entra con tu cuenta o crea una cuenta antes de abrir las paginas de juego."
+            : "Entra con tu cuenta o crea una cuenta antes de abrir las vistas del imperio."
         }
         developmentNote="Acceso de cuenta."
         badges={
@@ -56,11 +56,11 @@ export function AuthRequiredState({ children }: AuthRequiredStateProps) {
         <div className="figma-section-header">
           <div>
             <p className="eyebrow">Acceso de cuenta</p>
-            <h3>{isLoading ? "Comprobando sesion" : "Conecta tu comandante"}</h3>
+            <h3>{isLoading ? "Comprobando sesion" : "Conecta tu cuenta"}</h3>
             <p>
               {isLoading
                 ? "La pagina se abrira automaticamente si la cuenta esta lista."
-                : "Las rutas de juego usan la cuenta actual para seleccionar el imperio y el planeta inicial."}
+                : "Las vistas del imperio usan la cuenta actual para abrir el planeta inicial."}
             </p>
           </div>
           <UiBadge tone={isLoading ? "neutral" : "good"}>{isLoading ? "Espera" : "Disponible"}</UiBadge>
