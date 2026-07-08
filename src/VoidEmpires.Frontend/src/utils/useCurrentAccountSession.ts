@@ -7,6 +7,12 @@ import {
   type CurrentAccountSessionState,
 } from "./currentAccountSession";
 
+type CurrentAccountSessionListener = (state: CurrentAccountSessionState) => void;
+
+let sharedCurrentAccountSessionState = initialCurrentAccountSessionState;
+let sharedCurrentAccountSessionLoad: Promise<CurrentAccountSessionState> | null = null;
+const currentAccountSessionListeners = new Set<CurrentAccountSessionListener>();
+
 async function loadCurrentAccountSession(): Promise<CurrentAccountSessionState> {
   try {
     return resolveCurrentAccountSession(await voidEmpiresApi.account.getCurrentUser());
@@ -15,28 +21,45 @@ async function loadCurrentAccountSession(): Promise<CurrentAccountSessionState> 
   }
 }
 
+function publishCurrentAccountSessionState(state: CurrentAccountSessionState) {
+  sharedCurrentAccountSessionState = state;
+  currentAccountSessionListeners.forEach((listener) => listener(state));
+}
+
+async function refreshCurrentAccountSession() {
+  if (sharedCurrentAccountSessionLoad) {
+    return sharedCurrentAccountSessionLoad;
+  }
+
+  publishCurrentAccountSessionState({ ...sharedCurrentAccountSessionState, status: "loading" });
+  sharedCurrentAccountSessionLoad = loadCurrentAccountSession()
+    .then((nextState) => {
+      publishCurrentAccountSessionState(nextState);
+      return nextState;
+    })
+    .finally(() => {
+      sharedCurrentAccountSessionLoad = null;
+    });
+
+  return sharedCurrentAccountSessionLoad;
+}
+
 export function useCurrentAccountSession() {
-  const [state, setState] = useState<CurrentAccountSessionState>(initialCurrentAccountSessionState);
+  const [state, setState] = useState<CurrentAccountSessionState>(sharedCurrentAccountSessionState);
 
   const refresh = useCallback(async () => {
-    setState((current) => ({ ...current, status: "loading" }));
-    const nextState = await loadCurrentAccountSession();
-    setState(nextState);
-    return nextState;
+    return refreshCurrentAccountSession();
   }, []);
 
   useEffect(() => {
-    let isCurrent = true;
-
-    setState((current) => ({ ...current, status: "loading" }));
-    void loadCurrentAccountSession().then((nextState) => {
-      if (isCurrent) {
-        setState(nextState);
-      }
-    });
+    currentAccountSessionListeners.add(setState);
+    setState(sharedCurrentAccountSessionState);
+    if (sharedCurrentAccountSessionState.status === "loading") {
+      void refreshCurrentAccountSession();
+    }
 
     return () => {
-      isCurrent = false;
+      currentAccountSessionListeners.delete(setState);
     };
   }, []);
 

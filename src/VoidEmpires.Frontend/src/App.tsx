@@ -5,7 +5,6 @@ import { PublicAuthLayout } from "./components/PublicAuthLayout";
 import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
 import { AppShell } from "./components/ui/AppShell";
 import type { SidebarNavItem } from "./components/ui/SidebarNav";
-import { canEnterAccountRoute } from "./utils/currentAccountSession";
 import { isOperatorMode } from "./utils/playableSession";
 import { specializedPlanetModuleRoutes, type PlanetModuleRouteInfo } from "./utils/planetModuleRoutes";
 import {
@@ -192,7 +191,9 @@ export default function App() {
   const isPublicAuthRoute = publicAuthPathnames.has(location.pathname);
   const requiresAccount = isAccountRequiredPathname(location.pathname);
   const shouldShowPublicAccountPrompt =
-    requiresAccount && !isOperatorMode(searchParams) && !canEnterAccountRoute(currentAccountSession);
+    requiresAccount
+    && !isOperatorMode(searchParams)
+    && (currentAccountSession.status === "signedOut" || currentAccountSession.status === "error");
   const shellStatusItems = useMemo(() => {
     const civilizationId = searchParams.get("civilizationId") ?? "";
     const planetId = civilizationId ? searchParams.get("planetId") : null;
