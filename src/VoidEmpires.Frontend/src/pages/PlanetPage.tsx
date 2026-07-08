@@ -791,6 +791,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         onClear={() => setLocalSessionCleared(true)}
       />
 
+      {!isConstructionRoute ? (
       <div className="strategic-cockpit-top">
         <UiCard className="panel strategic-loader-panel">
           <div className="figma-section-header">
@@ -870,6 +871,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           </ul>
         </UiCard>
       </div>
+      ) : null}
 
       {isSuspiciousContext ? (
         <UiCard className="panel">

@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { enqueueShipyardProduction, fetchShipyardUiState } from "../api/shipyardApi";
 import type { ShipyardApiErrorCode } from "../api/shipyardTypes";
@@ -273,8 +273,6 @@ function formatShipyardCommandFailure(failureContext: ShipyardFailureContext, pl
 
 export function ShipyardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
-  const [planetIdInput, setPlanetIdInput] = useState(searchParams.get("planetId") ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorFollowUp, setErrorFollowUp] = useState<string | null>(null);
@@ -424,9 +422,6 @@ export function ShipyardPage() {
   }
 
   useEffect(() => {
-    setCivilizationIdInput(queryCivilizationId);
-    setPlanetIdInput(queryPlanetId ?? "");
-
     async function load() {
       if (!queryCivilizationId) {
         setUiState(null);
@@ -456,27 +451,6 @@ export function ShipyardPage() {
 
     void load();
   }, [queryCivilizationId, queryPlanetId, searchParams, setSearchParams]);
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const trimmedCivilizationId = civilizationIdInput.trim();
-
-    if (!trimmedCivilizationId) {
-      setError("El contexto de civilizacion es obligatorio.");
-      setErrorFollowUp("Carga una civilizacion valida antes de abrir esta vista.");
-      setTechnicalErrorDetail("Civilization id is required.");
-      setUiState(null);
-      return;
-    }
-
-    const nextParams = new URLSearchParams();
-    nextParams.set("civilizationId", trimmedCivilizationId);
-    if (planetIdInput.trim()) {
-      nextParams.set("planetId", planetIdInput.trim());
-    }
-
-    setSearchParams(nextParams);
-  }
 
   function handleReviewAsset(asset: ShipyardAssetOption) {
     setHasEnqueueAcknowledgement(false);
@@ -608,53 +582,12 @@ export function ShipyardPage() {
         onClear={() => setLocalSessionCleared(true)}
       />
 
-      <div className="strategic-cockpit-top">
-        <UiCard className="panel strategic-loader-panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Astillero orbital</p>
-              <h3>Cargar contexto de produccion</h3>
-            </div>
-            <UiBadge>Uso local</UiBadge>
-          </div>
-          <form className="query-form" onSubmit={handleSubmit}>
-            <label className="field">
-              <span>Civilizacion</span>
-              <input
-                type="text"
-                value={civilizationIdInput}
-                onChange={(event) => setCivilizationIdInput(event.target.value)}
-                placeholder="Usa la seleccion disponible o un enlace de Galaxia"
-                spellCheck={false}
-              />
-            </label>
-            <label className="field">
-              <span>Planeta con astillero</span>
-              <input
-                type="text"
-                value={planetIdInput}
-                onChange={(event) => setPlanetIdInput(event.target.value)}
-                placeholder="Opcional si vienes desde una colonia"
-                spellCheck={false}
-              />
-            </label>
-            <button type="submit" disabled={isLoading}>
-              {isLoading ? "Cargando..." : "Abrir astillero"}
-            </button>
-          </form>
-          {error ? (
-            <div className="subpanel figma-subpanel figma-mini-card-warn">
-              <p className="error-text">{error}</p>
-              {errorFollowUp ? <p className="figma-panel-note">{errorFollowUp}</p> : null}
-            </div>
-          ) : null}
-          {isLoading ? <p className="figma-panel-note">Cargando catalogo, cola, stock y capacidad orbital...</p> : null}
-          {!queryCivilizationId && !isLoading ? (
-            <p className="figma-panel-note">Entra desde Galaxia o usa el inicio local disponible para abrir Astillero con contexto.</p>
-          ) : null}
+      {error ? (
+        <UiCard className="panel">
+          <p className="error-text">{error}</p>
+          {errorFollowUp ? <p className="figma-panel-note">{errorFollowUp}</p> : null}
         </UiCard>
-
-      </div>
+      ) : null}
 
       {isSuspiciousContext ? (
         <UiCard className="panel">

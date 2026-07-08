@@ -3,7 +3,7 @@
 ---
 id: TASK-45B
 title: Remove context loader panels
-status: pending
+status: done
 type: frontend
 team: platform
 supporting_teams: []

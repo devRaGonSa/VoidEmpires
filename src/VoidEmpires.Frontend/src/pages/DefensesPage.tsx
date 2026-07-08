@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchDefensesUiState } from "../api/defenseApi";
 import { CockpitHero } from "../components/CockpitHero";
@@ -55,7 +55,7 @@ function getProtectionPosture(viewModel: DefensesViewModel["defenses"]) {
 
 function getRecommendedNextStep(viewModel: DefensesViewModel["defenses"]) {
   if (!viewModel) {
-    return "Cargar contexto defensivo";
+    return "Continuar desde Planeta";
   }
 
   if (!viewModel.isOwnedByRequestingCivilization) {
@@ -100,8 +100,6 @@ function getProductDefenseStatusLabel(statusKey: string, fallbackLabel: string) 
 
 export function DefensesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
-  const [planetIdInput, setPlanetIdInput] = useState(searchParams.get("planetId") ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorFollowUp, setErrorFollowUp] = useState<string | null>(null);
@@ -141,9 +139,6 @@ export function DefensesPage() {
   const blockedOptions = useMemo(() => (defenses?.options ?? []).filter((option) => option.statusKey !== "Available"), [defenses?.options]);
 
   useEffect(() => {
-    setCivilizationIdInput(queryCivilizationId);
-    setPlanetIdInput(queryPlanetId ?? "");
-
     async function load() {
       if (!queryCivilizationId) {
         setUiState(null);
@@ -192,30 +187,6 @@ export function DefensesPage() {
     void load();
   }, [queryCivilizationId, queryPlanetId, searchParams, setSearchParams]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const trimmedCivilizationId = civilizationIdInput.trim();
-
-    if (!trimmedCivilizationId) {
-      const failure = formatDefenseRequestFailure("Civilization id is required.");
-      setError(failure.primaryMessage);
-      setErrorFollowUp(failure.followUp);
-      setTechnicalErrorDetail(failure.technicalDetail);
-      setUiState(null);
-      return;
-    }
-
-    const nextParams = new URLSearchParams();
-    nextParams.set("civilizationId", trimmedCivilizationId);
-
-    const trimmedPlanetId = planetIdInput.trim();
-    if (trimmedPlanetId) {
-      nextParams.set("planetId", trimmedPlanetId);
-    }
-
-    setSearchParams(nextParams);
-  }
-
   return (
     <section className="page-grid">
       <CockpitHero
@@ -237,53 +208,12 @@ export function DefensesPage() {
         onClear={() => setLocalSessionCleared(true)}
       />
 
-      <div className="strategic-cockpit-top">
-        <UiCard className="panel strategic-loader-panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Entrada de vista</p>
-              <h3>Cargar contexto defensivo</h3>
-            </div>
-            <UiBadge>Colonia activa</UiBadge>
-          </div>
-          <form className="query-form" onSubmit={handleSubmit}>
-            <label className="field">
-              <span>Id de civilizacion</span>
-              <input
-                type="text"
-                value={civilizationIdInput}
-                onChange={(event) => setCivilizationIdInput(event.target.value)}
-                placeholder="00000000-0000-0000-0000-000000000000"
-                spellCheck={false}
-              />
-            </label>
-            <label className="field">
-              <span>Id de planeta opcional</span>
-              <input
-                type="text"
-                value={planetIdInput}
-                onChange={(event) => setPlanetIdInput(event.target.value)}
-                placeholder="40000000-0000-0000-0000-000000000000"
-                spellCheck={false}
-              />
-            </label>
-            <button type="submit" disabled={isLoading}>
-              {isLoading ? "Cargando..." : "Abrir defensas"}
-            </button>
-          </form>
-          {error ? (
-            <div className="subpanel figma-subpanel figma-mini-card-warn">
-              <p className="error-text">{error}</p>
-              {errorFollowUp ? <p className="figma-panel-note">{errorFollowUp}</p> : null}
-            </div>
-          ) : null}
-          {isLoading ? <p className="figma-panel-note">Cargando estructuras, opciones y limites defensivos...</p> : null}
-          {!queryCivilizationId && !isLoading ? (
-            <p className="figma-panel-note">Introduce un `civilizationId` valido para abrir la vista de defensas.</p>
-          ) : null}
+      {error ? (
+        <UiCard className="panel">
+          <p className="error-text">{error}</p>
+          {errorFollowUp ? <p className="figma-panel-note">{errorFollowUp}</p> : null}
         </UiCard>
-
-      </div>
+      ) : null}
 
       {isSuspiciousContext ? (
         <UiCard className="panel">
@@ -312,7 +242,7 @@ export function DefensesPage() {
           </p>
           <div className="selection-chip-row">
             <Link className="selection-chip selection-chip-active" to={playableSessionUrl}>
-              Abrir Defensas
+              Continuar a Defensas
             </Link>
           </div>
         </UiCard>

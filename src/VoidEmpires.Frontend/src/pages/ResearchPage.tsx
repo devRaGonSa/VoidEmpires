@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { enqueueResearchOrder, fetchResearchUiState } from "../api/researchApi";
 import type { EnqueueResearchOrderFailureResponse, ResearchApiErrorCode } from "../api/researchTypes";
@@ -196,8 +196,6 @@ function formatResearchEnqueueValidationError(
 export function ResearchPage() {
   const hasSafeResearchEnqueue = true;
   const [searchParams, setSearchParams] = useSearchParams();
-  const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
-  const [planetIdInput, setPlanetIdInput] = useState(searchParams.get("planetId") ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [technicalErrorDetail, setTechnicalErrorDetail] = useState<string | null>(null);
@@ -278,9 +276,6 @@ export function ResearchPage() {
   }
 
   useEffect(() => {
-    setCivilizationIdInput(queryCivilizationId);
-    setPlanetIdInput(queryPlanetId ?? "");
-
     async function load() {
       if (!queryCivilizationId) {
         setUiState(null);
@@ -306,25 +301,6 @@ export function ResearchPage() {
 
     void load();
   }, [queryCivilizationId, queryPlanetId, searchParams, setSearchParams]);
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const trimmedCivilizationId = civilizationIdInput.trim();
-
-    if (!trimmedCivilizationId) {
-      setError("El id de civilizacion es obligatorio.");
-      setTechnicalErrorDetail("Civilization id is required.");
-      setUiState(null);
-      return;
-    }
-
-    const nextParams = new URLSearchParams();
-    nextParams.set("civilizationId", trimmedCivilizationId);
-    if (planetIdInput.trim()) {
-      nextParams.set("planetId", planetIdInput.trim());
-    }
-    setSearchParams(nextParams);
-  }
 
   async function handleResearchSubmit() {
     if (
@@ -438,29 +414,6 @@ export function ResearchPage() {
       />
 
       <div className="strategic-cockpit-top">
-        <UiCard className="panel strategic-loader-panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Laboratorio</p>
-              <h3>Cargar contexto cientifico</h3>
-            </div>
-            <UiBadge>Uso local</UiBadge>
-          </div>
-          <form className="query-form" onSubmit={handleSubmit}>
-            <label className="field">
-              <span>Civilizacion</span>
-              <input type="text" value={civilizationIdInput} onChange={(event) => setCivilizationIdInput(event.target.value)} placeholder="Usa la seleccion disponible o un enlace de Galaxia" spellCheck={false} />
-            </label>
-            <label className="field">
-              <span>Planeta de laboratorio</span>
-              <input type="text" value={planetIdInput} onChange={(event) => setPlanetIdInput(event.target.value)} placeholder="Opcional si vienes desde una colonia" spellCheck={false} />
-            </label>
-            <button type="submit" disabled={isLoading}>{isLoading ? "Cargando..." : "Abrir vista"}</button>
-          </form>
-          {error ? <p className="error-text">{error}</p> : null}
-          {!queryCivilizationId ? <p className="figma-panel-note">Entra desde Galaxia o usa el inicio local disponible para reconstruir la URL con contexto.</p> : null}
-        </UiCard>
-
         <UiCard className="panel">
           <div className="figma-section-header">
             <div>
@@ -477,6 +430,8 @@ export function ResearchPage() {
           </ul>
         </UiCard>
       </div>
+
+      {error ? <p className="error-text">{error}</p> : null}
 
       {isSuspiciousContext ? (
         <UiCard className="panel">
