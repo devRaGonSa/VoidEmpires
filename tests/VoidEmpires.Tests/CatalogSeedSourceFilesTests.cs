@@ -8,10 +8,10 @@ public class CatalogSeedSourceFilesTests
     private readonly CatalogSeedSourceLoader loader = new();
 
     [Theory]
-    [InlineData("buildings.catalog.json", 15)]
+    [InlineData("buildings.catalog.json", 19)]
     [InlineData("research.catalog.json", 8)]
     [InlineData("orbital-assets.catalog.json", 4)]
-    [InlineData("defenses.catalog.json", 1)]
+    [InlineData("defenses.catalog.json", 5)]
     [InlineData("resources.catalog.json", 7)]
     public void CatalogSeedSourceFileExistsAndContainsExpectedRows(string fileName, int expectedCount)
     {

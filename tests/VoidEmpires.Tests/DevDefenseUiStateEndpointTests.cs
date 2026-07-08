@@ -90,16 +90,24 @@ public class DevDefenseUiStateEndpointTests(WebApplicationFactory<Program> facto
         Assert.Equal("Aurelia", payload.UiState.Defenses.PlanetName);
         Assert.True(payload.UiState.Defenses.IsOwnedByRequestingCivilization);
         Assert.NotEmpty(payload.UiState.Defenses.ResourceStockpile);
-        var defenseCatalogRow = Assert.Single(payload.UiState.Defenses.Catalog);
+        Assert.Equal(5, payload.UiState.Defenses.Catalog.Count);
+        var defenseCatalogRow = Assert.Single(
+            payload.UiState.Defenses.Catalog,
+            x => x.BuildingType == BuildingType.DefenseGrid);
         Assert.Equal(BuildingType.DefenseGrid, defenseCatalogRow.BuildingType);
         Assert.Equal("Malla defensiva", defenseCatalogRow.DisplayName);
         Assert.Equal("Defense", defenseCatalogRow.CategoryKey);
         Assert.Equal("CombatSystemDeferred", defenseCatalogRow.FutureCombatDependencyKey);
         Assert.Contains("NonCombat", defenseCatalogRow.Tags);
+        Assert.Contains(payload.UiState.Defenses.Catalog, x => x.BuildingType == BuildingType.MissileBattery);
+        Assert.Contains(payload.UiState.Defenses.Catalog, x => x.BuildingType == BuildingType.LaserTurret);
+        Assert.Contains(payload.UiState.Defenses.Catalog, x => x.BuildingType == BuildingType.IonCannon);
+        Assert.Contains(payload.UiState.Defenses.Catalog, x => x.BuildingType == BuildingType.PlanetaryShield);
         Assert.Single(payload.UiState.Defenses.DefenseStructures);
         Assert.Equal(BuildingType.DefenseGrid, payload.UiState.Defenses.DefenseStructures[0].BuildingType);
-        Assert.Single(payload.UiState.Defenses.DefenseOptions);
-        Assert.Equal(BuildingType.DefenseGrid, payload.UiState.Defenses.DefenseOptions[0].BuildingType);
+        Assert.Equal(5, payload.UiState.Defenses.DefenseOptions.Count);
+        Assert.Contains(payload.UiState.Defenses.DefenseOptions, x => x.BuildingType == BuildingType.DefenseGrid);
+        Assert.Contains(payload.UiState.Defenses.DefenseOptions, x => x.BuildingType == BuildingType.PlanetaryShield);
         Assert.Contains("construction readiness", payload.UiState.Defenses.Diagnostics.Notes[1], StringComparison.OrdinalIgnoreCase);
         Assert.Equal(initialOrderCount, await dbContext.Set<PlanetConstructionOrder>().CountAsync());
         Assert.Equal(initialBuildingCount, await dbContext.Set<PlanetBuilding>().CountAsync());
@@ -121,10 +129,10 @@ public class DevDefenseUiStateEndpointTests(WebApplicationFactory<Program> facto
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(payload?.UiState?.Defenses);
-        Assert.Single(payload.UiState.Defenses.DefenseOptions);
-        Assert.Equal("InsufficientResources", payload.UiState.Defenses.DefenseOptions[0].AvailabilityStatus);
+        Assert.Equal(5, payload.UiState.Defenses.DefenseOptions.Count);
+        Assert.All(payload.UiState.Defenses.DefenseOptions, option => Assert.Equal("InsufficientResources", option.AvailabilityStatus));
         Assert.Equal(0, payload.UiState.Defenses.ProtectionSummary.AvailableOptionCount);
-        Assert.Equal(1, payload.UiState.Defenses.ProtectionSummary.BlockedOptionCount);
+        Assert.Equal(5, payload.UiState.Defenses.ProtectionSummary.BlockedOptionCount);
     }
 
     [Fact]

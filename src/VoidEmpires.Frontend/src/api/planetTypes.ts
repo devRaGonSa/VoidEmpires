@@ -32,6 +32,10 @@ export const planetBuildingTypeCatalog: readonly PlanetCatalogEntry[] = [
   { id: 13, key: "CrewAcademy", label: "Academia de tripulacion" },
   { id: 14, key: "FleetCommandCenter", label: "Mando de flota" },
   { id: 15, key: "LogisticsHub", label: "Centro logistico" },
+  { id: 16, key: "MissileBattery", label: "Bateria de misiles" },
+  { id: 17, key: "LaserTurret", label: "Torreta laser" },
+  { id: 18, key: "IonCannon", label: "Canon ionico" },
+  { id: 19, key: "PlanetaryShield", label: "Escudo planetario" },
 ] as const;
 
 export const planetConstructionActionCatalog: readonly PlanetCatalogEntry[] = [

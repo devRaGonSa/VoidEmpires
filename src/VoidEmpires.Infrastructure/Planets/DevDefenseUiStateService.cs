@@ -60,7 +60,7 @@ public sealed class DevDefenseUiStateService(IDevPlanetUiStateService planetUiSt
 
         var limitations = new List<string>
         {
-            "Only DefenseGrid construction readiness is modeled here today.",
+            "Defensive construction readiness is modeled here; combat behavior remains deferred.",
             "Shielding research is not applied as active mitigation in this cockpit.",
             "No combat, interception, damage, bombardment, or invasion behavior is exposed here."
         };
@@ -100,12 +100,12 @@ public sealed class DevDefenseUiStateService(IDevPlanetUiStateService planetUiSt
 
     private static IReadOnlyList<DevDefenseCatalogItemDto> CreateDefenseCatalog()
     {
-        var definition = BuildingCatalog.Get(BuildingType.DefenseGrid);
-
-        return
-        [
-            new DevDefenseCatalogItemDto(
-                BuildingType.DefenseGrid,
+        return Enum.GetValues<BuildingType>()
+            .Select(BuildingCatalog.Get)
+            .Where(x => x.Category == BuildingCategory.Defense)
+            .OrderBy(x => x.SortOrder)
+            .Select(definition => new DevDefenseCatalogItemDto(
+                definition.BuildingType,
                 definition.DisplayName,
                 definition.Description,
                 "Defense",
@@ -121,7 +121,7 @@ public sealed class DevDefenseUiStateService(IDevPlanetUiStateService planetUiSt
                 "Depende de la cola de Construccion y de capacidad planetaria visible.",
                 "CombatSystemDeferred",
                 "La mitigacion, intercepcion y dano real siguen diferidos hasta el sistema de combate.",
-                ["Defense", "Readiness", "NonCombat", "ConstructionBacked"])
-        ];
+                ["Defense", "Readiness", "NonCombat", "ConstructionBacked"]))
+            .ToArray();
     }
 }

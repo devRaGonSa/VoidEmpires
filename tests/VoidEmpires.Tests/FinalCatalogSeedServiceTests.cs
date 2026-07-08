@@ -20,7 +20,7 @@ public class FinalCatalogSeedServiceTests
         Assert.True(result.DryRun);
         Assert.True(result.ApplyDeferred);
         Assert.Equal(5, result.Catalogs.Count);
-        Assert.Contains(result.Catalogs, x => x.CatalogFile == "buildings.catalog.json" && x.RowCount == 15);
+        Assert.Contains(result.Catalogs, x => x.CatalogFile == "buildings.catalog.json" && x.RowCount == 19);
         Assert.Contains(result.Notes, x => x.Contains("validation succeeded", StringComparison.OrdinalIgnoreCase));
     }
 

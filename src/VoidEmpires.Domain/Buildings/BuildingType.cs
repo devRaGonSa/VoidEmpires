@@ -16,5 +16,9 @@ public enum BuildingType
     Barracks = 12,
     CrewAcademy = 13,
     FleetCommandCenter = 14,
-    LogisticsHub = 15
+    LogisticsHub = 15,
+    MissileBattery = 16,
+    LaserTurret = 17,
+    IonCannon = 18,
+    PlanetaryShield = 19
 }

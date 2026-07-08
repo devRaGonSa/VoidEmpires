@@ -220,6 +220,10 @@ function resolveModuleByBuildingType(buildingType: PlanetValue): PlanetModule {
     case "FleetCommandCenter":
       return "Shipyard";
     case "DefenseGrid":
+    case "MissileBattery":
+    case "LaserTurret":
+    case "IonCannon":
+    case "PlanetaryShield":
       return "Defenses";
     default:
       return "UnknownOrDiagnostics";

@@ -38,6 +38,38 @@ const defenseStructureCatalog: readonly DefenseStructurePresentationEntry[] = [
     readinessKey: "ConstructionReady",
     readinessLabel: "Fortificacion lista para preparar",
   },
+  {
+    key: "MissileBattery",
+    label: "Bateria de misiles",
+    categoryKey: "Defense",
+    categoryLabel: "Proteccion planetaria",
+    readinessKey: "ConstructionReady",
+    readinessLabel: "Defensa puntual lista para preparar",
+  },
+  {
+    key: "LaserTurret",
+    label: "Torreta laser",
+    categoryKey: "Defense",
+    categoryLabel: "Proteccion planetaria",
+    readinessKey: "ConstructionReady",
+    readinessLabel: "Emplazamiento energetico listo para preparar",
+  },
+  {
+    key: "IonCannon",
+    label: "Canon ionico",
+    categoryKey: "Defense",
+    categoryLabel: "Proteccion planetaria",
+    readinessKey: "ConstructionReady",
+    readinessLabel: "Defensa pesada lista para preparar",
+  },
+  {
+    key: "PlanetaryShield",
+    label: "Escudo planetario",
+    categoryKey: "Defense",
+    categoryLabel: "Proteccion planetaria",
+    readinessKey: "ConstructionReady",
+    readinessLabel: "Cobertura planetaria lista para preparar",
+  },
 ] as const;
 
 const defenseCategoryCatalog: readonly DefenseLabelCatalogEntry[] = [
