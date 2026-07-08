@@ -3,7 +3,7 @@
 ---
 id: TASK-45H
 title: Shipyard catalog content
-status: pending
+status: done
 type: full-stack
 team: platform
 supporting_teams: []
