@@ -532,25 +532,6 @@ export function ResearchPage() {
             </UiCard>
           ) : null}
 
-          <UiCard className="panel research-action-panel">
-            <div className="figma-section-header">
-              <div>
-                <p className="eyebrow">Cierre vencido</p>
-                <h3>Completar investigaciones vencidas</h3>
-                <p>El cierre seguro de investigaciones vencidas todavia no esta disponible desde esta vista.</p>
-              </div>
-              <UiBadge tone="warn">{dueQueueCount} vencidas</UiBadge>
-            </div>
-            <div className="transfer-confirmation-actions">
-              <button type="button" className="planet-action-button-blocked" disabled>
-                No disponible en esta version
-              </button>
-            </div>
-            <p className="figma-panel-note">
-              Esta accion no esta disponible desde Investigacion en esta version porque el cierre seguro todavia no esta acotado al contexto visible.
-            </p>
-          </UiCard>
-
           {operatorMode ? (
             <>
               <DevDiagnosticsPanel
