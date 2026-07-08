@@ -43,6 +43,10 @@ function shouldShowItem(item: SidebarNavItem, accountStatus: CurrentAccountSessi
   return true;
 }
 
+function getSidebarItemPathname(to: string) {
+  return to.split("?")[0] || "/";
+}
+
 export function SidebarNav({ items, accountStatus }: SidebarNavProps) {
   const location = useLocation();
   const visibleItems = items.filter((item) => shouldShowItem(item, accountStatus));
@@ -53,18 +57,20 @@ export function SidebarNav({ items, accountStatus }: SidebarNavProps) {
         const stateNote = getSidebarStateNote(item.state);
         const stateClass = `sidebar-nav-item-${item.state ?? "readiness"}`;
 
-        return item.to ? (
+        if (item.to) {
+          const itemTo = item.to;
+
+          return (
           <NavLink
             key={item.label}
-            to={item.to}
-            end={item.to === "/"}
+            to={itemTo}
+            end={getSidebarItemPathname(itemTo) === "/"}
             className={({ isActive }) => {
-              const shouldHighlightGalaxyAlias =
-                item.to === "/galaxy" && location.pathname === "/";
+              const itemPathname = getSidebarItemPathname(itemTo);
               const shouldHighlightHomeAlias =
-                item.to === "/" && location.pathname === "/planet";
+                itemPathname === "/" && location.pathname === "/planet";
 
-              return isActive || shouldHighlightGalaxyAlias || shouldHighlightHomeAlias
+              return isActive || shouldHighlightHomeAlias
                 ? `sidebar-nav-item ${stateClass} sidebar-nav-item-active`
                 : `sidebar-nav-item ${stateClass}`;
             }}
@@ -72,7 +78,10 @@ export function SidebarNav({ items, accountStatus }: SidebarNavProps) {
             <span className="sidebar-nav-item-label">{item.label}</span>
             {stateNote ? <small className="sidebar-nav-item-note">{stateNote}</small> : null}
           </NavLink>
-        ) : (
+          );
+        }
+
+        return (
           <span
             key={item.label}
             className="sidebar-nav-item sidebar-nav-item-future"

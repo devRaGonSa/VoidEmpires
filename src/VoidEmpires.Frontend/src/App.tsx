@@ -6,6 +6,7 @@ import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
 import { AppShell } from "./components/ui/AppShell";
 import type { SidebarNavItem } from "./components/ui/SidebarNav";
 import type { TopBarStatusItem } from "./components/ui/TopResourceBar";
+import { getCurrentAccountWorldEntry } from "./utils/currentAccountSession";
 import { isOperatorMode } from "./utils/playableSession";
 import { specializedPlanetModuleRoutes, type PlanetModuleRouteInfo } from "./utils/planetModuleRoutes";
 import {
@@ -206,6 +207,13 @@ export default function App() {
   const location = useLocation();
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const currentAccountSession = useCurrentAccountSession();
+  const accountWorldEntry = getCurrentAccountWorldEntry(currentAccountSession.session);
+  const routeCivilizationId = searchParams.get("civilizationId")?.trim() ?? "";
+  const routePlanetId = searchParams.get("planetId")?.trim() ?? "";
+  const routeSystemId = searchParams.get("systemId")?.trim() ?? "";
+  const shellCivilizationId = routeCivilizationId || accountWorldEntry?.civilizationId || "";
+  const shellPlanetId = routePlanetId || accountWorldEntry?.planetId || null;
+  const shellSystemId = routeSystemId || null;
   const isPublicAuthRoute = publicAuthPathnames.has(location.pathname);
   const requiresAccount = isAccountRequiredPathname(location.pathname);
   const shouldShowPublicAccountPrompt =
@@ -213,40 +221,33 @@ export default function App() {
     && !isOperatorMode(searchParams)
     && (currentAccountSession.status === "signedOut" || currentAccountSession.status === "error");
   const shellStatusItems = useMemo(() => {
-    const civilizationId = searchParams.get("civilizationId") ?? "";
-    const planetId = civilizationId ? searchParams.get("planetId") : null;
-
     return [
       { label: "Vista", value: getRouteStatusLabel(location.pathname) },
       {
         label: "Seleccion",
-        value: civilizationId
-          ? planetId
+        value: shellCivilizationId
+          ? shellPlanetId
             ? "Planeta seleccionado"
             : "Civilizacion seleccionada"
           : "Seleccion pendiente",
       },
       { label: "Ordenes", value: "Confirmacion requerida" },
     ];
-  }, [location.pathname, searchParams]);
+  }, [location.pathname, shellCivilizationId, shellPlanetId]);
 
   const sidebarItems = useMemo<SidebarNavItem[]>(() => {
-    const civilizationId = searchParams.get("civilizationId") ?? "";
-    const planetId = civilizationId ? searchParams.get("planetId") : null;
-    const systemId = civilizationId ? searchParams.get("systemId") : null;
-
     return [
-      { label: "Inicio", to: "/", state: "playable" },
-      { label: "Construccion", to: buildConstructionUrl(civilizationId, planetId), state: "playable" },
-      ...buildOrderedPlanetModuleSidebarItems(civilizationId, planetId),
-      { label: "Flotas", to: buildFleetsUrl(civilizationId, planetId), state: "readiness" },
-      { label: "Galaxia", to: buildGalaxyUrl(civilizationId, systemId, planetId), state: "map" },
-      { label: "Mercado", to: buildMarketUrl(civilizationId, planetId), state: "readiness" },
-      { label: "Alianza", to: buildAllianceUrl(civilizationId), state: "readOnly" },
-      { label: "Ranking", to: buildRankingUrl(civilizationId), state: "readOnly" },
-      { label: "Espionaje", to: buildEspionageUrl(civilizationId, systemId, planetId), state: "readiness" },
+      { label: "Inicio", to: buildHomeUrl(shellCivilizationId, shellPlanetId), state: "playable" },
+      { label: "Construccion", to: buildConstructionUrl(shellCivilizationId, shellPlanetId), state: "playable" },
+      ...buildOrderedPlanetModuleSidebarItems(shellCivilizationId, shellPlanetId),
+      { label: "Flotas", to: buildFleetsUrl(shellCivilizationId, shellPlanetId), state: "readiness" },
+      { label: "Galaxia", to: buildGalaxyUrl(shellCivilizationId, shellSystemId, shellPlanetId), state: "map" },
+      { label: "Mercado", to: buildMarketUrl(shellCivilizationId, shellPlanetId), state: "readiness" },
+      { label: "Alianza", to: buildAllianceUrl(shellCivilizationId), state: "readOnly" },
+      { label: "Ranking", to: buildRankingUrl(shellCivilizationId), state: "readOnly" },
+      { label: "Espionaje", to: buildEspionageUrl(shellCivilizationId, shellSystemId, shellPlanetId), state: "readiness" },
     ];
-  }, [searchParams]);
+  }, [shellCivilizationId, shellPlanetId, shellSystemId]);
 
   const routeContent = (
     <Suspense fallback={<RouteLoadingFallback />}>
@@ -298,6 +299,20 @@ export default function App() {
       {routeContent}
     </GameLayout>
   );
+}
+
+function buildHomeUrl(civilizationId: string, planetId: string | null) {
+  const searchParams = new URLSearchParams();
+  if (civilizationId.trim()) {
+    searchParams.set("civilizationId", civilizationId.trim());
+  }
+
+  if (planetId?.trim()) {
+    searchParams.set("planetId", planetId.trim());
+  }
+
+  const query = searchParams.toString();
+  return query ? `/?${query}` : "/";
 }
 
 function buildOrderedPlanetModuleSidebarItems(civilizationId: string, planetId: string | null): SidebarNavItem[] {
