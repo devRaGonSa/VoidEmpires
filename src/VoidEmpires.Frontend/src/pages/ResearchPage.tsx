@@ -397,7 +397,7 @@ export function ResearchPage() {
           <div className="figma-section-header">
             <div>
               <p className="eyebrow">Contexto sospechoso</p>
-              <h3>El id de civilizacion no parece valido para esta vista.</h3>
+              <h3>La civilizacion activa no parece valida para esta vista.</h3>
             </div>
             <UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge>
           </div>

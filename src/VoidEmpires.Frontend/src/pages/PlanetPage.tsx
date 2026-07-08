@@ -448,7 +448,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
     const trimmedCivilizationId = civilizationIdInput.trim();
     if (!trimmedCivilizationId) {
-      setError("El id de civilizacion es obligatorio.");
+      setError("La civilizacion activa es obligatoria.");
       setUiState(null);
       return;
     }

@@ -3,7 +3,7 @@
 ---
 id: TASK-45K
 title: Copy guard core module clutter
-status: pending
+status: done
 type: quality
 team: platform
 supporting_teams: []

@@ -287,6 +287,45 @@ foreach ($match in @($visibleEndpointDetailMatches)) {
 $operatorOnlyComponentPattern = "\\src\\VoidEmpires.Frontend\\src\\components\\(ActionManifestPanel|DevDiagnosticsPanel|DevEndpointNotice|DevelopmentToolsPanel)\.tsx$"
 $productSurfaceFiles = $primaryUiFiles |
   Where-Object { $_.FullName -notmatch $operatorOnlyComponentPattern }
+$coreModuleCopyGuardRelativePaths = @(
+  "src\VoidEmpires.Frontend\src\pages\PlanetPage.tsx",
+  "src\VoidEmpires.Frontend\src\pages\ResearchPage.tsx",
+  "src\VoidEmpires.Frontend\src\pages\ShipyardPage.tsx",
+  "src\VoidEmpires.Frontend\src\pages\DefensesPage.tsx",
+  "src\VoidEmpires.Frontend\src\components\DefenseCatalogCard.tsx",
+  "src\VoidEmpires.Frontend\src\components\ResearchCatalogCard.tsx",
+  "src\VoidEmpires.Frontend\src\components\ShipyardCatalogCard.tsx",
+  "src\VoidEmpires.Frontend\src\utils\cockpitStatus.ts",
+  "src\VoidEmpires.Frontend\src\utils\defensePresentation.ts",
+  "src\VoidEmpires.Frontend\src\utils\defenseViewModel.ts",
+  "src\VoidEmpires.Frontend\src\utils\planetPresentation.ts",
+  "src\VoidEmpires.Frontend\src\utils\researchPresentation.ts",
+  "src\VoidEmpires.Frontend\src\utils\shipyardPresentation.ts",
+  "src\VoidEmpires.Frontend\src\utils\shipyardViewModel.ts"
+)
+$coreModuleCopyGuardFiles = $coreModuleCopyGuardRelativePaths |
+  ForEach-Object { [System.IO.Path]::GetFullPath((Join-Path $repoRoot $_)) } |
+  Where-Object { Test-Path -LiteralPath $_ }
+$coreModuleClutterPatterns = @(
+  "(?i)selecci[oó]n disponible",
+  "(?i)mundo guardado",
+  "(?i)uso local",
+  "(?i)lectura segura",
+  "(?i)cargar contexto",
+  "(?i)contexto cient[ií]fico",
+  "(?i)contexto defensivo",
+  "(?i)entrada de vista",
+  "(?i)abrir vista",
+  "(?i)abrir defensas",
+  "(?i)dashboard defensivo",
+  "(?i)que entra aqui",
+  "(?i)id de civilizaci[oó]n",
+  "(?i)id de planeta"
+)
+$coreModuleClutterMatches = Select-String -Path $coreModuleCopyGuardFiles -Pattern $coreModuleClutterPatterns -Encoding UTF8
+foreach ($match in @($coreModuleClutterMatches)) {
+  $copyHygieneFailures.Add(("{0}:{1}: forbidden core-module clutter copy detected in normal UI source: {2}" -f $match.Path, $match.LineNumber, $match.Line.Trim()))
+}
 $ogameLikeForbiddenNormalUiPatterns = @(
   "contexto guardado",
   "dar contexto",

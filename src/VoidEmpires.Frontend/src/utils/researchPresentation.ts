@@ -317,7 +317,7 @@ export function formatResearchCommandFailure(
   switch (technicalDetail) {
     case "Civilization id is required.":
       return {
-        primaryMessage: "Falta el id de civilizacion. Actualiza la vista o vuelve a entrar desde Galaxia.",
+        primaryMessage: "Falta la civilizacion activa. Actualiza la vista o vuelve a entrar desde Galaxia.",
         technicalDetail,
       };
     case "Civilization was not found.":

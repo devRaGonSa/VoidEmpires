@@ -16,7 +16,7 @@ export const cockpitStatusLabels = {
 export const cockpitNavigationLabels = {
   currentPlanet: "Abrir Planeta actual",
   openConstruction: "Abrir Construccion",
-  openDefenses: "Abrir Defensas",
+  openDefenses: "Ver Defensas",
   openFleets: "Abrir Flotas",
   openResearch: "Abrir Investigacion",
   openShipyard: "Abrir Astillero",

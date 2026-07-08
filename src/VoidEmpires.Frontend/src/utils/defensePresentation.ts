@@ -259,7 +259,7 @@ export function formatDefenseRequestFailure(rawError: string | null | undefined)
   switch (technicalDetail) {
     case "Civilization id is required.":
       return {
-        primaryMessage: "Falta el id de civilizacion para abrir Defensas.",
+        primaryMessage: "Falta la civilizacion activa para ver Defensas.",
         followUp: "Revisa el contexto antes de cargar la vista.",
         technicalDetail,
       };

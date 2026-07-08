@@ -157,6 +157,7 @@ export function DefensesPage() {
                 ))}
               </div>
             )}
+            <p className="figma-panel-note">Una orden visible confirma preparacion de construccion, no combate ni cierre automatico.</p>
           </UiCard>
 
           <UiCard className="panel">
@@ -198,7 +199,7 @@ export function DefensesPage() {
               </div>
               <UiBadge tone="warn">Preparacion limitada</UiBadge>
             </div>
-            <p className="figma-panel-note">No hay un contexto defensivo util para este planeta. La vista mantiene acceso, contexto y explicacion de limites.</p>
+            <p className="figma-panel-note">No hay un estado de defensas util para este planeta. La vista mantiene acceso, contexto y explicacion de limites.</p>
           </UiCard>
         ) : null
       )}
