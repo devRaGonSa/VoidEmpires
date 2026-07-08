@@ -1379,7 +1379,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                     </div>
                     <UiBadge>{actions.length} opciones</UiBadge>
                   </div>
-                  <div className="planet-action-grid">
+                  <div className="planet-action-grid construction-catalog-grid">
                     {actions.map((action) => {
                       const actionKey = `${action.action}-${action.buildingType}`;
                       const isPrepared = preparedActionKey === actionKey;

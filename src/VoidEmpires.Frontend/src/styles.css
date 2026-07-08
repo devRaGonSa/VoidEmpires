@@ -1073,6 +1073,10 @@ select {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.construction-catalog-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .planet-action-card,
 .planet-building-card {
   align-content: start;
@@ -3053,6 +3057,10 @@ select {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   }
 
+  .construction-catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .planet-action-facts {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
@@ -3131,6 +3139,10 @@ select {
   .planet-building-grid,
   .planet-queue-grid,
   .planet-action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .construction-catalog-grid {
     grid-template-columns: 1fr;
   }
 
