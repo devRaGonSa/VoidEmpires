@@ -3,12 +3,26 @@ $ErrorActionPreference = "Stop"
 
 $appPath = Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\App.tsx"
 $resolvedAppPath = [System.IO.Path]::GetFullPath($appPath)
+$publicAuthLayoutPath = Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\components\PublicAuthLayout.tsx"
+$resolvedPublicAuthLayoutPath = [System.IO.Path]::GetFullPath($publicAuthLayoutPath)
+$appShellPath = Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\components\ui\AppShell.tsx"
+$resolvedAppShellPath = [System.IO.Path]::GetFullPath($appShellPath)
 
 if (-not (Test-Path -LiteralPath $resolvedAppPath)) {
     throw "App route file was not found at '$resolvedAppPath'."
 }
 
+if (-not (Test-Path -LiteralPath $resolvedPublicAuthLayoutPath)) {
+    throw "Public auth layout file was not found at '$resolvedPublicAuthLayoutPath'."
+}
+
+if (-not (Test-Path -LiteralPath $resolvedAppShellPath)) {
+    throw "Game shell file was not found at '$resolvedAppShellPath'."
+}
+
 $appContent = Get-Content -LiteralPath $resolvedAppPath -Raw
+$publicAuthLayoutContent = Get-Content -LiteralPath $resolvedPublicAuthLayoutPath -Raw
+$appShellContent = Get-Content -LiteralPath $resolvedAppShellPath -Raw
 
 $protectedPages = @(
     "StrategicMapPage",
@@ -74,6 +88,52 @@ foreach ($pageName in $requiredLazyPages) {
 
 if ($missingLazyDefinitions.Count -gt 0) {
     throw "Expected lazy route definitions were not found in App.tsx for: $($missingLazyDefinitions -join ', ')."
+}
+
+$authShellViolations = New-Object System.Collections.Generic.List[string]
+$requiredPublicAuthPathFragments = @(
+    '"/login"',
+    '"/register"',
+    '"/registro"',
+    '"/onboarding"'
+)
+
+foreach ($pathFragment in $requiredPublicAuthPathFragments) {
+    if ($appContent -notmatch [Regex]::Escape($pathFragment)) {
+        $authShellViolations.Add("App.tsx must keep public auth route $pathFragment registered outside the game shell.")
+    }
+}
+
+if ($appContent -notmatch 'const\s+publicAuthPathnames\s*=\s*new\s+Set') {
+    $authShellViolations.Add("App.tsx must keep an explicit publicAuthPathnames set for standalone auth pages.")
+}
+
+if ($appContent -notmatch 'function\s+GameLayout\s*\(') {
+    $authShellViolations.Add("App.tsx must keep an explicit GameLayout wrapper for authenticated game pages.")
+}
+
+if ($appContent -notmatch '<AppShell\s+sidebarItems=\{sidebarItems\}\s+statusItems=\{statusItems\}') {
+    $authShellViolations.Add("GameLayout must render AppShell with sidebarItems and statusItems.")
+}
+
+if ($appContent -notmatch 'if\s*\(\s*isPublicAuthRoute\s*\|\|\s*shouldShowPublicAccountPrompt\s*\)\s*\{\s*return\s+<PublicAuthLayout>\{routeContent\}</PublicAuthLayout>;\s*\}') {
+    $authShellViolations.Add("Public auth routes and signed-out account prompts must render through PublicAuthLayout.")
+}
+
+if ($appContent -notmatch 'return\s*\(\s*<GameLayout\s+sidebarItems=\{sidebarItems\}\s+statusItems=\{shellStatusItems\}') {
+    $authShellViolations.Add("Authenticated game routes must render routeContent through GameLayout with sidebar and status items.")
+}
+
+if ($publicAuthLayoutContent -match '\b(AppShell|SidebarNav|TopStatusBar)\b|app-sidebar|top-status-bar|data-layout="game"') {
+    $authShellViolations.Add("PublicAuthLayout.tsx must stay standalone and must not import or render game shell/sidebar/resource bar elements.")
+}
+
+if ($appShellContent -notmatch 'data-layout="game"' -or $appShellContent -notmatch '<aside\s+className="app-sidebar"' -or $appShellContent -notmatch '<TopStatusBar') {
+    $authShellViolations.Add("AppShell.tsx must keep the game layout marker, sidebar, and top resource/status bar.")
+}
+
+if ($authShellViolations.Count -gt 0) {
+    throw "Frontend auth shell guard failed:`n$($authShellViolations -join [Environment]::NewLine)"
 }
 
 $routeGuardPages = @(
