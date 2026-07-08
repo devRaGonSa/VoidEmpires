@@ -150,6 +150,17 @@ export function getAssetImageKey(value: ShipyardValue) {
   return findAssetEntry(value)?.imageKey ?? null;
 }
 
+export function formatShipyardAssetEffect(value: ShipyardValue, fallback?: string | null) {
+  const catalogDescription = findAssetEntry(value)?.description;
+  const description = fallback?.trim() || catalogDescription;
+
+  if (description) {
+    return description;
+  }
+
+  return "Produccion orbital disponible desde el astillero.";
+}
+
 export function getAssetProductionStatusLabel(value: ShipyardValue) {
   return resolveCatalogLabel(value, assetProductionStatusCatalog, unknownStatusFallback);
 }

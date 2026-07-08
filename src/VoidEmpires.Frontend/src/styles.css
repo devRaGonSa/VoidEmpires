@@ -1288,6 +1288,38 @@ select {
   overflow-wrap: anywhere;
 }
 
+.shipyard-catalog-card-header {
+  align-items: flex-start;
+}
+
+.shipyard-catalog-card-primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--ve-color-accent-cyan) 18%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ve-color-bg) 58%, transparent);
+}
+
+.shipyard-catalog-card-primary span,
+.shipyard-catalog-card-primary strong {
+  min-width: 0;
+}
+
+.shipyard-catalog-card-details .figma-data-row {
+  grid-template-columns: minmax(86px, 0.44fr) minmax(0, 1fr);
+}
+
+.shipyard-catalog-card-effect {
+  margin: 0;
+}
+
+.shipyard-catalog-card .transfer-confirmation-actions button {
+  width: 100%;
+}
+
 .planet-action-card {
   gap: 12px;
   overflow: hidden;

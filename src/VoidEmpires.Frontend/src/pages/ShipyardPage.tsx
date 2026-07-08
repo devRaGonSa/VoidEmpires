@@ -654,20 +654,6 @@ export function ShipyardPage() {
           ) : null}
         </UiCard>
 
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Astillero orbital</p>
-              <h3>Que hace esta vista</h3>
-            </div>
-            <UiBadge tone="warn">Frontera visible</UiBadge>
-          </div>
-          <ul className="stack-list strategic-rules-list">
-            <li>Astillero orbital produce naves y conserva stock orbital.</li>
-            <li>Preparar escuadras pertenece a Flotas y queda fuera de esta vista.</li>
-            <li>La cola, el stock y los bloqueos deben mostrarse de forma honesta aunque falten acciones ejecutables.</li>
-          </ul>
-        </UiCard>
       </div>
 
       {isSuspiciousContext ? (
