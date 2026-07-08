@@ -16,7 +16,7 @@ import { CockpitHero } from "../components/CockpitHero";
 import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { DevelopmentToolsPanel } from "../components/DevelopmentToolsPanel";
 import { GameModal } from "../components/GameModal";
-import { PlaceholderAsset } from "../components/PlaceholderAsset";
+import { ConstructionCatalogCard } from "../components/ConstructionCatalogCard";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -27,7 +27,6 @@ import {
 import {
   formatBuildingType,
   formatConstructionAction,
-  formatConstructionActionButtonLabel,
   formatConstructionCommandFailure,
   formatConstructionEnqueueSuccess,
   formatConstructionAvailability,
@@ -35,7 +34,6 @@ import {
   formatConstructionRequestFailure,
   formatConstructionStatus,
   formatCompactResourceCost,
-  formatMissingPlanetResources,
   formatPlanetControlStatus,
   formatPlanetIdentity,
   formatPlanetOverviewLine,
@@ -471,6 +469,14 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
     nextParams.set("civilizationId", queryCivilizationId);
     nextParams.set("planetId", planetId);
     setSearchParams(nextParams);
+  }
+
+  function handlePrepareConstructionAction(actionKey: string) {
+    setPreparedActionKey(actionKey);
+    setHasConstructionAcknowledgement(false);
+    setConstructionFeedback(null);
+    setConstructionError(null);
+    setConstructionTechnicalDetail(null);
   }
 
   async function handleConstructionSubmit() {
@@ -1377,92 +1383,18 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                     {actions.map((action) => {
                       const actionKey = `${action.action}-${action.buildingType}`;
                       const isPrepared = preparedActionKey === actionKey;
-                      const isAvailable = action.availabilityStatus === "Available";
-                      const actionButtonLabel = formatConstructionActionButtonLabel(
-                        action.availabilityStatus,
-                        isPrepared,
-                      );
-                      const missingResources = formatMissingPlanetResources(planet.stockpile, action.cost);
-                      const buildingLabel = action.display?.buildingTypeLabel ?? formatBuildingType(action.buildingType);
                       const categoryLabel = action.display?.categoryLabel ?? getPlanetModuleLabel(module.key as PlanetModule);
-                      const availabilityLabel =
-                        action.display?.availabilityLabel ?? formatConstructionAvailability(action.availabilityStatus);
-                      const requirementLabel = action.availabilityStatus === "InsufficientResources" && missingResources
-                        ? missingResources
-                        : action.display?.availabilityReasonLabel ?? action.availabilityReason;
-                      const currentLevelLabel = action.currentLevel > 0
-                        ? `Nivel ${action.currentLevel}`
-                        : "Sin construir";
 
                       return (
-                        <article
+                        <ConstructionCatalogCard
                           key={actionKey}
-                          className={`subpanel figma-subpanel planet-action-card${
-                            isAvailable ? "" : " planet-action-card-blocked"
-                          }`}
-                        >
-                          <div className="figma-section-header">
-                            <div>
-                              <p className="eyebrow">{isAvailable ? "Lista para ordenar" : "Requisito pendiente"}</p>
-                              <h4>{buildingLabel}</h4>
-                            </div>
-                            <UiBadge tone={isAvailable ? "good" : "warn"}>
-                              {availabilityLabel}
-                            </UiBadge>
-                          </div>
-                          <PlaceholderAsset
-                            kind="building"
-                            label={buildingLabel}
-                            typeLabel={categoryLabel}
-                            detail={`${currentLevelLabel}. Proxima obra: nivel ${action.targetLevel}.`}
-                          />
-                          <div className="planet-action-facts">
-                            <div className="planet-action-stat">
-                              <span>Estado</span>
-                              <strong>{availabilityLabel}</strong>
-                            </div>
-                            <div className="planet-action-stat">
-                              <span>Nivel actual</span>
-                              <strong>{currentLevelLabel}</strong>
-                            </div>
-                            <div className="planet-action-stat">
-                              <span>Nivel objetivo</span>
-                              <strong>Nivel {action.targetLevel}</strong>
-                            </div>
-                            <div className="planet-action-stat">
-                              <span>Duracion</span>
-                              <strong>{formatDuration(action.estimatedDuration)}</strong>
-                            </div>
-                          </div>
-                          <div className="planet-action-cost-block">
-                            <span>Coste de obra</span>
-                            <strong>{formatCompactResourceCost(action.cost)}</strong>
-                          </div>
-                          <div className="planet-action-requirements">
-                            <span>Requisitos</span>
-                            <strong>{requirementLabel}</strong>
-                          </div>
-                          <div className="transfer-confirmation-actions">
-                            <button
-                              type="button"
-                              className={isAvailable ? "" : "planet-action-button-blocked"}
-                              onClick={() => {
-                                if (!isAvailable) {
-                                  return;
-                                }
-
-                                setPreparedActionKey(actionKey);
-                                setHasConstructionAcknowledgement(false);
-                                setConstructionFeedback(null);
-                                setConstructionError(null);
-                                setConstructionTechnicalDetail(null);
-                              }}
-                              disabled={!isAvailable}
-                            >
-                              {isAvailable && !isPrepared ? "Revisar orden" : actionButtonLabel}
-                            </button>
-                          </div>
-                        </article>
+                          action={action}
+                          actionKey={actionKey}
+                          categoryLabel={categoryLabel}
+                          isPrepared={isPrepared}
+                          stockpile={planet.stockpile}
+                          onPrepare={handlePrepareConstructionAction}
+                        />
                       );
                     })}
                   </div>
