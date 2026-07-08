@@ -42,9 +42,9 @@ const constructionAvailabilityLabels: Record<string, string> = {
   Available: "Disponible",
   Blocked: "Cola no disponible",
   MissingResourceStockpile: "Sin reservas",
-  MissingCapacityData: "Requisito pendiente",
-  CapacityExceeded: "Requisito pendiente",
-  InsufficientResources: "Faltan recursos",
+  MissingCapacityData: "Sin campos disponibles",
+  CapacityExceeded: "Sin campos disponibles",
+  InsufficientResources: "Recursos insuficientes",
   Unsupported: "No disponible",
 };
 
@@ -386,13 +386,13 @@ export function formatConstructionActionButtonLabel(
 
   switch (availabilityStatus) {
     case "InsufficientResources":
-      return "Faltan recursos";
+      return "Recursos insuficientes";
     case "CapacityExceeded":
-      return "Requisito pendiente";
+      return "Sin campos disponibles";
     case "MissingResourceStockpile":
       return "Sin reservas";
     case "MissingCapacityData":
-      return "Requisito pendiente";
+      return "Sin campos disponibles";
     case "Blocked":
       return "Cola no disponible";
     case "Unsupported":

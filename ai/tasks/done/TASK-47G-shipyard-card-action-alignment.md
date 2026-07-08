@@ -3,7 +3,7 @@
 ---
 id: TASK-47G
 title: Align shipyard card quantity actions
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
@@ -47,4 +47,3 @@ Shipyard cards currently have uneven vertical placement for quantity and action 
 ## Validation
 
 - npm run build --prefix src/VoidEmpires.Frontend
-

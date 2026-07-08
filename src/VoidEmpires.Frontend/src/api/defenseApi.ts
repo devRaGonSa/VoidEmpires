@@ -6,6 +6,7 @@ const planetaryDefenseAssetTypeMap: Record<string, number> = {
   MissileBattery: 10,
   LaserTurret: 11,
   IonCannon: 12,
+  PlasmaCannon: 13,
 };
 
 function buildUrl(path: string, query?: Record<string, string>) {

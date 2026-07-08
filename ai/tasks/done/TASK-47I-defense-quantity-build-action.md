@@ -3,7 +3,7 @@
 ---
 id: TASK-47I
 title: Defense quantity build action
-status: pending
+status: done
 type: fullstack
 team: frontend
 supporting_teams: [backend]
@@ -54,4 +54,3 @@ Defense production is wired through planetary asset production and must be expos
 - dotnet build --no-restore
 - dotnet test --no-build
 - npm run build --prefix src/VoidEmpires.Frontend
-

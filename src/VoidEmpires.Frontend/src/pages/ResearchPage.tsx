@@ -628,7 +628,7 @@ export function ResearchPage() {
           <p className="figma-panel-note">
             {preparedResearch.availability.reasonKey === "Ready"
               ? "La investigacion esta lista para entrar en cola cuando confirmes."
-              : `Requisito pendiente: ${preparedResearch.availability.reasonLabel}.`}
+              : `Requisito no cumplido: ${preparedResearch.availability.reasonLabel}.`}
           </p>
           <ul className="stack-list compact-list">
             <li>El coste indicado se descuenta cuando la orden queda aceptada.</li>

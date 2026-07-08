@@ -140,8 +140,8 @@ const researchCategoryCatalog: LabelCatalog = {
 };
 
 const researchStatusCatalog: LabelCatalog = {
-  names: { Available: "Disponible", InResearch: "En investigacion", Pending: "En investigacion", Active: "En investigacion", Completed: "Completada", Blocked: "Bloqueada", Cancelled: "Bloqueada", InsufficientResources: "Recursos insuficientes", RequirementPending: "Requisito pendiente", NotAvailableInThisBuild: "No disponible en esta build" },
-  numbers: { 1: "Disponible", 2: "En investigacion", 3: "Completada", 4: "Bloqueada", 5: "Recursos insuficientes", 6: "Requisito pendiente", 7: "No disponible en esta build" },
+  names: { Available: "Disponible", InResearch: "En investigacion", Pending: "En investigacion", Active: "En investigacion", Completed: "Completada", Blocked: "Bloqueada", Cancelled: "Bloqueada", InsufficientResources: "Recursos insuficientes", RequirementPending: "Requisito no cumplido", NotAvailableInThisBuild: "No disponible en esta build" },
+  numbers: { 1: "Disponible", 2: "En investigacion", 3: "Completada", 4: "Bloqueada", 5: "Recursos insuficientes", 6: "Requisito no cumplido", 7: "No disponible en esta build" },
 };
 
 const researchRequirementCatalog: LabelCatalog = {
@@ -259,7 +259,7 @@ export function getResearchStatusLabel(value: ResearchValue, fallback = "Estado 
   return resolveLabel(value, researchStatusCatalog, fallback, true);
 }
 
-export function getResearchRequirementLabel(value: ResearchValue, fallback = "Requisito pendiente de clasificar") {
+export function getResearchRequirementLabel(value: ResearchValue, fallback = "Requisito no cumplido") {
   return resolveLabel(value, researchRequirementCatalog, fallback, true);
 }
 

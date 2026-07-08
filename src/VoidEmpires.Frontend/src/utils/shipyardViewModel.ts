@@ -141,7 +141,7 @@ const availabilityReasonLabels: Record<string, string> = {
   PlanetIsNotOwned: "Planeta fuera de control",
   OpenProductionOrderExists: "Ya existe una orden orbital abierta",
   MissingResourceStockpile: "Sin reservas locales",
-  MissingRequiredBuilding: "Falta infraestructura orbital",
+  MissingRequiredBuilding: "Requiere Astillero",
   MissingPopulationProfile: "Sin perfil de tripulacion",
   InsufficientResources: "Recursos insuficientes",
   InsufficientOperatorCapacity: "Tripulacion insuficiente",
@@ -154,6 +154,20 @@ const availabilityReasonLabels: Record<string, string> = {
 
 function getAvailabilityReasonLabel(value: string) {
   return availabilityReasonLabels[value] ?? value;
+}
+
+const requiredBuildingLabels: Record<string, string> = {
+  FleetCommandCenter: "Mando de flota",
+  LogisticsHub: "Centro logistico",
+  Shipyard: "Astillero",
+};
+
+function formatRequiredBuildingLabel(requirement: ShipyardRequirement) {
+  const label = requiredBuildingLabels[requirement.buildingType] ?? requirement.buildingType;
+
+  return requirement.buildingLevel > 0
+    ? `Requiere ${label} nivel ${requirement.buildingLevel}`
+    : `Requiere ${label}`;
 }
 
 function normalizeAssetType(value: string | number | null | undefined) {
@@ -171,6 +185,14 @@ function mapAssetOption(item: ShipyardAssetOptionDto): ShipyardAssetOption {
   const assetType = normalizeAssetType(item.assetType);
   const metadata = item.metadata;
   const categoryKey = metadata?.categoryKey ?? getAssetCategoryLabel(assetType);
+  const requirements = {
+    buildingType: `${item.requiredBuildingType ?? ""}`,
+    buildingLevel: item.requiredBuildingLevel,
+    operatorCapacity: item.requiredOperatorCapacity,
+  };
+  const reasonLabel = item.availabilityReason === "MissingRequiredBuilding"
+    ? formatRequiredBuildingLabel(requirements)
+    : getAvailabilityReasonLabel(item.availabilityReason);
 
   return {
     assetType,
@@ -184,15 +206,11 @@ function mapAssetOption(item: ShipyardAssetOptionDto): ShipyardAssetOption {
     statusKey: item.availabilityStatus,
     statusLabel: item.availabilityStatus === "Available" ? "Disponible" : "Bloqueada",
     reasonKey: item.availabilityReason,
-    reasonLabel: getAvailabilityReasonLabel(item.availabilityReason),
+    reasonLabel,
     currentStock: item.currentStock,
     estimatedDurationLabel: formatAssetProductionDuration(item.estimatedDuration),
     estimatedCostLabel: formatAssetProductionCost(item.cost),
-    requirements: {
-      buildingType: `${item.requiredBuildingType ?? ""}`,
-      buildingLevel: item.requiredBuildingLevel,
-      operatorCapacity: item.requiredOperatorCapacity,
-    },
+    requirements,
     cost: mapCost(item.cost),
     enqueueCommand: item.enqueueCommand
       ? {

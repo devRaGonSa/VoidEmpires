@@ -128,19 +128,20 @@ const reasonLabels: Record<string, string> = {
   "Ready for explicit development confirmation.": "Lista para abrir Construccion",
   "Planet already has an open construction order.": "La cola de Construccion ya tiene una obra abierta",
   "Planet resource stockpile was not found.": "La colonia no expone reservas locales utilizables",
-  "Planet building capacity was not found.": "La colonia no expone capacidad defensiva suficiente",
-  "Planet building capacity would be exceeded.": "La capacidad planetaria impediria esta fortificacion",
-  "Insufficient resources.": "No hay recursos suficientes en la colonia",
+  "Planet building capacity was not found.": "Sin campos disponibles",
+  "Planet building capacity would be exceeded.": "Sin campos disponibles",
+  "Insufficient resources.": "Recursos insuficientes",
   "Planet is not controlled by the requesting civilization.": "La colonia no esta bajo control local",
-  MissingRequiredBuilding: "Falta malla defensiva o nivel requerido",
+  MissingRequiredBuilding: "Requiere Malla defensiva",
   InsufficientPopulationCapacity: "Capacidad local insuficiente",
-  InsufficientResources: "No hay recursos suficientes en la colonia",
+  InsufficientResources: "Recursos insuficientes",
 };
 
 const unitDefenseAssetTypes: Record<string, string> = {
   MissileBattery: "MissileBattery",
   LaserTurret: "LaserTurret",
   IonCannon: "IonCannon",
+  PlasmaCannon: "PlasmaCannon",
 };
 
 function getDefenseProductionModel(buildingType: string): "unit" | "level" {
@@ -235,9 +236,9 @@ function mapOption(item: DefenseOptionDto, stockpile: DefenseCost[], metadataByB
       : item.availabilityReason === "Planet is not controlled by the requesting civilization."
         ? "Defensas solo revisa colonias propias en esta fase"
         : item.availabilityReason === "Planet building capacity was not found."
-          ? "La build actual no expone una capacidad defensiva valida para esta colonia"
+          ? "Sin campos disponibles"
           : item.availabilityReason === "Planet building capacity would be exceeded."
-            ? "La fortificacion superaria la capacidad planetaria visible"
+            ? "Sin campos disponibles"
             : item.availabilityReason === "Planet resource stockpile was not found."
               ? "No hay reservas locales suficientes para validar esta preparacion"
         : null,

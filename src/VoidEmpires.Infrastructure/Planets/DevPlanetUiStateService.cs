@@ -523,7 +523,7 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                         action,
                         buildingType,
                         "MissingCapacityData",
-                        "No se encontro la capacidad de edificios del planeta."),
+                        "Sin campos disponibles."),
                     CreateBuildingMetadata(buildingType));
             }
 
@@ -543,7 +543,7 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                         action,
                         buildingType,
                         "CapacityExceeded",
-                        "La capacidad de edificios del planeta se agotaria."),
+                        "Sin campos disponibles."),
                     CreateBuildingMetadata(buildingType));
             }
         }
@@ -568,7 +568,7 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                     action,
                     buildingType,
                     "InsufficientResources",
-                    "No hay recursos suficientes."),
+                    "Recursos insuficientes."),
                 CreateBuildingMetadata(buildingType));
         }
 
@@ -669,8 +669,8 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
         "Available" => "Disponible",
         "Blocked" => "Bloqueada",
         "MissingResourceStockpile" => "Sin reservas",
-        "MissingCapacityData" => "Sin capacidad",
-        "CapacityExceeded" => "Capacidad agotada",
+        "MissingCapacityData" => "Sin campos disponibles",
+        "CapacityExceeded" => "Sin campos disponibles",
         "InsufficientResources" => "Recursos insuficientes",
         "Unsupported" => "No disponible",
         _ => availabilityStatus

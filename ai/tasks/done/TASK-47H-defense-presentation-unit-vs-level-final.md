@@ -3,7 +3,7 @@
 ---
 id: TASK-47H
 title: Finalize defense unit versus level presentation
-status: pending
+status: done
 type: fullstack
 team: frontend
 supporting_teams: [backend]
@@ -52,4 +52,3 @@ Unit-based defenses should behave like production items, while explicitly specia
 - dotnet build --no-restore
 - dotnet test --no-build
 - npm run build --prefix src/VoidEmpires.Frontend
-

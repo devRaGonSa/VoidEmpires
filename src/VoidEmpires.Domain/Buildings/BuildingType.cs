@@ -20,5 +20,6 @@ public enum BuildingType
     MissileBattery = 16,
     LaserTurret = 17,
     IonCannon = 18,
-    PlanetaryShield = 19
+    PlanetaryShield = 19,
+    PlasmaCannon = 20
 }

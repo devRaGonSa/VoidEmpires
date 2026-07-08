@@ -63,6 +63,14 @@ const defenseStructureCatalog: readonly DefenseStructurePresentationEntry[] = [
     readinessLabel: "Defensa pesada lista para preparar",
   },
   {
+    key: "PlasmaCannon",
+    label: "Canon de plasma",
+    categoryKey: "Defense",
+    categoryLabel: "Proteccion planetaria",
+    readinessKey: "ConstructionReady",
+    readinessLabel: "Defensa pesada lista para preparar",
+  },
+  {
     key: "PlanetaryShield",
     label: "Escudo planetario",
     categoryKey: "Defense",

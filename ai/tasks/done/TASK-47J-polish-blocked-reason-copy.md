@@ -3,7 +3,7 @@
 ---
 id: TASK-47J
 title: Polish blocked reason copy
-status: pending
+status: done
 type: fullstack
 team: frontend
 supporting_teams: [backend]
@@ -26,19 +26,24 @@ Blocked reasons should be concise, card-local, and tied to real requirements.
 
 ## Files to read first
 
-- src/VoidEmpires.Infrastructure/Services/DevConstructionUiStateService.cs
-- src/VoidEmpires.Infrastructure/Services/DevDefenseUiStateService.cs
+- src/VoidEmpires.Infrastructure/Planets/DevPlanetUiStateService.cs
+- src/VoidEmpires.Infrastructure/Planets/DevDefenseUiStateService.cs
 - src/VoidEmpires.Frontend/src/pages/ShipyardPage.tsx
 - src/VoidEmpires.Frontend/src/pages/DefensesPage.tsx
+- src/VoidEmpires.Frontend/src/utils/planetPresentation.ts
+- src/VoidEmpires.Frontend/src/utils/shipyardViewModel.ts
+- src/VoidEmpires.Frontend/src/utils/defenseViewModel.ts
 - scripts/check-frontend-copy-regressions.ps1
 
 ## Expected files to modify
 
-- src/VoidEmpires.Infrastructure/Services/DevConstructionUiStateService.cs
-- src/VoidEmpires.Infrastructure/Services/DevDefenseUiStateService.cs
-- src/VoidEmpires.Frontend/src/pages/ShipyardPage.tsx
-- src/VoidEmpires.Frontend/src/pages/DefensesPage.tsx
-- scripts/check-frontend-copy-regressions.ps1
+- src/VoidEmpires.Infrastructure/Planets/DevPlanetUiStateService.cs
+- src/VoidEmpires.Infrastructure/Planets/DevDefenseUiStateService.cs
+- src/VoidEmpires.Frontend/src/utils/planetPresentation.ts
+- src/VoidEmpires.Frontend/src/utils/shipyardViewModel.ts
+- src/VoidEmpires.Frontend/src/utils/defenseViewModel.ts
+- src/VoidEmpires.Frontend/src/utils/researchPresentation.ts
+- src/VoidEmpires.Frontend/src/pages/ResearchPage.tsx
 
 ## Acceptance criteria
 
@@ -53,4 +58,3 @@ Blocked reasons should be concise, card-local, and tied to real requirements.
 
 - npm run build --prefix src/VoidEmpires.Frontend
 - powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-frontend-copy-regressions.ps1
-

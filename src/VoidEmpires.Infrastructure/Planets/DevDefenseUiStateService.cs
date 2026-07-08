@@ -17,7 +17,8 @@ public sealed class DevDefenseUiStateService(
     [
         PlanetaryAssetType.MissileBattery,
         PlanetaryAssetType.LaserTurret,
-        PlanetaryAssetType.IonCannon
+        PlanetaryAssetType.IonCannon,
+        PlanetaryAssetType.PlasmaCannon
     ];
 
     private static readonly BuildingType[] LevelBasedDefenseTypes =
@@ -229,7 +230,7 @@ public sealed class DevDefenseUiStateService(
                         buildingDefinition.DisplayName,
                         "Defensa planetaria",
                         status == "Available" ? "Disponible" : "Bloqueada",
-                        GetUnitReasonLabel(reason)),
+                        GetUnitReasonLabel(reason, definition)),
                     new DevPlanetBuildingMetadataDto(
                         buildingDefinition.DisplayName,
                         buildingDefinition.Description,
@@ -319,12 +320,12 @@ public sealed class DevDefenseUiStateService(
         return ("Available", "Ready for explicit development confirmation.");
     }
 
-    private static string GetUnitReasonLabel(string reason) => reason switch
+    private static string GetUnitReasonLabel(string reason, PlanetaryAssetDefinition definition) => reason switch
     {
         "Ready for explicit development confirmation." => "Lista para produccion",
         "Planet already has an open asset production order." => "La cola defensiva ya tiene una orden abierta",
         "Planet population profile was not found." => "Falta perfil de poblacion local",
-        "MissingRequiredBuilding" => "Falta malla defensiva o nivel requerido",
+        "MissingRequiredBuilding" => $"Requiere {BuildingCatalog.Get(definition.Requirement.RequiredBuildingType).DisplayName} nivel {definition.Requirement.RequiredBuildingLevel}",
         "InsufficientPopulationCapacity" => "Capacidad local insuficiente",
         "InsufficientResources" => "Recursos insuficientes",
         _ => reason
@@ -335,7 +336,7 @@ public sealed class DevDefenseUiStateService(
         PlanetaryAssetType.MissileBattery => BuildingType.MissileBattery,
         PlanetaryAssetType.LaserTurret => BuildingType.LaserTurret,
         PlanetaryAssetType.IonCannon => BuildingType.IonCannon,
-        PlanetaryAssetType.PlasmaCannon => BuildingType.IonCannon,
+        PlanetaryAssetType.PlasmaCannon => BuildingType.PlasmaCannon,
         _ => BuildingType.MissileBattery
     };
 

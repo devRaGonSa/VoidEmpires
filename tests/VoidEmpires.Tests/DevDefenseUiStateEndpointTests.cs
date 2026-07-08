@@ -91,7 +91,7 @@ public class DevDefenseUiStateEndpointTests(WebApplicationFactory<Program> facto
         Assert.Equal("Aurelia", payload.UiState.Defenses.PlanetName);
         Assert.True(payload.UiState.Defenses.IsOwnedByRequestingCivilization);
         Assert.NotEmpty(payload.UiState.Defenses.ResourceStockpile);
-        Assert.Equal(5, payload.UiState.Defenses.Catalog.Count);
+        Assert.Equal(6, payload.UiState.Defenses.Catalog.Count);
         var defenseCatalogRow = Assert.Single(
             payload.UiState.Defenses.Catalog,
             x => x.BuildingType == BuildingType.DefenseGrid);
@@ -103,15 +103,20 @@ public class DevDefenseUiStateEndpointTests(WebApplicationFactory<Program> facto
         Assert.Contains(payload.UiState.Defenses.Catalog, x => x.BuildingType == BuildingType.MissileBattery);
         Assert.Contains(payload.UiState.Defenses.Catalog, x => x.BuildingType == BuildingType.LaserTurret);
         Assert.Contains(payload.UiState.Defenses.Catalog, x => x.BuildingType == BuildingType.IonCannon);
+        Assert.Contains(payload.UiState.Defenses.Catalog, x => x.BuildingType == BuildingType.PlasmaCannon);
         Assert.Contains(payload.UiState.Defenses.Catalog, x => x.BuildingType == BuildingType.PlanetaryShield);
         Assert.Single(payload.UiState.Defenses.DefenseStructures);
         Assert.Equal(BuildingType.DefenseGrid, payload.UiState.Defenses.DefenseStructures[0].BuildingType);
-        Assert.Equal(5, payload.UiState.Defenses.DefenseOptions.Count);
+        Assert.Equal(6, payload.UiState.Defenses.DefenseOptions.Count);
         var missileBattery = Assert.Single(payload.UiState.Defenses.DefenseOptions, x => x.BuildingType == BuildingType.MissileBattery);
         Assert.Equal(0, missileBattery.CurrentLevel);
         Assert.Equal(1, missileBattery.TargetLevel);
         Assert.Equal("Construir", missileBattery.Display?.ActionLabel);
         Assert.Contains("production", missileBattery.Metadata?.DurationPolicyKey, StringComparison.OrdinalIgnoreCase);
+        var plasmaCannon = Assert.Single(payload.UiState.Defenses.DefenseOptions, x => x.BuildingType == BuildingType.PlasmaCannon);
+        Assert.Equal(0, plasmaCannon.CurrentLevel);
+        Assert.Equal(1, plasmaCannon.TargetLevel);
+        Assert.Contains("production", plasmaCannon.Metadata?.DurationPolicyKey, StringComparison.OrdinalIgnoreCase);
         Assert.Contains(payload.UiState.Defenses.DefenseOptions, x => x.BuildingType == BuildingType.DefenseGrid);
         Assert.Contains(payload.UiState.Defenses.DefenseOptions, x => x.BuildingType == BuildingType.PlanetaryShield);
         Assert.Contains("unit production", payload.UiState.Defenses.Diagnostics.Notes[1], StringComparison.OrdinalIgnoreCase);
@@ -136,7 +141,7 @@ public class DevDefenseUiStateEndpointTests(WebApplicationFactory<Program> facto
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(payload?.UiState?.Defenses);
-        Assert.Equal(5, payload.UiState.Defenses.DefenseOptions.Count);
+        Assert.Equal(6, payload.UiState.Defenses.DefenseOptions.Count);
         Assert.Contains(payload.UiState.Defenses.DefenseOptions, option =>
             option.BuildingType == BuildingType.MissileBattery &&
             option.AvailabilityReason == "MissingRequiredBuilding");
@@ -144,7 +149,7 @@ public class DevDefenseUiStateEndpointTests(WebApplicationFactory<Program> facto
             option.BuildingType == BuildingType.PlanetaryShield &&
             option.AvailabilityStatus == "InsufficientResources");
         Assert.Equal(0, payload.UiState.Defenses.ProtectionSummary.AvailableOptionCount);
-        Assert.Equal(5, payload.UiState.Defenses.ProtectionSummary.BlockedOptionCount);
+        Assert.Equal(6, payload.UiState.Defenses.ProtectionSummary.BlockedOptionCount);
     }
 
     [Fact]
@@ -162,6 +167,58 @@ public class DevDefenseUiStateEndpointTests(WebApplicationFactory<Program> facto
         Assert.Empty(payload.UiState.Defenses.DefenseStructures);
         Assert.Empty(payload.UiState.Defenses.DefenseOptions);
         Assert.Contains(payload.UiState.Defenses.Diagnostics.Notes, x => x.Contains("non-owned", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task DefenseProductionEnqueueCreatesPlanetaryUnitOrderAndRefreshesDefenseQueue()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        using var configuredFactory = factory.WithInMemoryPersistence(databaseName: databaseName);
+        using var client = configuredFactory.CreateClient();
+
+        using var seedResponse = await client.PostAsJsonAsync("/api/dev/seeds/apply", new { profile = "cockpit-validation" });
+        Assert.Equal(HttpStatusCode.OK, seedResponse.StatusCode);
+
+        using (var scope = configuredFactory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+            var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == SeedOwnedPlanetId);
+            stockpile.Increase(ResourceType.Metal, 1_000m);
+            stockpile.Increase(ResourceType.Crystal, 500m);
+            stockpile.Increase(ResourceType.Gas, 100m);
+            await dbContext.SaveChangesAsync();
+        }
+
+        using var enqueueResponse = await client.PostAsJsonAsync("/api/dev/assets/production/enqueue", new
+        {
+            civilizationId = SeedCivilizationId,
+            planetId = SeedOwnedPlanetId,
+            target = AssetProductionTarget.Planetary,
+            planetaryAssetType = PlanetaryAssetType.MissileBattery,
+            quantity = 2,
+            requestedAtUtc = "2026-01-01T12:00:00Z",
+        });
+
+        Assert.Equal(HttpStatusCode.Created, enqueueResponse.StatusCode);
+
+        using var defenseStateResponse = await client.GetAsync($"/api/dev/defenses/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var defensePayload = await defenseStateResponse.Content.ReadFromJsonAsync<DevDefenseUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, defenseStateResponse.StatusCode);
+        Assert.NotNull(defensePayload?.UiState?.Defenses);
+        var queueItem = Assert.Single(defensePayload.UiState.Defenses.DefenseQueue);
+        Assert.Equal(BuildingType.MissileBattery, queueItem.BuildingType);
+        Assert.Equal(2, queueItem.TargetLevel);
+        Assert.Equal("Construir", queueItem.Display?.ActionLabel);
+
+        using var verificationScope = configuredFactory.Services.CreateScope();
+        var verificationDb = verificationScope.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
+        var order = await verificationDb.Set<AssetProductionOrder>().SingleAsync(x =>
+            x.PlanetId == SeedOwnedPlanetId &&
+            x.Target == AssetProductionTarget.Planetary &&
+            x.PlanetaryAssetType == PlanetaryAssetType.MissileBattery &&
+            x.Status == AssetProductionOrderStatus.Active);
+        Assert.Equal(2, order.Quantity);
     }
 
     private HttpClient CreateConfiguredClient(VoidEmpiresDbContext dbContext) =>

@@ -1299,8 +1299,8 @@ select {
 }
 
 .shipyard-catalog-card {
-  display: grid;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -1342,10 +1342,24 @@ select {
 }
 
 .shipyard-catalog-card-effect {
+  flex: 1;
   margin: 0;
 }
 
+.shipyard-catalog-card .transfer-confirmation-actions {
+  display: grid;
+  grid-template-columns: minmax(92px, 0.8fr) minmax(0, 1fr);
+  align-items: end;
+  margin-top: auto;
+  min-height: 70px;
+}
+
+.shipyard-quantity-field {
+  min-width: 0;
+}
+
 .shipyard-catalog-card .transfer-confirmation-actions button {
+  min-height: 44px;
   width: 100%;
 }
 
