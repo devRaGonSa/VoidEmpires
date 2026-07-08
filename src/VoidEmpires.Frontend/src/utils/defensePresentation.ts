@@ -186,6 +186,15 @@ export function getDefenseActionLabel(value: DefenseValue) {
   return resolveCatalogLabel(value, defenseActionCatalog, unknownActionFallback);
 }
 
+export function formatDefenseOptionEffect(value: DefenseValue) {
+  const structure = findDefenseStructure(value);
+  if (!structure) {
+    return "Fortificacion defensiva visible para la colonia seleccionada.";
+  }
+
+  return structure.readinessLabel;
+}
+
 export function formatDefenseCost(
   cost: ReadonlyArray<{ resourceType: DefenseValue; quantity: number }>,
   fallback = "Sin coste defensivo visible",

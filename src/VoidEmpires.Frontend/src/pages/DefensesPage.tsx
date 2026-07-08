@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchDefensesUiState } from "../api/defenseApi";
 import { CockpitHero } from "../components/CockpitHero";
-import { PlaceholderAsset } from "../components/PlaceholderAsset";
+import { DefenseCatalogCard } from "../components/DefenseCatalogCard";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
@@ -16,7 +16,6 @@ import {
   type DefensesViewModel,
 } from "../utils/defenseViewModel";
 import {
-  buildConstructionUrl,
   buildDefensesUrl,
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
@@ -284,31 +283,6 @@ export function DefensesPage() {
           ) : null}
         </UiCard>
 
-        <UiCard className="panel">
-          <div className="figma-section-header">
-            <div>
-              <p className="eyebrow">Limite actual</p>
-              <h3>Que pertenece aqui</h3>
-            </div>
-            <UiBadge tone="warn">{cockpitStatusLabels.preparation}</UiBadge>
-          </div>
-          <ul className="stack-list strategic-rules-list">
-            <li>Preparacion de proteccion planetaria y estado de estructuras defensivas.</li>
-            <li>Contexto de recursos, cola y capacidad para futuras fortificaciones.</li>
-            <li>Explicacion clara de limites y enlace hacia Construccion, Astillero y Flotas.</li>
-          </ul>
-          <div className="figma-section-header module-boundary-spacer">
-            <div>
-              <p className="eyebrow">Fuera de alcance</p>
-              <h4>Sin combate activo</h4>
-            </div>
-          </div>
-          <ul className="stack-list strategic-rules-list">
-            <li>Esta build no ejecuta combate, intercepcion, dano, bombardeo ni invasion.</li>
-            <li>La infraestructura general sigue perteneciendo a Construccion.</li>
-            <li>La movilidad y el stock orbital siguen perteneciendo a Flotas y Astillero.</li>
-          </ul>
-        </UiCard>
       </div>
 
       {isSuspiciousContext ? (
@@ -459,39 +433,13 @@ export function DefensesPage() {
               <UiBadge tone={availableOptions.length > 0 ? "good" : "neutral"}>{availableOptions.length}</UiBadge>
             </div>
             {availableOptions.length > 0 ? (
-              <div className="readiness-grid">
+              <div className="readiness-grid defense-catalog-grid">
                 {availableOptions.map((option) => (
-                  <article key={`${option.buildingType}-${option.targetLevel}`} className="subpanel figma-subpanel">
-                    <div className="figma-section-header">
-                      <div>
-                        <p className="eyebrow">{option.categoryLabel}</p>
-                        <h4>{option.structureLabel}</h4>
-                      </div>
-                      <UiBadge tone="good">{getProductDefenseStatusLabel(option.statusKey, option.statusLabel)}</UiBadge>
-                    </div>
-                    <PlaceholderAsset
-                      kind="defense"
-                      label={option.structureLabel}
-                      typeLabel={option.categoryLabel}
-                      detail={`Preparacion a nivel ${option.targetLevel}.`}
-                    />
-                    <div className="figma-data-list">
-                      <div className="figma-data-row"><span>Accion</span><strong>{option.actionLabel}</strong></div>
-                      <div className="figma-data-row"><span>Objetivo</span><strong>Nivel {option.targetLevel}</strong></div>
-                      <div className="figma-data-row"><span>Coste</span><strong>{option.estimatedCostLabel}</strong></div>
-                      <div className="figma-data-row"><span>Duracion</span><strong>{option.estimatedDurationLabel}</strong></div>
-                    </div>
-                    <p>{option.reasonLabel}</p>
-                    <p className="figma-panel-note">Reservas de {defenses.planetName}. La preparacion visible se confirma desde Construccion antes de enviar cualquier orden.</p>
-                    <div className="selection-chip-row">
-                      <Link className="planet-action-button-secondary planet-action-handoff" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
-                        Abrir Construccion
-                      </Link>
-                      <span className="planet-action-handoff-message">
-                        Produccion defensiva pendiente
-                      </span>
-                    </div>
-                  </article>
+                  <DefenseCatalogCard
+                    key={`${option.buildingType}-${option.targetLevel}`}
+                    option={option}
+                    hasProductionAction={hasSafeDefenseEnqueue}
+                  />
                 ))}
               </div>
             ) : (
@@ -514,37 +462,13 @@ export function DefensesPage() {
               <UiBadge tone={blockedOptions.length > 0 ? "warn" : "neutral"}>{blockedOptions.length}</UiBadge>
             </div>
             {blockedOptions.length > 0 ? (
-              <div className="readiness-grid">
+              <div className="readiness-grid defense-catalog-grid">
                 {blockedOptions.map((option) => (
-                  <article key={`${option.buildingType}-${option.targetLevel}`} className="subpanel figma-subpanel figma-mini-card-warn">
-                    <div className="figma-section-header">
-                      <div>
-                        <p className="eyebrow">{option.categoryLabel}</p>
-                        <h4>{option.structureLabel}</h4>
-                      </div>
-                      <UiBadge tone="warn">{getProductDefenseStatusLabel(option.statusKey, option.statusLabel)}</UiBadge>
-                    </div>
-                    <PlaceholderAsset
-                      kind="defense"
-                      label={option.structureLabel}
-                      typeLabel={option.categoryLabel}
-                      detail={`Preparacion a nivel ${option.targetLevel}.`}
-                    />
-                    <div className="figma-data-list">
-                      <div className="figma-data-row"><span>Accion</span><strong>{option.actionLabel}</strong></div>
-                      <div className="figma-data-row"><span>Objetivo</span><strong>Nivel {option.targetLevel}</strong></div>
-                      <div className="figma-data-row"><span>Coste</span><strong>{option.estimatedCostLabel}</strong></div>
-                      <div className="figma-data-row"><span>Duracion</span><strong>{option.estimatedDurationLabel}</strong></div>
-                    </div>
-                    <p>{option.reasonLabel}</p>
-                    {option.affordabilityLabel ? <p className="figma-panel-note">{option.affordabilityLabel}</p> : null}
-                    {option.requirementLabel ? <p className="figma-panel-note">{option.requirementLabel}</p> : null}
-                    <div className="selection-chip-row">
-                      <span className="planet-action-handoff-message">
-                        {option.statusKey === "Unsupported" ? "Produccion defensiva pendiente de activacion" : "Bloqueada para esta colonia"}
-                      </span>
-                    </div>
-                  </article>
+                  <DefenseCatalogCard
+                    key={`${option.buildingType}-${option.targetLevel}`}
+                    option={option}
+                    hasProductionAction={hasSafeDefenseEnqueue}
+                  />
                 ))}
               </div>
             ) : (
@@ -562,40 +486,6 @@ export function DefensesPage() {
             {optionGroups.length === 0 ? (
               <p className="figma-panel-note">El catalogo defensivo aun no tiene mas opciones para esta colonia. La vista conserva el contexto y explica el limite con honestidad.</p>
             ) : null}
-          </UiCard>
-
-          <UiCard className="panel">
-            <div className="figma-section-header">
-              <div>
-                <p className="eyebrow">Ejecucion segura</p>
-                <h3>Como se trata cada accion visible</h3>
-                <p>Defensas no duplica el flujo de confirmacion de Construccion en esta build. La vista clasifica cada opcion y aplica el tratamiento seguro correspondiente.</p>
-              </div>
-              <UiBadge tone="warn">Sin accion local</UiBadge>
-            </div>
-            <div className="readiness-grid">
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">{cockpitStatusLabels.available}</p>
-                    <h4>Enviar a Construccion</h4>
-                  </div>
-                  <UiBadge tone="good">{availableOptions.length}</UiBadge>
-                </div>
-                <p>Las preparaciones viables se revisan aqui, pero la confirmacion de produccion sigue perteneciendo a Construccion.</p>
-                {!hasSafeDefenseEnqueue ? <p className="figma-panel-note">Defensas todavia no activa produccion propia. La confirmacion defensiva se deriva de Construccion.</p> : null}
-              </section>
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">{cockpitStatusLabels.blocked}</p>
-                    <h4>Sin accion inmediata</h4>
-                  </div>
-                  <UiBadge tone="warn">{blockedOptions.length}</UiBadge>
-                </div>
-                <p>Las opciones bloqueadas permanecen visibles con motivo explicito y sin senales enganosas de confirmacion.</p>
-              </section>
-            </div>
           </UiCard>
 
           <UiCard className="panel">

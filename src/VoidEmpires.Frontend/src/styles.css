@@ -1320,6 +1320,59 @@ select {
   width: 100%;
 }
 
+.defense-catalog-grid {
+  align-items: stretch;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.defense-catalog-card {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.defense-catalog-card-blocked {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ve-color-panel-2) 76%, transparent), color-mix(in srgb, var(--ve-color-panel) 94%, transparent));
+  border-color: color-mix(in srgb, var(--ve-color-warning) 18%, transparent);
+}
+
+.defense-catalog-card h4,
+.defense-catalog-card strong,
+.defense-catalog-card p {
+  overflow-wrap: anywhere;
+}
+
+.defense-catalog-card-header {
+  align-items: flex-start;
+}
+
+.defense-catalog-card-primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--ve-color-accent-cyan) 18%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ve-color-bg) 58%, transparent);
+}
+
+.defense-catalog-card-primary span,
+.defense-catalog-card-primary strong {
+  min-width: 0;
+}
+
+.defense-catalog-card-details .figma-data-row {
+  grid-template-columns: minmax(78px, 0.42fr) minmax(0, 1fr);
+}
+
+.defense-catalog-card-effect {
+  margin: 0;
+}
+
 .planet-action-card {
   gap: 12px;
   overflow: hidden;
@@ -3188,6 +3241,10 @@ select {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .defense-catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .planet-action-facts {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
@@ -3278,6 +3335,10 @@ select {
   }
 
   .shipyard-catalog-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .defense-catalog-grid {
     grid-template-columns: 1fr;
   }
 
