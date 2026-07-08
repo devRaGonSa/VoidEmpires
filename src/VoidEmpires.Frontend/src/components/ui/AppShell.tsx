@@ -107,7 +107,7 @@ export function AppShell({
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-layout="game">
       <a className="skip-link" href="#main-content">
         Saltar al contenido principal
       </a>

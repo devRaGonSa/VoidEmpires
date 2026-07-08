@@ -1,10 +1,11 @@
-import { Suspense, lazy, useMemo, type ReactElement } from "react";
+import { Suspense, lazy, useMemo, type ReactElement, type ReactNode } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { AuthRequiredState } from "./components/AuthRequiredState";
 import { PublicAuthLayout } from "./components/PublicAuthLayout";
 import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
 import { AppShell } from "./components/ui/AppShell";
 import type { SidebarNavItem } from "./components/ui/SidebarNav";
+import type { TopBarStatusItem } from "./components/ui/TopResourceBar";
 import { isOperatorMode } from "./utils/playableSession";
 import { specializedPlanetModuleRoutes, type PlanetModuleRouteInfo } from "./utils/planetModuleRoutes";
 import {
@@ -184,6 +185,23 @@ function requireAccount(element: ReactElement) {
   return <AuthRequiredState>{element}</AuthRequiredState>;
 }
 
+interface GameLayoutProps {
+  children: ReactNode;
+  sidebarItems: SidebarNavItem[];
+  statusItems: TopBarStatusItem[];
+}
+
+function GameLayout({ children, sidebarItems, statusItems }: GameLayoutProps) {
+  return (
+    <AppShell
+      sidebarItems={sidebarItems}
+      statusItems={statusItems}
+    >
+      {children}
+    </AppShell>
+  );
+}
+
 export default function App() {
   const location = useLocation();
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
@@ -273,12 +291,12 @@ export default function App() {
   }
 
   return (
-    <AppShell
-      sidebarItems={[...sidebarItems]}
+    <GameLayout
+      sidebarItems={sidebarItems}
       statusItems={shellStatusItems}
     >
       {routeContent}
-    </AppShell>
+    </GameLayout>
   );
 }
 
