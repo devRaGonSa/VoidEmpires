@@ -139,6 +139,31 @@ export function formatBuildingType(value: PlanetValue) {
   return resolveCatalogLabel(value, planetBuildingTypeCatalog);
 }
 
+export function formatConstructionBuildingEffect(value: PlanetValue) {
+  const entry = findCatalogEntry(value, planetBuildingTypeCatalog);
+
+  switch (entry?.key) {
+    case "CommandCenter":
+      return "Amplia la base administrativa de la colonia.";
+    case "MetalMine":
+      return "Aumenta la entrada de metal para nuevas obras.";
+    case "CrystalMine":
+      return "Refuerza la produccion de cristal para progreso tecnico.";
+    case "GasExtractor":
+      return "Mejora el suministro de gas para sistemas avanzados.";
+    case "SolarPlant":
+      return "Sostiene la energia necesaria para crecer.";
+    case "HabitationDistrict":
+      return "Eleva la capacidad de poblacion local.";
+    case "MedicalCenter":
+      return "Estabiliza el crecimiento y soporte civil.";
+    case "LogisticsHub":
+      return "Mejora soporte, flujo y capacidad logistica.";
+    default:
+      return "Prepara la colonia para el siguiente nivel de desarrollo.";
+  }
+}
+
 export function formatBuildingCategory(value: PlanetValue) {
   return resolveCatalogLabel(value, planetBuildingCategoryCatalog, "Otras");
 }

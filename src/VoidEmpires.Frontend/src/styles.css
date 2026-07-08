@@ -1077,6 +1077,39 @@ select {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.construction-catalog-card {
+  gap: 12px;
+  min-width: 0;
+}
+
+.construction-catalog-card-header {
+  align-items: flex-start;
+}
+
+.construction-catalog-card-primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--ve-color-accent-cyan) 18%, transparent);
+  border-radius: var(--ve-radius-sm);
+  background: color-mix(in srgb, var(--ve-color-panel-2) 72%, transparent);
+}
+
+.construction-catalog-card-primary span,
+.construction-catalog-card-primary strong {
+  min-width: 0;
+}
+
+.construction-catalog-card-details .figma-data-row {
+  grid-template-columns: minmax(74px, 0.42fr) minmax(0, 1fr);
+}
+
+.construction-catalog-card-effect {
+  margin: 0;
+}
+
 .planet-action-card,
 .planet-building-card {
   align-content: start;

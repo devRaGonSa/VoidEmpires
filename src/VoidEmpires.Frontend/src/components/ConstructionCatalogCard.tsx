@@ -1,11 +1,11 @@
 import type { PlanetConstructionActionDto, PlanetResourceBalanceDto } from "../api/planetTypes";
-import { PlaceholderAsset } from "./PlaceholderAsset";
 import { UiBadge } from "./ui/UiBadge";
 import {
   formatBuildingType,
   formatCompactResourceCost,
   formatConstructionActionButtonLabel,
   formatConstructionAvailability,
+  formatConstructionBuildingEffect,
   formatMissingPlanetResources,
 } from "../utils/planetPresentation";
 
@@ -69,21 +69,19 @@ export function ConstructionCatalogCard({
           {availabilityLabel}
         </UiBadge>
       </div>
-      <PlaceholderAsset
-        kind="building"
-        label={buildingLabel}
-        typeLabel={categoryLabel}
-        detail={`${currentLevelLabel}. Proxima obra: nivel ${action.targetLevel}.`}
-      />
       <div className="construction-catalog-card-primary">
         <span>{currentLevelLabel}</span>
-        <strong>Nivel {action.targetLevel}</strong>
+        <strong>{isAvailable ? "Lista para revisar" : "Bloqueada"}</strong>
       </div>
       <div className="figma-data-list construction-catalog-card-details">
+        <div className="figma-data-row"><span>Objetivo</span><strong>Nivel {action.targetLevel}</strong></div>
         <div className="figma-data-row"><span>Coste</span><strong>{formatCompactResourceCost(action.cost)}</strong></div>
         <div className="figma-data-row"><span>Duracion</span><strong>{formatDuration(action.estimatedDuration)}</strong></div>
         <div className="figma-data-row"><span>Requisito</span><strong>{requirementLabel}</strong></div>
       </div>
+      <p className="figma-panel-note construction-catalog-card-effect">
+        {formatConstructionBuildingEffect(action.buildingType)}
+      </p>
       <div className="transfer-confirmation-actions">
         <button
           type="button"
