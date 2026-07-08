@@ -3,7 +3,7 @@
 ---
 id: TASK-47F
 title: Verify basic construction availability
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: [frontend]
@@ -53,4 +53,3 @@ Starting construction must keep real requirements while allowing core economy/en
 - dotnet build --no-restore
 - dotnet test --no-build
 - npm run build --prefix src/VoidEmpires.Frontend
-

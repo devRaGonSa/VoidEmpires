@@ -119,9 +119,7 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                 .SingleOrDefaultAsync(x => x.PlanetId == selectedPlanet.Planet.Id, cancellationToken)
             : null;
         var buildingCapacity = isOwnedByRequestingCivilization
-            ? await dbContext.Set<PlanetBuildingCapacity>()
-                .AsNoTracking()
-                .SingleOrDefaultAsync(x => x.PlanetId == selectedPlanet.Planet.Id, cancellationToken)
+            ? await EnsureBuildingCapacityAsync(selectedPlanet.Planet, cancellationToken)
             : null;
         var buildings = isOwnedByRequestingCivilization
             ? await dbContext.Set<PlanetBuilding>()
@@ -282,6 +280,24 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
             CreateStockpileEntry(ResourceType.Crystal, stockpile.Crystal),
             CreateStockpileEntry(ResourceType.Gas, stockpile.Gas)
         ];
+
+    private async Task<PlanetBuildingCapacity> EnsureBuildingCapacityAsync(
+        Planet planet,
+        CancellationToken cancellationToken)
+    {
+        var buildingCapacity = await dbContext.Set<PlanetBuildingCapacity>()
+            .SingleOrDefaultAsync(x => x.PlanetId == planet.Id, cancellationToken);
+
+        if (buildingCapacity is not null)
+        {
+            return buildingCapacity;
+        }
+
+        buildingCapacity = PlanetBuildingCapacityDefaults.CreateForPlanet(planet);
+        dbContext.Set<PlanetBuildingCapacity>().Add(buildingCapacity);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return buildingCapacity;
+    }
 
     private static DevPlanetResourceBalanceDto CreateStockpileEntry(ResourceType resourceType, decimal quantity) =>
         new(resourceType, quantity, Math.Max(BaselineResourceCapacity, quantity));

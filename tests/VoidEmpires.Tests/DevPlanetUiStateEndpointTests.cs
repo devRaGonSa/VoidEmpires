@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Development;
 using VoidEmpires.Application.Planets;
+using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Infrastructure.Development;
 using VoidEmpires.Infrastructure.Persistence;
@@ -91,6 +92,33 @@ public class DevPlanetUiStateEndpointTests(WebApplicationFactory<Program> factor
         Assert.Contains(payload.UiState.Planet.ConstructionActions, x => x.Display?.ActionLabel is "Construir" or "Mejorar");
         Assert.Equal("Disponible", payload.UiState.Planet.ActionSummary.Display?.QueueActionStatusLabel);
         Assert.False(payload.UiState.Planet.ActionSummary.CompleteDueSupported);
+    }
+
+    [Fact]
+    public async Task PlanetUiStateRepairsMissingBuildingCapacityForOwnedPlanet()
+    {
+        await using var dbContext = CreateSeededDbContext();
+        var ownedPlanetId = Guid.Parse(SeedOwnedPlanetId);
+        var staleCapacity = await dbContext.PlanetBuildingCapacities.SingleAsync(x => x.PlanetId == ownedPlanetId);
+        dbContext.PlanetBuildingCapacities.Remove(staleCapacity);
+        await dbContext.SaveChangesAsync();
+
+        using var client = CreateConfiguredClient(dbContext);
+
+        using var response = await client.GetAsync($"/api/dev/planets/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var payload = await response.Content.ReadFromJsonAsync<DevPlanetUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.UiState?.Planet);
+        Assert.NotNull(payload.UiState.Planet.BuildingCapacity);
+        Assert.True(payload.UiState.Planet.Diagnostics.HasBuildingCapacity);
+        Assert.DoesNotContain(
+            payload.UiState.Planet.ConstructionActions,
+            action => action.AvailabilityStatus == "MissingCapacityData");
+        Assert.Contains(
+            payload.UiState.Planet.ConstructionActions,
+            action => action.BuildingType == BuildingType.MetalMine && action.AvailabilityStatus == "Available");
+        Assert.True(await dbContext.PlanetBuildingCapacities.AnyAsync(x => x.PlanetId == ownedPlanetId));
     }
 
     [Fact]

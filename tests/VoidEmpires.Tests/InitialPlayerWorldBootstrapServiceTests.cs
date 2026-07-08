@@ -4,6 +4,7 @@ using VoidEmpires.Application.Players;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Infrastructure.Development;
 using VoidEmpires.Infrastructure.Persistence;
+using VoidEmpires.Infrastructure.Planets;
 using VoidEmpires.Infrastructure.Players;
 
 namespace VoidEmpires.Tests;
@@ -59,6 +60,42 @@ public class InitialPlayerWorldBootstrapServiceTests
                 definition.Cost.Metal,
                 definition.Cost.Crystal,
                 definition.Cost.Gas));
+        }
+    }
+
+    [Fact]
+    public async Task CreateAsyncHomePlanetEvaluatesConstructionCatalogWithCapacity()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new InitialPlayerWorldBootstrapService(dbContext);
+
+        var result = await service.CreateAsync(ValidRequest());
+
+        Assert.True(result.Succeeded);
+        Assert.NotNull(result.CivilizationId);
+        Assert.NotNull(result.HomePlanetId);
+
+        var uiState = await new DevPlanetUiStateService(dbContext).GetAsync(
+            new(result.CivilizationId.Value, result.HomePlanetId.Value));
+
+        Assert.NotNull(uiState.Planet);
+        Assert.NotNull(uiState.Planet.BuildingCapacity);
+        Assert.Equal(0, uiState.Planet.BuildingCapacity.UsedCapacity);
+        Assert.DoesNotContain(
+            uiState.Planet.ConstructionActions,
+            action => action.AvailabilityStatus == "MissingCapacityData");
+
+        foreach (var buildingType in new[]
+        {
+            BuildingType.MetalMine,
+            BuildingType.CrystalMine,
+            BuildingType.GasExtractor,
+            BuildingType.SolarPlant
+        })
+        {
+            Assert.Contains(
+                uiState.Planet.ConstructionActions,
+                action => action.BuildingType == buildingType && action.AvailabilityStatus == "Available");
         }
     }
 

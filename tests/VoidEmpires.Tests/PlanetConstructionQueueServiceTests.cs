@@ -3,6 +3,7 @@ using VoidEmpires.Application.Buildings;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Economy;
+using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Infrastructure.Buildings;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -178,6 +179,37 @@ public class PlanetConstructionQueueServiceTests
         Assert.Empty(db.PlanetConstructionOrders);
         Assert.Equal(metalBefore, stockpile.Metal);
         Assert.Equal(crystalBefore, stockpile.Crystal);
+    }
+
+    [Fact]
+    public async Task EnqueueAsyncRepairsMissingBuildingCapacityForOwnedPlanet()
+    {
+        await using var db = CreateDb();
+        var planet = Planet.Create(Guid.NewGuid(), "Terra", 1, PlanetType.Terran, 118, PlanetColonizationStatus.Colonized);
+        var civilizationId = Guid.NewGuid();
+        var requestedAtUtc = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
+        var stockpile = PlanetResourceStockpile.Create(planet.Id);
+        stockpile.Increase(ResourceType.Metal, 100);
+        stockpile.Increase(ResourceType.Crystal, 100);
+
+        db.Planets.Add(planet);
+        db.PlanetResourceStockpiles.Add(stockpile);
+        db.PlanetOwnerships.Add(PlanetOwnership.Create(planet.Id, civilizationId));
+        await db.SaveChangesAsync();
+
+        var service = new PlanetConstructionQueueService(db);
+
+        var result = await service.EnqueueAsync(new EnqueueConstructionOrderRequest(
+            planet.Id,
+            civilizationId,
+            ConstructionQueueItemAction.Construct,
+            BuildingType.MetalMine,
+            requestedAtUtc));
+
+        Assert.True(result.Succeeded);
+        Assert.Single(db.PlanetConstructionOrders);
+        var capacity = await db.PlanetBuildingCapacities.SingleAsync(x => x.PlanetId == planet.Id);
+        Assert.Equal(120, capacity.BaseCapacity);
     }
 
     private static VoidEmpiresDbContext CreateDb()

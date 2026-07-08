@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Buildings;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Colonization;
+using VoidEmpires.Domain.Galaxy;
 using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -90,13 +91,7 @@ public sealed class PlanetConstructionQueueService(VoidEmpiresDbContext dbContex
 
         if (request.Action == ConstructionQueueItemAction.Construct)
         {
-            var capacity = await dbContext.PlanetBuildingCapacities
-                .SingleOrDefaultAsync(x => x.PlanetId == request.PlanetId, cancellationToken);
-
-            if (capacity is null)
-            {
-                return EnqueueConstructionOrderResult.Failure("Planet building capacity was not found.");
-            }
+            var capacity = await EnsureBuildingCapacityAsync(request.PlanetId, cancellationToken);
 
             var usedCapacity = await dbContext.PlanetBuildings
                 .Where(x => x.PlanetId == request.PlanetId)
@@ -147,5 +142,27 @@ public sealed class PlanetConstructionQueueService(VoidEmpiresDbContext dbContex
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return EnqueueConstructionOrderResult.Success(order.Id, startsAtUtc, endsAtUtc);
+    }
+
+    private async Task<PlanetBuildingCapacity> EnsureBuildingCapacityAsync(
+        Guid planetId,
+        CancellationToken cancellationToken)
+    {
+        var capacity = await dbContext.PlanetBuildingCapacities
+            .SingleOrDefaultAsync(x => x.PlanetId == planetId, cancellationToken);
+
+        if (capacity is not null)
+        {
+            return capacity;
+        }
+
+        var planetSize = await dbContext.Set<Planet>()
+            .Where(x => x.Id == planetId)
+            .Select(x => x.Size)
+            .SingleAsync(cancellationToken);
+
+        capacity = PlanetBuildingCapacityDefaults.Create(planetId, planetSize);
+        dbContext.PlanetBuildingCapacities.Add(capacity);
+        return capacity;
     }
 }

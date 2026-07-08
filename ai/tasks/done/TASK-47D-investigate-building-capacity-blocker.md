@@ -3,7 +3,7 @@
 ---
 id: TASK-47D
 title: Investigate missing building capacity blocker
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: [frontend]
@@ -50,4 +50,3 @@ The card message "No se encontro la capacidad de edificios del planeta" is a fun
 
 - dotnet build --no-restore
 - dotnet test --no-build
-

@@ -3,7 +3,7 @@
 ---
 id: TASK-47E
 title: Fix starting planet building capacity
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: []
@@ -52,4 +52,3 @@ Basic construction must be playable on a newly registered home planet without mi
 
 - dotnet build --no-restore
 - dotnet test --no-build
-
