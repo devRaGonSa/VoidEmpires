@@ -3,7 +3,7 @@
 ---
 id: TASK-45M
 title: Docs current state update
-status: pending
+status: done
 type: documentation
 team: platform
 supporting_teams: []
