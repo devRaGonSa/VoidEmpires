@@ -1107,12 +1107,19 @@ select {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
-.construction-catalog-grid {
+.construction-catalog-grid,
+.research-tech-grid,
+.shipyard-catalog-grid,
+.defense-catalog-grid {
+  align-items: stretch;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.construction-catalog-card {
-  gap: 12px;
+.construction-catalog-card,
+.research-tech-card,
+.shipyard-catalog-card,
+.defense-catalog-card {
+  gap: 10px;
   min-width: 0;
 }
 
@@ -1161,13 +1168,8 @@ select {
   align-content: start;
 }
 
-.research-tech-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
 .research-tech-card {
   display: grid;
-  gap: 12px;
   align-content: start;
   overflow: hidden;
   transition:
@@ -1296,16 +1298,9 @@ select {
   overflow-wrap: anywhere;
 }
 
-.shipyard-catalog-grid {
-  align-items: stretch;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
 .shipyard-catalog-card {
   display: grid;
-  gap: 12px;
   align-content: start;
-  min-width: 0;
   overflow: hidden;
 }
 
@@ -1354,16 +1349,9 @@ select {
   width: 100%;
 }
 
-.defense-catalog-grid {
-  align-items: stretch;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
 .defense-catalog-card {
   display: grid;
-  gap: 12px;
   align-content: start;
-  min-width: 0;
   overflow: hidden;
 }
 

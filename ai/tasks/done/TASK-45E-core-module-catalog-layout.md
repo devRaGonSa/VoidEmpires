@@ -3,7 +3,7 @@
 ---
 id: TASK-45E
 title: Core module catalog layout
-status: pending
+status: done
 type: frontend
 team: platform
 supporting_teams: []
