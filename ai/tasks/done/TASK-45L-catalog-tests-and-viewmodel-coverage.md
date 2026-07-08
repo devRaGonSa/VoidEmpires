@@ -3,7 +3,7 @@
 ---
 id: TASK-45L
 title: Catalog tests and viewmodel coverage
-status: pending
+status: done
 type: test
 team: platform
 supporting_teams: []

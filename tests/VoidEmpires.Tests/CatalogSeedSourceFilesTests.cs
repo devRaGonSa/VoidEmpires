@@ -1,4 +1,5 @@
 using System.Text.Json;
+using VoidEmpires.Application.Seeding;
 using VoidEmpires.Infrastructure.SeedData.CatalogSources;
 
 namespace VoidEmpires.Tests;
@@ -35,6 +36,28 @@ public class CatalogSeedSourceFilesTests
             Assert.False(string.IsNullOrWhiteSpace(row.DisplayName));
             Assert.False(string.IsNullOrWhiteSpace(row.Description));
             Assert.True(!string.IsNullOrWhiteSpace(row.ImageKey) || !string.IsNullOrWhiteSpace(row.IconKey));
+        });
+    }
+
+    [Theory]
+    [InlineData("buildings.catalog.json")]
+    [InlineData("research.catalog.json")]
+    [InlineData("orbital-assets.catalog.json")]
+    [InlineData("defenses.catalog.json")]
+    public void CoreModuleCatalogSourceFilesExposeAtLeastFourSafeRows(string fileName)
+    {
+        var rows = LoadCatalogRows(fileName);
+
+        Assert.True(rows.Count >= 4, $"Expected '{fileName}' to expose at least four catalog entries.");
+        Assert.All(rows, row =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(row.CategoryKey));
+            Assert.False(string.IsNullOrWhiteSpace(row.CategoryLabel));
+            Assert.False(string.IsNullOrWhiteSpace(row.ModuleKey));
+            Assert.False(string.IsNullOrWhiteSpace(row.ModuleLabel));
+            Assert.DoesNotContain("fake", row.Description, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("mock", row.Description, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("placeholder", row.Description, StringComparison.OrdinalIgnoreCase);
         });
     }
 
@@ -109,5 +132,21 @@ public class CatalogSeedSourceFilesTests
         }
 
         throw new DirectoryNotFoundException("Could not locate the repository root from the test output directory.");
+    }
+
+    private IReadOnlyList<CatalogSeedSourceEntry> LoadCatalogRows(string fileName)
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var filePath = Path.Combine(
+            repositoryRoot,
+            "src",
+            "VoidEmpires.Infrastructure",
+            "SeedData",
+            "CatalogSources",
+            fileName);
+
+        Assert.True(File.Exists(filePath), $"Expected catalog seed source file '{fileName}' to exist in the repository catalog-source folder.");
+
+        return loader.LoadFile(filePath);
     }
 }
