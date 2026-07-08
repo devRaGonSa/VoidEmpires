@@ -21,7 +21,7 @@ import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { isOperatorMode } from "../utils/playableSession";
-import { buildConstructionUrl, buildFleetsUrl, buildGalaxyUrl, buildPlanetUrl, buildResearchUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
+import { buildPlanetUrl, buildResearchUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
 
 function formatDateTime(value: string) {
@@ -726,22 +726,6 @@ export function ResearchPage() {
             <p className="figma-panel-note">
               Esta accion no esta disponible desde Investigacion en esta version porque el cierre seguro todavia no esta acotado al contexto visible.
             </p>
-          </UiCard>
-
-          <UiCard className="panel">
-            <div className="figma-section-header">
-              <div>
-                <p className="eyebrow">Navegacion</p>
-                <h3>Siguientes cabinas</h3>
-              </div>
-              <UiBadge tone="warn">Contexto conservado</UiBadge>
-            </div>
-            <div className="selection-chip-row">
-              <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>Volver a Planeta</Link>
-              <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>Abrir Construccion</Link>
-              {selectedPlanetId ? <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>Abrir Flotas</Link> : null}
-              <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, null, selectedPlanetId)}>Volver a Galaxia</Link>
-            </div>
           </UiCard>
 
           {operatorMode ? (

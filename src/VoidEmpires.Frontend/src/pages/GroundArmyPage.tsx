@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { fetchGroundArmyUiState } from "../api/groundArmyApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { PlanetDataRow } from "../components/PlanetModuleLayout";
@@ -7,8 +7,8 @@ import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { formatGroundArmyRequestFailure } from "../utils/groundArmyPresentation";
 import { groupGroundOptionsByCategory, mapGroundArmyUiStateToViewModel, selectRecommendedGroundArmyAction } from "../utils/groundArmyViewModel";
-import { cockpitNavigationLabels, cockpitStatusLabels } from "../utils/cockpitStatus";
-import { buildConstructionUrl, buildDefensesUrl, buildFleetsUrl, buildGalaxyUrl, buildPlanetUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
+import { cockpitStatusLabels } from "../utils/cockpitStatus";
+import { isSuspiciousCabinContext } from "../utils/routeUrls";
 import { formatCompactGuid } from "../utils/domainPresentation";
 
 function getGroundPosture(viewModel: ReturnType<typeof mapGroundArmyUiStateToViewModel>["groundArmy"]) {
@@ -250,10 +250,6 @@ export function GroundArmyPage() {
             <PlanetDataRow label="Coste" value={recommendedOption.estimatedCostLabel} />
             <PlanetDataRow label="Duracion" value={recommendedOption.estimatedDurationLabel} />
           </div>
-          <div className="selection-chip-row">
-            <Link className="planet-action-button-secondary planet-action-handoff" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>Abrir Construccion</Link>
-            <Link className="planet-action-button-secondary planet-action-handoff" to={buildDefensesUrl(activeCivilizationId, selectedPlanetId)}>Abrir Defensas</Link>
-          </div>
           <p className="figma-panel-note">
             {recommendedOption.statusKey === "Available"
               ? "La opcion esta preparada para revision, pero la confirmacion directa sigue pendiente hasta que exista una via terrestre dedicada."
@@ -267,16 +263,6 @@ export function GroundArmyPage() {
         <UiCard className="panel"><div className="figma-section-header"><div><p className="eyebrow">Contexto sospechoso</p><h3>El identificador de civilizacion no parece valido para esta cabina.</h3></div><UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge></div><p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p></UiCard>
       ) : null}
 
-      <UiCard className="panel">
-        <div className="figma-section-header"><div><p className="eyebrow">Navegacion</p><h3>{cockpitNavigationLabels.relatedCabins}</h3></div><UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge></div>
-        <div className="readiness-grid">
-          <section className="subpanel figma-subpanel"><div className="figma-section-header"><div><p className="eyebrow">Planeta</p><h4>Volver al resumen</h4></div></div><p className="figma-panel-note">Usa Planeta para ver el contexto general de la colonia antes de entrar en una cabina especializada.</p><Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>{cockpitNavigationLabels.returnToPlanet}</Link></section>
-          <section className="subpanel figma-subpanel"><div className="figma-section-header"><div><p className="eyebrow">Construccion</p><h4>Infraestructura militar</h4></div></div><p className="figma-panel-note">Barracones, academia y logistica terrestre siguen anclados a Construccion cuando pertenecen a obra e infraestructura.</p><Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>{cockpitNavigationLabels.openConstruction}</Link></section>
-          <section className="subpanel figma-subpanel"><div className="figma-section-header"><div><p className="eyebrow">Defensas</p><h4>Proteccion planetaria</h4></div></div><p className="figma-panel-note">Defensas mantiene cobertura, fortificacion y proteccion. Ground Army no resuelve escudos ni defensa activa.</p><Link className="selection-chip" to={buildDefensesUrl(activeCivilizationId, selectedPlanetId)}>{cockpitNavigationLabels.openDefenses}</Link></section>
-          <section className="subpanel figma-subpanel"><div className="figma-section-header"><div><p className="eyebrow">Flotas</p><h4>Movimiento orbital</h4></div></div><p className="figma-panel-note">Flotas mantiene movimiento, transferencias y contexto orbital. Ejercito de Tierra no lanza transporte ni invasion.</p><Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>{cockpitNavigationLabels.openFleets}</Link></section>
-          <section className="subpanel figma-subpanel"><div className="figma-section-header"><div><p className="eyebrow">Galaxia</p><h4>Contexto estrategico</h4></div></div><p className="figma-panel-note">Galaxia sigue siendo lectura estrategica de alto nivel. Esta cabina solo prepara la disposicion terrestre local.</p><Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, undefined, selectedPlanetId ?? undefined)}>{cockpitNavigationLabels.returnToGalaxy}</Link></section>
-        </div>
-      </UiCard>
     </section>
   );
 }

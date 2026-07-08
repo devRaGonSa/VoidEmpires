@@ -18,15 +18,10 @@ import {
   type ShipyardViewModel,
 } from "../utils/shipyardViewModel";
 import {
-  buildConstructionUrl,
-  buildFleetsUrl,
-  buildGalaxyUrl,
-  buildPlanetUrl,
-  buildResearchUrl,
   buildShipyardUrl,
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
-import { cockpitNavigationLabels, cockpitStatusLabels } from "../utils/cockpitStatus";
+import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { isOperatorMode } from "../utils/playableSession";
 import { formatResourceAmountList, formatResourceDelta, formatResourceLabel } from "../utils/resourceDisplay";
 import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
@@ -1124,14 +1119,6 @@ export function ShipyardPage() {
                 </ul>
               </section>
             </div>
-            <div className="selection-chip-row">
-              <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
-                Abrir Flotas
-              </Link>
-              <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
-                Ver grupos orbitales
-              </Link>
-            </div>
           </UiCard>
         </>
       ) : (
@@ -1169,11 +1156,6 @@ export function ShipyardPage() {
               <div className="figma-data-row"><span>Delta de recursos</span><strong>{enqueueRefreshAudit.resourceDelta.length > 0 ? enqueueRefreshAudit.resourceDelta.join(" · ") : "Sin cambios visibles"}</strong></div>
             </div>
           ) : null}
-          <div className="selection-chip-row">
-            <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
-              Ver preparacion en Flotas
-            </Link>
-          </div>
         </UiCard>
       ) : null}
       {enqueueError ? (
@@ -1260,33 +1242,6 @@ export function ShipyardPage() {
           ) : null}
         </GameModal>
       ) : null}
-
-      <UiCard className="panel">
-        <div className="figma-section-header">
-          <div>
-            <p className="eyebrow">Navegacion</p>
-            <h3>{cockpitNavigationLabels.relatedCabins}</h3>
-          </div>
-          <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
-        </div>
-        <div className="selection-chip-row">
-          <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>
-            {cockpitNavigationLabels.returnToPlanet}
-          </Link>
-          <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
-            {cockpitNavigationLabels.openConstruction}
-          </Link>
-          <Link className="selection-chip" to={buildResearchUrl(activeCivilizationId, selectedPlanetId)}>
-            {cockpitNavigationLabels.openResearch}
-          </Link>
-          <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
-            {cockpitNavigationLabels.openFleets}
-          </Link>
-          <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, undefined, selectedPlanetId)}>
-            {cockpitNavigationLabels.returnToGalaxy}
-          </Link>
-        </div>
-      </UiCard>
     </section>
   );
 }

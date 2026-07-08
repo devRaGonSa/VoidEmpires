@@ -41,12 +41,8 @@ import {
   formatPlanetOverviewLine,
   formatPlanetOwnerLabel,
   formatPlanetShortReference,
-  canRenderActionInModule,
-  getActionHandoffTarget,
-  getWrongModuleMessage,
   getPlanetModuleLabel,
   getPlanetModuleForBuilding,
-  getConstructionHandoffModuleInfo,
   groupActionsByModule,
   groupBuildingsByModule,
   isGeneralConstructionAction,
@@ -379,18 +375,13 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
   const visibleActionGroups = useMemo(
     () => planetModuleCatalog
-      .filter((module) => module.key !== "UnknownOrDiagnostics")
+      .filter((module) => module.key === "GeneralConstruction" || module.key === "Logistics")
       .map((module) => ({
         module,
         items: actionsByModule[module.key as PlanetModule] ?? [],
       }))
       .filter((group) => group.items.length > 0),
     [actionsByModule],
-  );
-
-  const constructionHandoffModules = useMemo(
-    () => getConstructionHandoffModuleInfo(planet?.constructionActions ?? []),
-    [planet?.constructionActions],
   );
 
   useEffect(() => {
@@ -1250,34 +1241,6 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
               </p>
             ) : null}
 
-            {isConstructionRoute ? (
-              <UiCard className="panel planet-related-modules-panel construction-handoff-panel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Gestion avanzada</p>
-                    <h3>Cabinas especializadas</h3>
-                  </div>
-                  <UiBadge tone="warn">Solo lectura</UiBadge>
-                </div>
-                <p className="figma-panel-note">
-                  La construccion general no ejecuta investigacion, ejercito terrestre, astillero ni defensas. Estas cabinas conservan el mismo contexto y explican donde sigue cada flujo.
-                </p>
-                <div className="planet-related-modules-grid">
-                  {constructionHandoffModules.map((module) => (
-                    <ModuleStatusCard
-                      key={module.path}
-                      className="construction-handoff-card"
-                      to={buildSpecializedModuleUrl(module.module, activeCivilizationId, planet.planetId)}
-                      title={module.title}
-                      label={module.label}
-                      status={module.statusLabel}
-                      description={module.summary}
-                    />
-                  ))}
-                </div>
-              </UiCard>
-            ) : null}
-
             {!isConstructionRoute ? (
               <section className="subpanel figma-subpanel planet-related-modules-panel">
                 <div className="figma-section-header">
@@ -1415,9 +1378,6 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                       const actionKey = `${action.action}-${action.buildingType}`;
                       const isPrepared = preparedActionKey === actionKey;
                       const isAvailable = action.availabilityStatus === "Available";
-                      const canRenderInModule = canRenderActionInModule(action, module.key as PlanetModule);
-                      const actionHandoffTarget = getActionHandoffTarget(action);
-                      const wrongModuleMessage = getWrongModuleMessage(action);
                       const actionButtonLabel = formatConstructionActionButtonLabel(
                         action.availabilityStatus,
                         isPrepared,
@@ -1483,41 +1443,24 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                             <strong>{requirementLabel}</strong>
                           </div>
                           <div className="transfer-confirmation-actions">
-                            {canRenderInModule ? (
-                              <button
-                                type="button"
-                                className={isAvailable ? "" : "planet-action-button-blocked"}
-                                onClick={() => {
-                                  if (!isAvailable) {
-                                    return;
-                                  }
+                            <button
+                              type="button"
+                              className={isAvailable ? "" : "planet-action-button-blocked"}
+                              onClick={() => {
+                                if (!isAvailable) {
+                                  return;
+                                }
 
-                                  setPreparedActionKey(actionKey);
-                                  setHasConstructionAcknowledgement(false);
-                                  setConstructionFeedback(null);
-                                  setConstructionError(null);
-                                  setConstructionTechnicalDetail(null);
-                                }}
-                                disabled={!isAvailable}
-                              >
-                                {isAvailable && !isPrepared ? "Revisar orden" : actionButtonLabel}
-                              </button>
-                            ) : actionHandoffTarget ? (
-                              <Link
-                                className="planet-action-button-secondary planet-action-handoff"
-                                to={buildSpecializedModuleUrl(
-                                  actionHandoffTarget.module,
-                                  activeCivilizationId,
-                                  planet.planetId,
-                                )}
-                              >
-                                Gestionar desde {actionHandoffTarget.label}.
-                              </Link>
-                            ) : (
-                              <span className="planet-action-handoff-message">
-                                {wrongModuleMessage}
-                              </span>
-                            )}
+                                setPreparedActionKey(actionKey);
+                                setHasConstructionAcknowledgement(false);
+                                setConstructionFeedback(null);
+                                setConstructionError(null);
+                                setConstructionTechnicalDetail(null);
+                              }}
+                              disabled={!isAvailable}
+                            >
+                              {isAvailable && !isPrepared ? "Revisar orden" : actionButtonLabel}
+                            </button>
                           </div>
                         </article>
                       );

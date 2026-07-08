@@ -18,13 +18,9 @@ import {
 import {
   buildConstructionUrl,
   buildDefensesUrl,
-  buildFleetsUrl,
-  buildGalaxyUrl,
-  buildPlanetUrl,
-  buildShipyardUrl,
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
-import { cockpitNavigationLabels, cockpitStatusLabels } from "../utils/cockpitStatus";
+import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
 
 function formatDateTime(value: string) {
@@ -684,82 +680,6 @@ export function DefensesPage() {
             )}
           </UiCard>
 
-          <UiCard className="panel">
-            <div className="figma-section-header">
-              <div>
-                <p className="eyebrow">Navegacion</p>
-                <h3>{cockpitNavigationLabels.relatedCabins}</h3>
-                <p>Defensas resume proteccion y preparacion, pero cada sistema vecino conserva su propio alcance y su propia accion segura.</p>
-              </div>
-              <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
-            </div>
-            <div className="readiness-grid">
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Infraestructura</p>
-                    <h4>Continuar en Construccion</h4>
-                  </div>
-                  <UiBadge>{cockpitNavigationLabels.relatedCabin}</UiBadge>
-                </div>
-                <p>Usa Construccion cuando la siguiente defensa siga siendo una obra planetaria o una mejora de infraestructura.</p>
-                <div className="selection-chip-row">
-                  <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
-                    {cockpitNavigationLabels.openConstruction}
-                  </Link>
-                </div>
-              </section>
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Activos orbitales</p>
-                    <h4>Astillero</h4>
-                  </div>
-                  <UiBadge>{cockpitNavigationLabels.relatedCabin}</UiBadge>
-                </div>
-                <p>Usa Astillero cuando el siguiente paso implique plataformas, stock orbital o produccion que no pertenece a Defensas.</p>
-                <div className="selection-chip-row">
-                  <Link className="selection-chip" to={buildShipyardUrl(activeCivilizationId, selectedPlanetId)}>
-                    {cockpitNavigationLabels.openShipyard}
-                  </Link>
-                </div>
-              </section>
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Mando y movimiento</p>
-                    <h4>Flotas</h4>
-                  </div>
-                  <UiBadge>{cockpitNavigationLabels.relatedCabin}</UiBadge>
-                </div>
-                <p>Usa Flotas para escuadras, traslados y movimiento orbital. Defensas no ordena grupos ni abre combate.</p>
-                <div className="selection-chip-row">
-                  <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
-                    {cockpitNavigationLabels.openFleets}
-                  </Link>
-                </div>
-              </section>
-              <section className="subpanel figma-subpanel">
-                <div className="figma-section-header">
-                  <div>
-                    <p className="eyebrow">Contexto general</p>
-                    <h4>Planeta y Galaxia</h4>
-                  </div>
-                  <UiBadge>{cockpitNavigationLabels.relatedCabin}</UiBadge>
-                </div>
-                <p>Usa Planeta para la vision integral de la colonia y Galaxia para la lectura estrategica del teatro local.</p>
-                <div className="selection-chip-row">
-                  <Link className="selection-chip" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>
-                    {cockpitNavigationLabels.returnToPlanet}
-                  </Link>
-                  <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, undefined, selectedPlanetId)}>
-                    {cockpitNavigationLabels.returnToGalaxy}
-                  </Link>
-                </div>
-              </section>
-            </div>
-          </UiCard>
-
           {defenses.diagnostics.playerFacing.length > 0 || defenses.diagnostics.limitations.length > 0 || technicalErrorDetail ? (
             <details className="technical-disclosure">
               <summary>
@@ -807,32 +727,6 @@ export function DefensesPage() {
         ) : null
       )}
 
-      <UiCard className="panel">
-        <div className="figma-section-header">
-          <div>
-            <p className="eyebrow">Navegacion</p>
-            <h3>{cockpitNavigationLabels.relatedCabins}</h3>
-          </div>
-          <UiBadge tone="warn">{cockpitStatusLabels.contextPreserved}</UiBadge>
-        </div>
-        <div className="selection-chip-row">
-          <Link className="selection-chip selection-chip-active" to={buildPlanetUrl(activeCivilizationId, selectedPlanetId)}>
-            {cockpitNavigationLabels.returnToPlanet}
-          </Link>
-          <Link className="selection-chip" to={buildConstructionUrl(activeCivilizationId, selectedPlanetId)}>
-            {cockpitNavigationLabels.openConstruction}
-          </Link>
-          <Link className="selection-chip" to={buildShipyardUrl(activeCivilizationId, selectedPlanetId)}>
-            {cockpitNavigationLabels.openShipyard}
-          </Link>
-          <Link className="selection-chip" to={buildFleetsUrl(activeCivilizationId, selectedPlanetId)}>
-            {cockpitNavigationLabels.openFleets}
-          </Link>
-          <Link className="selection-chip" to={buildGalaxyUrl(activeCivilizationId, undefined, selectedPlanetId)}>
-            {cockpitNavigationLabels.returnToGalaxy}
-          </Link>
-        </div>
-      </UiCard>
     </section>
   );
 }
