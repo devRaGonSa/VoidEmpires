@@ -77,6 +77,11 @@ public class DevPlanetUiStateEndpointTests(WebApplicationFactory<Program> factor
         Assert.False(payload.UiState.Planet.ResourceCatalog[4].IsPersisted);
         Assert.False(payload.UiState.Planet.ResourceCatalog[4].IsSpendable);
         Assert.NotEmpty(payload.UiState.Planet.Stockpile);
+        Assert.All(payload.UiState.Planet.Stockpile, item =>
+        {
+            Assert.NotNull(item.Capacity);
+            Assert.True(item.Capacity >= item.Quantity);
+        });
         Assert.NotNull(payload.UiState.Planet.ProductionSummary);
         Assert.Contains(payload.UiState.Planet.Buildings, x => x.BuildingType.ToString() == "CommandCenter");
         Assert.Contains(payload.UiState.Planet.ConstructionActions, x => x.AvailabilityStatus == "Available");

@@ -15,6 +15,7 @@ namespace VoidEmpires.Infrastructure.Planets;
 public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : IDevPlanetUiStateService
 {
     private static readonly TimeSpan BaseConstructionDuration = TimeSpan.FromMinutes(5);
+    private const decimal BaselineResourceCapacity = 1_000m;
 
     public async Task<GetDevPlanetUiStateResult> GetAsync(
         GetDevPlanetUiStateRequest request,
@@ -276,11 +277,14 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
 
     private static IReadOnlyList<DevPlanetResourceBalanceDto> CreateStockpile(PlanetResourceStockpile stockpile) =>
         [
-            new(ResourceType.Credits, stockpile.Credits),
-            new(ResourceType.Metal, stockpile.Metal),
-            new(ResourceType.Crystal, stockpile.Crystal),
-            new(ResourceType.Gas, stockpile.Gas)
+            CreateStockpileEntry(ResourceType.Credits, stockpile.Credits),
+            CreateStockpileEntry(ResourceType.Metal, stockpile.Metal),
+            CreateStockpileEntry(ResourceType.Crystal, stockpile.Crystal),
+            CreateStockpileEntry(ResourceType.Gas, stockpile.Gas)
         ];
+
+    private static DevPlanetResourceBalanceDto CreateStockpileEntry(ResourceType resourceType, decimal quantity) =>
+        new(resourceType, quantity, Math.Max(BaselineResourceCapacity, quantity));
 
     private static IReadOnlyList<DevPlanetResourceCatalogItemDto> CreateResourceCatalog() =>
         ResourceCatalog.All

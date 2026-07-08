@@ -3,6 +3,7 @@ type ResourceValue = string | number | null | undefined;
 export interface ResourceAmount {
   resourceType: ResourceValue;
   quantity: number;
+  capacity?: number | null;
 }
 
 export const resourceTerminologyV1 = {
@@ -93,6 +94,14 @@ export function formatResourceLabel(value: ResourceValue, fallback = "Recurso") 
 
 export function formatResourceAmount(entry: ResourceAmount) {
   return `${formatResourceLabel(entry.resourceType)} ${entry.quantity}`;
+}
+
+export function formatResourceAmountWithCapacity(entry: ResourceAmount) {
+  if (typeof entry.capacity !== "number" || !Number.isFinite(entry.capacity)) {
+    return formatResourceAmount(entry);
+  }
+
+  return `${formatResourceAmount(entry)} / ${entry.capacity}`;
 }
 
 export function formatResourceDelta(entry: ResourceAmount) {

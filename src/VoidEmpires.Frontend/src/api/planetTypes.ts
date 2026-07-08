@@ -159,6 +159,7 @@ export interface PlanetCockpitDto {
 export interface PlanetResourceBalanceDto {
   resourceType: PlanetApiValue;
   quantity: number;
+  capacity?: number | null;
 }
 
 export interface PlanetResourceCatalogItemDto {

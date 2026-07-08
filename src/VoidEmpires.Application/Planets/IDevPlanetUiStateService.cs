@@ -129,7 +129,8 @@ public sealed record DevGroundArmyCockpitDto(
 
 public sealed record DevPlanetResourceBalanceDto(
     ResourceType ResourceType,
-    decimal Quantity);
+    decimal Quantity,
+    decimal? Capacity = null);
 
 public sealed record DevPlanetResourceCatalogItemDto(
     string Key,

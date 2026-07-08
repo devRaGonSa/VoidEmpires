@@ -211,8 +211,21 @@ function createTopResourceItem(
     key,
     label: formatResourceLabel(entry.resourceType),
     amount: formatCompactNumber(entry.quantity),
-    detail: production > 0 ? `+${formatCompactNumber(production)}/h` : null,
+    detail: formatTopResourceDetail(entry, production),
   };
+}
+
+function formatTopResourceDetail(entry: PlanetResourceBalanceDto, production: number) {
+  const parts = [];
+  if (typeof entry.capacity === "number" && Number.isFinite(entry.capacity)) {
+    parts.push(`${formatCompactNumber(entry.capacity)} cap.`);
+  }
+
+  if (production > 0) {
+    parts.push(`+${formatCompactNumber(production)}/h`);
+  }
+
+  return parts.length > 0 ? parts.join(" | ") : null;
 }
 
 function formatCompactNumber(value: number) {
