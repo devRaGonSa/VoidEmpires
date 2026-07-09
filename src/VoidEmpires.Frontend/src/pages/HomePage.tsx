@@ -4,7 +4,6 @@ import type { PlanetCockpitDto } from "../api/planetTypes";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { PlanetOverviewPanel } from "../components/PlanetOverviewPanel";
-import { QueueSummaryPanels } from "../components/QueueSummaryPanels";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { getCurrentAccountWorldEntry } from "../utils/currentAccountSession";
@@ -83,7 +82,6 @@ export function HomePage() {
         planet ? (
           <div className="home-overview-layout">
             <PlanetOverviewPanel civilizationLabel="Civilizacion activa" planet={planet} />
-            <QueueSummaryPanels planet={planet} />
           </div>
         ) : (
           <UiCard className="panel">
