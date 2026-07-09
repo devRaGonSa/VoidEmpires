@@ -1,9 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using VoidEmpires.Application.Buildings;
 using VoidEmpires.Application.Gameplay;
+using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Infrastructure;
+using VoidEmpires.Infrastructure.Buildings;
 using VoidEmpires.Infrastructure.Economy;
 using VoidEmpires.Infrastructure.Gameplay;
 using VoidEmpires.Infrastructure.Persistence;
@@ -118,6 +121,59 @@ public class GameplayRefreshServiceTests
         Assert.Equal(50, stockpile.Metal);
         Assert.Equal(50, stockpile.Crystal);
         Assert.Equal(40, stockpile.Gas);
+    }
+
+    [Fact]
+    public async Task RefreshAsyncCompletesDueConstructionAndUnlocksNextUpgradeAction()
+    {
+        var civilizationId = Guid.NewGuid();
+        var planetId = Guid.NewGuid();
+        var nowUtc = new DateTime(2026, 7, 9, 12, 0, 0, DateTimeKind.Utc);
+        var startsAtUtc = nowUtc.AddMinutes(-10);
+        await using var dbContext = CreateDbContext();
+        var stockpile = PlanetResourceStockpile.Create(planetId, lastAccruedAtUtc: nowUtc);
+        stockpile.Increase(ResourceType.Metal, 500);
+        stockpile.Increase(ResourceType.Crystal, 500);
+        dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(planetId, civilizationId));
+        dbContext.PlanetResourceStockpiles.Add(stockpile);
+        dbContext.PlanetBuildingCapacities.Add(PlanetBuildingCapacity.Create(planetId, 100));
+        dbContext.PlanetConstructionOrders.Add(PlanetConstructionOrder.Create(
+            planetId,
+            ConstructionQueueItemAction.Construct,
+            BuildingType.MetalMine,
+            1,
+            1,
+            startsAtUtc,
+            nowUtc.AddMinutes(-5),
+            ConstructionQueueItemStatus.Active));
+        await dbContext.SaveChangesAsync();
+        var service = CreateService(dbContext, new GameplayQueueMaterializationService(dbContext));
+
+        var result = await service.RefreshAsync(new GameplayRefreshRequest(
+            civilizationId,
+            planetId,
+            nowUtc,
+            IncludeResources: false));
+
+        var building = await dbContext.PlanetBuildings.SingleAsync(x => x.PlanetId == planetId && x.BuildingType == BuildingType.MetalMine);
+        var completedOrder = await dbContext.PlanetConstructionOrders.SingleAsync();
+        var upgradeResult = await new PlanetConstructionQueueService(dbContext).EnqueueAsync(
+            new EnqueueConstructionOrderRequest(
+                planetId,
+                civilizationId,
+                ConstructionQueueItemAction.Upgrade,
+                BuildingType.MetalMine,
+                nowUtc.AddMinutes(1)));
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(1, result.Construction.ProcessedCount);
+        Assert.Equal(1, building.Level);
+        Assert.Equal(ConstructionQueueItemStatus.Completed, completedOrder.Status);
+        Assert.True(upgradeResult.Succeeded);
+        Assert.Equal(ConstructionQueueItemAction.Upgrade, await dbContext.PlanetConstructionOrders
+            .Where(x => x.Status == ConstructionQueueItemStatus.Active)
+            .Select(x => x.Action)
+            .SingleAsync());
     }
 
     [Fact]

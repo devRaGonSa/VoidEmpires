@@ -3,7 +3,7 @@
 ---
 id: TASK-49F
 title: Due construction completion normal flow
-status: pending
+status: completed
 type: backend
 team: backend
 supporting_teams: []
