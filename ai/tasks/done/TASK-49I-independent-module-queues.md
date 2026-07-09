@@ -3,7 +3,7 @@
 ---
 id: TASK-49I
 title: Independent module queues
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: []

@@ -13,7 +13,7 @@ public sealed class GameplayRefreshService(
 {
     private static readonly QueueMaterializationSummary EmptyQueueSummary = new(0, 0, 0);
     private static readonly ResourceRefreshSummary EmptyResourceSummary = new(false, TimeSpan.Zero, 0, null);
-    private static readonly TimeSpan MinimumResourceAccrualElapsed = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan MinimumResourceAccrualElapsed = TimeSpan.FromMinutes(1);
 
     public async Task<GameplayRefreshResult> RefreshAsync(
         GameplayRefreshRequest request,

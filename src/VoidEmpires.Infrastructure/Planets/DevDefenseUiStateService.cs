@@ -111,6 +111,10 @@ public sealed class DevDefenseUiStateService(
         var specialDefenseQueue = planetUiState.Planet.ConstructionQueue
             .Where(x => LevelBasedDefenseTypes.Contains(x.BuildingType))
             .ToArray();
+        var openConstructionBuildingTypes = planetUiState.Planet.ConstructionQueue
+            .Where(x => x.Status is ConstructionQueueItemStatus.Pending or ConstructionQueueItemStatus.Active)
+            .Select(x => x.BuildingType)
+            .ToHashSet();
         var catalog = CreateDefenseCatalog();
         var nowUtc = DateTime.UtcNow;
         var openUnitQueueCount = unitQueueRows.Count(x => x.Status is AssetProductionOrderStatus.Pending or AssetProductionOrderStatus.Active);
@@ -120,6 +124,7 @@ public sealed class DevDefenseUiStateService(
             planetUiState.Planet.Stockpile,
             realBuildings,
             population,
+            openConstructionBuildingTypes,
             totalCapacity,
             openUnitQueueCount,
             unitStockRows);
@@ -196,6 +201,7 @@ public sealed class DevDefenseUiStateService(
         IReadOnlyList<DevPlanetResourceBalanceDto> stockpile,
         IReadOnlyList<PlanetBuilding> buildings,
         PlanetPopulationProfile? population,
+        IReadOnlySet<BuildingType> openConstructionBuildingTypes,
         long totalCapacity,
         int openQueueCount,
         IReadOnlyList<PlanetaryAssetStock> stockRows)
@@ -208,7 +214,14 @@ public sealed class DevDefenseUiStateService(
                 var buildingDefinition = BuildingCatalog.Get(buildingType);
                 var requiredBuilding = buildings.SingleOrDefault(x => x.BuildingType == definition.Requirement.RequiredBuildingType);
                 var currentStock = stockRows.SingleOrDefault(x => x.AssetType == assetType)?.Quantity ?? 0;
-                var (status, reason) = ResolveUnitAvailability(definition, stockpile, population, requiredBuilding, totalCapacity, openQueueCount);
+                var (status, reason) = ResolveUnitAvailability(
+                    definition,
+                    stockpile,
+                    population,
+                    requiredBuilding,
+                    openConstructionBuildingTypes,
+                    totalCapacity,
+                    openQueueCount);
 
                 return new DevPlanetConstructionActionDto(
                     ConstructionQueueItemAction.Construct,
@@ -299,11 +312,13 @@ public sealed class DevDefenseUiStateService(
         IReadOnlyList<DevPlanetResourceBalanceDto> stockpile,
         PlanetPopulationProfile? population,
         PlanetBuilding? requiredBuilding,
+        IReadOnlySet<BuildingType> openConstructionBuildingTypes,
         long totalCapacity,
         int openQueueCount)
     {
         if (openQueueCount > 0) return ("Blocked", "Planet already has an open asset production order.");
         if (population is null) return ("Blocked", "Planet population profile was not found.");
+        if (openConstructionBuildingTypes.Contains(definition.Requirement.RequiredBuildingType)) return ("Blocked", "RequiredBuildingInConstruction");
         if (requiredBuilding is null || requiredBuilding.Level < definition.Requirement.RequiredBuildingLevel) return ("Blocked", "MissingRequiredBuilding");
         if (definition.Requirement.PopulationCapacity > totalCapacity) return ("Blocked", "InsufficientPopulationCapacity");
 
@@ -325,6 +340,7 @@ public sealed class DevDefenseUiStateService(
         "Ready for explicit development confirmation." => "Lista para produccion",
         "Planet already has an open asset production order." => "La cola defensiva ya tiene una orden abierta",
         "Planet population profile was not found." => "Falta perfil de poblacion local",
+        "RequiredBuildingInConstruction" => $"Requiere {BuildingCatalog.Get(definition.Requirement.RequiredBuildingType).DisplayName} sin obras activas",
         "MissingRequiredBuilding" => $"Requiere {BuildingCatalog.Get(definition.Requirement.RequiredBuildingType).DisplayName} nivel {definition.Requirement.RequiredBuildingLevel}",
         "InsufficientPopulationCapacity" => "Capacidad local insuficiente",
         "InsufficientResources" => "Recursos insuficientes",

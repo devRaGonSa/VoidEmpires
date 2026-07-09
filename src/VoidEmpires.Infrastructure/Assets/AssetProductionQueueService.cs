@@ -30,9 +30,22 @@ public sealed class AssetProductionQueueService(VoidEmpiresDbContext dbContext) 
             return EnqueueAssetProductionResult.Failure("Requested date must be UTC.");
         }
 
+        var requirement = GetRequirement(request);
+        if (requirement is null)
+        {
+            return EnqueueAssetProductionResult.Failure("Asset type is required.");
+        }
+
+        var blockingPlanetaryTypes = GetBlockingPlanetaryTypes(request);
         var hasOpenOrder = await dbContext.Set<AssetProductionOrder>()
-            .AnyAsync(x => x.PlanetId == request.PlanetId &&
-                (x.Status == AssetProductionOrderStatus.Pending || x.Status == AssetProductionOrderStatus.Active),
+            .AnyAsync(x =>
+                x.PlanetId == request.PlanetId &&
+                (x.Status == AssetProductionOrderStatus.Pending || x.Status == AssetProductionOrderStatus.Active) &&
+                (request.Target == AssetProductionTarget.Orbital
+                    ? x.Target == AssetProductionTarget.Orbital
+                    : x.Target == AssetProductionTarget.Planetary &&
+                        x.PlanetaryAssetType != null &&
+                        blockingPlanetaryTypes.Contains(x.PlanetaryAssetType.Value)),
                 cancellationToken);
 
         if (hasOpenOrder)
@@ -40,10 +53,16 @@ public sealed class AssetProductionQueueService(VoidEmpiresDbContext dbContext) 
             return EnqueueAssetProductionResult.Failure("Planet already has an open asset production order.");
         }
 
-        var requirement = GetRequirement(request);
-        if (requirement is null)
+        var requiredBuildingInProgress = await dbContext.Set<PlanetConstructionOrder>()
+            .AnyAsync(x =>
+                x.PlanetId == request.PlanetId &&
+                x.BuildingType == requirement.RequiredBuildingType &&
+                (x.Status == ConstructionQueueItemStatus.Pending || x.Status == ConstructionQueueItemStatus.Active),
+                cancellationToken);
+
+        if (requiredBuildingInProgress)
         {
-            return EnqueueAssetProductionResult.Failure("Asset type is required.");
+            return EnqueueAssetProductionResult.Failure("Required building is currently being built or upgraded.");
         }
 
         var cost = GetCost(request);
@@ -140,4 +159,22 @@ public sealed class AssetProductionQueueService(VoidEmpiresDbContext dbContext) 
         AssetProductionTarget.Orbital => OrbitalAssetCatalog.Get(request.SpaceAssetType!.Value).Cost,
         _ => ConstructionCost.Zero
     };
+
+    private static PlanetaryAssetType[] GetBlockingPlanetaryTypes(EnqueueAssetProductionRequest request)
+    {
+        if (request.Target != AssetProductionTarget.Planetary || request.PlanetaryAssetType is null)
+        {
+            return [];
+        }
+
+        return IsDefenseAsset(request.PlanetaryAssetType.Value)
+            ? [PlanetaryAssetType.MissileBattery, PlanetaryAssetType.LaserTurret, PlanetaryAssetType.IonCannon, PlanetaryAssetType.PlasmaCannon]
+            : [PlanetaryAssetType.PatrolGroup, PlanetaryAssetType.ExpeditionGroup, PlanetaryAssetType.VehicleGroup, PlanetaryAssetType.SupportGroup];
+    }
+
+    private static bool IsDefenseAsset(PlanetaryAssetType assetType) =>
+        assetType is PlanetaryAssetType.MissileBattery or
+            PlanetaryAssetType.LaserTurret or
+            PlanetaryAssetType.IonCannon or
+            PlanetaryAssetType.PlasmaCannon;
 }

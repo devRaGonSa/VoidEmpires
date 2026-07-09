@@ -131,6 +131,15 @@ public sealed class DevShipyardUiStateService(VoidEmpiresDbContext dbContext) : 
                 .OrderBy(x => x.AssetType)
                 .ToListAsync(cancellationToken)
             : [];
+        var openConstructionBuildingTypes = isOwnedByRequestingCivilization
+            ? await dbContext.Set<PlanetConstructionOrder>()
+                .AsNoTracking()
+                .Where(x =>
+                    x.PlanetId == selectedPlanet.Planet.Id &&
+                    (x.Status == ConstructionQueueItemStatus.Pending || x.Status == ConstructionQueueItemStatus.Active))
+                .Select(x => x.BuildingType)
+                .ToListAsync(cancellationToken)
+            : [];
 
         var shipyardLevel = buildings.SingleOrDefault(x => x.BuildingType == BuildingType.Shipyard)?.Level ?? 0;
         var fleetCommandCenterLevel = buildings.SingleOrDefault(x => x.BuildingType == BuildingType.FleetCommandCenter)?.Level ?? 0;
@@ -148,6 +157,7 @@ public sealed class DevShipyardUiStateService(VoidEmpiresDbContext dbContext) : 
                 stockpile,
                 buildings,
                 populationProfile,
+                openConstructionBuildingTypes,
                 openQueueCount,
                 orbitalStock))
             .OrderByDescending(x => x.AvailabilityStatus == "Available")
@@ -216,6 +226,7 @@ public sealed class DevShipyardUiStateService(VoidEmpiresDbContext dbContext) : 
         PlanetResourceStockpile? stockpile,
         IReadOnlyList<PlanetBuilding> buildings,
         PlanetPopulationProfile? populationProfile,
+        IReadOnlyCollection<BuildingType> openConstructionBuildingTypes,
         int openQueueCount,
         IReadOnlyList<OrbitalAssetStock> orbitalStock)
     {
@@ -231,6 +242,7 @@ public sealed class DevShipyardUiStateService(VoidEmpiresDbContext dbContext) : 
             stockpile,
             buildings,
             populationProfile,
+            openConstructionBuildingTypes,
             openQueueCount,
             requirement,
             definition.Cost,
@@ -293,6 +305,7 @@ public sealed class DevShipyardUiStateService(VoidEmpiresDbContext dbContext) : 
         PlanetResourceStockpile? stockpile,
         IReadOnlyList<PlanetBuilding> buildings,
         PlanetPopulationProfile? populationProfile,
+        IReadOnlyCollection<BuildingType> openConstructionBuildingTypes,
         int openQueueCount,
         AssetRequirement requirement,
         ConstructionCost cost,
@@ -311,6 +324,11 @@ public sealed class DevShipyardUiStateService(VoidEmpiresDbContext dbContext) : 
         if (stockpile is null)
         {
             return ("Blocked", "MissingResourceStockpile");
+        }
+
+        if (openConstructionBuildingTypes.Contains(requirement.RequiredBuildingType))
+        {
+            return ("Blocked", "RequiredBuildingInConstruction");
         }
 
         var requiredBuilding = buildings.SingleOrDefault(x => x.BuildingType == requirement.RequiredBuildingType);

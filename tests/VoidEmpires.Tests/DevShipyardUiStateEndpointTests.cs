@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Assets;
 using VoidEmpires.Application.Development;
+using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Population;
@@ -132,6 +133,54 @@ public class DevShipyardUiStateEndpointTests(WebApplicationFactory<Program> fact
     }
 
     [Fact]
+    public async Task ShipyardUiStateIgnoresUnrelatedConstructionButBlocksRequiredBuildingWork()
+    {
+        await using var unrelatedConstructionDbContext = CreateSeededDbContext(context =>
+        {
+            var stockpile = context.PlanetResourceStockpiles.Single(x => x.PlanetId == SeedOwnedPlanetId);
+            stockpile.Increase(ResourceType.Metal, 300);
+            stockpile.Increase(ResourceType.Crystal, 200);
+            stockpile.Increase(ResourceType.Gas, 100);
+            AddOpenConstruction(context, BuildingType.MetalMine, 99_001);
+            context.Set<AssetProductionOrder>().Add(AssetProductionOrder.Create(
+                SeedOwnedPlanetId,
+                AssetProductionTarget.Planetary,
+                PlanetaryAssetType.MissileBattery,
+                null,
+                1,
+                99_002,
+                new DateTime(2026, 12, 1, 12, 0, 0, DateTimeKind.Utc),
+                new DateTime(2026, 12, 1, 12, 20, 0, DateTimeKind.Utc),
+                AssetProductionOrderStatus.Active));
+        });
+        using var unrelatedClient = CreateConfiguredClient(unrelatedConstructionDbContext);
+
+        using var unrelatedResponse = await unrelatedClient.GetAsync($"/api/dev/shipyard/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var unrelatedPayload = await unrelatedResponse.Content.ReadFromJsonAsync<DevShipyardUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, unrelatedResponse.StatusCode);
+        Assert.NotNull(unrelatedPayload?.UiState?.Shipyard);
+        Assert.Contains(unrelatedPayload.UiState.Shipyard.Catalog, item =>
+            item.AssetType == SpaceAssetType.ScoutCraft &&
+            item.AvailabilityStatus == "Available");
+
+        await using var requiredConstructionDbContext = CreateSeededDbContext(context =>
+        {
+            AddOpenConstruction(context, BuildingType.Shipyard, 99_002);
+        });
+        using var requiredClient = CreateConfiguredClient(requiredConstructionDbContext);
+
+        using var requiredResponse = await requiredClient.GetAsync($"/api/dev/shipyard/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var requiredPayload = await requiredResponse.Content.ReadFromJsonAsync<DevShipyardUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, requiredResponse.StatusCode);
+        Assert.NotNull(requiredPayload?.UiState?.Shipyard);
+        Assert.Contains(requiredPayload.UiState.Shipyard.Catalog, item =>
+            item.AssetType == SpaceAssetType.ScoutCraft &&
+            item.AvailabilityReason == "RequiredBuildingInConstruction");
+    }
+
+    [Fact]
     public async Task ShipyardUiStateReturnsNotFoundForUnknownPlanet()
     {
         using var client = CreateConfiguredClient(CreateSeededDbContext());
@@ -247,6 +296,11 @@ public class DevShipyardUiStateEndpointTests(WebApplicationFactory<Program> fact
 
         return dbContext;
     }
+
+    private static void AddOpenConstruction(VoidEmpiresDbContext context, BuildingType buildingType, int sequence) =>
+        context.PlanetConstructionOrders.Add(PlanetConstructionOrder.Create(SeedOwnedPlanetId, ConstructionQueueItemAction.Upgrade,
+            buildingType, 2, sequence, new DateTime(2026, 12, 1, 12, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 12, 1, 12, 20, 0, DateTimeKind.Utc), ConstructionQueueItemStatus.Active));
 
     private sealed record DevShipyardUiStateResponse(
         bool Succeeded,

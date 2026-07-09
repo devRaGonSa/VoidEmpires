@@ -153,6 +153,48 @@ public class DevDefenseUiStateEndpointTests(WebApplicationFactory<Program> facto
     }
 
     [Fact]
+    public async Task DefenseUiStateIgnoresUnrelatedConstructionButBlocksRequiredBuildingWork()
+    {
+        await using var unrelatedConstructionDbContext = CreateSeededDbContext(context =>
+        {
+            var stockpile = context.PlanetResourceStockpiles.Single(x => x.PlanetId == SeedOwnedPlanetId);
+            stockpile.Increase(ResourceType.Metal, 1_000m);
+            stockpile.Increase(ResourceType.Crystal, 500m);
+            stockpile.Increase(ResourceType.Gas, 100m);
+            AddOpenConstruction(context, BuildingType.MetalMine, 99_001);
+        }, profile: "cockpit-validation");
+        using var unrelatedClient = CreateConfiguredClient(unrelatedConstructionDbContext);
+
+        using var unrelatedResponse = await unrelatedClient.GetAsync($"/api/dev/defenses/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var unrelatedPayload = await unrelatedResponse.Content.ReadFromJsonAsync<DevDefenseUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, unrelatedResponse.StatusCode);
+        Assert.NotNull(unrelatedPayload?.UiState?.Defenses);
+        Assert.Contains(unrelatedPayload.UiState.Defenses.DefenseOptions, option =>
+            option.BuildingType == BuildingType.MissileBattery &&
+            option.AvailabilityStatus == "Available");
+
+        await using var requiredConstructionDbContext = CreateSeededDbContext(context =>
+        {
+            var stockpile = context.PlanetResourceStockpiles.Single(x => x.PlanetId == SeedOwnedPlanetId);
+            stockpile.Increase(ResourceType.Metal, 1_000m);
+            stockpile.Increase(ResourceType.Crystal, 500m);
+            stockpile.Increase(ResourceType.Gas, 100m);
+            AddOpenConstruction(context, BuildingType.DefenseGrid, 99_002);
+        }, profile: "cockpit-validation");
+        using var requiredClient = CreateConfiguredClient(requiredConstructionDbContext);
+
+        using var requiredResponse = await requiredClient.GetAsync($"/api/dev/defenses/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var requiredPayload = await requiredResponse.Content.ReadFromJsonAsync<DevDefenseUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, requiredResponse.StatusCode);
+        Assert.NotNull(requiredPayload?.UiState?.Defenses);
+        Assert.Contains(requiredPayload.UiState.Defenses.DefenseOptions, option =>
+            option.BuildingType == BuildingType.MissileBattery &&
+            option.AvailabilityReason == "RequiredBuildingInConstruction");
+    }
+
+    [Fact]
     public async Task DefenseUiStateAllowsForeignPlanetSelectionWhileKeepingManagementDataHidden()
     {
         using var client = CreateConfiguredClient(CreateSeededDbContext());
@@ -186,6 +228,16 @@ public class DevDefenseUiStateEndpointTests(WebApplicationFactory<Program> facto
             stockpile.Increase(ResourceType.Metal, 1_000m);
             stockpile.Increase(ResourceType.Crystal, 500m);
             stockpile.Increase(ResourceType.Gas, 100m);
+            dbContext.Set<AssetProductionOrder>().Add(AssetProductionOrder.Create(
+                SeedOwnedPlanetId,
+                AssetProductionTarget.Orbital,
+                null,
+                SpaceAssetType.ScoutCraft,
+                1,
+                99_001,
+                new DateTime(2026, 12, 1, 12, 0, 0, DateTimeKind.Utc),
+                new DateTime(2026, 12, 1, 12, 20, 0, DateTimeKind.Utc),
+                AssetProductionOrderStatus.Active));
             await dbContext.SaveChangesAsync();
         }
 
@@ -250,6 +302,11 @@ public class DevDefenseUiStateEndpointTests(WebApplicationFactory<Program> facto
 
         return dbContext;
     }
+
+    private static void AddOpenConstruction(VoidEmpiresDbContext context, BuildingType buildingType, int sequence) =>
+        context.PlanetConstructionOrders.Add(PlanetConstructionOrder.Create(SeedOwnedPlanetId, ConstructionQueueItemAction.Upgrade,
+            buildingType, 2, sequence, new DateTime(2026, 12, 1, 12, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 12, 1, 12, 20, 0, DateTimeKind.Utc), ConstructionQueueItemStatus.Active));
 
     private sealed record DevDefenseUiStateResponse(
         bool Succeeded,
