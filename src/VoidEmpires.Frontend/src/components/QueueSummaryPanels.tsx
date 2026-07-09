@@ -2,7 +2,7 @@ import type { PlanetCockpitDto } from "../api/planetTypes";
 import { formatConstructionQueuePhase } from "../utils/planetPresentation";
 import { UiCard } from "./ui/UiCard";
 
-interface QueueSummaryItem {
+export interface QueueSummaryItem {
   label: string;
   value: string;
   detail: string;
@@ -15,6 +15,13 @@ function isOpenConstructionQueueItem(item: PlanetCockpitDto["constructionQueue"]
 function formatQueueItemLabel(item: PlanetCockpitDto["constructionQueue"][number]) {
   const buildingLabel = item.display?.buildingTypeLabel ?? `${item.buildingType}`;
   return `${buildingLabel} nivel ${item.targetLevel}`;
+}
+
+function formatDateTime(value: string) {
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed)
+    ? "No disponible"
+    : new Intl.DateTimeFormat("es-ES", { dateStyle: "short", timeStyle: "short" }).format(parsed);
 }
 
 function QueueSummaryPanel({ summary }: { summary: QueueSummaryItem }) {
@@ -31,44 +38,39 @@ function QueueSummaryPanel({ summary }: { summary: QueueSummaryItem }) {
   );
 }
 
-export function QueueSummaryPanels({ planet }: { planet: PlanetCockpitDto }) {
+export function QueueSummaryPanels({
+  moduleSummaries = [],
+  planet,
+}: {
+  moduleSummaries?: readonly QueueSummaryItem[];
+  planet: PlanetCockpitDto;
+}) {
   const openConstruction = planet.constructionQueue.filter(isOpenConstructionQueueItem);
   const buildingQueue = openConstruction.filter((item) => String(item.category) !== "Defense");
   const defenseQueue = openConstruction.filter((item) => String(item.category) === "Defense");
   const movements = planet.orbitalContext.activeArrivals + planet.orbitalContext.activeDepartures;
   const summaries = [
-    {
+    ...(buildingQueue.length > 0 ? [{
       label: "Construccion",
-      value: buildingQueue.length > 0 ? `${buildingQueue.length} obras` : "Sin obras en cola.",
-      detail: buildingQueue[0]
-        ? `${formatQueueItemLabel(buildingQueue[0])}: ${formatConstructionQueuePhase(buildingQueue[0].status, buildingQueue[0].isDue)}`
-        : "Sin obras en cola.",
-    },
-    {
-      label: "Investigacion",
-      value: "Sin investigacion activa.",
-      detail: "Sin investigacion activa.",
-    },
-    {
-      label: "Astillero",
-      value: "Sin produccion orbital.",
-      detail: "Sin produccion orbital.",
-    },
-    {
+      value: buildingQueue.length === 1 ? "1 obra" : `${buildingQueue.length} obras`,
+      detail: `${formatQueueItemLabel(buildingQueue[0])}: ${formatConstructionQueuePhase(buildingQueue[0].status, buildingQueue[0].isDue)}, cierre ${formatDateTime(buildingQueue[0].endsAtUtc)}`,
+    }] : []),
+    ...moduleSummaries,
+    ...(defenseQueue.length > 0 ? [{
       label: "Defensas",
-      value: defenseQueue.length > 0 ? `${defenseQueue.length} defensas` : "Sin defensas en cola.",
-      detail: defenseQueue[0]
-        ? `${formatQueueItemLabel(defenseQueue[0])}: ${formatConstructionQueuePhase(defenseQueue[0].status, defenseQueue[0].isDue)}`
-        : "Sin defensas en cola.",
-    },
-    {
+      value: defenseQueue.length === 1 ? "1 defensa" : `${defenseQueue.length} defensas`,
+      detail: `${formatQueueItemLabel(defenseQueue[0])}: ${formatConstructionQueuePhase(defenseQueue[0].status, defenseQueue[0].isDue)}, cierre ${formatDateTime(defenseQueue[0].endsAtUtc)}`,
+    }] : []),
+    ...(movements > 0 ? [{
       label: "Flotas",
-      value: movements > 0 ? `${movements} movimientos` : "Sin movimientos de flota.",
-      detail: movements > 0
-        ? `${planet.orbitalContext.activeDepartures} salidas y ${planet.orbitalContext.activeArrivals} llegadas.`
-        : "Sin movimientos de flota.",
-    },
+      value: movements === 1 ? "1 movimiento" : `${movements} movimientos`,
+      detail: `${planet.orbitalContext.activeDepartures} salidas y ${planet.orbitalContext.activeArrivals} llegadas.`,
+    }] : []),
   ] satisfies QueueSummaryItem[];
+
+  if (summaries.length === 0) {
+    return null;
+  }
 
   return (
     <UiCard className="panel home-queue-panel">
@@ -79,8 +81,8 @@ export function QueueSummaryPanels({ planet }: { planet: PlanetCockpitDto }) {
         </div>
       </div>
       <div className="home-queue-grid">
-        {summaries.map((summary) => (
-          <QueueSummaryPanel key={summary.label} summary={summary} />
+        {summaries.map((summary, index) => (
+          <QueueSummaryPanel key={`${summary.label}-${index}`} summary={summary} />
         ))}
       </div>
     </UiCard>

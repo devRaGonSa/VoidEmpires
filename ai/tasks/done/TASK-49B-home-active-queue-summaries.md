@@ -3,7 +3,7 @@
 ---
 id: TASK-49B
 title: Home active queue summaries
-status: pending
+status: completed
 type: frontend
 team: frontend
 supporting_teams: []

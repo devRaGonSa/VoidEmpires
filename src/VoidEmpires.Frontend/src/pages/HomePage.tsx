@@ -1,17 +1,83 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { fetchDefensesUiState } from "../api/defenseApi";
 import type { PlanetCockpitDto } from "../api/planetTypes";
+import { fetchResearchUiState } from "../api/researchApi";
+import { fetchShipyardUiState } from "../api/shipyardApi";
 import { voidEmpiresApi } from "../api/voidEmpiresApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { PlanetOverviewPanel } from "../components/PlanetOverviewPanel";
+import { QueueSummaryPanels, type QueueSummaryItem } from "../components/QueueSummaryPanels";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { getCurrentAccountWorldEntry } from "../utils/currentAccountSession";
+import { getDefenseStatusLabel, getDefenseStructureLabel } from "../utils/defensePresentation";
+import { getResearchStatusLabel, getResearchTechnologyLabel } from "../utils/researchPresentation";
 import {
   buildLoginUrl,
   buildRegisterUrl,
 } from "../utils/routeUrls";
+import { getAssetProductionStatusLabel, getAssetTypeLabel } from "../utils/shipyardPresentation";
 import { useCurrentAccountSession } from "../utils/useCurrentAccountSession";
+
+function formatDateTime(value: string) {
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed)
+    ? "No disponible"
+    : new Intl.DateTimeFormat("es-ES", { dateStyle: "short", timeStyle: "short" }).format(parsed);
+}
+
+function isOpenQueueStatus(value: string | number | null | undefined) {
+  const status = `${value ?? ""}`.trim().toLowerCase();
+  return status === "pending" || status === "active" || status === "1" || status === "2";
+}
+
+async function fetchModuleQueueSummaries(civilizationId: string, planetId: string | null | undefined) {
+  const [researchResult, shipyardResult, defensesResult] = await Promise.allSettled([
+    fetchResearchUiState(civilizationId, planetId),
+    fetchShipyardUiState(civilizationId, planetId),
+    fetchDefensesUiState(civilizationId, planetId),
+  ]);
+  const summaries: QueueSummaryItem[] = [];
+
+  if (researchResult.status === "fulfilled" && researchResult.value.succeeded && researchResult.value.uiState) {
+    const queue = researchResult.value.uiState.queue.filter((item) => isOpenQueueStatus(item.status));
+    const first = queue[0];
+    if (first) {
+      summaries.push({
+        label: "Investigacion",
+        value: queue.length === 1 ? "1 investigacion" : `${queue.length} investigaciones`,
+        detail: `${getResearchTechnologyLabel(first.researchType)} nivel ${first.targetLevel}: ${getResearchStatusLabel(first.status)}, cierre ${formatDateTime(first.endsAtUtc)}`,
+      });
+    }
+  }
+
+  if (shipyardResult.status === "fulfilled" && shipyardResult.value.succeeded && shipyardResult.value.uiState?.shipyard) {
+    const queue = shipyardResult.value.uiState.shipyard.queue.filter((item) => isOpenQueueStatus(item.status));
+    const first = queue[0];
+    if (first) {
+      summaries.push({
+        label: "Astillero",
+        value: queue.length === 1 ? "1 produccion" : `${queue.length} producciones`,
+        detail: `${first.quantity} x ${getAssetTypeLabel(first.assetType)}: ${getAssetProductionStatusLabel(first.status)}, cierre ${formatDateTime(first.endsAtUtc)}`,
+      });
+    }
+  }
+
+  if (defensesResult.status === "fulfilled" && defensesResult.value.succeeded && defensesResult.value.uiState?.defenses) {
+    const queue = defensesResult.value.uiState.defenses.defenseQueue.filter((item) => isOpenQueueStatus(item.status));
+    const first = queue[0];
+    if (first) {
+      summaries.push({
+        label: "Defensas",
+        value: queue.length === 1 ? "1 produccion" : `${queue.length} producciones`,
+        detail: `${getDefenseStructureLabel(first.buildingType)}: ${getDefenseStatusLabel(first.status)}, cierre ${formatDateTime(first.endsAtUtc)}`,
+      });
+    }
+  }
+
+  return summaries;
+}
 
 export function HomePage() {
   const [searchParams] = useSearchParams();
@@ -24,6 +90,7 @@ export function HomePage() {
   const isLoading = currentAccountSession.status === "loading";
   const hasCommandHub = currentAccountSession.status === "ready" && selectedCivilizationId.length > 0;
   const [planet, setPlanet] = useState<PlanetCockpitDto | null>(null);
+  const [queueSummaries, setQueueSummaries] = useState<QueueSummaryItem[]>([]);
   const [isPlanetLoading, setIsPlanetLoading] = useState(false);
   const [planetError, setPlanetError] = useState<string | null>(null);
   const planetLabel = worldEntry?.planetName ?? "planeta principal";
@@ -31,6 +98,7 @@ export function HomePage() {
   useEffect(() => {
     if (!selectedCivilizationId) {
       setPlanet(null);
+      setQueueSummaries([]);
       setPlanetError(null);
       return;
     }
@@ -38,23 +106,33 @@ export function HomePage() {
     let isCurrent = true;
     setIsPlanetLoading(true);
     setPlanetError(null);
-    voidEmpiresApi.getPlanetUiState(selectedCivilizationId, selectedPlanetId)
-      .then((response) => {
+    async function loadHomeState() {
+      try {
+        const response = await voidEmpiresApi.getPlanetUiState(selectedCivilizationId, selectedPlanetId);
+        const nextPlanet = response.uiState?.planet ?? null;
+        const nextPlanetId = nextPlanet?.planetId ?? response.uiState?.selectedPlanetId ?? selectedPlanetId;
+        const nextQueueSummaries = nextPlanet
+          ? await fetchModuleQueueSummaries(selectedCivilizationId, nextPlanetId)
+          : [];
+
         if (isCurrent) {
-          setPlanet(response.uiState?.planet ?? null);
+          setPlanet(nextPlanet);
+          setQueueSummaries(nextQueueSummaries);
         }
-      })
-      .catch(() => {
+      } catch {
         if (isCurrent) {
           setPlanet(null);
+          setQueueSummaries([]);
           setPlanetError("No se pudo cargar el resumen del planeta actual.");
         }
-      })
-      .finally(() => {
+      } finally {
         if (isCurrent) {
           setIsPlanetLoading(false);
         }
-      });
+      }
+    }
+
+    void loadHomeState();
 
     return () => {
       isCurrent = false;
@@ -82,6 +160,7 @@ export function HomePage() {
         planet ? (
           <div className="home-overview-layout">
             <PlanetOverviewPanel civilizationLabel="Civilizacion activa" planet={planet} />
+            <QueueSummaryPanels planet={planet} moduleSummaries={queueSummaries} />
           </div>
         ) : (
           <UiCard className="panel">
