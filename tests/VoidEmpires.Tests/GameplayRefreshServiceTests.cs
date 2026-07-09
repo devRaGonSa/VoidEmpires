@@ -2,14 +2,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Buildings;
 using VoidEmpires.Application.Gameplay;
+using VoidEmpires.Application.Research;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Economy;
+using VoidEmpires.Domain.Research;
 using VoidEmpires.Infrastructure;
 using VoidEmpires.Infrastructure.Buildings;
 using VoidEmpires.Infrastructure.Economy;
 using VoidEmpires.Infrastructure.Gameplay;
 using VoidEmpires.Infrastructure.Persistence;
+using VoidEmpires.Infrastructure.Research;
 
 namespace VoidEmpires.Tests;
 
@@ -173,6 +176,57 @@ public class GameplayRefreshServiceTests
         Assert.Equal(ConstructionQueueItemAction.Upgrade, await dbContext.PlanetConstructionOrders
             .Where(x => x.Status == ConstructionQueueItemStatus.Active)
             .Select(x => x.Action)
+            .SingleAsync());
+    }
+
+    [Fact]
+    public async Task RefreshAsyncCompletesDueResearchAndUnlocksNextResearchLevel()
+    {
+        var civilizationId = Guid.NewGuid();
+        var planetId = Guid.NewGuid();
+        var nowUtc = new DateTime(2026, 7, 9, 12, 0, 0, DateTimeKind.Utc);
+        var startsAtUtc = nowUtc.AddMinutes(-20);
+        await using var dbContext = CreateDbContext();
+        var stockpile = PlanetResourceStockpile.Create(planetId, lastAccruedAtUtc: nowUtc);
+        stockpile.Increase(ResourceType.Metal, 1_000);
+        stockpile.Increase(ResourceType.Crystal, 1_000);
+        dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(planetId, civilizationId));
+        dbContext.PlanetResourceStockpiles.Add(stockpile);
+        dbContext.ResearchOrders.Add(ResearchOrder.Create(
+            civilizationId,
+            planetId,
+            ResearchType.PlanetaryEngineering,
+            1,
+            1,
+            startsAtUtc,
+            nowUtc.AddMinutes(-5),
+            ResearchQueueItemStatus.Active));
+        await dbContext.SaveChangesAsync();
+        var service = CreateService(dbContext, new GameplayQueueMaterializationService(dbContext));
+
+        var result = await service.RefreshAsync(new GameplayRefreshRequest(
+            civilizationId,
+            planetId,
+            nowUtc,
+            IncludeResources: false));
+
+        var project = await dbContext.ResearchProjects.SingleAsync(x => x.CivilizationId == civilizationId && x.ResearchType == ResearchType.PlanetaryEngineering);
+        var completedOrder = await dbContext.ResearchOrders.SingleAsync();
+        var nextResearch = await new ResearchQueueService(dbContext).EnqueueAsync(
+            new EnqueueResearchOrderRequest(
+                civilizationId,
+                planetId,
+                ResearchType.PlanetaryEngineering,
+                nowUtc.AddMinutes(1)));
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(1, result.Research.ProcessedCount);
+        Assert.Equal(1, project.Level);
+        Assert.Equal(ResearchQueueItemStatus.Completed, completedOrder.Status);
+        Assert.True(nextResearch.Succeeded);
+        Assert.Equal(2, await dbContext.ResearchOrders
+            .Where(x => x.Status == ResearchQueueItemStatus.Active)
+            .Select(x => x.TargetLevel)
             .SingleAsync());
     }
 

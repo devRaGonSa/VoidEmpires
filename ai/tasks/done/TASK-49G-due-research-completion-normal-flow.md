@@ -3,7 +3,7 @@
 ---
 id: TASK-49G
 title: Due research completion normal flow
-status: pending
+status: completed
 type: backend
 team: backend
 supporting_teams: []
