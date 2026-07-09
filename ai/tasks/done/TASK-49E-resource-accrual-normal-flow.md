@@ -3,7 +3,7 @@
 ---
 id: TASK-49E
 title: Resource accrual normal flow
-status: pending
+status: completed
 type: backend
 team: backend
 supporting_teams: []

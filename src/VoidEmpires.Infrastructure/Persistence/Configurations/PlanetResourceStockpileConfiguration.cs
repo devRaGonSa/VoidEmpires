@@ -14,6 +14,13 @@ public sealed class PlanetResourceStockpileConfiguration : IEntityTypeConfigurat
 
         builder.Property(stockpile => stockpile.Id).HasColumnName("id");
         builder.Property(stockpile => stockpile.PlanetId).HasColumnName("planet_id");
+        builder.Property(stockpile => stockpile.Capacity)
+            .HasColumnName("capacity")
+            .HasPrecision(18, 4)
+            .HasDefaultValue(PlanetResourceStockpile.DefaultCapacity);
+        builder.Property(stockpile => stockpile.LastAccruedAtUtc)
+            .HasColumnName("last_accrued_at_utc")
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(stockpile => stockpile.Credits)
             .HasColumnName("credits")

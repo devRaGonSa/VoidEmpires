@@ -30,4 +30,5 @@ public sealed record GameplayRefreshResult(
 public sealed record ResourceRefreshSummary(
     bool Attempted,
     TimeSpan AppliedElapsed,
+    int ProcessedPlanetCount,
     ApplyPlanetProductionResult? Result);

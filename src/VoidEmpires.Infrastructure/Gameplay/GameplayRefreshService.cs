@@ -1,15 +1,18 @@
+using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Economy;
 using VoidEmpires.Application.Gameplay;
+using VoidEmpires.Infrastructure.Persistence;
 
 namespace VoidEmpires.Infrastructure.Gameplay;
 
 public sealed class GameplayRefreshService(
+    VoidEmpiresDbContext dbContext,
     IPlanetEconomyTickService economyTickService,
     IGameplayQueueMaterializationService queueMaterializationService)
     : IGameplayRefreshService
 {
     private static readonly QueueMaterializationSummary EmptyQueueSummary = new(0, 0, 0);
-    private static readonly ResourceRefreshSummary EmptyResourceSummary = new(false, TimeSpan.Zero, null);
+    private static readonly ResourceRefreshSummary EmptyResourceSummary = new(false, TimeSpan.Zero, 0, null);
 
     public async Task<GameplayRefreshResult> RefreshAsync(
         GameplayRefreshRequest request,
@@ -86,12 +89,33 @@ public sealed class GameplayRefreshService(
             return EmptyResourceSummary;
         }
 
+        var stockpile = await dbContext.PlanetResourceStockpiles
+            .SingleOrDefaultAsync(x => x.PlanetId == request.PlanetId.Value, cancellationToken);
+
+        if (stockpile is null)
+        {
+            return new(true, TimeSpan.Zero, 0, ApplyPlanetProductionResult.Failure("Planet resource stockpile was not found."));
+        }
+
+        var elapsed = request.NowUtc - stockpile.LastAccruedAtUtc;
+        if (elapsed <= TimeSpan.Zero)
+        {
+            return new(true, TimeSpan.Zero, 0, ApplyPlanetProductionResult.Success(request.PlanetId.Value));
+        }
+
         var result = await economyTickService.ApplyProductionAsync(
-            new ApplyPlanetProductionRequest(request.PlanetId.Value, request.CivilizationId, TimeSpan.Zero),
+            new ApplyPlanetProductionRequest(request.PlanetId.Value, request.CivilizationId, elapsed),
             cancellationToken);
 
-        notes.Add("Resource refresh executed with zero elapsed time until persisted accrual state is available.");
-        return new(true, TimeSpan.Zero, result);
+        if (!result.Succeeded)
+        {
+            return new(true, elapsed, 0, result);
+        }
+
+        stockpile.MarkAccrued(request.NowUtc);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        notes.Add("Resource refresh applied persisted elapsed production.");
+        return new(true, elapsed, 1, result);
     }
 
     private static GameplayRefreshResult Failure(string error) =>
