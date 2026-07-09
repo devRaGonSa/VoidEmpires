@@ -9,6 +9,7 @@ import { formatAccountRequestException, formatRegistrationErrors } from "../util
 import { getRegistrationWorldEntry } from "../utils/currentAccountSession";
 import { savePlayableSession } from "../utils/playableSession";
 import { buildLoginUrl, buildWorldEntryUrl } from "../utils/routeUrls";
+import { useCurrentAccountSession } from "../utils/useCurrentAccountSession";
 
 function resolveRegistrationRoute(registration: AccountRegistrationResponse) {
   const worldEntry = getRegistrationWorldEntry(registration);
@@ -19,6 +20,7 @@ function resolveRegistrationRoute(registration: AccountRegistrationResponse) {
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const currentAccountSession = useCurrentAccountSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -58,6 +60,12 @@ export function RegisterPage() {
       const loginResult = await voidEmpiresApi.account.login({ email: normalizedEmail, password });
       if (loginResult.httpStatus !== 200 || !loginResult.response?.succeeded) {
         setErrors(["La cuenta fue creada. Entra con tu correo para abrir el mundo inicial."]);
+        return;
+      }
+
+      const refreshedSession = await currentAccountSession.refresh({ force: true });
+      if (refreshedSession.status !== "ready") {
+        setErrors(["La cuenta fue creada, pero no se pudo comprobar la sesion actual. Entra con tu correo para abrir el mundo inicial."]);
         return;
       }
 

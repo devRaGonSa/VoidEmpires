@@ -7,6 +7,7 @@ import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { formatAccountRequestException, formatLoginErrors } from "../utils/accountErrorCopy";
 import { buildPlanetUrl, buildRegisterUrl } from "../utils/routeUrls";
+import { useCurrentAccountSession } from "../utils/useCurrentAccountSession";
 
 function resolveNextRoute(session: AccountSessionResponse | null) {
   if (!session?.succeeded) {
@@ -21,6 +22,7 @@ function resolveNextRoute(session: AccountSessionResponse | null) {
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const currentAccountSession = useCurrentAccountSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,7 +44,13 @@ export function LoginPage() {
         return;
       }
 
-      navigate(resolveNextRoute(result.response), { replace: true });
+      const refreshedSession = await currentAccountSession.refresh({ force: true });
+      if (refreshedSession.status !== "ready") {
+        setErrors(["Sesion iniciada, pero no se pudo comprobar la cuenta actual."]);
+        return;
+      }
+
+      navigate(resolveNextRoute(refreshedSession.session ?? result.response), { replace: true });
     } catch {
       setErrors(formatAccountRequestException());
     } finally {

@@ -11,6 +11,7 @@ type CurrentAccountSessionListener = (state: CurrentAccountSessionState) => void
 
 let sharedCurrentAccountSessionState = initialCurrentAccountSessionState;
 let sharedCurrentAccountSessionLoad: Promise<CurrentAccountSessionState> | null = null;
+let sharedCurrentAccountSessionLoadVersion = 0;
 const currentAccountSessionListeners = new Set<CurrentAccountSessionListener>();
 
 async function loadCurrentAccountSession(): Promise<CurrentAccountSessionState> {
@@ -26,29 +27,37 @@ function publishCurrentAccountSessionState(state: CurrentAccountSessionState) {
   currentAccountSessionListeners.forEach((listener) => listener(state));
 }
 
-async function refreshCurrentAccountSession() {
-  if (sharedCurrentAccountSessionLoad) {
+async function refreshCurrentAccountSession(options?: { force?: boolean }) {
+  if (sharedCurrentAccountSessionLoad && !options?.force) {
     return sharedCurrentAccountSessionLoad;
   }
 
+  const loadVersion = sharedCurrentAccountSessionLoadVersion + 1;
+  sharedCurrentAccountSessionLoadVersion = loadVersion;
   publishCurrentAccountSessionState({ ...sharedCurrentAccountSessionState, status: "loading" });
-  sharedCurrentAccountSessionLoad = loadCurrentAccountSession()
+  const currentLoad = loadCurrentAccountSession()
     .then((nextState) => {
-      publishCurrentAccountSessionState(nextState);
+      if (loadVersion === sharedCurrentAccountSessionLoadVersion) {
+        publishCurrentAccountSessionState(nextState);
+      }
+
       return nextState;
     })
     .finally(() => {
-      sharedCurrentAccountSessionLoad = null;
+      if (sharedCurrentAccountSessionLoad === currentLoad) {
+        sharedCurrentAccountSessionLoad = null;
+      }
     });
 
+  sharedCurrentAccountSessionLoad = currentLoad;
   return sharedCurrentAccountSessionLoad;
 }
 
 export function useCurrentAccountSession() {
   const [state, setState] = useState<CurrentAccountSessionState>(sharedCurrentAccountSessionState);
 
-  const refresh = useCallback(async () => {
-    return refreshCurrentAccountSession();
+  const refresh = useCallback(async (options?: { force?: boolean }) => {
+    return refreshCurrentAccountSession(options);
   }, []);
 
   useEffect(() => {
