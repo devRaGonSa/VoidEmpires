@@ -3,7 +3,7 @@
 ---
 id: TASK-49L
 title: Final validation
-status: pending
+status: done
 type: validation
 team: platform
 supporting_teams: []
