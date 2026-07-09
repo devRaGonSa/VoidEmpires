@@ -453,6 +453,87 @@ foreach ($match in @($productSurfaceForbiddenMatches)) {
   }
 }
 
+$block48ScopedForbiddenCopy = @(
+  @{
+    Path = "src/VoidEmpires.Frontend/src/components/GameModal.tsx"
+    Fragments = @(
+      "Confirmacion obligatoria"
+    )
+  },
+  @{
+    Path = "src/VoidEmpires.Frontend/src/pages/PlanetPage.tsx"
+    Fragments = @(
+      "confirmation-checkbox",
+      "Confirmo que quiero enviar esta orden de construccion"
+    )
+  },
+  @{
+    Path = "src/VoidEmpires.Frontend/src/pages/ResearchPage.tsx"
+    Fragments = @(
+      "confirmation-checkbox",
+      "Confirmo que quiero iniciar esta investigacion",
+      "Confirmacion obligatoria"
+    )
+  },
+  @{
+    Path = "src/VoidEmpires.Frontend/src/pages/ShipyardPage.tsx"
+    Fragments = @(
+      "confirmation-checkbox",
+      "Confirmo que quiero enviar esta produccion orbital a la cola"
+    )
+  },
+  @{
+    Path = "src/VoidEmpires.Frontend/src/pages/HomePage.tsx"
+    Fragments = @(
+      "Sin obras en cola",
+      "Sin investigacion activa",
+      "Sin produccion orbital",
+      "Sin defensas en cola",
+      "Sin movimientos de flota"
+    )
+  },
+  @{
+    Path = "src/VoidEmpires.Frontend/src/components/DefenseCatalogCard.tsx"
+    Fragments = @(
+      "Nivel 0 -> 1",
+      'Stock ${option.currentLevel}'
+    )
+  }
+)
+
+foreach ($requirement in $block48ScopedForbiddenCopy) {
+  $path = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($requirement.Path)"))
+  if (-not (Test-Path -LiteralPath $path)) {
+    $copyHygieneFailures.Add("Missing Block 48 guarded file '$($requirement.Path)'.")
+    continue
+  }
+
+  $content = Get-Content -LiteralPath $path -Raw
+  foreach ($fragment in $requirement.Fragments) {
+    if ($content -like "*$fragment*") {
+      $copyHygieneFailures.Add("$($requirement.Path) contains forbidden Block 48 UI copy fragment: $fragment")
+    }
+  }
+}
+
+$defenseCatalogCardPath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\components\DefenseCatalogCard.tsx"))
+if (Test-Path -LiteralPath $defenseCatalogCardPath) {
+  $defenseCatalogCardContent = Get-Content -LiteralPath $defenseCatalogCardPath -Raw
+  $requiredDefenseUnitFragments = @(
+    "const isUnitBased = option.productionModel === `"unit`";",
+    'Cantidad actual ${option.currentLevel}',
+    "canBuildUnits",
+    "<span>Unidades</span>",
+    "Construir"
+  )
+
+  foreach ($fragment in $requiredDefenseUnitFragments) {
+    if ($defenseCatalogCardContent -notlike "*$fragment*") {
+      $copyHygieneFailures.Add("DefenseCatalogCard.tsx is missing Block 48 unit-defense UI guard fragment: $fragment")
+    }
+  }
+}
+
 if ($copyHygieneFailures.Count -gt 0) {
   throw "Frontend copy hygiene guard failed:`n$($copyHygieneFailures -join [Environment]::NewLine)"
 }
