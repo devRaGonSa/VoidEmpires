@@ -3,7 +3,7 @@
 ---
 id: TASK-49J
 title: Defense unit production like shipyard
-status: pending
+status: done
 type: frontend
 team: frontend
 supporting_teams: []
