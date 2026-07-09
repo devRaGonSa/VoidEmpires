@@ -228,7 +228,6 @@ export function ResearchPage() {
   const [technicalErrorDetail, setTechnicalErrorDetail] = useState<string | null>(null);
   const [uiState, setUiState] = useState<ResearchUiState | null>(null);
   const [preparedResearchType, setPreparedResearchType] = useState("");
-  const [hasEnqueueAcknowledgement, setHasEnqueueAcknowledgement] = useState(false);
   const [isSubmittingEnqueue, setIsSubmittingEnqueue] = useState(false);
   const [enqueueFeedback, setEnqueueFeedback] = useState<string | null>(null);
   const [enqueueError, setEnqueueError] = useState<string | null>(null);
@@ -358,7 +357,6 @@ export function ResearchPage() {
       });
       setEnqueueFeedback("Investigacion enviada a la cola.");
       setPreparedResearchType("");
-      setHasEnqueueAcknowledgement(false);
 
       const refreshed = await reloadResearchState(civilizationId, sourcePlanetId, false, true);
       if (!refreshed) {
@@ -379,7 +377,6 @@ export function ResearchPage() {
   function handleResearchPreparation(technology: ResearchTechnology) {
     if (!technology.enqueueCommand) {
       setPreparedResearchType("");
-      setHasEnqueueAcknowledgement(false);
       setEnqueueFeedback(null);
       setEnqueueOrderDetails(null);
       setEnqueueError("No se puede preparar esta investigacion en esta version.");
@@ -388,7 +385,6 @@ export function ResearchPage() {
     }
 
     setPreparedResearchType(technology.researchType);
-    setHasEnqueueAcknowledgement(false);
     setEnqueueFeedback(null);
     setEnqueueError(null);
     setEnqueueOrderDetails(null);
@@ -397,7 +393,6 @@ export function ResearchPage() {
 
   function handleResearchCancel() {
     setPreparedResearchType("");
-    setHasEnqueueAcknowledgement(false);
     setEnqueueFeedback(null);
     setEnqueueError(null);
     setEnqueueOrderDetails(null);
@@ -413,7 +408,7 @@ export function ResearchPage() {
           <>
             <UiBadge tone="good">Tecnologias disponibles</UiBadge>
             <UiBadge>Cola de investigacion</UiBadge>
-            <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
+            <UiBadge tone="warn">Revision de orden</UiBadge>
           </>
         }
       />
@@ -608,7 +603,6 @@ export function ResearchPage() {
           primaryAction={{
             label: "Iniciar investigacion",
             onClick: () => void handleResearchSubmit(),
-            disabled: !hasEnqueueAcknowledgement,
           }}
           secondaryAction={{
             label: "Cancelar",
@@ -635,14 +629,6 @@ export function ResearchPage() {
             <li>La cola mostrara el progreso en la siguiente lectura disponible.</li>
             <li>Esta confirmacion no completa la investigacion de forma instantanea.</li>
           </ul>
-          <label className="confirmation-checkbox">
-            <input
-              type="checkbox"
-              checked={hasEnqueueAcknowledgement}
-              onChange={(event) => setHasEnqueueAcknowledgement(event.target.checked)}
-            />
-            <span>Confirmo que quiero iniciar esta investigacion</span>
-          </label>
         </GameModal>
       ) : null}
     </section>

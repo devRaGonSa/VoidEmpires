@@ -273,7 +273,6 @@ export function ShipyardPage() {
   const [technicalErrorDetail, setTechnicalErrorDetail] = useState<string | null>(null);
   const [uiState, setUiState] = useState<ShipyardViewModel | null>(null);
   const [reviewSelection, setReviewSelection] = useState<ShipyardReviewSelection | null>(null);
-  const [hasEnqueueAcknowledgement, setHasEnqueueAcknowledgement] = useState(false);
   const [isSubmittingEnqueue, setIsSubmittingEnqueue] = useState(false);
   const [enqueueFeedback, setEnqueueFeedback] = useState<string | null>(null);
   const [enqueueError, setEnqueueError] = useState<string | null>(null);
@@ -403,7 +402,6 @@ export function ShipyardPage() {
       return;
     }
 
-    setHasEnqueueAcknowledgement(false);
     setEnqueueFeedback(null);
     setEnqueueError(null);
     setEnqueueErrorFollowUp(null);
@@ -419,7 +417,6 @@ export function ShipyardPage() {
 
   function handleCancelReview() {
     setReviewSelection(null);
-    setHasEnqueueAcknowledgement(false);
     setEnqueueError(null);
     setEnqueueErrorFollowUp(null);
     setEnqueueOrderDetails(null);
@@ -477,7 +474,6 @@ export function ShipyardPage() {
         endsAtUtc: result.response.endsAtUtc,
       });
       setReviewSelection(null);
-      setHasEnqueueAcknowledgement(false);
 
       const refreshed = await reloadShipyardState(activeCivilizationId, shipyard.planetId, false, true);
       if (!refreshed) {
@@ -749,9 +745,8 @@ export function ShipyardPage() {
           isOpen
           onClose={handleCancelReview}
           primaryAction={{
-            label: "Producir",
+            label: "Iniciar produccion",
             onClick: () => void handleConfirmProduction(),
-            disabled: !hasEnqueueAcknowledgement,
           }}
           secondaryAction={{
             label: "Cancelar",
@@ -798,16 +793,6 @@ export function ShipyardPage() {
               ? "La produccion entrara en la cola orbital cuando confirmes. Si la orden queda aceptada, el coste visible se descuenta al momento."
               : "Esta opcion no puede enviarse todavia. Revisa requisitos y estado antes de volver a intentarlo."}
           </p>
-          {reviewSelection.bucket === "available" ? (
-            <label className="confirmation-checkbox">
-              <input
-                type="checkbox"
-                checked={hasEnqueueAcknowledgement}
-                onChange={(event) => setHasEnqueueAcknowledgement(event.target.checked)}
-              />
-              <span>Confirmo que quiero enviar esta produccion orbital a la cola</span>
-            </label>
-          ) : null}
         </GameModal>
       ) : null}
     </section>

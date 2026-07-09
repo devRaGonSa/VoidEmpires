@@ -46,7 +46,7 @@ export function GameModal({
     actionScope === "development" ? (
       <ActionStateBadge state="developmentOnly" />
     ) : actionScope === "gameplay" ? (
-      <UiBadge tone="warn">Confirmacion obligatoria</UiBadge>
+      <UiBadge tone="warn">Revision requerida</UiBadge>
     ) : null;
 
   useEffect(() => {
@@ -103,7 +103,7 @@ export function GameModal({
               {scopeBadge}
               <ActionStateBadge
                 state={primaryActionState}
-                label={isBusy ? "Procesando" : primaryAction.disabled ? "Bloqueado" : "Pendiente de confirmacion"}
+                label={isBusy ? "Procesando" : primaryAction.disabled ? "Bloqueado" : "Lista para enviar"}
               />
             </div>
           </div>

@@ -622,21 +622,21 @@ $requiredGameplayModalGuards = @(
     Path = "src/VoidEmpires.Frontend/src/pages/PlanetPage.tsx"
     Fragments = @(
       "GameModal",
-      "Confirmo que quiero enviar esta orden de construccion"
+      "Iniciar construccion"
     )
   },
   @{
     Path = "src/VoidEmpires.Frontend/src/pages/ResearchPage.tsx"
     Fragments = @(
       "GameModal",
-      "Confirmo que quiero iniciar esta investigacion"
+      "Iniciar investigacion"
     )
   },
   @{
     Path = "src/VoidEmpires.Frontend/src/pages/ShipyardPage.tsx"
     Fragments = @(
       "GameModal",
-      "Confirmo que quiero enviar esta produccion orbital a la cola"
+      "Iniciar produccion"
     )
   }
 )

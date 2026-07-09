@@ -293,7 +293,6 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [uiState, setUiState] = useState<PlanetUiStateResult | null>(null);
   const [preparedActionKey, setPreparedActionKey] = useState("");
-  const [hasConstructionAcknowledgement, setHasConstructionAcknowledgement] = useState(false);
   const [isSubmittingConstruction, setIsSubmittingConstruction] = useState(false);
   const [constructionFeedback, setConstructionFeedback] = useState<string | null>(null);
   const [constructionError, setConstructionError] = useState<string | null>(null);
@@ -448,7 +447,6 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
         setUiState(response.uiState);
         setPreparedActionKey("");
-        setHasConstructionAcknowledgement(false);
 
         if (response.uiState.selectedPlanetId && response.uiState.selectedPlanetId !== queryPlanetId) {
           const nextParams = new URLSearchParams(searchParams);
@@ -502,7 +500,6 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
   function handlePrepareConstructionAction(actionKey: string) {
     setPreparedActionKey(actionKey);
-    setHasConstructionAcknowledgement(false);
     setConstructionFeedback(null);
     setConstructionError(null);
     setConstructionTechnicalDetail(null);
@@ -551,7 +548,6 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
         ),
       );
       setPreparedActionKey("");
-      setHasConstructionAcknowledgement(false);
 
       const refreshed = await voidEmpiresApi.getPlanetUiState(
         uiState.civilizationId,
@@ -599,7 +595,6 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
   function handleConstructionCancel() {
     setPreparedActionKey("");
-    setHasConstructionAcknowledgement(false);
     setConstructionFeedback(null);
     setConstructionError(null);
     setConstructionTechnicalDetail(null);
@@ -809,7 +804,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           <>
             <UiBadge>{isConstructionRoute ? "Sin 3D" : "Colonia en 2D"}</UiBadge>
             <UiBadge tone="good">Hub de mando</UiBadge>
-            <UiBadge tone="warn">Ordenes con confirmacion</UiBadge>
+            <UiBadge tone="warn">Revision de orden</UiBadge>
           </>
         }
       />
@@ -1676,15 +1671,14 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           isOpen
           onClose={handleConstructionCancel}
           primaryAction={{
-            label: "Enviar obra",
+            label: "Iniciar construccion",
             onClick: () => void handleConstructionSubmit(),
-            disabled: !hasConstructionAcknowledgement,
           }}
           secondaryAction={{
-            label: "Cancelar revision",
+            label: "Cancelar",
             onClick: handleConstructionCancel,
           }}
-          title="Enviar obra a construccion"
+          title="Iniciar construccion"
         >
           <div className="figma-data-list">
             <PlanetDataRow
@@ -1716,16 +1710,6 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           <p className="figma-panel-note">
             {preparedAction.display?.availabilityReasonLabel ?? "La obra esta lista para entrar en cola cuando confirmes."}
           </p>
-          <label className="confirmation-checkbox">
-            <input
-              type="checkbox"
-              checked={hasConstructionAcknowledgement}
-              onChange={(event) =>
-                setHasConstructionAcknowledgement(event.target.checked)
-              }
-            />
-            <span>Confirmo que quiero enviar esta orden de construccion</span>
-          </label>
         </GameModal>
       ) : null}
     </section>
