@@ -19,12 +19,16 @@ export function DefenseCatalogCard({
 }: DefenseCatalogCardProps) {
   const isAvailable = option.statusKey === "Available";
   const isUnitBased = option.productionModel === "unit";
+  const canBuildUnits = hasProductionAction && isAvailable && isUnitBased && Boolean(option.assetType);
   const requirementLabel = isAvailable
     ? option.requirementLabel ?? "Lista para construir"
     : option.affordabilityLabel ?? option.requirementLabel ?? option.reasonLabel;
   const primaryLabel = isUnitBased
-    ? `Stock ${option.currentLevel}`
+    ? `Cantidad actual ${option.currentLevel}`
     : `Nivel ${option.currentLevel} -> ${option.targetLevel}`;
+  const primaryActionLabel = isUnitBased
+    ? canBuildUnits ? "Construir" : "Bloqueada"
+    : "Especial por nivel";
 
   return (
     <article className={`subpanel figma-subpanel defense-catalog-card${isAvailable ? "" : " defense-catalog-card-blocked"}`}>
@@ -37,9 +41,12 @@ export function DefenseCatalogCard({
       </div>
       <div className="defense-catalog-card-primary">
         <span>{primaryLabel}</span>
-        <strong>{hasProductionAction && isAvailable ? "Construir" : "Bloqueado"}</strong>
+        <strong>{primaryActionLabel}</strong>
       </div>
       <div className="figma-data-list defense-catalog-card-details">
+        {isUnitBased ? (
+          <div className="figma-data-row"><span>Cantidad actual</span><strong>{option.currentLevel}</strong></div>
+        ) : null}
         <div className="figma-data-row"><span>Coste</span><strong>{option.estimatedCostLabel}</strong></div>
         <div className="figma-data-row"><span>Duracion</span><strong>{option.estimatedDurationLabel}</strong></div>
         <div className="figma-data-row"><span>Requisito</span><strong>{requirementLabel}</strong></div>
@@ -56,21 +63,23 @@ export function DefenseCatalogCard({
               min={1}
               step={1}
               value={quantity}
-              disabled={!hasProductionAction || !isAvailable}
+              disabled={!canBuildUnits}
               onChange={(event) => onQuantityChange(option.buildingType, Number(event.target.value))}
             />
           </label>
         ) : null}
-        <button
-          type="button"
-          className={hasProductionAction && isAvailable ? "planet-action-button-secondary" : "planet-action-button-blocked"}
-          disabled={!hasProductionAction || !isAvailable}
-          onClick={() => onBuild(option, isUnitBased ? quantity : 1)}
-        >
-          Construir
-        </button>
+        {isUnitBased ? (
+          <button
+            type="button"
+            className={canBuildUnits ? "planet-action-button-secondary" : "planet-action-button-blocked"}
+            disabled={!canBuildUnits}
+            onClick={() => onBuild(option, quantity)}
+          >
+            Construir
+          </button>
+        ) : null}
       </div>
-      {!isAvailable ? <p className="figma-panel-note">{requirementLabel}</p> : null}
+      {!canBuildUnits ? <p className="figma-panel-note">{requirementLabel}</p> : null}
     </article>
   );
 }
