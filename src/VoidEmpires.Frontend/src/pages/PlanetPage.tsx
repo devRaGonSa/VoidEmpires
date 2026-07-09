@@ -1196,8 +1196,8 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
             <UiCard className="panel">
               <div className="figma-section-header">
                 <div>
-                  <p className="eyebrow">{isConstructionRoute ? "Obras en cola" : "Cola de construccion"}</p>
-                  <h3>{isConstructionRoute ? "Obras en cola" : "Produccion"}</h3>
+                  {isConstructionRoute ? null : <p className="eyebrow">Cola de construccion</p>}
+                  <h3>{isConstructionRoute ? "Construccion activa" : "Produccion"}</h3>
                 </div>
                 <UiBadge tone={planet.constructionQueue.length > 0 ? "warn" : "good"}>
                   {planet.constructionQueue.length > 0
@@ -1205,7 +1205,15 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                     : "0 ordenes"}
                 </UiBadge>
               </div>
-              {planet.constructionQueue.length > 0 ? (
+              {isConstructionRoute ? (
+                <ul className="stack-list compact-list">
+                  {planet.constructionQueue.map((item) => (
+                    <li key={item.orderId}>
+                      {item.display?.buildingTypeLabel ?? formatBuildingType(item.buildingType)} nivel {item.targetLevel} | {item.display?.statusLabel ?? formatQueueState(item)} | cierre {formatDateTime(item.endsAtUtc)}
+                    </li>
+                  ))}
+                </ul>
+              ) : planet.constructionQueue.length > 0 ? (
                 <div className="planet-queue-grid">
                   {planet.constructionQueue.map((item) => (
                     <section key={item.orderId} className="subpanel figma-subpanel">
