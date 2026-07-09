@@ -3,7 +3,7 @@
 ---
 id: TASK-49H
 title: Wire refresh into read endpoints
-status: pending
+status: done
 type: backend
 team: backend
 supporting_teams: []

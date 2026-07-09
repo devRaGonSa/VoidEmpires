@@ -61,7 +61,7 @@ public class DevShipyardFleetPersistedFlowAuditTests(WebApplicationFactory<Progr
             target = 2,
             spaceAssetType = 1,
             quantity = 1,
-            requestedAtUtc = "2026-01-01T12:00:00Z",
+            requestedAtUtc = "2026-12-01T12:00:00Z",
         });
         var enqueuePayload = await enqueueResponse.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
 

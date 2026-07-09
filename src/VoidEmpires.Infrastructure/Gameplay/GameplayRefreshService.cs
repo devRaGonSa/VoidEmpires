@@ -13,6 +13,7 @@ public sealed class GameplayRefreshService(
 {
     private static readonly QueueMaterializationSummary EmptyQueueSummary = new(0, 0, 0);
     private static readonly ResourceRefreshSummary EmptyResourceSummary = new(false, TimeSpan.Zero, 0, null);
+    private static readonly TimeSpan MinimumResourceAccrualElapsed = TimeSpan.FromSeconds(1);
 
     public async Task<GameplayRefreshResult> RefreshAsync(
         GameplayRefreshRequest request,
@@ -98,7 +99,7 @@ public sealed class GameplayRefreshService(
         }
 
         var elapsed = request.NowUtc - stockpile.LastAccruedAtUtc;
-        if (elapsed <= TimeSpan.Zero)
+        if (elapsed < MinimumResourceAccrualElapsed)
         {
             return new(true, TimeSpan.Zero, 0, ApplyPlanetProductionResult.Success(request.PlanetId.Value));
         }

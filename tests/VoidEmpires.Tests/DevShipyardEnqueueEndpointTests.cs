@@ -206,7 +206,7 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
             target = AssetProductionTarget.Orbital,
             spaceAssetType = SpaceAssetType.ScoutCraft,
             quantity = 1,
-            requestedAtUtc = "2026-01-01T12:00:00Z",
+            requestedAtUtc = "2026-12-01T12:00:00Z",
         });
         var payload = await response.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
         var after = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOwnedPlanetId);
@@ -233,7 +233,7 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
             target = AssetProductionTarget.Orbital,
             spaceAssetType = SpaceAssetType.ScoutCraft,
             quantity = 1,
-            requestedAtUtc = "2026-01-01T12:00:00Z",
+            requestedAtUtc = "2026-12-01T12:00:00Z",
         });
         var payload = await response.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
         var after = await CapturePlanetSnapshotAsync(configuredFactory.Services, SeedOwnedPlanetId);
@@ -474,7 +474,7 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
             target = availableItem.EnqueueCommand.Target,
             spaceAssetType = availableItem.EnqueueCommand.SpaceAssetType,
             quantity = availableItem.EnqueueCommand.Quantity,
-            requestedAtUtc = "2026-01-01T12:00:00Z",
+            requestedAtUtc = "2026-12-01T12:00:00Z",
         });
         var enqueuePayload = await enqueueResponse.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
 
@@ -545,7 +545,7 @@ public class DevShipyardEnqueueEndpointTests(WebApplicationFactory<Program> fact
             target = availableItem.EnqueueCommand.Target,
             spaceAssetType = availableItem.EnqueueCommand.SpaceAssetType,
             quantity = availableItem.EnqueueCommand.Quantity,
-            requestedAtUtc = "2026-01-01T12:00:00Z",
+            requestedAtUtc = "2026-12-01T12:00:00Z",
         });
         var enqueuePayload = await enqueueResponse.Content.ReadFromJsonAsync<ShipyardEnqueueResponse>();
 

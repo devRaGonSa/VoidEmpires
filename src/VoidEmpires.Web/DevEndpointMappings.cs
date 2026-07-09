@@ -214,6 +214,12 @@ internal static class DevEndpointMappings
                     result.Errors));
             }
 
+            var dbContext = services.GetRequiredService<VoidEmpiresDbContext>();
+            var stockpile = await dbContext.PlanetResourceStockpiles
+                .SingleOrDefaultAsync(x => x.PlanetId == request.PlanetId.Value, cancellationToken);
+            stockpile?.MarkAccrued(DateTime.UtcNow);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
             return Results.Ok(new ApplyPlanetResourceEconomyApiResponse(
                 true,
                 []));
@@ -586,6 +592,23 @@ internal static class DevEndpointMappings
             if (civilizationId is null || civilizationId == Guid.Empty)
             {
                 return Results.BadRequest(new DevShipyardUiStateApiResponse(false, null, ["Civilization id is required."]));
+            }
+
+            try
+            {
+                var refreshService = services.GetRequiredService<IGameplayRefreshService>();
+                await refreshService.RefreshAsync(new GameplayRefreshRequest(
+                    civilizationId.Value,
+                    planetId,
+                    DateTime.UtcNow,
+                    IncludeResources: planetId is not null,
+                    IncludeConstruction: true,
+                    IncludeResearch: true,
+                    IncludeProduction: true), cancellationToken);
+            }
+            catch
+            {
+                // Development read endpoints stay readable when tests replace only read services.
             }
 
             var service = services.GetRequiredService<IDevShipyardUiStateService>();

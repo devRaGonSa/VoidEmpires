@@ -56,7 +56,7 @@ public class DevResearchPersistedFlowTests(WebApplicationFactory<Program> factor
                 civilizationId = availableHint.EnqueueCommand.CivilizationId,
                 sourcePlanetId = availableHint.EnqueueCommand.SourcePlanetId,
                 researchType = availableHint.EnqueueCommand.ResearchType.ToString(),
-                requestedAtUtc = "2026-06-04T12:00:00Z"
+                requestedAtUtc = "2026-12-04T12:00:00Z"
             });
         var enqueuePayload = await enqueueResponse.Content.ReadFromJsonAsync<EnqueueResearchOrderResponse>();
 
@@ -150,7 +150,7 @@ public class DevResearchPersistedFlowTests(WebApplicationFactory<Program> factor
             civilizationId = SeedCivilizationId,
             sourcePlanetId = SeedForeignPlanetId,
             researchType = ResearchType.PlanetaryEngineering.ToString(),
-            requestedAtUtc = "2026-06-04T12:00:00Z"
+            requestedAtUtc = "2026-12-04T12:00:00Z"
         });
         var foreignPlanetPayload = await foreignPlanetResponse.Content.ReadFromJsonAsync<EnqueueResearchOrderResponse>();
 
@@ -164,7 +164,7 @@ public class DevResearchPersistedFlowTests(WebApplicationFactory<Program> factor
             civilizationId = availableHint.EnqueueCommand!.CivilizationId,
             sourcePlanetId = availableHint.EnqueueCommand.SourcePlanetId,
             researchType = availableHint.EnqueueCommand.ResearchType.ToString(),
-            requestedAtUtc = "2026-06-04T12:05:00Z"
+            requestedAtUtc = "2026-12-04T12:05:00Z"
         });
         var firstEnqueuePayload = await firstEnqueueResponse.Content.ReadFromJsonAsync<EnqueueResearchOrderResponse>();
 
@@ -177,7 +177,7 @@ public class DevResearchPersistedFlowTests(WebApplicationFactory<Program> factor
             civilizationId = availableHint.EnqueueCommand.CivilizationId,
             sourcePlanetId = availableHint.EnqueueCommand.SourcePlanetId,
             researchType = availableHint.EnqueueCommand.ResearchType.ToString(),
-            requestedAtUtc = "2026-06-04T12:06:00Z"
+            requestedAtUtc = "2026-12-04T12:06:00Z"
         });
         var secondEnqueuePayload = await secondEnqueueResponse.Content.ReadFromJsonAsync<EnqueueResearchOrderResponse>();
 

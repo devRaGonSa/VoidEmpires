@@ -259,7 +259,7 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
                 civilizationId = SeedCivilizationId,
                 action = action.Action,
                 buildingType = action.BuildingType,
-                requestedAtUtc = "2026-06-04T12:00:00Z"
+                requestedAtUtc = "2026-12-04T12:00:00Z"
             });
             var constructionPayload = await enqueueConstructionResponse.Content.ReadFromJsonAsync<EnqueueConstructionOrderResponse>();
 
@@ -283,7 +283,7 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
                 civilizationId = hint.EnqueueCommand.CivilizationId,
                 sourcePlanetId = hint.EnqueueCommand.SourcePlanetId,
                 researchType = hint.EnqueueCommand.ResearchType.ToString(),
-                requestedAtUtc = "2026-06-04T12:05:00Z"
+                requestedAtUtc = "2026-12-04T12:05:00Z"
             });
             var researchPayload = await enqueueResearchResponse.Content.ReadFromJsonAsync<EnqueueResearchOrderResponse>();
 
@@ -365,7 +365,7 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
                 civilizationId = SeedCivilizationId,
                 action = action.Action,
                 buildingType = action.BuildingType,
-                requestedAtUtc = "2026-06-04T12:10:00Z"
+                requestedAtUtc = "2026-12-04T12:10:00Z"
             });
 
             Assert.Equal(HttpStatusCode.Created, enqueueConstructionResponse.StatusCode);
@@ -384,7 +384,7 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
                 civilizationId = hint.EnqueueCommand.CivilizationId,
                 sourcePlanetId = hint.EnqueueCommand.SourcePlanetId,
                 researchType = hint.EnqueueCommand.ResearchType.ToString(),
-                requestedAtUtc = "2026-06-04T12:15:00Z"
+                requestedAtUtc = "2026-12-04T12:15:00Z"
             });
 
             Assert.Equal(HttpStatusCode.Created, enqueueResearchResponse.StatusCode);

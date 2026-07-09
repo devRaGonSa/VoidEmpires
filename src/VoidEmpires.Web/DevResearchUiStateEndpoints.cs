@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using VoidEmpires.Application.Gameplay;
 using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Galaxy;
@@ -66,6 +67,26 @@ internal static class DevResearchUiStateEndpoints
             else
             {
                 selectedPlanet = await ownedPlanetQuery.FirstOrDefaultAsync(cancellationToken);
+            }
+
+            if (selectedPlanet is not null)
+            {
+                try
+                {
+                    var refreshService = services.GetRequiredService<IGameplayRefreshService>();
+                    await refreshService.RefreshAsync(new GameplayRefreshRequest(
+                        civilizationId.Value,
+                        selectedPlanet.Id,
+                        DateTime.UtcNow,
+                        IncludeResources: true,
+                        IncludeConstruction: true,
+                        IncludeResearch: true,
+                        IncludeProduction: true), cancellationToken);
+                }
+                catch
+                {
+                    // Development read endpoints stay readable when tests replace only read services.
+                }
             }
 
             var queue = await dbContext.ResearchOrders

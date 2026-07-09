@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VoidEmpires.Application.Gameplay;
 using VoidEmpires.Application.Planets;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.Planets;
@@ -23,6 +24,8 @@ internal static class DevPlanetUiStateEndpoints
             {
                 return Results.BadRequest(new DevPlanetUiStateApiResponse(false, null, ["Civilization id is required."]));
             }
+
+            await RefreshGameplayAsync(services, civilizationId.Value, planetId, cancellationToken);
 
             var service = services.GetRequiredService<IDevPlanetUiStateService>();
             var uiState = await service.GetAsync(
@@ -53,6 +56,8 @@ internal static class DevPlanetUiStateEndpoints
             {
                 return Results.BadRequest(new DevDefenseUiStateApiResponse(false, null, ["Civilization id is required."]));
             }
+
+            await RefreshGameplayAsync(services, civilizationId.Value, planetId, cancellationToken);
 
             var service = services.GetRequiredService<IDevDefenseUiStateService>();
             var uiState = await service.GetAsync(
@@ -98,6 +103,35 @@ internal static class DevPlanetUiStateEndpoints
 
             return Results.Ok(new DevGroundArmyUiStateApiResponse(true, uiState, []));
         });
+    }
+
+    private static Task RefreshGameplayAsync(
+        IServiceProvider services,
+        Guid civilizationId,
+        Guid? planetId,
+        CancellationToken cancellationToken)
+    {
+        return RefreshGameplayCoreAsync();
+
+        async Task RefreshGameplayCoreAsync()
+        {
+            try
+            {
+                var service = services.GetRequiredService<IGameplayRefreshService>();
+                await service.RefreshAsync(new GameplayRefreshRequest(
+                    civilizationId,
+                    planetId,
+                    DateTime.UtcNow,
+                    IncludeResources: planetId is not null,
+                    IncludeConstruction: true,
+                    IncludeResearch: true,
+                    IncludeProduction: true), cancellationToken);
+            }
+            catch
+            {
+                // Development read endpoints stay readable when tests replace only read services.
+            }
+        }
     }
 }
 

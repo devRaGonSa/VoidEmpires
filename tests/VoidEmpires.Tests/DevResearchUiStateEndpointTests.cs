@@ -257,8 +257,8 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
             ResearchType.PlanetaryEngineering,
             1,
             1,
-            new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc),
-            new DateTime(2026, 1, 1, 12, 20, 0, DateTimeKind.Utc),
+            new DateTime(2026, 12, 1, 12, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 12, 1, 12, 20, 0, DateTimeKind.Utc),
             ResearchQueueItemStatus.Active));
         await dbContext.SaveChangesAsync();
 
@@ -412,7 +412,7 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
                 civilizationId = availableResearch.EnqueueCommand.CivilizationId,
                 sourcePlanetId = availableResearch.EnqueueCommand.SourcePlanetId,
                 researchType = availableResearch.EnqueueCommand.ResearchType.ToString(),
-                requestedAtUtc = "2026-01-01T12:00:00Z"
+                requestedAtUtc = "2026-12-01T12:00:00Z"
             });
         var enqueuePayload = await enqueueResponse.Content.ReadFromJsonAsync<EnqueueResearchOrderApiResponse>();
 
@@ -476,7 +476,7 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
                 civilizationId = availableResearch.EnqueueCommand.CivilizationId,
                 sourcePlanetId = availableResearch.EnqueueCommand.SourcePlanetId,
                 researchType = availableResearch.EnqueueCommand.ResearchType.ToString(),
-                requestedAtUtc = "2026-01-01T12:00:00Z"
+                requestedAtUtc = "2026-12-01T12:00:00Z"
             });
 
         Assert.Equal(HttpStatusCode.Created, enqueueResponse.StatusCode);
