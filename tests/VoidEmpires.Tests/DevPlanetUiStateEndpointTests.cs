@@ -122,6 +122,28 @@ public class DevPlanetUiStateEndpointTests(WebApplicationFactory<Program> factor
     }
 
     [Fact]
+    public async Task PlanetUiStateUsesHighestLevelWhenLegacyDuplicateBuildingsExist()
+    {
+        await using var dbContext = CreateSeededDbContext();
+        var ownedPlanetId = Guid.Parse(SeedOwnedPlanetId);
+        dbContext.PlanetBuildings.Add(PlanetBuilding.Create(ownedPlanetId, BuildingType.CommandCenter, 7, 12));
+        await dbContext.SaveChangesAsync();
+        using var client = CreateConfiguredClient(dbContext);
+
+        using var response = await client.GetAsync($"/api/dev/planets/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var payload = await response.Content.ReadFromJsonAsync<DevPlanetUiStateResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.UiState?.Planet);
+        var commandCenter = Assert.Single(payload.UiState.Planet.Buildings, x => x.BuildingType == BuildingType.CommandCenter);
+        var commandCenterAction = Assert.Single(payload.UiState.Planet.ConstructionActions, x => x.BuildingType == BuildingType.CommandCenter);
+        Assert.Equal(7, commandCenter.Level);
+        Assert.Equal(12, commandCenter.Footprint);
+        Assert.Equal(7, commandCenterAction.CurrentLevel);
+        Assert.Equal(8, commandCenterAction.TargetLevel);
+    }
+
+    [Fact]
     public async Task PlanetUiStateAllowsExplicitForeignPlanetSelectionWithManagementDataHidden()
     {
         using var client = CreateConfiguredClient(CreateSeededDbContext());

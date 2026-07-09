@@ -152,11 +152,14 @@ public class GameplayRefreshServiceTests
         await dbContext.SaveChangesAsync();
         var service = CreateService(dbContext, new GameplayQueueMaterializationService(dbContext));
 
-        var result = await service.RefreshAsync(new GameplayRefreshRequest(
+        var request = new GameplayRefreshRequest(
             civilizationId,
             planetId,
             nowUtc,
-            IncludeResources: false));
+            IncludeResources: false);
+
+        var result = await service.RefreshAsync(request);
+        var repeatedResult = await service.RefreshAsync(request);
 
         var building = await dbContext.PlanetBuildings.SingleAsync(x => x.PlanetId == planetId && x.BuildingType == BuildingType.MetalMine);
         var completedOrder = await dbContext.PlanetConstructionOrders.SingleAsync();
@@ -170,6 +173,9 @@ public class GameplayRefreshServiceTests
 
         Assert.True(result.Succeeded);
         Assert.Equal(1, result.Construction.ProcessedCount);
+        Assert.True(repeatedResult.Succeeded);
+        Assert.Equal(0, repeatedResult.Construction.ProcessedCount);
+        Assert.Equal(1, await dbContext.PlanetBuildings.CountAsync(x => x.PlanetId == planetId && x.BuildingType == BuildingType.MetalMine));
         Assert.Equal(1, building.Level);
         Assert.Equal(ConstructionQueueItemStatus.Completed, completedOrder.Status);
         Assert.True(upgradeResult.Succeeded);
@@ -204,11 +210,14 @@ public class GameplayRefreshServiceTests
         await dbContext.SaveChangesAsync();
         var service = CreateService(dbContext, new GameplayQueueMaterializationService(dbContext));
 
-        var result = await service.RefreshAsync(new GameplayRefreshRequest(
+        var request = new GameplayRefreshRequest(
             civilizationId,
             planetId,
             nowUtc,
-            IncludeResources: false));
+            IncludeResources: false);
+
+        var result = await service.RefreshAsync(request);
+        var repeatedResult = await service.RefreshAsync(request);
 
         var project = await dbContext.ResearchProjects.SingleAsync(x => x.CivilizationId == civilizationId && x.ResearchType == ResearchType.PlanetaryEngineering);
         var completedOrder = await dbContext.ResearchOrders.SingleAsync();
@@ -221,6 +230,9 @@ public class GameplayRefreshServiceTests
 
         Assert.True(result.Succeeded);
         Assert.Equal(1, result.Research.ProcessedCount);
+        Assert.True(repeatedResult.Succeeded);
+        Assert.Equal(0, repeatedResult.Research.ProcessedCount);
+        Assert.Equal(1, await dbContext.ResearchProjects.CountAsync(x => x.CivilizationId == civilizationId && x.ResearchType == ResearchType.PlanetaryEngineering));
         Assert.Equal(1, project.Level);
         Assert.Equal(ResearchQueueItemStatus.Completed, completedOrder.Status);
         Assert.True(nextResearch.Succeeded);
@@ -228,6 +240,40 @@ public class GameplayRefreshServiceTests
             .Where(x => x.Status == ResearchQueueItemStatus.Active)
             .Select(x => x.TargetLevel)
             .SingleAsync());
+    }
+
+    [Fact]
+    public async Task RefreshAsyncUpdatesExistingResearchProjectForDueOrder()
+    {
+        var civilizationId = Guid.NewGuid();
+        var planetId = Guid.NewGuid();
+        var nowUtc = new DateTime(2026, 7, 9, 12, 0, 0, DateTimeKind.Utc);
+        var startsAtUtc = nowUtc.AddMinutes(-20);
+        await using var dbContext = CreateDbContext();
+        var project = ResearchProject.Create(civilizationId, ResearchType.ResourceExtraction);
+        dbContext.ResearchProjects.Add(project);
+        dbContext.ResearchOrders.Add(ResearchOrder.Create(
+            civilizationId,
+            planetId,
+            ResearchType.ResourceExtraction,
+            2,
+            1,
+            startsAtUtc,
+            nowUtc.AddMinutes(-5),
+            ResearchQueueItemStatus.Active));
+        await dbContext.SaveChangesAsync();
+        var service = CreateService(dbContext, new GameplayQueueMaterializationService(dbContext));
+
+        var result = await service.RefreshAsync(new GameplayRefreshRequest(
+            civilizationId,
+            planetId,
+            nowUtc,
+            IncludeResources: false));
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(1, result.Research.ProcessedCount);
+        Assert.Equal(1, await dbContext.ResearchProjects.CountAsync(x => x.CivilizationId == civilizationId && x.ResearchType == ResearchType.ResourceExtraction));
+        Assert.Equal(2, project.Level);
     }
 
     [Fact]

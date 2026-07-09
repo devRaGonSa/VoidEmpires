@@ -121,13 +121,14 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
         var buildingCapacity = isOwnedByRequestingCivilization
             ? await EnsureBuildingCapacityAsync(selectedPlanet.Planet, cancellationToken)
             : null;
-        var buildings = isOwnedByRequestingCivilization
+        var persistedBuildings = isOwnedByRequestingCivilization
             ? await dbContext.Set<PlanetBuilding>()
                 .AsNoTracking()
                 .Where(x => x.PlanetId == selectedPlanet.Planet.Id)
                 .OrderBy(x => x.BuildingType)
                 .ToListAsync(cancellationToken)
             : [];
+        var buildings = BuildBuildingSnapshots(persistedBuildings);
         var constructionQueue = isOwnedByRequestingCivilization
             ? await dbContext.Set<PlanetConstructionOrder>()
                 .AsNoTracking()
@@ -138,7 +139,7 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                 .ToListAsync(cancellationToken)
             : [];
 
-        var usedCapacity = buildings.Sum(x => x.Footprint);
+        var usedCapacity = buildings.Values.Sum(x => x.Footprint);
         var planetaryEngineeringLevel = relevantResearch.GetValueOrDefault(ResearchType.PlanetaryEngineering);
         var researchCapacityBonus = ResearchBonusCalculator.GetPlanetaryEngineeringCapacityBonus(planetaryEngineeringLevel);
         var constructionAutomationLevel = relevantResearch.GetValueOrDefault(ResearchType.ConstructionAutomation);
@@ -227,7 +228,7 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
                     buildingCapacity.BonusCapacity,
                     researchCapacityBonus,
                     buildingCapacity.TotalCapacity + researchCapacityBonus),
-            buildings
+            buildings.Values
                 .Select(x => new DevPlanetBuildingDto(
                     x.BuildingType,
                     BuildingCatalog.Get(x.BuildingType).Category,
@@ -444,7 +445,7 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
 
     private static DevPlanetConstructionActionDto BuildConstructionAction(
         BuildingType buildingType,
-        IReadOnlyList<PlanetBuilding> buildings,
+        IReadOnlyDictionary<BuildingType, PlanetBuildingSnapshot> buildings,
         PlanetResourceStockpile? stockpile,
         PlanetBuildingCapacity? buildingCapacity,
         int usedCapacity,
@@ -452,7 +453,7 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
         int openConstructionOrderCount,
         int constructionAutomationLevel)
     {
-        var existingBuilding = buildings.SingleOrDefault(x => x.BuildingType == buildingType);
+        buildings.TryGetValue(buildingType, out var existingBuilding);
         var definition = BuildingCatalog.Get(buildingType);
         var action = existingBuilding is null
             ? ConstructionQueueItemAction.Construct
@@ -700,4 +701,20 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
 
         return notes;
     }
+
+    private static IReadOnlyDictionary<BuildingType, PlanetBuildingSnapshot> BuildBuildingSnapshots(
+        IReadOnlyList<PlanetBuilding> buildings) =>
+        buildings
+            .GroupBy(x => x.BuildingType)
+            .ToDictionary(
+                x => x.Key,
+                x => new PlanetBuildingSnapshot(
+                    x.Key,
+                    x.Max(building => building.Level),
+                    x.Max(building => building.Footprint)));
+
+    private sealed record PlanetBuildingSnapshot(
+        BuildingType BuildingType,
+        int Level,
+        int Footprint);
 }

@@ -1,4 +1,6 @@
+using System.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using VoidEmpires.Application.Gameplay;
 using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Buildings;
@@ -41,6 +43,7 @@ public sealed class GameplayQueueMaterializationService(VoidEmpiresDbContext dbC
         List<string> notes,
         CancellationToken cancellationToken)
     {
+        await using var transaction = await BeginMaterializationTransactionAsync(cancellationToken);
         var query =
             from order in dbContext.PlanetConstructionOrders
             join ownership in dbContext.PlanetOwnerships on order.PlanetId equals ownership.PlanetId
@@ -61,36 +64,41 @@ public sealed class GameplayQueueMaterializationService(VoidEmpiresDbContext dbC
 
         foreach (var order in dueOrders)
         {
-            if (order.Action == ConstructionQueueItemAction.Construct)
+            if (order.Action == ConstructionQueueItemAction.Upgrade &&
+                !await dbContext.PlanetBuildings.AnyAsync(
+                    x => x.PlanetId == order.PlanetId && x.BuildingType == order.BuildingType,
+                    cancellationToken))
             {
-                var existingBuilding = await dbContext.PlanetBuildings
-                    .SingleOrDefaultAsync(x => x.PlanetId == order.PlanetId && x.BuildingType == order.BuildingType, cancellationToken);
-
-                if (existingBuilding is null)
-                {
-                    var definition = BuildingCatalog.Get(order.BuildingType);
-                    dbContext.PlanetBuildings.Add(PlanetBuilding.Create(order.PlanetId, order.BuildingType, order.TargetLevel, definition.Footprint));
-                }
+                notes.Add($"Construction order {order.Id} was due but its target building was not found.");
+                continue;
             }
-            else if (order.Action == ConstructionQueueItemAction.Upgrade)
+
+            if (!await TryClaimConstructionOrderAsync(order, request.NowUtc, cancellationToken))
             {
-                var building = await dbContext.PlanetBuildings
-                    .SingleOrDefaultAsync(x => x.PlanetId == order.PlanetId && x.BuildingType == order.BuildingType, cancellationToken);
+                continue;
+            }
 
-                if (building is null)
-                {
-                    notes.Add($"Construction order {order.Id} was due but its target building was not found.");
-                    continue;
-                }
+            var building = await dbContext.PlanetBuildings
+                .Where(x => x.PlanetId == order.PlanetId && x.BuildingType == order.BuildingType)
+                .OrderByDescending(x => x.Level)
+                .ThenByDescending(x => x.Footprint)
+                .FirstOrDefaultAsync(cancellationToken);
 
+            if (building is null)
+            {
+                var definition = BuildingCatalog.Get(order.BuildingType);
+                dbContext.PlanetBuildings.Add(PlanetBuilding.Create(order.PlanetId, order.BuildingType, order.TargetLevel, definition.Footprint));
+            }
+            else
+            {
                 while (building.Level < order.TargetLevel) building.Upgrade();
             }
 
-            order.MarkCompleted();
             processedCount++;
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        if (processedCount > 0) await dbContext.SaveChangesAsync(cancellationToken);
+        if (transaction is not null) await transaction.CommitAsync(cancellationToken);
 
         return new(processedCount, dueOrders.Count, notDueCount);
     }
@@ -99,6 +107,7 @@ public sealed class GameplayQueueMaterializationService(VoidEmpiresDbContext dbC
         MaterializeGameplayQueuesRequest request,
         CancellationToken cancellationToken)
     {
+        await using var transaction = await BeginMaterializationTransactionAsync(cancellationToken);
         var query = dbContext.ResearchOrders
             .Where(x => x.CivilizationId == request.CivilizationId
                 && (x.Status == ResearchQueueItemStatus.Pending || x.Status == ResearchQueueItemStatus.Active));
@@ -111,11 +120,19 @@ public sealed class GameplayQueueMaterializationService(VoidEmpiresDbContext dbC
             .ThenBy(x => x.Sequence)
             .ToListAsync(cancellationToken);
         var notDueCount = await query.CountAsync(x => x.EndsAtUtc > request.NowUtc, cancellationToken);
+        var processedCount = 0;
 
         foreach (var order in dueOrders)
         {
+            if (!await TryClaimResearchOrderAsync(order, request.NowUtc, cancellationToken))
+            {
+                continue;
+            }
+
             var project = await dbContext.ResearchProjects
-                .SingleOrDefaultAsync(x => x.CivilizationId == order.CivilizationId && x.ResearchType == order.ResearchType, cancellationToken);
+                .Where(x => x.CivilizationId == order.CivilizationId && x.ResearchType == order.ResearchType)
+                .OrderByDescending(x => x.Level)
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (project is null)
             {
@@ -124,12 +141,13 @@ public sealed class GameplayQueueMaterializationService(VoidEmpiresDbContext dbC
             }
 
             while (project.Level < order.TargetLevel) project.Upgrade();
-            order.MarkCompleted();
+            processedCount++;
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        if (dueOrders.Count > 0) await dbContext.SaveChangesAsync(cancellationToken);
+        if (transaction is not null) await transaction.CommitAsync(cancellationToken);
 
-        return new(dueOrders.Count, dueOrders.Count, notDueCount);
+        return new(processedCount, dueOrders.Count, notDueCount);
     }
 
     private async Task<QueueMaterializationSummary> MaterializeShipyardAsync(
@@ -185,4 +203,57 @@ public sealed class GameplayQueueMaterializationService(VoidEmpiresDbContext dbC
 
     private static MaterializeGameplayQueuesResult Failure(string error) =>
         new(false, EmptySummary, EmptySummary, EmptySummary, [error]);
+
+    private async Task<IDbContextTransaction?> BeginMaterializationTransactionAsync(CancellationToken cancellationToken) =>
+        dbContext.Database.IsRelational()
+            ? await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
+            : null;
+
+    private async Task<bool> TryClaimConstructionOrderAsync(
+        PlanetConstructionOrder order,
+        DateTime nowUtc,
+        CancellationToken cancellationToken)
+    {
+        if (!dbContext.Database.IsRelational())
+        {
+            if (!order.IsOpen || order.EndsAtUtc > nowUtc) return false;
+            order.MarkCompleted();
+            return true;
+        }
+
+        var updated = await dbContext.PlanetConstructionOrders
+            .Where(x =>
+                x.Id == order.Id &&
+                (x.Status == ConstructionQueueItemStatus.Pending || x.Status == ConstructionQueueItemStatus.Active) &&
+                x.EndsAtUtc <= nowUtc)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(x => x.Status, ConstructionQueueItemStatus.Completed),
+                cancellationToken);
+
+        return updated == 1;
+    }
+
+    private async Task<bool> TryClaimResearchOrderAsync(
+        ResearchOrder order,
+        DateTime nowUtc,
+        CancellationToken cancellationToken)
+    {
+        if (!dbContext.Database.IsRelational())
+        {
+            if (!order.IsOpen || order.EndsAtUtc > nowUtc) return false;
+            order.MarkCompleted();
+            return true;
+        }
+
+        var updated = await dbContext.ResearchOrders
+            .Where(x =>
+                x.Id == order.Id &&
+                (x.Status == ResearchQueueItemStatus.Pending || x.Status == ResearchQueueItemStatus.Active) &&
+                x.EndsAtUtc <= nowUtc)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(x => x.Status, ResearchQueueItemStatus.Completed),
+                cancellationToken);
+
+        return updated == 1;
+    }
 }
