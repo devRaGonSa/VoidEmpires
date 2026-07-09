@@ -3,7 +3,7 @@
 ---
 id: TASK-49K
 title: Copy guards and UI polish
-status: pending
+status: done
 type: tooling
 team: frontend
 supporting_teams: []

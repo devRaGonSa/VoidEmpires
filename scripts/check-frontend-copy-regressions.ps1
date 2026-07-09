@@ -534,6 +534,95 @@ if (Test-Path -LiteralPath $defenseCatalogCardPath) {
   }
 }
 
+$block49ScopedForbiddenCopy = @(
+  @{
+    Path = "src/VoidEmpires.Frontend/src/pages/DefensesPage.tsx"
+    Fragments = @(
+      "confirmation-checkbox",
+      "Confirmacion obligatoria",
+      "Confirmo que quiero construir defensas",
+      "Materializar ordenes vencidas",
+      "Development QA"
+    )
+  },
+  @{
+    Path = "src/VoidEmpires.Frontend/src/pages/HomePage.tsx"
+    Fragments = @(
+      "Sin obras en cola",
+      "Sin investigacion activa",
+      "Sin produccion orbital",
+      "Sin defensas en cola",
+      "Sin movimientos de flota"
+    )
+  },
+  @{
+    Path = "src/VoidEmpires.Frontend/src/components/DefenseCatalogCard.tsx"
+    Fragments = @(
+      "Nivel 0 -> 1",
+      'Stock ${option.currentLevel}'
+    )
+  }
+)
+
+foreach ($requirement in $block49ScopedForbiddenCopy) {
+  $path = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($requirement.Path)"))
+  if (-not (Test-Path -LiteralPath $path)) {
+    $copyHygieneFailures.Add("Missing Block 49 guarded file '$($requirement.Path)'.")
+    continue
+  }
+
+  $content = Get-Content -LiteralPath $path -Raw
+  foreach ($fragment in $requirement.Fragments) {
+    if ($content -like "*$fragment*") {
+      $copyHygieneFailures.Add("$($requirement.Path) contains forbidden Block 49 UI copy fragment: $fragment")
+    }
+  }
+}
+
+$block49RequiredFragments = @(
+  @{
+    Path = "src/VoidEmpires.Frontend/src/components/DefenseCatalogCard.tsx"
+    Fragments = @(
+      "const isUnitBased = option.productionModel === `"unit`";",
+      'Cantidad actual ${option.currentLevel}',
+      "<span>Unidades</span>",
+      "Construir"
+    )
+  },
+  @{
+    Path = "src/VoidEmpires.Frontend/src/pages/DefensesPage.tsx"
+    Fragments = @(
+      "Construir defensas",
+      "assetType: reviewSelection.option.assetType",
+      "quantity: reviewSelection.quantity"
+    )
+  },
+  @{
+    Path = "src/VoidEmpires.Frontend/src/api/defenseApi.ts"
+    Fragments = @(
+      "const planetaryTarget = 1;",
+      "target: planetaryTarget",
+      "planetaryAssetType:",
+      "planetaryDefenseAssetTypeMap"
+    )
+  }
+)
+
+foreach ($requirement in $block49RequiredFragments) {
+  $path = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($requirement.Path)"))
+  if (-not (Test-Path -LiteralPath $path)) {
+    $copyHygieneFailures.Add("Missing Block 49 required file '$($requirement.Path)'.")
+    continue
+  }
+
+  $content = Get-Content -LiteralPath $path -Raw
+  foreach ($fragment in $requirement.Fragments) {
+    if ($content -notlike "*$fragment*") {
+      $copyHygieneFailures.Add("$($requirement.Path) is missing Block 49 required fragment: $fragment")
+    }
+  }
+}
+
 if ($copyHygieneFailures.Count -gt 0) {
   throw "Frontend copy hygiene guard failed:`n$($copyHygieneFailures -join [Environment]::NewLine)"
 }
