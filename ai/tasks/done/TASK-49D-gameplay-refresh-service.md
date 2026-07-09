@@ -3,7 +3,7 @@
 ---
 id: TASK-49D
 title: Gameplay refresh service
-status: pending
+status: completed
 type: backend
 team: backend
 supporting_teams: []
