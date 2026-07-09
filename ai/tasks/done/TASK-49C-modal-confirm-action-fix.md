@@ -3,7 +3,7 @@
 ---
 id: TASK-49C
 title: Modal confirm action fix
-status: pending
+status: completed
 type: frontend
 team: frontend
 supporting_teams: []

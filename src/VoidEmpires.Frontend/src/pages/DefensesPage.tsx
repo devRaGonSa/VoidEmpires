@@ -3,11 +3,13 @@ import { useSearchParams } from "react-router-dom";
 import { enqueueDefenseProduction, fetchDefensesUiState } from "../api/defenseApi";
 import { CockpitHero } from "../components/CockpitHero";
 import { DefenseCatalogCard } from "../components/DefenseCatalogCard";
+import { GameModal } from "../components/GameModal";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { formatDefenseRequestFailure } from "../utils/defensePresentation";
 import {
   mapDefensesUiStateToViewModel,
+  type DefenseOption,
   type DefensesViewModel,
 } from "../utils/defenseViewModel";
 import { buildDefensesUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
@@ -31,6 +33,7 @@ export function DefensesPage() {
   const [enqueueFeedback, setEnqueueFeedback] = useState<string | null>(null);
   const [enqueueError, setEnqueueError] = useState<string | null>(null);
   const [isSubmittingEnqueue, setIsSubmittingEnqueue] = useState(false);
+  const [reviewSelection, setReviewSelection] = useState<{ option: DefenseOption; quantity: number } | null>(null);
 
   const queryCivilizationId = searchParams.get("civilizationId") ?? "";
   const queryPlanetId = searchParams.get("planetId");
@@ -100,8 +103,28 @@ export function DefensesPage() {
     }));
   }
 
-  async function handleBuildDefense(option: typeof catalogOptions[number], quantity: number) {
-    if (!defenses || !option.assetType || option.statusKey !== "Available" || isSubmittingEnqueue) {
+  function handleReviewDefense(option: DefenseOption, quantity: number) {
+    if (!option.assetType || option.statusKey !== "Available") {
+      return;
+    }
+
+    setReviewSelection({
+      option,
+      quantity: Number.isFinite(quantity) && quantity > 0 ? Math.floor(quantity) : 1,
+    });
+    setEnqueueFeedback(null);
+    setEnqueueError(null);
+    setTechnicalErrorDetail(null);
+  }
+
+  function handleCancelReview() {
+    setReviewSelection(null);
+    setEnqueueError(null);
+    setTechnicalErrorDetail(null);
+  }
+
+  async function handleConfirmDefenseProduction() {
+    if (!defenses || !reviewSelection?.option.assetType || reviewSelection.option.statusKey !== "Available" || isSubmittingEnqueue) {
       return;
     }
 
@@ -114,8 +137,8 @@ export function DefensesPage() {
       const result = await enqueueDefenseProduction({
         civilizationId: queryCivilizationId,
         planetId: defenses.planetId,
-        assetType: option.assetType,
-        quantity: Number.isFinite(quantity) && quantity > 0 ? Math.floor(quantity) : 1,
+        assetType: reviewSelection.option.assetType,
+        quantity: reviewSelection.quantity,
         requestedAtUtc: new Date().toISOString(),
       });
 
@@ -125,6 +148,7 @@ export function DefensesPage() {
       }
 
       setEnqueueFeedback("Produccion defensiva enviada a la cola.");
+      setReviewSelection(null);
       await reloadDefensesState(false);
     } catch (requestError) {
       const failure = formatDefenseRequestFailure(requestError instanceof Error ? requestError.message : null);
@@ -230,7 +254,7 @@ export function DefensesPage() {
                     hasProductionAction={hasSafeDefenseEnqueue}
                     quantity={quantityByBuildingType[option.buildingType] ?? 1}
                     onQuantityChange={handleQuantityChange}
-                    onBuild={handleBuildDefense}
+                    onBuild={handleReviewDefense}
                   />
                 ))}
               </div>
@@ -261,6 +285,41 @@ export function DefensesPage() {
           </UiCard>
         ) : null
       )}
+
+      {reviewSelection && defenses ? (
+        <GameModal
+          actionScope="gameplay"
+          canClose={!isSubmittingEnqueue}
+          closeLabel="Cerrar"
+          description="Revisa defensa, coste y duracion antes de enviar la produccion defensiva a la cola."
+          isBusy={isSubmittingEnqueue}
+          isOpen
+          onClose={handleCancelReview}
+          primaryAction={{
+            label: "Construir defensas",
+            onClick: () => void handleConfirmDefenseProduction(),
+          }}
+          secondaryAction={{
+            label: "Cancelar",
+            onClick: handleCancelReview,
+            disabled: isSubmittingEnqueue,
+          }}
+          title="Construir defensas"
+        >
+          <div className="figma-data-list">
+            <div className="figma-data-row"><span>Planeta</span><strong>{defenses.planetName}</strong></div>
+            <div className="figma-data-row"><span>Defensa</span><strong>{reviewSelection.option.structureLabel}</strong></div>
+            <div className="figma-data-row"><span>Cantidad actual</span><strong>{reviewSelection.option.currentLevel}</strong></div>
+            <div className="figma-data-row"><span>Unidades</span><strong>{reviewSelection.quantity}</strong></div>
+            <div className="figma-data-row"><span>Coste</span><strong>{reviewSelection.option.estimatedCostLabel}</strong></div>
+            <div className="figma-data-row"><span>Duracion</span><strong>{reviewSelection.option.estimatedDurationLabel}</strong></div>
+            <div className="figma-data-row"><span>Estado</span><strong>{reviewSelection.option.statusLabel}</strong></div>
+          </div>
+          <p className="figma-panel-note">
+            La produccion defensiva entrara en su cola propia cuando el backend acepte la orden.
+          </p>
+        </GameModal>
+      ) : null}
 
     </section>
   );
