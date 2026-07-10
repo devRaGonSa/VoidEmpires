@@ -16,6 +16,7 @@ import {
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
+import { formatQueueCountdown } from "../utils/countdown";
 import { isOperatorMode } from "../utils/playableSession";
 import { buildPlanetUrl, buildResearchUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 
@@ -459,7 +460,7 @@ export function ResearchPage() {
             <ul className="stack-list compact-list">
               {uiState.queue.map((item) => (
                 <li key={item.orderId}>
-                  {item.label} nivel {item.targetLevel} | {item.isDue ? "Lista para cierre" : item.statusLabel} | cierre {formatDateTime(item.endsAtUtc)}
+                  {item.label} nivel {item.targetLevel} | {item.isDue ? "finalizando..." : item.statusLabel} | {formatQueueCountdown(item.endsAtUtc)}
                 </li>
               ))}
             </ul>

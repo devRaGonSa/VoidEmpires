@@ -1,5 +1,6 @@
 import type { PlanetCockpitDto } from "../api/planetTypes";
 import { formatConstructionQueuePhase } from "../utils/planetPresentation";
+import { formatQueueCountdown } from "../utils/countdown";
 import { UiCard } from "./ui/UiCard";
 
 export interface QueueSummaryItem {
@@ -15,13 +16,6 @@ function isOpenConstructionQueueItem(item: PlanetCockpitDto["constructionQueue"]
 function formatQueueItemLabel(item: PlanetCockpitDto["constructionQueue"][number]) {
   const buildingLabel = item.display?.buildingTypeLabel ?? `${item.buildingType}`;
   return `${buildingLabel} nivel ${item.targetLevel}`;
-}
-
-function formatDateTime(value: string) {
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed)
-    ? "No disponible"
-    : new Intl.DateTimeFormat("es-ES", { dateStyle: "short", timeStyle: "short" }).format(parsed);
 }
 
 function QueueSummaryPanel({ summary }: { summary: QueueSummaryItem }) {
@@ -53,13 +47,13 @@ export function QueueSummaryPanels({
     ...(buildingQueue.length > 0 ? [{
       label: "Construccion",
       value: buildingQueue.length === 1 ? "1 obra" : `${buildingQueue.length} obras`,
-      detail: `${formatQueueItemLabel(buildingQueue[0])}: ${formatConstructionQueuePhase(buildingQueue[0].status, buildingQueue[0].isDue)}, cierre ${formatDateTime(buildingQueue[0].endsAtUtc)}`,
+      detail: `${formatQueueItemLabel(buildingQueue[0])}: ${formatConstructionQueuePhase(buildingQueue[0].status, buildingQueue[0].isDue)}, ${formatQueueCountdown(buildingQueue[0].endsAtUtc)}`,
     }] : []),
     ...moduleSummaries,
     ...(defenseQueue.length > 0 ? [{
       label: "Defensas",
       value: defenseQueue.length === 1 ? "1 defensa" : `${defenseQueue.length} defensas`,
-      detail: `${formatQueueItemLabel(defenseQueue[0])}: ${formatConstructionQueuePhase(defenseQueue[0].status, defenseQueue[0].isDue)}, cierre ${formatDateTime(defenseQueue[0].endsAtUtc)}`,
+      detail: `${formatQueueItemLabel(defenseQueue[0])}: ${formatConstructionQueuePhase(defenseQueue[0].status, defenseQueue[0].isDue)}, ${formatQueueCountdown(defenseQueue[0].endsAtUtc)}`,
     }] : []),
     ...(movements > 0 ? [{
       label: "Flotas",

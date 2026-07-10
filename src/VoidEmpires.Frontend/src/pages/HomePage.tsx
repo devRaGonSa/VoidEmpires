@@ -11,6 +11,7 @@ import { QueueSummaryPanels, type QueueSummaryItem } from "../components/QueueSu
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { getCurrentAccountWorldEntry } from "../utils/currentAccountSession";
+import { formatQueueCountdown } from "../utils/countdown";
 import { getDefenseStatusLabel, getDefenseStructureLabel } from "../utils/defensePresentation";
 import { getResearchStatusLabel, getResearchTechnologyLabel } from "../utils/researchPresentation";
 import {
@@ -19,13 +20,6 @@ import {
 } from "../utils/routeUrls";
 import { getAssetProductionStatusLabel, getAssetTypeLabel } from "../utils/shipyardPresentation";
 import { useCurrentAccountSession } from "../utils/useCurrentAccountSession";
-
-function formatDateTime(value: string) {
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed)
-    ? "No disponible"
-    : new Intl.DateTimeFormat("es-ES", { dateStyle: "short", timeStyle: "short" }).format(parsed);
-}
 
 function isOpenQueueStatus(value: string | number | null | undefined) {
   const status = `${value ?? ""}`.trim().toLowerCase();
@@ -47,7 +41,7 @@ async function fetchModuleQueueSummaries(civilizationId: string, planetId: strin
       summaries.push({
         label: "Investigacion",
         value: queue.length === 1 ? "1 investigacion" : `${queue.length} investigaciones`,
-        detail: `${getResearchTechnologyLabel(first.researchType)} nivel ${first.targetLevel}: ${getResearchStatusLabel(first.status)}, cierre ${formatDateTime(first.endsAtUtc)}`,
+        detail: `${getResearchTechnologyLabel(first.researchType)} nivel ${first.targetLevel}: ${getResearchStatusLabel(first.status)}, ${formatQueueCountdown(first.endsAtUtc)}`,
       });
     }
   }
@@ -59,7 +53,7 @@ async function fetchModuleQueueSummaries(civilizationId: string, planetId: strin
       summaries.push({
         label: "Astillero",
         value: queue.length === 1 ? "1 produccion" : `${queue.length} producciones`,
-        detail: `${first.quantity} x ${getAssetTypeLabel(first.assetType)}: ${getAssetProductionStatusLabel(first.status)}, cierre ${formatDateTime(first.endsAtUtc)}`,
+        detail: `${first.quantity} x ${getAssetTypeLabel(first.assetType)}: ${getAssetProductionStatusLabel(first.status)}, ${formatQueueCountdown(first.endsAtUtc)}`,
       });
     }
   }
@@ -71,7 +65,7 @@ async function fetchModuleQueueSummaries(civilizationId: string, planetId: strin
       summaries.push({
         label: "Defensas",
         value: queue.length === 1 ? "1 produccion" : `${queue.length} producciones`,
-        detail: `${getDefenseStructureLabel(first.buildingType)}: ${getDefenseStatusLabel(first.status)}, cierre ${formatDateTime(first.endsAtUtc)}`,
+        detail: `${getDefenseStructureLabel(first.buildingType)}: ${getDefenseStatusLabel(first.status)}, ${formatQueueCountdown(first.endsAtUtc)}`,
       });
     }
   }

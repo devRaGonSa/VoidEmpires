@@ -56,6 +56,7 @@ import {
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
+import { formatQueueCountdown } from "../utils/countdown";
 import { formatResourceDelta, formatResourceLabel } from "../utils/resourceDisplay";
 import { isOperatorMode } from "../utils/playableSession";
 import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
@@ -1204,7 +1205,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                 <ul className="stack-list compact-list">
                   {planet.constructionQueue.map((item) => (
                     <li key={item.orderId}>
-                      {item.display?.buildingTypeLabel ?? formatBuildingType(item.buildingType)} nivel {item.targetLevel} | {item.display?.statusLabel ?? formatQueueState(item)} | cierre {formatDateTime(item.endsAtUtc)}
+                      {item.display?.buildingTypeLabel ?? formatBuildingType(item.buildingType)} nivel {item.targetLevel} | {item.isDue ? "finalizando..." : item.display?.statusLabel ?? formatQueueState(item)} | {formatQueueCountdown(item.endsAtUtc)}
                     </li>
                   ))}
                 </ul>
@@ -1235,8 +1236,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                         </div>
                       </div>
                       <div className="figma-data-list">
-                        <PlanetDataRow label="Comienza" value={formatDateTime(item.startsAtUtc)} />
-                        <PlanetDataRow label="Termina" value={formatDateTime(item.endsAtUtc)} />
+                        <PlanetDataRow label="Tiempo restante" value={formatQueueCountdown(item.endsAtUtc)} />
                         <PlanetDataRow label="Coste" value={formatCompactResourceCost(item.cost)} />
                       </div>
                       {operatorMode ? <p className="dev-meta">{formatCompactGuid(item.orderId)}</p> : null}

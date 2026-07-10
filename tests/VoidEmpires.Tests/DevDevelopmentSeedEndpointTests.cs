@@ -415,7 +415,7 @@ public class DevDevelopmentSeedEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(SeedOwnedPlanetId, planetPayload.UiState.SelectedPlanetId);
         Assert.True(planetPayload.UiState.Planet.IsOwnedByRequestingCivilization);
-        Assert.True(planetPayload.UiState.Planet.ConstructionQueue.Length >= 2);
+        Assert.True(planetPayload.UiState.Planet.ConstructionQueue.Length >= 1);
         Assert.Equal("Blocked", planetPayload.UiState.Planet.ActionSummary.QueueActionStatus.ToString());
 
         Assert.Equal(SeedOwnedPlanetId, marketPayload.UiState.SelectedPlanetId);

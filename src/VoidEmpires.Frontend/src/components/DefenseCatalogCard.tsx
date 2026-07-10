@@ -28,7 +28,7 @@ export function DefenseCatalogCard({
     : `Nivel ${option.currentLevel} -> ${option.targetLevel}`;
   const primaryActionLabel = isUnitBased
     ? canBuildUnits ? "Construir" : "Bloqueada"
-    : "Especial por nivel";
+    : isAvailable ? "Mejorar" : "Bloqueada";
 
   return (
     <article className={`subpanel figma-subpanel defense-catalog-card${isAvailable ? "" : " defense-catalog-card-blocked"}`}>

@@ -457,9 +457,12 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
         Assert.NotNull(initialPayload?.UiState);
-        Assert.Empty(initialPayload.UiState.Queue.Where(x => x.Status is ResearchQueueItemStatus.Pending or ResearchQueueItemStatus.Active));
+        Assert.Empty(initialPayload.UiState.Queue);
         Assert.Single(initialPayload.UiState.Projects, x => x.ResearchType == ResearchType.EnergySystems && x.Level == 1);
-        Assert.Single(initialPayload.UiState.Queue, x => x.ResearchType == ResearchType.EnergySystems && x.Status == ResearchQueueItemStatus.Completed);
+        Assert.True(await dbContext.ResearchOrders.AnyAsync(x =>
+            x.CivilizationId == Guid.Parse(SeedCivilizationId) &&
+            x.ResearchType == ResearchType.EnergySystems &&
+            x.Status == ResearchQueueItemStatus.Completed));
         Assert.Single(initialPayload.UiState.TechnologyHints.Where(x => x.CanEnqueue));
         Assert.True(initialPayload.UiState.TechnologyHints.Count(x => !x.CanEnqueue) >= 3);
         Assert.All(
@@ -495,7 +498,7 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
     }
 
     [Fact]
-    public async Task CockpitValidationProfileReturnsAvailableBlockedAndCompletedResearchHistory()
+    public async Task CockpitValidationProfileReturnsAvailableBlockedAndNoCompletedActiveQueue()
     {
         var databaseName = Guid.NewGuid().ToString("N");
         await using var dbContext = CreateSeededDbContext(databaseName, "cockpit-validation");
@@ -506,8 +509,12 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(payload?.UiState);
-        Assert.Single(payload.UiState.Queue, x => x.ResearchType == ResearchType.EnergySystems && x.Status == ResearchQueueItemStatus.Completed);
+        Assert.Empty(payload.UiState.Queue);
         Assert.Single(payload.UiState.Projects, x => x.ResearchType == ResearchType.EnergySystems && x.Level == 1);
+        Assert.True(await dbContext.ResearchOrders.AnyAsync(x =>
+            x.CivilizationId == Guid.Parse(SeedCivilizationId) &&
+            x.ResearchType == ResearchType.EnergySystems &&
+            x.Status == ResearchQueueItemStatus.Completed));
         Assert.True(payload.UiState.TechnologyHints.Count(x => x.CanEnqueue) >= 1);
         Assert.True(payload.UiState.TechnologyHints.Count(x => !x.CanEnqueue) >= 1);
         Assert.Contains(payload.UiState.TechnologyHints, x => x.ResearchType == ResearchType.PlanetaryEngineering && x.CanEnqueue);

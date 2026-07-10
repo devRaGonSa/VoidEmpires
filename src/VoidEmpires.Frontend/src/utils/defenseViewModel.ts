@@ -126,7 +126,7 @@ export interface DefensesViewModel {
 
 const reasonLabels: Record<string, string> = {
   "Ready for explicit development confirmation.": "Lista para abrir Construccion",
-  "Planet already has an open construction order.": "La cola de Construccion ya tiene una obra abierta",
+  "Planet already has an open construction order.": "Ya hay una obra defensiva especial abierta",
   "Planet resource stockpile was not found.": "La colonia no expone reservas locales utilizables",
   "Planet building capacity was not found.": "Sin campos disponibles",
   "Planet building capacity would be exceeded.": "Sin campos disponibles",
@@ -232,7 +232,7 @@ function mapOption(item: DefenseOptionDto, stockpile: DefenseCost[], metadataByB
       ? getMissingResourceLabel(cost, stockpile)
       : null,
     requirementLabel: item.availabilityReason === "Planet already has an open construction order."
-      ? "La cola de Construccion debe quedar libre antes de preparar otra defensa"
+      ? "Ya hay una obra defensiva especial abierta"
       : item.availabilityReason === "Planet is not controlled by the requesting civilization."
         ? "Defensas solo revisa colonias propias en esta fase"
         : item.availabilityReason === "Planet building capacity was not found."

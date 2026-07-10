@@ -118,9 +118,12 @@ public sealed class DevShipyardUiStateService(VoidEmpiresDbContext dbContext) : 
         var queue = isOwnedByRequestingCivilization
             ? await dbContext.Set<AssetProductionOrder>()
                 .AsNoTracking()
-                .Where(x => x.PlanetId == selectedPlanet.Planet.Id && x.Target == AssetProductionTarget.Orbital && x.SpaceAssetType != null)
-                .OrderBy(x => x.Status == AssetProductionOrderStatus.Pending || x.Status == AssetProductionOrderStatus.Active ? 0 : 1)
-                .ThenBy(x => x.Sequence)
+                .Where(x =>
+                    x.PlanetId == selectedPlanet.Planet.Id &&
+                    x.Target == AssetProductionTarget.Orbital &&
+                    x.SpaceAssetType != null &&
+                    (x.Status == AssetProductionOrderStatus.Pending || x.Status == AssetProductionOrderStatus.Active))
+                .OrderBy(x => x.Sequence)
                 .Take(8)
                 .ToListAsync(cancellationToken)
             : [];

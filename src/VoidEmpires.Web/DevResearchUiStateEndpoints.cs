@@ -91,9 +91,10 @@ internal static class DevResearchUiStateEndpoints
 
             var queue = await dbContext.ResearchOrders
                 .AsNoTracking()
-                .Where(x => x.CivilizationId == civilizationId.Value)
-                .OrderBy(x => x.Status == ResearchQueueItemStatus.Pending || x.Status == ResearchQueueItemStatus.Active ? 0 : 1)
-                .ThenBy(x => x.Sequence)
+                .Where(x =>
+                    x.CivilizationId == civilizationId.Value &&
+                    (x.Status == ResearchQueueItemStatus.Pending || x.Status == ResearchQueueItemStatus.Active))
+                .OrderBy(x => x.Sequence)
                 .ToListAsync(cancellationToken);
 
             var projects = await dbContext.ResearchProjects

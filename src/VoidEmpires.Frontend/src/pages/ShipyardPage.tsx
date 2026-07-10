@@ -17,6 +17,7 @@ import {
 } from "../utils/shipyardViewModel";
 import { buildShipyardUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
+import { formatQueueCountdown } from "../utils/countdown";
 import { isOperatorMode } from "../utils/playableSession";
 import { formatResourceDelta } from "../utils/resourceDisplay";
 
@@ -606,14 +607,12 @@ export function ShipyardPage() {
                         <h4>{item.label}</h4>
                       </div>
                       <div className="figma-badge-row">
-                        <UiBadge tone={item.isDue ? "warn" : "neutral"}>{item.statusLabel}</UiBadge>
-                        {item.isDue ? <UiBadge tone="warn">Lista para cierre futuro</UiBadge> : null}
+                        <UiBadge tone={item.isDue ? "warn" : "neutral"}>{item.isDue ? "finalizando..." : item.statusLabel}</UiBadge>
                       </div>
                     </div>
                     <div className="figma-data-list">
                       <div className="figma-data-row"><span>Salida</span><strong>{item.quantityLabel}</strong></div>
-                      <div className="figma-data-row"><span>Inicio visible</span><strong>{formatDateTime(item.startsAtUtc)}</strong></div>
-                      <div className="figma-data-row"><span>Fin visible</span><strong>{formatDateTime(item.endsAtUtc)}</strong></div>
+                      <div className="figma-data-row"><span>Tiempo restante</span><strong>{formatQueueCountdown(item.endsAtUtc)}</strong></div>
                     </div>
                     <p>{item.isDue ? "La orden ya vencio en la lectura actual. La vista la mantiene visible sin completarla automaticamente." : "La orden sigue en progreso o pendiente dentro de la ventana temporal visible."}</p>
                   </section>

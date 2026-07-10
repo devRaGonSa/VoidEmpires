@@ -94,9 +94,9 @@ public class DevResearchPersistedFlowTests(WebApplicationFactory<Program> factor
         Assert.Contains(
             followUpState.Projects,
             x => x.ResearchType == ResearchType.EnergySystems && x.Level == 1);
-        Assert.Contains(
+        Assert.DoesNotContain(
             followUpState.Queue,
-            x => x.ResearchType == ResearchType.EnergySystems && x.Status == ResearchQueueItemStatus.Completed);
+            x => x.Status == ResearchQueueItemStatus.Completed);
 
         using var scopeAfter = configuredFactory.Services.CreateScope();
         var dbAfter = scopeAfter.ServiceProvider.GetRequiredService<VoidEmpiresDbContext>();
@@ -108,6 +108,10 @@ public class DevResearchPersistedFlowTests(WebApplicationFactory<Program> factor
         Assert.Equal(resourcesBefore[ResourceType.Crystal] - availableHint.EstimatedCost.Crystal, stockpileAfter.Crystal);
         Assert.Equal(resourcesBefore[ResourceType.Gas] - availableHint.EstimatedCost.Gas, stockpileAfter.Gas);
         Assert.Equal(SeedCivilizationId, persistedOrder.CivilizationId);
+        Assert.True(await dbAfter.ResearchOrders.AsNoTracking().AnyAsync(x =>
+            x.CivilizationId == SeedCivilizationId &&
+            x.ResearchType == ResearchType.EnergySystems &&
+            x.Status == ResearchQueueItemStatus.Completed));
         Assert.Equal(SeedOwnedPlanetId, persistedOrder.SourcePlanetId);
         Assert.Equal(availableHint.ResearchType, persistedOrder.ResearchType);
         Assert.Equal(availableHint.NextLevel, persistedOrder.TargetLevel);

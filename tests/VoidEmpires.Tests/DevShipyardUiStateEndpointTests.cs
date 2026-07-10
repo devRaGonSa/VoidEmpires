@@ -205,7 +205,10 @@ public class DevShipyardUiStateEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(payload?.UiState?.Shipyard);
-        Assert.Single(payload.UiState.Shipyard.Queue);
+        Assert.Empty(payload.UiState.Shipyard.Queue);
+        Assert.True(await dbContext.Set<VoidEmpires.Domain.Assets.AssetProductionOrder>().AnyAsync(x =>
+            x.PlanetId == SeedOwnedPlanetId &&
+            x.Status == VoidEmpires.Domain.Assets.AssetProductionOrderStatus.Completed));
         Assert.Equal(2, payload.UiState.Shipyard.OrbitalStock.Count);
         Assert.Contains(payload.UiState.Shipyard.OrbitalStock, x => x.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.ScoutCraft && x.Quantity == 1);
         Assert.Contains(payload.UiState.Shipyard.OrbitalStock, x => x.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.EscortCraft && x.Quantity == 4);
@@ -235,7 +238,10 @@ public class DevShipyardUiStateEndpointTests(WebApplicationFactory<Program> fact
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(payload?.UiState?.Shipyard);
-        Assert.Single(payload.UiState.Shipyard.Queue);
+        Assert.Empty(payload.UiState.Shipyard.Queue);
+        Assert.True(await dbContext.Set<VoidEmpires.Domain.Assets.AssetProductionOrder>().AnyAsync(x =>
+            x.PlanetId == SeedOwnedPlanetId &&
+            x.Status == VoidEmpires.Domain.Assets.AssetProductionOrderStatus.Completed));
         Assert.Contains(payload.UiState.Shipyard.OrbitalStock, x => x.AssetType == VoidEmpires.Domain.Assets.SpaceAssetType.ScoutCraft && x.Quantity == 1);
         Assert.True(payload.UiState.Shipyard.Catalog.Count(item => item.AvailabilityStatus == "Available") >= 1);
         Assert.True(payload.UiState.Shipyard.Catalog.Count(item => item.AvailabilityStatus == "Blocked") >= 1);

@@ -132,9 +132,10 @@ public sealed class DevPlanetUiStateService(VoidEmpiresDbContext dbContext) : ID
         var constructionQueue = isOwnedByRequestingCivilization
             ? await dbContext.Set<PlanetConstructionOrder>()
                 .AsNoTracking()
-                .Where(x => x.PlanetId == selectedPlanet.Planet.Id)
-                .OrderBy(x => x.Status == ConstructionQueueItemStatus.Pending || x.Status == ConstructionQueueItemStatus.Active ? 0 : 1)
-                .ThenBy(x => x.Sequence)
+                .Where(x =>
+                    x.PlanetId == selectedPlanet.Planet.Id &&
+                    (x.Status == ConstructionQueueItemStatus.Pending || x.Status == ConstructionQueueItemStatus.Active))
+                .OrderBy(x => x.Sequence)
                 .Take(8)
                 .ToListAsync(cancellationToken)
             : [];

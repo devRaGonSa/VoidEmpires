@@ -6,6 +6,7 @@ import { DefenseCatalogCard } from "../components/DefenseCatalogCard";
 import { GameModal } from "../components/GameModal";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
+import { formatQueueCountdown } from "../utils/countdown";
 import { formatDefenseRequestFailure } from "../utils/defensePresentation";
 import {
   mapDefensesUiStateToViewModel,
@@ -14,13 +15,6 @@ import {
 } from "../utils/defenseViewModel";
 import { buildDefensesUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
-
-function formatDateTime(value: string) {
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed)
-    ? "No disponible"
-    : new Intl.DateTimeFormat("es-ES", { dateStyle: "short", timeStyle: "short" }).format(parsed);
-}
 
 export function DefensesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -217,7 +211,7 @@ export function DefensesPage() {
                         <p className="eyebrow">{item.actionLabel}</p>
                         <h4>{item.structureLabel}</h4>
                       </div>
-                      <UiBadge tone={item.isDue ? "warn" : "neutral"}>{item.statusLabel}</UiBadge>
+                      <UiBadge tone={item.isDue ? "warn" : "neutral"}>{item.isDue ? "finalizando..." : item.statusLabel}</UiBadge>
                     </div>
                     <div className="figma-data-list">
                       <div className="figma-data-row"><span>Planeta</span><strong>{defenses.planetName}</strong></div>
@@ -225,8 +219,7 @@ export function DefensesPage() {
                         <span>{item.productionModel === "unit" ? "Unidades" : "Objetivo"}</span>
                         <strong>{item.productionModel === "unit" ? item.targetLevel : `Nivel ${item.targetLevel}`}</strong>
                       </div>
-                      <div className="figma-data-row"><span>Inicio</span><strong>{formatDateTime(item.startsAtUtc)}</strong></div>
-                      <div className="figma-data-row"><span>Fin</span><strong>{formatDateTime(item.endsAtUtc)}</strong></div>
+                      <div className="figma-data-row"><span>Tiempo restante</span><strong>{formatQueueCountdown(item.endsAtUtc)}</strong></div>
                       <div className="figma-data-row"><span>Coste</span><strong>{item.estimatedCostLabel}</strong></div>
                     </div>
                     <p>{item.isDue ? "La orden ya vencio en la lectura actual y permanece pendiente de una via segura de cierre." : "La orden sigue visible en la ventana temporal actual."}</p>

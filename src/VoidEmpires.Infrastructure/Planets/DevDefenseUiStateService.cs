@@ -96,9 +96,9 @@ public sealed class DevDefenseUiStateService(
                 x.PlanetId == planetUiState.Planet.PlanetId &&
                 x.Target == AssetProductionTarget.Planetary &&
                 x.PlanetaryAssetType != null &&
-                UnitDefenseAssetTypes.Contains(x.PlanetaryAssetType.Value))
-            .OrderBy(x => x.Status == AssetProductionOrderStatus.Pending || x.Status == AssetProductionOrderStatus.Active ? 0 : 1)
-            .ThenBy(x => x.Sequence)
+                UnitDefenseAssetTypes.Contains(x.PlanetaryAssetType.Value) &&
+                (x.Status == AssetProductionOrderStatus.Pending || x.Status == AssetProductionOrderStatus.Active))
+            .OrderBy(x => x.Sequence)
             .Take(8)
             .ToListAsync(cancellationToken);
 
@@ -139,7 +139,7 @@ public sealed class DevDefenseUiStateService(
             AvailableOptionCount: defenseOptions.Count(x => x.AvailabilityStatus == "Available"),
             BlockedOptionCount: defenseOptions.Count(x => x.AvailabilityStatus != "Available"),
             QueueItemCount: defenseQueue.Length,
-            DueQueueItemCount: defenseQueue.Count(x => x.IsDue) + dueUnitQueueCount);
+            DueQueueItemCount: defenseQueue.Count(x => x.IsDue));
 
         var notes = new List<string>
         {

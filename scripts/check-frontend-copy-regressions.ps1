@@ -623,6 +623,43 @@ foreach ($requirement in $block49RequiredFragments) {
   }
 }
 
+$block50ScopedForbiddenCopy = @(
+  @{ Path = "src/VoidEmpires.Frontend/src/components/DefenseCatalogCard.tsx"; Fragments = @("Especial por nivel", "Nivel 0 -> 1") },
+  @{ Path = "src/VoidEmpires.Frontend/src/utils/defenseViewModel.ts"; Fragments = @("La cola de Construccion debe quedar libre antes de preparar otra defensa") },
+  @{ Path = "src/VoidEmpires.Frontend/src/components/QueueSummaryPanels.tsx"; Fragments = @('cierre ${formatDateTime', "formatDateTime(item.endsAtUtc)") },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/HomePage.tsx"; Fragments = @('cierre ${formatDateTime', "formatDateTime(first.endsAtUtc)") },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/PlanetPage.tsx"; Fragments = @("cierre {formatDateTime(item.endsAtUtc)}", "Termina") },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/ResearchPage.tsx"; Fragments = @("cierre {formatDateTime(item.endsAtUtc)}") },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/ShipyardPage.tsx"; Fragments = @("Inicio visible", "Fin visible") },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/DefensesPage.tsx"; Fragments = @("formatDateTime(item.endsAtUtc)", "<span>Fin</span>") }
+)
+$block50RequiredFragments = @(
+  @{ Path = "src/VoidEmpires.Frontend/src/utils/countdown.ts"; Fragments = @("formatQueueCountdown", "finalizando...") },
+  @{ Path = "src/VoidEmpires.Frontend/src/components/QueueSummaryPanels.tsx"; Fragments = @("formatQueueCountdown") },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/HomePage.tsx"; Fragments = @("formatQueueCountdown") },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/ResearchPage.tsx"; Fragments = @("formatQueueCountdown(item.endsAtUtc)") },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/ShipyardPage.tsx"; Fragments = @("formatQueueCountdown(item.endsAtUtc)") },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/DefensesPage.tsx"; Fragments = @("formatQueueCountdown(item.endsAtUtc)") }
+)
+
+foreach ($requirement in $block50ScopedForbiddenCopy) {
+  $path = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($requirement.Path)"))
+  if (-not (Test-Path -LiteralPath $path)) { $copyHygieneFailures.Add("Missing Block 50 guarded file '$($requirement.Path)'."); continue }
+  $content = Get-Content -LiteralPath $path -Raw
+  foreach ($fragment in $requirement.Fragments) {
+    if ($content -like "*$fragment*") { $copyHygieneFailures.Add("$($requirement.Path) contains forbidden Block 50 active-queue copy fragment: $fragment") }
+  }
+}
+
+foreach ($requirement in $block50RequiredFragments) {
+  $path = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($requirement.Path)"))
+  if (-not (Test-Path -LiteralPath $path)) { $copyHygieneFailures.Add("Missing Block 50 required file '$($requirement.Path)'."); continue }
+  $content = Get-Content -LiteralPath $path -Raw
+  foreach ($fragment in $requirement.Fragments) {
+    if ($content -notlike "*$fragment*") { $copyHygieneFailures.Add("$($requirement.Path) is missing Block 50 required fragment: $fragment") }
+  }
+}
+
 if ($copyHygieneFailures.Count -gt 0) {
   throw "Frontend copy hygiene guard failed:`n$($copyHygieneFailures -join [Environment]::NewLine)"
 }

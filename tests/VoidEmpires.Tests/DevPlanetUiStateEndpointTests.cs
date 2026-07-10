@@ -176,9 +176,10 @@ public class DevPlanetUiStateEndpointTests(WebApplicationFactory<Program> factor
     }
 
     [Fact]
-    public async Task PlanetFullValidationProfileReturnsRicherBuildingsAndCompletedQueueHistory()
+    public async Task PlanetFullValidationProfileReturnsRicherBuildingsAndNoCompletedActiveQueue()
     {
-        using var client = CreateConfiguredClient(CreateSeededDbContext("planet-full-validation"));
+        await using var dbContext = CreateSeededDbContext("planet-full-validation");
+        using var client = CreateConfiguredClient(dbContext);
 
         using var response = await client.GetAsync($"/api/dev/planets/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
         var payload = await response.Content.ReadFromJsonAsync<DevPlanetUiStateResponse>();
@@ -188,17 +189,20 @@ public class DevPlanetUiStateEndpointTests(WebApplicationFactory<Program> factor
         Assert.True(payload.UiState.Planet.Buildings.Count >= 5);
         Assert.Contains(payload.UiState.Planet.Buildings, x => x.BuildingType.ToString() == "SolarPlant");
         Assert.Contains(payload.UiState.Planet.Buildings, x => x.BuildingType.ToString() == "MetalMine");
-        Assert.Single(payload.UiState.Planet.ConstructionQueue);
-        Assert.Equal("Completed", payload.UiState.Planet.ConstructionQueue[0].Status.ToString());
+        Assert.Empty(payload.UiState.Planet.ConstructionQueue);
+        Assert.True(await dbContext.Set<PlanetConstructionOrder>().AnyAsync(x =>
+            x.PlanetId == Guid.Parse(SeedOwnedPlanetId) &&
+            x.Status == ConstructionQueueItemStatus.Completed));
         Assert.True(payload.UiState.Planet.ConstructionActions.Count(x => x.AvailabilityStatus == "Available") >= 1);
         Assert.True(payload.UiState.Planet.ConstructionActions.Count(x => x.AvailabilityStatus != "Available") >= 3);
         Assert.Equal("Available", payload.UiState.Planet.ActionSummary.QueueActionStatus);
     }
 
     [Fact]
-    public async Task CockpitValidationProfileReturnsOwnedPlanetResourcesAndCompletedConstructionHistory()
+    public async Task CockpitValidationProfileReturnsOwnedPlanetResourcesWithoutCompletedActiveQueue()
     {
-        using var client = CreateConfiguredClient(CreateSeededDbContext("cockpit-validation"));
+        await using var dbContext = CreateSeededDbContext("cockpit-validation");
+        using var client = CreateConfiguredClient(dbContext);
 
         using var response = await client.GetAsync($"/api/dev/planets/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
         var payload = await response.Content.ReadFromJsonAsync<DevPlanetUiStateResponse>();
@@ -207,8 +211,10 @@ public class DevPlanetUiStateEndpointTests(WebApplicationFactory<Program> factor
         Assert.NotNull(payload?.UiState?.Planet);
         Assert.True(payload.UiState.Planet.IsOwnedByRequestingCivilization);
         Assert.NotEmpty(payload.UiState.Planet.Stockpile);
-        Assert.Single(payload.UiState.Planet.ConstructionQueue);
-        Assert.Equal("Completed", payload.UiState.Planet.ConstructionQueue[0].Status.ToString());
+        Assert.Empty(payload.UiState.Planet.ConstructionQueue);
+        Assert.True(await dbContext.Set<PlanetConstructionOrder>().AnyAsync(x =>
+            x.PlanetId == Guid.Parse(SeedOwnedPlanetId) &&
+            x.Status == ConstructionQueueItemStatus.Completed));
         Assert.True(payload.UiState.Planet.ConstructionActions.Count(x => x.AvailabilityStatus == "Available") >= 1);
         Assert.True(payload.UiState.Planet.ConstructionActions.Count(x => x.AvailabilityStatus != "Available") >= 1);
     }
