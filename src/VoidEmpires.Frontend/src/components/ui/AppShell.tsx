@@ -197,7 +197,9 @@ function createTopResourceItem(
     key,
     label: formatResourceLabel(entry.resourceType),
     amount: formatCompactNumber(entry.quantity),
+    capacity: entry.capacity ?? null,
     detail: formatTopResourceDetail(entry, production),
+    quantity: entry.quantity,
   };
 }
 

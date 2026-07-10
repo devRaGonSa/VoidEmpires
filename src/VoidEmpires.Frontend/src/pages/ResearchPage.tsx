@@ -5,6 +5,7 @@ import type { EnqueueResearchOrderFailureResponse, ResearchApiErrorCode } from "
 import { CockpitHero } from "../components/CockpitHero";
 import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { GameModal } from "../components/GameModal";
+import { LiveQueueCountdown } from "../components/LiveQueueCountdown";
 import { ResearchCatalogCard } from "../components/ResearchCatalogCard";
 import type { ResearchTechnology, ResearchUiState } from "../utils/researchPresentation";
 import {
@@ -16,7 +17,6 @@ import {
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
-import { formatQueueCountdown } from "../utils/countdown";
 import { isOperatorMode } from "../utils/playableSession";
 import { buildPlanetUrl, buildResearchUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 
@@ -460,7 +460,13 @@ export function ResearchPage() {
             <ul className="stack-list compact-list">
               {uiState.queue.map((item) => (
                 <li key={item.orderId}>
-                  {item.label} nivel {item.targetLevel} | {item.isDue ? "finalizando..." : item.statusLabel} | {formatQueueCountdown(item.endsAtUtc)}
+                  {item.label} nivel {item.targetLevel} | {item.isDue ? "finalizando..." : item.statusLabel} | <LiveQueueCountdown
+                    endsAtUtc={item.endsAtUtc}
+                    expireKey={item.orderId}
+                    onExpire={() => {
+                      void reloadResearchState(activeCivilizationId, selectedPlanetId, false, true);
+                    }}
+                  />
                 </li>
               ))}
             </ul>

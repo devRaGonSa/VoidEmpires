@@ -17,6 +17,7 @@ import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { DevelopmentToolsPanel } from "../components/DevelopmentToolsPanel";
 import { GameModal } from "../components/GameModal";
 import { ConstructionCatalogCard } from "../components/ConstructionCatalogCard";
+import { LiveQueueCountdown } from "../components/LiveQueueCountdown";
 import { PlayableSessionBanner } from "../components/PlayableSessionBanner";
 import { QueueSummaryPanels } from "../components/QueueSummaryPanels";
 import { UiBadge } from "../components/ui/UiBadge";
@@ -56,7 +57,6 @@ import {
   isSuspiciousCabinContext,
 } from "../utils/routeUrls";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
-import { formatQueueCountdown } from "../utils/countdown";
 import { formatResourceDelta, formatResourceLabel } from "../utils/resourceDisplay";
 import { isOperatorMode } from "../utils/playableSession";
 import { usePlayableRouteContext } from "../utils/usePlayableRouteContext";
@@ -469,6 +469,20 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
 
     void load();
   }, [queryCivilizationId, queryPlanetId, searchParams, setSearchParams]);
+
+  async function refreshPlanetStateAfterQueueExpiry() {
+    if (!queryCivilizationId) {
+      return null;
+    }
+
+    const response = await voidEmpiresApi.getPlanetUiState(queryCivilizationId, queryPlanetId);
+    if (!response.succeeded || !response.uiState) {
+      return null;
+    }
+
+    setUiState(response.uiState);
+    return response.uiState;
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1139,7 +1153,12 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
           ) : null}
 
           {!isConstructionRoute ? (
-            <QueueSummaryPanels planet={planet} />
+            <QueueSummaryPanels
+              planet={planet}
+              onQueueExpired={() => {
+                void refreshPlanetStateAfterQueueExpiry();
+              }}
+            />
           ) : null}
 
           {(!isConstructionRoute || planet.constructionQueue.length > 0) ? (
@@ -1205,7 +1224,13 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                 <ul className="stack-list compact-list">
                   {planet.constructionQueue.map((item) => (
                     <li key={item.orderId}>
-                      {item.display?.buildingTypeLabel ?? formatBuildingType(item.buildingType)} nivel {item.targetLevel} | {item.isDue ? "finalizando..." : item.display?.statusLabel ?? formatQueueState(item)} | {formatQueueCountdown(item.endsAtUtc)}
+                      {item.display?.buildingTypeLabel ?? formatBuildingType(item.buildingType)} nivel {item.targetLevel} | {item.isDue ? "finalizando..." : item.display?.statusLabel ?? formatQueueState(item)} | <LiveQueueCountdown
+                        endsAtUtc={item.endsAtUtc}
+                        expireKey={item.orderId}
+                        onExpire={() => {
+                          void refreshPlanetStateAfterQueueExpiry();
+                        }}
+                      />
                     </li>
                   ))}
                 </ul>
@@ -1236,7 +1261,18 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                         </div>
                       </div>
                       <div className="figma-data-list">
-                        <PlanetDataRow label="Tiempo restante" value={formatQueueCountdown(item.endsAtUtc)} />
+                        <PlanetDataRow
+                          label="Tiempo restante"
+                          value={(
+                            <LiveQueueCountdown
+                              endsAtUtc={item.endsAtUtc}
+                              expireKey={item.orderId}
+                              onExpire={() => {
+                                void refreshPlanetStateAfterQueueExpiry();
+                              }}
+                            />
+                          )}
+                        />
                         <PlanetDataRow label="Coste" value={formatCompactResourceCost(item.cost)} />
                       </div>
                       {operatorMode ? <p className="dev-meta">{formatCompactGuid(item.orderId)}</p> : null}

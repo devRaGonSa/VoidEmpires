@@ -635,11 +635,12 @@ $block50ScopedForbiddenCopy = @(
 )
 $block50RequiredFragments = @(
   @{ Path = "src/VoidEmpires.Frontend/src/utils/countdown.ts"; Fragments = @("formatQueueCountdown", "finalizando...") },
-  @{ Path = "src/VoidEmpires.Frontend/src/components/QueueSummaryPanels.tsx"; Fragments = @("formatQueueCountdown") },
-  @{ Path = "src/VoidEmpires.Frontend/src/pages/HomePage.tsx"; Fragments = @("formatQueueCountdown") },
-  @{ Path = "src/VoidEmpires.Frontend/src/pages/ResearchPage.tsx"; Fragments = @("formatQueueCountdown(item.endsAtUtc)") },
-  @{ Path = "src/VoidEmpires.Frontend/src/pages/ShipyardPage.tsx"; Fragments = @("formatQueueCountdown(item.endsAtUtc)") },
-  @{ Path = "src/VoidEmpires.Frontend/src/pages/DefensesPage.tsx"; Fragments = @("formatQueueCountdown(item.endsAtUtc)") }
+  @{ Path = "src/VoidEmpires.Frontend/src/components/LiveQueueCountdown.tsx"; Fragments = @("formatQueueCountdown", "setInterval", "onExpire") },
+  @{ Path = "src/VoidEmpires.Frontend/src/components/QueueSummaryPanels.tsx"; Fragments = @("LiveQueueCountdown") },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/HomePage.tsx"; Fragments = @("endsAtUtc", "onQueueExpired") },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/ResearchPage.tsx"; Fragments = @("LiveQueueCountdown") },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/ShipyardPage.tsx"; Fragments = @("LiveQueueCountdown") },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/DefensesPage.tsx"; Fragments = @("LiveQueueCountdown") }
 )
 
 foreach ($requirement in $block50ScopedForbiddenCopy) {
@@ -657,6 +658,23 @@ foreach ($requirement in $block50RequiredFragments) {
   $content = Get-Content -LiteralPath $path -Raw
   foreach ($fragment in $requirement.Fragments) {
     if ($content -notlike "*$fragment*") { $copyHygieneFailures.Add("$($requirement.Path) is missing Block 50 required fragment: $fragment") }
+  }
+}
+
+$block51RequiredFragments = @(
+  @{ Path = "src/VoidEmpires.Frontend/src/utils/enumNormalization.ts"; Fragments = @("normalizeQueueStatus", "normalizeBuildingType", '1: "Pending"', '2: "Active"', '16', '17', '18', '20') },
+  @{ Path = "src/VoidEmpires.Frontend/src/utils/defenseViewModel.ts"; Fragments = @("normalizeBuildingType(item.buildingType)", "isUnitDefenseBuildingType", "normalizeQueueStatus(item.status)") },
+  @{ Path = "src/VoidEmpires.Frontend/src/components/DefenseCatalogCard.tsx"; Fragments = @("Coste por unidad", "Coste total", "Duracion total") },
+  @{ Path = "src/VoidEmpires.Frontend/src/components/ui/TopResourceBar.tsx"; Fragments = @('role="progressbar"', "aria-valuenow", "getResourceCapacityPercent") },
+  @{ Path = "src/VoidEmpires.Frontend/src/components/QueueSummaryPanels.tsx"; Fragments = @("isOpenQueueStatus", "LiveQueueCountdown", "normalizeBuildingCategory") }
+)
+
+foreach ($requirement in $block51RequiredFragments) {
+  $path = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($requirement.Path)"))
+  if (-not (Test-Path -LiteralPath $path)) { $copyHygieneFailures.Add("Missing Block 51 required file '$($requirement.Path)'."); continue }
+  $content = Get-Content -LiteralPath $path -Raw
+  foreach ($fragment in $requirement.Fragments) {
+    if ($content -notlike "*$fragment*") { $copyHygieneFailures.Add("$($requirement.Path) is missing Block 51 required fragment: $fragment") }
   }
 }
 

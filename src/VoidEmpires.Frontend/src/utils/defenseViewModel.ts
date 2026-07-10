@@ -19,6 +19,12 @@ import {
   getDefenseStructureLabel,
 } from "./defensePresentation";
 import { formatResourceType } from "./domainPresentation";
+import {
+  isUnitDefenseBuildingType,
+  normalizeBuildingCategory,
+  normalizeBuildingType,
+  normalizeQueueStatus,
+} from "./enumNormalization";
 
 export interface DefenseCost {
   resourceType: string;
@@ -49,6 +55,7 @@ export interface DefenseOption {
   statusLabel: string;
   reasonKey: string;
   reasonLabel: string;
+  estimatedDuration: string | number | null | undefined;
   estimatedDurationLabel: string;
   estimatedCostLabel: string;
   affordabilityLabel: string | null;
@@ -145,7 +152,7 @@ const unitDefenseAssetTypes: Record<string, string> = {
 };
 
 function getDefenseProductionModel(buildingType: string): "unit" | "level" {
-  return unitDefenseAssetTypes[buildingType] ? "unit" : "level";
+  return isUnitDefenseBuildingType(buildingType) ? "unit" : "level";
 }
 
 function mapCost(entries: readonly DefenseResourceStockpileItemDto[]): DefenseCost[] {
@@ -183,14 +190,14 @@ function getReasonLabel(rawReason: string, fallbackLabel?: string | null) {
 
 function buildCatalogMetadataMap(catalog: readonly DefenseCatalogItemDto[]) {
   return catalog.reduce<Map<string, DefenseCatalogItemDto>>((accumulator, item) => {
-    accumulator.set(`${item.buildingType ?? ""}`, item);
+    accumulator.set(normalizeBuildingType(item.buildingType), item);
     return accumulator;
   }, new Map());
 }
 
 function mapStructure(item: DefenseStructureDto, metadataByBuildingType: ReadonlyMap<string, DefenseCatalogItemDto>): DefenseStructure {
-  const buildingType = `${item.buildingType ?? ""}`;
-  const categoryKey = `${item.category ?? ""}`;
+  const buildingType = normalizeBuildingType(item.buildingType);
+  const categoryKey = normalizeBuildingCategory(item.category);
   const metadata = metadataByBuildingType.get(buildingType);
 
   return {
@@ -205,8 +212,8 @@ function mapStructure(item: DefenseStructureDto, metadataByBuildingType: Readonl
 
 function mapOption(item: DefenseOptionDto, stockpile: DefenseCost[], metadataByBuildingType: ReadonlyMap<string, DefenseCatalogItemDto>): DefenseOption {
   const actionKey = `${item.action ?? ""}`;
-  const buildingType = `${item.buildingType ?? ""}`;
-  const categoryKey = `${item.category ?? ""}`;
+  const buildingType = normalizeBuildingType(item.buildingType);
+  const categoryKey = normalizeBuildingCategory(item.category);
   const metadata = metadataByBuildingType.get(buildingType);
 
   const cost = mapCost(item.cost);
@@ -226,6 +233,7 @@ function mapOption(item: DefenseOptionDto, stockpile: DefenseCost[], metadataByB
     statusLabel: item.display?.availabilityLabel ?? getDefenseReadinessLabel(item.availabilityStatus),
     reasonKey: item.availabilityReason,
     reasonLabel: getReasonLabel(item.availabilityReason, item.display?.availabilityReasonLabel),
+    estimatedDuration: item.estimatedDuration,
     estimatedDurationLabel: formatDefenseDuration(item.estimatedDuration),
     estimatedCostLabel: formatDefenseCost(item.cost),
     affordabilityLabel: item.availabilityReason === "Insufficient resources."
@@ -248,8 +256,8 @@ function mapOption(item: DefenseOptionDto, stockpile: DefenseCost[], metadataByB
 
 function mapQueueItem(item: DefenseQueueItemDto, metadataByBuildingType: ReadonlyMap<string, DefenseCatalogItemDto>): DefenseQueueItem {
   const actionKey = `${item.action ?? ""}`;
-  const buildingType = `${item.buildingType ?? ""}`;
-  const statusKey = `${item.status ?? ""}`;
+  const buildingType = normalizeBuildingType(item.buildingType);
+  const statusKey = normalizeQueueStatus(item.status);
   const metadata = metadataByBuildingType.get(buildingType);
 
   return {

@@ -4,9 +4,9 @@ import { enqueueDefenseProduction, fetchDefensesUiState } from "../api/defenseAp
 import { CockpitHero } from "../components/CockpitHero";
 import { DefenseCatalogCard } from "../components/DefenseCatalogCard";
 import { GameModal } from "../components/GameModal";
+import { LiveQueueCountdown } from "../components/LiveQueueCountdown";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
-import { formatQueueCountdown } from "../utils/countdown";
 import { formatDefenseRequestFailure } from "../utils/defensePresentation";
 import {
   mapDefensesUiStateToViewModel,
@@ -219,7 +219,18 @@ export function DefensesPage() {
                         <span>{item.productionModel === "unit" ? "Unidades" : "Objetivo"}</span>
                         <strong>{item.productionModel === "unit" ? item.targetLevel : `Nivel ${item.targetLevel}`}</strong>
                       </div>
-                      <div className="figma-data-row"><span>Tiempo restante</span><strong>{formatQueueCountdown(item.endsAtUtc)}</strong></div>
+                      <div className="figma-data-row">
+                        <span>Tiempo restante</span>
+                        <strong>
+                          <LiveQueueCountdown
+                            endsAtUtc={item.endsAtUtc}
+                            expireKey={item.orderId}
+                            onExpire={() => {
+                              void reloadDefensesState(false);
+                            }}
+                          />
+                        </strong>
+                      </div>
                       <div className="figma-data-row"><span>Coste</span><strong>{item.estimatedCostLabel}</strong></div>
                     </div>
                     <p>{item.isDue ? "La orden ya vencio en la lectura actual y permanece pendiente de una via segura de cierre." : "La orden sigue visible en la ventana temporal actual."}</p>

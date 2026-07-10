@@ -21,6 +21,7 @@ import {
   getAssetTypeLabel,
   getShipyardActionLabel,
 } from "./shipyardPresentation";
+import { normalizeQueueStatus } from "./enumNormalization";
 
 export interface ShipyardCost {
   resourceType: string;
@@ -238,7 +239,7 @@ function buildCatalogMetadataMap(catalog: readonly ShipyardAssetOptionDto[]) {
 
 function mapQueueItem(item: ShipyardQueueItemDto, metadataByAssetType: ReadonlyMap<string, ShipyardAssetMetadataDto>): ShipyardQueueItem {
   const assetType = normalizeAssetType(item.assetType);
-  const statusKey = `${item.status ?? ""}`;
+  const statusKey = normalizeQueueStatus(item.status);
   const metadata = metadataByAssetType.get(assetType);
 
   return {
@@ -249,7 +250,7 @@ function mapQueueItem(item: ShipyardQueueItemDto, metadataByAssetType: ReadonlyM
     quantityLabel: formatAssetQuantity(item.quantity, assetType),
     sequence: item.sequence,
     statusKey,
-    statusLabel: getAssetProductionStatusLabel(item.status),
+    statusLabel: getAssetProductionStatusLabel(statusKey),
     startsAtUtc: item.startsAtUtc,
     endsAtUtc: item.endsAtUtc,
     isDue: item.isDue,

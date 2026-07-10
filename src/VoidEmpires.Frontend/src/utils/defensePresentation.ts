@@ -168,7 +168,7 @@ function formatMinutes(totalMinutes: number) {
   return minutes > 0 ? `${hours} h ${minutes} min` : `${hours} h`;
 }
 
-function parseDurationText(value: string) {
+function parseDurationMinutes(value: string) {
   const trimmed = value.trim();
   if (!trimmed) {
     return null;
@@ -176,17 +176,29 @@ function parseDurationText(value: string) {
 
   const iso = /^P(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)$/i.exec(trimmed);
   if (iso) {
-    const totalMinutes = (Number.parseInt(iso[1] ?? "0", 10) * 60)
+    return (Number.parseInt(iso[1] ?? "0", 10) * 60)
       + Number.parseInt(iso[2] ?? "0", 10)
       + (Number.parseInt(iso[3] ?? "0", 10) > 0 ? 1 : 0);
-    return formatMinutes(totalMinutes);
   }
 
   const clock = /^(\d+):(\d{2})(?::(\d{2}))?$/.exec(trimmed);
   if (clock) {
-    const totalMinutes = (Number.parseInt(clock[1], 10) * 60)
+    return (Number.parseInt(clock[1], 10) * 60)
       + Number.parseInt(clock[2], 10)
       + (Number.parseInt(clock[3] ?? "0", 10) > 0 ? 1 : 0);
+  }
+
+  return null;
+}
+
+function parseDurationText(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const totalMinutes = parseDurationMinutes(trimmed);
+  if (totalMinutes !== null) {
     return formatMinutes(totalMinutes);
   }
 
@@ -259,6 +271,29 @@ export function formatDefenseDuration(value: string | number | null | undefined,
   }
 
   return parseDurationText(value) ?? fallback;
+}
+
+export function formatDefenseDurationForQuantity(
+  value: string | number | null | undefined,
+  quantity: number,
+  fallback = "Duracion defensiva no disponible",
+) {
+  const normalizedQuantity = Math.max(1, Math.floor(quantity));
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return formatMinutes(value * normalizedQuantity);
+  }
+
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  const parsedMinutes = parseDurationMinutes(value);
+  if (parsedMinutes !== null) {
+    return formatMinutes(parsedMinutes * normalizedQuantity);
+  }
+
+  const perUnit = parseDurationText(value);
+  return perUnit ? `${perUnit} x ${normalizedQuantity}` : fallback;
 }
 
 export function formatDefenseRequestFailure(rawError: string | null | undefined): DefenseErrorFeedback {

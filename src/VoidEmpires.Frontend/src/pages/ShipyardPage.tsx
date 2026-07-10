@@ -5,6 +5,7 @@ import type { ShipyardApiErrorCode } from "../api/shipyardTypes";
 import { CockpitHero } from "../components/CockpitHero";
 import { DevDiagnosticsPanel } from "../components/DevDiagnosticsPanel";
 import { GameModal } from "../components/GameModal";
+import { LiveQueueCountdown } from "../components/LiveQueueCountdown";
 import { PlaceholderAsset } from "../components/PlaceholderAsset";
 import { ShipyardCatalogCard } from "../components/ShipyardCatalogCard";
 import { UiBadge } from "../components/ui/UiBadge";
@@ -17,7 +18,6 @@ import {
 } from "../utils/shipyardViewModel";
 import { buildShipyardUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
 import { cockpitStatusLabels } from "../utils/cockpitStatus";
-import { formatQueueCountdown } from "../utils/countdown";
 import { isOperatorMode } from "../utils/playableSession";
 import { formatResourceDelta } from "../utils/resourceDisplay";
 
@@ -612,7 +612,18 @@ export function ShipyardPage() {
                     </div>
                     <div className="figma-data-list">
                       <div className="figma-data-row"><span>Salida</span><strong>{item.quantityLabel}</strong></div>
-                      <div className="figma-data-row"><span>Tiempo restante</span><strong>{formatQueueCountdown(item.endsAtUtc)}</strong></div>
+                      <div className="figma-data-row">
+                        <span>Tiempo restante</span>
+                        <strong>
+                          <LiveQueueCountdown
+                            endsAtUtc={item.endsAtUtc}
+                            expireKey={item.orderId}
+                            onExpire={() => {
+                              void reloadShipyardState(activeCivilizationId, selectedPlanetId, false, true);
+                            }}
+                          />
+                        </strong>
+                      </div>
                     </div>
                     <p>{item.isDue ? "La orden ya vencio en la lectura actual. La vista la mantiene visible sin completarla automaticamente." : "La orden sigue en progreso o pendiente dentro de la ventana temporal visible."}</p>
                   </section>

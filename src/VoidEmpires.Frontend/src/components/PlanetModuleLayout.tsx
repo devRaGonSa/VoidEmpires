@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
+import type { ReactNode } from "react";
 
 interface PlanetDataRowProps {
   label: string;
-  value: string;
+  value: ReactNode;
 }
 
 interface ModuleStatusCardProps {

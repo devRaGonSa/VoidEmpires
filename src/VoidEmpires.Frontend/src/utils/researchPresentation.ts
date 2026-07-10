@@ -1,5 +1,6 @@
 import { formatResourceAmountList } from "./resourceDisplay";
 import { productActionLabels } from "./cockpitStatus";
+import { normalizeQueueStatus } from "./enumNormalization";
 import type {
   ResearchCost as ResearchCostDto,
   ResearchDefinitionDto,
@@ -609,8 +610,8 @@ function mapResearchEnqueueCommand(command: ResearchEnqueueCommandDto | null): R
 }
 
 function mapResearchQueueItem(item: ResearchQueueItemDto) {
-  const statusKey = `${item.status}`;
-  const statusLabel = getResearchStatusLabel(item.status);
+  const statusKey = normalizeQueueStatus(item.status);
+  const statusLabel = getResearchStatusLabel(statusKey);
   const endsAt = Date.parse(item.endsAtUtc);
 
   return {

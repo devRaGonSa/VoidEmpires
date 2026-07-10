@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchDefensesUiState } from "../api/defenseApi";
 import type { PlanetCockpitDto } from "../api/planetTypes";
@@ -11,8 +11,8 @@ import { QueueSummaryPanels, type QueueSummaryItem } from "../components/QueueSu
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { getCurrentAccountWorldEntry } from "../utils/currentAccountSession";
-import { formatQueueCountdown } from "../utils/countdown";
 import { getDefenseStatusLabel, getDefenseStructureLabel } from "../utils/defensePresentation";
+import { isOpenQueueStatus, normalizeBuildingType, normalizeQueueStatus } from "../utils/enumNormalization";
 import { getResearchStatusLabel, getResearchTechnologyLabel } from "../utils/researchPresentation";
 import {
   buildLoginUrl,
@@ -21,12 +21,11 @@ import {
 import { getAssetProductionStatusLabel, getAssetTypeLabel } from "../utils/shipyardPresentation";
 import { useCurrentAccountSession } from "../utils/useCurrentAccountSession";
 
-function isOpenQueueStatus(value: string | number | null | undefined) {
-  const status = `${value ?? ""}`.trim().toLowerCase();
-  return status === "pending" || status === "active" || status === "1" || status === "2";
-}
-
-async function fetchModuleQueueSummaries(civilizationId: string, planetId: string | null | undefined) {
+async function fetchModuleQueueSummaries(
+  civilizationId: string,
+  planetId: string | null | undefined,
+  onQueueExpired?: () => void | Promise<void>,
+) {
   const [researchResult, shipyardResult, defensesResult] = await Promise.allSettled([
     fetchResearchUiState(civilizationId, planetId),
     fetchShipyardUiState(civilizationId, planetId),
@@ -41,7 +40,10 @@ async function fetchModuleQueueSummaries(civilizationId: string, planetId: strin
       summaries.push({
         label: "Investigacion",
         value: queue.length === 1 ? "1 investigacion" : `${queue.length} investigaciones`,
-        detail: `${getResearchTechnologyLabel(first.researchType)} nivel ${first.targetLevel}: ${getResearchStatusLabel(first.status)}, ${formatQueueCountdown(first.endsAtUtc)}`,
+        detail: `${getResearchTechnologyLabel(first.researchType)} nivel ${first.targetLevel}: ${getResearchStatusLabel(normalizeQueueStatus(first.status))}`,
+        endsAtUtc: first.endsAtUtc,
+        expireKey: first.orderId,
+        onExpire: onQueueExpired,
       });
     }
   }
@@ -53,7 +55,10 @@ async function fetchModuleQueueSummaries(civilizationId: string, planetId: strin
       summaries.push({
         label: "Astillero",
         value: queue.length === 1 ? "1 produccion" : `${queue.length} producciones`,
-        detail: `${first.quantity} x ${getAssetTypeLabel(first.assetType)}: ${getAssetProductionStatusLabel(first.status)}, ${formatQueueCountdown(first.endsAtUtc)}`,
+        detail: `${first.quantity} x ${getAssetTypeLabel(first.assetType)}: ${getAssetProductionStatusLabel(normalizeQueueStatus(first.status))}`,
+        endsAtUtc: first.endsAtUtc,
+        expireKey: first.orderId,
+        onExpire: onQueueExpired,
       });
     }
   }
@@ -65,7 +70,10 @@ async function fetchModuleQueueSummaries(civilizationId: string, planetId: strin
       summaries.push({
         label: "Defensas",
         value: queue.length === 1 ? "1 produccion" : `${queue.length} producciones`,
-        detail: `${getDefenseStructureLabel(first.buildingType)}: ${getDefenseStatusLabel(first.status)}, ${formatQueueCountdown(first.endsAtUtc)}`,
+        detail: `${getDefenseStructureLabel(normalizeBuildingType(first.buildingType))}: ${getDefenseStatusLabel(normalizeQueueStatus(first.status))}`,
+        endsAtUtc: first.endsAtUtc,
+        expireKey: first.orderId,
+        onExpire: onQueueExpired,
       });
     }
   }
@@ -87,7 +95,11 @@ export function HomePage() {
   const [queueSummaries, setQueueSummaries] = useState<QueueSummaryItem[]>([]);
   const [isPlanetLoading, setIsPlanetLoading] = useState(false);
   const [planetError, setPlanetError] = useState<string | null>(null);
+  const [queueRefreshNonce, setQueueRefreshNonce] = useState(0);
   const planetLabel = worldEntry?.planetName ?? "planeta principal";
+  const requestQueueRefresh = useCallback(() => {
+    setQueueRefreshNonce((current) => current + 1);
+  }, []);
 
   useEffect(() => {
     if (!selectedCivilizationId) {
@@ -106,7 +118,7 @@ export function HomePage() {
         const nextPlanet = response.uiState?.planet ?? null;
         const nextPlanetId = nextPlanet?.planetId ?? response.uiState?.selectedPlanetId ?? selectedPlanetId;
         const nextQueueSummaries = nextPlanet
-          ? await fetchModuleQueueSummaries(selectedCivilizationId, nextPlanetId)
+          ? await fetchModuleQueueSummaries(selectedCivilizationId, nextPlanetId, requestQueueRefresh)
           : [];
 
         if (isCurrent) {
@@ -131,7 +143,7 @@ export function HomePage() {
     return () => {
       isCurrent = false;
     };
-  }, [selectedCivilizationId, selectedPlanetId]);
+  }, [queueRefreshNonce, requestQueueRefresh, selectedCivilizationId, selectedPlanetId]);
 
   return (
     <section className="page-grid">
@@ -154,7 +166,11 @@ export function HomePage() {
         planet ? (
           <div className="home-overview-layout">
             <PlanetOverviewPanel civilizationLabel="Civilizacion activa" planet={planet} />
-            <QueueSummaryPanels planet={planet} moduleSummaries={queueSummaries} />
+            <QueueSummaryPanels
+              planet={planet}
+              moduleSummaries={queueSummaries}
+              onQueueExpired={requestQueueRefresh}
+            />
           </div>
         ) : (
           <UiCard className="panel">

@@ -11,7 +11,9 @@ export interface TopBarResourceItem {
   key: string;
   label: string;
   amount: string;
+  capacity?: number | null;
   detail?: string | null;
+  quantity?: number;
 }
 
 interface TopStatusBarProps {
@@ -79,6 +81,10 @@ export function TopStatusBar({ account, items, resources = [] }: TopStatusBarPro
 
 function TopResourcePill({ resource }: { resource: TopBarResourceItem }) {
   const detailParts = splitResourceDetailParts(resource.detail);
+  const utilizationPercent = getResourceCapacityPercent(resource);
+  const utilizationLabel = utilizationPercent === null
+    ? null
+    : `${resource.label}: ${Math.round(utilizationPercent)}% de capacidad almacenada`;
 
   return (
     <section className="top-resource-pill">
@@ -93,6 +99,32 @@ function TopResourcePill({ resource }: { resource: TopBarResourceItem }) {
           ))}
         </div>
       ) : null}
+      {utilizationPercent !== null ? (
+        <div
+          className="top-resource-pill-bar"
+          role="progressbar"
+          aria-label={utilizationLabel ?? undefined}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(utilizationPercent)}
+        >
+          <span style={{ width: `${utilizationPercent}%` }} />
+        </div>
+      ) : null}
     </section>
   );
+}
+
+function getResourceCapacityPercent(resource: TopBarResourceItem) {
+  if (
+    typeof resource.quantity !== "number"
+    || !Number.isFinite(resource.quantity)
+    || typeof resource.capacity !== "number"
+    || !Number.isFinite(resource.capacity)
+    || resource.capacity <= 0
+  ) {
+    return null;
+  }
+
+  return Math.max(0, Math.min(100, (resource.quantity / resource.capacity) * 100));
 }
