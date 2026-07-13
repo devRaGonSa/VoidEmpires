@@ -69,9 +69,9 @@ export function DefenseCatalogCard({
       <p className="figma-panel-note defense-catalog-card-effect">
         {formatDefenseOptionEffect(option.buildingType)}
       </p>
-      <div className="transfer-confirmation-actions">
+      <div className="transfer-confirmation-actions production-action-row">
         {isUnitBased ? (
-          <label className="field defense-quantity-field">
+          <label className="field production-quantity-field defense-quantity-field">
             <span>Unidades</span>
             <input
               type="number"

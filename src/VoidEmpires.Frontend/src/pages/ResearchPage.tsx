@@ -19,6 +19,7 @@ import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
 import { isOperatorMode } from "../utils/playableSession";
 import { buildPlanetUrl, buildResearchUrl, isSuspiciousCabinContext } from "../utils/routeUrls";
+import { isOpenQueueStatus } from "../utils/enumNormalization";
 
 function formatDateTime(value: string) {
   const parsed = Date.parse(value);
@@ -232,6 +233,7 @@ export function ResearchPage() {
   const [isSubmittingEnqueue, setIsSubmittingEnqueue] = useState(false);
   const [enqueueFeedback, setEnqueueFeedback] = useState<string | null>(null);
   const [enqueueError, setEnqueueError] = useState<string | null>(null);
+  const [queueRefreshError, setQueueRefreshError] = useState<string | null>(null);
   const [enqueueOrderDetails, setEnqueueOrderDetails] = useState<{
     orderId: string | null;
     startsAtUtc: string | null;
@@ -256,6 +258,16 @@ export function ResearchPage() {
     () => uiState?.queue.filter((item) => item.isDue).length ?? 0,
     [uiState?.queue],
   );
+  const hasOpenResearchQueue = useMemo(
+    () => uiState?.queue.some((item) => isOpenQueueStatus(item.statusKey)) ?? false,
+    [uiState?.queue],
+  );
+
+  useEffect(() => {
+    if (hasOpenResearchQueue && preparedResearchType) {
+      setPreparedResearchType("");
+    }
+  }, [hasOpenResearchQueue, preparedResearchType]);
 
   async function reloadResearchState(
     civilizationId: string,
@@ -276,6 +288,7 @@ export function ResearchPage() {
 
     const nextState = mapResearchUiStateToViewModel(response.uiState);
     setTechnicalErrorDetail(null);
+    setQueueRefreshError(null);
     setUiState(nextState);
 
     if (nextState.selectedPlanetId && nextState.selectedPlanetId !== planetId) {
@@ -285,6 +298,19 @@ export function ResearchPage() {
     }
 
     return nextState;
+  }
+
+  async function refreshExpiredResearchQueue() {
+    try {
+      const refreshed = await reloadResearchState(activeCivilizationId, selectedPlanetId, false, true);
+      if (!refreshed) {
+        setQueueRefreshError("No se pudo actualizar la investigacion finalizada. Intentalo de nuevo.");
+      }
+    } catch (requestError) {
+      const failure = formatResearchRequestFailure(requestError instanceof Error ? requestError.message : null);
+      setQueueRefreshError("No se pudo actualizar la investigacion finalizada. Intentalo de nuevo.");
+      setTechnicalErrorDetail(failure.technicalDetail);
+    }
   }
 
   useEffect(() => {
@@ -319,7 +345,8 @@ export function ResearchPage() {
       !preparedResearch ||
       !preparedResearch.availability.canEnqueue ||
       !preparedResearch.enqueueCommand ||
-      !hasSafeResearchEnqueue
+      !hasSafeResearchEnqueue ||
+      hasOpenResearchQueue
     ) {
       return;
     }
@@ -376,6 +403,15 @@ export function ResearchPage() {
   }
 
   function handleResearchPreparation(technology: ResearchTechnology) {
+    if (hasOpenResearchQueue) {
+      setPreparedResearchType("");
+      setEnqueueFeedback(null);
+      setEnqueueOrderDetails(null);
+      setEnqueueError("Hay una investigacion en curso.");
+      setTechnicalErrorDetail(null);
+      return;
+    }
+
     if (!technology.enqueueCommand) {
       setPreparedResearchType("");
       setEnqueueFeedback(null);
@@ -460,16 +496,28 @@ export function ResearchPage() {
             <ul className="stack-list compact-list">
               {uiState.queue.map((item) => (
                 <li key={item.orderId}>
-                  {item.label} nivel {item.targetLevel} | {item.isDue ? "finalizando..." : item.statusLabel} | <LiveQueueCountdown
+                  {item.label} nivel {item.targetLevel} | {item.statusLabel} | <LiveQueueCountdown
                     endsAtUtc={item.endsAtUtc}
                     expireKey={item.orderId}
                     onExpire={() => {
-                      void reloadResearchState(activeCivilizationId, selectedPlanetId, false, true);
+                      void refreshExpiredResearchQueue();
                     }}
                   />
                 </li>
               ))}
             </ul>
+            {queueRefreshError ? (
+              <div className="transfer-confirmation-actions">
+                <p className="error-text">{queueRefreshError}</p>
+                <button
+                  type="button"
+                  className="planet-action-button-secondary"
+                  onClick={() => void refreshExpiredResearchQueue()}
+                >
+                  Reintentar actualizacion
+                </button>
+              </div>
+            ) : null}
           </UiCard>
           ) : null}
 
@@ -484,15 +532,19 @@ export function ResearchPage() {
             <div className="planet-building-grid research-tech-grid">
                     {catalogItems.map((technology) => {
                       const visualState = getResearchVisualState(technology);
-                      const canPrepare = hasSafeResearchEnqueue && visualState === "ready" && Boolean(technology.enqueueCommand);
-                      const blockedReasonLabel = getBlockedResearchReasonLabel(
-                        technology.availability.reasonKey,
-                        technology.availability.canCompleteDue,
-                      );
-                      const blockedReasonDetail = getBlockedResearchReasonDetail(
-                        technology,
-                        uiState.selectedPlanetName,
-                      );
+                      const canPrepare = !hasOpenResearchQueue && hasSafeResearchEnqueue && visualState === "ready" && Boolean(technology.enqueueCommand);
+                      const blockedReasonLabel = hasOpenResearchQueue
+                        ? "investigacion en curso"
+                        : getBlockedResearchReasonLabel(
+                            technology.availability.reasonKey,
+                            technology.availability.canCompleteDue,
+                          );
+                      const blockedReasonDetail = hasOpenResearchQueue
+                        ? "Hay una investigacion en curso."
+                        : getBlockedResearchReasonDetail(
+                            technology,
+                            uiState.selectedPlanetName,
+                          );
 
                       return (
                         <ResearchCatalogCard
@@ -598,7 +650,7 @@ export function ResearchPage() {
         </>
       ) : null}
 
-      {preparedResearch && preparedResearch.availability.canEnqueue ? (
+      {preparedResearch && preparedResearch.availability.canEnqueue && !hasOpenResearchQueue ? (
         <GameModal
           actionScope="gameplay"
           canClose={!isSubmittingEnqueue}

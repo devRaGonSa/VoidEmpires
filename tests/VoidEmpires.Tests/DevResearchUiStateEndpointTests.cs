@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Collections.Concurrent;
+using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -8,6 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using VoidEmpires.Application.Gameplay;
 using VoidEmpires.Application.Development;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Domain.Research;
@@ -240,8 +244,11 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.Equal(HttpStatusCode.NotFound, missingPlanetResponse.StatusCode);
     }
 
-    [Fact]
-    public async Task UiStateReturnsCatalogQueueAndProjectsWithoutMutatingState()
+    [Theory]
+    [InlineData(ResearchQueueItemStatus.Pending)]
+    [InlineData(ResearchQueueItemStatus.Active)]
+    public async Task UiStateLocksEveryTechnologyForAnyOpenResearchOrderWithoutMutatingState(
+        ResearchQueueItemStatus openStatus)
     {
         var databaseName = Guid.NewGuid().ToString("N");
         await using var dbContext = CreateSeededDbContext(databaseName);
@@ -259,7 +266,7 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
             1,
             new DateTime(2026, 12, 1, 12, 0, 0, DateTimeKind.Utc),
             new DateTime(2026, 12, 1, 12, 20, 0, DateTimeKind.Utc),
-            ResearchQueueItemStatus.Active));
+            openStatus));
         await dbContext.SaveChangesAsync();
 
         var queueBefore = await dbContext.ResearchOrders.CountAsync();
@@ -288,7 +295,15 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
             x.RequirementKeys.SequenceEqual(["SourcePlanet", "ResearchQueueSlot", "ResourceStockpile"]));
         Assert.Single(payload.UiState.Queue);
         Assert.Single(payload.UiState.Projects);
-        Assert.Contains(payload.UiState.TechnologyHints, x => x.ResearchType == ResearchType.PlanetaryEngineering && x.StatusKey == "InResearch" && !x.CanEnqueue);
+        Assert.Contains(payload.UiState.TechnologyHints, x =>
+            x.ResearchType == ResearchType.PlanetaryEngineering &&
+            x.StatusKey == "InResearch" &&
+            !x.CanEnqueue);
+        Assert.All(payload.UiState.TechnologyHints, x =>
+        {
+            Assert.False(x.CanEnqueue);
+            Assert.Equal("OpenQueueSlot", x.AvailabilityReasonKey);
+        });
         Assert.Equal(queueBefore, await dbContext.ResearchOrders.CountAsync());
         Assert.Equal(projectsBefore, await dbContext.ResearchProjects.CountAsync());
         Assert.Equal(metalBefore, stockpile.Metal);
@@ -436,12 +451,14 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
             followUpPayload.UiState.TechnologyHints,
             item => item.ResearchType == ResearchType.ResourceExtraction &&
                 !item.CanEnqueue &&
-                item.StatusKey == "InsufficientResources");
+                item.StatusKey == "InResearch" &&
+                item.AvailabilityReasonKey == "OpenQueueSlot");
         Assert.Contains(
             followUpPayload.UiState.TechnologyHints,
             item => item.ResearchType == ResearchType.EnergySystems &&
                 !item.CanEnqueue &&
-                item.StatusKey == "InsufficientResources");
+                item.StatusKey == "InResearch" &&
+                item.AvailabilityReasonKey == "OpenQueueSlot");
         Assert.Equal(0, followUpPayload.UiState.TechnologyHints.Count(x => x.CanEnqueue));
     }
 
@@ -495,6 +512,11 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
             item => item.ResearchType == ResearchType.PlanetaryEngineering &&
                 !item.CanEnqueue &&
                 item.StatusKey == "InResearch");
+        Assert.All(followUpPayload.UiState.TechnologyHints, item =>
+        {
+            Assert.False(item.CanEnqueue);
+            Assert.Equal("OpenQueueSlot", item.AvailabilityReasonKey);
+        });
     }
 
     [Fact]
@@ -596,6 +618,109 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.NotNull(payload);
         Assert.True(payload!.Succeeded);
         Assert.NotNull(payload.OrderId);
+    }
+
+    [Fact]
+    public async Task UiStateSerializesFutureSqlStyleResearchTimestampsAsUnambiguousUtc()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        await using var dbContext = CreateSeededDbContext(databaseName);
+        var startsAtUtc = new DateTime(2030, 1, 1, 12, 0, 0, DateTimeKind.Utc);
+        var endsAtUtc = startsAtUtc.AddMinutes(30);
+        var order = ResearchOrder.Create(
+            Guid.Parse(SeedCivilizationId),
+            Guid.Parse(SeedOwnedPlanetId),
+            ResearchType.ResourceExtraction,
+            1,
+            1,
+            startsAtUtc,
+            endsAtUtc,
+            ResearchQueueItemStatus.Active);
+        dbContext.ResearchOrders.Add(order);
+        dbContext.Entry(order).Property(x => x.StartsAtUtc).CurrentValue = DateTime.SpecifyKind(startsAtUtc, DateTimeKind.Unspecified);
+        dbContext.Entry(order).Property(x => x.EndsAtUtc).CurrentValue = DateTime.SpecifyKind(endsAtUtc, DateTimeKind.Unspecified);
+        await dbContext.SaveChangesAsync();
+
+        using var client = CreateConfiguredClient(databaseName);
+        using var response = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var json = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+        var queueItem = document.RootElement.GetProperty("uiState").GetProperty("queue")[0];
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.EndsWith("Z", queueItem.GetProperty("startsAtUtc").GetString(), StringComparison.Ordinal);
+        Assert.EndsWith("Z", queueItem.GetProperty("endsAtUtc").GetString(), StringComparison.Ordinal);
+        Assert.Equal((int)ResearchQueueItemStatus.Active, queueItem.GetProperty("status").GetInt32());
+        Assert.Equal(endsAtUtc, queueItem.GetProperty("endsAtUtc").GetDateTime());
+        Assert.True(queueItem.GetProperty("endsAtUtc").GetDateTime() > queueItem.GetProperty("startsAtUtc").GetDateTime());
+    }
+
+    [Fact]
+    public async Task UiStateMaterializesDueResearchBeforeReturningActiveQueue()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        await using var dbContext = CreateSeededDbContext(databaseName);
+        var nowUtc = DateTime.UtcNow;
+        var order = ResearchOrder.Create(
+            Guid.Parse(SeedCivilizationId),
+            Guid.Parse(SeedOwnedPlanetId),
+            ResearchType.ResourceExtraction,
+            1,
+            1,
+            nowUtc.AddMinutes(-20),
+            nowUtc.AddMinutes(-10),
+            ResearchQueueItemStatus.Active);
+        dbContext.ResearchOrders.Add(order);
+        await dbContext.SaveChangesAsync();
+
+        using var client = CreateConfiguredClient(databaseName);
+        using var response = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        var payload = await response.Content.ReadFromJsonAsync<DevResearchUiStateResponse>();
+        await dbContext.Entry(order).ReloadAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.UiState);
+        Assert.Empty(payload.UiState.Queue);
+        Assert.Equal(ResearchQueueItemStatus.Completed, order.Status);
+        Assert.Single(payload.UiState.Projects, project =>
+            project.ResearchType == ResearchType.ResourceExtraction && project.Level == 1);
+        Assert.Contains(payload.UiState.TechnologyHints, technology => technology.CanEnqueue);
+    }
+
+    [Fact]
+    public async Task UiStateLogsGameplayRefreshFailure()
+    {
+        var databaseName = Guid.NewGuid().ToString("N");
+        await using var dbContext = CreateSeededDbContext(databaseName);
+        var loggerProvider = new CapturingLoggerProvider();
+        using var configuredFactory = factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Development");
+            builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:DefaultConnection"] = $"Host=localhost;Database={databaseName}"
+                }));
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddVoidEmpiresPersistence($"Host=localhost;Database={databaseName}");
+                services.RemoveAll<DbContextOptions<VoidEmpiresDbContext>>();
+                services.RemoveAll<VoidEmpiresDbContext>();
+                services.AddDbContext<VoidEmpiresDbContext>(options =>
+                    options.UseInMemoryDatabase(databaseName, SharedDatabaseRoot));
+                services.RemoveAll<IGameplayRefreshService>();
+                services.AddSingleton<IGameplayRefreshService>(new FailedGameplayRefreshService());
+                services.AddLogging(logging => logging.AddProvider(loggerProvider));
+            });
+        });
+        using var client = configuredFactory.CreateClient();
+
+        using var response = await client.GetAsync($"/api/dev/research/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains(loggerProvider.Messages, message =>
+            message.Contains("Gameplay refresh did not succeed before the research UI-state read", StringComparison.Ordinal) &&
+            message.Contains("test materialization failure", StringComparison.Ordinal));
     }
 
     private HttpClient CreateConfiguredClient(string databaseName) =>
@@ -702,4 +827,47 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
         ResearchQaStatePreparationResourceState? ResourcesAfter,
         IReadOnlyList<string> Notes,
         IReadOnlyList<string> Errors);
+
+    private sealed class FailedGameplayRefreshService : IGameplayRefreshService
+    {
+        private static readonly QueueMaterializationSummary EmptyQueue = new(0, 0, 0);
+
+        public Task<GameplayRefreshResult> RefreshAsync(
+            GameplayRefreshRequest request,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(new GameplayRefreshResult(
+                false,
+                new ResourceRefreshSummary(false, TimeSpan.Zero, 0, null),
+                EmptyQueue,
+                EmptyQueue,
+                EmptyQueue,
+                [],
+                ["test materialization failure"]));
+    }
+
+    private sealed class CapturingLoggerProvider : ILoggerProvider
+    {
+        public ConcurrentQueue<string> Messages { get; } = new();
+
+        public ILogger CreateLogger(string categoryName) => new CapturingLogger(Messages);
+
+        public void Dispose()
+        {
+        }
+
+        private sealed class CapturingLogger(ConcurrentQueue<string> messages) : ILogger
+        {
+            public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+            public bool IsEnabled(LogLevel logLevel) => true;
+
+            public void Log<TState>(
+                LogLevel logLevel,
+                EventId eventId,
+                TState state,
+                Exception? exception,
+                Func<TState, Exception?, string> formatter) =>
+                messages.Enqueue(formatter(state, exception));
+        }
+    }
 }

@@ -33,5 +33,6 @@ export function LiveQueueCountdown({
     void onExpire();
   }, [currentExpireKey, endsAtUtc, nowMs, onExpire]);
 
-  return <span className={className}>{formatQueueCountdown(endsAtUtc, nowMs)}</span>;
+  const countdownClassName = ["queue-countdown", className].filter(Boolean).join(" ");
+  return <span className={countdownClassName}>{formatQueueCountdown(endsAtUtc, nowMs)}</span>;
 }

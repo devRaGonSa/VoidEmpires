@@ -1,5 +1,15 @@
+export function parseQueueUtcTimestamp(value: string) {
+  const timestamp = value.trim();
+  if (!timestamp) {
+    return Number.NaN;
+  }
+
+  const hasExplicitTimezone = /(?:z|[+-]\d{2}:\d{2})$/i.test(timestamp);
+  return Date.parse(hasExplicitTimezone ? timestamp : `${timestamp}Z`);
+}
+
 export function formatQueueCountdown(endsAtUtc: string, nowMs = Date.now()) {
-  const endsAtMs = Date.parse(endsAtUtc);
+  const endsAtMs = parseQueueUtcTimestamp(endsAtUtc);
   if (Number.isNaN(endsAtMs)) {
     return "tiempo no disponible";
   }
@@ -19,6 +29,6 @@ export function formatQueueCountdown(endsAtUtc: string, nowMs = Date.now()) {
 }
 
 export function hasQueueCountdownExpired(endsAtUtc: string, nowMs = Date.now()) {
-  const endsAtMs = Date.parse(endsAtUtc);
+  const endsAtMs = parseQueueUtcTimestamp(endsAtUtc);
   return !Number.isNaN(endsAtMs) && endsAtMs <= nowMs;
 }

@@ -315,6 +315,10 @@ select {
   font-variant-numeric: tabular-nums;
 }
 
+.queue-countdown {
+  font-variant-numeric: tabular-nums;
+}
+
 .top-resource-pill-meta {
   display: flex;
   flex-wrap: wrap;
@@ -1361,7 +1365,7 @@ select {
   margin: 0;
 }
 
-.shipyard-catalog-card .transfer-confirmation-actions {
+.production-action-row {
   display: grid;
   grid-template-columns: minmax(92px, 0.8fr) minmax(0, 1fr);
   align-items: end;
@@ -1369,11 +1373,12 @@ select {
   min-height: 70px;
 }
 
-.shipyard-quantity-field {
+.production-quantity-field {
   min-width: 0;
 }
 
-.shipyard-catalog-card .transfer-confirmation-actions button {
+.production-quantity-field input,
+.production-action-row button {
   min-height: 44px;
   width: 100%;
 }
@@ -3487,6 +3492,10 @@ select {
   .selection-chip-row > * {
     width: 100%;
     justify-content: center;
+  }
+
+  .production-action-row {
+    grid-template-columns: 1fr;
   }
 
   .figma-preview-actions,

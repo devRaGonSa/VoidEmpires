@@ -59,8 +59,8 @@ export function ShipyardCatalogCard({
       <p className="figma-panel-note shipyard-catalog-card-effect">
         {asset.roleLabel}. {formatShipyardAssetEffect(asset.assetType, asset.description)}
       </p>
-      <div className="transfer-confirmation-actions">
-        <label className="field shipyard-quantity-field">
+      <div className="transfer-confirmation-actions production-action-row">
+        <label className="field production-quantity-field shipyard-quantity-field">
           <span>Unidades</span>
           <input
             type="number"

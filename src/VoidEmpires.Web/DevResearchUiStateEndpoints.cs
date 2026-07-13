@@ -74,7 +74,7 @@ internal static class DevResearchUiStateEndpoints
                 try
                 {
                     var refreshService = services.GetRequiredService<IGameplayRefreshService>();
-                    await refreshService.RefreshAsync(new GameplayRefreshRequest(
+                    var refreshResult = await refreshService.RefreshAsync(new GameplayRefreshRequest(
                         civilizationId.Value,
                         selectedPlanet.Id,
                         DateTime.UtcNow,
@@ -82,10 +82,19 @@ internal static class DevResearchUiStateEndpoints
                         IncludeConstruction: true,
                         IncludeResearch: true,
                         IncludeProduction: true), cancellationToken);
+
+                    if (!refreshResult.Succeeded)
+                    {
+                        services.GetService<ILoggerFactory>()?
+                            .CreateLogger(nameof(DevResearchUiStateEndpoints))
+                            .LogWarning("Gameplay refresh did not succeed before the research UI-state read: {Errors}", string.Join("; ", refreshResult.Errors));
+                    }
                 }
-                catch
+                catch (Exception exception)
                 {
-                    // Development read endpoints stay readable when tests replace only read services.
+                    services.GetService<ILoggerFactory>()?
+                        .CreateLogger(nameof(DevResearchUiStateEndpoints))
+                        .LogWarning(exception, "Gameplay refresh failed before the research UI-state read.");
                 }
             }
 
@@ -116,9 +125,11 @@ internal static class DevResearchUiStateEndpoints
                 x.ResearchType,
                 x.TargetLevel,
                 x.Sequence,
-                x.StartsAtUtc,
-                x.EndsAtUtc,
+                NormalizeUtc(x.StartsAtUtc),
+                NormalizeUtc(x.EndsAtUtc),
                 x.Status)).ToArray();
+            var hasOpenResearchOrder = queueDtos.Any(x =>
+                x.Status is ResearchQueueItemStatus.Pending or ResearchQueueItemStatus.Active);
 
             var projectDtos = projects.Select(x => new DevResearchProjectDto(x.CivilizationId, x.ResearchType, x.Level)).ToArray();
 
@@ -128,10 +139,12 @@ internal static class DevResearchUiStateEndpoints
                     var definition = ResearchCatalog.Get(researchType);
                     var currentLevel = projectLevels.GetValueOrDefault(researchType);
                     var estimatedDuration = ResearchDurationCalculator.CalculateDuration(TimeSpan.FromMinutes(10 * (currentLevel + 1)), energySystemsLevel);
-                    var openOrder = queueDtos.FirstOrDefault(x => x.ResearchType == researchType && x.Status is ResearchQueueItemStatus.Pending or ResearchQueueItemStatus.Active);
+                    var openOrderForTechnology = queueDtos.FirstOrDefault(x =>
+                        x.ResearchType == researchType &&
+                        x.Status is ResearchQueueItemStatus.Pending or ResearchQueueItemStatus.Active);
                     var readiness = ResearchEnqueueReadinessEvaluator.Evaluate(
                         selectedPlanet is not null,
-                        openOrder is not null,
+                        hasOpenResearchOrder,
                         stockpile,
                         researchType,
                         currentLevel);
@@ -143,7 +156,7 @@ internal static class DevResearchUiStateEndpoints
                         readiness.StatusKey,
                         readiness.AvailabilityReasonKey,
                         readiness.CanEnqueue,
-                        openOrder is not null && openOrder.EndsAtUtc <= DateTime.UtcNow,
+                        openOrderForTechnology is not null && openOrderForTechnology.EndsAtUtc <= DateTime.UtcNow,
                         estimatedDuration,
                         readiness.Cost,
                         selectedPlanet is not null
@@ -183,6 +196,13 @@ internal static class DevResearchUiStateEndpoints
                 []));
         });
     }
+
+    private static DateTime NormalizeUtc(DateTime value) => value.Kind switch
+    {
+        DateTimeKind.Utc => value,
+        DateTimeKind.Local => value.ToUniversalTime(),
+        _ => DateTime.SpecifyKind(value, DateTimeKind.Utc),
+    };
 }
 
 internal sealed record DevResearchUiStateApiResponse(
