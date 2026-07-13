@@ -29,6 +29,7 @@ public class DevFleetUiStateEndpointTests(WebApplicationFactory<Program> factory
     public async Task UiStateReturnsSuccessfulReadPayload()
     {
         var fakeService = new FakeDevFleetUiStateService(new GetDevFleetUiStateResult(CivilizationId, [], [], [], []));
+        var completionService = new FakeOrbitalTransferCompletionService();
         using var client = factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureAppConfiguration((_, configurationBuilder) =>
@@ -36,7 +37,11 @@ public class DevFleetUiStateEndpointTests(WebApplicationFactory<Program> factory
                 {
                     ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=voidempires_dev_ui_state_endpoint_tests"
                 }));
-            builder.ConfigureTestServices(services => services.AddSingleton<IDevFleetUiStateService>(fakeService));
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddSingleton<IDevFleetUiStateService>(fakeService);
+                services.AddSingleton<IOrbitalTransferCompletionService>(completionService);
+            });
         }).CreateClient();
 
         using var response = await client.GetAsync($"/api/dev/fleets/ui-state?civilizationId={CivilizationId}&planetId={PlanetId}");
@@ -49,6 +54,19 @@ public class DevFleetUiStateEndpointTests(WebApplicationFactory<Program> factory
         Assert.Equal(CivilizationId, payload.UiState.CivilizationId);
         Assert.Equal(CivilizationId, fakeService.LastRequest?.CivilizationId);
         Assert.Equal(PlanetId, fakeService.LastRequest?.PlanetId);
+        Assert.Equal(1, completionService.CallCount);
+    }
+
+    private sealed class FakeOrbitalTransferCompletionService : IOrbitalTransferCompletionService
+    {
+        public int CallCount { get; private set; }
+
+        public Task<CompleteOrbitalTransfersResult> CompleteDueAsync(DateTime nowUtc, CancellationToken cancellationToken = default)
+        {
+            CallCount++;
+            Assert.Equal(DateTimeKind.Utc, nowUtc.Kind);
+            return Task.FromResult(new CompleteOrbitalTransfersResult(0, [], []));
+        }
     }
 
     private sealed class FakeDevFleetUiStateService(GetDevFleetUiStateResult result) : IDevFleetUiStateService

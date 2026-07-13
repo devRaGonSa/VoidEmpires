@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using VoidEmpires.Application.Development;
 using VoidEmpires.Application.Fleets;
 using VoidEmpires.Application.StrategicMap;
@@ -186,6 +187,33 @@ public class DevFleetUiStateServiceTests
         Assert.NotNull(transfer.InterceptionReadiness);
         Assert.Equal(InterceptionOpportunityStatus.ObservedOwnTransfer, transfer.InterceptionReadiness.OpportunityStatus);
         Assert.Equal([InterceptionOpportunityBlockReason.SelfObservedTransfer], transfer.InterceptionReadiness.BlockReasons);
+    }
+
+    [Fact]
+    public async Task GetAsyncNormalizesTransferTimestampsToUtc()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var transferId = Guid.NewGuid();
+        var unspecified = new DateTime(2026, 7, 1, 12, 0, 0, DateTimeKind.Unspecified);
+        var overview = new GetFleetOperationalOverviewResult(civilizationId, [
+            new FleetOperationalGroupDto(Guid.NewGuid(), civilizationId, Guid.NewGuid(), Guid.NewGuid(), SpaceAssetType.ScoutCraft, 1, OrbitalGroupStatus.Reserved, false, true,
+                new FleetOperationalTransferDto(transferId, Guid.NewGuid(), 1, unspecified, unspecified.AddHours(1), OrbitalTransferStatus.Planned),
+                new FleetOperationalCommandAvailabilityDto(false, false, false, true))
+        ]);
+
+        var result = await new DevFleetUiStateService(
+            dbContext,
+            new FakeFleetOperationalOverviewService(overview),
+            new DevFleetActionManifestService(),
+            new FakeInterceptionOpportunityService(new GetInterceptionOpportunitiesResult(civilizationId, [])))
+            .GetAsync(new GetDevFleetUiStateRequest(civilizationId));
+
+        var transfer = Assert.Single(result.Groups).ActiveTransfer;
+        Assert.NotNull(transfer);
+        Assert.Equal(DateTimeKind.Utc, transfer.DepartureAtUtc.Kind);
+        Assert.Equal(DateTimeKind.Utc, transfer.ArrivalAtUtc.Kind);
+        Assert.EndsWith("Z\"", JsonSerializer.Serialize(transfer.ArrivalAtUtc), StringComparison.Ordinal);
     }
 
     [Fact]

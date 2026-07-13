@@ -22,6 +22,8 @@ internal static class DevFleetUiStateEndpoints
                 return Results.BadRequest(new DevFleetUiStateApiResponse(false, null, ["Civilization id is required."]));
             }
 
+            await CompleteDueArrivalsAsync(services, cancellationToken);
+
             var service = services.GetRequiredService<IDevFleetUiStateService>();
             var uiState = await service.GetAsync(
                 new GetDevFleetUiStateRequest(civilizationId.Value, planetId),
@@ -29,6 +31,21 @@ internal static class DevFleetUiStateEndpoints
 
             return Results.Ok(new DevFleetUiStateApiResponse(true, uiState, []));
         });
+    }
+
+    private static async Task CompleteDueArrivalsAsync(IServiceProvider services, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await services.GetRequiredService<IOrbitalTransferCompletionService>()
+                .CompleteDueAsync(DateTime.UtcNow, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            services.GetService<ILoggerFactory>()?
+                .CreateLogger(nameof(DevFleetUiStateEndpoints))
+                .LogWarning(exception, "Fleet arrival refresh failed before the fleet UI-state read.");
+        }
     }
 }
 
