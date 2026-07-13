@@ -735,6 +735,44 @@ foreach ($requirement in $block52QueueCountdownForbiddenFragments) {
   }
 }
 
+$block53GroundArmyRequirements = @(
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/GroundArmyPage.tsx"; Fragments = @("enqueueGroundTraining", "LiveQueueCountdown", "queueRefreshError", "GameModal", "groundArmy?.queue.length", "quantity: selection.quantity", "requestedAtUtc: new Date().toISOString()") },
+  @{ Path = "src/VoidEmpires.Frontend/src/components/GroundArmyCatalogCard.tsx"; Fragments = @("production-action-row", "production-quantity-field", 'min={1}', "Coste por unidad", "Coste total", "Duracion por unidad", "Duracion total", "Entrenar") },
+  @{ Path = "src/VoidEmpires.Frontend/src/api/groundArmyApi.ts"; Fragments = @("planetaryTarget", "PatrolGroup: 1", "ExpeditionGroup: 2", "VehicleGroup: 3", "SupportGroup: 4", "quantity: request.quantity") }
+)
+$block53GroundArmyForbiddenFragments = @(
+  "Abrir entrenamiento terrestre",
+  "Estado actual",
+  "Resumen terrestre",
+  "Estado de preparacion",
+  "Dashboard terrestre",
+  "Completar vencidas",
+  "Entrenamiento directo no disponible aqui",
+  "Id de civilizacion",
+  "Id de planeta",
+  "confirmation-checkbox"
+)
+
+foreach ($requirement in $block53GroundArmyRequirements) {
+  $path = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($requirement.Path)"))
+  if (-not (Test-Path -LiteralPath $path)) { $copyHygieneFailures.Add("Missing Block 53 Ground Army file '$($requirement.Path)'."); continue }
+  $content = Get-Content -LiteralPath $path -Raw
+  foreach ($fragment in $requirement.Fragments) {
+    if ($content -notlike "*$fragment*") { $copyHygieneFailures.Add("$($requirement.Path) is missing Block 53 Ground Army fragment: $fragment") }
+  }
+}
+
+$groundArmyProductFiles = @(
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\pages\GroundArmyPage.tsx")),
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\components\GroundArmyCatalogCard.tsx"))
+)
+foreach ($fragment in $block53GroundArmyForbiddenFragments) {
+  $matches = Select-String -Path $groundArmyProductFiles -Pattern $fragment -SimpleMatch -CaseSensitive:$false
+  foreach ($match in @($matches)) {
+    $copyHygieneFailures.Add(("{0}:{1}: removed Block 53 Ground Army copy or control detected: {2}" -f $match.Path, $match.LineNumber, $fragment))
+  }
+}
+
 $countdownModulePath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\utils\countdown.ts"))
 $countdownBehaviorCheck = @'
 import { pathToFileURL } from "node:url";

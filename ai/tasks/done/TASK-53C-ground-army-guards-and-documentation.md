@@ -3,7 +3,7 @@
 ---
 id: TASK-53C
 title: Ground Army productization guards and documentation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend, gameplay]
@@ -26,16 +26,13 @@ Block 53 must remain free of readiness/prototype copy, defense queue leakage, an
 ## Files to read first
 
 - `ai/current-state.md`
-- `scripts/check-block-52-production-action-layout.ps1`
-- `scripts/check-block-52-research-global-locking.ps1`
+- `scripts/check-frontend-copy-regressions.ps1`
 - `src/VoidEmpires.Frontend/src/pages/GroundArmyPage.tsx`
 
 ## Expected files to modify
 
 - `ai/current-state.md`
-- `scripts/check-block-53-ground-army-productization.ps1`
-- `scripts/check-block-53-ground-queue-isolation.ps1`
-- `scripts/check-block-53-ground-copy.ps1`
+- `scripts/check-frontend-copy-regressions.ps1`
 
 ## Acceptance criteria
 
