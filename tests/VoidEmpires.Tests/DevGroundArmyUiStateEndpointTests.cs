@@ -6,12 +6,14 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VoidEmpires.Application.Assets;
 using VoidEmpires.Application.Development;
 using VoidEmpires.Application.Planets;
 using VoidEmpires.Domain.Assets;
 using VoidEmpires.Domain.Buildings;
 using VoidEmpires.Domain.Economy;
 using VoidEmpires.Infrastructure.Development;
+using VoidEmpires.Infrastructure.Assets;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.Planets;
 
@@ -57,7 +59,7 @@ public class DevGroundArmyUiStateEndpointTests(WebApplicationFactory<Program> fa
         Assert.Contains("Planet was not found.", payload.Errors);
     }
 
-    [Fact] public async Task GroundArmyUiStateReturnsCockpitValidationReadOnlyAggregateWithoutMutatingState()
+    [Fact] public async Task GroundArmyUiStateReturnsProductizedAggregateWithoutCompletedHistory()
     {
         await using var dbContext = CreateSeededDbContext(profile: "cockpit-validation");
         var initialQueueCount = await dbContext.Set<AssetProductionOrder>().CountAsync();
@@ -75,7 +77,8 @@ public class DevGroundArmyUiStateEndpointTests(WebApplicationFactory<Program> fa
         Assert.Contains(payload.UiState.GroundArmy.GroundStructures, x => x.BuildingType == BuildingType.Barracks);
         Assert.Equal(1, payload.UiState.GroundArmy.ReadinessSummary.AvailableOptionCount);
         Assert.Equal(3, payload.UiState.GroundArmy.ReadinessSummary.BlockedOptionCount);
-        Assert.Equal(1, payload.UiState.GroundArmy.ReadinessSummary.QueueItemCount);
+        Assert.Empty(payload.UiState.GroundArmy.Queue);
+        Assert.Equal(0, payload.UiState.GroundArmy.ReadinessSummary.QueueItemCount);
         Assert.Contains(payload.UiState.GroundArmy.Catalog, x => x.AssetType == PlanetaryAssetType.PatrolGroup.ToString() && x.AvailabilityStatus == "Available");
         Assert.Contains(payload.UiState.GroundArmy.Catalog, x => x.AvailabilityStatus == "Blocked");
         Assert.Equal(initialQueueCount, await dbContext.Set<AssetProductionOrder>().CountAsync());
@@ -93,6 +96,99 @@ public class DevGroundArmyUiStateEndpointTests(WebApplicationFactory<Program> fa
         Assert.Contains(payload.UiState.GroundArmy.Catalog, x => x.AssetType == PlanetaryAssetType.PatrolGroup.ToString() && x.AvailabilityStatus == "Available");
         Assert.Contains(payload.UiState.GroundArmy.Catalog, x => x.AvailabilityStatus == "Blocked");
         Assert.True(payload.UiState.GroundArmy.ActionSummary.EnqueueSupported);
+    }
+
+    [Fact]
+    public async Task GroundArmyQueueExcludesDefenseAndClosedOrders()
+    {
+        var nowUtc = DateTime.UtcNow;
+        await using var dbContext = CreateSeededDbContext(context =>
+        {
+            context.Add(AssetProductionOrder.Create(SeedOwnedPlanetId, AssetProductionTarget.Planetary, PlanetaryAssetType.MissileBattery, null, 1, 90, nowUtc, nowUtc.AddHours(1), AssetProductionOrderStatus.Active));
+            context.Add(AssetProductionOrder.Create(SeedOwnedPlanetId, AssetProductionTarget.Planetary, PlanetaryAssetType.VehicleGroup, null, 1, 91, nowUtc, nowUtc.AddHours(1), AssetProductionOrderStatus.Completed));
+            context.Add(AssetProductionOrder.Create(SeedOwnedPlanetId, AssetProductionTarget.Planetary, PlanetaryAssetType.SupportGroup, null, 1, 92, nowUtc, nowUtc.AddHours(1), AssetProductionOrderStatus.Cancelled));
+        }, "cockpit-validation");
+        using var client = CreateConfiguredClient(dbContext);
+
+        var payload = await client.GetFromJsonAsync<DevGroundArmyUiStateResponse>($"/api/dev/ground-army/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+
+        Assert.NotNull(payload?.UiState?.GroundArmy);
+        Assert.Empty(payload.UiState.GroundArmy.Queue);
+        Assert.Contains(payload.UiState.GroundArmy.Catalog, x => x.AssetType == nameof(PlanetaryAssetType.PatrolGroup) && x.AvailabilityStatus == "Available");
+    }
+
+    [Fact]
+    public async Task OpenGroundOrderBlocksGroundCatalogAndRemainsActive()
+    {
+        var startsAtUtc = DateTime.UtcNow;
+        await using var dbContext = CreateSeededDbContext(context =>
+            context.Add(AssetProductionOrder.Create(SeedOwnedPlanetId, AssetProductionTarget.Planetary, PlanetaryAssetType.PatrolGroup, null, 2, 93, startsAtUtc, startsAtUtc.AddMinutes(6), AssetProductionOrderStatus.Active)),
+            "cockpit-validation");
+        using var client = CreateConfiguredClient(dbContext);
+
+        var payload = await client.GetFromJsonAsync<DevGroundArmyUiStateResponse>($"/api/dev/ground-army/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+
+        Assert.NotNull(payload?.UiState?.GroundArmy);
+        var order = Assert.Single(payload.UiState.GroundArmy.Queue);
+        Assert.Equal(2, order.Quantity);
+        Assert.Equal(startsAtUtc.AddMinutes(6), order.EndsAtUtc);
+        Assert.All(payload.UiState.GroundArmy.Catalog, option => Assert.Equal("Blocked", option.AvailabilityStatus));
+    }
+
+    [Fact]
+    public async Task DueGroundOrderIsMaterializedBeforeUiStateReturns()
+    {
+        var nowUtc = DateTime.UtcNow;
+        var order = AssetProductionOrder.Create(SeedOwnedPlanetId, AssetProductionTarget.Planetary, PlanetaryAssetType.SupportGroup, null, 3, 94, nowUtc.AddMinutes(-4), nowUtc.AddMinutes(-1), AssetProductionOrderStatus.Active);
+        await using var dbContext = CreateSeededDbContext(context => context.Add(order), "cockpit-validation");
+        var quantityBefore = await dbContext.Set<PlanetaryAssetStock>()
+            .Where(x => x.PlanetId == SeedOwnedPlanetId && x.AssetType == PlanetaryAssetType.SupportGroup)
+            .Select(x => (int?)x.Quantity)
+            .SingleOrDefaultAsync() ?? 0;
+        using var client = CreateConfiguredClient(dbContext);
+
+        var payload = await client.GetFromJsonAsync<DevGroundArmyUiStateResponse>($"/api/dev/ground-army/ui-state?civilizationId={SeedCivilizationId}&planetId={SeedOwnedPlanetId}");
+        await dbContext.Entry(order).ReloadAsync();
+        Assert.Equal(AssetProductionOrderStatus.Completed, order.Status);
+        var stock = await dbContext.Set<PlanetaryAssetStock>().SingleAsync(x => x.PlanetId == SeedOwnedPlanetId && x.AssetType == PlanetaryAssetType.SupportGroup);
+
+        Assert.NotNull(payload?.UiState?.GroundArmy);
+        Assert.Empty(payload.UiState.GroundArmy.Queue);
+        Assert.Equal(quantityBefore + 3, stock.Quantity);
+        Assert.Contains(payload.UiState.GroundArmy.Garrison, x => x.AssetType == nameof(PlanetaryAssetType.SupportGroup) && x.Quantity == quantityBefore + 3);
+    }
+
+    [Fact]
+    public async Task GroundTrainingEnqueuePreservesQuantityDurationAndSpendsResources()
+    {
+        await using var dbContext = CreateSeededDbContext(profile: "cockpit-validation");
+        var stockpile = await dbContext.PlanetResourceStockpiles.SingleAsync(x => x.PlanetId == SeedOwnedPlanetId);
+        var metalBefore = stockpile.Metal;
+        var crystalBefore = stockpile.Crystal;
+        var requestedAtUtc = DateTime.UtcNow;
+        using var client = CreateConfiguredClient(dbContext);
+
+        using var response = await client.PostAsJsonAsync("/api/dev/assets/production/enqueue", new
+        {
+            civilizationId = SeedCivilizationId,
+            planetId = SeedOwnedPlanetId,
+            target = AssetProductionTarget.Planetary,
+            planetaryAssetType = PlanetaryAssetType.PatrolGroup,
+            quantity = 2,
+            requestedAtUtc
+        });
+        var payload = await response.Content.ReadFromJsonAsync<EnqueueAssetProductionResponse>();
+        Assert.NotNull(payload);
+        await dbContext.Entry(stockpile).ReloadAsync();
+        var order = await dbContext.Set<AssetProductionOrder>().SingleAsync(x => x.Id == payload.OrderId);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.True(payload.Succeeded);
+        Assert.Equal(2, order.Quantity);
+        Assert.Equal(requestedAtUtc, order.StartsAtUtc);
+        Assert.Equal(requestedAtUtc.AddMinutes(6), order.EndsAtUtc);
+        Assert.Equal(metalBefore - 200, stockpile.Metal);
+        Assert.Equal(crystalBefore - 50, stockpile.Crystal);
     }
 
     [Fact] public async Task GroundArmyUiStateAllowsForeignPlanetSelectionWhileKeepingManagementDataHidden()
@@ -118,6 +214,8 @@ public class DevGroundArmyUiStateEndpointTests(WebApplicationFactory<Program> fa
                 var planetUiStateService = new DevPlanetUiStateService(dbContext);
                 services.AddSingleton<IDevPlanetUiStateService>(planetUiStateService);
                 services.AddSingleton<IDevGroundArmyUiStateService>(new DevGroundArmyUiStateService(planetUiStateService, dbContext));
+                services.AddSingleton<IAssetOrderProcessor>(new AssetOrderProcessor(dbContext));
+                services.AddSingleton<IAssetProductionQueueService>(new AssetProductionQueueService(dbContext));
             });
         }).CreateClient();
 
@@ -131,4 +229,5 @@ public class DevGroundArmyUiStateEndpointTests(WebApplicationFactory<Program> fa
     }
 
     private sealed record DevGroundArmyUiStateResponse(bool Succeeded, GetDevGroundArmyUiStateResult? UiState, string[] Errors);
+    private sealed record EnqueueAssetProductionResponse(bool Succeeded, Guid? OrderId, DateTime? StartsAtUtc, DateTime? EndsAtUtc, string[] Errors);
 }

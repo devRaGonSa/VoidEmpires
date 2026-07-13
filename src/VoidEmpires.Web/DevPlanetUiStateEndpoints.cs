@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VoidEmpires.Application.Assets;
 using VoidEmpires.Application.Gameplay;
 using VoidEmpires.Application.Planets;
 using VoidEmpires.Infrastructure.Persistence;
@@ -89,6 +90,9 @@ internal static class DevPlanetUiStateEndpoints
                 return Results.BadRequest(new DevGroundArmyUiStateApiResponse(false, null, ["Civilization id is required."]));
             }
 
+            await RefreshGameplayAsync(services, civilizationId.Value, planetId, cancellationToken);
+            await ProcessDueAssetsAsync(services, cancellationToken);
+
             var service = new DevGroundArmyUiStateService(
                 services.GetRequiredService<IDevPlanetUiStateService>(),
                 services.GetRequiredService<VoidEmpiresDbContext>());
@@ -140,6 +144,23 @@ internal static class DevPlanetUiStateEndpoints
                     .CreateLogger(nameof(DevPlanetUiStateEndpoints))
                     .LogWarning(exception, "Gameplay refresh failed before the planet UI-state read.");
             }
+        }
+    }
+
+    private static async Task ProcessDueAssetsAsync(
+        IServiceProvider services,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var service = services.GetRequiredService<IAssetOrderProcessor>();
+            await service.ProcessAsync(DateTime.UtcNow, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            services.GetService<ILoggerFactory>()?
+                .CreateLogger(nameof(DevPlanetUiStateEndpoints))
+                .LogWarning(exception, "Asset production refresh failed before the ground-army UI-state read.");
         }
     }
 }
