@@ -3,7 +3,7 @@
 ---
 id: TASK-53B
 title: Ground Army playable production UI
-status: pending
+status: done
 type: product
 team: frontend
 supporting_teams: [gameplay]
@@ -64,4 +64,3 @@ Commit this task separately on the Block 53 branch; push after the complete Bloc
 
 - Prefer modifying fewer than 5 files.
 - Prefer changes under 200 lines of code.
-
