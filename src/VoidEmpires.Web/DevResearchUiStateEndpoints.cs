@@ -74,7 +74,7 @@ internal static class DevResearchUiStateEndpoints
                 try
                 {
                     var refreshService = services.GetRequiredService<IGameplayRefreshService>();
-                    await refreshService.RefreshAsync(new GameplayRefreshRequest(
+                    var refreshResult = await refreshService.RefreshAsync(new GameplayRefreshRequest(
                         civilizationId.Value,
                         selectedPlanet.Id,
                         DateTime.UtcNow,
@@ -82,10 +82,19 @@ internal static class DevResearchUiStateEndpoints
                         IncludeConstruction: true,
                         IncludeResearch: true,
                         IncludeProduction: true), cancellationToken);
+
+                    if (!refreshResult.Succeeded)
+                    {
+                        services.GetService<ILoggerFactory>()?
+                            .CreateLogger(nameof(DevResearchUiStateEndpoints))
+                            .LogWarning("Gameplay refresh did not succeed before the research UI-state read: {Errors}", string.Join("; ", refreshResult.Errors));
+                    }
                 }
-                catch
+                catch (Exception exception)
                 {
-                    // Development read endpoints stay readable when tests replace only read services.
+                    services.GetService<ILoggerFactory>()?
+                        .CreateLogger(nameof(DevResearchUiStateEndpoints))
+                        .LogWarning(exception, "Gameplay refresh failed before the research UI-state read.");
                 }
             }
 
