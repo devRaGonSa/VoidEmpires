@@ -708,6 +708,8 @@ foreach ($requirement in $block52ResearchQueueLockRequirements) {
 
 $block52QueueCountdownRequirements = @(
   @{ Path = "src/VoidEmpires.Frontend/src/components/LiveQueueCountdown.tsx"; Fragments = @("notifiedExpiryKeys", '"queue-countdown"', "formatQueueCountdown") },
+  @{ Path = "src/VoidEmpires.Frontend/src/utils/countdown.ts"; Fragments = @("parseQueueUtcTimestamp", "hasExplicitTimezone", "hasExplicitTimezone ? timestamp") },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/ResearchPage.tsx"; Fragments = @("queueRefreshError", "refreshExpiredResearchQueue", "Reintentar actualizacion") },
   @{ Path = "src/VoidEmpires.Frontend/src/styles.css"; Fragments = @('.queue-countdown {', 'font-variant-numeric: tabular-nums;') }
 )
 $block52QueueCountdownForbiddenFragments = @(
@@ -731,6 +733,27 @@ foreach ($requirement in $block52QueueCountdownForbiddenFragments) {
   foreach ($fragment in $requirement.Fragments) {
     if ($content -like "*$fragment*") { $copyHygieneFailures.Add("$($requirement.Path) contains duplicate Block 52 countdown copy: $fragment") }
   }
+}
+
+$countdownModulePath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\utils\countdown.ts"))
+$countdownBehaviorCheck = @'
+import { pathToFileURL } from "node:url";
+const { formatQueueCountdown } = await import(pathToFileURL(process.argv[2]).href);
+const now = Date.parse("2030-01-01T12:11:18Z");
+const cases = [
+  ["2030-01-01T12:30:00Z", "00:18:42"],
+  ["2030-01-01T12:30:00", "00:18:42"],
+  ["2030-01-01T14:30:00+02:00", "00:18:42"],
+  ["2030-01-01T12:11:18Z", "finalizando..."],
+];
+for (const [endsAtUtc, expected] of cases) {
+  const actual = formatQueueCountdown(endsAtUtc, now);
+  if (actual !== expected) throw new Error(`${endsAtUtc}: expected ${expected}, received ${actual}`);
+}
+'@
+$countdownBehaviorCheck | & node --no-warnings --experimental-strip-types --input-type=module - $countdownModulePath
+if ($LASTEXITCODE -ne 0) {
+  $copyHygieneFailures.Add("Block 52 queue countdown behavior check failed.")
 }
 
 if ($copyHygieneFailures.Count -gt 0) {

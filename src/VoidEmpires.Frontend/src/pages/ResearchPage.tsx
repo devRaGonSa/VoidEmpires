@@ -233,6 +233,7 @@ export function ResearchPage() {
   const [isSubmittingEnqueue, setIsSubmittingEnqueue] = useState(false);
   const [enqueueFeedback, setEnqueueFeedback] = useState<string | null>(null);
   const [enqueueError, setEnqueueError] = useState<string | null>(null);
+  const [queueRefreshError, setQueueRefreshError] = useState<string | null>(null);
   const [enqueueOrderDetails, setEnqueueOrderDetails] = useState<{
     orderId: string | null;
     startsAtUtc: string | null;
@@ -287,6 +288,7 @@ export function ResearchPage() {
 
     const nextState = mapResearchUiStateToViewModel(response.uiState);
     setTechnicalErrorDetail(null);
+    setQueueRefreshError(null);
     setUiState(nextState);
 
     if (nextState.selectedPlanetId && nextState.selectedPlanetId !== planetId) {
@@ -296,6 +298,19 @@ export function ResearchPage() {
     }
 
     return nextState;
+  }
+
+  async function refreshExpiredResearchQueue() {
+    try {
+      const refreshed = await reloadResearchState(activeCivilizationId, selectedPlanetId, false, true);
+      if (!refreshed) {
+        setQueueRefreshError("No se pudo actualizar la investigacion finalizada. Intentalo de nuevo.");
+      }
+    } catch (requestError) {
+      const failure = formatResearchRequestFailure(requestError instanceof Error ? requestError.message : null);
+      setQueueRefreshError("No se pudo actualizar la investigacion finalizada. Intentalo de nuevo.");
+      setTechnicalErrorDetail(failure.technicalDetail);
+    }
   }
 
   useEffect(() => {
@@ -485,12 +500,24 @@ export function ResearchPage() {
                     endsAtUtc={item.endsAtUtc}
                     expireKey={item.orderId}
                     onExpire={() => {
-                      void reloadResearchState(activeCivilizationId, selectedPlanetId, false, true);
+                      void refreshExpiredResearchQueue();
                     }}
                   />
                 </li>
               ))}
             </ul>
+            {queueRefreshError ? (
+              <div className="transfer-confirmation-actions">
+                <p className="error-text">{queueRefreshError}</p>
+                <button
+                  type="button"
+                  className="planet-action-button-secondary"
+                  onClick={() => void refreshExpiredResearchQueue()}
+                >
+                  Reintentar actualizacion
+                </button>
+              </div>
+            ) : null}
           </UiCard>
           ) : null}
 
