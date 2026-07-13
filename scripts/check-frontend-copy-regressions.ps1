@@ -678,6 +678,21 @@ foreach ($requirement in $block51RequiredFragments) {
   }
 }
 
+$block52ProductionActionRowRequirements = @(
+  @{ Path = "src/VoidEmpires.Frontend/src/components/ShipyardCatalogCard.tsx"; Fragments = @("production-action-row", "production-quantity-field") },
+  @{ Path = "src/VoidEmpires.Frontend/src/components/DefenseCatalogCard.tsx"; Fragments = @("production-action-row", "production-quantity-field") },
+  @{ Path = "src/VoidEmpires.Frontend/src/styles.css"; Fragments = @('.production-action-row {', 'grid-template-columns: minmax(92px, 0.8fr) minmax(0, 1fr);', '.production-quantity-field input,', 'grid-template-columns: 1fr;') }
+)
+
+foreach ($requirement in $block52ProductionActionRowRequirements) {
+  $path = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($requirement.Path)"))
+  if (-not (Test-Path -LiteralPath $path)) { $copyHygieneFailures.Add("Missing Block 52 production action-row file '$($requirement.Path)'."); continue }
+  $content = Get-Content -LiteralPath $path -Raw
+  foreach ($fragment in $requirement.Fragments) {
+    if ($content -notlike "*$fragment*") { $copyHygieneFailures.Add("$($requirement.Path) is missing Block 52 production action-row fragment: $fragment") }
+  }
+}
+
 if ($copyHygieneFailures.Count -gt 0) {
   throw "Frontend copy hygiene guard failed:`n$($copyHygieneFailures -join [Environment]::NewLine)"
 }
