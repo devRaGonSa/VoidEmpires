@@ -22,7 +22,10 @@ internal static class DevFleetUiStateEndpoints
                 return Results.BadRequest(new DevFleetUiStateApiResponse(false, null, ["Civilization id is required."]));
             }
 
-            await CompleteDueArrivalsAsync(services, cancellationToken);
+            if (planetId is not null)
+            {
+                await CompleteDueArrivalsAsync(services, cancellationToken);
+            }
 
             var service = services.GetRequiredService<IDevFleetUiStateService>();
             var uiState = await service.GetAsync(
