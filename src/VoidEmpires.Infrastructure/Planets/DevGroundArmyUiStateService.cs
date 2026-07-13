@@ -62,17 +62,24 @@ public sealed class DevGroundArmyUiStateService(
 
         var realBuildings = await dbContext.Set<PlanetBuilding>().AsNoTracking().Where(x => x.PlanetId == planetUiState.Planet.PlanetId).ToListAsync(cancellationToken);
         var population = await dbContext.Set<PlanetPopulationProfile>().AsNoTracking().SingleOrDefaultAsync(x => x.PlanetId == planetUiState.Planet.PlanetId, cancellationToken);
-        var stockRows = await dbContext.Set<PlanetaryAssetStock>().AsNoTracking().Where(x => x.PlanetId == planetUiState.Planet.PlanetId).OrderBy(x => x.AssetType).ToListAsync(cancellationToken);
+        var stockRows = await dbContext.Set<PlanetaryAssetStock>().AsNoTracking()
+            .Where(x => x.PlanetId == planetUiState.Planet.PlanetId && GroundAssetTypes.Contains(x.AssetType))
+            .OrderBy(x => x.AssetType)
+            .ToListAsync(cancellationToken);
         var queueRows = await dbContext.Set<AssetProductionOrder>().AsNoTracking()
-            .Where(x => x.PlanetId == planetUiState.Planet.PlanetId && x.Target == AssetProductionTarget.Planetary)
-            .OrderBy(x => x.Status == AssetProductionOrderStatus.Pending || x.Status == AssetProductionOrderStatus.Active ? 0 : 1)
-            .ThenBy(x => x.Sequence)
+            .Where(x =>
+                x.PlanetId == planetUiState.Planet.PlanetId &&
+                x.Target == AssetProductionTarget.Planetary &&
+                x.PlanetaryAssetType != null &&
+                GroundAssetTypes.Contains(x.PlanetaryAssetType.Value) &&
+                (x.Status == AssetProductionOrderStatus.Pending || x.Status == AssetProductionOrderStatus.Active))
+            .OrderBy(x => x.Sequence)
             .Take(8)
             .ToListAsync(cancellationToken);
 
         var nowUtc = DateTime.UtcNow;
-        var openQueueCount = queueRows.Count(x => x.Status is AssetProductionOrderStatus.Pending or AssetProductionOrderStatus.Active);
-        var dueQueueCount = queueRows.Count(x => x.Status is AssetProductionOrderStatus.Pending or AssetProductionOrderStatus.Active && x.EndsAtUtc <= nowUtc);
+        var openQueueCount = queueRows.Count;
+        var dueQueueCount = queueRows.Count(x => x.EndsAtUtc <= nowUtc);
         var buildingBonus = population is null ? 0 : realBuildings.Sum(PlanetMilitaryCapacityCalculator.GetGroundForceCapacityBonus);
         var totalCapacity = population is null ? 0 : PlanetMilitaryCapacityCalculator.CalculateGroundForceCapacity(population, realBuildings);
 
@@ -113,7 +120,7 @@ public sealed class DevGroundArmyUiStateService(
             groundStructures,
             stockRows.Select(x => new DevGroundArmyUnitStockDto(x.AssetType.ToString(), x.Quantity)).ToArray(),
             catalog,
-            queueRows.Select(x => new DevGroundArmyQueueItemDto(x.Id, x.PlanetaryAssetType?.ToString() ?? "Unknown", x.Quantity, x.Sequence, x.Status.ToString(), x.StartsAtUtc, x.EndsAtUtc, x.Status is AssetProductionOrderStatus.Pending or AssetProductionOrderStatus.Active && x.EndsAtUtc <= nowUtc)).ToArray(),
+            queueRows.Select(x => new DevGroundArmyQueueItemDto(x.Id, x.PlanetaryAssetType!.Value.ToString(), x.Quantity, x.Sequence, x.Status.ToString(), x.StartsAtUtc, x.EndsAtUtc, x.EndsAtUtc <= nowUtc)).ToArray(),
             new DevGroundArmyReadinessSummaryDto(groundStructures.Length, stockRows.Count, stockRows.Sum(x => x.Quantity), catalog.Count(x => x.AvailabilityStatus == "Available"), catalog.Count(x => x.AvailabilityStatus != "Available"), queueRows.Count, dueQueueCount),
             new DevGroundArmyActionSummaryDto(catalog.Any(x => x.AvailabilityStatus == "Available") && openQueueCount == 0, openQueueCount > 0 ? "Blocked" : "Available", openQueueCount > 0 ? "Planet already has an open asset production order." : "Ground training can use the current development enqueue endpoint with explicit confirmation.", false, "Unsupported", "No disponible en esta build."),
             new DevGroundArmyDiagnosticsDto(request.PlanetId, planetUiState.Planet.SolarSystemId, planetUiState.Planet.OwnerCivilizationId, planetUiState.Planet.Stockpile.Count > 0, population is not null, ["Development-only ground army read model.", "This cockpit reflects terrestrial readiness and training preparation only."], ["No combat, invasion, occupation, or troop movement is exposed here.", "Complete-due remains unavailable here because the backend processing route is still global."]));

@@ -1,237 +1,205 @@
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { fetchGroundArmyUiState } from "../api/groundArmyApi";
+import { enqueueGroundTraining, fetchGroundArmyUiState } from "../api/groundArmyApi";
 import { CockpitHero } from "../components/CockpitHero";
-import { GroundArmyCatalogCard } from "../components/GroundArmyCatalogCard";
-import { PlanetDataRow } from "../components/PlanetModuleLayout";
+import { GameModal } from "../components/GameModal";
+import { GroundArmyCatalogCard, formatGroundTrainingTotalDuration } from "../components/GroundArmyCatalogCard";
+import { LiveQueueCountdown } from "../components/LiveQueueCountdown";
 import { UiBadge } from "../components/ui/UiBadge";
 import { UiCard } from "../components/ui/UiCard";
-import { formatGroundArmyRequestFailure } from "../utils/groundArmyPresentation";
-import { groupGroundOptionsByCategory, mapGroundArmyUiStateToViewModel, selectRecommendedGroundArmyAction } from "../utils/groundArmyViewModel";
-import { cockpitStatusLabels } from "../utils/cockpitStatus";
+import { formatGroundArmyRequestFailure, formatGroundTrainingCost } from "../utils/groundArmyPresentation";
+import { mapGroundArmyUiStateToViewModel, type GroundArmyOption, type GroundArmyViewModel } from "../utils/groundArmyViewModel";
 import { isSuspiciousCabinContext } from "../utils/routeUrls";
-import { formatCompactGuid } from "../utils/domainPresentation";
+import { cockpitStatusLabels } from "../utils/cockpitStatus";
 
-function getGroundPosture(viewModel: ReturnType<typeof mapGroundArmyUiStateToViewModel>["groundArmy"]) {
-  if (!viewModel) return "Lectura terrestre preparada";
-  if (!viewModel.isOwnedByRequestingCivilization) return "Observacion externa";
-  if (viewModel.readinessSummary.totalGarrisonQuantity > 0) return "Guarnicion terrestre disponible";
-  if (viewModel.readinessSummary.availableOptionCount > 0) return "Entrenamiento listo";
-  if (viewModel.readinessSummary.queueItemCount > 0) return "Preparacion en cola";
-  return "Preparacion terrestre inicial";
-}
-
-function getRecommendedNextStep(viewModel: ReturnType<typeof mapGroundArmyUiStateToViewModel>["groundArmy"]) {
-  if (!viewModel) return "Abrir vista terrestre";
-  if (!viewModel.isOwnedByRequestingCivilization) return "Volver a una colonia propia";
-  if (viewModel.readinessSummary.queueItemCount > 0) return "Revisar cola terrestre";
-  if (viewModel.actionAvailability.enqueueSupported) return "Preparar entrenamiento";
-  if (viewModel.readinessSummary.blockedOptionCount > 0) return "Resolver bloqueo visible";
-  return "Revisar estructuras y reservas";
-}
-
-function getResourcePressureSummary(viewModel: ReturnType<typeof mapGroundArmyUiStateToViewModel>["groundArmy"]) {
-  if (!viewModel || viewModel.stockpile.length === 0) return "Sin reservas visibles";
-  return [...viewModel.stockpile].sort((left, right) => right.quantity - left.quantity).slice(0, 3).map((entry) => `${entry.label} ${entry.quantity}`).join(" | ");
-}
-
-function formatDateTime(value: string) {
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed) ? "No disponible" : new Intl.DateTimeFormat("es-ES", { dateStyle: "short", timeStyle: "short" }).format(parsed);
+interface TrainingSelection {
+  option: GroundArmyOption;
+  quantity: number;
 }
 
 export function GroundArmyPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [civilizationIdInput, setCivilizationIdInput] = useState(searchParams.get("civilizationId") ?? "");
-  const [planetIdInput, setPlanetIdInput] = useState(searchParams.get("planetId") ?? "");
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [uiState, setUiState] = useState<ReturnType<typeof mapGroundArmyUiStateToViewModel> | null>(null);
+  const [uiState, setUiState] = useState<GroundArmyViewModel | null>(null);
+  const [quantityByAssetType, setQuantityByAssetType] = useState<Record<string, number>>({});
+  const [selection, setSelection] = useState<TrainingSelection | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [enqueueError, setEnqueueError] = useState<string | null>(null);
+  const [queueRefreshError, setQueueRefreshError] = useState<string | null>(null);
 
-  const queryCivilizationId = searchParams.get("civilizationId") ?? "";
-  const queryPlanetId = searchParams.get("planetId");
+  const civilizationId = searchParams.get("civilizationId") ?? "";
+  const planetId = searchParams.get("planetId");
   const groundArmy = uiState?.groundArmy ?? null;
-  const isSuspiciousContext = isSuspiciousCabinContext(queryCivilizationId, queryPlanetId);
-  const posture = getGroundPosture(groundArmy);
-  const recommendedNextStep = getRecommendedNextStep(groundArmy);
-  const resourcePressureSummary = getResourcePressureSummary(groundArmy);
-  const optionGroups = groupGroundOptionsByCategory(groundArmy?.catalog ?? []);
-  const recommendedOption = selectRecommendedGroundArmyAction(groundArmy?.catalog ?? []);
+  const catalog = useMemo(() => groundArmy?.catalog ?? [], [groundArmy?.catalog]);
+  const isSuspiciousContext = isSuspiciousCabinContext(civilizationId, planetId);
+
+  async function reloadGroundArmyState() {
+    const response = await fetchGroundArmyUiState(civilizationId, planetId);
+    if (!response.succeeded || !response.uiState) {
+      throw new Error(response.errors[0] ?? "No se pudo actualizar el ejercito terrestre.");
+    }
+
+    const nextState = mapGroundArmyUiStateToViewModel(response.uiState);
+    setUiState(nextState);
+    return nextState;
+  }
 
   useEffect(() => {
-    setCivilizationIdInput(queryCivilizationId);
-    setPlanetIdInput(queryPlanetId ?? "");
-
     async function load() {
-      if (!queryCivilizationId) {
+      if (!civilizationId) {
         setUiState(null);
-        setError(null);
+        setError("Falta el contexto de civilizacion para mostrar el ejercito terrestre.");
         return;
       }
 
       setIsLoading(true);
       setError(null);
-
       try {
-        const response = await fetchGroundArmyUiState(queryCivilizationId, queryPlanetId || undefined);
-        if (!response.succeeded || !response.uiState) {
-          const feedback = formatGroundArmyRequestFailure(response.errors[0] ?? null);
-          setUiState(null);
-          setError(feedback.primaryMessage);
-          return;
-        }
-
-        setUiState(mapGroundArmyUiStateToViewModel(response.uiState));
+        await reloadGroundArmyState();
       } catch (requestError) {
-        const feedback = formatGroundArmyRequestFailure(requestError instanceof Error ? requestError.message : null);
+        const failure = formatGroundArmyRequestFailure(requestError instanceof Error ? requestError.message : null);
         setUiState(null);
-        setError(feedback.primaryMessage);
+        setError(failure.primaryMessage);
       } finally {
         setIsLoading(false);
       }
     }
 
     void load();
-  }, [queryCivilizationId, queryPlanetId]);
+  }, [civilizationId, planetId]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const trimmedCivilizationId = civilizationIdInput.trim();
-    if (!trimmedCivilizationId) {
-      setError("El id de civilizacion es obligatorio.");
-      return;
-    }
-
-    const nextParams = new URLSearchParams({ civilizationId: trimmedCivilizationId });
-    const trimmedPlanetId = planetIdInput.trim();
-    if (trimmedPlanetId) nextParams.set("planetId", trimmedPlanetId);
-    setSearchParams(nextParams);
+  function handleQuantityChange(assetType: string, quantity: number) {
+    setQuantityByAssetType((current) => ({
+      ...current,
+      [assetType]: Number.isFinite(quantity) && quantity > 0 ? Math.floor(quantity) : 1,
+    }));
   }
+
+  function handleReview(option: GroundArmyOption, quantity: number) {
+    if (option.statusKey !== "Available") return;
+    setSelection({ option, quantity: Math.max(1, Math.floor(quantity)) });
+    setFeedback(null);
+    setEnqueueError(null);
+  }
+
+  async function handleQueueRefresh() {
+    setQueueRefreshError(null);
+    try {
+      await reloadGroundArmyState();
+    } catch {
+      setQueueRefreshError("No se pudo actualizar la cola. Reintentar.");
+    }
+  }
+
+  async function handleConfirmTraining() {
+    if (!groundArmy || !selection || isSubmitting) return;
+    setIsSubmitting(true);
+    setEnqueueError(null);
+    try {
+      const result = await enqueueGroundTraining({
+        civilizationId,
+        planetId: groundArmy.planetId,
+        assetType: selection.option.assetType,
+        quantity: selection.quantity,
+        requestedAtUtc: new Date().toISOString(),
+      });
+      if (result.httpStatus !== 201 || !result.response?.succeeded) {
+        setEnqueueError(result.response?.errors[0] ?? "No se pudo iniciar el entrenamiento.");
+        return;
+      }
+
+      setSelection(null);
+      setFeedback("Entrenamiento enviado a la cola.");
+      await reloadGroundArmyState();
+    } catch (requestError) {
+      const failure = formatGroundArmyRequestFailure(requestError instanceof Error ? requestError.message : null);
+      setEnqueueError(failure.primaryMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  const selectedTotalCost = selection
+    ? formatGroundTrainingCost(selection.option.cost.map((entry) => ({ ...entry, quantity: entry.quantity * selection.quantity })))
+    : "";
 
   return (
     <section className="page-grid">
       <CockpitHero
-        versionLabel="Ejercito de Tierra v1"
         title="Ejercito de Tierra"
-        description="Guarnicion local, capacidad de entrenamiento y unidades terrestres disponibles para la colonia seleccionada."
-        developmentNoteLabel="Activacion pendiente"
-        developmentNote="Entrenamiento directo, invasion y combate terrestre siguen pendientes de activacion. Esta vista muestra catalogo y preparacion sin ejecutar ordenes nuevas."
-        badges={
-          <>
-            <UiBadge>Guarnicion y entrenamiento</UiBadge>
-            <UiBadge>{cockpitStatusLabels.preparation}</UiBadge>
-            <UiBadge tone="warn">Combate pendiente</UiBadge>
-          </>
-        }
+        description="Entrena unidades terrestres y revisa la guarnicion de la colonia seleccionada."
+        badges={<><UiBadge>Guarnicion planetaria</UiBadge><UiBadge>Entrenamiento terrestre</UiBadge></>}
       />
 
-      <div className="strategic-cockpit-top">
-        <UiCard className="panel strategic-loader-panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Ejercito terrestre</p><h3>Abrir entrenamiento terrestre</h3></div><UiBadge>Colonia activa</UiBadge></div>
-          <form className="query-form" onSubmit={handleSubmit}>
-            <label className="field"><span>Id de civilizacion</span><input type="text" value={civilizationIdInput} onChange={(event) => setCivilizationIdInput(event.target.value)} placeholder="00000000-0000-0000-0000-000000000000" spellCheck={false} /></label>
-            <label className="field"><span>Id de planeta opcional</span><input type="text" value={planetIdInput} onChange={(event) => setPlanetIdInput(event.target.value)} placeholder="40000000-0000-0000-0000-000000000000" spellCheck={false} /></label>
-            <button type="submit" disabled={isLoading}>{isLoading ? "Cargando..." : "Abrir ejercito"}</button>
-          </form>
-          {error ? <p className="error-text">{error}</p> : null}
-        </UiCard>
-
-        <UiCard className="panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Estado actual</p><h3>Resumen terrestre</h3></div><UiBadge>{posture}</UiBadge></div>
-          {groundArmy ? (
-            <div className="figma-data-list">
-              <PlanetDataRow label="Planeta" value={groundArmy.planetName} />
-              <PlanetDataRow label="Sistema" value={groundArmy.solarSystemName} />
-              <PlanetDataRow label="Control" value={groundArmy.controlStatusLabel ?? "Sin control"} />
-              <PlanetDataRow label="Siguiente paso" value={recommendedNextStep} />
-            </div>
-          ) : <p className="figma-panel-note">La vista mostrara entrenamiento terrestre, estructuras y guarnicion cuando los datos sean validos.</p>}
-        </UiCard>
-      </div>
-
-      <UiCard className="panel">
-        <div className="figma-section-header"><div><p className="eyebrow">Estado de preparacion</p><h3>Dashboard terrestre</h3></div><UiBadge tone={groundArmy?.actionAvailability.enqueueSupported ? "good" : "warn"}>{groundArmy?.actionAvailability.enqueueStatusLabel ?? "Pendiente"}</UiBadge></div>
-        {groundArmy ? (
-          <div className="readiness-grid">
-            <section className="subpanel figma-subpanel"><div className="figma-data-list">
-              <PlanetDataRow label="Población total" value={groundArmy.population ? `${groundArmy.population.totalPopulation}` : "No disponible"} />
-              <PlanetDataRow label="Reclutable base" value={groundArmy.population ? `${groundArmy.population.baseRecruitablePopulation}` : "No disponible"} />
-              <PlanetDataRow label="Capacidad terrestre" value={groundArmy.population ? `${groundArmy.population.totalGroundCapacity}` : "No disponible"} />
-              <PlanetDataRow label="Opciones visibles" value={`${groundArmy.catalog.length}`} />
-            </div></section>
-            <section className="subpanel figma-subpanel"><div className="figma-data-list">
-              <PlanetDataRow label="Postura" value={posture} />
-              <PlanetDataRow label="Estructuras" value={`${groundArmy.readinessSummary.structureCount}`} />
-              <PlanetDataRow label="Tipos en guarnicion" value={`${groundArmy.readinessSummary.garrisonUnitTypes}`} />
-              <PlanetDataRow label="Guarnicion" value={`${groundArmy.readinessSummary.totalGarrisonQuantity} unidades`} />
-              <PlanetDataRow label="Bloqueadas" value={`${groundArmy.readinessSummary.blockedOptionCount}`} />
-            </div></section>
-            <section className="subpanel figma-subpanel"><div className="figma-data-list">
-              <PlanetDataRow label="Disponibles" value={`${groundArmy.readinessSummary.availableOptionCount}`} />
-              <PlanetDataRow label="Cola visible" value={`${groundArmy.readinessSummary.queueItemCount}`} />
-              <PlanetDataRow label="Presion de recursos" value={resourcePressureSummary} />
-              <PlanetDataRow label="Operacion terrestre" value="Combate e invasion pendientes de activacion." />
-            </div></section>
-          </div>
-        ) : <p className="figma-panel-note">Todavia no hay datos terrestres visibles. La vista mantiene un estado honesto hasta cargar una colonia valida.</p>}
-      </UiCard>
-
-      {groundArmy ? (
-        <UiCard className="panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Catalogo terrestre</p><h3>Unidades, estructuras y preparacion</h3><p>Las tarjetas muestran entrenamiento terrestre y requisitos, no combate activo.</p></div><UiBadge tone={recommendedOption?.statusKey === "Available" ? "good" : "warn"}>{recommendedOption?.label ?? "Sin recomendacion"}</UiBadge></div>
-          <div className="readiness-grid">
-            <section className="subpanel figma-subpanel">
-              <div className="figma-section-header"><div><p className="eyebrow">Guarnicion</p><h4>Unidades visibles</h4></div><UiBadge>{groundArmy.garrison.length} tipos</UiBadge></div>
-              <ul className="stack-list compact-list">
-                {groundArmy.garrison.length > 0 ? groundArmy.garrison.map((unit) => <li key={unit.assetType}>{unit.label}: {unit.quantity} | {unit.roleLabel}</li>) : <li>Sin unidades de guarnicion registradas para esta colonia.</li>}
-              </ul>
-            </section>
-            <section className="subpanel figma-subpanel">
-              <div className="figma-section-header"><div><p className="eyebrow">Estructuras</p><h4>Soporte terrestre</h4></div><UiBadge>{groundArmy.structures.length} filas</UiBadge></div>
-              <ul className="stack-list compact-list">
-                {groundArmy.structures.length > 0 ? groundArmy.structures.map((structure) => <li key={`${structure.buildingType}-${structure.level}`}>{structure.label} | {structure.categoryLabel} | Nivel {structure.level}</li>) : <li>Gestionar desde Construccion si la colonia aun no tiene infraestructura terrestre.</li>}
-              </ul>
-            </section>
-          </div>
-          <div className="figma-section-header module-boundary-spacer"><div><p className="eyebrow">Opciones agrupadas</p><h4>Catalogo de preparacion</h4></div></div>
-          <div className="ground-army-catalog-groups">
-            {optionGroups.map((group) => (
-              <section key={group.key} className="subpanel figma-subpanel">
-                <div className="figma-section-header"><div><p className="eyebrow">Categoria</p><h4>{group.label}</h4></div><UiBadge>{group.options.length} tarjetas</UiBadge></div>
-                <div className="readiness-grid ground-army-catalog-grid">
-                  {group.options.map((option) => (
-                    <GroundArmyCatalogCard key={option.assetType} option={option} />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        </UiCard>
-      ) : null}
-
-      {groundArmy ? (
-        <UiCard className="panel">
-          <div className="figma-section-header"><div><p className="eyebrow">Cola terrestre</p><h3>Ordenes y cierre pendiente</h3><p>La cola muestra el estado de entrenamiento sin completar ordenes automaticamente.</p></div><UiBadge tone={groundArmy.queue.length > 0 ? "resource" : "neutral"}>{groundArmy.queue.length > 0 ? `${groundArmy.queue.length} visibles` : "Sin cola"}</UiBadge></div>
-          {groundArmy.queue.length > 0 ? (
-            <ul className="stack-list compact-list">
-              {groundArmy.queue.map((item) => (
-                <li key={item.orderId}>
-                  {item.label} | {item.statusLabel} | Inicio {formatDateTime(item.startsAtUtc)} | Fin {formatDateTime(item.endsAtUtc)}{item.isDue ? " | Pendiente de cierre seguro" : ""}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="figma-panel-note">No hay ordenes terrestres en cola.</p>
-          )}
-          <div className="figma-section-header module-boundary-spacer"><div><p className="eyebrow">Completar vencidas</p><h4>{cockpitStatusLabels.safePlaceholder}</h4></div><UiBadge tone="warn">{groundArmy.actionAvailability.completeDueStatusLabel}</UiBadge></div>
-          <p className="figma-panel-note">{groundArmy.actionAvailability.completeDueReason}. La cola terrestre sigue visible, pero el cierre por planeta permanece pendiente de activacion.</p>
-        </UiCard>
-      ) : null}
+      {error ? <UiCard className="panel"><p className="error-text">{error}</p></UiCard> : null}
 
       {isSuspiciousContext ? (
         <UiCard className="panel"><div className="figma-section-header"><div><p className="eyebrow">Contexto sospechoso</p><h3>El identificador de civilizacion no parece valido para esta vista.</h3></div><UiBadge tone="warn">{cockpitStatusLabels.reviewContext}</UiBadge></div><p className="figma-panel-note">Revisa que no hayas usado el id del planeta como civilizacion.</p></UiCard>
       ) : null}
 
+      {groundArmy?.queue.length ? (
+        <UiCard className="panel">
+          <div className="figma-section-header"><div><p className="eyebrow">Entrenamiento activo</p><h3>Cola terrestre</h3></div><UiBadge tone="warn">{groundArmy.queue.length} activa</UiBadge></div>
+          <div className="readiness-grid">
+            {groundArmy.queue.map((item) => (
+              <article key={item.orderId} className="subpanel figma-subpanel">
+                <div className="figma-section-header"><div><p className="eyebrow">{item.quantity} unidades</p><h4>{item.label}</h4></div><UiBadge>{item.statusLabel}</UiBadge></div>
+                <div className="figma-data-list">
+                  <div className="figma-data-row"><span>Estado</span><strong>{item.statusLabel}</strong></div>
+                  <div className="figma-data-row"><span>Tiempo restante</span><strong><LiveQueueCountdown endsAtUtc={item.endsAtUtc} expireKey={item.orderId} onExpire={handleQueueRefresh} /></strong></div>
+                </div>
+              </article>
+            ))}
+          </div>
+          {queueRefreshError ? <div className="transfer-confirmation-actions"><p className="error-text">{queueRefreshError}</p><button type="button" onClick={() => void handleQueueRefresh()}>Reintentar</button></div> : null}
+        </UiCard>
+      ) : null}
+
+      {groundArmy ? (
+        <>
+          <UiCard className="panel">
+            <div className="figma-section-header"><div><p className="eyebrow">Guarnicion</p><h3>Unidades disponibles</h3></div><UiBadge>{groundArmy.garrison.reduce((total, unit) => total + unit.quantity, 0)} unidades</UiBadge></div>
+            {groundArmy.garrison.length ? <ul className="stack-list compact-list">{groundArmy.garrison.map((unit) => <li key={unit.assetType}>{unit.label}: {unit.quantity}</li>)}</ul> : <p className="figma-panel-note">La colonia no tiene unidades terrestres.</p>}
+          </UiCard>
+
+          <UiCard className="panel">
+            <div className="figma-section-header"><div><p className="eyebrow">Catalogo terrestre</p><h3>Entrenar unidades</h3></div><UiBadge tone="resource">{catalog.length} unidades</UiBadge></div>
+            <div className="readiness-grid ground-army-catalog-grid">
+              {catalog.map((option) => <GroundArmyCatalogCard key={option.assetType} option={option} quantity={quantityByAssetType[option.assetType] ?? 1} onQuantityChange={handleQuantityChange} onTrain={handleReview} />)}
+            </div>
+          </UiCard>
+          {feedback ? <p>{feedback}</p> : null}
+          {enqueueError && !selection ? <p className="error-text">{enqueueError}</p> : null}
+        </>
+      ) : !isLoading && civilizationId && !error ? <p className="figma-panel-note">No hay datos terrestres disponibles.</p> : null}
+
+      {selection && groundArmy ? (
+        <GameModal
+          actionScope="gameplay"
+          canClose={!isSubmitting}
+          closeLabel="Cerrar"
+          description="Revisa la cantidad, el coste y la duracion antes de entrenar."
+          isBusy={isSubmitting}
+          isOpen
+          onClose={() => setSelection(null)}
+          primaryAction={{ label: "Entrenar", onClick: () => void handleConfirmTraining() }}
+          secondaryAction={{ label: "Cancelar", onClick: () => setSelection(null), disabled: isSubmitting }}
+          title="Confirmar entrenamiento"
+        >
+          <div className="figma-data-list">
+            <div className="figma-data-row"><span>Planeta</span><strong>{groundArmy.planetName}</strong></div>
+            <div className="figma-data-row"><span>Unidad</span><strong>{selection.option.label}</strong></div>
+            <div className="figma-data-row"><span>Cantidad actual</span><strong>{selection.option.currentStock}</strong></div>
+            <div className="figma-data-row"><span>Unidades seleccionadas</span><strong>{selection.quantity}</strong></div>
+            <div className="figma-data-row"><span>Coste total</span><strong>{selectedTotalCost}</strong></div>
+            <div className="figma-data-row"><span>Duracion total</span><strong>{formatGroundTrainingTotalDuration(selection.option.estimatedDuration, selection.quantity)}</strong></div>
+            <div className="figma-data-row"><span>Requisito</span><strong>{selection.option.requirementLabel}</strong></div>
+          </div>
+          {enqueueError ? <p className="error-text">{enqueueError}</p> : null}
+        </GameModal>
+      ) : null}
     </section>
   );
 }

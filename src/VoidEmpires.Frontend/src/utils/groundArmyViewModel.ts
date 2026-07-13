@@ -12,7 +12,7 @@ import {
 } from "./groundArmyPresentation";
 
 export interface GroundArmyOption {
-  assetType: string; label: string; categoryLabel: string; roleLabel: string; statusKey: string; statusLabel: string; reasonKey: string; reasonLabel: string; currentStock: number; estimatedDurationLabel: string; estimatedCostLabel: string; resourceScopeLabel: string; requirementLabel: string; missingLabel: string | null;
+  assetType: string; label: string; categoryLabel: string; roleLabel: string; statusKey: string; statusLabel: string; reasonKey: string; reasonLabel: string; currentStock: number; estimatedDuration: string; estimatedDurationLabel: string; cost: { resourceType: string; quantity: number }[]; estimatedCostLabel: string; resourceScopeLabel: string; requirementLabel: string; missingLabel: string | null;
 }
 export interface GroundArmyQueueItem {
   orderId: string; assetType: string; label: string; quantity: number; sequence: number; statusKey: string; statusLabel: string; startsAtUtc: string; endsAtUtc: string; isDue: boolean;
@@ -52,7 +52,9 @@ function mapOption(item: GroundArmyOptionDto): GroundArmyOption {
     reasonKey: item.availabilityReason,
     reasonLabel,
     currentStock: item.currentStock,
+    estimatedDuration: item.estimatedDuration,
     estimatedDurationLabel: formatGroundTrainingDuration(item.estimatedDuration),
+    cost: resourceEntries,
     estimatedCostLabel: formatGroundTrainingCost(item.cost),
     resourceScopeLabel: "Reservas visibles para esta colonia",
     requirementLabel,
