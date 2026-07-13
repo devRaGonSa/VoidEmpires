@@ -13,13 +13,14 @@ public class DevFleetUiStateEndpointTests(WebApplicationFactory<Program> factory
     : IClassFixture<WebApplicationFactory<Program>>
 {
     private static readonly Guid CivilizationId = Guid.Parse("bdff59bf-3847-4cda-b742-b4bb77ebd3c4");
+    private static readonly Guid PlanetId = Guid.Parse("157c2ef4-25b4-48f7-a746-e355fcf451af");
 
     [Fact]
     public async Task UiStateReturnsNotFoundOutsideDevelopmentByDefault()
     {
         using var client = factory.WithWebHostBuilder(builder => builder.UseEnvironment("Production")).CreateClient();
 
-        using var response = await client.GetAsync($"/api/dev/fleets/ui-state?civilizationId={CivilizationId}");
+        using var response = await client.GetAsync($"/api/dev/fleets/ui-state?civilizationId={CivilizationId}&planetId={PlanetId}");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -38,7 +39,7 @@ public class DevFleetUiStateEndpointTests(WebApplicationFactory<Program> factory
             builder.ConfigureTestServices(services => services.AddSingleton<IDevFleetUiStateService>(fakeService));
         }).CreateClient();
 
-        using var response = await client.GetAsync($"/api/dev/fleets/ui-state?civilizationId={CivilizationId}");
+        using var response = await client.GetAsync($"/api/dev/fleets/ui-state?civilizationId={CivilizationId}&planetId={PlanetId}");
         var payload = await response.Content.ReadFromJsonAsync<DevFleetUiStateResponse>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -47,6 +48,7 @@ public class DevFleetUiStateEndpointTests(WebApplicationFactory<Program> factory
         Assert.NotNull(payload.UiState);
         Assert.Equal(CivilizationId, payload.UiState.CivilizationId);
         Assert.Equal(CivilizationId, fakeService.LastRequest?.CivilizationId);
+        Assert.Equal(PlanetId, fakeService.LastRequest?.PlanetId);
     }
 
     private sealed class FakeDevFleetUiStateService(GetDevFleetUiStateResult result) : IDevFleetUiStateService

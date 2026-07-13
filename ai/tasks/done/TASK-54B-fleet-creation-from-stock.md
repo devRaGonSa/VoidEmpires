@@ -3,7 +3,7 @@
 ---
 id: TASK-54B
 title: Fleet creation from orbital stock
-status: pending
+status: done
 type: product
 team: gameplay
 supporting_teams: [frontend]
@@ -52,4 +52,3 @@ Commit separately on the Block 54 branch; push after the complete block validate
 
 ## Change Budget
 - Prefer fewer than 5 files and under 200 changed lines.
-

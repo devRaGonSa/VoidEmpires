@@ -228,7 +228,8 @@ public class DevFleetUiStateServiceTests
                 new DetectionCoverageService(dbContext, new SensorProfileService(dbContext)),
                 new FleetOperationalOverviewService(dbContext)));
 
-        var result = await service.GetAsync(new GetDevFleetUiStateRequest(Guid.Parse("00000000-0000-0000-0000-000000000001")));
+        var ownedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
+        var result = await service.GetAsync(new GetDevFleetUiStateRequest(Guid.Parse("00000000-0000-0000-0000-000000000001"), ownedPlanetId));
 
         Assert.True(result.Groups.Count >= 5);
         Assert.True(result.Groups.Count(x => x.Status == OrbitalGroupStatus.Stationed) >= 3);
@@ -255,12 +256,16 @@ public class DevFleetUiStateServiceTests
                 new DetectionCoverageService(dbContext, new SensorProfileService(dbContext)),
                 new FleetOperationalOverviewService(dbContext)));
 
-        var result = await service.GetAsync(new GetDevFleetUiStateRequest(Guid.Parse("00000000-0000-0000-0000-000000000001")));
+        var ownedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
+        var result = await service.GetAsync(new GetDevFleetUiStateRequest(Guid.Parse("00000000-0000-0000-0000-000000000001"), ownedPlanetId));
 
         Assert.True(result.Groups.Count >= 4);
         Assert.Contains(result.Groups, x => x.Status == OrbitalGroupStatus.Stationed && x.Commands.CanCreateTransfer);
         Assert.Contains(result.Groups, x => x.HasActiveTransfer && x.ActiveTransfer is not null);
         Assert.Contains(result.ResourceContexts, x => x.PlanetId == Guid.Parse("40000000-0000-0000-0000-000000000001") && x.Balances.Any(balance => balance.ResourceType == ResourceType.Gas && balance.Quantity == 120));
+        Assert.Equal(ownedPlanetId, result.SelectedPlanetId);
+        Assert.Contains(result.Planets, x => x.PlanetId == ownedPlanetId && x.IsOwnedByRequestingCivilization);
+        Assert.NotEmpty(result.LocalStock);
     }
 
     [Fact]

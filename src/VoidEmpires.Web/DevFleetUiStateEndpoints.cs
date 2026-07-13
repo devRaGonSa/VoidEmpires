@@ -7,6 +7,7 @@ internal static class DevFleetUiStateEndpoints
     {
         app.MapGet("/api/dev/fleets/ui-state", async (
             Guid? civilizationId,
+            Guid? planetId,
             [FromServices] IServiceProvider services,
             [FromServices] IConfiguration configuration,
             CancellationToken cancellationToken) =>
@@ -23,7 +24,7 @@ internal static class DevFleetUiStateEndpoints
 
             var service = services.GetRequiredService<IDevFleetUiStateService>();
             var uiState = await service.GetAsync(
-                new GetDevFleetUiStateRequest(civilizationId.Value),
+                new GetDevFleetUiStateRequest(civilizationId.Value, planetId),
                 cancellationToken);
 
             return Results.Ok(new DevFleetUiStateApiResponse(true, uiState, []));
