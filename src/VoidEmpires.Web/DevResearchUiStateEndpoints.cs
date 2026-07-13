@@ -125,8 +125,8 @@ internal static class DevResearchUiStateEndpoints
                 x.ResearchType,
                 x.TargetLevel,
                 x.Sequence,
-                x.StartsAtUtc,
-                x.EndsAtUtc,
+                NormalizeUtc(x.StartsAtUtc),
+                NormalizeUtc(x.EndsAtUtc),
                 x.Status)).ToArray();
             var hasOpenResearchOrder = queueDtos.Any(x =>
                 x.Status is ResearchQueueItemStatus.Pending or ResearchQueueItemStatus.Active);
@@ -196,6 +196,13 @@ internal static class DevResearchUiStateEndpoints
                 []));
         });
     }
+
+    private static DateTime NormalizeUtc(DateTime value) => value.Kind switch
+    {
+        DateTimeKind.Utc => value,
+        DateTimeKind.Local => value.ToUniversalTime(),
+        _ => DateTime.SpecifyKind(value, DateTimeKind.Utc),
+    };
 }
 
 internal sealed record DevResearchUiStateApiResponse(

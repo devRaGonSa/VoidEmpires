@@ -36,6 +36,9 @@ public class ResearchQueueServiceTests
         Assert.NotNull(result.OrderId);
         Assert.Equal(requestedAtUtc, result.StartsAtUtc);
         Assert.Equal(requestedAtUtc.AddMinutes(10), result.EndsAtUtc);
+        Assert.Equal(DateTimeKind.Utc, result.StartsAtUtc!.Value.Kind);
+        Assert.Equal(DateTimeKind.Utc, result.EndsAtUtc!.Value.Kind);
+        Assert.True(result.EndsAtUtc > result.StartsAtUtc);
         var order = Assert.Single(db.ResearchOrders);
         Assert.Equal(civilizationId, order.CivilizationId);
         Assert.Equal(sourcePlanetId, order.SourcePlanetId);
