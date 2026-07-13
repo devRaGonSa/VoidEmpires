@@ -119,6 +119,8 @@ internal static class DevResearchUiStateEndpoints
                 x.StartsAtUtc,
                 x.EndsAtUtc,
                 x.Status)).ToArray();
+            var hasOpenResearchOrder = queueDtos.Any(x =>
+                x.Status is ResearchQueueItemStatus.Pending or ResearchQueueItemStatus.Active);
 
             var projectDtos = projects.Select(x => new DevResearchProjectDto(x.CivilizationId, x.ResearchType, x.Level)).ToArray();
 
@@ -128,10 +130,12 @@ internal static class DevResearchUiStateEndpoints
                     var definition = ResearchCatalog.Get(researchType);
                     var currentLevel = projectLevels.GetValueOrDefault(researchType);
                     var estimatedDuration = ResearchDurationCalculator.CalculateDuration(TimeSpan.FromMinutes(10 * (currentLevel + 1)), energySystemsLevel);
-                    var openOrder = queueDtos.FirstOrDefault(x => x.ResearchType == researchType && x.Status is ResearchQueueItemStatus.Pending or ResearchQueueItemStatus.Active);
+                    var openOrderForTechnology = queueDtos.FirstOrDefault(x =>
+                        x.ResearchType == researchType &&
+                        x.Status is ResearchQueueItemStatus.Pending or ResearchQueueItemStatus.Active);
                     var readiness = ResearchEnqueueReadinessEvaluator.Evaluate(
                         selectedPlanet is not null,
-                        openOrder is not null,
+                        hasOpenResearchOrder,
                         stockpile,
                         researchType,
                         currentLevel);
@@ -143,7 +147,7 @@ internal static class DevResearchUiStateEndpoints
                         readiness.StatusKey,
                         readiness.AvailabilityReasonKey,
                         readiness.CanEnqueue,
-                        openOrder is not null && openOrder.EndsAtUtc <= DateTime.UtcNow,
+                        openOrderForTechnology is not null && openOrderForTechnology.EndsAtUtc <= DateTime.UtcNow,
                         estimatedDuration,
                         readiness.Cost,
                         selectedPlanet is not null

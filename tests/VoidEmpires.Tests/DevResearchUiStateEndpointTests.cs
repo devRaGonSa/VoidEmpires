@@ -240,8 +240,11 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
         Assert.Equal(HttpStatusCode.NotFound, missingPlanetResponse.StatusCode);
     }
 
-    [Fact]
-    public async Task UiStateReturnsCatalogQueueAndProjectsWithoutMutatingState()
+    [Theory]
+    [InlineData(ResearchQueueItemStatus.Pending)]
+    [InlineData(ResearchQueueItemStatus.Active)]
+    public async Task UiStateLocksEveryTechnologyForAnyOpenResearchOrderWithoutMutatingState(
+        ResearchQueueItemStatus openStatus)
     {
         var databaseName = Guid.NewGuid().ToString("N");
         await using var dbContext = CreateSeededDbContext(databaseName);
@@ -259,7 +262,7 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
             1,
             new DateTime(2026, 12, 1, 12, 0, 0, DateTimeKind.Utc),
             new DateTime(2026, 12, 1, 12, 20, 0, DateTimeKind.Utc),
-            ResearchQueueItemStatus.Active));
+            openStatus));
         await dbContext.SaveChangesAsync();
 
         var queueBefore = await dbContext.ResearchOrders.CountAsync();
@@ -288,7 +291,15 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
             x.RequirementKeys.SequenceEqual(["SourcePlanet", "ResearchQueueSlot", "ResourceStockpile"]));
         Assert.Single(payload.UiState.Queue);
         Assert.Single(payload.UiState.Projects);
-        Assert.Contains(payload.UiState.TechnologyHints, x => x.ResearchType == ResearchType.PlanetaryEngineering && x.StatusKey == "InResearch" && !x.CanEnqueue);
+        Assert.Contains(payload.UiState.TechnologyHints, x =>
+            x.ResearchType == ResearchType.PlanetaryEngineering &&
+            x.StatusKey == "InResearch" &&
+            !x.CanEnqueue);
+        Assert.All(payload.UiState.TechnologyHints, x =>
+        {
+            Assert.False(x.CanEnqueue);
+            Assert.Equal("OpenQueueSlot", x.AvailabilityReasonKey);
+        });
         Assert.Equal(queueBefore, await dbContext.ResearchOrders.CountAsync());
         Assert.Equal(projectsBefore, await dbContext.ResearchProjects.CountAsync());
         Assert.Equal(metalBefore, stockpile.Metal);
@@ -436,12 +447,14 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
             followUpPayload.UiState.TechnologyHints,
             item => item.ResearchType == ResearchType.ResourceExtraction &&
                 !item.CanEnqueue &&
-                item.StatusKey == "InsufficientResources");
+                item.StatusKey == "InResearch" &&
+                item.AvailabilityReasonKey == "OpenQueueSlot");
         Assert.Contains(
             followUpPayload.UiState.TechnologyHints,
             item => item.ResearchType == ResearchType.EnergySystems &&
                 !item.CanEnqueue &&
-                item.StatusKey == "InsufficientResources");
+                item.StatusKey == "InResearch" &&
+                item.AvailabilityReasonKey == "OpenQueueSlot");
         Assert.Equal(0, followUpPayload.UiState.TechnologyHints.Count(x => x.CanEnqueue));
     }
 
@@ -495,6 +508,11 @@ public class DevResearchUiStateEndpointTests(WebApplicationFactory<Program> fact
             item => item.ResearchType == ResearchType.PlanetaryEngineering &&
                 !item.CanEnqueue &&
                 item.StatusKey == "InResearch");
+        Assert.All(followUpPayload.UiState.TechnologyHints, item =>
+        {
+            Assert.False(item.CanEnqueue);
+            Assert.Equal("OpenQueueSlot", item.AvailabilityReasonKey);
+        });
     }
 
     [Fact]

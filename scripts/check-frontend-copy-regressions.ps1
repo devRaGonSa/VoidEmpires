@@ -693,6 +693,19 @@ foreach ($requirement in $block52ProductionActionRowRequirements) {
   }
 }
 
+$block52ResearchQueueLockRequirements = @(
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/ResearchPage.tsx"; Fragments = @("isOpenQueueStatus", "hasOpenResearchQueue", 'setEnqueueError("Hay una investigacion en curso.")', '!hasOpenResearchQueue && hasSafeResearchEnqueue', 'preparedResearch.availability.canEnqueue && !hasOpenResearchQueue') }
+)
+
+foreach ($requirement in $block52ResearchQueueLockRequirements) {
+  $path = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($requirement.Path)"))
+  if (-not (Test-Path -LiteralPath $path)) { $copyHygieneFailures.Add("Missing Block 52 research queue-lock file '$($requirement.Path)'."); continue }
+  $content = Get-Content -LiteralPath $path -Raw
+  foreach ($fragment in $requirement.Fragments) {
+    if ($content -notlike "*$fragment*") { $copyHygieneFailures.Add("$($requirement.Path) is missing Block 52 research queue-lock fragment: $fragment") }
+  }
+}
+
 if ($copyHygieneFailures.Count -gt 0) {
   throw "Frontend copy hygiene guard failed:`n$($copyHygieneFailures -join [Environment]::NewLine)"
 }
