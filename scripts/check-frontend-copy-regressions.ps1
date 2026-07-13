@@ -706,6 +706,33 @@ foreach ($requirement in $block52ResearchQueueLockRequirements) {
   }
 }
 
+$block52QueueCountdownRequirements = @(
+  @{ Path = "src/VoidEmpires.Frontend/src/components/LiveQueueCountdown.tsx"; Fragments = @("notifiedExpiryKeys", '"queue-countdown"', "formatQueueCountdown") },
+  @{ Path = "src/VoidEmpires.Frontend/src/styles.css"; Fragments = @('.queue-countdown {', 'font-variant-numeric: tabular-nums;') }
+)
+$block52QueueCountdownForbiddenFragments = @(
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/PlanetPage.tsx"; Fragments = @('item.isDue ? "finalizando..."') },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/ResearchPage.tsx"; Fragments = @('item.isDue ? "finalizando..."') }
+)
+
+foreach ($requirement in $block52QueueCountdownRequirements) {
+  $path = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($requirement.Path)"))
+  if (-not (Test-Path -LiteralPath $path)) { $copyHygieneFailures.Add("Missing Block 52 queue countdown file '$($requirement.Path)'."); continue }
+  $content = Get-Content -LiteralPath $path -Raw
+  foreach ($fragment in $requirement.Fragments) {
+    if ($content -notlike "*$fragment*") { $copyHygieneFailures.Add("$($requirement.Path) is missing Block 52 queue countdown fragment: $fragment") }
+  }
+}
+
+foreach ($requirement in $block52QueueCountdownForbiddenFragments) {
+  $path = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($requirement.Path)"))
+  if (-not (Test-Path -LiteralPath $path)) { $copyHygieneFailures.Add("Missing Block 52 queue row file '$($requirement.Path)'."); continue }
+  $content = Get-Content -LiteralPath $path -Raw
+  foreach ($fragment in $requirement.Fragments) {
+    if ($content -like "*$fragment*") { $copyHygieneFailures.Add("$($requirement.Path) contains duplicate Block 52 countdown copy: $fragment") }
+  }
+}
+
 if ($copyHygieneFailures.Count -gt 0) {
   throw "Frontend copy hygiene guard failed:`n$($copyHygieneFailures -join [Environment]::NewLine)"
 }

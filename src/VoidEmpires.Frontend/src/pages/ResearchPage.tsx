@@ -481,7 +481,7 @@ export function ResearchPage() {
             <ul className="stack-list compact-list">
               {uiState.queue.map((item) => (
                 <li key={item.orderId}>
-                  {item.label} nivel {item.targetLevel} | {item.isDue ? "finalizando..." : item.statusLabel} | <LiveQueueCountdown
+                  {item.label} nivel {item.targetLevel} | {item.statusLabel} | <LiveQueueCountdown
                     endsAtUtc={item.endsAtUtc}
                     expireKey={item.orderId}
                     onExpire={() => {

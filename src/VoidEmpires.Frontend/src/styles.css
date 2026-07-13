@@ -315,6 +315,10 @@ select {
   font-variant-numeric: tabular-nums;
 }
 
+.queue-countdown {
+  font-variant-numeric: tabular-nums;
+}
+
 .top-resource-pill-meta {
   display: flex;
   flex-wrap: wrap;

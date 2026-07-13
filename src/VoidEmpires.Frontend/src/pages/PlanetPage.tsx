@@ -1224,7 +1224,7 @@ export function PlanetPage({ variant = "planet" }: PlanetPageProps) {
                 <ul className="stack-list compact-list">
                   {planet.constructionQueue.map((item) => (
                     <li key={item.orderId}>
-                      {item.display?.buildingTypeLabel ?? formatBuildingType(item.buildingType)} nivel {item.targetLevel} | {item.isDue ? "finalizando..." : item.display?.statusLabel ?? formatQueueState(item)} | <LiveQueueCountdown
+                      {item.display?.buildingTypeLabel ?? formatBuildingType(item.buildingType)} nivel {item.targetLevel} | {item.display?.statusLabel ?? formatConstructionStatus(item.status)} | <LiveQueueCountdown
                         endsAtUtc={item.endsAtUtc}
                         expireKey={item.orderId}
                         onExpire={() => {
