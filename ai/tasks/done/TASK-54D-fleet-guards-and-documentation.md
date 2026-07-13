@@ -3,7 +3,7 @@
 ---
 id: TASK-54D
 title: Fleet productization guards and documentation
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [frontend, gameplay]
@@ -24,6 +24,7 @@ Static guards must prevent diagnostic UI, manual context inputs, missing confirm
 
 ## Files to read first
 - `scripts/check-frontend-copy-regressions.ps1`
+- `scripts/check-frontend-route-lazy-imports.ps1`
 - `ai/current-state.md`
 - `src/VoidEmpires.Frontend/src/pages/FleetsPage.tsx`
 
