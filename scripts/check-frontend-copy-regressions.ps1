@@ -774,8 +774,11 @@ foreach ($fragment in $block53GroundArmyForbiddenFragments) {
 }
 
 $block54FleetRequirements = @(
-  @{ Path = "src/VoidEmpires.Frontend/src/pages/FleetsPage.tsx"; Fragments = @("usePlayableRouteContext", "createOrbitalGroup", "assetType: creationSelection.stock.assetType", "quantity: creationSelection.quantity", "estimateSnapshot", "estimateIsCurrent", "GameModal", "LiveQueueCountdown", "arrivalRefreshError", "canCancelTransfer", "Calcular ruta", "Enviar flota") },
-  @{ Path = "src/VoidEmpires.Frontend/src/api/voidEmpiresApi.ts"; Fragments = @("createOrbitalGroup(request", 'originPlanetId: request.planetId', 'currentPlanetId: request.planetId', 'quantity: request.quantity') },
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/FleetsPage.tsx"; Fragments = @("usePlayableRouteContext", "FleetSummary", "LocalOrbitalStockPanel", "StationedFleetList", "FleetMovementComposer", "ActiveFleetMovements", "createOrbitalGroup", "assetType: creationSelection.stock.assetType", "quantity: creationSelection.quantity", "estimateSnapshot", "estimateIsCurrent", "GameModal", "arrivalRefreshError", "Enviar flota") },
+  @{ Path = "src/VoidEmpires.Frontend/src/components/FleetCreationCard.tsx"; Fragments = @("production-action-row", 'min={1}', "Crear flota") },
+  @{ Path = "src/VoidEmpires.Frontend/src/components/FleetMovementComposer.tsx"; Fragments = @("Calcular ruta", "Revisar envio", "Seleccionar destino") },
+  @{ Path = "src/VoidEmpires.Frontend/src/components/ActiveFleetMovements.tsx"; Fragments = @("LiveQueueCountdown", "canCancelTransfer", "Tiempo hasta llegada", "Reintentar") },
+  @{ Path = "src/VoidEmpires.Frontend/src/api/voidEmpiresApi.ts"; Fragments = @("createOrbitalGroup(request", 'create-from-local-stock', 'planetId: request.planetId', 'quantity: request.quantity') },
   @{ Path = "src/VoidEmpires.Frontend/src/components/LiveQueueCountdown.tsx"; Fragments = @("notifiedExpiryKeys", "formatQueueCountdown") }
 )
 $block54FleetForbiddenFragments = @(
@@ -807,10 +810,17 @@ foreach ($requirement in $block54FleetRequirements) {
   }
 }
 
-$fleetPagePath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\pages\FleetsPage.tsx"))
-$fleetPageContent = Get-Content -LiteralPath $fleetPagePath -Raw
+$fleetProductPaths = @(
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\pages\FleetsPage.tsx")),
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\components\FleetCreationCard.tsx")),
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\components\LocalOrbitalStockPanel.tsx")),
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\components\StationedFleetList.tsx")),
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\components\FleetMovementComposer.tsx")),
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\components\ActiveFleetMovements.tsx"))
+)
 foreach ($fragment in $block54FleetForbiddenFragments) {
-  if ($fleetPageContent -like "*$fragment*") { $copyHygieneFailures.Add("FleetsPage.tsx contains removed or out-of-scope Block 54 fragment: $fragment") }
+  $matches = Select-String -Path $fleetProductPaths -Pattern $fragment -SimpleMatch -CaseSensitive:$false
+  foreach ($match in @($matches)) { $copyHygieneFailures.Add("$($match.Path) contains removed or out-of-scope Block 54 fragment: $fragment") }
 }
 
 $countdownModulePath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\utils\countdown.ts"))

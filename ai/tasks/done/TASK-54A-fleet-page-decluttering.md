@@ -31,8 +31,12 @@ The normal page must derive route context, hide technical IDs and diagnostic pan
 
 ## Expected files to modify
 - `src/VoidEmpires.Frontend/src/pages/FleetsPage.tsx`
-- `src/VoidEmpires.Frontend/src/components/FleetSummaryPanel.tsx`
-- `src/VoidEmpires.Frontend/src/components/FleetSelectedGroupPanel.tsx`
+- `src/VoidEmpires.Frontend/src/components/FleetSummary.tsx`
+- `src/VoidEmpires.Frontend/src/components/LocalOrbitalStockPanel.tsx`
+- `src/VoidEmpires.Frontend/src/components/FleetCreationCard.tsx`
+- `src/VoidEmpires.Frontend/src/components/StationedFleetList.tsx`
+- `src/VoidEmpires.Frontend/src/components/FleetMovementComposer.tsx`
+- `src/VoidEmpires.Frontend/src/components/ActiveFleetMovements.tsx`
 
 ## Acceptance criteria
 - Normal Fleets UI contains only the Block 54 product sections.

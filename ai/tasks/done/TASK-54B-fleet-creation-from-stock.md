@@ -31,9 +31,14 @@ Reuse `OrbitalStockGroupService`; the backend must enforce ownership, positive q
 
 ## Expected files to modify
 - `src/VoidEmpires.Web/DevFleetUiStateEndpoints.cs`
+- `src/VoidEmpires.Web/GetDevFleetUiStateResult.cs`
 - `src/VoidEmpires.Infrastructure/Fleets/DevFleetUiStateService.cs`
+- `src/VoidEmpires.Infrastructure/Fleets/OrbitalStockGroupService.cs`
 - `tests/VoidEmpires.Tests/DevFleetUiStateEndpointTests.cs`
-- `src/VoidEmpires.Frontend/src/api/fleetCommandTypes.ts`
+- `tests/VoidEmpires.Tests/DevFleetUiStateServiceTests.cs`
+- `tests/VoidEmpires.Tests/OrbitalStockGroupServiceTests.cs`
+- `src/VoidEmpires.Frontend/src/api/fleetTypes.ts`
+- `src/VoidEmpires.Frontend/src/api/voidEmpiresApi.ts`
 - `src/VoidEmpires.Frontend/src/pages/FleetsPage.tsx`
 
 ## Acceptance criteria
