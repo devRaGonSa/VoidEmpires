@@ -23,6 +23,12 @@ export interface CancelOrbitalTransferRequest {
 export interface CompleteOrbitalTransfersRequest {
   nowUtc: string;
 }
+export interface CreateOrbitalGroupRequest {
+  civilizationId: string;
+  planetId: string;
+  assetType: string;
+  quantity: number;
+}
 export interface SplitOrbitalGroupRequest {
   civilizationId: string;
   sourceOrbitalGroupId: string;
@@ -36,6 +42,9 @@ export interface MergeOrbitalGroupsRequest {
 interface FleetCommandResponseBase {
   succeeded: boolean;
   errors: string[];
+}
+export interface CreateOrbitalGroupResponse extends FleetCommandResponseBase {
+  orbitalGroupId?: string | null;
 }
 export interface OrbitalTravelCostComponent {
   resourceType: string;

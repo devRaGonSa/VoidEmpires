@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using VoidEmpires.Application.Development;
 using VoidEmpires.Application.Fleets;
 using VoidEmpires.Application.StrategicMap;
@@ -189,6 +190,33 @@ public class DevFleetUiStateServiceTests
     }
 
     [Fact]
+    public async Task GetAsyncNormalizesTransferTimestampsToUtc()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var transferId = Guid.NewGuid();
+        var unspecified = new DateTime(2026, 7, 1, 12, 0, 0, DateTimeKind.Unspecified);
+        var overview = new GetFleetOperationalOverviewResult(civilizationId, [
+            new FleetOperationalGroupDto(Guid.NewGuid(), civilizationId, Guid.NewGuid(), Guid.NewGuid(), SpaceAssetType.ScoutCraft, 1, OrbitalGroupStatus.Reserved, false, true,
+                new FleetOperationalTransferDto(transferId, Guid.NewGuid(), 1, unspecified, unspecified.AddHours(1), OrbitalTransferStatus.Planned),
+                new FleetOperationalCommandAvailabilityDto(false, false, false, true))
+        ]);
+
+        var result = await new DevFleetUiStateService(
+            dbContext,
+            new FakeFleetOperationalOverviewService(overview),
+            new DevFleetActionManifestService(),
+            new FakeInterceptionOpportunityService(new GetInterceptionOpportunitiesResult(civilizationId, [])))
+            .GetAsync(new GetDevFleetUiStateRequest(civilizationId));
+
+        var transfer = Assert.Single(result.Groups).ActiveTransfer;
+        Assert.NotNull(transfer);
+        Assert.Equal(DateTimeKind.Utc, transfer.DepartureAtUtc.Kind);
+        Assert.Equal(DateTimeKind.Utc, transfer.ArrivalAtUtc.Kind);
+        Assert.EndsWith("Z\"", JsonSerializer.Serialize(transfer.ArrivalAtUtc), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task GetAsyncReturnsNonEmptyGroupsForMinimalValidationSeed()
     {
         await using var dbContext = CreateDbContext();
@@ -228,7 +256,8 @@ public class DevFleetUiStateServiceTests
                 new DetectionCoverageService(dbContext, new SensorProfileService(dbContext)),
                 new FleetOperationalOverviewService(dbContext)));
 
-        var result = await service.GetAsync(new GetDevFleetUiStateRequest(Guid.Parse("00000000-0000-0000-0000-000000000001")));
+        var ownedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
+        var result = await service.GetAsync(new GetDevFleetUiStateRequest(Guid.Parse("00000000-0000-0000-0000-000000000001"), ownedPlanetId));
 
         Assert.True(result.Groups.Count >= 5);
         Assert.True(result.Groups.Count(x => x.Status == OrbitalGroupStatus.Stationed) >= 3);
@@ -255,12 +284,19 @@ public class DevFleetUiStateServiceTests
                 new DetectionCoverageService(dbContext, new SensorProfileService(dbContext)),
                 new FleetOperationalOverviewService(dbContext)));
 
-        var result = await service.GetAsync(new GetDevFleetUiStateRequest(Guid.Parse("00000000-0000-0000-0000-000000000001")));
+        var ownedPlanetId = Guid.Parse("40000000-0000-0000-0000-000000000001");
+        var result = await service.GetAsync(new GetDevFleetUiStateRequest(Guid.Parse("00000000-0000-0000-0000-000000000001"), ownedPlanetId));
 
         Assert.True(result.Groups.Count >= 4);
         Assert.Contains(result.Groups, x => x.Status == OrbitalGroupStatus.Stationed && x.Commands.CanCreateTransfer);
         Assert.Contains(result.Groups, x => x.HasActiveTransfer && x.ActiveTransfer is not null);
         Assert.Contains(result.ResourceContexts, x => x.PlanetId == Guid.Parse("40000000-0000-0000-0000-000000000001") && x.Balances.Any(balance => balance.ResourceType == ResourceType.Gas && balance.Quantity == 120));
+        Assert.Equal(ownedPlanetId, result.SelectedPlanetId);
+        Assert.Equal("Aurelia", result.SelectedPlanetName);
+        Assert.Contains(result.Planets, x => x.PlanetId == ownedPlanetId && x.IsOwnedByRequestingCivilization);
+        Assert.NotEmpty(result.LocalStock);
+        Assert.All(result.StationedGroups, x => Assert.Equal(ownedPlanetId, x.CurrentPlanetId));
+        Assert.All(result.ActiveMovementGroups, x => Assert.True(x.HasActiveTransfer));
     }
 
     [Fact]

@@ -6,6 +6,8 @@ import type {
   CancelOrbitalTransferResponse,
   CompleteOrbitalTransfersRequest,
   CompleteOrbitalTransfersResponse,
+  CreateOrbitalGroupRequest,
+  CreateOrbitalGroupResponse,
   CreateOrbitalTransferRequest,
   CreateOrbitalTransferResponse,
   EstimateOrbitalTravelRequest,
@@ -288,9 +290,9 @@ export const voidEmpiresApi = {
       query: { civilizationId },
     });
   },
-  getFleetUiState(civilizationId: string) {
+  getFleetUiState(civilizationId: string, planetId?: string | null) {
     return requestJson<FleetUiStateResponse>("/api/dev/fleets/ui-state", {
-      query: { civilizationId },
+      query: planetId ? { civilizationId, planetId } : { civilizationId },
     });
   },
   getPlanetUiState(civilizationId: string, planetId?: string | null) {
@@ -344,6 +346,18 @@ export const voidEmpiresApi = {
     return requestCommandJson<CompleteOrbitalTransfersResponse>(
       "/api/dev/fleets/orbital-transfers/complete-due",
       request,
+    );
+  },
+  createOrbitalGroup(request: CreateOrbitalGroupRequest) {
+    const assetTypes: Record<string, number> = { ScoutCraft: 1, CargoCraft: 2, EscortCraft: 3, ColonyCraft: 4 };
+    return requestCommandJson<CreateOrbitalGroupResponse>(
+      "/api/dev/fleets/orbital-groups/create-from-local-stock",
+      {
+        civilizationId: request.civilizationId,
+        planetId: request.planetId,
+        assetType: assetTypes[request.assetType] ?? request.assetType,
+        quantity: request.quantity,
+      },
     );
   },
   splitOrbitalGroup(request: SplitOrbitalGroupRequest) {
