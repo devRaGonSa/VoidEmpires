@@ -9,8 +9,11 @@ export interface FleetUiStateResponse {
 export interface FleetUiState {
   civilizationId: string;
   selectedPlanetId?: string | null;
+  selectedPlanetName?: string | null;
   planets?: FleetPlanetOption[];
   localStock?: FleetOrbitalStock[];
+  stationedGroups?: FleetGroupSummary[];
+  activeMovementGroups?: FleetGroupSummary[];
   groups: FleetGroupSummary[];
   resourceContexts?: FleetResourceContext[];
   actionHints?: FleetActionHint[];

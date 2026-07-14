@@ -351,11 +351,10 @@ export const voidEmpiresApi = {
   createOrbitalGroup(request: CreateOrbitalGroupRequest) {
     const assetTypes: Record<string, number> = { ScoutCraft: 1, CargoCraft: 2, EscortCraft: 3, ColonyCraft: 4 };
     return requestCommandJson<CreateOrbitalGroupResponse>(
-      "/api/dev/fleets/orbital-groups/create-from-stock",
+      "/api/dev/fleets/orbital-groups/create-from-local-stock",
       {
         civilizationId: request.civilizationId,
-        originPlanetId: request.planetId,
-        currentPlanetId: request.planetId,
+        planetId: request.planetId,
         assetType: assetTypes[request.assetType] ?? request.assetType,
         quantity: request.quantity,
       },

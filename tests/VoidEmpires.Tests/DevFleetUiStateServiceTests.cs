@@ -292,8 +292,11 @@ public class DevFleetUiStateServiceTests
         Assert.Contains(result.Groups, x => x.HasActiveTransfer && x.ActiveTransfer is not null);
         Assert.Contains(result.ResourceContexts, x => x.PlanetId == Guid.Parse("40000000-0000-0000-0000-000000000001") && x.Balances.Any(balance => balance.ResourceType == ResourceType.Gas && balance.Quantity == 120));
         Assert.Equal(ownedPlanetId, result.SelectedPlanetId);
+        Assert.Equal("Aurelia", result.SelectedPlanetName);
         Assert.Contains(result.Planets, x => x.PlanetId == ownedPlanetId && x.IsOwnedByRequestingCivilization);
         Assert.NotEmpty(result.LocalStock);
+        Assert.All(result.StationedGroups, x => Assert.Equal(ownedPlanetId, x.CurrentPlanetId));
+        Assert.All(result.ActiveMovementGroups, x => Assert.True(x.HasActiveTransfer));
     }
 
     [Fact]

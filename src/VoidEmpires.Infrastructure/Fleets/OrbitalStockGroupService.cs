@@ -17,6 +17,7 @@ public sealed class OrbitalStockGroupService(VoidEmpiresDbContext dbContext) : I
             request.OriginPlanetId == Guid.Empty ||
             request.CurrentPlanetId == Guid.Empty ||
             request.OriginPlanetId != request.CurrentPlanetId ||
+            !Enum.IsDefined(request.AssetType) ||
             request.Quantity <= 0)
         {
             return CreateOrbitalGroupResult.Failure("Invalid request.");

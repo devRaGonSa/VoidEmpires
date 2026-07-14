@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VoidEmpires.Application.Fleets;
+using VoidEmpires.Domain.Assets;
 
 namespace VoidEmpires.Tests;
 
@@ -57,6 +58,61 @@ public class DevFleetUiStateEndpointTests(WebApplicationFactory<Program> factory
         Assert.Equal(1, completionService.CallCount);
     }
 
+    [Fact]
+    public async Task ScopedFleetCreationMapsSelectedPlanetAndQuantityToAuthoritativeService()
+    {
+        var groupId = Guid.NewGuid();
+        var groupService = new FakeOrbitalGroupService(CreateOrbitalGroupResult.Success(groupId));
+        using var client = factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Development");
+            builder.ConfigureAppConfiguration((_, configurationBuilder) => configurationBuilder.AddInMemoryCollection(
+                new Dictionary<string, string?> { ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=fleet_create_endpoint_tests" }));
+            builder.ConfigureTestServices(services => services.AddSingleton<IOrbitalGroupService>(groupService));
+        }).CreateClient();
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-groups/create-from-local-stock", new
+        {
+            civilizationId = CivilizationId,
+            planetId = PlanetId,
+            assetType = SpaceAssetType.EscortCraft,
+            quantity = 3
+        });
+        var payload = await response.Content.ReadFromJsonAsync<CreateLocalFleetResponse>();
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.True(payload.Succeeded);
+        Assert.Equal(groupId, payload.OrbitalGroupId);
+        Assert.Equal(new CreateOrbitalGroupRequest(CivilizationId, PlanetId, PlanetId, SpaceAssetType.EscortCraft, 3), groupService.LastRequest);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task ScopedFleetCreationRejectsNonPositiveQuantity(int quantity)
+    {
+        var groupService = new FakeOrbitalGroupService(CreateOrbitalGroupResult.Success(Guid.NewGuid()));
+        using var client = factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Development");
+            builder.ConfigureAppConfiguration((_, configurationBuilder) => configurationBuilder.AddInMemoryCollection(
+                new Dictionary<string, string?> { ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=fleet_create_validation_tests" }));
+            builder.ConfigureTestServices(services => services.AddSingleton<IOrbitalGroupService>(groupService));
+        }).CreateClient();
+
+        using var response = await client.PostAsJsonAsync("/api/dev/fleets/orbital-groups/create-from-local-stock", new
+        {
+            civilizationId = CivilizationId,
+            planetId = PlanetId,
+            assetType = SpaceAssetType.ScoutCraft,
+            quantity
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Null(groupService.LastRequest);
+    }
+
     private sealed class FakeOrbitalTransferCompletionService : IOrbitalTransferCompletionService
     {
         public int CallCount { get; private set; }
@@ -66,6 +122,17 @@ public class DevFleetUiStateEndpointTests(WebApplicationFactory<Program> factory
             CallCount++;
             Assert.Equal(DateTimeKind.Utc, nowUtc.Kind);
             return Task.FromResult(new CompleteOrbitalTransfersResult(0, [], []));
+        }
+    }
+
+    private sealed class FakeOrbitalGroupService(CreateOrbitalGroupResult result) : IOrbitalGroupService
+    {
+        public CreateOrbitalGroupRequest? LastRequest { get; private set; }
+
+        public Task<CreateOrbitalGroupResult> CreateFromLocalStockAsync(CreateOrbitalGroupRequest request, CancellationToken cancellationToken = default)
+        {
+            LastRequest = request;
+            return Task.FromResult(result);
         }
     }
 
@@ -86,4 +153,6 @@ public class DevFleetUiStateEndpointTests(WebApplicationFactory<Program> factory
         bool Succeeded,
         GetDevFleetUiStateResult? UiState,
         string[] Errors);
+
+    private sealed record CreateLocalFleetResponse(bool Succeeded, Guid? OrbitalGroupId, string[] Errors);
 }

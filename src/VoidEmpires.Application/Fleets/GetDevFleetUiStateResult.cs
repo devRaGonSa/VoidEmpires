@@ -13,8 +13,11 @@ public sealed record GetDevFleetUiStateResult(
     IReadOnlyList<DevFleetUiInterceptionNoteDto> InterceptionNotes)
 {
     public Guid? SelectedPlanetId { get; init; }
+    public string? SelectedPlanetName { get; init; }
     public IReadOnlyList<DevFleetUiPlanetDto> Planets { get; init; } = [];
     public IReadOnlyList<DevFleetUiOrbitalStockDto> LocalStock { get; init; } = [];
+    public IReadOnlyList<DevFleetUiGroupDto> StationedGroups { get; init; } = [];
+    public IReadOnlyList<DevFleetUiGroupDto> ActiveMovementGroups { get; init; } = [];
 }
 
 public sealed record DevFleetUiPlanetDto(Guid PlanetId, string PlanetName, bool IsOwnedByRequestingCivilization);

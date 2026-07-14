@@ -138,6 +138,22 @@ public class OrbitalStockGroupServiceTests
         Assert.Empty(await dbContext.Set<OrbitalGroup>().ToListAsync());
     }
 
+    [Fact]
+    public async Task CreateFromLocalStockRejectsUnknownAssetType()
+    {
+        await using var dbContext = CreateDbContext();
+        var civilizationId = Guid.NewGuid();
+        var planetId = Guid.NewGuid();
+        dbContext.PlanetOwnerships.Add(PlanetOwnership.Create(planetId, civilizationId));
+        await dbContext.SaveChangesAsync();
+
+        var result = await new OrbitalStockGroupService(dbContext).CreateFromLocalStockAsync(
+            new CreateOrbitalGroupRequest(civilizationId, planetId, planetId, (SpaceAssetType)999, 1));
+
+        Assert.False(result.Succeeded);
+        Assert.Empty(await dbContext.Set<OrbitalGroup>().ToListAsync());
+    }
+
     private static VoidEmpiresDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<VoidEmpiresDbContext>()

@@ -117,8 +117,11 @@ public sealed class DevFleetUiStateService(
             CreateInterceptionNotes())
         {
             SelectedPlanetId = selectedPlanetId == Guid.Empty ? null : selectedPlanetId,
+            SelectedPlanetName = planets.SingleOrDefault(x => x.PlanetId == selectedPlanetId)?.PlanetName,
             Planets = planets,
-            LocalStock = localStock
+            LocalStock = localStock,
+            StationedGroups = groups.Where(x => x.CurrentPlanetId == selectedPlanetId && x.Status == VoidEmpires.Domain.Fleets.OrbitalGroupStatus.Stationed && !x.HasActiveTransfer).ToArray(),
+            ActiveMovementGroups = groups.Where(x => x.HasActiveTransfer).ToArray()
         };
     }
 
