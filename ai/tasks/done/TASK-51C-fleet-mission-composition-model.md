@@ -3,7 +3,7 @@
 ---
 id: TASK-51C
 title: Fleet mission composition model
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [gameplay]
@@ -98,3 +98,15 @@ Own task status/location metadata is also expected. Resolve proposed paths again
 
 - Prefer fewer than 5 implementation files, under 200 changed lines and fewer than 3 commits; count generated changes honestly.
 - Stop before exceeding budget and refine/split minimum follow-ups during implementation under AGENTS.md (at most 3 at once). Do not duplicate existing tasks. This planning pass creates only the 104 requested files.
+
+## Completion evidence (2026-10-06)
+
+- Started from clean synchronized `d9993fad7297677bf9a1f6027089eb7c3bc35e79`, with exact A/B prerequisites done and 102 Block 51 tasks pending.
+- Added FleetMissionShip with nonempty MissionId, known SpaceAssetType and positive int Quantity, private scalar setters and internal quantity mutation. FleetMission owns a private list exposed through a cached read-only wrapper.
+- AddShips is Preparing-only; duplicate types merge into the existing row. Checked quantity and version calculations precede mutation. Successful additions/merges increment StateVersion through the same helper as lifecycle changes; failures leave composition, phase and version unchanged. Empty-composition launch behavior from B remains unchanged.
+- EF maps composite primary key (MissionId, AssetType), required scalar fields and a required one-to-many FK to FleetMission with cascade deletion and field access. No extra DbSet, parent mapping changes or OrbitalGroup adapter.
+- No CHECK-constraint convention exists in the current configuration files. Positivity remains enforced by the domain plus required EF mapping; final relational constraints belong to TASK-51BH. No provider-specific SQL introduced.
+- Fresh restore/build passed with 0 warnings/errors. Focused composition tests: 21 passed, 0 failed, 0 skipped. Full suite: 928 passed, 0 failed, 0 skipped, including unchanged B lifecycle tests. Explicit Include round-trip preserved 10 ScoutCraft/5 EscortCraft/2 CargoCraft; tracked merge and cascade also passed in EF InMemory, without claims about relational constraints or concurrency.
+- SQL smoke explicitly disabled; its early return is not live SQL coverage. No integration tests configured. The integration hook remains an unadapted placeholder. Repository secret scan passed.
+- Diff/scope checks passed: four expected implementation files (70 changed production lines and 181 test lines), plus this lifecycle record. Full coverage follows the user's earlier explicit authorization to ignore the line limit; no scope expansion or follow-up tasks.
+- No migration generation/application, SQL execution, seed mutation, browser/manual QA or PR. All other 101 Block 51 tasks remain pending and unchanged; no Block 52. Stop after this task's commit/push.

@@ -1,3 +1,5 @@
+using VoidEmpires.Domain.Assets;
+
 namespace VoidEmpires.Domain.Fleets;
 
 public enum FleetMissionType
@@ -21,7 +23,11 @@ public enum FleetMissionStatus
 
 public sealed class FleetMission
 {
-    private FleetMission() { }
+    private readonly List<FleetMissionShip> _ships = [];
+
+    private FleetMission() => Ships = _ships.AsReadOnly();
+
+    public IReadOnlyCollection<FleetMissionShip> Ships { get; private set; }
 
     public Guid Id { get; private set; }
     public Guid CivilizationId { get; private set; }
@@ -69,6 +75,17 @@ public sealed class FleetMission
             OutboundDepartureUtc = outboundDepartureUtc,
             OutboundArrivalUtc = outboundArrivalUtc
         };
+    }
+
+    public void AddShips(SpaceAssetType assetType, int quantity)
+    {
+        Require(Status == FleetMissionStatus.Preparing, "Only preparing missions can change composition.");
+        var addition = FleetMissionShip.Create(Id, assetType, quantity);
+        var existing = _ships.SingleOrDefault(ship => ship.AssetType == assetType);
+        var total = checked((existing?.Quantity ?? 0) + quantity);
+        IncrementVersion();
+        if (existing is null) _ships.Add(addition);
+        else existing.SetQuantity(total);
     }
 
     public void StartOutbound()
@@ -138,9 +155,11 @@ public sealed class FleetMission
 
     private void Advance(FleetMissionStatus status)
     {
-        StateVersion = checked(StateVersion + 1);
+        IncrementVersion();
         Status = status;
     }
+
+    private void IncrementVersion() => StateVersion = checked(StateVersion + 1);
 
     private static void RequireUtc(params DateTime[] timestamps)
     {
