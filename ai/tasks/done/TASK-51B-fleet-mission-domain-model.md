@@ -3,7 +3,7 @@
 ---
 id: TASK-51B
 title: Fleet mission domain model
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [gameplay]
@@ -108,3 +108,15 @@ Own task status/location metadata is also expected. Resolve proposed paths again
 
 - Prefer fewer than 5 implementation files, under 200 changed lines and fewer than 3 commits; count generated changes honestly.
 - Stop before exceeding budget and refine/split minimum follow-ups during implementation under AGENTS.md (at most 3 at once). Do not duplicate existing tasks. This planning pass creates only the 104 requested files.
+
+## Completion evidence (2026-10-06)
+
+- Started from clean, synchronized `a1f8892a538b28286833205b3116ef4e9147802d` with the exact prerequisite audit done and 103 tasks pending.
+- Added FleetMission, four v1 mission types, seven lifecycle states, UTC/order/identity guards, private scalar setters and StateVersion (initial 0). Return is part of the same aggregate; accepted recall stays Returning until settlement produces terminal Recalled. Only Preparing can cancel.
+- Exact return/recall schedules and terminal settlements repeat without incrementing StateVersion; conflicting repeats, premature settlement, backward transitions and terminal mutations fail without changing state. StartOutbound/BeginProcessing repeats are rejected explicitly.
+- Added provider-independent EF scalar mapping, lifecycle indexes and a numeric concurrency token, plus FleetMissions DbSet. This is a conditional-claim seam, not relational race arbitration. No migration, SQL, gameplay services or legacy OrbitalTransfer changes.
+- Future recall policy (Z/AA) calculates elapsed-travel duration; this model accepts and validates the persisted return schedule. Arrival/return handlers must apply accounting effects atomically before calling Complete. Cancellation records its terminal timestamp in CompletedAtUtc.
+- Fresh restore and build passed (0 warnings, 0 errors); focused FleetMission tests: 93 passed, 0 failed, 0 skipped; full suite: 907 passed, 0 failed, 0 skipped. SQL smoke explicitly disabled; its passing early return is not live SQL evidence. EF InMemory coverage verifies mapping/round-trip only.
+- No integration tests configured. The integration hook remains an unadapted placeholder. Repository secret scan passed. No migration generation/application, SQL execution, seed or browser/manual QA.
+- Scope/diff checks passed: four expected implementation files plus this task lifecycle. The user explicitly waived the line limit during this task so the full required test coverage could be included; no follow-up tasks were needed.
+- All other 102 Block 51 tasks remain pending and unchanged. No Block 52, PR or next-task execution; stop after this task's commit/push.

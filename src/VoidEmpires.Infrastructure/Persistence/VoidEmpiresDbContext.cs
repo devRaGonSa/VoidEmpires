@@ -69,6 +69,8 @@ namespace VoidEmpires.Infrastructure.Persistence
 
         public DbSet<OrbitalTransfer> OrbitalTransfers => Set<OrbitalTransfer>();
 
+        public DbSet<FleetMission> FleetMissions => Set<FleetMission>();
+
         public DbSet<ExplorationMission> ExplorationMissions => Set<ExplorationMission>();
 
         public DbSet<ExplorationKnowledge> ExplorationKnowledge => Set<ExplorationKnowledge>();
