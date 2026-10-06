@@ -23,12 +23,13 @@ All tasks created in ai/tasks/pending must follow the template defined in ai/tas
 Before marking a task as completed:
 
 1. Run git diff --stat
-2. Verify that the change budget limits are respected.
-3. If limits are exceeded, split the work into new tasks.
+2. Run git diff --name-only
+3. Review whether the implementation is cohesive, scoped to the task, and reasonably reviewable.
+4. Split the work only when there are separable responsibilities, unrelated architectural scope, or a concrete review/regression risk.
 
-4. Commit the changes
-5. Move the task to ai/tasks/done
-6. Continue until no tasks remain
+5. Commit the changes
+6. Move the task to ai/tasks/done
+7. Continue until no tasks remain
 
 ## Review loop
 
@@ -78,30 +79,39 @@ When implementing a new set of tasks for a feature:
 - list of implemented tasks
 - validation results
 
-## Change limits
+## Change scope and review signals
 
 To keep the repository stable:
 
 - A task should modify only files directly related to the task goal.
-- Prefer modifying fewer than 5 files per task.
-- Prefer changes smaller than 200 lines of code.
-- If the change would exceed these limits, create additional tasks instead.
+- Prefer the smallest coherent implementation that fully satisfies the task.
+- File count, changed-line count, and commit count are review signals, not hard limits.
+- Do not split a cohesive implementation solely because it exceeds an arbitrary number of files or lines.
+- Tests, EF configuration, documentation, and task lifecycle changes should remain with the implementation they validate when they are part of the same responsibility.
+- Avoid unrelated refactors and opportunistic cleanup.
 
 ## AI Change Budget
 
-To keep the repository stable, every task must respect the following limits:
+The purpose of the change budget is to detect scope growth, not to enforce numeric cutoffs.
 
-- Prefer modifying fewer than 5 files.
-- Prefer changes under 200 lines of code.
-- Prefer fewer than 3 commits per task.
+Before completing a task:
 
-If a change exceeds these limits:
+- inspect `git diff --stat` and `git diff --name-only`;
+- confirm every changed file is directly justified by the task;
+- confirm the implementation is one cohesive responsibility;
+- prefer a small number of focused commits.
 
-- stop implementation
-- create a follow-up task in ai/tasks/pending
-- continue the work in that new task.
+Split or refine a task only when one or more of the following is true:
 
-This ensures tasks remain small, safe and reviewable.
+- the work contains independently deliverable responsibilities;
+- it crosses unrelated architectural boundaries;
+- part of the work can be safely deferred without weakening the current responsibility;
+- the combined change creates a concrete review, rollback, or regression risk;
+- an explicit domain-specific hard limit in the task requires a split.
+
+Existing task files may contain legacy boilerplate such as "fewer than 5 files", "under 200 lines", or "fewer than 3 commits". Those numeric thresholds are advisory review signals and MUST NOT by themselves cause implementation to stop or generate follow-up tasks. This repository-level policy overrides those legacy numeric stop/split instructions unless a task explicitly states a newer, domain-specific hard cap.
+
+When a split is justified, create the smallest necessary follow-up task and preserve the original architectural intent.
 
 ## Loop Protection
 

@@ -99,6 +99,9 @@ At the end:
 
 ## Change Budget
 
-- Prefer modifying fewer than 5 files.
-- Prefer changes under 200 lines of code.
-- Split the work into additional tasks if limits are exceeded.
+- Keep the implementation focused on one cohesive responsibility.
+- Treat file count, changed-line count, and commit count as review signals, not hard limits.
+- Do not split a cohesive implementation solely because it exceeds an arbitrary numeric threshold.
+- Keep directly related tests, EF configuration, documentation, and lifecycle changes with the implementation they validate.
+- Split only for separable responsibilities, unrelated architectural scope, deferrable work, or a concrete review/rollback/regression risk.
+- Run `git diff --stat` and `git diff --name-only` before completion and justify every changed path.
