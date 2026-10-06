@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Fleets;
 using VoidEmpires.Domain.Assets;
+using VoidEmpires.Domain.Colonization;
 using VoidEmpires.Domain.Fleets;
 using VoidEmpires.Infrastructure.Persistence;
 
@@ -15,9 +16,21 @@ public sealed class OrbitalStockGroupService(VoidEmpiresDbContext dbContext) : I
         if (request.CivilizationId == Guid.Empty ||
             request.OriginPlanetId == Guid.Empty ||
             request.CurrentPlanetId == Guid.Empty ||
+            request.OriginPlanetId != request.CurrentPlanetId ||
+            !Enum.IsDefined(request.AssetType) ||
             request.Quantity <= 0)
         {
             return CreateOrbitalGroupResult.Failure("Invalid request.");
+        }
+
+        var ownsPlanet = await dbContext.PlanetOwnerships.AnyAsync(x =>
+            x.PlanetId == request.OriginPlanetId &&
+            x.CivilizationId == request.CivilizationId &&
+            x.Status == PlanetControlStatus.Active,
+            cancellationToken);
+        if (!ownsPlanet)
+        {
+            return CreateOrbitalGroupResult.Failure("Planet is not owned by the requesting civilization.");
         }
 
         var stock = await dbContext.Set<OrbitalAssetStock>()

@@ -8,11 +8,20 @@ export interface FleetUiStateResponse {
 
 export interface FleetUiState {
   civilizationId: string;
+  selectedPlanetId?: string | null;
+  selectedPlanetName?: string | null;
+  planets?: FleetPlanetOption[];
+  localStock?: FleetOrbitalStock[];
+  stationedGroups?: FleetGroupSummary[];
+  activeMovementGroups?: FleetGroupSummary[];
   groups: FleetGroupSummary[];
   resourceContexts?: FleetResourceContext[];
   actionHints?: FleetActionHint[];
   interceptionNotes?: ReadinessNote[];
 }
+
+export interface FleetPlanetOption { planetId: string; planetName: string; isOwnedByRequestingCivilization: boolean; }
+export interface FleetOrbitalStock { assetType: string; quantity: number; }
 
 export interface FleetGroupSummary {
   id: string;

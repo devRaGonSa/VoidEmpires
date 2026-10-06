@@ -773,6 +773,56 @@ foreach ($fragment in $block53GroundArmyForbiddenFragments) {
   }
 }
 
+$block54FleetRequirements = @(
+  @{ Path = "src/VoidEmpires.Frontend/src/pages/FleetsPage.tsx"; Fragments = @("usePlayableRouteContext", "FleetSummary", "LocalOrbitalStockPanel", "StationedFleetList", "FleetMovementComposer", "ActiveFleetMovements", "createOrbitalGroup", "assetType: creationSelection.stock.assetType", "quantity: creationSelection.quantity", "estimateSnapshot", "estimateIsCurrent", "GameModal", "arrivalRefreshError", "Enviar flota") },
+  @{ Path = "src/VoidEmpires.Frontend/src/components/FleetCreationCard.tsx"; Fragments = @("production-action-row", 'min={1}', "Crear flota") },
+  @{ Path = "src/VoidEmpires.Frontend/src/components/FleetMovementComposer.tsx"; Fragments = @("Calcular ruta", "Revisar envio", "Seleccionar destino") },
+  @{ Path = "src/VoidEmpires.Frontend/src/components/ActiveFleetMovements.tsx"; Fragments = @("LiveQueueCountdown", "canCancelTransfer", "Tiempo hasta llegada", "Reintentar") },
+  @{ Path = "src/VoidEmpires.Frontend/src/api/voidEmpiresApi.ts"; Fragments = @("createOrbitalGroup(request", 'create-from-local-stock', 'planetId: request.planetId', 'quantity: request.quantity') },
+  @{ Path = "src/VoidEmpires.Frontend/src/components/LiveQueueCountdown.tsx"; Fragments = @("notifiedExpiryKeys", "formatQueueCountdown") }
+)
+$block54FleetForbiddenFragments = @(
+  "PlayableSessionBanner",
+  "PageContextStrip",
+  "Identificador de civilizacion",
+  "Entrada de vista",
+  "Seguridad operativa",
+  "Protecciones activas",
+  "Vista previa de mando",
+  "Movimiento pendiente de activacion",
+  "Estado desde Astillero",
+  "Que puede confirmar Flotas ahora mismo",
+  "Conceptos de mando",
+  "Fronteras orbitales futuras",
+  "Asignacion pendiente",
+  "Dividir y fusionar",
+  "Intercepcion y combate",
+  "splitOrbitalGroup",
+  "mergeOrbitalGroups"
+)
+
+foreach ($requirement in $block54FleetRequirements) {
+  $path = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\$($requirement.Path)"))
+  if (-not (Test-Path -LiteralPath $path)) { $copyHygieneFailures.Add("Missing Block 54 Fleet file '$($requirement.Path)'."); continue }
+  $content = Get-Content -LiteralPath $path -Raw
+  foreach ($fragment in $requirement.Fragments) {
+    if ($content -notlike "*$fragment*") { $copyHygieneFailures.Add("$($requirement.Path) is missing Block 54 Fleet fragment: $fragment") }
+  }
+}
+
+$fleetProductPaths = @(
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\pages\FleetsPage.tsx")),
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\components\FleetCreationCard.tsx")),
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\components\LocalOrbitalStockPanel.tsx")),
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\components\StationedFleetList.tsx")),
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\components\FleetMovementComposer.tsx")),
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\components\ActiveFleetMovements.tsx"))
+)
+foreach ($fragment in $block54FleetForbiddenFragments) {
+  $matches = Select-String -Path $fleetProductPaths -Pattern $fragment -SimpleMatch -CaseSensitive:$false
+  foreach ($match in @($matches)) { $copyHygieneFailures.Add("$($match.Path) contains removed or out-of-scope Block 54 fragment: $fragment") }
+}
+
 $countdownModulePath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\src\VoidEmpires.Frontend\src\utils\countdown.ts"))
 $countdownBehaviorCheck = @'
 import { pathToFileURL } from "node:url";
@@ -952,8 +1002,8 @@ $requiredSafetyCopy = @(
   @{
     Path = "src/VoidEmpires.Frontend/src/pages/FleetsPage.tsx"
     Fragments = @(
-      "La estimacion revisa una ruta sin reservar escuadras ni gastar recursos.",
-      "Flotas no promueve automaticamente stock orbital a grupo operativo."
+      "Crea flotas desde el stock orbital y gestiona movimientos entre planetas.",
+      "Revisa la ruta calculada antes de reservar y enviar la flota."
     )
   }
 )

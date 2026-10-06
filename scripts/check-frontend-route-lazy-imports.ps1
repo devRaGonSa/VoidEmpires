@@ -159,7 +159,7 @@ $routeGuardPages = @(
     },
     @{
         Path = "src/VoidEmpires.Frontend/src/pages/FleetsPage.tsx"
-        RequiredHelpers = @("buildPlanetUrl", "buildConstructionUrl", "buildShipyardUrl", "buildGalaxyUrl")
+        RequiredHelpers = @()
     },
     @{
         Path = "src/VoidEmpires.Frontend/src/pages/MarketPage.tsx"

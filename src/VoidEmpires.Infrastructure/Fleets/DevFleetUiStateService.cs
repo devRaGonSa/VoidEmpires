@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using VoidEmpires.Application.Fleets;
 using VoidEmpires.Application.StrategicMap;
 using VoidEmpires.Domain.Economy;
+using VoidEmpires.Domain.Colonization;
+using VoidEmpires.Domain.Assets;
 using VoidEmpires.Infrastructure.Persistence;
 using VoidEmpires.Infrastructure.StrategicMap;
 
@@ -25,6 +27,24 @@ public sealed class DevFleetUiStateService(
         var overview = await fleetOverviewService.GetAsync(
             new GetFleetOperationalOverviewRequest(request.CivilizationId),
             cancellationToken);
+        var ownedPlanetIds = await dbContext.PlanetOwnerships.AsNoTracking()
+            .Where(x => x.CivilizationId == request.CivilizationId && x.Status == PlanetControlStatus.Active)
+            .Select(x => x.PlanetId)
+            .ToListAsync(cancellationToken);
+        var selectedPlanetId = request.PlanetId is { } requestedPlanetId && ownedPlanetIds.Contains(requestedPlanetId)
+            ? requestedPlanetId
+            : ownedPlanetIds.FirstOrDefault();
+        var planets = await dbContext.Planets.AsNoTracking()
+            .OrderBy(x => x.Name)
+            .Select(x => new DevFleetUiPlanetDto(x.Id, x.Name, ownedPlanetIds.Contains(x.Id)))
+            .ToListAsync(cancellationToken);
+        List<DevFleetUiOrbitalStockDto> localStock = selectedPlanetId == Guid.Empty
+            ? []
+            : await dbContext.Set<OrbitalAssetStock>().AsNoTracking()
+                .Where(x => x.PlanetId == selectedPlanetId && x.Quantity > 0)
+                .OrderBy(x => x.AssetType)
+                .Select(x => new DevFleetUiOrbitalStockDto(x.AssetType, x.Quantity))
+                .ToListAsync(cancellationToken);
         var interceptionOpportunities = (await (interceptionOpportunityService ?? new InterceptionOpportunityService(
                 dbContext,
                 new MapVisibilityService(dbContext),
@@ -77,8 +97,8 @@ public sealed class DevFleetUiStateService(
                         x.ActiveTransfer.Id,
                         x.ActiveTransfer.DestinationPlanetId,
                         x.ActiveTransfer.AbstractDistanceUnits,
-                        x.ActiveTransfer.DepartureAtUtc,
-                        x.ActiveTransfer.ArrivalAtUtc,
+                        NormalizeUtc(x.ActiveTransfer.DepartureAtUtc),
+                        NormalizeUtc(x.ActiveTransfer.ArrivalAtUtc),
                         x.ActiveTransfer.Status,
                         interceptionOpportunities.GetValueOrDefault(x.ActiveTransfer.Id)),
                 new DevFleetUiCommandAvailabilityDto(
@@ -94,7 +114,15 @@ public sealed class DevFleetUiStateService(
             groups,
             resourceContexts,
             GetActionHints(),
-            CreateInterceptionNotes());
+            CreateInterceptionNotes())
+        {
+            SelectedPlanetId = selectedPlanetId == Guid.Empty ? null : selectedPlanetId,
+            SelectedPlanetName = planets.SingleOrDefault(x => x.PlanetId == selectedPlanetId)?.PlanetName,
+            Planets = planets,
+            LocalStock = localStock,
+            StationedGroups = groups.Where(x => x.CurrentPlanetId == selectedPlanetId && x.Status == VoidEmpires.Domain.Fleets.OrbitalGroupStatus.Stationed && !x.HasActiveTransfer).ToArray(),
+            ActiveMovementGroups = groups.Where(x => x.HasActiveTransfer).ToArray()
+        };
     }
 
     private IReadOnlyList<DevFleetUiActionHintDto> GetActionHints() => actionManifestService.Get().Actions
@@ -138,4 +166,7 @@ public sealed class DevFleetUiStateService(
         [
             new("Interception readiness is read-only metadata only; actual interception execution is not implemented.")
         ];
+
+    private static DateTime NormalizeUtc(DateTime value) =>
+        value.Kind == DateTimeKind.Utc ? value : DateTime.SpecifyKind(value, DateTimeKind.Utc);
 }
