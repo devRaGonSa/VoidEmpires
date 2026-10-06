@@ -3,7 +3,7 @@
 ---
 id: TASK-51A
 title: Fleet domain and existing system audit
-status: pending
+status: done
 type: platform
 team: platform
 supporting_teams: [gameplay]
@@ -110,3 +110,12 @@ Own task status/location metadata is also expected. Resolve proposed paths again
 
 - Prefer fewer than 5 implementation files, under 200 changed lines and fewer than 3 commits; count generated changes honestly.
 - Stop before exceeding budget and refine/split minimum follow-ups during implementation under AGENTS.md (at most 3 at once). Do not duplicate existing tasks. This planning pass creates only the 104 requested files.
+
+## Completion evidence (2026-10-06)
+
+- Audited synchronized HEAD `15df5e771ff9337e1ffc9731a3178d25cbe9805d`, containing merged Block 54/main `bcf2b530d7d5fa24c9c8a3f8a820cec0e4778557`; the planning context above remains historical.
+- Delivered `docs/dev/fleet-mission-engine-v1.md`: source/DI map, one mission authority, inventory/cargo ownership, legacy drain/cutover, product decisions and B-CZ integration route. No gameplay implementation.
+- Fresh `dotnet restore`, `dotnet build --no-restore` (0 warnings/errors) and `dotnet test --no-build`: 814 passed, 0 failed, 0 skipped. Restore/test permission failures were resolved by successful reruns with required permissions, without code changes.
+- SQL smoke explicitly disabled; its early-return test is counted as passing. No SQL or relational/concurrency validation claimed. No integration tests configured.
+- Repository secret scan passed. Diff stat/name/scope checks passed: only the audit and this exact task lifecycle, within the change budget.
+- No migrations/SQL/seed applied, no browser/manual QA, no PR. Other 103 Block 51 tasks remain pending and unchanged; no Block 52 created. Stop after this task.
