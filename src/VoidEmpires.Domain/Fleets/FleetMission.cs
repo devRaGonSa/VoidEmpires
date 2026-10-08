@@ -1,4 +1,5 @@
 using VoidEmpires.Domain.Assets;
+using VoidEmpires.Domain.Economy;
 
 namespace VoidEmpires.Domain.Fleets;
 
@@ -24,10 +25,16 @@ public enum FleetMissionStatus
 public sealed class FleetMission
 {
     private readonly List<FleetMissionShip> _ships = [];
+    private readonly List<FleetMissionCargo> _cargo = [];
 
-    private FleetMission() => Ships = _ships.AsReadOnly();
+    private FleetMission()
+    {
+        Ships = _ships.AsReadOnly();
+        Cargo = _cargo.AsReadOnly();
+    }
 
     public IReadOnlyCollection<FleetMissionShip> Ships { get; private set; }
+    public IReadOnlyCollection<FleetMissionCargo> Cargo { get; private set; }
 
     public Guid Id { get; private set; }
     public Guid CivilizationId { get; private set; }
@@ -86,6 +93,68 @@ public sealed class FleetMission
         IncrementVersion();
         if (existing is null) _ships.Add(addition);
         else existing.SetQuantity(total);
+    }
+
+    public void AddCargo(ResourceType resourceType, decimal amount)
+    {
+        FleetMissionCargo.ValidateResourceType(resourceType);
+        FleetMissionCargo.ValidateAmount(amount, true, nameof(amount));
+        // A valid zero request configures nothing, regardless of the current phase.
+        if (amount == 0) return;
+        Require(Status == FleetMissionStatus.Preparing, "Only preparing missions can load cargo.");
+        var existing = _cargo.SingleOrDefault(cargo => cargo.ResourceType == resourceType);
+        var total = checked((existing?.LoadedAmount ?? 0) + amount);
+        FleetMissionCargo.ValidateAmount(total, false, nameof(amount));
+        var addition = existing is null ? FleetMissionCargo.Create(Id, resourceType, amount) : null;
+        IncrementVersion();
+        if (existing is null) _cargo.Add(addition!);
+        else existing.SetLoadedAmount(total);
+    }
+
+    /// <summary>
+    /// Records a positive delta in Processing. Supply the previous delivered counter for each new installment.
+    /// Returns false when expected + amount is already the current counter; older/conflicting expectations fail.
+    /// The caller must persist any stockpile credit atomically with this versioned ledger change.
+    /// </summary>
+    public bool RecordCargoDelivered(ResourceType resourceType, decimal amount, decimal expectedDeliveredAmount = 0) =>
+        RecordCargoSettlement(resourceType, amount, expectedDeliveredAmount, false);
+
+    /// <summary>Same accounting precondition as delivery, using the returned counter, only in Returning.</summary>
+    public bool RecordCargoReturned(ResourceType resourceType, decimal amount, decimal expectedReturnedAmount = 0) =>
+        RecordCargoSettlement(resourceType, amount, expectedReturnedAmount, true);
+
+    private bool RecordCargoSettlement(ResourceType resourceType, decimal amount, decimal expectedAmount, bool returning)
+    {
+        Require(Status == (returning ? FleetMissionStatus.Returning : FleetMissionStatus.Processing),
+            "Cargo accounting is not allowed in this mission phase.");
+        FleetMissionCargo.ValidateResourceType(resourceType);
+        var cargo = _cargo.SingleOrDefault(row => row.ResourceType == resourceType)
+            ?? throw new InvalidOperationException("The mission has no cargo for this resource.");
+        var target = cargo.PrepareSettlement(amount, expectedAmount, returning);
+        if (target == (returning ? cargo.ReturnedAmount : cargo.DeliveredAmount)) return false;
+        IncrementVersion();
+        cargo.ApplySettlement(target, returning);
+        return true;
+    }
+
+    // Pure snapshot validation; N/O must supply fresh balances and I supplies fuel. Fuel is never a cargo row.
+    public void ValidateCargoAvailability(ResourceType resourceType, decimal availableAmount, decimal reservedFuelGas = 0)
+    {
+        FleetMissionCargo.ValidateResourceType(resourceType);
+        FleetMissionCargo.ValidateAmount(availableAmount, true, nameof(availableAmount));
+        FleetMissionCargo.ValidateAmount(reservedFuelGas, true, nameof(reservedFuelGas));
+        if (resourceType != ResourceType.Gas && reservedFuelGas != 0)
+            throw new ArgumentException("Reserved fuel applies only to Gas.", nameof(reservedFuelGas));
+        var loaded = _cargo.SingleOrDefault(cargo => cargo.ResourceType == resourceType)?.LoadedAmount ?? 0;
+        Require(checked(loaded + reservedFuelGas) <= availableAmount, "Insufficient resources for cargo and fuel.");
+    }
+
+    // J owns capacity calculation and unit conversion; these caller-supplied units are not resource amounts.
+    public static void ValidateCargoCapacity(decimal requiredCargoUnits, decimal availableCargoCapacityUnits)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(requiredCargoUnits);
+        ArgumentOutOfRangeException.ThrowIfNegative(availableCargoCapacityUnits);
+        Require(requiredCargoUnits <= availableCargoCapacityUnits, "Insufficient cargo capacity.");
     }
 
     public void StartOutbound()
