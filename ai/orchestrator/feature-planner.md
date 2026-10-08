@@ -24,20 +24,26 @@ Provide a repeatable planning scaffold for AI agents to turn a feature request i
 ## Output Format
 The planner output should include:
 1. Title
-2. Summary
-3. Implementation Changes
-4. Test Plan
-5. Assumptions and Defaults
+2. Detailed summary and rationale
+3. Current behavior / problem statement
+4. Desired behavior
+5. Architecture and dependency decisions
+6. Scope and non-goals
+7. Detailed implementation changes
+8. Edge cases and failure modes
+9. Test plan
+10. Assumptions, defaults, and intentionally deferred decisions
 
-Use concise Markdown with clear bullets and ordered steps. Keep it decision-complete so another engineer or agent can implement without guessing.
+Use structured, detailed Markdown. Do not optimize for brevity when that would remove implementation context. The output must be decision-complete so another engineer or agent can implement without guessing.
 
 ## Constraints
 - Follow the architecture and conventions of the current repository.
 - Do not modify unrelated files.
-- Keep each task focused and small.
-- Prefer changes under 5 files and under 200 lines when feasible.
-- Split large changes into follow-up tasks.
-- Prefer small commits.
+- Keep each task focused on one cohesive responsibility.
+- Treat file and line counts as review signals, not hard splitting limits.
+- Do not split a coherent implementation solely because it is long.
+- Split only for separable responsibilities, unrelated architectural boundaries, safely deferrable work, or concrete regression/review risk.
+- Prefer small, focused commits.
 
 ## Acceptance Checklist
 - The goal is clear and measurable.
@@ -65,10 +71,13 @@ Rules:
   - validation entrypoints such as scripts or CLI commands when relevant
 - Every generated task must include a section: `## Expected Files to Modify`
 - The planner should analyze the repository structure and predict which files are likely to change for the task
-- Each task should implement a single logical change
-- Prefer tasks under 200 lines of code
-- Prefer modifying fewer than 5 files per task
-- If core behavior is added or modified, create an additional task for tests when appropriate
+- Each task should implement one cohesive responsibility.
+- Generated task bodies must be detailed enough to preserve known product, architecture, lifecycle, persistence, error-handling, and validation decisions.
+- Do not create one-line Goals or generic three-step implementations when more specific requirements are known.
+- Prefer fewer, richer, implementation-ready tasks over many short tasks that fragment one responsibility.
+- File and changed-line counts are review signals only.
+- Keep tests with the behavior they validate when they are part of the same cohesive responsibility; do not create a separate test-only task merely to reduce task size.
+- Create a separate test task only when testing is independently deliverable or requires a genuinely separate environment/strategy.
 
 Task file naming:
 

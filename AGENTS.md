@@ -47,6 +47,27 @@ When no pending tasks exist:
 - Prefer small commits
 - Create or update tests when necessary
 
+## Task authoring quality
+
+Task files are implementation contracts, not short reminders.
+
+When creating or refining tasks:
+
+- Keep the title concise, but make the task body detailed, explicit, and decision-complete.
+- Do not use a one-line Goal such as "implement X" when the behavior, rationale, lifecycle, persistence, API, UI, or validation implications can be described.
+- The Goal should explain the intended end state and why the change exists.
+- The Context should explain current behavior, predecessor decisions, architectural boundaries, dependencies, and why this task is the next coherent slice.
+- Implementation steps must be concrete and ordered. Describe the expected data flow, invariants, state transitions, error handling, persistence behavior, integration points, and compatibility considerations when they apply.
+- Explicitly state in-scope and out-of-scope behavior so an implementation agent does not have to guess where the task ends.
+- Acceptance criteria must be observable and specific rather than generic statements such as "tests pass".
+- Include meaningful happy-path, edge-case, failure, regression, authorization, persistence, and idempotency expectations when relevant.
+- Identify the files/components that should be read first and the files that are expected to change, with enough explanation to show why they matter.
+- Preserve important decisions from completed predecessor tasks instead of forcing later agents to rediscover them.
+- Prefer a longer, well-structured task over a short task that leaves architectural or product decisions implicit.
+- Another competent engineer or agent should be able to implement the task from the task file plus the referenced repository sources without inventing missing requirements.
+
+Existing concise legacy tasks do not need mass rewriting solely for formatting. When one is about to be executed, enrich the execution instructions with the missing architectural context and implementation detail, while preserving its original scope and dependencies.
+
 ## Git workflow
 
 Before starting any task:
@@ -125,12 +146,14 @@ Rules:
 
 ## Execution Budget
 
-To control resource usage:
+To control resource usage without sacrificing task quality:
 
-- Prefer short prompts.
-- Avoid scanning the entire repository when not required.
-- Prefer incremental analysis.
-- Limit each planning or review step to the minimum context required.
+- Keep exploratory repository scanning targeted and incremental.
+- Avoid reading unrelated areas of the repository.
+- Planning and execution prompts may be long when necessary to make scope, architecture, invariants, and validation unambiguous.
+- Do not shorten task definitions or implementation instructions merely to save tokens.
+- Prefer relevant context over broad context: detailed does not mean indiscriminate.
+- Limit each planning or review step to the minimum repository surface required, while keeping the resulting task decision-complete.
 
 ## Integration Validation
 
