@@ -77,6 +77,28 @@ Conservation checks (BN/BO/CG) count each ship exactly once across free stock + 
 
 No blocker prevents this audit. Numeric speed/distance/fuel/capacity policy, slot counts, colony eligibility/bootstrap values and final unused-fuel treatment remain explicit implementation decisions for the tasks above. They must be documented and tested there before player activation; this audit does not silently choose balance numbers.
 
+## Finalized v1 galactic distance policy (TASK-51G)
+
+The distance balance choice left open by the original A audit is now fixed by `D/Fleets/GalacticDistanceCalculator.cs`. It is a pure Domain rule for the new FleetMission engine, not a change to the legacy transfer pipeline. `GalacticPlanetLocation` is an immutable snapshot of PlanetId, GalaxyId, SolarSystemId, the system's existing integer GalaxyCoordinates and OrbitalSlot. Future backend callers load Planet plus SolarSystem and supply those facts after their own authorization/visibility checks; rendered orbit radius/angle, pixels and sanitized map DTOs are not distance authority.
+
+The result is `GalacticDistanceResult(long DistanceUnits, GalacticDistanceScope Scope)`, with SameSystem or IntraGalaxy scope. Units are abstract **GalacticDistanceUnits**, not physical kilometres, AU or light years. Repeated calls with the same valid pair of snapshots yield identical results and reversing endpoints preserves both fields.
+
+| Route | Authoritative v1 formula | Constants |
+|---|---|---|
+| Same SolarSystemId | `ceil(abs(originSlot - destinationSlot) / 6)` | `OrbitalSlotsPerDistanceUnit = 6` |
+| Different systems, same GalaxyId | `1 + ceil((abs(dx) + abs(dy) + abs(dz)) / 10000)` | `InterSystemBaseDistanceUnits = 1`; `SystemCoordinateUnitsPerDistanceUnit = 10000` |
+| Different galaxies | Explicit `NotSupportedException`; no distance result | Cross-galaxy topology remains undefined |
+
+Same-system slot deltas 1/5/6 produce distance 1, 7/11/12 produce 2, and 13 produces 3. System coordinates only validate consistency in that branch. Inter-system spans 1/9999/10000 produce 2; 10001/20000 produce 3; 20001/30000 produce 4; 30001/40000 produce 5; 40001/42000 produce 6. Orbital slots are deliberately omitted from inter-system distance: the crossing base unit includes orbital ingress/egress at v1 scale, avoiding raw slot numbers distorting strategic movement.
+
+Both snapshots require nonempty planet/galaxy/system IDs and positive slots; signed XYZ values are valid. Reject the same planet regardless of other supplied location differences. Same-system snapshots must agree on galaxy and coordinates and use distinct slots; contradictory galaxy IDs on a shared system are invalid input, not a valid unsupported route. Different systems in the same galaxy must have distinct coordinates. Invalid/inconsistent snapshots throw argument validation exceptions; only a distinct-system cross-galaxy route reaches the unsupported-route branch.
+
+Widen each operand to `long` before subtraction and absolute value, use checked sums/final addition, and implement ceiling through quotient plus a nonzero-remainder increment. No floating point, square root, clock, random source or database ordering is involved. All int coordinates are supported: maximum axis delta 4,294,967,295, maximum XYZ span 12,884,901,885 and corresponding distance 1,288,492. Slots 1 and int.MaxValue produce distance 357,913,941. No artificial clamp or upper limit hides a distant route.
+
+`I/GalaxyGeneration/GalaxyGenerator.cs` currently generates unique X/Y coordinates in [-10000,10000] and Z in [-1000,1000]. Maximum theoretical generated span 42,000 yields 6, so valid generated inter-system routes lie within 2..6. Planet slots are sequential from 1 to the request-selected planet count, without a global 12-slot domain cap. This scale leaves nearby systems reachable under current catalog OperatingRange (Scout 3, Cargo 2, Escort 4, Colony 5) while some distant routes remain beyond current ships.
+
+G calculates distance only and does not read fleet composition, catalog range/speed, research, cargo or civilization state. F remains independent speed calculation; H combines distance and effective speed for time/arrival; I calculates fuel; J calculates cargo capacity; N applies range and complete launch eligibility. `OrbitalTravelEstimator.EstimateAbstractDistanceUnits` remains unchanged at 1 for legacy distinct-planet transfers, and Block 54 endpoints are not switched here. Later integration/cutover tasks must use this centralized policy for FleetMission without duplicating it in Infrastructure or frontend.
+
 ## Transactions, authorization and delivery boundaries
 
 Launch (O) must atomically claim a civilization-scoped idempotency key plus canonical payload, authorize/recheck ownership and visibility, arbitrate slots, debit ships/resources and persist mission/composition/cargo. Same key/same payload returns the existing mission; different payload conflicts. All reads needed for correctness must be protected or rechecked inside the transaction. A preliminary availability query is not a reservation.
