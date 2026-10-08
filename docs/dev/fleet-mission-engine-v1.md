@@ -99,6 +99,30 @@ Widen each operand to `long` before subtraction and absolute value, use checked 
 
 G calculates distance only and does not read fleet composition, catalog range/speed, research, cargo or civilization state. F remains independent speed calculation; H combines distance and effective speed for time/arrival; I calculates fuel; J calculates cargo capacity; N applies range and complete launch eligibility. `OrbitalTravelEstimator.EstimateAbstractDistanceUnits` remains unchanged at 1 for legacy distinct-planet transfers, and Block 54 endpoints are not switched here. Later integration/cutover tasks must use this centralized policy for FleetMission without duplicating it in Infrastructure or frontend.
 
+## Finalized v1 travel time policy (TASK-51H)
+
+`A/Fleets/FleetTravelTimeCalculator.cs` composes `GalacticDistanceResult` from G with `FleetSpeedResult.EffectiveSpeed` from F and an explicit backend UTC departure. Both calculator and immutable `FleetTravelTimeResult` belong in Application because F's result is an Application contract; Domain never references Application. No DI, database, catalog, research or planet query is involved.
+
+The named policy constants are `ReferenceSpeed = 100m`, `BaseSecondsPerDistanceUnitAtReferenceSpeed = 3600m` (60 minutes), and `MinimumTravelDurationSeconds = 1L`. Authoritative duration is:
+
+```text
+max(1, ceil(DistanceUnits * 3600m * 100m / EffectiveSpeed)) seconds
+ArrivalAtUtc = DepartureAtUtc + Duration
+```
+
+Checked decimal arithmetic and whole-second ceiling prevent truncation from producing an early deadline. Duration is constructed with integral ticks, never through float/double. Validate positive distance/effective speed, defined scope, non-null F result and `DateTimeKind.Utc` departure. Scope is retained without adding another multiplier. Reject decimal, TimeSpan and DateTime overflow with `OverflowException`; no wrapping or saturation. Exact maximum UTC arrival is valid, and every successful arrival is strictly later than departure with its UTC Kind and fractional departure ticks preserved.
+
+| Ship at default effective speed | One distance unit | Two units | Six units |
+|---|---|---|---|
+| Scout 120 | 50 minutes | 1h40m | 5h |
+| Escort 100 | 1 hour | 2h | 6h |
+| Cargo 80 | 1h15m | 2h30m | 7h30m |
+| Colony 60 | 1h40m | 3h20m | 10h |
+
+V1 introduces no manual mission-speed setting. Consume F's already-effective speed directly without applying propulsion twice; default modifier remains F's 1.0m and no research formula is invented. For example, a future trusted modifier 1.10 makes Cargo speed88, so distance3 takes 12273 seconds (3h24m33s) after ceiling.
+
+The sealed immutable result contains DistanceUnits, DistanceScope, EffectiveSpeed, DepartureAtUtc, Duration and ArrivalAtUtc. It is preview/launch evidence, not persistence. M/O supply authoritative server UTC and O persists the launch schedule/required metadata: active missions retain that snapshot after research changes. I owns fuel, N eligibility and O transactions; Z owns recall's elapsed-travel rule and retains positive return timing semantics. The legacy fixed-hour `OrbitalTravelEstimator` and existing movement pipeline remain untouched until their later gated cutover.
+
 ## Transactions, authorization and delivery boundaries
 
 Launch (O) must atomically claim a civilization-scoped idempotency key plus canonical payload, authorize/recheck ownership and visibility, arbitrate slots, debit ships/resources and persist mission/composition/cargo. Same key/same payload returns the existing mission; different payload conflicts. All reads needed for correctness must be protected or rechecked inside the transaction. A preliminary availability query is not a reservation.
